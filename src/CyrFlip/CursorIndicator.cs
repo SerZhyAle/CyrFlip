@@ -22,7 +22,7 @@ namespace CyrFlip
     {
         public event Action<string>? LayoutChanged;
 
-        private readonly Timer _timer = new Timer { Interval = 400 };
+        private readonly Timer _timer = new Timer { Interval = 150 };
         private string _last = "";
 
         public void Start()

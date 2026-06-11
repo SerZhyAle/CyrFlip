@@ -20,6 +20,7 @@ namespace CyrFlip
         private readonly CursorIndicator _indicator = new CursorIndicator();
         private readonly ClipboardHandler _clipboard = new ClipboardHandler();
         private readonly LayoutCursor _layoutCursor;
+        private readonly CaretOverlay _caretOverlay;
         private readonly NotifyIcon _tray;
         private readonly ToolStripMenuItem _autostartItem;
 
@@ -31,6 +32,7 @@ namespace CyrFlip
             _config = config;
             _hotkey = Hotkey.Parse(_config.Hotkey);
             _layoutCursor = new LayoutCursor(_config.CursorSize);
+            _caretOverlay = new CaretOverlay(_config.CursorSize);
 
             // SetSystemCursor is global — guarantee the default cursors are restored even
             // if the app is killed or throws.
@@ -64,13 +66,15 @@ namespace CyrFlip
 
             _hook.HotkeyPressed += OnHotkeyPressed;
             _hook.Install(_hotkey);
+            _caretOverlay.Start();
             _indicator.Start();
         }
 
         private void OnLayoutChanged(string code)
         {
-            // Main feature: mark the system text cursor with the active layout.
-            _layoutCursor.Apply(code);
+            // Main feature: mark the active layout where the user types.
+            _layoutCursor.Apply(code);   // the system text cursor (I-beam)
+            _caretOverlay.SetLayout(code); // a marker pinned next to the blinking caret
 
             // Secondary: reflect the layout in the tray icon + tooltip too.
             _tray.Text = $"CyrFlip — {code}  ({_hotkey.Display} to flip)";
@@ -133,6 +137,7 @@ namespace CyrFlip
                 _hook.Dispose();
                 _indicator.Dispose();
                 _layoutCursor.Dispose(); // restores the default system cursor
+                _caretOverlay.Dispose();
                 _tray.Visible = false;
                 _tray.Dispose();
                 _trayIcon?.Dispose();

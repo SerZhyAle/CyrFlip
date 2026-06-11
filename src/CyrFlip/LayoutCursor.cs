@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using System.Runtime.InteropServices;
 using static CyrFlip.WindowInterop;
 
 namespace CyrFlip
@@ -43,11 +44,27 @@ namespace CyrFlip
             {
                 _applied = true;
                 _current = code;
+                ForceCursorRefresh();
             }
             else
             {
                 DestroyCursor(hcur);
             }
+        }
+
+        /// <summary>
+        /// Nudge the OS to repaint the *currently shown* cursor. SetSystemCursor only swaps the
+        /// cursor resource; the on-screen image refreshes on the next WM_SETCURSOR, which fires on
+        /// mouse movement. A zero-delta mouse move forces that re-evaluation without moving the pointer.
+        /// </summary>
+        private static void ForceCursorRefresh()
+        {
+            var input = new INPUT
+            {
+                type = INPUT_MOUSE,
+                u = new InputUnion { mi = new MOUSEINPUT { dwFlags = MOUSEEVENTF_MOVE } },
+            };
+            SendInput(1, new[] { input }, Marshal.SizeOf(typeof(INPUT)));
         }
 
         /// <summary>Undo the replacement (reload default system cursors).</summary>

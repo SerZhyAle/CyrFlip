@@ -4,7 +4,7 @@
 
 CyrFlip is a tiny Windows tray tool with two jobs:
 
-1. **A layout-aware text cursor (the main feature).** While you type, your text cursor (the I-beam) carries a small marker showing the active keyboard layout — **EN / RU / UK** — so you always know which layout you're about to type in. It updates live as you switch layouts.
+1. **A live layout indicator where you type (the main feature).** A small **EN / RU / UK** marker rides both your mouse text cursor (the I-beam) **and the blinking text caret**, so you always know which layout you're about to type in — updated live as you switch. (The mouse cursor is often an arrow while typing, which is why the caret marker matters.)
 2. **One-key transliteration.** Text typed in the wrong layout can be flipped in place between QWERTY and ЙЦУКЕН (EN ↔ RU, UK planned) with a hotkey.
 
 ![CyrFlip's layout-aware text cursor showing EN, RU and UK](assets/cursor-preview.png)
