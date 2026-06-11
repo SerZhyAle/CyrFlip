@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip — інструкція (застосунок + розширення VS Code)</title>
+  <meta name="description" content="Покрокова інструкція: встановлення та використання застосунку CyrFlip для Windows разом із розширенням для VS Code, щоб маркер розкладки EN/RU/UK було видно всюди — зокрема точно біля каретки редактора." />
+  <meta property="og:title" content="CyrFlip — інструкція" />
+  <meta property="og:description" content="Встановлення та спільне використання CyrFlip і розширення для VS Code." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img class="banner" src="../assets/banner.png" alt="CyrFlip — інструкція" />
+      <nav class="langbar">
+        <a href="../guide.html">EN</a>
+        <a href="../ru/guide.html">RU</a>
+        <a href="guide.html" class="active">UK</a>
+      </nav>
+      <div class="cta">
+        <a class="btn" href="./">← Огляд</a>
+        <a class="btn primary" href="https://github.com/SerZhyAle/CyrFlip/releases">Завантажити</a>
+        <a class="btn" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </header>
+
+    <h1>Інструкція: застосунок + розширення для VS Code</h1>
+    <p class="tagline">CyrFlip складається з двох частин, що працюють разом. <strong>Застосунок</strong> визначає
+    розкладку клавіатури й показує її всюди; необов'язкове <strong>розширення для VS Code</strong> ставить той
+    самий маркер точно біля каретки редактора всередині VS Code. Нижче — як їх встановити та користуватися як одним цілим.</p>
+
+    <section>
+      <h2>Як пов'язані дві частини</h2>
+      <p>Застосунок — це «мозок»: він знає активну розкладку. Розширення — лише поверхня для відображення в
+      VS Code, бо VS Code малює власну каретку, позицію якої застосунок не може точно відстежити ззовні.</p>
+      <pre><code>  CyrFlip.exe (трей)               %LOCALAPPDATA%\CyrFlip\        Розширення VS Code
+  визначає EN / RU / UK    ──пише──▶      layout.txt      ──стежить──▶  малює маркер
+                                                                       біля каретки редактора</code></pre>
+      <p class="note"><strong>Застосунок має бути запущений</strong>, інакше розширенню нема що показувати —
+      воно лише читає те, що публікує застосунок. Без VS Code ви все одно отримуєте значок у треї, маркер на
+      курсорі миші та гарячу клавішу транслітерації всюди.</p>
+    </section>
+
+    <section>
+      <h2>Крок 1 — встановіть і запустіть застосунок CyrFlip</h2>
+      <p>Будь-який із варіантів:</p>
+      <ul class="features">
+        <li><strong>winget</strong> (після публікації):
+          <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
+        </li>
+        <li><strong>Переносний ZIP</strong> — завантажте зі
+          <a href="https://github.com/SerZhyAle/CyrFlip/releases">сторінки релізів</a>, розпакуйте будь-куди
+          та запустіть <code>CyrFlip.exe</code>. Встановлювати нічого не треба; працює на «голій» Windows 10/11.</li>
+      </ul>
+      <p>Після запуску CyrFlip сидить у <strong>системному треї</strong> (без вікна). Значок показує активну
+      розкладку (EN/RU/UK). Правий клік відкриває меню — гаряча клавіша «перевороту», перемикач
+      <strong>Start with Windows</strong> (автозапуск) і <strong>Exit</strong> (вихід).</p>
+      <p class="note">Увімкніть <strong>Start with Windows</strong>, щоб застосунок — а отже й маркер розкладки
+      всюди, включно з VS Code — був доступний одразу після перезавантаження.</p>
+    </section>
+
+    <section>
+      <h2>Крок 2 — встановіть розширення для VS Code</h2>
+      <p>Цей крок потрібен, лише якщо ви хочете маркер <em>точно біля каретки всередині VS Code</em>. Оберіть один спосіб:</p>
+      <ul class="features">
+        <li><strong>З Marketplace</strong> — відкрийте <em>Extensions</em>
+          (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd>), знайдіть <strong>CyrFlip</strong>
+          (видавець <em>SerZhyAle</em>) і натисніть <em>Install</em>.</li>
+        <li><strong>З файлу <code>.vsix</code></strong> — візьміть
+          <code>cyrflip-vscode-&lt;версія&gt;.vsix</code> з теки
+          <a href="https://github.com/SerZhyAle/CyrFlip/tree/main/vscode-extension">vscode-extension</a>,
+          потім у VS Code: <em>Extensions ▸ ⋯ ▸ Install from VSIX…</em>, або з термінала:
+          <pre><code>code --install-extension cyrflip-vscode-&lt;версія&gt;.vsix</code></pre>
+        </li>
+      </ul>
+      <p>Після встановлення виконайте <em>Developer: Reload Window</em>
+      (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>). Розширення запускається саме — налаштування не потрібне.</p>
+    </section>
+
+    <section>
+      <h2>Крок 3 — користуйтеся разом</h2>
+      <ol class="steps">
+        <li>Переконайтеся, що <strong>застосунок CyrFlip запущений</strong> (значок у треї показує EN/RU/UK).</li>
+        <li>Клацніть у <strong>редактор коду</strong> у VS Code і почніть друкувати. Перемкніть розкладку —
+          кольоровий маркер <code>EN</code>/<code>RU</code>/<code>UK</code> слідує за кареткою, а в рядку стану
+          видно <code>⌨ EN/RU/UK</code>.</li>
+        <li>Скрізь <strong>в інших місцях</strong> (інші застосунки, діалоги, робочий стіл) маркер їде на
+          курсорі-«балці» миші та на значку в треї — усе від того самого застосунку.</li>
+        <li>Набрали в неправильній розкладці? <strong>Виділіть</strong> і натисніть
+          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — CyrFlip транслітерує на місці
+          (QWERTY ↔ JCUKEN, EN ↔ RU). Працює в будь-якому застосунку, включно з VS Code.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Де показується розкладка</h2>
+      <table>
+        <tr><th>Поверхня</th><th>Хто показує</th><th>Де</th></tr>
+        <tr><td>Текстовий курсор миші (I-beam)</td><td>Застосунок</td><td>Усюди, де можна друкувати</td></tr>
+        <tr><td>Маркер поруч із кареткою</td><td>Застосунок</td><td>Класичні Win32 / UI-Automation поля</td></tr>
+        <tr><td>Маркер біля каретки редактора</td><td>Розширення</td><td>Редактори коду VS Code (точно)</td></tr>
+        <tr><td>Індикатор у рядку стану</td><td>Розширення</td><td>VS Code, у всьому вікні</td></tr>
+        <tr><td>Значок у треї</td><td>Застосунок</td><td>Завжди, в області сповіщень</td></tr>
+      </table>
+      <p class="note">Усередині VS Code <strong>webview-панелі та віджети</strong> — вбудований термінал, поля
+      пошуку, панелі чату, палітра команд — не можуть містити декорації редактора, тому маркер біля каретки там
+      не з'являється. Розкладку все одно показують індикатор у рядку стану та маркер на курсорі миші.</p>
+    </section>
+
+    <section>
+      <h2>Усунення проблем</h2>
+      <ul class="features">
+        <li><strong>Немає маркера у VS Code.</strong> Перевірте, що застосунок запущений, потім що файл
+          <code>%LOCALAPPDATA%\CyrFlip\layout.txt</code> існує і його вміст змінюється при зміні розкладки.
+          Індикатор у рядку стану — найшвидший спосіб переконатися, що розширення читає файл. Спробуйте
+          <em>Developer: Reload Window</em>.</li>
+        <li><strong>Маркер біля краю поля (не у VS Code).</strong> У редакторах на основі Monaco зовнішній оверлей
+          застосунку не може точно прочитати каретку — саме це й вирішує розширення, тож встановіть його.</li>
+        <li><strong>Курсор-«балка» миші лишився зміненим після жорсткого завершення.</strong> CyrFlip
+          відновлює системний курсор під час виходу; якщо процес знято примусово («Зняти завдання»),
+          запустіть CyrFlip знову або перезайдіть у систему, щоб відновити курсор.</li>
+        <li><strong>Гаряча клавіша не спрацьовує.</strong> Спершу виділіть текст і переконайтеся, що
+          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> не перехоплює інший інструмент. Клавішу можна
+          змінити у <code>config.json</code>.</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>Ліцензія MIT · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">Вихідний код на GitHub</a></p>
+    </footer>
+  </div>
+</body>
+</html>

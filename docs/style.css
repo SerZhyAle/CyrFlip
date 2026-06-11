@@ -125,6 +125,23 @@ kbd {
   font-size: 0.9em;
 }
 
+h1 { font-size: 1.7rem; line-height: 1.25; margin: 0 0 0.4rem; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+}
+th, td {
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+  vertical-align: top;
+}
+th { background: var(--panel); }
+td:first-child { font-weight: 600; }
+
 footer {
   margin-top: 3rem;
   text-align: center;

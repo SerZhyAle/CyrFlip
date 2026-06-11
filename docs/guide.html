@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip — setup guide (app + VS Code extension)</title>
+  <meta name="description" content="Step-by-step guide: install and use the CyrFlip Windows app together with its VS Code extension, so the EN/RU/UK layout marker appears everywhere — including at the editor caret." />
+  <meta property="og:title" content="CyrFlip — setup guide" />
+  <meta property="og:description" content="Install and use the CyrFlip app with the VS Code extension." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img class="banner" src="assets/banner.png" alt="CyrFlip — setup guide" />
+      <nav class="langbar">
+        <a href="guide.html" class="active">EN</a>
+        <a href="ru/guide.html">RU</a>
+        <a href="uk/guide.html">UK</a>
+      </nav>
+      <div class="cta">
+        <a class="btn" href="./">← Overview</a>
+        <a class="btn primary" href="https://github.com/SerZhyAle/CyrFlip/releases">Download</a>
+        <a class="btn" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </header>
+
+    <h1>Setup guide: the app + the VS Code extension</h1>
+    <p class="tagline">CyrFlip is two pieces that work together. The <strong>desktop app</strong> detects your
+    keyboard layout and shows it everywhere; the optional <strong>VS Code extension</strong> places the same
+    marker exactly at the editor caret inside VS Code. Here's how to set them up and use them as one.</p>
+
+    <section>
+      <h2>How the two pieces fit together</h2>
+      <p>The app is the brain — it knows the active layout. The extension is just a display surface for VS Code,
+      because VS Code draws its own caret that the app can't track precisely from the outside.</p>
+      <pre><code>  CyrFlip.exe (tray app)            %LOCALAPPDATA%\CyrFlip\        VS Code extension
+  detects EN / RU / UK   ──writes──▶      layout.txt      ──watches──▶  draws the marker
+                                                                        at the editor caret</code></pre>
+      <p class="note"><strong>The app must be running</strong> for the extension to show anything — the extension
+      only reads what the app publishes. Without VS Code you still get the tray icon, the mouse-cursor marker,
+      and the transliteration hotkey everywhere.</p>
+    </section>
+
+    <section>
+      <h2>Step 1 — Install and run the CyrFlip app</h2>
+      <p>Pick either option:</p>
+      <ul class="features">
+        <li><strong>winget</strong> (once published):
+          <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
+        </li>
+        <li><strong>Portable ZIP</strong> — download from the
+          <a href="https://github.com/SerZhyAle/CyrFlip/releases">Releases page</a>, extract anywhere, and run
+          <code>CyrFlip.exe</code>. Nothing to install; it runs on stock Windows 10/11.</li>
+      </ul>
+      <p>On launch, CyrFlip sits in the <strong>system tray</strong> (no window). The tray icon shows the active
+      layout (EN/RU/UK). Right-click it for the menu — the flip hotkey, a <strong>Start with Windows</strong>
+      toggle, and <strong>Exit</strong>.</p>
+      <p class="note">Turn on <strong>Start with Windows</strong> so the app — and therefore the layout marker
+      everywhere, including in VS Code — is always available after a reboot.</p>
+    </section>
+
+    <section>
+      <h2>Step 2 — Install the VS Code extension</h2>
+      <p>This step is only needed if you want the marker <em>exactly at the caret inside VS Code</em>. Choose one:</p>
+      <ul class="features">
+        <li><strong>From the Marketplace</strong> — open <em>Extensions</em> (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd>),
+          search <strong>CyrFlip</strong> (publisher <em>SerZhyAle</em>), and click <em>Install</em>.</li>
+        <li><strong>From a <code>.vsix</code> file</strong> — get
+          <code>cyrflip-vscode-&lt;version&gt;.vsix</code> from the
+          <a href="https://github.com/SerZhyAle/CyrFlip/tree/main/vscode-extension">vscode-extension</a> folder,
+          then in VS Code: <em>Extensions ▸ ⋯ ▸ Install from VSIX…</em>, or from a terminal:
+          <pre><code>code --install-extension cyrflip-vscode-&lt;version&gt;.vsix</code></pre>
+        </li>
+      </ul>
+      <p>After installing, run <em>Developer: Reload Window</em> (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>).
+      The extension activates on startup — no configuration needed.</p>
+    </section>
+
+    <section>
+      <h2>Step 3 — Use them together</h2>
+      <ol class="steps">
+        <li>Make sure the <strong>CyrFlip app is running</strong> (its tray icon shows EN/RU/UK).</li>
+        <li>Click into a <strong>code editor</strong> in VS Code and start typing. Switch your keyboard layout —
+          the coloured <code>EN</code>/<code>RU</code>/<code>UK</code> marker follows your caret, and the status
+          bar shows <code>⌨ EN/RU/UK</code>.</li>
+        <li>Everywhere <strong>else</strong> (other apps, dialogs, the desktop), the marker rides the mouse
+          I-beam cursor and the tray icon, driven by the same app.</li>
+        <li>Typed something in the wrong layout? <strong>Select it</strong> and press
+          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — CyrFlip transliterates it in place
+          (QWERTY ↔ JCUKEN, EN ↔ RU). This works in any app, VS Code included.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Where the layout shows up</h2>
+      <table>
+        <tr><th>Surface</th><th>Shown by</th><th>Where</th></tr>
+        <tr><td>Mouse text cursor (I-beam)</td><td>App</td><td>Everywhere you can type</td></tr>
+        <tr><td>Marker next to the text caret</td><td>App</td><td>Classic Win32 / UI-Automation text fields</td></tr>
+        <tr><td>Marker at the editor caret</td><td>Extension</td><td>VS Code code editors (precise)</td></tr>
+        <tr><td>Status-bar indicator</td><td>Extension</td><td>VS Code, everywhere in the window</td></tr>
+        <tr><td>Tray icon</td><td>App</td><td>Always, in the notification area</td></tr>
+      </table>
+      <p class="note">Inside VS Code, <strong>webviews and widgets</strong> — the integrated terminal, search
+      boxes, chat panels, the Command Palette — can't host editor decorations, so the caret marker can't appear
+      there. The status-bar indicator and the app's mouse-cursor marker still show the layout.</p>
+    </section>
+
+    <section>
+      <h2>Troubleshooting</h2>
+      <ul class="features">
+        <li><strong>No marker in VS Code.</strong> Confirm the app is running, then check that
+          <code>%LOCALAPPDATA%\CyrFlip\layout.txt</code> exists and its contents change when you switch layout.
+          The status-bar indicator is the quickest way to tell the extension is reading the file. Try
+          <em>Developer: Reload Window</em>.</li>
+        <li><strong>Marker sits at the edge of an input (not in VS Code).</strong> In Monaco-based editors the app's
+          external overlay can't read the caret precisely — that's exactly what the extension fixes, so install it.</li>
+        <li><strong>The I-beam mouse cursor stays changed after a hard kill.</strong> CyrFlip restores the system
+          cursor on exit; if the process is force-killed (<em>End task</em>), run CyrFlip again or sign out and
+          back in to restore it.</li>
+        <li><strong>Hotkey does nothing.</strong> Make sure text is selected first, and that no other tool grabs
+          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>. You can change the hotkey in <code>config.json</code>.</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>MIT licensed · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">Source on GitHub</a></p>
+    </footer>
+  </div>
+</body>
+</html>
