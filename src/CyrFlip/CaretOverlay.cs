@@ -131,15 +131,24 @@ namespace CyrFlip
                 if (selection == null || selection.Length == 0)
                     return false;
 
-                // Give the (usually collapsed) caret range a character of width so it has a rect.
+                // Collapse to the caret (the selection's end, where typing happens), then give it
+                // one character of width so it has a bounding rect.
                 TextPatternRange range = selection[0].Clone();
+                range.MoveEndpointByRange(TextPatternRangeEndpoint.Start, range, TextPatternRangeEndpoint.End);
                 range.ExpandToEnclosingUnit(TextUnit.Character);
                 var rects = range.GetBoundingRectangles();
                 if (rects.Length == 0)
                     return false;
 
-                var r = rects[rects.Length - 1]; // end of the range ≈ caret
-                x = (int)r.Right + 2;
+                var r = rects[0];
+                double h = r.Height > 0 ? r.Height : 16;
+                // A caret/char rect is narrow. A wide rect means we got a whole line or the text
+                // area (some controls report that for a collapsed caret) — unreliable, so skip it
+                // rather than draw the marker at the edge of the box.
+                if (r.Width > 4 * h)
+                    return false;
+
+                x = (int)r.Right + 2; // just past the caret
                 y = (int)r.Top;
                 return true;
             }
