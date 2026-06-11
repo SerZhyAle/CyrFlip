@@ -8,7 +8,7 @@ namespace CyrFlip
     /// <summary>
     /// Background app shell living in the notification area (system tray). Owns the keyboard
     /// hook, the layout indicator and the tray icon/menu, and runs the flip pipeline off the
-    /// hook on a dedicated STA thread.
+    /// hook on a dedicated background thread.
     ///
     /// Tray menu: a header showing the flip hotkey, a "Start with Windows" toggle, and Exit.
     /// </summary>
@@ -54,13 +54,18 @@ namespace CyrFlip
             menu.Items.Add(new ToolStripMenuItem("Exit", null, (_, _) => ExitThread()));
             menu.Opening += (_, _) => _autostartItem.Checked = Autostart.IsEnabled;
 
+            Icon initialIcon = TryGetAppIcon();
             _tray = new NotifyIcon
             {
-                Icon = TryGetAppIcon(),
+                Icon = initialIcon,
                 Text = "CyrFlip",
                 Visible = true,
                 ContextMenuStrip = menu,
             };
+            // Track it for disposal when the first layout icon replaces it — but never dispose
+            // the shared SystemIcons.Application.
+            if (initialIcon != SystemIcons.Application)
+                _trayIcon = initialIcon;
 
             _indicator.LayoutChanged += OnLayoutChanged;
 
@@ -98,9 +103,8 @@ namespace CyrFlip
                 finally { Interlocked.Exchange(ref _flipping, 0); }
             })
             {
-                IsBackground = true,
+                IsBackground = true, // Win32Clipboard is apartment-agnostic — no STA needed
             };
-            thread.SetApartmentState(ApartmentState.STA); // WinForms clipboard requires STA
             thread.Start();
         }
 

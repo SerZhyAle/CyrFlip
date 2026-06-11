@@ -126,7 +126,8 @@ namespace CyrFlip
             // Measure the marker text to size the canvas.
             using var font = new Font("Segoe UI", beamH * 0.6f, FontStyle.Bold, GraphicsUnit.Pixel);
             float markerW, markerH;
-            using (var probe = Graphics.FromImage(new Bitmap(1, 1)))
+            using (var probeBmp = new Bitmap(1, 1))
+            using (var probe = Graphics.FromImage(probeBmp))
             {
                 SizeF s = probe.MeasureString(code, font);
                 markerW = s.Width;

@@ -35,17 +35,22 @@ namespace CyrFlip
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN))
+            // A low-level hook proc must never throw — an exception here can drop the hook.
+            try
             {
-                var data = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
-
-                // Ignore our own synthesized input — never treat it as the hotkey.
-                if ((data.flags & LLKHF_INJECTED) == 0 && Matches(data.vkCode))
+                if (nCode >= 0 && (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN))
                 {
-                    HotkeyPressed?.Invoke(this, EventArgs.Empty);
-                    return (IntPtr)1; // swallow the trigger key so the app under focus never sees it
+                    var data = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
+
+                    // Ignore our own synthesized input — never treat it as the hotkey.
+                    if ((data.flags & LLKHF_INJECTED) == 0 && Matches(data.vkCode))
+                    {
+                        HotkeyPressed?.Invoke(this, EventArgs.Empty);
+                        return (IntPtr)1; // swallow the trigger key so the app under focus never sees it
+                    }
                 }
             }
+            catch { /* swallow — keep the hook alive */ }
 
             return CallNextHookEx(_hook, nCode, wParam, lParam);
         }

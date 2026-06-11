@@ -46,7 +46,7 @@ It runs in the **system tray** (icon also shows the layout; right-click menu = h
 
 Each class owns one concern (keep it this way — the spec prioritizes a minimal surface):
 
-- **Program.cs** — entry point (`[STAThread]` Main); sets up WinForms and runs `CyrFlipContext`.
+- **Program.cs** — entry point (`[STAThread]` Main). Enforces **single instance** via a named mutex (`Local\CyrFlipSingleInstance`) — a second copy would install a second hook and fight over the system cursor — then runs `CyrFlipContext`.
 - **CyrFlipContext.cs** — the tray app shell (`ApplicationContext`). Builds the tray `NotifyIcon` + menu (hotkey header, "Start with Windows", Exit), subscribes to layout changes, and on hotkey runs the flip **on a dedicated STA thread** (clipboard needs STA) guarded by an `Interlocked` flag against auto-repeat re-entry.
 - **KeyboardHook.cs** — `SetWindowsHookEx(WH_KEYBOARD_LL)` wrapper. The callback ignores injected events (`LLKHF_INJECTED`) so our own `SendInput` can't re-enter it, matches the chord via `GetAsyncKeyState`, raises `HotkeyPressed`, and returns `1` to **swallow** the trigger key.
 - **Hotkey.cs** — parses `"Ctrl+Shift+F12"` → modifiers + VK (+ named keys: Space/Enter/F1–F24/…); `Display` round-trips it. `Hotkey.Default` is **Ctrl+Shift+F12** (Ctrl+Shift+T was dropped — it conflicts with browser "reopen tab" and Windows text-extraction tools).
