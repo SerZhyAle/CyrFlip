@@ -136,8 +136,8 @@ namespace CyrFlip
                 using var bmp = new Bitmap(1, 1);
                 using var g = Graphics.FromImage(bmp);
                 SizeF s = g.MeasureString(_code.Length == 0 ? "EN" : _code, _font);
-                int padX = (int)Math.Round(_h * 0.38);
-                int padY = (int)Math.Round(_h * 0.16);
+                int padX = (int)Math.Round(_h * 0.20);
+                int padY = (int)Math.Round(_h * 0.12);
                 Size = new Size((int)Math.Ceiling(s.Width) + padX * 2, (int)Math.Ceiling(s.Height) + padY * 2);
 
                 // Rounded shape via a window region (opaque fill, no transparency-key fringe).
@@ -159,9 +159,6 @@ namespace CyrFlip
                 Graphics g = e.Graphics;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 g.TextRenderingHint = TextRenderingHint.AntiAlias;
-
-                using (var border = new Pen(LayoutStyle.ColorFor(_code), 1.5f))
-                    g.DrawRectangle(border, 0, 0, Width - 1, Height - 1); // clipped to the rounded region
 
                 LayoutStyle.DrawCode(g, _code, _font, new RectangleF(0, 0, Width, Height));
             }

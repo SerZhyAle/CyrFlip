@@ -133,8 +133,8 @@ namespace CyrFlip
                 markerH = s.Height;
             }
 
-            float gap = beamH * 0.22f;
-            float pillPadX = beamH * 0.16f;
+            float gap = beamH * 0.14f;
+            float pillPadX = beamH * 0.12f;
             float pillX = pad + serifW + gap;
             float pillW = markerW + pillPadX * 2f;
             int width = (int)Math.Ceiling(pillX + pillW) + pad;
@@ -156,10 +156,8 @@ namespace CyrFlip
                 var pill = new RectangleF(pillX, beamTop + (beamH - markerH) / 2f - beamH * 0.06f, pillW, markerH + beamH * 0.12f);
                 using (var pillPath = Rounded(pill, beamH * 0.22f))
                 using (var pillBg = new SolidBrush(Color.FromArgb(235, ColorTranslator.FromHtml("#11161f"))))
-                using (var border = new Pen(Color.FromArgb(235, LayoutStyle.ColorFor(code)), 1f))
                 {
                     g.FillPath(pillBg, pillPath);
-                    g.DrawPath(border, pillPath);
                 }
                 LayoutStyle.DrawCode(g, code, font, pill);
             }

@@ -243,16 +243,14 @@ namespace IconGen
 
             using var font = new Font("Segoe UI", beamH * 0.6f, FontStyle.Bold, GraphicsUnit.Pixel);
             SizeF sz = g.MeasureString(code, font);
-            float pillX = x + serifW / 2f + beamH * 0.22f;
-            float pillPad = beamH * 0.16f;
+            float pillX = x + serifW / 2f + beamH * 0.14f;
+            float pillPad = beamH * 0.12f;
             var pill = new RectangleF(pillX, yCenter - sz.Height / 2f - beamH * 0.04f, sz.Width + pillPad * 2f, sz.Height + beamH * 0.08f);
             Color codeColor = PreviewColor(code);
             using (var path = Rounded(pill, beamH * 0.22f))
             using (var bg = new SolidBrush(Color.FromArgb(235, ColorTranslator.FromHtml("#11161f"))))
-            using (var border = new Pen(codeColor, 1.5f))
             {
                 g.FillPath(bg, path);
-                g.DrawPath(border, path);
             }
             using (var glyph = new GraphicsPath())
             using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
