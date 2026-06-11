@@ -148,10 +148,12 @@ namespace CyrFlip
                 && gti.hwndCaret != IntPtr.Zero
                 && gti.rcCaret.Bottom - gti.rcCaret.Top > 0)
             {
-                var pt = new POINT { X = gti.rcCaret.Right, Y = gti.rcCaret.Top };
+                // Place the marker diagonally below-right of the caret so it never covers the
+                // text on the current line (e.g. when arrowing back through it).
+                var pt = new POINT { X = gti.rcCaret.Right, Y = gti.rcCaret.Bottom };
                 ClientToScreen(gti.hwndCaret, ref pt);
-                x = pt.X + 4;
-                y = pt.Y;
+                x = pt.X + 2;
+                y = pt.Y + 1;
                 return true;
             }
             return false;
@@ -188,8 +190,8 @@ namespace CyrFlip
                 if (r.Width > 4 * h)
                     return false;
 
-                x = (int)r.Right + 2; // just past the caret
-                y = (int)r.Top;
+                x = (int)r.Right + 2;     // diagonally below-right of the caret (see TrySystemCaret)
+                y = (int)r.Bottom + 1;
                 return true;
             }
             catch
