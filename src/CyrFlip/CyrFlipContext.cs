@@ -85,6 +85,7 @@ namespace CyrFlip
             // Main feature: mark the active layout where the user types.
             _layoutCursor.Apply(code);   // the system text cursor (I-beam)
             _caretOverlay.SetLayout(code); // a marker pinned next to the blinking caret
+            LayoutPublisher.Publish(code); // for the companion VS Code extension
 
             // Secondary: reflect the layout in the tray icon + tooltip too.
             _tray.Text = $"CyrFlip — {code}  ({_hotkey.Display} to flip)";

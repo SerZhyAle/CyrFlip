@@ -32,6 +32,13 @@ for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and c
 
 CyrFlip is a normal desktop app, not a Windows service: a global keyboard hook and the layout indicator must run in your interactive session, so "autostart" is a per-user startup entry rather than a service.
 
+## VS Code extension
+
+Inside VS Code the external marker can't track the caret precisely (Monaco draws its own caret).
+The companion extension in [vscode-extension/](vscode-extension/) reads the layout CyrFlip publishes
+and renders the marker **exactly at the editor caret**. CyrFlip must be running; see the extension's
+README to build or package it.
+
 ## Requirements
 
 - Windows 10 / 11 (x64)
@@ -60,7 +67,7 @@ Optional `config.json` (next to the exe, or in `%APPDATA%\CyrFlip\`):
 
 ## Known issues
 
-- **The caret marker doesn't appear in some apps.** CyrFlip locates the text caret via the Windows system caret or UI Automation. A few apps expose neither — chiefly **console/terminal windows** (Command Prompt, PowerShell, Windows Terminal) and the occasional app with custom-drawn text and weak UI Automation support. There the caret marker is hidden; the tray icon and mouse-cursor marker still show the layout. And in some editors (e.g. VS Code and other Monaco-based ones), UI Automation reports the caret position imprecisely, so the marker may appear toward the edge of the input rather than exactly at the caret.
+- **The caret marker doesn't appear in some apps.** CyrFlip locates the text caret via the Windows system caret or UI Automation. A few apps expose neither — chiefly **console/terminal windows** (Command Prompt, PowerShell, Windows Terminal) and the occasional app with custom-drawn text and weak UI Automation support. There the caret marker is hidden; the tray icon and mouse-cursor marker still show the layout. And in some editors (e.g. VS Code and other Monaco-based ones), UI Automation reports the caret position imprecisely, so the marker may appear toward the edge of the input rather than exactly at the caret — for VS Code, use the [companion extension](vscode-extension/), which places it exactly at the editor caret.
 - **The mouse text cursor (I-beam) can stay changed after a force-kill.** CyrFlip replaces the system I-beam globally and restores it on exit. If the process is killed hard (e.g. *End task* in Task Manager), Windows can't restore it until you run CyrFlip again or sign out and back in.
 - **Transliteration is EN ↔ RU only.** The layout indicator handles EN/RU/UK, but the one-key flip currently converts between QWERTY and ЙЦУКЕН; Ukrainian-specific letters aren't transliterated yet.
 - **The flip preserves only clipboard text.** Running a flip restores text clipboard contents, but not images or files.

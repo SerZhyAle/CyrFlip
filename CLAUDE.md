@@ -59,6 +59,11 @@ Each class owns one concern (keep it this way — the spec prioritizes a minimal
 - **Autostart.cs** — `HKCU\…\Run` toggle (per-user; not a service — see deviations).
 - **WindowInterop.cs** — all `[DllImport]`s + interop structs. The `INPUT` union includes `MOUSEINPUT` so `Marshal.SizeOf(INPUT)` matches the real struct on x64 (else `SendInput` silently fails).
 - **AppConfig.cs** — loads `config.json` from `%APPDATA%\CyrFlip\` (else beside the exe); defaults on missing/malformed.
+- **LayoutPublisher.cs** — writes the current layout code to `%LOCALAPPDATA%\CyrFlip\layout.txt` on every change, so the companion VS Code extension can place the marker at the editor caret (the external overlay can't track Monaco's caret reliably).
+
+## Companion VS Code extension (`vscode-extension/`)
+
+A small TypeScript extension (no native code). The app publishes the layout to a file; the extension reads it and renders the EN/RU/UK marker **exactly at Monaco's caret** via an `after` decoration whose CSS is absolutely-positioned (so it doesn't shift text) and outlined. This is the precise in-editor answer to the UIA-can't-find-the-caret problem in VS Code/Electron. Build with `npm install && npm run compile` (or `npx @vscode/vsce package`). Requires the CyrFlip app to be running.
 
 End-to-end flow: hotkey (KeyboardHook, UI thread) → `OnHotkeyPressed` spins an STA thread → ClipboardHandler.Flip (copy → TransliterationEngine → paste). CursorIndicator updates the tray icon independently on its timer.
 
