@@ -30,8 +30,8 @@ namespace CyrFlip
             Ctrl = ctrl; Shift = shift; Alt = alt; Win = win; Vk = vk; KeyName = keyName;
         }
 
-        /// <summary>The default hotkey, Ctrl+Shift+T.</summary>
-        public static Hotkey Default => new Hotkey(true, true, false, false, 0x54, "T");
+        /// <summary>The default hotkey, Ctrl+Shift+F12 (chosen to avoid common app conflicts).</summary>
+        public static Hotkey Default => new Hotkey(true, true, false, false, 0x7B, "F12");
 
         public string Display
         {

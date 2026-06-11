@@ -14,16 +14,16 @@ for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and c
 
 ## How it works
 
-1. A global low-level keyboard hook listens for the hotkey (default **Ctrl+Shift+T**).
+1. A global low-level keyboard hook listens for the hotkey (default **Ctrl+Shift+F12**).
 2. On trigger, the current selection is copied, transliterated, and pasted back.
 3. The tray icon tracks the active layout and updates live.
 
 ## Using CyrFlip
 
 - **Run it** — launch `CyrFlip.exe`. There's no window; it sits in the notification area (system tray). The icon shows the active keyboard layout (**EN/RU/UK**).
-- **Flip text** — select text typed in the wrong layout, press **Ctrl+Shift+T**, and it's replaced in place. Works in any app (Notepad, Word, browsers, …).
+- **Flip text** — select text typed in the wrong layout, press **Ctrl+Shift+F12**, and it's replaced in place. Works in any app (Notepad, Word, browsers, …).
 - **Tray menu** (right-click the icon):
-  - **Flip EN ⇄ RU: Ctrl+Shift+T** — shows the active flip hotkey.
+  - **Flip EN ⇄ RU: Ctrl+Shift+F12** — shows the active flip hotkey.
   - **Start with Windows** — toggle launching CyrFlip at sign-in (per-user; no admin needed).
   - **Exit** — quit.
 
@@ -52,7 +52,7 @@ dotnet test CyrFlip.sln
 Optional `config.json` (next to the exe, or in `%APPDATA%\CyrFlip\`):
 
 ```json
-{ "hotkey": "Ctrl+Shift+T", "layouts": ["EN", "RU"], "cursorSize": 24 }
+{ "hotkey": "Ctrl+Shift+F12", "layouts": ["EN", "RU"], "cursorSize": 24 }
 ```
 
 ## License

@@ -6,7 +6,7 @@ namespace CyrFlip.Tests
     public class HotkeyTests
     {
         [Fact]
-        public void ParsesDefaultCombo()
+        public void ParsesCtrlShiftLetterCombo()
         {
             var hk = Hotkey.Parse("Ctrl+Shift+T");
             Assert.True(hk.Ctrl);
@@ -15,6 +15,16 @@ namespace CyrFlip.Tests
             Assert.False(hk.Win);
             Assert.Equal(0x54, hk.Vk); // 'T'
             Assert.Equal("Ctrl+Shift+T", hk.Display);
+        }
+
+        [Fact]
+        public void DefaultIsCtrlShiftF12()
+        {
+            var hk = Hotkey.Default;
+            Assert.True(hk.Ctrl);
+            Assert.True(hk.Shift);
+            Assert.Equal(0x7B, hk.Vk); // F12
+            Assert.Equal("Ctrl+Shift+F12", hk.Display);
         }
 
         [Theory]
@@ -36,7 +46,7 @@ namespace CyrFlip.Tests
         public void FallsBackToDefaultWhenNoTriggerKey(string? input)
         {
             var hk = Hotkey.Parse(input);
-            Assert.Equal("Ctrl+Shift+T", hk.Display);
+            Assert.Equal("Ctrl+Shift+F12", hk.Display);
         }
 
         [Fact]

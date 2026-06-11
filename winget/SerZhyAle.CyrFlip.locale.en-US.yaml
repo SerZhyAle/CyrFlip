@@ -14,7 +14,7 @@ ShortDescription: Fix text typed on the wrong keyboard layout (EN ↔ RU / ЙЦ�
 Description: >-
   CyrFlip is a tiny background Windows tool that transliterates selected text between the
   QWERTY and ЙЦУКЕН keyboard layouts in place. Select the mangled text, press the hotkey
-  (default Ctrl+Shift+T), and it is corrected wherever you are typing. Its only UI is a
+  (default Ctrl+Shift+F12), and it is corrected wherever you are typing. Its only UI is a
   custom mouse cursor showing the active layout (EN/RU/UK). Ships as a single portable exe.
 Moniker: cyrflip
 Tags:

@@ -13,7 +13,7 @@ namespace CyrFlip
     /// </summary>
     internal sealed class AppConfig
     {
-        public string Hotkey { get; set; } = "Ctrl+Shift+T";
+        public string Hotkey { get; set; } = "Ctrl+Shift+F12";
         public string[] Layouts { get; set; } = { "EN", "RU" };
         public int CursorSize { get; set; } = 24;
 

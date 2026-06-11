@@ -40,7 +40,7 @@ Each class owns one concern (keep it this way — the spec prioritizes a minimal
 - **Program.cs** — entry point (`[STAThread]` Main); sets up WinForms and runs `CyrFlipContext`.
 - **CyrFlipContext.cs** — the tray app shell (`ApplicationContext`). Builds the tray `NotifyIcon` + menu (hotkey header, "Start with Windows", Exit), subscribes to layout changes, and on hotkey runs the flip **on a dedicated STA thread** (clipboard needs STA) guarded by an `Interlocked` flag against auto-repeat re-entry.
 - **KeyboardHook.cs** — `SetWindowsHookEx(WH_KEYBOARD_LL)` wrapper. The callback ignores injected events (`LLKHF_INJECTED`) so our own `SendInput` can't re-enter it, matches the chord via `GetAsyncKeyState`, raises `HotkeyPressed`, and returns `1` to **swallow** the trigger key.
-- **Hotkey.cs** — parses `"Ctrl+Shift+T"` → modifiers + VK (+ named keys: Space/Enter/F1–F24/…); `Display` round-trips it. `Hotkey.Default` is Ctrl+Shift+T.
+- **Hotkey.cs** — parses `"Ctrl+Shift+F12"` → modifiers + VK (+ named keys: Space/Enter/F1–F24/…); `Display` round-trips it. `Hotkey.Default` is **Ctrl+Shift+F12** (Ctrl+Shift+T was dropped — it conflicts with browser "reopen tab" and Windows text-extraction tools).
 - **CursorIndicator.cs** — polls the foreground window's layout (`GetKeyboardLayout` → EN/RU/UK) on a `Timer`, raises `LayoutChanged`, and renders the tray icon (`RenderIcon`, GDI → managed `Icon` via a PNG-payload .ico, no leaked HICON). *(Tray indicator, not a global cursor — see deviations above.)*
 - **TransliterationEngine.cs** — `static`; two `Dictionary<char,char>` (EN→RU, RU→EN). `Transliterate` auto-detects direction **per character**, so one pass fixes either direction and mixed text; case preserved; unmapped chars pass through. O(n).
 - **ClipboardHandler.cs** — the flip: back up clipboard → clean synthesized Ctrl+C (`SendInput`, releasing held modifiers first) → poll for the selection → transliterate → cancel if the foreground window changed → set clipboard → Ctrl+V → restore clipboard. Clipboard ops retry 3× on lock (spec §5.3). **Must run on an STA thread.**
@@ -73,7 +73,7 @@ Map case-insensitively but preserve case; pass through characters with no mappin
 
 Optional `config.json` (intended location: an AppData folder):
 ```json
-{ "hotkey": "Ctrl+Shift+T", "layouts": ["EN", "RU"], "cursorSize": 24 }
+{ "hotkey": "Ctrl+Shift+F12", "layouts": ["EN", "RU"], "cursorSize": 24 }
 ```
 
 ## Build, run, test
