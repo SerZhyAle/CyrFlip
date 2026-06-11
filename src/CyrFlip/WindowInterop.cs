@@ -110,9 +110,28 @@ namespace CyrFlip
             public ushort wParamH;
         }
 
-        // ---- Custom cursor (CursorIndicator.cs) ----
+        // ---- Custom cursor (LayoutCursor.cs / CursorIndicator.cs) ----
+        public const uint OCR_NORMAL = 32512; // arrow
+        public const uint OCR_IBEAM = 32513;  // text "I-beam" — the cursor shown while writing
+
+        public const uint SPI_SETCURSORS = 0x0057;
+        public const uint SPIF_SENDCHANGE = 0x02;
+
         [DllImport("user32.dll", SetLastError = true)]
         public static extern IntPtr CreateIconIndirect(ref ICONINFO iconInfo);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetIconInfo(IntPtr hIcon, out ICONINFO piconinfo);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetSystemCursor(IntPtr hcur, uint id);
+
+        // Restores all system cursors to their defaults (used to undo SetSystemCursor).
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, IntPtr pvParam, uint fWinIni);
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -121,6 +140,10 @@ namespace CyrFlip
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool DestroyIcon(IntPtr hIcon);
+
+        [DllImport("gdi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool DeleteObject(IntPtr hObject);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct ICONINFO

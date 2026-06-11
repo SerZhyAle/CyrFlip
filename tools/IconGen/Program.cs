@@ -47,6 +47,10 @@ namespace IconGen
             SavePng(DrawBanner(1280, 360), Path.Combine(docsAssets, "banner.png"));
             SavePng(DrawBanner(1280, 640), Path.Combine(assets, "social-preview.png"));
 
+            // --- Cursor preview (illustrative; the live cursor is LayoutCursor) ---
+            SavePng(DrawCursorPreview(560, 200), Path.Combine(assets, "cursor-preview.png"));
+            SavePng(DrawCursorPreview(560, 200), Path.Combine(docsAssets, "cursor-preview.png"));
+
             Console.WriteLine("Assets written to:");
             Console.WriteLine("  " + assets);
             Console.WriteLine("  " + docsAssets);
@@ -194,6 +198,65 @@ namespace IconGen
             g.DrawString(arrow, monoFont, accentBrush, x, y, center);
             x += g.MeasureString(arrow, monoFont).Width + h * 0.02f;
             Chip(to, accentBrush, ref x);
+        }
+
+        // --------------------------------------------------------- cursor preview
+
+        // Mirrors LayoutCursor.RenderCaret so we can eyeball the live cursor on light + dark.
+        private static Bitmap DrawCursorPreview(int w, int h)
+        {
+            var bmp = new Bitmap(w, h, PixelFormat.Format32bppArgb);
+            using var g = Graphics.FromImage(bmp);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = TextRenderingHint.AntiAlias;
+
+            using (var light = new SolidBrush(ColorTranslator.FromHtml("#e9edf1")))
+            using (var dark = new SolidBrush(ColorTranslator.FromHtml("#1c2530")))
+            {
+                g.FillRectangle(light, 0, 0, w / 2, h);
+                g.FillRectangle(dark, w / 2, 0, w - w / 2, h);
+            }
+
+            string[] codes = { "EN", "RU", "UK" };
+            for (int i = 0; i < codes.Length; i++)
+            {
+                float cx = w * (0.18f + i * 0.30f);
+                DrawCaret(g, cx, h / 2f, 56f, codes[i]);
+            }
+            return bmp;
+        }
+
+        private static void DrawCaret(Graphics g, float x, float yCenter, float beamH, string code)
+        {
+            float barW = beamH * 0.10f, serifW = beamH * 0.42f, serifH = beamH * 0.10f;
+            float top = yCenter - beamH / 2f;
+
+            void Beam(float bw, float sw, float sh, Color c)
+            {
+                using var b = new SolidBrush(c);
+                g.FillRectangle(b, x - bw / 2f, top, bw, beamH);
+                g.FillRectangle(b, x - sw / 2f, top, sw, sh);
+                g.FillRectangle(b, x - sw / 2f, top + beamH - sh, sw, sh);
+            }
+            Beam(barW + 2f, serifW + 2f, serifH + 2f, Color.FromArgb(230, Color.White));
+            Beam(barW, serifW, serifH, Color.Black);
+
+            using var font = new Font("Segoe UI", beamH * 0.6f, FontStyle.Bold, GraphicsUnit.Pixel);
+            SizeF sz = g.MeasureString(code, font);
+            float pillX = x + serifW / 2f + beamH * 0.22f;
+            float pillPad = beamH * 0.16f;
+            var pill = new RectangleF(pillX, yCenter - sz.Height / 2f - beamH * 0.04f, sz.Width + pillPad * 2f, sz.Height + beamH * 0.08f);
+            using (var path = Rounded(pill, beamH * 0.22f))
+            using (var bg = new SolidBrush(Color.FromArgb(235, ColorTranslator.FromHtml("#11161f"))))
+            using (var border = new Pen(ColorTranslator.FromHtml("#4493f8"), 1.5f))
+            {
+                g.FillPath(bg, path);
+                g.DrawPath(border, path);
+            }
+            using (var text = new SolidBrush(Color.White))
+            {
+                g.DrawString(code, font, text, pillX + pillPad, pill.Y + beamH * 0.04f);
+            }
         }
 
         // ----------------------------------------------------------------- util

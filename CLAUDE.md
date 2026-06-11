@@ -17,11 +17,16 @@ Note: the empty `dev/` directory predates the scaffold and is unused — code li
 
 ## What CyrFlip is
 
-A background Windows tool that transliterates selected text between keyboard layouts (EN ↔ RU, UK optional) when the user mistypes on the wrong layout. Workflow on hotkey: capture selection → transliterate → paste back. It lives in the **system tray**; the tray icon shows the active layout (EN/RU/UK) and its right-click menu shows the flip hotkey, a "Start with Windows" toggle, and Exit.
+Per the user, the product has **two features, in priority order**:
 
-**Two deliberate deviations from the spec, both documented in code:**
-- **Tray indicator, not a global cursor.** The spec describes replacing the mouse cursor system-wide. That needs `SetSystemCursor` (global, must be restored even on crash) and is invasive/risky; v1 renders the EN/RU/UK label into the **tray icon** instead (`CursorIndicator.RenderIcon`). Revisit if a true cursor overlay is wanted (a layered topmost window following the mouse is the safer route than `SetSystemCursor`).
-- **Tray app, not a Windows service.** A global `WH_KEYBOARD_LL` hook and the active-window/layout APIs only work in the user's interactive desktop session; a service runs in session 0 with no desktop, so AUTO/MANUAL service start types don't apply. "Autostart" is therefore a per-user `HKCU\…\Run` entry (`Autostart.cs`).
+1. **Headline: a layout-aware text cursor.** While writing, the system **I-beam** cursor is replaced with a caret carrying the active keyboard-layout marker (EN/RU/UK), updated live as the layout changes. Implemented in `LayoutCursor` via `SetSystemCursor(OCR_IBEAM)`.
+2. **Secondary: the transliteration flip.** A global hotkey copies the selection, transliterates EN↔RU (QWERTY↔ЙЦУКЕН), and pastes it back.
+
+It runs in the **system tray** (icon also shows the layout; right-click menu = hotkey display, "Start with Windows", Exit).
+
+**On the cursor (important):** `SetSystemCursor` is **global** — it changes every app's I-beam until restored. The default cursors are reloaded (`SystemParametersInfo(SPI_SETCURSORS)`) on `Dispose`, `Application.ApplicationExit`, `AppDomain.ProcessExit`, and `UnhandledException` (see `LayoutCursor.ForceRestore`). The one unavoidable gap is a hard `TerminateProcess` (kill), which no in-process handler can catch — the custom I-beam would then persist until the app runs again or the next sign-in. Only `OCR_IBEAM` is replaced (not the arrow), matching "during writing".
+
+**One deliberate deviation from the spec:** **tray app, not a Windows service.** A global `WH_KEYBOARD_LL` hook and the active-window/layout APIs only work in the user's interactive desktop session; a service runs in session 0 with no desktop, so AUTO/MANUAL service start types don't apply. "Autostart" is therefore a per-user `HKCU\…\Run` entry (`Autostart.cs`).
 
 ## Tech stack & hard constraints
 
@@ -41,7 +46,8 @@ Each class owns one concern (keep it this way — the spec prioritizes a minimal
 - **CyrFlipContext.cs** — the tray app shell (`ApplicationContext`). Builds the tray `NotifyIcon` + menu (hotkey header, "Start with Windows", Exit), subscribes to layout changes, and on hotkey runs the flip **on a dedicated STA thread** (clipboard needs STA) guarded by an `Interlocked` flag against auto-repeat re-entry.
 - **KeyboardHook.cs** — `SetWindowsHookEx(WH_KEYBOARD_LL)` wrapper. The callback ignores injected events (`LLKHF_INJECTED`) so our own `SendInput` can't re-enter it, matches the chord via `GetAsyncKeyState`, raises `HotkeyPressed`, and returns `1` to **swallow** the trigger key.
 - **Hotkey.cs** — parses `"Ctrl+Shift+F12"` → modifiers + VK (+ named keys: Space/Enter/F1–F24/…); `Display` round-trips it. `Hotkey.Default` is **Ctrl+Shift+F12** (Ctrl+Shift+T was dropped — it conflicts with browser "reopen tab" and Windows text-extraction tools).
-- **CursorIndicator.cs** — polls the foreground window's layout (`GetKeyboardLayout` → EN/RU/UK) on a `Timer`, raises `LayoutChanged`, and renders the tray icon (`RenderIcon`, GDI → managed `Icon` via a PNG-payload .ico, no leaked HICON). *(Tray indicator, not a global cursor — see deviations above.)*
+- **CursorIndicator.cs** — polls the foreground window's layout (`GetKeyboardLayout` → EN/RU/UK) on a `Timer` and raises `LayoutChanged`; also renders the tray icon (`RenderIcon`, GDI → managed `Icon` via a PNG-payload .ico, no leaked HICON). This `LayoutChanged` event drives both the tray icon and the `LayoutCursor`.
+- **LayoutCursor.cs** *(headline feature)* — renders the caret + EN/RU/UK marker to a `Bitmap`, turns it into a color cursor with a hotspot (`GetHicon` → `GetIconInfo` → `CreateIconIndirect` with `fIcon=false`), and installs it via `SetSystemCursor(OCR_IBEAM)`. `Restore`/`ForceRestore` reload default cursors. Scaled by `config.cursorSize`.
 - **TransliterationEngine.cs** — `static`; two `Dictionary<char,char>` (EN→RU, RU→EN). `Transliterate` auto-detects direction **per character**, so one pass fixes either direction and mixed text; case preserved; unmapped chars pass through. O(n).
 - **ClipboardHandler.cs** — the flip: back up clipboard → clean synthesized Ctrl+C (`SendInput`, releasing held modifiers first) → poll for the selection → transliterate → cancel if the foreground window changed → set clipboard → Ctrl+V → restore clipboard. Clipboard ops retry 3× on lock (spec §5.3). **Must run on an STA thread.**
 - **Autostart.cs** — `HKCU\…\Run` toggle (per-user; not a service — see deviations).

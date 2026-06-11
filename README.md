@@ -2,10 +2,12 @@
 
 # CyrFlip
 
-CyrFlip is a tiny background Windows tool that fixes text typed on the wrong keyboard
-layout. Select the mangled text, press the hotkey, and CyrFlip transliterates it between
-QWERTY and ЙЦУКЕН (EN ↔ RU, with UK planned) in place. It lives in the system tray, and
-its icon shows the active layout (EN/RU/UK).
+CyrFlip is a tiny Windows tray tool with two jobs:
+
+1. **A layout-aware text cursor (the main feature).** While you type, your text cursor (the I-beam) carries a small marker showing the active keyboard layout — **EN / RU / UK** — so you always know which layout you're about to type in. It updates live as you switch layouts.
+2. **One-key transliteration.** Text typed in the wrong layout can be flipped in place between QWERTY and ЙЦУКЕН (EN ↔ RU, UK planned) with a hotkey.
+
+![CyrFlip's layout-aware text cursor showing EN, RU and UK](assets/cursor-preview.png)
 
 ## Status
 
@@ -14,9 +16,10 @@ for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and c
 
 ## How it works
 
-1. A global low-level keyboard hook listens for the hotkey (default **Ctrl+Shift+F12**).
-2. On trigger, the current selection is copied, transliterated, and pasted back.
-3. The tray icon tracks the active layout and updates live.
+1. CyrFlip watches the active keyboard layout and replaces the system **text cursor** with a caret that shows the layout marker (EN/RU/UK). The same marker also appears on the tray icon.
+2. A global low-level keyboard hook listens for the flip hotkey (default **Ctrl+Shift+F12**); on trigger, the selection is copied, transliterated, and pasted back.
+
+> The cursor change is system-wide (`SetSystemCursor`) and is restored when CyrFlip exits. Only the text I-beam is changed, not the normal arrow pointer.
 
 ## Using CyrFlip
 
