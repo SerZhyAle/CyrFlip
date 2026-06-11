@@ -5,7 +5,7 @@
 CyrFlip is a tiny Windows tray tool with two jobs:
 
 1. **A live layout indicator where you type (the main feature).** A small **EN / RU / UK** marker rides both your mouse text cursor (the I-beam) **and the blinking text caret**, so you always know which layout you're about to type in — updated live as you switch. (The mouse cursor is often an arrow while typing, which is why the caret marker matters.)
-2. **One-key transliteration.** Text typed in the wrong layout can be flipped in place between QWERTY and JCUKEN (EN ↔ RU, UK planned) with a hotkey.
+2. **One-key transliteration.** Text typed in the wrong layout can be flipped in place between QWERTY and ЙЦУКЕН (EN ↔ RU, UK planned) with a hotkey.
 
 ![CyrFlip's layout-aware text cursor showing EN, RU and UK](assets/cursor-preview.png)
 
@@ -81,7 +81,7 @@ Optional `config.json` (next to the exe, or in `%APPDATA%\CyrFlip\`):
 
 - **The caret marker doesn't appear in some apps.** CyrFlip locates the text caret via the Windows system caret or UI Automation. A few apps expose neither — chiefly **console/terminal windows** (Command Prompt, PowerShell, Windows Terminal) and the occasional app with custom-drawn text and weak UI Automation support. There the caret marker is hidden; the tray icon and mouse-cursor marker still show the layout. And in some editors (e.g. VS Code and other Monaco-based ones), UI Automation reports the caret position imprecisely, so the marker may appear toward the edge of the input rather than exactly at the caret — for VS Code, use the [companion extension](vscode-extension/), which places it exactly at the editor caret.
 - **The mouse text cursor (I-beam) can stay changed after a force-kill.** CyrFlip replaces the system I-beam globally and restores it on exit. If the process is killed hard (e.g. *End task* in Task Manager), Windows can't restore it until you run CyrFlip again or sign out and back in.
-- **Transliteration is EN ↔ RU only.** The layout indicator handles EN/RU/UK, but the one-key flip currently converts between QWERTY and JCUKEN; Ukrainian-specific letters aren't transliterated yet.
+- **Transliteration is EN ↔ RU only.** The layout indicator handles EN/RU/UK, but the one-key flip currently converts between QWERTY and ЙЦУКЕН; Ukrainian-specific letters aren't transliterated yet.
 - **The flip preserves only clipboard text.** Running a flip restores text clipboard contents, but not images or files.
 
 ## License
