@@ -246,16 +246,33 @@ namespace IconGen
             float pillX = x + serifW / 2f + beamH * 0.22f;
             float pillPad = beamH * 0.16f;
             var pill = new RectangleF(pillX, yCenter - sz.Height / 2f - beamH * 0.04f, sz.Width + pillPad * 2f, sz.Height + beamH * 0.08f);
+            Color codeColor = PreviewColor(code);
             using (var path = Rounded(pill, beamH * 0.22f))
             using (var bg = new SolidBrush(Color.FromArgb(235, ColorTranslator.FromHtml("#11161f"))))
-            using (var border = new Pen(ColorTranslator.FromHtml("#4493f8"), 1.5f))
+            using (var border = new Pen(codeColor, 1.5f))
             {
                 g.FillPath(bg, path);
                 g.DrawPath(border, path);
             }
-            using (var text = new SolidBrush(Color.White))
+            using (var glyph = new GraphicsPath())
+            using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
             {
-                g.DrawString(code, font, text, pillX + pillPad, pill.Y + beamH * 0.04f);
+                glyph.AddString(code, font.FontFamily, (int)FontStyle.Bold, font.Size, pill, sf);
+                using var outline = new Pen(Color.Black, Math.Max(2f, font.Size * 0.16f)) { LineJoin = LineJoin.Round };
+                using var fill = new SolidBrush(codeColor);
+                g.DrawPath(outline, glyph);
+                g.FillPath(fill, glyph);
+            }
+        }
+
+        private static Color PreviewColor(string code)
+        {
+            switch (code)
+            {
+                case "EN": return ColorTranslator.FromHtml("#4DA3FF");
+                case "RU": return ColorTranslator.FromHtml("#FF5A5A");
+                case "UK": return ColorTranslator.FromHtml("#5AD86A");
+                default: return ColorTranslator.FromHtml("#CCCCCC");
             }
         }
 

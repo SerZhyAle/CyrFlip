@@ -160,12 +160,10 @@ namespace CyrFlip
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 g.TextRenderingHint = TextRenderingHint.AntiAlias;
 
-                using (var border = new Pen(ColorTranslator.FromHtml("#4493f8"), 1.5f))
+                using (var border = new Pen(LayoutStyle.ColorFor(_code), 1.5f))
                     g.DrawRectangle(border, 0, 0, Width - 1, Height - 1); // clipped to the rounded region
 
-                using var text = new SolidBrush(Color.White);
-                using var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                g.DrawString(_code, _font, text, new RectangleF(0, 0, Width, Height), fmt);
+                LayoutStyle.DrawCode(g, _code, _font, new RectangleF(0, 0, Width, Height));
             }
 
             protected override void Dispose(bool disposing)

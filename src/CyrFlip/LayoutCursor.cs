@@ -156,15 +156,12 @@ namespace CyrFlip
                 var pill = new RectangleF(pillX, beamTop + (beamH - markerH) / 2f - beamH * 0.06f, pillW, markerH + beamH * 0.12f);
                 using (var pillPath = Rounded(pill, beamH * 0.22f))
                 using (var pillBg = new SolidBrush(Color.FromArgb(235, ColorTranslator.FromHtml("#11161f"))))
-                using (var border = new Pen(Color.FromArgb(235, ColorTranslator.FromHtml("#4493f8")), 1f))
+                using (var border = new Pen(Color.FromArgb(235, LayoutStyle.ColorFor(code)), 1f))
                 {
                     g.FillPath(pillBg, pillPath);
                     g.DrawPath(border, pillPath);
                 }
-                using (var text = new SolidBrush(Color.White))
-                {
-                    g.DrawString(code, font, text, pillX + pillPadX, pill.Y + beamH * 0.02f);
-                }
+                LayoutStyle.DrawCode(g, code, font, pill);
             }
 
             // Hotspot sits on the I-beam (where the text caret would be).

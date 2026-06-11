@@ -87,9 +87,7 @@ namespace CyrFlip
                 }
 
                 using var font = new Font("Segoe UI", code.Length >= 2 ? 14f : 16f, FontStyle.Bold, GraphicsUnit.Pixel);
-                using var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                using var ink = new SolidBrush(ColorTranslator.FromHtml("#4493f8"));
-                g.DrawString(code, font, ink, tile, fmt);
+                LayoutStyle.DrawCode(g, code, font, tile);
             }
 
             return IconFromBitmap(bmp);
