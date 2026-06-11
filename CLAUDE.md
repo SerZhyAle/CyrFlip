@@ -85,7 +85,7 @@ Map case-insensitively but preserve case; pass through characters with no mappin
 
 Optional `config.json` (intended location: an AppData folder):
 ```json
-{ "hotkey": "Ctrl+Shift+F12", "layouts": ["EN", "RU"], "cursorSize": 24 }
+{ "hotkey": "Ctrl+Shift+F12", "cursorSize": 24 }
 ```
 
 ## Build, run, test

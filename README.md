@@ -55,7 +55,7 @@ dotnet test CyrFlip.sln
 Optional `config.json` (next to the exe, or in `%APPDATA%\CyrFlip\`):
 
 ```json
-{ "hotkey": "Ctrl+Shift+F12", "layouts": ["EN", "RU"], "cursorSize": 24 }
+{ "hotkey": "Ctrl+Shift+F12", "cursorSize": 24 }
 ```
 
 ## Known issues

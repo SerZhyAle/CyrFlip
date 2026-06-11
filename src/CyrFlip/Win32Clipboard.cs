@@ -27,6 +27,7 @@ namespace CyrFlip
         [DllImport("kernel32.dll", SetLastError = true)] private static extern IntPtr GlobalFree(IntPtr hMem);
         [DllImport("kernel32.dll", SetLastError = true)] private static extern IntPtr GlobalLock(IntPtr hMem);
         [DllImport("kernel32.dll", SetLastError = true)] private static extern bool GlobalUnlock(IntPtr hMem);
+        [DllImport("kernel32.dll", SetLastError = true)] private static extern UIntPtr GlobalSize(IntPtr hMem);
 
         /// <summary>Read clipboard text. Returns true on a clean access (text may be empty).</summary>
         public static bool TryGetText(out string text)
@@ -43,7 +44,17 @@ namespace CyrFlip
                 IntPtr ptr = GlobalLock(handle);
                 if (ptr == IntPtr.Zero)
                     return false;
-                try { text = Marshal.PtrToStringUni(ptr) ?? string.Empty; }
+                try
+                {
+                    // Bound the read by the allocated size rather than trusting null-termination,
+                    // then trim at the first null (the rest is allocation padding).
+                    int maxChars = (int)(GlobalSize(handle).ToUInt64() / sizeof(char));
+                    if (maxChars <= 0)
+                        return true; // empty
+                    string raw = Marshal.PtrToStringUni(ptr, maxChars) ?? string.Empty;
+                    int nul = raw.IndexOf('\0');
+                    text = nul >= 0 ? raw.Substring(0, nul) : raw;
+                }
                 finally { GlobalUnlock(handle); }
                 return true;
             }

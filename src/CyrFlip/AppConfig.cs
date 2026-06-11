@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Web.Script.Serialization;
 
 namespace CyrFlip
@@ -14,7 +12,6 @@ namespace CyrFlip
     internal sealed class AppConfig
     {
         public string Hotkey { get; set; } = "Ctrl+Shift+F12";
-        public string[] Layouts { get; set; } = { "EN", "RU" };
         public int CursorSize { get; set; } = 24;
 
         /// <summary>
@@ -39,8 +36,6 @@ namespace CyrFlip
                     cfg.Hotkey = hs;
                 if (data.TryGetValue("cursorSize", out var c) && c != null)
                     cfg.CursorSize = Convert.ToInt32(c);
-                if (data.TryGetValue("layouts", out var l) && l is ArrayList arr)
-                    cfg.Layouts = arr.Cast<object>().Select(o => o?.ToString() ?? string.Empty).ToArray();
             }
             catch
             {

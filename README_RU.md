@@ -56,7 +56,7 @@ dotnet test CyrFlip.sln
 Необязательный `config.json` (рядом с exe или в `%APPDATA%\CyrFlip\`):
 
 ```json
-{ "hotkey": "Ctrl+Shift+F12", "layouts": ["EN", "RU"], "cursorSize": 24 }
+{ "hotkey": "Ctrl+Shift+F12", "cursorSize": 24 }
 ```
 
 ## Известные ограничения

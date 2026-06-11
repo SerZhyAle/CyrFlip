@@ -24,6 +24,7 @@ namespace CyrFlip
         private readonly NotifyIcon _tray;
         private readonly ToolStripMenuItem _autostartItem;
 
+        private readonly SynchronizationContext? _ui; // to post tray feedback back to the UI thread
         private Icon? _trayIcon;
         private int _flipping; // 0 = idle, 1 = a flip is in progress
 
@@ -73,6 +74,10 @@ namespace CyrFlip
             _hook.Install(_hotkey);
             _caretOverlay.Start();
             _indicator.Start();
+
+            // Captured after the overlay/indicator created control handles, so this is the
+            // WinForms sync context — lets the background flip thread post tray feedback to the UI.
+            _ui = SynchronizationContext.Current;
         }
 
         private void OnLayoutChanged(string code)
@@ -98,7 +103,11 @@ namespace CyrFlip
 
             var thread = new Thread(() =>
             {
-                try { _clipboard.Flip(); }
+                try
+                {
+                    ClipboardHandler.FlipResult result = _clipboard.Flip();
+                    _ui?.Post(_ => ShowFlipResult(result), null);
+                }
                 catch { /* never let a flip take the app down */ }
                 finally { Interlocked.Exchange(ref _flipping, 0); }
             })
@@ -106,6 +115,20 @@ namespace CyrFlip
                 IsBackground = true, // Win32Clipboard is apartment-agnostic — no STA needed
             };
             thread.Start();
+        }
+
+        private void ShowFlipResult(ClipboardHandler.FlipResult result)
+        {
+            // Only speak up when the flip didn't do anything; stay silent on success.
+            switch (result)
+            {
+                case ClipboardHandler.FlipResult.NoSelection:
+                    _tray.ShowBalloonTip(1500, "CyrFlip", "Nothing selected to flip.", ToolTipIcon.Info);
+                    break;
+                case ClipboardHandler.FlipResult.Failed:
+                    _tray.ShowBalloonTip(2000, "CyrFlip", "Couldn't read or replace the selection.", ToolTipIcon.Warning);
+                    break;
+            }
         }
 
         private void OnToggleAutostart(object? sender, EventArgs e)

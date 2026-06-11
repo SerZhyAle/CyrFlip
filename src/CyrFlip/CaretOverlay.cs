@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
@@ -29,6 +30,14 @@ namespace CyrFlip
         private Thread? _thread;
         private volatile bool _running;
         private volatile string _code = "";
+
+        // UIA caret lookups are cross-process and expensive, so throttle them and reuse the last
+        // position between polls. The cheap system-caret path still runs every tick.
+        private const int UiaThrottleMs = 180;
+        private readonly Stopwatch _clock = Stopwatch.StartNew();
+        private long _lastUiaMs = -1000;
+        private bool _haveUia;
+        private int _uiaX, _uiaY;
 
         public CaretOverlay(int size) => _form = new OverlayForm(size);
 
@@ -91,30 +100,61 @@ namespace CyrFlip
             catch (InvalidOperationException) { /* form disposing */ }
         }
 
-        private static bool TryGetCaret(out int x, out int y)
+        private bool TryGetCaret(out int x, out int y)
         {
-            x = 0; y = 0;
-
-            // 1) System caret (classic Win32 edit controls).
-            IntPtr fg = GetForegroundWindow();
-            if (fg != IntPtr.Zero)
+            // 1) System caret (classic Win32 edit controls) — cheap, run every tick.
+            if (TrySystemCaret(out x, out y))
             {
-                uint tid = GetWindowThreadProcessId(fg, out _);
-                var gti = new GUITHREADINFO { cbSize = Marshal.SizeOf(typeof(GUITHREADINFO)) };
-                if (GetGUIThreadInfo(tid, ref gti)
-                    && gti.hwndCaret != IntPtr.Zero
-                    && gti.rcCaret.Bottom - gti.rcCaret.Top > 0)
-                {
-                    var pt = new POINT { X = gti.rcCaret.Right, Y = gti.rcCaret.Top };
-                    ClientToScreen(gti.hwndCaret, ref pt);
-                    x = pt.X + 4;
-                    y = pt.Y;
-                    return true;
-                }
+                _haveUia = false; // a real system caret supersedes any cached UIA position
+                return true;
             }
 
-            // 2) UI Automation fallback (modern apps with no system caret).
-            return TryUiaCaret(out x, out y);
+            // 2) UI Automation fallback (modern apps) — expensive, so throttle it.
+            long now = _clock.ElapsedMilliseconds;
+            if (now - _lastUiaMs >= UiaThrottleMs)
+            {
+                _lastUiaMs = now;
+                if (TryUiaCaret(out int ux, out int uy))
+                {
+                    _haveUia = true; _uiaX = ux; _uiaY = uy;
+                    x = ux; y = uy;
+                    return true;
+                }
+                _haveUia = false;
+                x = 0; y = 0;
+                return false;
+            }
+
+            // Between UIA polls: reuse the last known position so the marker doesn't flicker.
+            if (_haveUia)
+            {
+                x = _uiaX; y = _uiaY;
+                return true;
+            }
+            x = 0; y = 0;
+            return false;
+        }
+
+        private static bool TrySystemCaret(out int x, out int y)
+        {
+            x = 0; y = 0;
+            IntPtr fg = GetForegroundWindow();
+            if (fg == IntPtr.Zero)
+                return false;
+
+            uint tid = GetWindowThreadProcessId(fg, out _);
+            var gti = new GUITHREADINFO { cbSize = Marshal.SizeOf(typeof(GUITHREADINFO)) };
+            if (GetGUIThreadInfo(tid, ref gti)
+                && gti.hwndCaret != IntPtr.Zero
+                && gti.rcCaret.Bottom - gti.rcCaret.Top > 0)
+            {
+                var pt = new POINT { X = gti.rcCaret.Right, Y = gti.rcCaret.Top };
+                ClientToScreen(gti.hwndCaret, ref pt);
+                x = pt.X + 4;
+                y = pt.Y;
+                return true;
+            }
+            return false;
         }
 
         private static bool TryUiaCaret(out int x, out int y)
