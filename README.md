@@ -84,6 +84,10 @@ Optional `config.json` (next to the exe, or in `%APPDATA%\CyrFlip\`):
 - **Transliteration is EN ↔ RU only.** The layout indicator handles EN/RU/UK, but the one-key flip currently converts between QWERTY and ЙЦУКЕН; Ukrainian-specific letters aren't transliterated yet.
 - **The flip preserves only clipboard text.** Running a flip restores text clipboard contents, but not images or files.
 
+## Author
+
+**SerZhyAle** — [sza.od.ua](https://sza.od.ua) · [sza@ukr.net](mailto:sza@ukr.net)
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
