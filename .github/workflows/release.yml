@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v26.6.11.1700)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Resolve version from tag
+        id: ver
+        run: |
+          $tag = if ($env:GITHUB_REF -like 'refs/tags/*') { $env:GITHUB_REF -replace '^refs/tags/','' } else { '${{ inputs.tag }}' }
+          $version = $tag -replace '^v',''
+          "tag=$tag"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Tag=$tag  Version=$version"
+
+      - name: Build (Release)
+        run: dotnet build CyrFlip.sln -c Release
+
+      - name: Test
+        run: dotnet test CyrFlip.sln -c Release --no-build
+
+      - name: Stage release files
+        id: stage
+        run: |
+          $version = '${{ steps.ver.outputs.version }}'
+          $stage = "stage/CyrFlip-$version-windows-x64"
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+
+          $out = "src/CyrFlip/bin/Release/net48"
+          if (-not (Test-Path "$out/CyrFlip.exe")) { throw "CyrFlip.exe not found in $out" }
+
+          # Single-file app: ship the exe + config.json, drop debug/doc artefacts.
+          Get-ChildItem $out -File |
+            Where-Object { $_.Extension -notin '.pdb','.xml' } |
+            ForEach-Object { Copy-Item $_.FullName $stage }
+          if (Test-Path README.md) { Copy-Item README.md $stage }
+          if (Test-Path LICENSE)   { Copy-Item LICENSE   $stage }
+
+          "stage=$stage" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Get-ChildItem $stage | Format-Table -AutoSize
+
+      - name: Package zip + SHA256
+        id: pkg
+        run: |
+          $version = '${{ steps.ver.outputs.version }}'
+          $stage   = '${{ steps.stage.outputs.stage }}'
+          $name    = "CyrFlip-$version-windows-x64.zip"
+          New-Item -ItemType Directory -Path dist -Force | Out-Null
+          $zip = "dist/$name"
+
+          Compress-Archive -Path "$stage/*" -DestinationPath $zip -Force
+
+          $hash = (Get-FileHash -Algorithm SHA256 $zip).Hash
+          "$hash  $name" | Out-File -FilePath "$zip.sha256" -Encoding ascii
+
+          "name=$name"   | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "sha256=$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Package: $name"
+          Write-Host "SHA256:  $hash  (use this to update winget/ manifests)"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: CyrFlip ${{ steps.ver.outputs.version }}
+          generate_release_notes: true
+          files: |
+            dist/*.zip
+            dist/*.sha256
