@@ -80,7 +80,7 @@ jobs:
           Write-Host "SHA256:  $hash  (use this to update winget/ manifests)"
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           name: CyrFlip ${{ steps.ver.outputs.version }}
