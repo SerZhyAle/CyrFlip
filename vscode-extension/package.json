@@ -5,10 +5,19 @@
   "version": "0.1.0",
   "publisher": "SerZhyAle",
   "license": "MIT",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#16202C",
+    "theme": "dark"
+  },
+  "homepage": "https://github.com/SerZhyAle/CyrFlip#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/SerZhyAle/CyrFlip.git",
     "directory": "vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/SerZhyAle/CyrFlip/issues"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -20,6 +29,8 @@
     "keyboard",
     "layout",
     "cyrillic",
+    "russian",
+    "ukrainian",
     "transliteration"
   ],
   "activationEvents": [
@@ -52,11 +63,14 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "vscode:prepublish": "npm run compile"
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.24.0",
     "typescript": "^5.4.0"
   }
 }
