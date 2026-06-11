@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>CyrFlip</RootNamespace>
+    <AssemblyName>CyrFlip</AssemblyName>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <!-- ImplicitUsings is a .NET 6+ feature; keep usings explicit on net48. -->
+    <ImplicitUsings>disable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\cyrflip.ico</ApplicationIcon>
+
+    <!-- Treat a fixed set of "unused / unreachable / shadowing" warnings as errors
+         (our cross-project convention). Nullable issues stay warnings, not errors. -->
+    <WarningsAsErrors>CS0108;CS0162;CS0164;CS0168;CS0219;CS0414;CS0649;CS1998</WarningsAsErrors>
+
+    <!-- Version is stamped at build time as YY.M.D.HHmm (e.g. 26.6.11.1627). -->
+    <Version>$([System.DateTime]::Now.ToString('yy.M.d.HHmm'))</Version>
+    <Company>SerZhyAle</Company>
+    <Product>CyrFlip</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- net48 reference assemblies so the project builds with the .NET SDK alone,
+         without a Visual Studio targeting pack installed. -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Let the test project exercise internal types (Hotkey, TransliterationEngine, …). -->
+    <InternalsVisibleTo Include="CyrFlip.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- JavaScriptSerializer (config.json parsing) lives here; framework assembly, no NuGet. -->
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

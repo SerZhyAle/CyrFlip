@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip — исправление текста в неправильной раскладке (Windows)</title>
+  <meta name="description" content="Крошечная фоновая утилита для Windows: транслитерирует текст, набранный в неправильной раскладке (EN ↔ RU / ЙЦУКЕН), прямо на месте по горячей клавише." />
+  <meta property="og:title" content="CyrFlip" />
+  <meta property="og:description" content="Исправляйте текст, набранный в неправильной раскладке — мгновенно." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img class="banner" src="../assets/banner.png" alt="CyrFlip — исправление текста в неправильной раскладке" />
+      <nav class="langbar">
+        <a href="../">EN</a>
+        <a href="./" class="active">RU</a>
+        <a href="../uk/">UK</a>
+      </nav>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/SerZhyAle/CyrFlip/releases">Скачать</a>
+        <a class="btn" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </header>
+
+    <div class="demo">
+      <code>ghbdtn</code>
+      <span class="arrow">→ Ctrl+Shift+T →</span>
+      <code>привет</code>
+    </div>
+
+    <section>
+      <h2>Что это</h2>
+      <p>Набрали целое предложение и только потом заметили, что раскладка была не та? Выделите его,
+      нажмите горячую клавишу — и CyrFlip транслитерирует текст прямо на месте между QWERTY и ЙЦУКЕН
+      (EN ↔ RU, UK в планах). Утилита работает тихо в фоне; единственный UI — кастомный курсор мыши
+      с индикатором текущей раскладки (EN/RU/UK) в углу.</p>
+    </section>
+
+    <section>
+      <h2>Как пользоваться</h2>
+      <ol class="steps">
+        <li>Запустите <code>CyrFlip.exe</code> — он сидит в системном трее (без окна). Значок показывает активную раскладку (EN/RU/UK).</li>
+        <li>Выделите текст, набранный в неправильной раскладке.</li>
+        <li>Нажмите <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> — он заменится на месте.</li>
+      </ol>
+      <p class="note">Правый клик по значку открывает меню: текущая горячая клавиша, переключатель <strong>Start with Windows</strong> (автозапуск) и <strong>Exit</strong> (выход). CyrFlip работает в вашем сеансе (это не служба Windows), поэтому автозапуск — запись в автозагрузке пользователя.</p>
+    </section>
+
+    <section>
+      <h2>Возможности</h2>
+      <ul class="features">
+        <li>Глобальная горячая клавиша (по умолчанию <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd>) — работает во всех приложениях.</li>
+        <li>Двунаправленная транслитерация QWERTY ↔ ЙЦУКЕН с автоопределением направления.</li>
+        <li>Индикатор раскладки встроен в курсор мыши.</li>
+        <li>Один <code>.exe</code>, ничего не нужно устанавливать — работает на «голой» Windows 10/11.</li>
+        <li>Менее 50&nbsp;МБ памяти в покое.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Установка</h2>
+      <p>Через <a href="https://learn.microsoft.com/windows/package-manager/">winget</a> (после публикации):</p>
+      <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
+      <p>Или скачайте переносимый ZIP со
+      <a href="https://github.com/SerZhyAle/CyrFlip/releases">страницы релизов</a>, распакуйте куда угодно
+      и запустите <code>CyrFlip.exe</code>.</p>
+    </section>
+
+    <footer>
+      <p>Лицензия MIT · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">Исходный код на GitHub</a></p>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userprefs
+
+# Release/packaging artifacts
+dist/
+stage/
+*.sha256
+
+# Local scratch
+temp/
+
+# NuGet
+*.nupkg
+tools/nuget.exe
+
+# OS noise
+Thumbs.db
+desktop.ini

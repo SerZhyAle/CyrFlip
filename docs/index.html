@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip — fix wrong-layout typing on Windows</title>
+  <meta name="description" content="A tiny background Windows tool that transliterates text typed on the wrong keyboard layout (EN ↔ RU / ЙЦУКЕН) in place, via a global hotkey." />
+  <meta property="og:title" content="CyrFlip" />
+  <meta property="og:description" content="Fix text typed on the wrong keyboard layout — instantly." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img class="banner" src="assets/banner.png" alt="CyrFlip — fix text typed on the wrong keyboard layout" />
+      <nav class="langbar">
+        <a href="./" class="active">EN</a>
+        <a href="ru/">RU</a>
+        <a href="uk/">UK</a>
+      </nav>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/SerZhyAle/CyrFlip/releases">Download</a>
+        <a class="btn" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </header>
+
+    <div class="demo">
+      <code>ghbdtn</code>
+      <span class="arrow">→ Ctrl+Shift+T →</span>
+      <code>привет</code>
+    </div>
+
+    <section>
+      <h2>What it does</h2>
+      <p>Typed a whole sentence before noticing the layout was wrong? Select it, press the hotkey,
+      and CyrFlip transliterates it in place between QWERTY and ЙЦУКЕН (EN ↔ RU, with UK planned).
+      It runs quietly in the background — its only UI is a custom mouse cursor showing the active
+      layout (EN/RU/UK) in the corner.</p>
+    </section>
+
+    <section>
+      <h2>How to use</h2>
+      <ol class="steps">
+        <li>Run <code>CyrFlip.exe</code> — it sits in the system tray (no window). The tray icon shows the active layout (EN/RU/UK).</li>
+        <li>Select the text you typed in the wrong layout.</li>
+        <li>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> — it's replaced in place.</li>
+      </ol>
+      <p class="note">Right-click the tray icon for the menu: it shows the flip hotkey, a <strong>Start with Windows</strong> toggle, and <strong>Exit</strong>. CyrFlip runs in your session (it isn't a Windows service), so autostart is a per-user startup entry.</p>
+    </section>
+
+    <section>
+      <h2>Features</h2>
+      <ul class="features">
+        <li>Global hotkey (default <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd>) — works in every app.</li>
+        <li>Bidirectional QWERTY ↔ ЙЦУКЕН, auto-detecting direction.</li>
+        <li>Layout indicator built into the mouse cursor.</li>
+        <li>Single <code>.exe</code>, nothing to install — runs on stock Windows 10/11.</li>
+        <li>Under 50&nbsp;MB of memory at rest.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Install</h2>
+      <p>Via <a href="https://learn.microsoft.com/windows/package-manager/">winget</a> (once published):</p>
+      <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
+      <p>Or download the portable ZIP from the
+      <a href="https://github.com/SerZhyAle/CyrFlip/releases">Releases page</a>, extract anywhere,
+      and run <code>CyrFlip.exe</code>.</p>
+    </section>
+
+    <footer>
+      <p>MIT licensed · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">Source on GitHub</a></p>
+    </footer>
+  </div>
+</body>
+</html>

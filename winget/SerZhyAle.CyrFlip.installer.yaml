@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+# Template — __VERSION__, __URL__, __SHA256__ are filled in per release (see winget/README.md).
+PackageIdentifier: SerZhyAle.CyrFlip
+PackageVersion: "__VERSION__"
+Platform:
+  - Windows.Desktop
+MinimumOSVersion: 10.0.0.0
+InstallModes:
+  - silent
+  - silentWithProgress
+Installers:
+  - Architecture: x64
+    InstallerType: zip
+    NestedInstallerType: portable
+    NestedInstallerFiles:
+      - RelativeFilePath: CyrFlip.exe
+        PortableCommandAlias: cyrflip
+    InstallerUrl: __URL__
+    InstallerSha256: __SHA256__
+ManifestType: installer
+ManifestVersion: 1.6.0

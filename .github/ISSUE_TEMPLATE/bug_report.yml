@@ -1,0 +1,32 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: CyrFlip version
+      description: Right-click the tray icon, or check the exe properties (e.g. 26.6.11.1649).
+    validations:
+      required: false
+  - type: input
+    id: windows-version
+    attributes:
+      label: Windows version
+      placeholder: e.g. Windows 11 23H2 (x64)
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Where it happened
+      description: Which app had focus (Notepad, Word, Chrome, …), source/target layout (EN/RU/UK), and the text you selected.
+    validations:
+      required: false
