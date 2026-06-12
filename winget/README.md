@@ -2,6 +2,7 @@
 
 Templates for publishing CyrFlip to [winget-pkgs](https://github.com/microsoft/winget-pkgs).
 Package identifier: **`SerZhyAle.CyrFlip`** (portable exe shipped inside the release ZIP).
+These templates currently target winget manifest schema **`1.12.0`**.
 
 The placeholders `__VERSION__`, `__URL__`, and `__SHA256__` are filled in per release:
 

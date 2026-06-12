@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.12.0.schema.json
 # Template — __VERSION__, __URL__, __SHA256__ are filled in per release (see winget/README.md).
 PackageIdentifier: SerZhyAle.CyrFlip
 PackageVersion: "__VERSION__"
@@ -18,4 +18,4 @@ Installers:
     InstallerUrl: __URL__
     InstallerSha256: __SHA256__
 ManifestType: installer
-ManifestVersion: 1.6.0
+ManifestVersion: 1.12.0
