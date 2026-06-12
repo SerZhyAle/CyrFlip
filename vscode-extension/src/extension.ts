@@ -63,19 +63,31 @@ function decorationFor(code: string): vscode.TextEditorDecorationType {
 }
 
 function render(): void {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
+  const activeEditor = vscode.window.activeTextEditor;
+
+  // Clear decorations on all visible editors that are not currently active
+  for (const editor of vscode.window.visibleTextEditors) {
+    if (editor !== activeEditor) {
+      for (const deco of decoCache.values()) {
+        editor.setDecorations(deco, []);
+      }
+    }
+  }
+
+  if (!activeEditor) {
     return;
   }
-  // Clear any previously-applied codes on this editor, then place the current one at the caret.
+
+  // Clear and set decorations on the active editor
   for (const deco of decoCache.values()) {
-    editor.setDecorations(deco, []);
+    activeEditor.setDecorations(deco, []);
   }
+
   if (!currentCode) {
     return;
   }
-  const caret = editor.selection.active;
-  editor.setDecorations(decorationFor(currentCode), [new vscode.Range(caret, caret)]);
+  const caret = activeEditor.selection.active;
+  activeEditor.setDecorations(decorationFor(currentCode), [new vscode.Range(caret, caret)]);
 }
 
 function updateStatus(): void {

@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using static CyrFlip.WindowInterop;
 
 namespace CyrFlip
 {
@@ -14,7 +15,6 @@ namespace CyrFlip
     /// </summary>
     internal static class Win32Clipboard
     {
-        private const uint CF_UNICODETEXT = 13;
         private const uint GMEM_MOVEABLE = 0x0002;
 
         [DllImport("user32.dll", SetLastError = true)] private static extern bool OpenClipboard(IntPtr hWndNewOwner);

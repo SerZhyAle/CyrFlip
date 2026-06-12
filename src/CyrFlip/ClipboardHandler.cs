@@ -25,12 +25,20 @@ namespace CyrFlip
         public FlipResult Flip()
         {
             IntPtr foreground = GetForegroundWindow();
-            string? original = Win32Clipboard.TryGetText(out string o) ? o : null;
+
+            // Track physical modifier states before we release them.
+            bool ctrlDown = (GetAsyncKeyState(Hotkey.VK_CONTROL) & 0x8000) != 0;
+            bool shiftDown = (GetAsyncKeyState(Hotkey.VK_SHIFT) & 0x8000) != 0;
+            bool altDown = (GetAsyncKeyState(Hotkey.VK_MENU) & 0x8000) != 0;
+            bool winDown = (GetAsyncKeyState(Hotkey.VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(Hotkey.VK_RWIN) & 0x8000) != 0;
+
+            bool originalHadText = IsClipboardFormatAvailable(CF_UNICODETEXT);
+            string? original = originalHadText && Win32Clipboard.TryGetText(out string o) ? o : null;
+            uint initialSeq = GetClipboardSequenceNumber();
 
             try
             {
-                Win32Clipboard.TryClear();
-                Thread.Sleep(30);
+                Thread.Sleep(20);
                 SendCopy();
 
                 // Wait for the copy to populate the clipboard (selection may be empty).
@@ -38,10 +46,17 @@ namespace CyrFlip
                 for (int i = 0; i < 12; i++)
                 {
                     Thread.Sleep(40);
-                    if (Win32Clipboard.TryGetText(out string t) && t.Length > 0)
+                    if (GetForegroundWindow() != foreground)
+                        return FlipResult.Cancelled;
+
+                    uint currentSeq = GetClipboardSequenceNumber();
+                    if (currentSeq != initialSeq)
                     {
-                        selected = t;
-                        break;
+                        if (Win32Clipboard.TryGetText(out string t) && t.Length > 0)
+                        {
+                            selected = t;
+                            break;
+                        }
                     }
                 }
 
@@ -62,15 +77,36 @@ namespace CyrFlip
                 Thread.Sleep(30);
                 SendPaste();
                 Thread.Sleep(140); // let the target app consume the paste before we restore
+
+                // Restore physical modifier keys that the user is still physically holding.
+                RestorePhysicalModifiers(ctrlDown, shiftDown, altDown, winDown);
+
                 return FlipResult.Flipped;
             }
             finally
             {
-                if (original != null)
+                // Only restore text if the clipboard originally held text.
+                if (originalHadText && original != null)
+                {
                     Win32Clipboard.TrySetText(original);
-                else
-                    Win32Clipboard.TryClear();
+                }
             }
+        }
+
+        private static void RestorePhysicalModifiers(bool ctrl, bool shift, bool alt, bool win)
+        {
+            var restore = new System.Collections.Generic.List<(int vk, bool up)>();
+            if (ctrl && (GetAsyncKeyState(Hotkey.VK_CONTROL) & 0x8000) != 0)
+                restore.Add((Hotkey.VK_CONTROL, false));
+            if (shift && (GetAsyncKeyState(Hotkey.VK_SHIFT) & 0x8000) != 0)
+                restore.Add((Hotkey.VK_SHIFT, false));
+            if (alt && (GetAsyncKeyState(Hotkey.VK_MENU) & 0x8000) != 0)
+                restore.Add((Hotkey.VK_MENU, false));
+            if (win && ((GetAsyncKeyState(Hotkey.VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(Hotkey.VK_RWIN) & 0x8000) != 0))
+                restore.Add((Hotkey.VK_LWIN, false));
+
+            if (restore.Count > 0)
+                Send(restore.ToArray());
         }
 
         // ---- synthesized input ----------------------------------------------------------

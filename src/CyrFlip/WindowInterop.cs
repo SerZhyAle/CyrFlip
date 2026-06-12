@@ -58,6 +58,15 @@ namespace CyrFlip
         public static extern IntPtr GetKeyboardLayout(uint idThread);
 
         // ---- Synthesized input for copy/paste (ClipboardHandler.cs) ----
+        public const uint CF_UNICODETEXT = 13;
+
+        [DllImport("user32.dll")]
+        public static extern uint GetClipboardSequenceNumber();
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsClipboardFormatAvailable(uint format);
+
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
 

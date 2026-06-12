@@ -8,7 +8,11 @@ namespace CyrFlip.Tests
         [Theory]
         [InlineData("hello", "руддщ")]   // EN → RU
         [InlineData("world", "цщкдв")]
-        [InlineData("zxcvbnm", "ячсмить")] // the keys that diverge from the spec's mis-aligned table
+        [InlineData("zxcvbnm", "ячсмить")]
+        [InlineData("hello, world!", "руддщб цщкдв!")] // punctuation mapping
+        [InlineData("[brackets]", "хикфслуеыъ")]
+        [InlineData("[test]; 'hello'", "хеуыеъж эруддщэ")]
+        [InlineData("Shift: @#$^&|", "ЫршаеЖ \"№;:?/")]
         public void TransliteratesEnglishToRussian(string input, string expected)
         {
             Assert.Equal(expected, TransliterationEngine.Transliterate(input));
@@ -17,6 +21,9 @@ namespace CyrFlip.Tests
         [Theory]
         [InlineData("руддщ", "hello")]   // RU → EN
         [InlineData("ячсмить", "zxcvbnm")]
+        [InlineData("руддщб цщкдв!", "hello, world!")]
+        [InlineData("хеуыеъж эруддщэ", "[test]; 'hello'")]
+        [InlineData("ЫршаеЖ \"№;:?/", "Shift: @#$^&|")]
         public void TransliteratesRussianToEnglish(string input, string expected)
         {
             Assert.Equal(expected, TransliterationEngine.Transliterate(input));
@@ -25,8 +32,9 @@ namespace CyrFlip.Tests
         [Fact]
         public void PreservesCase()
         {
-            Assert.Equal("Руддщ", TransliterationEngine.Transliterate("Hello"));
+            Assert.Equal("Рруддщ", TransliterationEngine.Transliterate("Hhello"));
             Assert.Equal("ПЕУ", TransliterationEngine.Transliterate("GTE"));
+            Assert.Equal("ЭруддщЭ", TransliterationEngine.Transliterate("\"hello\""));
         }
 
         [Theory]
