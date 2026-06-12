@@ -88,7 +88,7 @@ namespace CyrFlip
             LayoutPublisher.Publish(code); // for the companion VS Code extension
 
             // Secondary: reflect the layout in the tray icon + tooltip too.
-            _tray.Text = $"CyrFlip — {code}  ({_hotkey.Display} to flip)";
+            _tray.Text = $"CyrFlip - {code}  ({_hotkey.Display} to flip)";
 
             Icon icon = CursorIndicator.RenderIcon(code);
             _tray.Icon = icon;

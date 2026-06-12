@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to the **CyrFlip — keyboard layout at the caret** extension are documented here.
+All notable changes to the **CyrFlip - keyboard layout at the caret** extension are documented here.
 
-## [0.1.0] — 2026-06-11
+## [0.1.0] - 2026-06-11
 
 Initial release.
 

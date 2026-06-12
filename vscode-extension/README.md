@@ -1,4 +1,4 @@
-# CyrFlip — keyboard layout at the caret (VS Code)
+# CyrFlip - keyboard layout at the caret (VS Code)
 
 Companion extension for the **[CyrFlip](https://github.com/SerZhyAle/CyrFlip)** Windows app.
 It shows the active keyboard layout (**EN / RU / UK**) right at the **text caret** inside the

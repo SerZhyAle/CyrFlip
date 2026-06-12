@@ -127,7 +127,7 @@ function restartPoll(): void {
 
 export function activate(context: vscode.ExtensionContext): void {
   statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  statusItem.tooltip = 'CyrFlip — active keyboard layout';
+  statusItem.tooltip = 'CyrFlip - active keyboard layout';
   context.subscriptions.push(statusItem);
 
   context.subscriptions.push(
