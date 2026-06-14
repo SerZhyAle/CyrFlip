@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip — Privacy Policy</title>
+  <meta name="description" content="CyrFlip privacy policy: the app runs entirely on your device, collects nothing, and sends nothing over the network." />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img class="banner" src="assets/banner.png" alt="CyrFlip" />
+      <nav class="langbar">
+        <a href="./">Home</a>
+        <a href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </nav>
+    </header>
+
+    <section>
+      <h2>Privacy Policy</h2>
+      <p class="note">Last updated: 14 June 2026</p>
+
+      <p><strong>CyrFlip does not collect, store, log, or transmit any personal data.</strong> It runs
+      entirely on your own device. It has no servers, makes no network requests, and contains no
+      telemetry, analytics, advertising, tracking, or user accounts. The developer receives no data
+      about you or your use of the app.</p>
+
+      <h2>What the app accesses, and why</h2>
+      <ul class="features">
+        <li><strong>Keyboard.</strong> CyrFlip installs a global keyboard hook for two purposes only:
+        to detect its activation hotkey (default <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>) and to
+        read the currently active keyboard layout (EN&nbsp;/&nbsp;RU&nbsp;/&nbsp;UK) so it can show the
+        on-screen indicator. <strong>It does not record, log, store, or transmit your keystrokes.</strong>
+        It is not a keylogger.</li>
+
+        <li><strong>Clipboard.</strong> When you press the hotkey to transliterate a selection, CyrFlip
+        temporarily reads the selected text (via a synthesized copy), converts it between layouts, and
+        pastes the result back, then restores your previous clipboard contents. This happens locally and
+        only at the moment you trigger it. Nothing from the clipboard is retained, sent, or shared.</li>
+
+        <li><strong>Active-window / layout info.</strong> The app reads which window is focused and its
+        keyboard layout to position and update the indicator. This information is used in memory only and
+        is never stored or transmitted.</li>
+      </ul>
+
+      <h2>Local files CyrFlip writes</h2>
+      <ul class="features">
+        <li><strong>Layout file.</strong> CyrFlip writes the current layout code — a two-letter value such
+        as <code>EN</code>, <code>RU</code>, or <code>UK</code> — to a small local file
+        (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, or <code>%ProgramData%\CyrFlip\layout.txt</code> in
+        the Microsoft Store version) so the optional companion VS&nbsp;Code extension can display the marker
+        at the editor caret. This file contains no personal data and never leaves your device.</li>
+
+        <li><strong>Configuration.</strong> The app may read an optional local <code>config.json</code>
+        (hotkey, cursor size). It is stored only on your device.</li>
+      </ul>
+
+      <h2>Data sharing</h2>
+      <p>None. CyrFlip does not share any data with the developer or any third party, because it does not
+      collect or transmit any data in the first place.</p>
+
+      <h2>Children's privacy</h2>
+      <p>CyrFlip does not collect any data from anyone, including children.</p>
+
+      <h2>Open source</h2>
+      <p>CyrFlip is open source. You can review exactly what it does in the source code at
+      <a href="https://github.com/SerZhyAle/CyrFlip">github.com/SerZhyAle/CyrFlip</a>.</p>
+
+      <h2>Changes to this policy</h2>
+      <p>If this policy changes, the updated version will be posted on this page with a new "Last updated"
+      date.</p>
+
+      <h2>Contact</h2>
+      <p>Questions about this policy: <a href="mailto:sza@ukr.net">sza@ukr.net</a>.</p>
+    </section>
+
+    <footer>
+      <p>MIT licensed · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">Source on GitHub</a><br />
+      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
+    </footer>
+  </div>
+</body>
+</html>
