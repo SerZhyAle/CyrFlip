@@ -41,11 +41,20 @@ namespace CyrFlip
             AppDomain.CurrentDomain.UnhandledException += (_, _) => LayoutCursor.ForceRestore();
             Application.ApplicationExit += (_, _) => LayoutCursor.ForceRestore();
 
-            _autostartItem = new ToolStripMenuItem("Start with Windows", null, OnToggleAutostart)
+            if (Autostart.ManagedByWindows)
             {
-                CheckOnClick = true,
-                Checked = Autostart.IsEnabled,
-            };
+                // Packaged (MSIX): the OS owns the startup toggle (manifest startupTask);
+                // open the Windows "Startup apps" settings page rather than flip a checkbox.
+                _autostartItem = new ToolStripMenuItem("Start with Windows…", null, OnOpenStartupSettings);
+            }
+            else
+            {
+                _autostartItem = new ToolStripMenuItem("Start with Windows", null, OnToggleAutostart)
+                {
+                    CheckOnClick = true,
+                    Checked = Autostart.IsEnabled,
+                };
+            }
 
             var menu = new ContextMenuStrip();
             menu.Items.Add(new ToolStripMenuItem($"Flip EN ⇄ RU:  {_hotkey.Display}") { Enabled = false });
@@ -53,7 +62,12 @@ namespace CyrFlip
             menu.Items.Add(_autostartItem);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Exit", null, (_, _) => ExitThread()));
-            menu.Opening += (_, _) => _autostartItem.Checked = Autostart.IsEnabled;
+            // Keep the checkmark in sync with the registry (unpackaged only; packaged item isn't checkable).
+            menu.Opening += (_, _) =>
+            {
+                if (!Autostart.ManagedByWindows)
+                    _autostartItem.Checked = Autostart.IsEnabled;
+            };
 
             Icon initialIcon = TryGetAppIcon();
             _tray = new NotifyIcon
@@ -144,6 +158,18 @@ namespace CyrFlip
                 MessageBox.Show("Couldn't update Windows startup:\n" + ex.Message,
                     "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        // Packaged (MSIX) builds: autostart is a manifest startupTask the user controls in
+        // Windows Settings ▸ Apps ▸ Startup. Take them straight there.
+        private void OnOpenStartupSettings(object? sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(
+                    new System.Diagnostics.ProcessStartInfo("ms-settings:startupapps") { UseShellExecute = true });
+            }
+            catch { /* best effort — never let the tray menu throw */ }
         }
 
         private static Icon TryGetAppIcon()

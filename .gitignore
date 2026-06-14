@@ -14,6 +14,10 @@
 dist/
 stage/
 *.sha256
+*.msix
+*.appx
+*.cer
+*.pfx
 
 # Local scratch
 temp/

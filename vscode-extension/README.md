@@ -8,6 +8,20 @@ external CyrFlip overlay can't do reliably in VS Code / Electron).
 > **Requires the CyrFlip desktop app to be running.** The app detects the layout; this extension
 > only displays it. Get the app here: **https://github.com/SerZhyAle/CyrFlip**
 
+## Install the desktop app with winget
+
+If you don't have the **CyrFlip** Windows app yet, install it with:
+
+```powershell
+winget install --id SerZhyAle.CyrFlip -e
+```
+
+**По-русски:** эта команда устанавливает настольное приложение **CyrFlip** через
+**[winget](https://learn.microsoft.com/windows/package-manager/winget/)** (Windows Package
+Manager). Именно оно определяет текущую раскладку клавиатуры в Windows и
+записывает её в файл. Это расширение VS Code само раскладку не определяет - оно только читает
+данные от приложения и показывает `EN` / `RU` / `UK` прямо у текстового курсора.
+
 ## How the two pieces fit together
 
 ```

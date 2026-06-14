@@ -24,13 +24,24 @@ namespace IconGen
         private static readonly Color Ink = ColorTranslator.FromHtml("#e6edf3");
         private static readonly Color Muted = ColorTranslator.FromHtml("#8b98a8");
 
-        private static int Main()
+        private static int Main(string[] args)
         {
             string root = FindRepoRoot();
             string assets = Path.Combine(root, "assets");
             string docsAssets = Path.Combine(root, "docs", "assets");
             Directory.CreateDirectory(assets);
             Directory.CreateDirectory(docsAssets);
+
+            // `dotnet run --project tools/IconGen -- store` generates ONLY the Microsoft Store
+            // logos (into assets/store/), without rewriting the other assets.
+            if (args.Length > 0 && args[0] == "store")
+            {
+                string storeDir = Path.Combine(assets, "store");
+                Directory.CreateDirectory(storeDir);
+                GenerateStoreLogos(storeDir);
+                Console.WriteLine("Store logos written to: " + storeDir);
+                return 0;
+            }
 
             // --- App icon (multi-size .ico with PNG payloads) ---
             int[] sizes = { 16, 24, 32, 48, 64, 128, 256 };
@@ -109,6 +120,123 @@ namespace IconGen
             {
                 g.DrawString("EN", font, inkBrush, topRow, center);
                 g.DrawString("RU", font, mutedBrush, botRow, center);
+            }
+
+            return bmp;
+        }
+
+        // ----------------------------------------------------------- store logos
+
+        // Microsoft Store listing logos. Squares reuse the app-icon tile (DrawIcon) at native
+        // resolution; the 9:16 poster art is a portrait composition for Xbox display.
+        private static void GenerateStoreLogos(string dir)
+        {
+            // 1:1 Box art — the large store icon. Branded with the "CyrFlip" wordmark.
+            SavePng(DrawSquareBranded(2160), Path.Combine(dir, "BoxArt-2160x2160.png"));
+            SavePng(DrawSquareBranded(1080), Path.Combine(dir, "BoxArt-1080x1080.png"));
+
+            // Display tile icons (Windows 10/11) — the actual app tile, kept icon-only:
+            // text would be unreadable at 71px and these render small in Start / search.
+            SavePng(DrawIcon(300), Path.Combine(dir, "AppTileIcon-300x300.png"));
+            SavePng(DrawIcon(150), Path.Combine(dir, "Square-150x150.png"));
+            SavePng(DrawIcon(71),  Path.Combine(dir, "Square-71x71.png"));
+
+            // 9:16 Poster art (required for Xbox display) — already includes the wordmark + tagline.
+            SavePng(DrawPoster(1440, 2160), Path.Combine(dir, "PosterArt-1440x2160.png"));
+            SavePng(DrawPoster(720, 1080),  Path.Combine(dir, "PosterArt-720x1080.png"));
+        }
+
+        // Square branded logo: the icon tile over a gradient with the "CyrFlip" wordmark below.
+        private static Bitmap DrawSquareBranded(int s)
+        {
+            var bmp = new Bitmap(s, s, PixelFormat.Format32bppArgb);
+            using var g = Graphics.FromImage(bmp);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = TextRenderingHint.AntiAlias;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+            var rect = new Rectangle(0, 0, s, s);
+            using (var bg = new LinearGradientBrush(rect, Bg1, Bg2, LinearGradientMode.Vertical))
+            {
+                g.FillRectangle(bg, rect);
+            }
+
+            // Icon tile, centered horizontally in the upper portion.
+            int iconSize = (int)(s * 0.52f);
+            int iconX = (s - iconSize) / 2;
+            int iconY = (int)(s * 0.14f);
+            using (var icon = DrawIcon(iconSize))
+            {
+                g.DrawImage(icon, iconX, iconY, iconSize, iconSize);
+            }
+
+            // Wordmark: "Cyr" (ink) + "Flip" (accent), centered below the icon.
+            using var wordFont = new Font("Segoe UI", s * 0.12f, FontStyle.Bold, GraphicsUnit.Pixel);
+            string a = "Cyr", b = "Flip";
+            float aw = g.MeasureString(a, wordFont).Width;
+            float bw = g.MeasureString(b, wordFont).Width;
+            float seam = -s * 0.012f;
+            float totalW = aw + bw + seam;
+            float wx = (s - totalW) / 2f;
+            float wy = iconY + iconSize + s * 0.05f;
+            using (var inkBrush = new SolidBrush(Ink))
+            using (var accentBrush = new SolidBrush(Accent))
+            {
+                g.DrawString(a, wordFont, inkBrush, wx, wy);
+                g.DrawString(b, wordFont, accentBrush, wx + aw + seam, wy);
+            }
+
+            return bmp;
+        }
+
+        private static Bitmap DrawPoster(int w, int h)
+        {
+            var bmp = new Bitmap(w, h, PixelFormat.Format32bppArgb);
+            using var g = Graphics.FromImage(bmp);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = TextRenderingHint.AntiAlias;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+            // Portrait gradient background.
+            var rect = new Rectangle(0, 0, w, h);
+            using (var bg = new LinearGradientBrush(rect, Bg1, Bg2, LinearGradientMode.Vertical))
+            {
+                g.FillRectangle(bg, rect);
+            }
+
+            // App-icon tile, centered horizontally in the upper portion.
+            int iconSize = (int)(w * 0.52f);
+            int iconX = (w - iconSize) / 2;
+            int iconY = (int)(h * 0.22f);
+            using (var icon = DrawIcon(iconSize))
+            {
+                g.DrawImage(icon, iconX, iconY, iconSize, iconSize);
+            }
+
+            // Wordmark: "Cyr" (ink) + "Flip" (accent), centered below the icon.
+            using var wordFont = new Font("Segoe UI", w * 0.11f, FontStyle.Bold, GraphicsUnit.Pixel);
+            string a = "Cyr", b = "Flip";
+            float aw = g.MeasureString(a, wordFont).Width;
+            float bw = g.MeasureString(b, wordFont).Width;
+            float seam = -w * 0.012f; // tighten the gap, matching the banner wordmark
+            float totalW = aw + bw + seam;
+            float wx = (w - totalW) / 2f;
+            float wy = iconY + iconSize + h * 0.04f;
+            using (var inkBrush = new SolidBrush(Ink))
+            using (var accentBrush = new SolidBrush(Accent))
+            {
+                g.DrawString(a, wordFont, inkBrush, wx, wy);
+                g.DrawString(b, wordFont, accentBrush, wx + aw + seam, wy);
+            }
+
+            // Tagline, centered below the wordmark, auto-fit so it never clips.
+            const string tagline = "Keyboard layout where you type";
+            using var tagFont = FitFont(g, "Segoe UI", FontStyle.Regular, w * 0.045f, tagline, w * 0.86f);
+            float tw = g.MeasureString(tagline, tagFont).Width;
+            float ty = wy + g.MeasureString(a, wordFont).Height + h * 0.02f;
+            using (var mutedBrush = new SolidBrush(Muted))
+            {
+                g.DrawString(tagline, tagFont, mutedBrush, (w - tw) / 2f, ty);
             }
 
             return bmp;

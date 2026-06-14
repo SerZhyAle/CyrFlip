@@ -16,6 +16,12 @@ namespace CyrFlip
             if (!isFirst)
                 return;
 
+            // Keep the autostart path in sync with whichever exe is actually running.
+            // If the user enabled "Start with Windows" from a different build location,
+            // silently update the registry entry to this exe's path on every launch.
+            if (Autostart.IsEnabled)
+                Autostart.Set(true);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 

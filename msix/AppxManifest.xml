@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MSIX package manifest for CyrFlip (Microsoft Store / sideload).
+
+  This wraps the plain net48 CyrFlip.exe as a FULL-TRUST desktop app — every Win32 API the app
+  uses (the global WH_KEYBOARD_LL hook, SendInput, SetSystemCursor, clipboard) keeps working,
+  guarded by the single `runFullTrust` restricted capability.
+
+  The __PLACEHOLDERS__ are filled in by tools/.. msix\build-msix.ps1 at pack time:
+    __IDENTITY_NAME__     Package identity Name — MUST match the value reserved for you in
+                          Partner Center (Product ▸ Product identity ▸ "Package/Identity/Name").
+    __PUBLISHER__         Publisher — MUST match exactly (Partner Center "Package/Identity/Publisher",
+                          e.g. CN=ABCD1234-...). For local self-signed testing it must match the
+                          test certificate's subject instead.
+    __PUBLISHER_DISPLAY__ Human-readable publisher name (Partner Center "Package/Properties/PublisherDisplayName").
+    __VERSION__           4-part version with the 4th part = 0 (Store reserves the revision). The
+                          build script derives it from the exe's YY.M.D.HHmm stamp.
+
+  Autostart is a windows.startupTask (Enabled="false" → user opts in via Settings ▸ Apps ▸ Startup),
+  replacing the HKCU\…\Run entry used by the unpackaged build (that write is virtualized under MSIX).
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  IgnorableNamespaces="uap rescap desktop">
+
+  <Identity
+    Name="__IDENTITY_NAME__"
+    Publisher="__PUBLISHER__"
+    Version="__VERSION__"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>CyrFlip</DisplayName>
+    <PublisherDisplayName>__PUBLISHER_DISPLAY__</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <!-- 10.0.17763 (1809) is the floor for windows.startupTask. -->
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22621.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application Id="CyrFlip" Executable="CyrFlip.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="CyrFlip"
+        Description="Live keyboard-layout indicator (EN/RU/UK) at your cursor, plus one-key transliteration."
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Square71x71Logo="Assets\Square71x71Logo.png" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <!-- "Start with Windows": user-controlled in Settings ▸ Apps ▸ Startup. Off by default. -->
+        <desktop:Extension Category="windows.startupTask" Executable="CyrFlip.exe" EntryPoint="Windows.FullTrustApplication">
+          <desktop:StartupTask TaskId="CyrFlipStartup" Enabled="false" DisplayName="CyrFlip" />
+        </desktop:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <!-- Full-trust desktop app: keeps the global keyboard hook, SendInput, SetSystemCursor, clipboard. -->
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

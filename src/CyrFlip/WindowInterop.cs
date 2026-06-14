@@ -222,5 +222,13 @@ namespace CyrFlip
         // ---- Cursor-refresh nudge (LayoutCursor.cs) ----
         public const uint INPUT_MOUSE = 0;
         public const uint MOUSEEVENTF_MOVE = 0x0001;
+
+        // ---- MSIX package identity (PackageInfo.cs) ----
+        // Returned by GetCurrentPackageFullName when the process has no package identity
+        // (i.e. a plain unpackaged exe). Any other return value => running inside an MSIX package.
+        public const int APPMODEL_ERROR_NO_PACKAGE = 15700;
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        public static extern int GetCurrentPackageFullName(ref int packageFullNameLength, System.Text.StringBuilder? packageFullName);
     }
 }

@@ -83,6 +83,25 @@ Optional `config.json` (next to the exe, or in `%APPDATA%\CyrFlip\`):
 - **The mouse text cursor (I-beam) can stay changed after a force-kill.** CyrFlip replaces the system I-beam globally and restores it on exit. If the process is killed hard (e.g. *End task* in Task Manager), Windows can't restore it until you run CyrFlip again or sign out and back in.
 - **Transliteration is EN ↔ RU only.** The layout indicator handles EN/RU/UK, but the one-key flip currently converts between QWERTY and ЙЦУКЕН; Ukrainian-specific letters aren't transliterated yet.
 
+## Antivirus false positives
+
+Some antivirus engines — notably **Avast / AVG**, which report it as `IDP.Generic` ("Behavior Shield") — may flag `CyrFlip.exe` as suspicious. This is a **heuristic false positive**, not malware, and it's **normal for every keyboard-layout indicator** (Punto Switcher and similar tools trip the same heuristics). By design, a layout indicator + transliterator does exactly what a behavioural keylogger heuristic watches for: it installs a global keyboard hook (`WH_KEYBOARD_LL`), synthesizes keystrokes (`SendInput`), reads/writes the clipboard, and swaps the system I-beam cursor.
+
+CyrFlip is open source — you can read exactly what it does in [src/CyrFlip/](src/CyrFlip/) — and **static scanners agree it's clean: a build scores 0/71 on [VirusTotal](https://www.virustotal.com/gui/file/faa7534b168147a00854227c0787fbe0847d47ae82a70ab13327159b5b026dbc/detection)** (Avast and AVG included). The local flag is purely *behavioural* (Avast's runtime Behavior Shield) and reputational (unsigned exe, run from a temp folder) — things VirusTotal's static engines don't replicate.
+
+What actually reduces the flags (in order of impact):
+
+- **Don't run it from a temporary folder.** Launching the exe straight out of an archive or from `%TEMP%` (e.g. a `Temp\Rar$...` extraction path) is itself a strong reputation red flag. **Unpack the ZIP to a permanent location** such as `%LOCALAPPDATA%\Programs\CyrFlip\` and run it from there — this alone clears many behaviour-based detections.
+- **Signed releases.** Tagged releases are Authenticode-signed when a signing certificate is configured in the release pipeline. A valid code signature is the single biggest factor in lowering heuristic flags and building reputation.
+- **Report the false positive** so the vendor whitelists the file (usually corrected within a few days): [Avast false-positive form](https://www.avast.com/false-positive-file-form.php) · [AVG false-positive form](https://www.avg.com/en-ww/report-false-positive). As the app's author you can also enrol in the [Avast/AVG Whitelisting Program](https://businesshelp.avast.com/Content/Products/General_Help/Whitelisting/WhitelistingProgram.htm) so future builds stay cleared.
+- **Verify the binary yourself.** Check its SHA256 against the `.sha256` published alongside each release, and scan your own download on [VirusTotal](https://www.virustotal.com/) — or see the [report for a recent build](https://www.virustotal.com/gui/file/faa7534b168147a00854227c0787fbe0847d47ae82a70ab13327159b5b026dbc/detection) (0/71).
+
+**По-русски:** срабатывание `IDP.Generic` у Avast/AVG — это **ложная эвристика**, а не вирус, и это **норма для любого индикатора раскладки** (Punto Switcher ловится так же): приложение по своей природе использует глобальный хук клавиатуры, инъекцию нажатий и буфер обмена. Статические сканеры это подтверждают — файл показывает **0/71 на [VirusTotal](https://www.virustotal.com/gui/file/faa7534b168147a00854227c0787fbe0847d47ae82a70ab13327159b5b026dbc/detection)** (Avast и AVG в том числе); локальный флаг — чисто **поведенческий** (Behavior Shield) и репутационный (неподписан, запуск из временной папки). Что помогает: **не запускать из временной папки** (распакуйте архив в постоянный каталог, например `%LOCALAPPDATA%\Programs\CyrFlip\`), пользоваться подписанными релизами и отправить файл в белый список через формы Avast/AVG выше.
+
+## Related project
+
+- [Universal Agent Kit](https://serzhyale.github.io/universal-agent-kit/) — a companion toolkit by the same author.
+
 ## Author
 
 **SerZhyAle** — [sza.od.ua](https://sza.od.ua) · [sza@ukr.net](mailto:sza@ukr.net)

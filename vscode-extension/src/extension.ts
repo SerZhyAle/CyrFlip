@@ -28,8 +28,32 @@ function layoutFilePath(): string {
   if (configured && configured.trim().length > 0) {
     return configured;
   }
+  // The desktop app writes layout.txt to %LOCALAPPDATA% when unpackaged, but to %ProgramData%
+  // when installed from the Microsoft Store (MSIX): a packaged process's %LOCALAPPDATA% write is
+  // virtualized into the package container, where this (unpackaged) extension can't see it.
+  // Pick the most recently written of the two so a stale leftover from the other install mode
+  // (e.g. an old %LOCALAPPDATA% file after switching to the Store build) never wins. Default to
+  // the unpackaged path when neither exists yet.
   const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
-  return path.join(localAppData, 'CyrFlip', 'layout.txt');
+  const programData = process.env.ProgramData || 'C:\\ProgramData';
+  const candidates = [
+    path.join(localAppData, 'CyrFlip', 'layout.txt'),
+    path.join(programData, 'CyrFlip', 'layout.txt'),
+  ];
+  let best: string | undefined;
+  let bestMtime = -1;
+  for (const candidate of candidates) {
+    try {
+      const mtime = fs.statSync(candidate).mtimeMs;
+      if (mtime > bestMtime) {
+        bestMtime = mtime;
+        best = candidate;
+      }
+    } catch {
+      // not present; skip
+    }
+  }
+  return best ?? candidates[0];
 }
 
 function colorFor(code: string): string {

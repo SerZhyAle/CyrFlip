@@ -15,6 +15,11 @@ permissions:
 jobs:
   release:
     runs-on: windows-latest
+    # Mapped at job level so they're visible to step `if:` conditions (step-level env is not).
+    # Leave the secrets unset and signing is skipped; the unsigned exe still ships.
+    env:
+      SIGN_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
+      SIGN_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
     defaults:
       run:
         shell: pwsh
@@ -39,6 +44,40 @@ jobs:
 
       - name: Test
         run: dotnet test CyrFlip.sln -c Release --no-build
+
+      # Authenticode-sign the exe BEFORE staging so the zipped/hashed artefact is the signed one.
+      # Runs only when a signing certificate is configured (secrets SIGNING_CERT_BASE64 +
+      # SIGNING_CERT_PASSWORD). Without them the step is skipped and the release ships unsigned.
+      - name: Sign CyrFlip.exe (Authenticode)
+        if: env.SIGN_CERT_BASE64 != ''
+        run: |
+          $exe = "src/CyrFlip/bin/Release/net48/CyrFlip.exe"
+          if (-not (Test-Path $exe)) { throw "CyrFlip.exe not found at $exe" }
+
+          # Decode the PFX from the base64 secret to a temp file, sign, then delete it.
+          $pfx = Join-Path $env:RUNNER_TEMP 'cyrflip-signing.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:SIGN_CERT_BASE64))
+
+          # Locate the newest signtool.exe from the installed Windows SDK (not on PATH by default).
+          $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe' -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { throw 'signtool.exe not found (Windows SDK missing).' }
+
+          try {
+            & $signtool.FullName sign `
+              /f $pfx /p $env:SIGN_CERT_PASSWORD `
+              /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 `
+              /d 'CyrFlip' /du 'https://github.com/SerZhyAle/CyrFlip' `
+              $exe
+            if ($LASTEXITCODE -ne 0) { throw "signtool sign failed (exit $LASTEXITCODE)." }
+
+            & $signtool.FullName verify /pa /v $exe
+            if ($LASTEXITCODE -ne 0) { throw "signature verification failed (exit $LASTEXITCODE)." }
+            Write-Host 'CyrFlip.exe signed and verified.'
+          }
+          finally {
+            Remove-Item $pfx -Force -ErrorAction SilentlyContinue
+          }
 
       - name: Stage release files
         id: stage
