@@ -2,7 +2,7 @@
 
 Companion extension for the **[CyrFlip](https://github.com/SerZhyAle/CyrFlip)** Windows app.
 It shows the active keyboard layout (**EN / RU / UK**) right at the **text caret** inside the
-editor — accurately, because the extension reads Monaco's real caret position (something the
+editor - accurately, because the extension reads Monaco's real caret position (something the
 external CyrFlip overlay can't do reliably in VS Code / Electron).
 
 > **Requires the CyrFlip desktop app to be running.** The app detects the layout; this extension
@@ -52,7 +52,7 @@ Everywhere **outside** the editor, CyrFlip's own tray icon and mouse-cursor mark
    appears in the notification area and shows the active layout.
 2. **Install this extension** and reload VS Code (`Developer: Reload Window`). It activates on
    startup.
-3. **Click into a code editor and type.** Switch your keyboard layout — the coloured `EN`/`RU`/`UK`
+3. **Click into a code editor and type.** Switch your keyboard layout - the coloured `EN`/`RU`/`UK`
    marker follows your caret, and the status bar shows `⌨ EN/RU/UK`.
 
 If nothing appears: confirm the app is running and that `%LOCALAPPDATA%\CyrFlip\layout.txt` exists
@@ -62,7 +62,7 @@ extension is reading the file.
 ### Scope
 
 The caret marker only renders inside **code editors** (Monaco text documents). VS Code **webviews and
-custom widgets** — the integrated terminal, search boxes, chat panels, the Command Palette — can't
+custom widgets** - the integrated terminal, search boxes, chat panels, the Command Palette - can't
 host editor decorations, so the marker can't appear there. In those spots, rely on CyrFlip's
 **mouse-cursor marker** and tray icon. The status-bar indicator stays visible everywhere.
 
@@ -95,4 +95,4 @@ npx ovsx publish cyrflip-vscode-<version>.vsix -p <open-vsx-token>
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).

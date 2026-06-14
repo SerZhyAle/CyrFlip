@@ -35,7 +35,7 @@ namespace CyrFlip
             _layoutCursor = new LayoutCursor(_config.CursorSize);
             _caretOverlay = new CaretOverlay(_config.CursorSize);
 
-            // SetSystemCursor is global — guarantee the default cursors are restored even
+            // SetSystemCursor is global - guarantee the default cursors are restored even
             // if the app is killed or throws.
             AppDomain.CurrentDomain.ProcessExit += (_, _) => LayoutCursor.ForceRestore();
             AppDomain.CurrentDomain.UnhandledException += (_, _) => LayoutCursor.ForceRestore();
@@ -45,7 +45,7 @@ namespace CyrFlip
             {
                 // Packaged (MSIX): the OS owns the startup toggle (manifest startupTask);
                 // open the Windows "Startup apps" settings page rather than flip a checkbox.
-                _autostartItem = new ToolStripMenuItem("Start with Windows…", null, OnOpenStartupSettings);
+                _autostartItem = new ToolStripMenuItem("Start with Windows..", null, OnOpenStartupSettings);
             }
             else
             {
@@ -77,7 +77,7 @@ namespace CyrFlip
                 Visible = true,
                 ContextMenuStrip = menu,
             };
-            // Track it for disposal when the first layout icon replaces it — but never dispose
+            // Track it for disposal when the first layout icon replaces it - but never dispose
             // the shared SystemIcons.Application.
             if (initialIcon != SystemIcons.Application)
                 _trayIcon = initialIcon;
@@ -90,7 +90,7 @@ namespace CyrFlip
             _indicator.Start();
 
             // Captured after the overlay/indicator created control handles, so this is the
-            // WinForms sync context — lets the background flip thread post tray feedback to the UI.
+            // WinForms sync context - lets the background flip thread post tray feedback to the UI.
             _ui = SynchronizationContext.Current;
         }
 
@@ -127,7 +127,7 @@ namespace CyrFlip
                 finally { Interlocked.Exchange(ref _flipping, 0); }
             })
             {
-                IsBackground = true, // Win32Clipboard is apartment-agnostic — no STA needed
+                IsBackground = true, // Win32Clipboard is apartment-agnostic - no STA needed
             };
             thread.Start();
         }
@@ -169,7 +169,7 @@ namespace CyrFlip
                 System.Diagnostics.Process.Start(
                     new System.Diagnostics.ProcessStartInfo("ms-settings:startupapps") { UseShellExecute = true });
             }
-            catch { /* best effort — never let the tray menu throw */ }
+            catch { /* best effort - never let the tray menu throw */ }
         }
 
         private static Icon TryGetAppIcon()

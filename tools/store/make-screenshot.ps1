@@ -1,7 +1,7 @@
 <#
     Generates a Microsoft Store listing screenshot (1366x768 PNG, the Store minimum) by
-    composing the existing brand assets — banner + the layout-aware cursor preview + a
-    transliteration demo line — on a dark canvas. Output: assets/store/screenshot-1366x768.png
+    composing the existing brand assets - banner + the layout-aware cursor preview + a
+    transliteration demo line - on a dark canvas. Output: assets/store/screenshot-1366x768.png
 #>
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -21,7 +21,7 @@ $g.PixelOffsetMode   = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
 $g.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::ClearTypeGridFit
 
 try {
-    # Background — vertical gradient, matching the dark site/tray palette.
+    # Background - vertical gradient, matching the dark site/tray palette.
     $top = [System.Drawing.Color]::FromArgb(23, 27, 38)   # #171b26
     $bot = [System.Drawing.Color]::FromArgb(13, 16, 23)   # #0d1017
     $rect = New-Object System.Drawing.Rectangle(0, 0, $W, $H)
@@ -57,7 +57,7 @@ try {
     $demoY = $afterBanner + 24
     $afterDemo = Draw-CenteredText "ghbdtn   ->   Ctrl+Shift+F12   ->   привет" $mono $white $demoY
 
-    # Cursor preview (560x200) — the headline feature: the EN/RU/UK marker on the text cursor.
+    # Cursor preview (560x200) - the headline feature: the EN/RU/UK marker on the text cursor.
     $afterPreview = Draw-CenteredImage (Join-Path $Assets 'cursor-preview.png') 700 ($afterDemo + 30)
 
     # Caption.

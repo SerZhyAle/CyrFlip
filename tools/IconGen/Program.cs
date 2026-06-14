@@ -131,17 +131,17 @@ namespace IconGen
         // resolution; the 9:16 poster art is a portrait composition for Xbox display.
         private static void GenerateStoreLogos(string dir)
         {
-            // 1:1 Box art — the large store icon. Branded with the "CyrFlip" wordmark.
+            // 1:1 Box art - the large store icon. Branded with the "CyrFlip" wordmark.
             SavePng(DrawSquareBranded(2160), Path.Combine(dir, "BoxArt-2160x2160.png"));
             SavePng(DrawSquareBranded(1080), Path.Combine(dir, "BoxArt-1080x1080.png"));
 
-            // Display tile icons (Windows 10/11) — the actual app tile, kept icon-only:
+            // Display tile icons (Windows 10/11) - the actual app tile, kept icon-only:
             // text would be unreadable at 71px and these render small in Start / search.
             SavePng(DrawIcon(300), Path.Combine(dir, "AppTileIcon-300x300.png"));
             SavePng(DrawIcon(150), Path.Combine(dir, "Square-150x150.png"));
             SavePng(DrawIcon(71),  Path.Combine(dir, "Square-71x71.png"));
 
-            // 9:16 Poster art (required for Xbox display) — already includes the wordmark + tagline.
+            // 9:16 Poster art (required for Xbox display) - already includes the wordmark + tagline.
             SavePng(DrawPoster(1440, 2160), Path.Combine(dir, "PosterArt-1440x2160.png"));
             SavePng(DrawPoster(720, 1080),  Path.Combine(dir, "PosterArt-720x1080.png"));
         }
@@ -282,8 +282,8 @@ namespace IconGen
                 g.DrawString(b, wordFont, accentBrush, textLeft + aw - h * 0.03f, wordY);
             }
 
-            // Tagline — auto-fit to the available width so it never clips.
-            const string tagline = "Fix text typed on the wrong keyboard layout — instantly.";
+            // Tagline - auto-fit to the available width so it never clips.
+            const string tagline = "Fix text typed on the wrong keyboard layout - instantly.";
             float maxTagW = w - textLeft - w * 0.05f;
             using var tagFont = FitFont(g, "Segoe UI", FontStyle.Regular, h * 0.072f, tagline, maxTagW);
             using (var mutedBrush = new SolidBrush(Muted))

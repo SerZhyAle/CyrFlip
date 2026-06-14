@@ -81,7 +81,7 @@ namespace CyrFlip
         }
 
         // The union must include the largest member (MOUSEINPUT) so Marshal.SizeOf(INPUT)
-        // matches the real struct size on x64 — otherwise SendInput's cbSize check fails.
+        // matches the real struct size on x64 - otherwise SendInput's cbSize check fails.
         [StructLayout(LayoutKind.Explicit)]
         public struct InputUnion
         {
@@ -121,7 +121,7 @@ namespace CyrFlip
 
         // ---- Custom cursor (LayoutCursor.cs / CursorIndicator.cs) ----
         public const uint OCR_NORMAL = 32512; // arrow
-        public const uint OCR_IBEAM = 32513;  // text "I-beam" — the cursor shown while writing
+        public const uint OCR_IBEAM = 32513;  // text "I-beam" - the cursor shown while writing
 
         public const uint SPI_SETCURSORS = 0x0057;
         public const uint SPIF_SENDCHANGE = 0x02;

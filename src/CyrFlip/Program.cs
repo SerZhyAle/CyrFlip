@@ -9,7 +9,7 @@ namespace CyrFlip
         [STAThread]
         private static void Main()
         {
-            // Single instance per user session — a second copy (e.g. autostart + manual launch)
+            // Single instance per user session - a second copy (e.g. autostart + manual launch)
             // would install a second hook and fight over the system cursor. Hold the mutex for
             // the app's lifetime; the OS releases it if we die.
             using var single = new Mutex(initiallyOwned: true, @"Local\CyrFlipSingleInstance", out bool isFirst);

@@ -6,9 +6,9 @@ These templates currently target winget manifest schema **`1.12.0`**.
 
 The placeholders `__VERSION__`, `__URL__`, and `__SHA256__` are filled in per release:
 
-- `__VERSION__` — the release version, e.g. `26.6.11.1700`
-- `__URL__` — the `CyrFlip-<version>-windows-x64.zip` asset URL from the GitHub Release
-- `__SHA256__` — the hash printed by the release workflow (the `.sha256` sidecar)
+- `__VERSION__` - the release version, e.g. `26.6.11.1700`
+- `__URL__` - the `CyrFlip-<version>-windows-x64.zip` asset URL from the GitHub Release
+- `__SHA256__` - the hash printed by the release workflow (the `.sha256` sidecar)
 
 ## Submitting an update
 

@@ -30,14 +30,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Let the test project exercise internal types (Hotkey, TransliterationEngine, …). -->
+    <!-- Let the test project exercise internal types (Hotkey, TransliterationEngine, ..). -->
     <InternalsVisibleTo Include="CyrFlip.Tests" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- JavaScriptSerializer (config.json parsing) lives here; framework assembly, no NuGet. -->
     <Reference Include="System.Web.Extensions" />
-    <!-- UI Automation — caret position fallback for apps without a system caret (CaretOverlay).
+    <!-- UI Automation - caret position fallback for apps without a system caret (CaretOverlay).
          Framework assemblies (ship with .NET on Win10/11), so still zero NuGet/runtime deps. -->
     <Reference Include="UIAutomationClient" />
     <Reference Include="UIAutomationTypes" />

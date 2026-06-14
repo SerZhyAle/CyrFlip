@@ -12,7 +12,7 @@ namespace CyrFlip
 {
     /// <summary>
     /// Tracks the active window's keyboard layout and surfaces it as a two-letter code
-    /// (EN/RU/UK). (spec §2.3 — layout detection + label rendering.)
+    /// (EN/RU/UK). (spec §2.3 - layout detection + label rendering.)
     ///
     /// Note: the spec describes replacing the mouse cursor globally. That requires
     /// SetSystemCursor (system-wide, must be restored on crash) and is intentionally avoided

@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CyrFlip — fix wrong-layout typing on Windows</title>
+  <title>CyrFlip - fix wrong-layout typing on Windows</title>
   <meta name="description" content="A tiny background Windows tool that transliterates text typed on the wrong keyboard layout (EN ↔ RU / ЙЦУКЕН) in place, via a global hotkey." />
   <meta property="og:title" content="CyrFlip" />
-  <meta property="og:description" content="Fix text typed on the wrong keyboard layout — instantly." />
+  <meta property="og:description" content="Fix text typed on the wrong keyboard layout - instantly." />
   <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="wrap">
+  <div class="wrap wide">
     <header>
-      <img class="banner" src="assets/banner.png" alt="CyrFlip — fix text typed on the wrong keyboard layout" />
+      <img class="banner" src="assets/banner.png" alt="CyrFlip - fix text typed on the wrong keyboard layout" />
       <nav class="langbar">
         <a href="./" class="active">EN</a>
         <a href="ru/">RU</a>
@@ -33,23 +33,26 @@
       <code>привет</code>
     </div>
 
-    <section>
-      <h2>What it does</h2>
-      <p><strong>It shows your keyboard layout right where you type.</strong> CyrFlip puts a small
-      <strong>EN / RU / UK</strong> marker on the system text cursor (the I-beam) <strong>and next to the
-      blinking text caret</strong>, updated live as you switch layouts — so you never start typing in the
-      wrong one. (The pointer is often an arrow while you type, which is why the caret marker matters.)</p>
-      <img class="banner" src="assets/cursor-preview.png" alt="Layout-aware cursor showing EN, RU and UK on light and dark backgrounds" />
-      <p>And when you do slip: select the text, press the hotkey, and CyrFlip transliterates it in place
-      between QWERTY and ЙЦУКЕН (EN ↔ RU, with UK planned).</p>
+    <main class="sections">
+    <section class="span-all feature">
+      <div class="feature-text">
+        <h2>What it does</h2>
+        <p><strong>It shows your keyboard layout right where you type.</strong> CyrFlip puts a small
+        <strong>EN / RU / UK</strong> marker on the system text cursor (the I-beam) <strong>and next to the
+        blinking text caret</strong>, updated live as you switch layouts - so you never start typing in the
+        wrong one. (The pointer is often an arrow while you type, which is why the caret marker matters.)</p>
+        <p>And when you do slip: select the text, press the hotkey, and CyrFlip transliterates it in place
+        between QWERTY and ЙЦУКЕН (EN ↔ RU, with UK planned).</p>
+      </div>
+      <img class="feature-img" src="assets/cursor-preview.png" alt="Layout-aware cursor showing EN, RU and UK on light and dark backgrounds" />
     </section>
 
     <section>
       <h2>How to use</h2>
       <ol class="steps">
-        <li>Run <code>CyrFlip.exe</code> — it sits in the system tray (no window). The tray icon shows the active layout (EN/RU/UK).</li>
+        <li>Run <code>CyrFlip.exe</code> - it sits in the system tray (no window). The tray icon shows the active layout (EN/RU/UK).</li>
         <li>Select the text you typed in the wrong layout.</li>
-        <li>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — it's replaced in place.</li>
+        <li>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> - it's replaced in place.</li>
       </ol>
       <p class="note">Right-click the tray icon for the menu: it shows the flip hotkey, a <strong>Start with Windows</strong> toggle, and <strong>Exit</strong>. CyrFlip runs in your session (it isn't a Windows service), so autostart is a per-user startup entry.</p>
     </section>
@@ -58,9 +61,9 @@
       <h2>Features</h2>
       <ul class="features">
         <li><strong>Layout marker on the text cursor</strong> (and the tray icon), updated live.</li>
-        <li>One-key transliteration — bidirectional QWERTY ↔ ЙЦУКЕН, auto-detecting direction.</li>
+        <li>One-key transliteration - bidirectional QWERTY ↔ ЙЦУКЕН, auto-detecting direction.</li>
         <li>Global hotkey (default <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>), configurable.</li>
-        <li>Single <code>.exe</code>, nothing to install — runs on stock Windows 10/11.</li>
+        <li>Single <code>.exe</code>, nothing to install - runs on stock Windows 10/11.</li>
         <li>Under 50&nbsp;MB of memory at rest.</li>
       </ul>
     </section>
@@ -73,6 +76,7 @@
       <a href="https://github.com/SerZhyAle/CyrFlip/releases">Releases page</a>, extract anywhere,
       and run <code>CyrFlip.exe</code>.</p>
     </section>
+    </main>
 
     <footer>
       <p>MIT licensed · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·

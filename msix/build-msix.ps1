@@ -8,17 +8,17 @@
       4. Fills the AppxManifest.xml placeholders (Identity Name / Publisher / version).
       5. Packs it into msix/dist/CyrFlip-<version>-x64.msix with makeappx.
 
-    For the STORE you submit the UNSIGNED .msix — Microsoft re-signs it during certification, so
+    For the STORE you submit the UNSIGNED .msix - Microsoft re-signs it during certification, so
     you don't need a paid code-signing certificate. Set -Publisher / -IdentityName / -PublisherDisplayName
     to the exact values reserved for you in Partner Center (Product ▸ Product identity).
 
     For LOCAL testing, add -SelfSign: it creates a self-signed cert whose subject equals -Publisher,
     signs the package, and prints how to trust + install it. (Self-signing requires the manifest
-    Publisher to match the cert subject — keep them equal.)
+    Publisher to match the cert subject - keep them equal.)
 
     Examples:
       # Store-ready package (fill these from Partner Center):
-      .\build-msix.ps1 -IdentityName "1234SerZhyAle.CyrFlip" -Publisher "CN=ABCD1234-..." -PublisherDisplayName "SerZhyAle"
+      .\build-msix.ps1 -IdentityName "1234SerZhyAle.CyrFlip" -Publisher "CN=ABCD1234-.." -PublisherDisplayName "SerZhyAle"
 
       # Local sideload test (self-signed):
       .\build-msix.ps1 -SelfSign
@@ -52,7 +52,7 @@ function Find-SdkTool([string] $name) {
 
 # --- 1. Build ---------------------------------------------------------------
 if (-not $NoBuild) {
-    Write-Host 'Building Release...' -ForegroundColor Cyan
+    Write-Host 'Building Release..' -ForegroundColor Cyan
     dotnet build $Csproj -c $Configuration --nologo
     if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
 }
@@ -121,7 +121,7 @@ Write-Host "Packed: $MsixPath" -ForegroundColor Green
 
 # --- 6. Optional self-sign for local sideload testing -----------------------
 if ($SelfSign) {
-    Write-Host 'Self-signing for local testing...' -ForegroundColor Cyan
+    Write-Host 'Self-signing for local testing..' -ForegroundColor Cyan
     $cert = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq $Publisher } | Select-Object -First 1
     if (-not $cert) {
         $cert = New-SelfSignedCertificate -Type Custom -Subject $Publisher `

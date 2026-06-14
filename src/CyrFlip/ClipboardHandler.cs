@@ -61,13 +61,13 @@ namespace CyrFlip
                 }
 
                 if (selected.Length == 0)
-                    return FlipResult.NoSelection; // spec §5.3 — nothing selected → no-op
+                    return FlipResult.NoSelection; // spec §5.3 - nothing selected → no-op
 
                 string converted = TransliterationEngine.Transliterate(selected);
                 if (converted == selected)
                     return FlipResult.NoChange;
 
-                // spec §5.3 — focus moved elsewhere mid-flip → don't paste into the wrong window.
+                // spec §5.3 - focus moved elsewhere mid-flip → don't paste into the wrong window.
                 if (GetForegroundWindow() != foreground)
                     return FlipResult.Cancelled;
 
@@ -114,7 +114,7 @@ namespace CyrFlip
         // NOTE: the hotkey is held down while we synthesize input, so we first release the
         // modifiers that would corrupt a plain Ctrl+C / Ctrl+V (Shift/Alt/Win) and drive Ctrl
         // ourselves. This intentionally leaves the OS modifier state briefly out of sync with the
-        // keys the user is physically holding — don't "simplify" the explicit up/downs away.
+        // keys the user is physically holding - don't "simplify" the explicit up/downs away.
         private static void SendCopy()
         {
             // Release any held modifiers that would corrupt Ctrl+C, then send a clean Ctrl+C.

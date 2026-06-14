@@ -17,11 +17,11 @@ $Destinations = @(
     'C:\GD\tc\SZA\_APP\'
 )
 
-Write-Host 'Building Release...' -ForegroundColor Cyan
+Write-Host 'Building Release..' -ForegroundColor Cyan
 dotnet build $Solution -c Release --nologo
 if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
 
-Write-Host 'Running tests...' -ForegroundColor Cyan
+Write-Host 'Running tests..' -ForegroundColor Cyan
 dotnet test $Solution -c Release --no-build --nologo
 if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
 
@@ -38,7 +38,7 @@ if ($env:CYRFLIP_SIGN_PFX -and (Test-Path $env:CYRFLIP_SIGN_PFX)) {
     $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe' -ErrorAction SilentlyContinue |
         Sort-Object FullName -Descending | Select-Object -First 1
     if (-not $signtool) { throw 'signtool.exe not found (install the Windows 10/11 SDK).' }
-    Write-Host 'Signing CyrFlip.exe...' -ForegroundColor Cyan
+    Write-Host 'Signing CyrFlip.exe..' -ForegroundColor Cyan
     & $signtool.FullName sign /f $env:CYRFLIP_SIGN_PFX /p $env:CYRFLIP_SIGN_PASSWORD `
         /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 `
         /d 'CyrFlip' /du 'https://github.com/SerZhyAle/CyrFlip' $ExePath

@@ -2,22 +2,22 @@
 <!--
   MSIX package manifest for CyrFlip (Microsoft Store / sideload).
 
-  This wraps the plain net48 CyrFlip.exe as a FULL-TRUST desktop app — every Win32 API the app
+  This wraps the plain net48 CyrFlip.exe as a FULL-TRUST desktop app - every Win32 API the app
   uses (the global WH_KEYBOARD_LL hook, SendInput, SetSystemCursor, clipboard) keeps working,
   guarded by the single `runFullTrust` restricted capability.
 
   The __PLACEHOLDERS__ are filled in by tools/.. msix\build-msix.ps1 at pack time:
-    __IDENTITY_NAME__     Package identity Name — MUST match the value reserved for you in
+    __IDENTITY_NAME__     Package identity Name - MUST match the value reserved for you in
                           Partner Center (Product ▸ Product identity ▸ "Package/Identity/Name").
-    __PUBLISHER__         Publisher — MUST match exactly (Partner Center "Package/Identity/Publisher",
-                          e.g. CN=ABCD1234-...). For local self-signed testing it must match the
+    __PUBLISHER__         Publisher - MUST match exactly (Partner Center "Package/Identity/Publisher",
+                          e.g. CN=ABCD1234-..). For local self-signed testing it must match the
                           test certificate's subject instead.
     __PUBLISHER_DISPLAY__ Human-readable publisher name (Partner Center "Package/Properties/PublisherDisplayName").
     __VERSION__           4-part version with the 4th part = 0 (Store reserves the revision). The
                           build script derives it from the exe's YY.M.D.HHmm stamp.
 
   Autostart is a windows.startupTask (Enabled="false" → user opts in via Settings ▸ Apps ▸ Startup),
-  replacing the HKCU\…\Run entry used by the unpackaged build (that write is virtualized under MSIX).
+  replacing the HKCU\..\Run entry used by the unpackaged build (that write is virtualized under MSIX).
 -->
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"

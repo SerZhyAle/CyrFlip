@@ -6,7 +6,7 @@ namespace CyrFlip
     /// Tells whether CyrFlip is running inside an MSIX package (Microsoft Store / sideloaded
     /// .msix) or as a plain unpackaged exe. The same binary ships both ways, so a few
     /// behaviours differ:
-    ///   - autostart: unpackaged uses HKCU\…\Run; packaged uses the manifest's startupTask,
+    ///   - autostart: unpackaged uses HKCU\..\Run; packaged uses the manifest's startupTask,
     ///     which the user toggles in Windows "Startup apps" settings (see <see cref="Autostart"/>);
     ///   - <see cref="LayoutPublisher"/> writes layout.txt to %ProgramData% when packaged, because
     ///     %LOCALAPPDATA% is virtualized into the package container and the VS Code extension

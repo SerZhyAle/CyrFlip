@@ -3,7 +3,7 @@
 Packages the unpackaged `CyrFlip.exe` as a **full-trust MSIX** for the Microsoft Store (Path A).
 
 **Why the Store path is attractive:** the developer account is now **free** (individuals since late
-2025, companies since May 2026), and **Microsoft re-signs the package** during certification — so you
+2025, companies since May 2026), and **Microsoft re-signs the package** during certification - so you
 get a trusted signature and reputation **without buying a code-signing certificate**. A Store-signed,
 Store-distributed build is also the most effective answer to the Avast/AVG `IDP.Generic` heuristic.
 
@@ -21,13 +21,13 @@ The `stage/` and `dist/` folders are produced by the script (git-ignore them).
 The **same `CyrFlip.exe`** ships packaged and unpackaged; it detects which at runtime
 (`PackageInfo.IsPackaged` → `GetCurrentPackageFullName`) and adjusts two things:
 
-1. **Autostart.** Unpackaged uses `HKCU\…\Run`. Under MSIX that write is virtualized and ignored at
+1. **Autostart.** Unpackaged uses `HKCU\..\Run`. Under MSIX that write is virtualized and ignored at
    sign-in, so autostart is declared in the manifest as a **`windows.startupTask`** (off by default).
-   The tray menu item becomes **"Start with Windows…"** and opens *Settings ▸ Apps ▸ Startup*, where
+   The tray menu item becomes **"Start with Windows.."** and opens *Settings ▸ Apps ▸ Startup*, where
    the user toggles it.
 2. **`layout.txt` for the VS Code extension.** Unpackaged writes `%LOCALAPPDATA%\CyrFlip\layout.txt`.
-   Under MSIX `%LOCALAPPDATA%` is virtualized into the package container — invisible to the (unpackaged)
-   extension — so the packaged app writes **`%ProgramData%\CyrFlip\layout.txt`** instead. The extension
+   Under MSIX `%LOCALAPPDATA%` is virtualized into the package container - invisible to the (unpackaged)
+   extension - so the packaged app writes **`%ProgramData%\CyrFlip\layout.txt`** instead. The extension
    checks both locations.
 
 The global keyboard hook, `SendInput`, `SetSystemCursor` and clipboard all keep working because the
@@ -39,7 +39,7 @@ package declares the `runFullTrust` restricted capability.
 2. **Reserve the app name** "CyrFlip" (Apps and games ▸ New product ▸ MSIX or PWA app).
 3. Open **Product ▸ Product identity** and copy the three values Microsoft assigned you:
    - **Package/Identity/Name** → pass as `-IdentityName`
-   - **Package/Identity/Publisher** (e.g. `CN=ABCD1234-…`) → pass as `-Publisher`
+   - **Package/Identity/Publisher** (e.g. `CN=ABCD1234-..`) → pass as `-Publisher`
    - **Package/Properties/PublisherDisplayName** → pass as `-PublisherDisplayName`
 
 These **must match exactly**, or the Store rejects the upload.
@@ -55,7 +55,7 @@ Requires the Windows SDK (`makeappx`): `winget install Microsoft.WindowsSDK`.
   -PublisherDisplayName "<PublisherDisplayName from Partner Center>"
 ```
 
-Output: `msix/dist/CyrFlip-<version>-x64.msix`, **unsigned** — that's correct, upload it as-is.
+Output: `msix/dist/CyrFlip-<version>-x64.msix`, **unsigned** - that's correct, upload it as-is.
 The internal package version is derived from the exe's `YY.M.D.HHmm` stamp and remapped to a
 Store-legal `Major.Minor.Build.0` (the revision must be 0; the build script handles this).
 
@@ -81,4 +81,4 @@ The script signs the package and prints the two commands to (1) trust the test c
 app launches, the layout indicator works, and *Settings ▸ Apps ▸ Startup* lists **CyrFlip**.
 
 > Self-signed packages are for local testing only. **Do not** sign the package you upload to the
-> Store — Microsoft signs that one.
+> Store - Microsoft signs that one.

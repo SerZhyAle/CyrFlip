@@ -12,7 +12,7 @@ namespace CyrFlip
     /// replaced with a caret carrying the current keyboard-layout marker (EN/RU/UK), updated
     /// live as the layout changes.
     ///
-    /// This uses <c>SetSystemCursor(OCR_IBEAM)</c>, which is **global** — every app's text
+    /// This uses <c>SetSystemCursor(OCR_IBEAM)</c>, which is **global** - every app's text
     /// cursor changes until restored. The replacement is therefore always undone on Dispose,
     /// app exit, and unhandled exceptions (see CyrFlipContext); <see cref="ForceRestore"/>
     /// reloads the default system cursors unconditionally.

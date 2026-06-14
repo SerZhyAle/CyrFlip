@@ -13,13 +13,13 @@ using static CyrFlip.WindowInterop;
 namespace CyrFlip
 {
     /// <summary>
-    /// Feature #3: a small marker (EN/RU/UK) pinned next to the blinking text caret — the
+    /// Feature #3: a small marker (EN/RU/UK) pinned next to the blinking text caret - the
     /// place that actually shows where text will land (the mouse pointer is often an arrow
     /// while you type).
     ///
     /// Caret position comes from two sources, tried in order:
-    ///   1. <c>GetGUIThreadInfo</c> — fast, for classic Win32 edit controls.
-    ///   2. UI Automation <c>TextPattern</c> — for modern apps (WinUI Notepad, Chromium, etc.)
+    ///   1. <c>GetGUIThreadInfo</c> - fast, for classic Win32 edit controls.
+    ///   2. UI Automation <c>TextPattern</c> - for modern apps (WinUI Notepad, Chromium, etc.)
     ///      that draw their own caret and expose no system caret.
     /// Tracking runs on a background MTA thread so UIA's cross-process calls never block the UI;
     /// the overlay window itself is touched only via BeginInvoke on the UI thread.
@@ -102,14 +102,14 @@ namespace CyrFlip
 
         private bool TryGetCaret(out int x, out int y)
         {
-            // 1) System caret (classic Win32 edit controls) — cheap, run every tick.
+            // 1) System caret (classic Win32 edit controls) - cheap, run every tick.
             if (TrySystemCaret(out x, out y))
             {
                 _haveUia = false; // a real system caret supersedes any cached UIA position
                 return true;
             }
 
-            // 2) UI Automation fallback (modern apps) — expensive, so throttle it.
+            // 2) UI Automation fallback (modern apps) - expensive, so throttle it.
             long now = _clock.ElapsedMilliseconds;
             if (now - _lastUiaMs >= UiaThrottleMs)
             {
@@ -185,7 +185,7 @@ namespace CyrFlip
                 var r = rects[0];
                 double h = r.Height > 0 ? r.Height : 16;
                 // A caret/char rect is narrow. A wide rect means we got a whole line or the text
-                // area (some controls report that for a collapsed caret) — unreliable, so skip it
+                // area (some controls report that for a collapsed caret) - unreliable, so skip it
                 // rather than draw the marker at the edge of the box.
                 if (r.Width > 4 * h)
                     return false;
@@ -196,7 +196,7 @@ namespace CyrFlip
             }
             catch
             {
-                return false; // UIA throws freely (ElementNotAvailable, NotSupported, …)
+                return false; // UIA throws freely (ElementNotAvailable, NotSupported, ..)
             }
         }
 

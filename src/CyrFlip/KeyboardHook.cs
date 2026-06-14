@@ -35,14 +35,14 @@ namespace CyrFlip
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            // A low-level hook proc must never throw — an exception here can drop the hook.
+            // A low-level hook proc must never throw - an exception here can drop the hook.
             try
             {
                 if (nCode >= 0 && (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN))
                 {
                     var data = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
 
-                    // Ignore our own synthesized input — never treat it as the hotkey.
+                    // Ignore our own synthesized input - never treat it as the hotkey.
                     if ((data.flags & LLKHF_INJECTED) == 0 && Matches(data.vkCode))
                     {
                         HotkeyPressed?.Invoke(this, EventArgs.Empty);
@@ -50,7 +50,7 @@ namespace CyrFlip
                     }
                 }
             }
-            catch { /* swallow — keep the hook alive */ }
+            catch { /* swallow - keep the hook alive */ }
 
             return CallNextHookEx(_hook, nCode, wParam, lParam);
         }
@@ -60,7 +60,7 @@ namespace CyrFlip
             if ((int)vkCode != _hotkey.Vk)
                 return false;
 
-            // Require exactly the configured modifiers — no more, no less.
+            // Require exactly the configured modifiers - no more, no less.
             return Down(Hotkey.VK_CONTROL) == _hotkey.Ctrl
                 && Down(Hotkey.VK_SHIFT) == _hotkey.Shift
                 && Down(Hotkey.VK_MENU) == _hotkey.Alt
