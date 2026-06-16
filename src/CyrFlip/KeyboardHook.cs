@@ -69,6 +69,12 @@ namespace CyrFlip
 
         private static bool Down(int vk) => (GetAsyncKeyState(vk) & 0x8000) != 0;
 
+        /// <summary>
+        /// Change the matched hotkey without reinstalling the hook. Safe to call from any thread
+        /// since the hook callback reads <c>_hotkey</c> on each invocation.
+        /// </summary>
+        public void UpdateHotkey(Hotkey hotkey) => _hotkey = hotkey;
+
         public void Dispose()
         {
             if (_hook != IntPtr.Zero)

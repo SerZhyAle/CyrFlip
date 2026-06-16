@@ -26,7 +26,11 @@ for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and c
 - **Run it** - launch `CyrFlip.exe`. There's no window; it sits in the notification area (system tray). The icon shows the active keyboard layout (**EN/RU/UK**).
 - **Flip text** - select text typed in the wrong layout, press **Ctrl+Shift+F12**, and it's replaced in place. Works in any app (Notepad, Word, browsers, ..).
 - **Tray menu** (right-click the icon):
-  - **Flip EN ⇄ RU: Ctrl+Shift+F12** - shows the active flip hotkey.
+  - **Flip EN ⇄ RU: \<hotkey\>** - shows the active flip hotkey (disabled header).
+  - **Set hotkey…** - opens a dialog where you press the new combination; saved immediately, no restart needed.
+  - **Cursor: layout indicator** - toggle the system I-beam cursor replacement (off by default).
+  - **Caret: overlay label** - toggle the EN/RU/UK marker next to the blinking caret (on by default).
+  - **Caret: dot style** - when the overlay is on, show a small colour dot instead of the EN/RU/UK letters.
   - **Start with Windows** - toggle launching CyrFlip at sign-in (per-user; no admin needed).
   - **Exit** - quit.
 
@@ -71,11 +75,16 @@ dotnet test CyrFlip.sln
 
 ## Configuration
 
-Optional `config.json` (next to the exe, or in `%APPDATA%\CyrFlip\`):
+All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and are changed through the tray menu — no config file to edit.
 
-```json
-{ "hotkey": "Ctrl+Shift+F12", "cursorSize": 24 }
-```
+| Setting | Default | What it does |
+| --- | --- | --- |
+| Hotkey | `Ctrl+Shift+F12` | Flip hotkey; change via **Set hotkey…** in the tray menu |
+| Cursor indicator | off | Replaces the system I-beam with a layout-branded cursor |
+| Caret overlay | on | Shows the layout marker next to the blinking text caret |
+| Caret dot style | off | Coloured dot instead of EN/RU/UK letters in the overlay |
+
+A legacy `config.json` (next to the exe or in `%APPDATA%\CyrFlip\`) is migrated to the registry automatically on first run.
 
 ## Known issues
 

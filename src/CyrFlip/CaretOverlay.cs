@@ -13,9 +13,9 @@ using static CyrFlip.WindowInterop;
 namespace CyrFlip
 {
     /// <summary>
-    /// Feature #3: a small marker (EN/RU/UK) pinned next to the blinking text caret - the
-    /// place that actually shows where text will land (the mouse pointer is often an arrow
-    /// while you type).
+    /// Feature #1b: a small marker (EN/RU/UK or a colored dot) pinned next to the blinking text
+    /// caret - the place that actually shows where text will land (the mouse pointer is often an
+    /// arrow while you type).
     ///
     /// Caret position comes from two sources, tried in order:
     ///   1. <c>GetGUIThreadInfo</c> - fast, for classic Win32 edit controls.
@@ -39,7 +39,8 @@ namespace CyrFlip
         private bool _haveUia;
         private int _uiaX, _uiaY;
 
-        public CaretOverlay(int size) => _form = new OverlayForm(size);
+        public CaretOverlay(int size, bool dotMode = false)
+            => _form = new OverlayForm(size, dotMode);
 
         public void Start()
         {
@@ -52,6 +53,9 @@ namespace CyrFlip
 
         /// <summary>Set the layout code shown by the overlay (called on layout change).</summary>
         public void SetLayout(string code) => _code = code ?? "";
+
+        /// <summary>Switch between text label (EN/RU/UK) and colored dot rendering.</summary>
+        public void SetDotMode(bool dot) => _form.SetDotMode(dot);
 
         private void Loop()
         {
@@ -215,11 +219,13 @@ namespace CyrFlip
             private readonly int _h;
             private readonly Font _font;
             private string _code = "";
+            private bool _dotMode;
 
-            public OverlayForm(int size)
+            public OverlayForm(int size, bool dotMode = false)
             {
                 _h = Math.Max(14, Math.Min(40, size == 0 ? 18 : size));
                 _font = new Font("Segoe UI", _h * 0.62f, FontStyle.Bold, GraphicsUnit.Pixel);
+                _dotMode = dotMode;
 
                 FormBorderStyle = FormBorderStyle.None;
                 ShowInTaskbar = false;
@@ -252,6 +258,15 @@ namespace CyrFlip
                 Invalidate();
             }
 
+            /// <summary>Switch dot/text mode; must be called on the UI thread.</summary>
+            public void SetDotMode(bool dot)
+            {
+                if (dot == _dotMode) return;
+                _dotMode = dot;
+                ResizeToContent();
+                Invalidate();
+            }
+
             public void ShowAt(int x, int y)
             {
                 Location = new Point(x, y);
@@ -269,24 +284,37 @@ namespace CyrFlip
 
             private void ResizeToContent()
             {
-                using var bmp = new Bitmap(1, 1);
-                using var g = Graphics.FromImage(bmp);
-                SizeF s = g.MeasureString(_code.Length == 0 ? "EN" : _code, _font);
-                int padX = (int)Math.Round(_h * 0.20);
-                int padY = (int)Math.Round(_h * 0.12);
-                Size = new Size((int)Math.Ceiling(s.Width) + padX * 2, (int)Math.Ceiling(s.Height) + padY * 2);
+                if (_dotMode)
+                {
+                    int d = Math.Max(6, _h / 3);
+                    Size = new Size(d, d);
+                    using var path = new GraphicsPath();
+                    path.AddEllipse(0, 0, d, d);
+                    Region oldRegion = Region;
+                    Region = new Region(path);
+                    oldRegion?.Dispose();
+                }
+                else
+                {
+                    using var bmp = new Bitmap(1, 1);
+                    using var g = Graphics.FromImage(bmp);
+                    SizeF s = g.MeasureString(_code.Length == 0 ? "EN" : _code, _font);
+                    int padX = (int)Math.Round(_h * 0.20);
+                    int padY = (int)Math.Round(_h * 0.12);
+                    Size = new Size((int)Math.Ceiling(s.Width) + padX * 2, (int)Math.Ceiling(s.Height) + padY * 2);
 
-                using var path = new GraphicsPath();
-                int r = Math.Max(3, _h / 4);
-                int d = r * 2;
-                path.AddArc(0, 0, d, d, 180, 90);
-                path.AddArc(Width - d, 0, d, d, 270, 90);
-                path.AddArc(Width - d, Height - d, d, d, 0, 90);
-                path.AddArc(0, Height - d, d, d, 90, 90);
-                path.CloseFigure();
-                Region oldRegion = Region;
-                Region = new Region(path);
-                oldRegion?.Dispose();
+                    using var path = new GraphicsPath();
+                    int r = Math.Max(3, _h / 4);
+                    int d = r * 2;
+                    path.AddArc(0, 0, d, d, 180, 90);
+                    path.AddArc(Width - d, 0, d, d, 270, 90);
+                    path.AddArc(Width - d, Height - d, d, d, 0, 90);
+                    path.AddArc(0, Height - d, d, d, 90, 90);
+                    path.CloseFigure();
+                    Region oldRegion = Region;
+                    Region = new Region(path);
+                    oldRegion?.Dispose();
+                }
             }
 
             protected override void OnPaint(PaintEventArgs e)
@@ -294,7 +322,16 @@ namespace CyrFlip
                 Graphics g = e.Graphics;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 g.TextRenderingHint = TextRenderingHint.AntiAlias;
-                LayoutStyle.DrawCode(g, _code, _font, new RectangleF(0, 0, Width, Height));
+
+                if (_dotMode)
+                {
+                    // Fill the entire (clipped-to-ellipse) window with the layout color.
+                    g.Clear(_code.Length > 0 ? LayoutStyle.ColorFor(_code) : LayoutStyle.ColorFor("EN"));
+                }
+                else
+                {
+                    LayoutStyle.DrawCode(g, _code, _font, new RectangleF(0, 0, Width, Height));
+                }
             }
 
             protected override void Dispose(bool disposing)

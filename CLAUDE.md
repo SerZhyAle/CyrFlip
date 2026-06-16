@@ -47,18 +47,19 @@ It runs in the **system tray** (icon also shows the layout; right-click menu = h
 Each class owns one concern (keep it this way - the spec prioritizes a minimal surface):
 
 - **Program.cs** - entry point (`[STAThread]` Main). Enforces **single instance** via a named mutex (`Local\CyrFlipSingleInstance`) - a second copy would install a second hook and fight over the system cursor - then runs `CyrFlipContext`.
-- **CyrFlipContext.cs** - the tray app shell (`ApplicationContext`). Builds the tray `NotifyIcon` + menu (hotkey header, "Start with Windows", Exit), subscribes to layout changes, and on hotkey runs the flip **on a dedicated STA thread** (clipboard needs STA) guarded by an `Interlocked` flag against auto-repeat re-entry.
-- **KeyboardHook.cs** - `SetWindowsHookEx(WH_KEYBOARD_LL)` wrapper. The callback ignores injected events (`LLKHF_INJECTED`) so our own `SendInput` can't re-enter it, matches the chord via `GetAsyncKeyState`, raises `HotkeyPressed`, and returns `1` to **swallow** the trigger key.
+- **CyrFlipContext.cs** - the tray app shell (`ApplicationContext`). Builds the tray `NotifyIcon` + menu (hotkey header, "Set hotkey…", cursor/caret/dot-mode toggles, "Start with Windows", Exit), subscribes to layout changes, and on hotkey runs the flip **on a dedicated background thread** guarded by an `Interlocked` flag against auto-repeat re-entry. Tracks successful flips via `AppConfig.IncrementFlipCount`. Hotkey can be changed at runtime via `HotkeyDialog` without restarting the app.
+- **KeyboardHook.cs** - `SetWindowsHookEx(WH_KEYBOARD_LL)` wrapper. The callback ignores injected events (`LLKHF_INJECTED`) so our own `SendInput` can't re-enter it, matches the chord via `GetAsyncKeyState`, raises `HotkeyPressed`, and returns `1` to **swallow** the trigger key. `UpdateHotkey(hotkey)` swaps the matched chord at runtime (safe from any thread - the callback reads `_hotkey` on each invocation).
 - **Hotkey.cs** - parses `"Ctrl+Shift+F12"` → modifiers + VK (+ named keys: Space/Enter/F1-F24/..); `Display` round-trips it. `Hotkey.Default` is **Ctrl+Shift+F12** (Ctrl+Shift+T was dropped - it conflicts with browser "reopen tab" and Windows text-extraction tools).
 - **CursorIndicator.cs** - polls the foreground window's layout (`GetKeyboardLayout` → EN/RU/UK) on a 150 ms `Timer` and raises `LayoutChanged`; also renders the tray icon (`RenderIcon`, GDI → managed `Icon` via a PNG-payload .ico, no leaked HICON). `LayoutChanged` drives all three surfaces (tray icon, `LayoutCursor`, `CaretOverlay`).
 - **LayoutCursor.cs** *(headline)* - renders the caret + EN/RU/UK marker to a `Bitmap`, turns it into a color cursor with a hotspot (`GetHicon` → `GetIconInfo` → `CreateIconIndirect` with `fIcon=false`), installs it via `SetSystemCursor(OCR_IBEAM)`, and nudges a repaint (`ForceCursorRefresh`). `Restore`/`ForceRestore` reload default cursors. Scaled by `config.cursorSize`.
-- **CaretOverlay.cs** *(headline)* - a borderless, topmost, click-through (`WS_EX_TRANSPARENT`), no-activate (`WS_EX_NOACTIVATE` + `ShowWithoutActivation`) `Form` with a rounded window region, showing the EN/RU/UK marker **diagonally below-right of the text caret** (so it never covers the current line). A background MTA thread finds the caret via `GetGUIThreadInfo` (every ~90 ms) then a **throttled (~180 ms) UIA `TextPattern` fallback**, and positions the form via `BeginInvoke`. Shows/hides with WinForms `Show()`/`Hide()` (relies on `ShowWithoutActivation` so it never steals focus). Hidden when no caret can be located. UIA-only apps may report the caret position imprecisely (e.g. Monaco/VS Code).
+- **CaretOverlay.cs** *(headline)* - a borderless, topmost, click-through (`WS_EX_TRANSPARENT`), no-activate (`WS_EX_NOACTIVATE` + `ShowWithoutActivation`) `Form` with a rounded window region, showing the EN/RU/UK marker **diagonally below-right of the text caret** (so it never covers the current line). Supports two rendering modes: **text label** (EN/RU/UK letters, default) and **dot mode** (a small solid circle in the layout's colour - set via `SetDotMode(bool)`). A background MTA thread finds the caret via `GetGUIThreadInfo` (every ~90 ms) then a **throttled (~180 ms) UIA `TextPattern` fallback**, and positions the form via `BeginInvoke`. Shows/hides with WinForms `Show()`/`Hide()` (relies on `ShowWithoutActivation` so it never steals focus). Passes an empty string to `SetLayout` to hide. UIA-only apps may report the caret position imprecisely (e.g. Monaco/VS Code).
 - **LayoutStyle.cs** - shared marker look used by all three surfaces: per-layout colour (EN=blue, RU=red, UK=green; any other code → a deterministic bright HSL colour) and `DrawCode` which renders the letters with that fill **plus a black outline** (`GraphicsPath.AddString` → `DrawPath` black pen → `FillPath`) so they stay legible on any background. Change the colour scheme here, once.
 - **TransliterationEngine.cs** - `static`; two `Dictionary<char,char>` (EN→RU, RU→EN). `Transliterate` auto-detects direction **per character**, so one pass fixes either direction and mixed text; case preserved; unmapped chars pass through. O(n).
 - **ClipboardHandler.cs** - the flip: back up clipboard → clean synthesized Ctrl+C (`SendInput`, releasing held modifiers first) → poll for the selection → transliterate → cancel if the foreground window changed → set clipboard → Ctrl+V → restore clipboard. Clipboard ops retry 3× on lock (spec §5.3). **Must run on an STA thread.**
 - **Autostart.cs** - `HKCU\..\Run` toggle (per-user; not a service - see deviations).
 - **WindowInterop.cs** - all `[DllImport]`s + interop structs. The `INPUT` union includes `MOUSEINPUT` so `Marshal.SizeOf(INPUT)` matches the real struct on x64 (else `SendInput` silently fails).
-- **AppConfig.cs** - loads `config.json` from `%APPDATA%\CyrFlip\` (else beside the exe); defaults on missing/malformed.
+- **AppConfig.cs** - persists settings to `HKCU\Software\CyrFlip`. On first run with no registry key, migrates from a legacy `config.json` (from `%APPDATA%\CyrFlip\` or beside the exe). Fields: `Hotkey`, `CursorSize`, `EnableCursorChange` (default **false**), `EnableCaretOverlay` (default **true**), `CaretDotMode` (default **false**), `FlipCount` (usage counter). `Save()` writes all fields; `IncrementFlipCount()` increments and writes only the counter (cheap).
+- **HotkeyDialog.cs** - a fixed-size modal `Form` (`FormBorderStyle.FixedDialog`) that captures a new hotkey from the user. `KeyPreview = true`; requires at least one modifier (Ctrl/Shift/Alt) plus a trigger key (A-Z, 0-9, F1-F24, or named keys). Returns the hotkey string via `CapturedHotkey` on `DialogResult.OK`.
 - **LayoutPublisher.cs** - writes the current layout code to `%LOCALAPPDATA%\CyrFlip\layout.txt` on every change, so the companion VS Code extension can place the marker at the editor caret (the external overlay can't track Monaco's caret reliably).
 
 ## Companion VS Code extension (`vscode-extension/`)
@@ -88,7 +89,18 @@ Map case-insensitively but preserve case; pass through characters with no mappin
 
 ## Config
 
-Optional `config.json` (intended location: an AppData folder):
+Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All values have defaults and are written on first change. On first run with no registry key, the app migrates from a legacy `config.json` if one is present.
+
+| Registry value | Type | Default | Description |
+| --- | --- | --- | --- |
+| `Hotkey` | `REG_SZ` | `Ctrl+Shift+F12` | Flip hotkey (user-configurable via tray "Set hotkey…") |
+| `CursorSize` | `REG_DWORD` | `24` | Size of the I-beam cursor and caret overlay marker (px) |
+| `EnableCursorChange` | `REG_DWORD` | `0` | 1 = replace the system I-beam with the layout-branded cursor |
+| `EnableCaretOverlay` | `REG_DWORD` | `1` | 1 = show the layout marker next to the blinking text caret |
+| `CaretDotMode` | `REG_DWORD` | `0` | 1 = use a solid colour dot instead of EN/RU/UK text in the overlay |
+| `FlipCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful transliteration |
+
+Legacy `config.json` (still accepted on first run for migration):
 ```json
 { "hotkey": "Ctrl+Shift+F12", "cursorSize": 24 }
 ```
