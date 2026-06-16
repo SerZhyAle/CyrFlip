@@ -8,11 +8,11 @@ namespace CyrFlip
     /// Bidirectional QWERTY ↔ ЙЦУКЕН transliteration, based on the standard
     /// Russian ЙЦУКЕН layout (see the spec, §5.1) and all punctuation keys.
     ///
-    /// The engine detects the dominant layout of the entire selection block
-    /// (by counting Latin vs Cyrillic characters) and transliterates all characters
-    /// in that direction. This resolves ambiguities for shared punctuation symbols
-    /// (like semicolon, period, comma, colon, etc.) that exist on different physical
-    /// keys in each layout. Case is preserved.
+    /// Letters (Latin/Cyrillic) are flipped per-character, so mixed-script
+    /// text (e.g. ЙЦУRTY → QWEКЕН) is handled correctly. Non-letter symbols
+    /// that are shared between layouts (like " ; : ? / .) are ambiguous, so
+    /// they use the dominant script direction of the text.
+    /// Case is preserved; unmapped characters pass through unchanged.
     /// </summary>
     public static class TransliterationEngine
     {
@@ -76,29 +76,38 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// Transliterate <paramref name="input"/>, auto-detecting the dominant layout
-        /// direction of the entire text block and preserving case.
+        /// Transliterate <paramref name="input"/>. Letters flip per-character;
+        /// ambiguous non-letter symbols use the dominant script direction.
         /// </summary>
         public static string Transliterate(string? input)
         {
             if (string.IsNullOrEmpty(input))
                 return input ?? string.Empty;
 
-            bool isCyrillic = IsCyrillicDominant(input!);
+            bool cyrillicDominant = IsCyrillicDominant(input!);
             var sb = new StringBuilder(input!.Length);
-
             foreach (char c in input)
             {
-                if (isCyrillic)
+                bool isCyrillicChar = c >= 0x0400 && c <= 0x052F;
+                bool isLatinLetter = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+
+                if (isCyrillicChar || isLatinLetter)
                 {
-                    sb.Append(RuToEn.TryGetValue(c, out char en) ? en : c);
+                    // Letters are unambiguous: flip per-character.
+                    sb.Append(isCyrillicChar
+                        ? (RuToEn.TryGetValue(c, out char en) ? en : c)
+                        : (EnToRu.TryGetValue(c, out char ru) ? ru : c));
                 }
                 else
                 {
-                    sb.Append(EnToRu.TryGetValue(c, out char ru) ? ru : c);
+                    // Punctuation/symbols can appear in both layouts with different
+                    // meanings; use dominant direction for context.
+                    if (cyrillicDominant)
+                        sb.Append(RuToEn.TryGetValue(c, out char en) ? en : c);
+                    else
+                        sb.Append(EnToRu.TryGetValue(c, out char ru) ? ru : c);
                 }
             }
-
             return sb.ToString();
         }
 
@@ -124,13 +133,9 @@ namespace CyrFlip
             foreach (char c in text)
             {
                 if ((c >= 0x0400 && c <= 0x04FF) || (c >= 0x0500 && c <= 0x052F))
-                {
                     cyrillicCount++;
-                }
                 else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
-                {
                     latinCount++;
-                }
             }
 
             if (cyrillicCount == 0 && latinCount == 0)

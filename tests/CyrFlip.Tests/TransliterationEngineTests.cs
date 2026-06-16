@@ -46,6 +46,14 @@ namespace CyrFlip.Tests
         }
 
         [Theory]
+        [InlineData("ЙЦУRTY", "QWEКЕН")]   // mixed: each char flips independently
+        [InlineData("ЙЦУКЕН", "QWERTY")]   // pure Cyrillic → pure Latin
+        public void FlipsEachCharacterIndependently(string input, string expected)
+        {
+            Assert.Equal(expected, TransliterationEngine.Transliterate(input));
+        }
+
+        [Theory]
         [InlineData("")]
         [InlineData(null)]
         public void HandlesEmptyAndNull(string? input)

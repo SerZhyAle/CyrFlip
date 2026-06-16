@@ -61,7 +61,7 @@
       <h2>Возможности</h2>
       <ul class="features">
         <li><strong>Маркер раскладки на текстовом курсоре</strong> (и на значке в трее), обновляется в реальном времени.</li>
-        <li>Транслитерация одной клавишей - двунаправленная QWERTY ↔ ЙЦУКЕН с автоопределением направления.</li>
+        <li>Транслитерация одной клавишей - QWERTY ↔ ЙЦУКЕН, каждый символ переключается по скрипту (смешанный EN + RU обрабатывается корректно).</li>
         <li>Глобальная горячая клавиша (по умолчанию <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>), настраивается.</li>
         <li>Один <code>.exe</code>, ничего не нужно устанавливать - работает на «голой» Windows 10/11.</li>
         <li>Менее 50&nbsp;МБ памяти в покое.</li>
@@ -70,11 +70,14 @@
 
     <section>
       <h2>Установка</h2>
-      <p>Через <a href="https://learn.microsoft.com/windows/package-manager/">winget</a> (после публикации):</p>
-      <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
-      <p>Или скачайте переносимый ZIP со
-      <a href="https://github.com/SerZhyAle/CyrFlip/releases">страницы релизов</a>, распакуйте куда угодно
-      и запустите <code>CyrFlip.exe</code>.</p>
+      <ul class="features">
+        <li><strong>Microsoft Store</strong> - найдите <strong>CyrFlip</strong> в приложении Microsoft Store на Windows 10/11 или используйте <em>winget</em>:
+          <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
+        </li>
+        <li><strong>Переносимый ZIP</strong> - скачайте со
+          <a href="https://github.com/SerZhyAle/CyrFlip/releases">страницы релизов</a>, распакуйте куда угодно
+          и запустите <code>CyrFlip.exe</code>. Установка и среда выполнения не нужны.</li>
+      </ul>
     </section>
     </main>
 

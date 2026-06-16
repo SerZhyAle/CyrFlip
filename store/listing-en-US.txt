@@ -1,0 +1,47 @@
+========================================
+CyrFlip — Microsoft Store listing (en-US)
+========================================
+
+SHORT DESCRIPTION (max 270 chars)
+----------------------------------
+Fix text typed on the wrong keyboard layout (EN ↔ RU/ЙЦУКЕН) with one hotkey, and always see which layout is active right at the cursor.
+
+
+DESCRIPTION
+-----------
+CyrFlip is a tiny background utility for Windows that solves two common typing problems for anyone who switches between Latin and Cyrillic keyboard layouts.
+
+LIVE LAYOUT INDICATOR
+CyrFlip replaces the system text cursor with one that shows your active layout (EN / RU / UK) and places a small marker right next to the blinking caret — so you always know which layout is active, without glancing at the keyboard or taskbar.
+
+INSTANT LAYOUT FIX
+Typed "ghj xbhbkbwf" when you meant "эта кириллица"? Select the mangled text, press Ctrl+Shift+F12, and it is corrected in place — in any app where you can type. Works in browsers, word processors, messengers, code editors, and more.
+
+KEY FEATURES
+• Supports EN, RU, and UK keyboard layouts
+• Custom cursor and in-place caret overlay — always visible where you type
+• Transliterates selected text between QWERTY ↔ ЙЦУКЕН in one keystroke
+• Runs as a system-tray app; nothing to configure
+• Ships as a single portable .exe — no runtime or installer required
+• No ads, no telemetry, no cloud, no user accounts
+• Hotkey and cursor size configurable via a simple config file
+• Compatible with Windows 10 and Windows 11
+• Open source (MIT)
+
+
+KEYWORDS
+--------
+keyboard layout, transliteration, cyrillic, qwerty, йцукен, layout indicator, layout switcher
+
+
+SYSTEM REQUIREMENTS
+-------------------
+(Copy these values into Partner Center → Properties → System requirements.)
+
+Minimum: Windows 10 (build 17763 / version 1809) or Windows 11, x64.
+.NET Framework 4.8 is pre-installed on all supported Windows versions — nothing extra to install.
+
+NOT required: Visual Studio Code. The VS Code extension is a fully optional companion for VS Code
+users who want a precise layout marker at the Monaco editor caret. CyrFlip works completely
+without VS Code: you get the tray icon, the layout-aware I-beam cursor, the caret overlay, and
+the transliteration hotkey in every app — all without VS Code installed.

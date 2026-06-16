@@ -1,7 +1,7 @@
 # Normalize line endings; let git handle text detection.
 * text=auto
 
-# Source files are CRLF (Windows / Visual Studio).
+# Source files - CRLF (Windows / Visual Studio).
 *.cs       text eol=crlf
 *.csproj   text eol=crlf
 *.sln      text eol=crlf
@@ -9,10 +9,26 @@
 *.targets  text eol=crlf
 *.manifest text eol=crlf
 *.ps1      text eol=crlf
+
+# Data / config.
 *.json     text eol=crlf
-*.md       text
+*.yaml     text eol=crlf
+*.yml      text eol=crlf
+*.xml      text eol=crlf
+
+# Web / docs.
+*.html     text eol=crlf
+*.css      text eol=crlf
+*.md       text eol=crlf
+*.txt      text eol=crlf
+
+# TypeScript extension.
+*.ts       text eol=crlf
+*.js       text eol=crlf
+*.vscodeignore text eol=crlf
 
 # Binary assets.
 *.ico  binary
 *.png  binary
 *.docx binary
+*.vsix binary

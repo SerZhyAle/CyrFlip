@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CyrFlip - setup guide (app + VS Code extension)</title>
-  <meta name="description" content="Step-by-step guide: install and use the CyrFlip Windows app together with its VS Code extension, so the EN/RU/UK layout marker appears everywhere - including at the editor caret." />
+  <title>CyrFlip - setup guide</title>
+  <meta name="description" content="Step-by-step guide: install the CyrFlip Windows app to get live EN/RU/UK layout indicators on your cursor and text caret everywhere. The optional VS Code extension adds a precise in-editor marker." />
   <meta property="og:title" content="CyrFlip - setup guide" />
-  <meta property="og:description" content="Install and use the CyrFlip app with the VS Code extension." />
+  <meta property="og:description" content="Install CyrFlip for instant layout indicators everywhere. The VS Code extension is optional." />
   <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
   <link rel="stylesheet" href="style.css" />
@@ -27,10 +27,11 @@
       </div>
     </header>
 
-    <h1>Setup guide: the app + the VS Code extension</h1>
-    <p class="tagline">CyrFlip is two pieces that work together. The <strong>desktop app</strong> detects your
-    keyboard layout and shows it everywhere; the optional <strong>VS Code extension</strong> places the same
-    marker exactly at the editor caret inside VS Code. Here's how to set them up and use them as one.</p>
+    <h1>CyrFlip setup guide</h1>
+    <p class="tagline">The <strong>CyrFlip desktop app</strong> works standalone — it puts the EN/RU/UK marker on
+    the system cursor and next to the text caret everywhere, and transliterates mistyped text with one hotkey.
+    If you use VS Code, the optional <strong>VS Code extension</strong> adds the same marker precisely at the
+    Monaco editor caret. Here's how to set them up.</p>
 
     <section>
       <h2>How the two pieces fit together</h2>
@@ -46,9 +47,10 @@
 
     <section>
       <h2>Step 1 - Install and run the CyrFlip app</h2>
-      <p>Pick either option:</p>
+      <p>Pick any option:</p>
       <ul class="features">
-        <li><strong>winget</strong> (once published):
+        <li><strong>Microsoft Store</strong> - search for <strong>CyrFlip</strong> in the Microsoft Store app on Windows 10/11 and click <em>Get</em>.</li>
+        <li><strong>winget</strong>:
           <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
         </li>
         <li><strong>Portable ZIP</strong> - download from the
@@ -63,8 +65,9 @@
     </section>
 
     <section>
-      <h2>Step 2 - Install the VS Code extension</h2>
-      <p>This step is only needed if you want the marker <em>exactly at the caret inside VS Code</em>. Choose one:</p>
+      <h2>Step 2 - Install the VS Code extension (optional)</h2>
+      <p>The VS Code extension is <strong>not required</strong> for the app to work. Skip this step entirely if you don't use VS Code.
+      Install it only if you want the layout marker to appear <em>exactly at the caret inside VS Code</em>. Choose one:</p>
       <ul class="features">
         <li><strong>From the Marketplace</strong> - open <em>Extensions</em> (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd>),
           search <strong>CyrFlip</strong> (publisher <em>SerZhyAle</em>), and click <em>Install</em>.</li>
@@ -90,7 +93,8 @@
           I-beam cursor and the tray icon, driven by the same app.</li>
         <li>Typed something in the wrong layout? <strong>Select it</strong> and press
           <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> - CyrFlip transliterates it in place
-          (QWERTY ↔ ЙЦУКЕН, EN ↔ RU). This works in any app, VS Code included.</li>
+          (QWERTY ↔ ЙЦУКЕН, EN ↔ RU). Each character is flipped by script, so mixed EN + RU text
+          is handled correctly too. Works in any app, VS Code included.</li>
       </ol>
     </section>
 
@@ -112,8 +116,10 @@
     <section>
       <h2>Troubleshooting</h2>
       <ul class="features">
-        <li><strong>No marker in VS Code.</strong> Confirm the app is running, then check that
-          <code>%LOCALAPPDATA%\CyrFlip\layout.txt</code> exists and its contents change when you switch layout.
+        <li><strong>No marker in VS Code.</strong> Confirm the app is running, then check that the layout file
+          exists and its contents change when you switch layout. The file path depends on how you installed the app:
+          portable/winget → <code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>;
+          Microsoft Store → <code>%ProgramData%\CyrFlip\layout.txt</code>.
           The status-bar indicator is the quickest way to tell the extension is reading the file. Try
           <em>Developer: Reload Window</em>.</li>
         <li><strong>Marker sits at the edge of an input (not in VS Code).</strong> In Monaco-based editors the app's

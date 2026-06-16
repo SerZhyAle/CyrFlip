@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CyrFlip - инструкция (приложение + расширение VS Code)</title>
-  <meta name="description" content="Пошаговая инструкция: установка и использование приложения CyrFlip для Windows вместе с расширением для VS Code, чтобы маркер раскладки EN/RU/UK был виден везде - в том числе точно у каретки редактора." />
+  <title>CyrFlip - инструкция</title>
+  <meta name="description" content="Пошаговая инструкция: установка приложения CyrFlip для Windows — живой индикатор раскладки EN/RU/UK прямо у курсора и каретки, горячая клавиша транслитерации. Расширение для VS Code — необязательно." />
   <meta property="og:title" content="CyrFlip - инструкция" />
-  <meta property="og:description" content="Установка и совместное использование CyrFlip и расширения для VS Code." />
+  <meta property="og:description" content="Установите CyrFlip для мгновенного отображения раскладки везде. Расширение для VS Code — необязательное дополнение." />
   <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
   <link rel="icon" type="image/png" href="../assets/favicon.png" />
   <link rel="stylesheet" href="../style.css" />
@@ -27,10 +27,11 @@
       </div>
     </header>
 
-    <h1>Инструкция: приложение + расширение для VS Code</h1>
-    <p class="tagline">CyrFlip состоит из двух частей, работающих вместе. <strong>Приложение</strong> определяет
-    раскладку клавиатуры и показывает её везде; необязательное <strong>расширение для VS Code</strong> ставит
-    тот же маркер точно у каретки редактора внутри VS Code. Ниже - как их установить и пользоваться как единым целым.</p>
+    <h1>Инструкция по установке CyrFlip</h1>
+    <p class="tagline"><strong>Приложение CyrFlip</strong> работает самостоятельно — ставит маркер EN/RU/UK
+    на системный курсор и рядом с кареткой в любом приложении, транслитерирует текст одной горячей клавишей.
+    Если вы используете VS Code — необязательное <strong>расширение для VS Code</strong> добавляет тот же
+    маркер точно у каретки редактора Monaco. Ниже описано, как их настроить.</p>
 
     <section>
       <h2>Как связаны две части</h2>
@@ -49,7 +50,8 @@
       <h2>Шаг 1 - установите и запустите приложение CyrFlip</h2>
       <p>Любой из вариантов:</p>
       <ul class="features">
-        <li><strong>winget</strong> (после публикации):
+        <li><strong>Microsoft Store</strong> - найдите <strong>CyrFlip</strong> в приложении Microsoft Store на Windows 10/11 и нажмите <em>Получить</em>.</li>
+        <li><strong>winget</strong>:
           <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
         </li>
         <li><strong>Переносимый ZIP</strong> - скачайте со
@@ -64,8 +66,9 @@
     </section>
 
     <section>
-      <h2>Шаг 2 - установите расширение для VS Code</h2>
-      <p>Этот шаг нужен, только если вы хотите маркер <em>точно у каретки внутри VS Code</em>. Выберите один способ:</p>
+      <h2>Шаг 2 - установите расширение для VS Code (необязательно)</h2>
+      <p>Расширение для VS Code <strong>не требуется</strong> для работы приложения. Если вы не пользуетесь VS Code - пропустите этот шаг.
+      Устанавливайте его только если хотите маркер <em>точно у каретки внутри VS Code</em>. Выберите один способ:</p>
       <ul class="features">
         <li><strong>Из Marketplace</strong> - откройте <em>Extensions</em>
           (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd>), найдите <strong>CyrFlip</strong>
@@ -92,7 +95,8 @@
           курсоре-«балке» мыши и на значке в трее - всё от того же приложения.</li>
         <li>Набрали в неправильной раскладке? <strong>Выделите</strong> и нажмите
           <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> - CyrFlip транслитерирует на месте
-          (QWERTY ↔ ЙЦУКЕН, EN ↔ RU). Работает в любом приложении, включая VS Code.</li>
+          (QWERTY ↔ ЙЦУКЕН, EN ↔ RU). Каждый символ переключается по скрипту, поэтому смешанный
+          EN + RU тоже обрабатывается корректно. Работает в любом приложении, включая VS Code.</li>
       </ol>
     </section>
 
@@ -115,7 +119,9 @@
       <h2>Решение проблем</h2>
       <ul class="features">
         <li><strong>Нет маркера в VS Code.</strong> Проверьте, что приложение запущено, затем что файл
-          <code>%LOCALAPPDATA%\CyrFlip\layout.txt</code> существует и его содержимое меняется при смене раскладки.
+          раскладки существует и его содержимое меняется при смене раскладки. Путь зависит от способа установки:
+          portable/winget → <code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>;
+          Microsoft Store → <code>%ProgramData%\CyrFlip\layout.txt</code>.
           Индикатор в строке состояния - самый быстрый способ убедиться, что расширение читает файл. Попробуйте
           <em>Developer: Reload Window</em>.</li>
         <li><strong>Маркер у края поля (не в VS Code).</strong> В редакторах на основе Monaco внешний оверлей

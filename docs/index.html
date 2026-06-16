@@ -61,7 +61,7 @@
       <h2>Features</h2>
       <ul class="features">
         <li><strong>Layout marker on the text cursor</strong> (and the tray icon), updated live.</li>
-        <li>One-key transliteration - bidirectional QWERTY ↔ ЙЦУКЕН, auto-detecting direction.</li>
+        <li>One-key transliteration - QWERTY ↔ ЙЦУКЕН, each character flipped by script (handles mixed EN + RU text correctly).</li>
         <li>Global hotkey (default <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>), configurable.</li>
         <li>Single <code>.exe</code>, nothing to install - runs on stock Windows 10/11.</li>
         <li>Under 50&nbsp;MB of memory at rest.</li>
@@ -70,11 +70,14 @@
 
     <section>
       <h2>Install</h2>
-      <p>Via <a href="https://learn.microsoft.com/windows/package-manager/">winget</a> (once published):</p>
-      <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
-      <p>Or download the portable ZIP from the
-      <a href="https://github.com/SerZhyAle/CyrFlip/releases">Releases page</a>, extract anywhere,
-      and run <code>CyrFlip.exe</code>.</p>
+      <ul class="features">
+        <li><strong>Microsoft Store</strong> - search for <strong>CyrFlip</strong> in the Microsoft Store app on Windows 10/11, or use <em>winget</em>:
+          <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
+        </li>
+        <li><strong>Portable ZIP</strong> - download from the
+          <a href="https://github.com/SerZhyAle/CyrFlip/releases">Releases page</a>, extract anywhere,
+          and run <code>CyrFlip.exe</code>. No installer, no runtime required.</li>
+      </ul>
     </section>
     </main>
 
