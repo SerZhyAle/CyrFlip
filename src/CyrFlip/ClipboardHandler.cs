@@ -22,7 +22,11 @@ namespace CyrFlip
         /// <summary>Result of a flip, for the caller to surface (e.g. a tray balloon).</summary>
         public enum FlipResult { Flipped, NoSelection, NoChange, Cancelled, Failed }
 
-        public FlipResult Flip()
+        /// <param name="switchLayoutAfter">
+        /// When true, after a successful flip also switch the target window's input language
+        /// (EN → RU, otherwise → EN) so the user can keep typing in the corrected layout.
+        /// </param>
+        public FlipResult Flip(bool switchLayoutAfter = false)
         {
             IntPtr foreground = GetForegroundWindow();
 
@@ -80,6 +84,10 @@ namespace CyrFlip
 
                 // Restore physical modifier keys that the user is still physically holding.
                 RestorePhysicalModifiers(ctrlDown, shiftDown, altDown, winDown);
+
+                // Optionally flip the keyboard layout too, so continued typing matches the result.
+                if (switchLayoutAfter)
+                    LayoutSwitcher.SwitchAfterFlip(foreground);
 
                 return FlipResult.Flipped;
             }

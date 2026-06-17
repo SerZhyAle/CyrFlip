@@ -58,7 +58,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
 - **ClipboardHandler.cs** - the flip: back up clipboard → clean synthesized Ctrl+C (`SendInput`, releasing held modifiers first) → poll for the selection → transliterate → cancel if the foreground window changed → set clipboard → Ctrl+V → restore clipboard. Clipboard ops retry 3× on lock (spec §5.3). **Must run on an STA thread.**
 - **Autostart.cs** - `HKCU\..\Run` toggle (per-user; not a service - see deviations).
 - **WindowInterop.cs** - all `[DllImport]`s + interop structs. The `INPUT` union includes `MOUSEINPUT` so `Marshal.SizeOf(INPUT)` matches the real struct on x64 (else `SendInput` silently fails).
-- **AppConfig.cs** - persists settings to `HKCU\Software\CyrFlip`. On first run with no registry key, migrates from a legacy `config.json` (from `%APPDATA%\CyrFlip\` or beside the exe). Fields: `Hotkey`, `CursorSize`, `EnableCursorChange` (default **false**), `EnableCaretOverlay` (default **true**), `CaretDotMode` (default **false**), `FlipCount` (usage counter). `Save()` writes all fields; `IncrementFlipCount()` increments and writes only the counter (cheap).
+- **AppConfig.cs** - persists settings to `HKCU\Software\CyrFlip`. On first run with no registry key, migrates from a legacy `config.json` (from `%APPDATA%\CyrFlip\` or beside the exe). Fields: `Hotkey`, `CursorSize`, `EnableCursorChange` (default **false**), `EnableCaretOverlay` (default **true**), `CaretDotMode` (default **false**), `EnableLanguageSwitch` (default **false**), `FlipCount` (usage counter). `Save()` writes all fields; `IncrementFlipCount()` increments and writes only the counter (cheap).
 - **HotkeyDialog.cs** - a fixed-size modal `Form` (`FormBorderStyle.FixedDialog`) that captures a new hotkey from the user. `KeyPreview = true`; requires at least one modifier (Ctrl/Shift/Alt) plus a trigger key (A-Z, 0-9, F1-F24, or named keys). Returns the hotkey string via `CapturedHotkey` on `DialogResult.OK`.
 - **LayoutPublisher.cs** - writes the current layout code to `%LOCALAPPDATA%\CyrFlip\layout.txt` on every change, so the companion VS Code extension can place the marker at the editor caret (the external overlay can't track Monaco's caret reliably).
 
@@ -98,6 +98,7 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `EnableCursorChange` | `REG_DWORD` | `0` | 1 = replace the system I-beam with the layout-branded cursor |
 | `EnableCaretOverlay` | `REG_DWORD` | `1` | 1 = show the layout marker next to the blinking text caret |
 | `CaretDotMode` | `REG_DWORD` | `0` | 1 = use a solid colour dot instead of EN/RU/UK text in the overlay |
+| `EnableLanguageSwitch` | `REG_DWORD` | `0` | 1 = after a flip, also switch the target window's input language (EN→RU, else→EN) |
 | `FlipCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful transliteration |
 
 Legacy `config.json` (still accepted on first run for migration):

@@ -32,6 +32,7 @@ namespace CyrFlip
         private readonly ToolStripMenuItem _cursorItem;
         private readonly ToolStripMenuItem _caretItem;
         private readonly ToolStripMenuItem _dotModeItem;
+        private readonly ToolStripMenuItem _langSwitchItem;
 
         private readonly SynchronizationContext? _ui;
         private Icon? _trayIcon;
@@ -90,10 +91,18 @@ namespace CyrFlip
             };
             _dotModeItem.CheckedChanged += OnDotModeToggle;
 
+            _langSwitchItem = new ToolStripMenuItem("Change the language after the flip")
+            {
+                CheckOnClick = true,
+                Checked = _config.EnableLanguageSwitch,
+            };
+            _langSwitchItem.CheckedChanged += OnLangSwitchToggle;
+
             // ---- Menu ----
             var menu = new ContextMenuStrip();
             menu.Items.Add(_flipHeader);
             menu.Items.Add(new ToolStripMenuItem("Set hotkey...", null, OnSetHotkey));
+            menu.Items.Add(_langSwitchItem);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(_cursorItem);
             menu.Items.Add(_caretItem);
@@ -167,7 +176,7 @@ namespace CyrFlip
             {
                 try
                 {
-                    ClipboardHandler.FlipResult result = _clipboard.Flip();
+                    ClipboardHandler.FlipResult result = _clipboard.Flip(_config.EnableLanguageSwitch);
                     if (result == ClipboardHandler.FlipResult.Flipped)
                         _config.IncrementFlipCount();
                     _ui?.Post(_ => ShowFlipResult(result), null);
@@ -241,6 +250,12 @@ namespace CyrFlip
         {
             _config.CaretDotMode = _dotModeItem.Checked;
             _caretOverlay.SetDotMode(_dotModeItem.Checked);
+            _config.Save();
+        }
+
+        private void OnLangSwitchToggle(object? sender, EventArgs e)
+        {
+            _config.EnableLanguageSwitch = _langSwitchItem.Checked;
             _config.Save();
         }
 

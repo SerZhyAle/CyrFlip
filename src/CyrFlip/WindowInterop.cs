@@ -57,6 +57,15 @@ namespace CyrFlip
         [DllImport("user32.dll")]
         public static extern IntPtr GetKeyboardLayout(uint idThread);
 
+        // ---- Input-language switching (LayoutSwitcher.cs) ----
+        public const uint WM_INPUTLANGCHANGEREQUEST = 0x0050;
+
+        [DllImport("user32.dll")]
+        public static extern uint GetKeyboardLayoutList(int nBuff, [Out] IntPtr[]? lpList);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
         // ---- Synthesized input for copy/paste (ClipboardHandler.cs) ----
         public const uint CF_UNICODETEXT = 13;
 

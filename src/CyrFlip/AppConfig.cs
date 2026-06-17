@@ -19,6 +19,7 @@ namespace CyrFlip
         public bool EnableCursorChange { get; set; } = false;
         public bool EnableCaretOverlay { get; set; } = true;
         public bool CaretDotMode { get; set; } = false;
+        public bool EnableLanguageSwitch { get; set; } = false;
         public int FlipCount { get; set; } = 0;
 
         public static AppConfig Load()
@@ -37,6 +38,7 @@ namespace CyrFlip
                 cfg.EnableCursorChange = GetBool(key, "EnableCursorChange", cfg.EnableCursorChange);
                 cfg.EnableCaretOverlay = GetBool(key, "EnableCaretOverlay", cfg.EnableCaretOverlay);
                 cfg.CaretDotMode = GetBool(key, "CaretDotMode", cfg.CaretDotMode);
+                cfg.EnableLanguageSwitch = GetBool(key, "EnableLanguageSwitch", cfg.EnableLanguageSwitch);
                 cfg.FlipCount = GetInt(key, "FlipCount", cfg.FlipCount);
             }
             catch { /* keep defaults */ }
@@ -54,6 +56,7 @@ namespace CyrFlip
                 key.SetValue("EnableCursorChange", EnableCursorChange ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableCaretOverlay", EnableCaretOverlay ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("CaretDotMode", CaretDotMode ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("EnableLanguageSwitch", EnableLanguageSwitch ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("FlipCount", FlipCount, RegistryValueKind.DWord);
             }
             catch { /* best effort */ }
