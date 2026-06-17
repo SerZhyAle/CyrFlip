@@ -3,98 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CyrFlip - исправление текста в неправильной раскладке (Windows)</title>
-  <meta name="description" content="Крошечная фоновая утилита для Windows: транслитерирует текст, набранный в неправильной раскладке (EN ↔ RU / ЙЦУКЕН), прямо на месте по горячей клавише." />
-  <meta property="og:title" content="CyrFlip" />
-  <meta property="og:description" content="Исправляйте текст, набранный в неправильной раскладке - мгновенно." />
-  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
-  <link rel="icon" type="image/png" href="../assets/favicon.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css" />
+  <title>CyrFlip</title>
+  <link rel="canonical" href="../" />
+  <meta name="robots" content="noindex" />
+  <script>
+    try{localStorage.setItem('sza-lang','ru');}catch(e){}
+    location.replace('../');
+  </script>
+  <meta http-equiv="refresh" content="0; url=../" />
 </head>
 <body>
-  <div class="bg-blobs">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
-  </div>
-  <div class="wrap wide">
-    <header>
-      <img class="banner" src="../assets/banner.png" alt="CyrFlip - исправление текста в неправильной раскладке" />
-      <nav class="langbar">
-        <a href="../">EN</a>
-        <a href="./" class="active" aria-current="page">RU</a>
-        <a href="../uk/">UK</a>
-      </nav>
-      <div class="cta">
-        <a class="btn primary" href="https://github.com/SerZhyAle/CyrFlip/releases">Скачать</a>
-        <a class="btn accent" href="guide.html">Инструкция</a>
-        <a class="btn" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
-      </div>
-    </header>
-
-    <div class="demo">
-      <code>ghbdtn</code>
-      <span class="arrow">→ Ctrl+Shift+F12 →</span>
-      <code>привет</code>
-    </div>
-
-    <main class="sections">
-    <section class="span-all feature">
-      <div class="feature-text">
-        <h2>Что это</h2>
-        <p><strong>Показывает раскладку прямо там, где вы печатаете.</strong> CyrFlip ставит маленький маркер
-        <strong>EN / RU / UK</strong> на системный текстовый курсор (I-beam) <strong>и рядом с мигающей кареткой</strong>,
-        обновляя его в реальном времени при смене раскладки - чтобы вы не начинали печатать не в той.
-        (Указатель мыши во время набора часто остаётся стрелкой - поэтому маркер у каретки особенно важен.)</p>
-        <p>А если всё-таки промахнулись: выделите текст, нажмите горячую клавишу - и CyrFlip транслитерирует
-        его на месте между QWERTY и ЙЦУКЕН (EN ↔ RU, UK в планах).</p>
-      </div>
-      <img class="feature-img" src="../assets/cursor-preview.png" alt="Курсор с индикатором раскладки EN, RU и UK на светлом и тёмном фоне" />
-    </section>
-
-    <section>
-      <h2>Как пользоваться</h2>
-      <ol class="steps">
-        <li>Запустите <code>CyrFlip.exe</code> - он сидит в системном трее (без окна). Значок показывает активную раскладку (EN/RU/UK).</li>
-        <li>Выделите текст, набранный в неправильной раскладке.</li>
-        <li>Нажмите <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> - он заменится на месте.</li>
-      </ol>
-      <p class="note">Правый клик по значку открывает меню: текущая горячая клавиша, переключатель <strong>Start with Windows</strong> (автозапуск) и <strong>Exit</strong> (выход). CyrFlip работает в вашем сеансе (это не служба Windows), поэтому автозапуск - запись в автозагрузке пользователя.</p>
-    </section>
-
-    <section>
-      <h2>Возможности</h2>
-      <ul class="features">
-        <li><strong>Маркер раскладки на текстовом курсоре</strong> (и на значке в трее), обновляется в реальном времени.</li>
-        <li>Транслитерация одной клавишей - QWERTY ↔ ЙЦУКЕН, каждый символ переключается по скрипту (смешанный EN + RU обрабатывается корректно).</li>
-        <li>Глобальная горячая клавиша (по умолчанию <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>), настраивается.</li>
-        <li>Один <code>.exe</code>, ничего не нужно устанавливать - работает на «голой» Windows 10/11.</li>
-        <li>Менее 50&nbsp;МБ памяти в покое.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Установка</h2>
-      <ul class="features">
-        <li><strong>Microsoft Store</strong> - найдите <strong>CyrFlip</strong> в приложении Microsoft Store на Windows 10/11 или используйте <em>winget</em>:
-          <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
-        </li>
-        <li><strong>Переносимый ZIP</strong> - скачайте со
-          <a href="https://github.com/SerZhyAle/CyrFlip/releases">страницы релизов</a>, распакуйте куда угодно
-          и запустите <code>CyrFlip.exe</code>. Установка и среда выполнения не нужны.</li>
-      </ul>
-    </section>
-    </main>
-
-    <footer>
-      <p>Лицензия MIT · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
-      <a href="https://github.com/SerZhyAle/CyrFlip">Исходный код на GitHub</a><br />
-      Связанный проект: <a href="https://serzhyale.github.io/universal-agent-kit/">Universal Agent Kit</a><br />
-      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
-    </footer>
-  </div>
+  <p>CyrFlip переехал на единую страницу. <a href="../">Перейти →</a></p>
 </body>
 </html>

@@ -1,496 +1,133 @@
-/* CyrFlip docs — glass-morphism theme, matched to sza.od.ua / serzhyale.github.io */
+/* CyrFlip docs — built on the shared SZA Web Kit (Pine + Gold).
+   The design system lives in assets/sza-kit.css (tokens + components).
+   This file keeps only CyrFlip-specific rules and a small compat layer
+   for the legacy guide.html pages that still use the old class names. */
+@import url("assets/sza-kit.css");
 
-/* ── DESIGN SYSTEM ───────────────────────────────────────────────── */
-:root {
-  --bg-color: #080b11;
-  --card-bg: rgba(13, 20, 35, 0.45);
-  --card-bg-hover: rgba(17, 27, 49, 0.7);
-  --border-color: rgba(255, 255, 255, 0.06);
-  --border-color-hover: rgba(99, 102, 241, 0.35);
+/* ── i18n: pure-CSS data-lang toggle (RU / EN / UA) ──────────────── */
+html[data-lang="ru"] [data-l]:not([data-l="ru"]) { display: none; }
+html[data-lang="en"] [data-l]:not([data-l="en"]) { display: none; }
+html[data-lang="ua"] [data-l]:not([data-l="ua"]) { display: none; }
 
-  --text-primary: #f3f4f6;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-
-  --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  --secondary-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
-  --text-gradient: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
-  --accent-glow: 0 0 25px rgba(99, 102, 241, 0.15);
-  --accent-glow-strong: 0 0 30px rgba(99, 102, 241, 0.35);
-
-  --accent: #818cf8;
-  --code-bg: rgba(8, 12, 20, 0.7);
-  --code-chip: rgba(255, 255, 255, 0.06);
-
-  --font-heading: 'Outfit', 'Plus Jakarta Sans', -apple-system, "Segoe UI", sans-serif;
-  --font-body: 'Plus Jakarta Sans', -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, ui-monospace, monospace;
-}
-
-/* ── BASE ────────────────────────────────────────────────────────── */
-* { box-sizing: border-box; }
-
-html {
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
-}
-
-body {
-  margin: 0;
-  background: var(--bg-color);
-  color: var(--text-primary);
-  font-family: var(--font-body);
-  line-height: 1.6;
-  overflow-x: hidden;
-  position: relative;
-  min-height: 100vh;
-}
-
-/* ── DECORATIVE BACKGROUND BLOBS ─────────────────────────────────── */
-.bg-blobs {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  overflow: hidden;
-}
-.blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.15;
-}
-.blob-1 {
-  top: -120px;
-  left: -60px;
-  width: 450px;
-  height: 450px;
-  background: radial-gradient(circle, #6366f1 0%, transparent 70%);
-  animation: drift 18s infinite alternate ease-in-out;
-}
-.blob-2 {
-  top: 30%;
-  right: -120px;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, #a855f7 0%, transparent 70%);
-  animation: drift 25s infinite alternate-reverse ease-in-out;
-}
-.blob-3 {
-  bottom: -120px;
-  left: 12%;
-  width: 420px;
-  height: 420px;
-  background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
-}
-@keyframes drift {
-  0%   { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(40px, 30px) scale(1.1); }
-}
-
-/* ── LAYOUT ──────────────────────────────────────────────────────── */
-.wrap {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 2.5rem 1.25rem 4rem;
-  position: relative;
-  z-index: 1;
-}
-/* Homepage uses the full width of wide monitors; the hero band stays centred
-   and narrow, while the section cards spread into a grid. */
-.wrap.wide { max-width: 1100px; }
-.wrap.wide > header,
-.wrap.wide > .demo {
-  max-width: 880px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* ── HERO / HEADER ───────────────────────────────────────────────── */
-header { text-align: center; margin-bottom: 2.5rem; }
-
-.banner {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 16px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), var(--accent-glow);
-  animation: fadeInDown 0.8s ease-out;
-}
-
-h1 {
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: 2.2rem;
-  line-height: 1.2;
-  letter-spacing: -0.03em;
-  margin: 1.6rem 0 0.5rem;
-  color: #fff;
-  background: var(--text-gradient);
-}
-
-.tagline {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-  margin: 0.5rem 0 0;
-  max-width: 760px;
-}
-
-/* ── LANGUAGE SWITCHER (pill) ────────────────────────────────────── */
-.langbar {
-  display: flex;
-  justify-content: center;
-  gap: 0.25rem;
-  width: fit-content;
-  margin: 1.5rem auto 0;
-  padding: 0.25rem;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 30px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  animation: fadeInUp 0.8s ease-out 0.1s both;
-}
-.langbar a {
-  text-decoration: none;
-  color: var(--text-secondary);
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 0.78rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: 20px;
-  transition: all 0.3s ease;
-}
-.langbar a:hover { color: var(--text-primary); text-decoration: none; }
-.langbar a.active {
-  background: var(--primary-gradient);
-  color: #fff;
-  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
-}
-
-/* ── BUTTONS ─────────────────────────────────────────────────────── */
-.cta {
-  display: flex;
-  gap: 0.85rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: 1.75rem 0 0;
-  animation: fadeInUp 0.8s ease-out 0.2s both;
-}
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  padding: 0.7rem 1.4rem;
-  border-radius: 50px;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-color);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.btn:hover {
-  transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-  text-decoration: none;
-}
-.btn.primary {
-  background: var(--primary-gradient);
-  border: none;
-  color: #fff;
-  box-shadow: var(--accent-glow);
-}
-.btn.primary:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--accent-glow-strong);
-  filter: brightness(1.1);
-}
-.btn.accent {
-  background: var(--secondary-gradient);
-  border: none;
-  color: #fff;
-  box-shadow: 0 0 25px rgba(6, 182, 212, 0.15);
-}
-.btn.accent:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 0 30px rgba(6, 182, 212, 0.35);
-  filter: brightness(1.1);
-}
-
-/* ── DEMO BAND ───────────────────────────────────────────────────── */
-.demo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  background: var(--card-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 1.25rem;
-  margin-top: 2rem;
-  font-size: 1.2rem;
-  animation: fadeInUp 0.8s ease-out 0.3s both;
-}
-.demo code {
-  background: var(--code-chip);
-  border: 1px solid var(--border-color);
-  padding: 0.3rem 0.7rem;
-  border-radius: 8px;
-  font-family: var(--font-mono);
-  color: var(--text-primary);
-}
-.demo .arrow {
-  font-weight: 700;
-  color: var(--accent);
-  background: var(--primary-gradient);
-}
-
-/* ── SECTIONS AS GLASS CARDS ─────────────────────────────────────── */
-section {
-  margin-top: 1.5rem;
-  background: var(--card-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 1.6rem 1.8rem;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
-}
-section::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
-section > * { position: relative; z-index: 1; }
-section:hover {
-  border-color: var(--border-color-hover);
-  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.08);
-}
-
-/* Homepage multi-column card grid. min(280px,100%) keeps a single track from
-   exceeding very narrow viewports (no horizontal clipping). */
-.sections {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
-  gap: 1.25rem;
-  margin-top: 2rem;
-  align-items: start;
-}
-.sections > section { margin: 0; }
-.sections > section.span-all { grid-column: 1 / -1; }
-
-/* Headline feature: text beside the cursor screenshot on wide screens. */
+/* ── CyrFlip-specific: feature row (text beside the cursor shot) ──── */
 .feature-img {
   width: 100%;
-  max-width: 560px;
-  margin: 1.2rem auto 0;
-  display: block;
   border-radius: 12px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border);
+  display: block;
 }
+.feature-row { display: grid; gap: 1.4rem; align-items: center; }
 @media (min-width: 820px) {
-  .feature {
-    display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: 1.8rem;
-    align-items: center;
-  }
-  .feature .feature-img { margin: 0; }
+  .feature-row { grid-template-columns: 1.05fr 0.95fr; }
 }
 
-/* ── HEADINGS ────────────────────────────────────────────────────── */
-h2 {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 1.4rem;
-  letter-spacing: -0.02em;
-  margin: 0 0 1rem;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-h2::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent);
-}
-/* second and later headings inside a single card get top spacing */
-section > h2 ~ h2 { margin-top: 1.6rem; }
-
-/* ── LISTS ───────────────────────────────────────────────────────── */
-ol.steps { padding-left: 1.3rem; margin: 0; }
-ol.steps li { margin: 0.5rem 0; }
-ol.steps li::marker { color: var(--accent); font-weight: 700; }
-
-ul.features { list-style: none; padding-left: 0; margin: 0; }
-ul.features li {
-  position: relative;
-  padding-left: 1.4rem;
-  margin: 0.5rem 0;
-}
-ul.features li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.62em;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--primary-gradient);
-}
-
-/* ── NOTE / CALLOUT ──────────────────────────────────────────────── */
-.note {
-  background: rgba(99, 102, 241, 0.07);
-  border: 1px solid rgba(99, 102, 241, 0.18);
-  border-left: 3px solid var(--accent);
-  border-radius: 10px;
-  padding: 0.85rem 1.1rem;
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-}
-
-/* ── CODE ────────────────────────────────────────────────────────── */
-code { font-family: var(--font-mono); }
-:not(pre) > code {
-  background: var(--code-chip);
-  border: 1px solid var(--border-color);
-  padding: 0.1rem 0.4rem;
-  border-radius: 6px;
-  font-size: 0.88em;
-  color: #c7d2fe;
-  overflow-wrap: anywhere;
-}
-pre {
-  background: var(--code-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 0.95rem 1.1rem;
-  overflow-x: auto;
-}
-pre code {
-  background: none;
-  border: none;
-  padding: 0;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-}
-kbd {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
-  border-bottom-width: 2px;
-  border-radius: 6px;
-  padding: 0.08rem 0.45rem;
-  font-family: var(--font-mono);
-  font-size: 0.88em;
-  color: var(--text-primary);
-}
-
-/* ── TABLE ───────────────────────────────────────────────────────── */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 0.75rem;
-  font-size: 0.92rem;
-}
-th, td {
-  text-align: left;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid var(--border-color);
-  vertical-align: top;
-  overflow-wrap: anywhere;
-}
-th {
-  background: rgba(99, 102, 241, 0.08);
-  font-family: var(--font-heading);
-  font-weight: 600;
-  color: #fff;
-}
-td:first-child { font-weight: 600; color: var(--text-primary); }
-
-/* ── LINKS ───────────────────────────────────────────────────────── */
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-/* Visible keyboard-focus indicator (WCAG 2.4.7). */
-a:focus-visible,
-.btn:focus-visible,
-.langbar a:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
+/* The kit demo strip is left-aligned; CyrFlip's hero demo reads better
+   centred and a touch larger, as the original "proof" band did. */
+.demo.hero-demo { justify-content: center; font-size: 1.05rem; margin: 0; }
+.demo.hero-demo code {
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid var(--border);
+  padding: .25rem .6rem;
   border-radius: 8px;
 }
 
-/* ── FOOTER ──────────────────────────────────────────────────────── */
-footer {
-  margin-top: 3rem;
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  border-top: 1px solid var(--border-color);
-  padding-top: 1.5rem;
+/* Section headings get the subtle divider the original site had. */
+.section-card h2 {
+  display: flex; align-items: center; gap: .75rem;
+  font-size: 1.35rem; font-weight: 700; margin-bottom: 1rem;
 }
-footer a { color: var(--text-secondary); }
-footer a:hover { color: var(--text-primary); }
-
-/* ── GRADIENT TEXT (with safe fallback) ──────────────────────────── */
-@supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  h1,
-  .demo .arrow {
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
-}
-/* Windows High Contrast / forced-colors: keep headings + arrow visible. */
-@media (forced-colors: active) {
-  h1,
-  .demo .arrow {
-    background: none;
-    -webkit-text-fill-color: currentColor;
-    color: CanvasText;
-  }
+.section-card h2::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
 }
 
-/* ── GLASS FALLBACK (no backdrop-filter support) ─────────────────── */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  section,
-  .demo { background: rgba(13, 20, 35, 0.9); }
-  .langbar { background: rgba(15, 23, 42, 0.9); }
-  .btn { background: rgba(20, 28, 45, 0.85); }
+/* Feature / step lists with green markers (CyrFlip content). */
+ol.steps { padding-left: 1.3rem; margin: 0; color: var(--text-2); }
+ol.steps li { margin: .5rem 0; }
+ol.steps li::marker { color: var(--acc); font-weight: 700; }
+ul.features { list-style: none; padding-left: 0; margin: 0; }
+ul.features li { position: relative; padding-left: 1.4rem; margin: .55rem 0; color: var(--text-2); }
+ul.features li::before {
+  content: ""; position: absolute; left: 0; top: .62em;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--acc);
 }
 
-/* ── ANIMATIONS ──────────────────────────────────────────────────── */
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Inline code chips inside prose. */
+:not(pre):not(.copybox) > code {
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid var(--border);
+  padding: .1rem .4rem; border-radius: 6px;
+  font-size: .88em; color: var(--text); overflow-wrap: anywhere;
 }
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+html[data-theme="light"] :not(pre):not(.copybox) > code { background: rgba(16, 40, 20, .06); }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-  html { scroll-behavior: auto; }
+/* =================================================================
+   LEGACY COMPAT — guide.html (EN/RU/UK) still ships the old markup.
+   Recolour those classes to Pine + Gold so no indigo/cyan survives.
+   ================================================================= */
+.wrap { max-width: 880px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; position: relative; z-index: 1; }
+.wrap.wide { max-width: var(--wide); }
+
+.wrap > header { text-align: center; margin-bottom: 2rem; }
+.banner {
+  display: block; width: 100%; height: auto;
+  border-radius: 16px; border: 1px solid var(--border);
+  box-shadow: var(--shadow);
 }
+.wrap h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 800; margin: 1.4rem 0 .5rem; color: var(--text); }
+.tagline { color: var(--muted); font-size: 1.05rem; margin: .5rem auto 0; max-width: 760px; }
+
+/* old langbar (guide pages) → restyle as the kit .seg pill */
+.langbar {
+  display: flex; justify-content: center; gap: 2px; width: fit-content;
+  margin: 1.4rem auto 0; padding: 3px;
+  background: rgba(255, 255, 255, .04); border: 1px solid var(--border); border-radius: 20px;
+}
+html[data-theme="light"] .langbar { background: rgba(16, 40, 20, .05); }
+.langbar a {
+  font-family: var(--font-heading); font-weight: 700; font-size: 11px; letter-spacing: .04em;
+  padding: 5px 12px; border-radius: 14px; color: var(--muted); text-decoration: none;
+}
+.langbar a:hover { color: var(--text); }
+.langbar a.active { background: var(--acc); color: var(--acc-ink); }
+
+.cta { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; margin: 1.4rem 0 0; }
+/* old .btn variants on the guide pages (kit base .btn already applies) */
+.btn.primary { background: var(--acc); color: var(--acc-ink); border-color: transparent; box-shadow: var(--glow); }
+.btn.primary:hover { background: var(--acc-strong); color: var(--acc-ink); }
+.btn.accent { background: var(--gold); color: var(--gold-ink); border-color: transparent; }
+.btn.accent:hover { background: var(--gold-strong); color: var(--gold-ink); }
+.btn:not(.primary):not(.accent) { background: rgba(255, 255, 255, .03); color: var(--text); border-color: var(--border); }
+html[data-theme="light"] .btn:not(.primary):not(.accent) { background: rgba(16, 40, 20, .03); }
+
+/* old section cards (guide pages) */
+.wrap section {
+  margin-top: 1.25rem; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); backdrop-filter: blur(16px);
+  padding: 1.5rem 1.7rem; transition: border-color .3s, background .3s;
+}
+.wrap section:hover { border-color: var(--border-hover); }
+.wrap section h2 {
+  font-family: var(--font-heading); font-weight: 700; font-size: 1.35rem;
+  margin: 0 0 1rem; color: var(--text); display: flex; align-items: center; gap: .75rem;
+}
+.wrap section h2::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+.wrap .note { color: var(--text-2); font-size: .92rem; }
+
+.wrap pre {
+  background: var(--code-bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: .9rem 1.1rem; overflow-x: auto;
+}
+.wrap pre code { background: none; border: none; padding: 0; color: var(--code-ink); font-size: .9rem; }
+
+.wrap table { width: 100%; border-collapse: collapse; margin-top: .75rem; font-size: .92rem; }
+.wrap th, .wrap td { text-align: left; padding: .6rem .8rem; border: 1px solid var(--border); vertical-align: top; overflow-wrap: anywhere; }
+.wrap th { background: color-mix(in srgb, var(--acc) 10%, transparent); font-family: var(--font-heading); font-weight: 600; color: var(--text); }
+.wrap td:first-child { font-weight: 600; color: var(--text); }
+
+.wrap footer {
+  margin-top: 3rem; text-align: center; color: var(--muted); font-size: .9rem;
+  border-top: 1px solid var(--border); padding-top: 1.5rem;
+}
+.wrap footer a { color: var(--text-2); }
+.wrap footer a:hover { color: var(--text); }

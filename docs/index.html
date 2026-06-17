@@ -3,12 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CyrFlip - fix wrong-layout typing on Windows</title>
-  <meta name="description" content="A tiny background Windows tool that transliterates text typed on the wrong keyboard layout (EN ↔ RU / ЙЦУКЕН) in place, via a global hotkey." />
+  <title>CyrFlip — fix wrong-layout typing on Windows</title>
+  <meta name="description" content="A tiny background Windows tool that transliterates text typed on the wrong keyboard layout (EN ↔ RU / ЙЦУКЕН) in place, via a global hotkey — and shows a live EN/RU/UA layout marker on the text caret." />
+  <meta name="theme-color" content="#0a0f0a" />
   <meta property="og:title" content="CyrFlip" />
-  <meta property="og:description" content="Fix text typed on the wrong keyboard layout - instantly." />
+  <meta property="og:description" content="Fix text typed on the wrong keyboard layout — instantly." />
   <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
+
+  <!-- pre-paint: resolve theme + language before the stylesheet, so nothing flashes -->
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+    var l=localStorage.getItem('sza-lang');
+    if(!l){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+    document.documentElement.setAttribute('data-lang',l);
+  }catch(e){}})();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -20,81 +33,234 @@
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
   </div>
-  <div class="wrap wide">
-    <header>
-      <img class="banner" src="assets/banner.png" alt="CyrFlip - fix text typed on the wrong keyboard layout" />
-      <nav class="langbar">
-        <a href="./" class="active" aria-current="page">EN</a>
-        <a href="ru/">RU</a>
-        <a href="uk/">UK</a>
-      </nav>
-      <div class="cta">
-        <a class="btn primary" href="https://github.com/SerZhyAle/CyrFlip/releases">Download</a>
-        <a class="btn accent" href="guide.html">Setup guide</a>
-        <a class="btn" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
-      </div>
-    </header>
 
-    <div class="demo">
-      <code>ghbdtn</code>
-      <span class="arrow">→ Ctrl+Shift+F12 →</span>
-      <code>привет</code>
+  <header class="site-header">
+    <span class="brand">CyrFlip<span class="dot">.</span></span>
+    <div class="seg" role="group" aria-label="Language">
+      <button data-lang="ru">RU</button><button data-lang="en">EN</button><button data-lang="ua">UA</button>
     </div>
+    <button class="theme-btn" id="themeBtn" aria-label="Switch theme">◐</button>
+    <a class="btn btn-primary btn-sm" href="#get">
+      <span data-l="ru">Скачать</span><span data-l="en">Download</span><span data-l="ua">Завантажити</span>
+    </a>
+  </header>
 
-    <main class="sections">
-    <section class="span-all feature">
-      <div class="feature-text">
-        <h2>What it does</h2>
-        <p><strong>It shows your keyboard layout right where you type.</strong> CyrFlip puts a small
-        <strong>EN / RU / UK</strong> marker on the system text cursor (the I-beam) <strong>and next to the
-        blinking text caret</strong>, updated live as you switch layouts - so you never start typing in the
-        wrong one. (The pointer is often an arrow while you type, which is why the caret marker matters.)</p>
-        <p>And when you do slip: select the text, press the hotkey, and CyrFlip transliterates it in place
-        between QWERTY and ЙЦУКЕН (EN ↔ RU, with UK planned).</p>
+  <main class="container">
+    <!-- HERO -->
+    <section class="hero">
+      <h1>CyrFlip</h1>
+      <p class="lead">
+        <span data-l="ru">Исправляет текст, набранный не в той раскладке — и показывает живой маркер EN/RU/UA там, где вы печатаете.</span>
+        <span data-l="en">Fixes text typed in the wrong keyboard layout — and shows a live EN/RU/UA marker right where you type.</span>
+        <span data-l="ua">Виправляє текст, набраний не в тій розкладці — і показує живий маркер EN/RU/UA там, де ви друкуєте.</span>
+      </p>
+    </section>
+
+    <!-- GET IT (above the fold) -->
+    <section class="get" id="get">
+      <p class="whatfor">
+        <span data-l="ru"><strong>Крошечная фоновая утилита для Windows.</strong> Для тех, кто печатает на двух раскладках и регулярно начинает фразу не в той: <code>ghbdtn</code> вместо «привет».</span>
+        <span data-l="en"><strong>A tiny background Windows tool.</strong> For anyone who types in two layouts and keeps starting a phrase in the wrong one: <code>ghbdtn</code> instead of “привет”.</span>
+        <span data-l="ua"><strong>Крихітна фонова утиліта для Windows.</strong> Для тих, хто друкує у двох розкладках і регулярно починає фразу не в тій: <code>ghbdtn</code> замість «привет».</span>
+      </p>
+
+      <div class="demo hero-demo">
+        <code>ghbdtn</code>
+        <span class="arrow">→ Ctrl+Shift+F12 →</span>
+        <code class="out">привет</code>
       </div>
-      <img class="feature-img" src="assets/cursor-preview.png" alt="Layout-aware cursor showing EN, RU and UK on light and dark backgrounds" />
-    </section>
 
-    <section>
-      <h2>How to use</h2>
-      <ol class="steps">
-        <li>Run <code>CyrFlip.exe</code> - it sits in the system tray (no window). The tray icon shows the active layout (EN/RU/UK).</li>
-        <li>Select the text you typed in the wrong layout.</li>
-        <li>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> - it's replaced in place.</li>
+      <div class="channels">
+        <a class="btn btn-primary" href="https://apps.microsoft.com/detail/9NB4W41NGQJ4">Microsoft Store</a>
+        <a class="btn btn-ghost" id="ghDownload" href="https://github.com/SerZhyAle/CyrFlip/releases">GitHub Releases</a>
+      </div>
+
+      <div class="copybox"><span class="tok">winget</span> install SerZhyAle.CyrFlip<button class="copy" data-copy="winget install SerZhyAle.CyrFlip">Copy</button></div>
+
+      <ol class="quickstart">
+        <li><span data-l="ru">Запустите <code>CyrFlip.exe</code> — он сидит в системном трее, без окна.</span><span data-l="en">Run <code>CyrFlip.exe</code> — it sits in the system tray, no window.</span><span data-l="ua">Запустіть <code>CyrFlip.exe</code> — він сидить у системному треї, без вікна.</span></li>
+        <li><span data-l="ru">Выделите текст, набранный в неправильной раскладке.</span><span data-l="en">Select the text you typed in the wrong layout.</span><span data-l="ua">Виділіть текст, набраний у неправильній розкладці.</span></li>
+        <li><span data-l="ru">Нажмите <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — он заменится на месте.</span><span data-l="en">Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — it's replaced in place.</span><span data-l="ua">Натисніть <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — його буде замінено на місці.</span></li>
       </ol>
-      <p class="note">Right-click the tray icon for the menu: it shows the flip hotkey, a <strong>Start with Windows</strong> toggle, and <strong>Exit</strong>. CyrFlip runs in your session (it isn't a Windows service), so autostart is a per-user startup entry.</p>
     </section>
 
-    <section>
-      <h2>Features</h2>
-      <ul class="features">
+    <!-- WHAT IT DOES -->
+    <section class="card section-card">
+      <h2><span data-l="ru">Что это</span><span data-l="en">What it does</span><span data-l="ua">Що це</span></h2>
+      <div class="feature-row">
+        <div>
+          <p data-l="ru"><strong>Показывает раскладку прямо там, где вы печатаете.</strong> CyrFlip ставит маленький маркер <strong>EN / RU / UA</strong> на системный текстовый курсор (I-beam) <strong>и рядом с мигающей кареткой</strong>, обновляя его в реальном времени при смене раскладки — чтобы вы не начинали печатать не в той. А если всё-таки промахнулись: выделите текст, нажмите горячую клавишу — и CyrFlip транслитерирует его на месте между QWERTY и ЙЦУКЕН.</p>
+          <p data-l="en"><strong>It shows your layout right where you type.</strong> CyrFlip puts a small <strong>EN / RU / UA</strong> marker on the system text cursor (the I-beam) <strong>and next to the blinking text caret</strong>, updated live as you switch layouts — so you never start typing in the wrong one. And when you do slip: select the text, press the hotkey, and CyrFlip transliterates it in place between QWERTY and ЙЦУКЕН.</p>
+          <p data-l="ua"><strong>Показує розкладку прямо там, де ви друкуєте.</strong> CyrFlip ставить маленький маркер <strong>EN / RU / UA</strong> на системний текстовий курсор (I-beam) <strong>і поруч із мигаючою кареткою</strong>, оновлюючи його в реальному часі під час зміни розкладки — щоб ви не починали друкувати не в тій. А якщо все ж промахнулися: виділіть текст, натисніть гарячу клавішу — і CyrFlip транслітерує його на місці між QWERTY та ЙЦУКЕН.</p>
+        </div>
+        <img class="feature-img" src="assets/cursor-preview.png" alt="Layout-aware cursor showing EN, RU and UA markers on light and dark backgrounds" />
+      </div>
+    </section>
+
+    <!-- HOW TO USE -->
+    <section class="card section-card">
+      <h2><span data-l="ru">Как пользоваться</span><span data-l="en">How to use</span><span data-l="ua">Як користуватися</span></h2>
+      <ol class="steps" data-l="ru">
+        <li>Запустите <code>CyrFlip.exe</code> — он сидит в системном трее (без окна). Значок показывает активную раскладку (EN/RU/UA).</li>
+        <li>Выделите текст, набранный в неправильной раскладке.</li>
+        <li>Нажмите <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — он заменится на месте.</li>
+      </ol>
+      <ol class="steps" data-l="en">
+        <li>Run <code>CyrFlip.exe</code> — it sits in the system tray (no window). The tray icon shows the active layout (EN/RU/UA).</li>
+        <li>Select the text you typed in the wrong layout.</li>
+        <li>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — it's replaced in place.</li>
+      </ol>
+      <ol class="steps" data-l="ua">
+        <li>Запустіть <code>CyrFlip.exe</code> — він сидить у системному треї (без вікна). Значок показує активну розкладку (EN/RU/UA).</li>
+        <li>Виділіть текст, набраний у неправильній розкладці.</li>
+        <li>Натисніть <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — його буде замінено на місці.</li>
+      </ol>
+      <div class="note">
+        <span class="tag" data-l="ru">Заметка</span><span class="tag" data-l="en">Note</span><span class="tag" data-l="ua">Примітка</span>
+        <p data-l="ru">Правый клик по значку открывает меню: текущая горячая клавиша, переключатель «Start with Windows» (автозапуск) и «Exit». CyrFlip работает в вашем сеансе — это не служба Windows, поэтому автозапуск это запись в автозагрузке пользователя.</p>
+        <p data-l="en">Right-click the tray icon for the menu: the flip hotkey, a “Start with Windows” toggle, and “Exit”. CyrFlip runs in your session — it isn't a Windows service, so autostart is a per-user startup entry.</p>
+        <p data-l="ua">Правий клік на значку відкриває меню: поточна гаряча клавіша, перемикач «Start with Windows» (автозапуск) і «Exit». CyrFlip працює у вашому сеансі — це не служба Windows, тому автозапуск це запис в автозавантаженні користувача.</p>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="card section-card">
+      <h2><span data-l="ru">Возможности</span><span data-l="en">Features</span><span data-l="ua">Можливості</span></h2>
+      <ul class="features" data-l="ru">
+        <li><strong>Маркер раскладки на текстовом курсоре</strong> (и на значке в трее), обновляется в реальном времени.</li>
+        <li>Транслитерация одной клавишей — QWERTY ↔ ЙЦУКЕН, каждый символ переключается по скрипту (смешанный EN + RU обрабатывается корректно).</li>
+        <li>Глобальная горячая клавиша (по умолчанию <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>), настраивается.</li>
+        <li>Один <code>.exe</code>, ничего не нужно устанавливать — работает на «голой» Windows 10/11.</li>
+        <li>Менее 50&nbsp;МБ памяти в покое.</li>
+      </ul>
+      <ul class="features" data-l="en">
         <li><strong>Layout marker on the text cursor</strong> (and the tray icon), updated live.</li>
-        <li>One-key transliteration - QWERTY ↔ ЙЦУКЕН, each character flipped by script (handles mixed EN + RU text correctly).</li>
+        <li>One-key transliteration — QWERTY ↔ ЙЦУКЕН, each character flipped by script (handles mixed EN + RU text correctly).</li>
         <li>Global hotkey (default <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>), configurable.</li>
-        <li>Single <code>.exe</code>, nothing to install - runs on stock Windows 10/11.</li>
+        <li>Single <code>.exe</code>, nothing to install — runs on stock Windows 10/11.</li>
         <li>Under 50&nbsp;MB of memory at rest.</li>
       </ul>
-    </section>
-
-    <section>
-      <h2>Install</h2>
-      <ul class="features">
-        <li><strong>Microsoft Store</strong> - search for <strong>CyrFlip</strong> in the Microsoft Store app on Windows 10/11, or use <em>winget</em>:
-          <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
-        </li>
-        <li><strong>Portable ZIP</strong> - download from the
-          <a href="https://github.com/SerZhyAle/CyrFlip/releases">Releases page</a>, extract anywhere,
-          and run <code>CyrFlip.exe</code>. No installer, no runtime required.</li>
+      <ul class="features" data-l="ua">
+        <li><strong>Маркер розкладки на текстовому курсорі</strong> (і на значку в треї), оновлюється в реальному часі.</li>
+        <li>Транслітерація однією клавішею — QWERTY ↔ ЙЦУКЕН, кожен символ перемикається за скриптом (змішаний EN + RU обробляється коректно).</li>
+        <li>Глобальна гаряча клавіша (за замовчуванням <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>), налаштовується.</li>
+        <li>Один <code>.exe</code>, нічого не треба встановлювати — працює на «голій» Windows 10/11.</li>
+        <li>Менше ніж 50&nbsp;МБ пам'яті в спокої.</li>
       </ul>
     </section>
-    </main>
 
-    <footer>
-      <p>MIT licensed · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
-      <a href="https://github.com/SerZhyAle/CyrFlip">Source on GitHub</a><br />
-      Related project: <a href="https://serzhyale.github.io/universal-agent-kit/">Universal Agent Kit</a><br />
-      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
-    </footer>
-  </div>
+    <!-- INSTALL -->
+    <section class="card section-card" id="install">
+      <h2><span data-l="ru">Установка</span><span data-l="en">Install</span><span data-l="ua">Встановлення</span></h2>
+      <p style="color:var(--text-2)">
+        <span data-l="ru">Три способа получить CyrFlip — выберите любой:</span>
+        <span data-l="en">Three ways to get CyrFlip — pick any:</span>
+        <span data-l="ua">Три способи отримати CyrFlip — оберіть будь-який:</span>
+      </p>
+      <ul class="features" data-l="ru">
+        <li><strong>Microsoft Store</strong> — найдите <strong>CyrFlip</strong> в приложении Microsoft Store на Windows 10/11.</li>
+        <li><strong>winget</strong> — выполните команду из блока выше: <code>winget install SerZhyAle.CyrFlip</code>.</li>
+        <li><strong>Переносимый ZIP</strong> — скачайте со <a href="https://github.com/SerZhyAle/CyrFlip/releases">страницы релизов</a>, распакуйте куда угодно и запустите <code>CyrFlip.exe</code>. Установка и среда выполнения не нужны.</li>
+      </ul>
+      <ul class="features" data-l="en">
+        <li><strong>Microsoft Store</strong> — search for <strong>CyrFlip</strong> in the Microsoft Store app on Windows 10/11.</li>
+        <li><strong>winget</strong> — run the command in the box above: <code>winget install SerZhyAle.CyrFlip</code>.</li>
+        <li><strong>Portable ZIP</strong> — download from the <a href="https://github.com/SerZhyAle/CyrFlip/releases">Releases page</a>, extract anywhere, and run <code>CyrFlip.exe</code>. No installer, no runtime required.</li>
+      </ul>
+      <ul class="features" data-l="ua">
+        <li><strong>Microsoft Store</strong> — знайдіть <strong>CyrFlip</strong> у застосунку Microsoft Store на Windows 10/11.</li>
+        <li><strong>winget</strong> — виконайте команду з блоку вище: <code>winget install SerZhyAle.CyrFlip</code>.</li>
+        <li><strong>Переносний ZIP</strong> — завантажте зі <a href="https://github.com/SerZhyAle/CyrFlip/releases">сторінки релізів</a>, розпакуйте будь-куди та запустіть <code>CyrFlip.exe</code>. Встановлення та середовище виконання не потрібні.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="tools-grid">
+        <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>FastMediaSorter v2</b><span>Android media sorter</span></a>
+        <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>FastMediaSorter LITE</b><span>Windows media sorter</span></a>
+        <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows ebook converter</span></a>
+        <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows storage CLI</span></a>
+        <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI-dev methodology</span></a>
+        <a href="https://sza.od.ua"><b>SZA</b><span>Portfolio hub</span></a>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Serhii Zhyhunenko · MIT</span>
+        <span><a href="https://sza.od.ua">sza.od.ua</a> · <a href="https://github.com/SerZhyAle/CyrFlip">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  (function(){
+    var doc=document.documentElement;
+
+    /* ---- metadata per language ---- */
+    var META={
+      ru:{title:"CyrFlip — исправление текста в неправильной раскладке (Windows)",desc:"Крошечная фоновая утилита для Windows: транслитерирует текст, набранный в неправильной раскладке (EN ↔ RU / ЙЦУКЕН), прямо на месте по горячей клавише."},
+      en:{title:"CyrFlip — fix wrong-layout typing on Windows",desc:"A tiny background Windows tool that transliterates text typed on the wrong keyboard layout (EN ↔ RU / ЙЦУКЕН) in place, via a global hotkey."},
+      ua:{title:"CyrFlip — виправлення тексту в неправильній розкладці (Windows)",desc:"Крихітна фонова утиліта для Windows: транслітерує текст, набраний у неправильній розкладці (EN ↔ RU / ЙЦУКЕН), прямо на місці за гарячою клавішею."}
+    };
+    var descEl=document.querySelector('meta[name="description"]');
+
+    function setLang(l){
+      doc.setAttribute('data-lang',l);
+      doc.setAttribute('lang', l==='ua'?'uk':l);
+      try{localStorage.setItem('sza-lang',l);}catch(e){}
+      var m=META[l]||META.en;
+      document.title=m.title;
+      if(descEl)descEl.setAttribute('content',m.desc);
+      document.querySelectorAll('.seg button[data-lang]').forEach(function(b){
+        b.setAttribute('aria-pressed', b.getAttribute('data-lang')===l?'true':'false');
+      });
+    }
+    document.querySelectorAll('.seg button[data-lang]').forEach(function(b){
+      b.addEventListener('click',function(){setLang(b.getAttribute('data-lang'));});
+    });
+    setLang(doc.getAttribute('data-lang')||'en');
+
+    /* ---- theme toggle ---- */
+    var themeBtn=document.getElementById('themeBtn');
+    var themeColor=document.querySelector('meta[name="theme-color"]');
+    function applyThemeMeta(){
+      var dark=doc.getAttribute('data-theme')!=='light';
+      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
+      themeBtn.setAttribute('aria-label',dark?'Switch to light theme':'Switch to dark theme');
+    }
+    themeBtn.addEventListener('click',function(){
+      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
+      doc.setAttribute('data-theme',next);
+      try{localStorage.setItem('sza-theme',next);}catch(e){}
+      applyThemeMeta();
+    });
+    applyThemeMeta();
+
+    /* ---- copy buttons ---- */
+    document.querySelectorAll('.copy[data-copy]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var txt=btn.getAttribute('data-copy');
+        var done=function(){var o=btn.textContent;btn.textContent='✓ Copied';btn.classList.add('done');
+          setTimeout(function(){btn.textContent=o;btn.classList.remove('done');},1600);};
+        if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fallback(txt,done);});}
+        else{fallback(txt,done);}
+      });
+    });
+    function fallback(txt,done){var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}document.body.removeChild(ta);}
+
+    /* ---- dynamic GitHub latest release ---- */
+    var gh=document.getElementById('ghDownload');
+    fetch('https://api.github.com/repos/SerZhyAle/CyrFlip/releases/latest')
+      .then(function(r){return r.ok?r.json():Promise.reject();})
+      .then(function(d){
+        if(!d||!d.tag_name)return;
+        var asset=(d.assets||[]).filter(function(a){return /\.(zip|exe|msix)$/i.test(a.name);})[0];
+        gh.textContent='GitHub '+d.tag_name;
+        gh.href=asset?asset.browser_download_url:(d.html_url||gh.href);
+      })
+      .catch(function(){/* keep static fallback to /releases */});
+  })();
+  </script>
 </body>
 </html>
