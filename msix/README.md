@@ -44,24 +44,51 @@ package declares the `runFullTrust` restricted capability.
 
 These **must match exactly**, or the Store rejects the upload.
 
+**CyrFlip is already reserved** (Store ID `9NB4W41NGQJ4`). Reuse these exact identity values for
+every build/update (they're public - they live inside every published `.msix`):
+
+| Parameter | Value |
+| --- | --- |
+| `-IdentityName` | `SZA.CyrFlip` |
+| `-Publisher` | `CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD` |
+| `-PublisherDisplayName` | `SZA` |
+
 ## Build a Store-ready package
 
 Requires the Windows SDK (`makeappx`): `winget install Microsoft.WindowsSDK`.
 
 ```powershell
 .\build-msix.ps1 `
-  -IdentityName        "<Package/Identity/Name from Partner Center>" `
-  -Publisher           "<Package/Identity/Publisher from Partner Center>" `
-  -PublisherDisplayName "<PublisherDisplayName from Partner Center>"
+  -IdentityName        "SZA.CyrFlip" `
+  -Publisher           "CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD" `
+  -PublisherDisplayName "SZA"
 ```
 
 Output: `msix/dist/CyrFlip-<version>-x64.msix`, **unsigned** - that's correct, upload it as-is.
 The internal package version is derived from the exe's `YY.M.D.HHmm` stamp and remapped to a
-Store-legal `Major.Minor.Build.0` (the revision must be 0; the build script handles this).
+Store-legal `Major.Minor.Build.0` (the revision must be 0; the build script handles this), so each
+build is monotonically newer than the last - no manual version bump needed.
 
-Then in Partner Center: create a submission, upload the `.msix`, fill the listing (you can reuse the
-EN/RU/UK copy from the app READMEs), set the age rating, add screenshots, and submit. Certification
-typically takes a few business days.
+## Publishing an update
+
+For an existing app you only create a new submission - the identity above is unchanged:
+
+1. Build the package (command above). Confirm the new `Major.Minor.Build.0` is **higher** than the
+   currently published one (check the Store/Partner Center).
+2. [Partner Center](https://partner.microsoft.com/dashboard) → **Apps and games ▸ CyrFlip ▸ Create
+   new submission**.
+3. **Packages** → remove the old `.msix`, upload the new one from `msix/dist/`.
+4. **Store listings ▸ Manage additional languages** → add **ru-RU** / **uk-UA** if missing, then
+   paste the per-language copy from [store-listings.md](store-listings.md) (Short description,
+   Description, Product features, What's new). Screenshots can be reused.
+5. **Submit**. Certification typically takes a few business days; a keyboard-hook app can draw extra
+   review - the runFullTrust justification in `store-listings.md` pre-empts most questions.
+
+> **Automating with the `msstore` CLI?** It works only with an Azure AD service principal
+> (`msstore reconfigure --tenantId .. --sellerId .. --clientId .. --clientSecret ..`). The
+> interactive `msstore reconfigure` **fails on an individual developer account** ("Error while
+> retrieving Organization" - no Azure AD org), so for an individual account the **Partner Center
+> web flow above is the practical path**.
 
 > **Heads-up on certification:** a global keyboard hook + clipboard access can draw extra review (it
 > looks like a keylogger to automated checks). Describe the layout-indicator/transliterator purpose

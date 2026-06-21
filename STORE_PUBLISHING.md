@@ -106,6 +106,27 @@ justification + a clear description pre-empt most questions.
 
 ---
 
+## Phase 7 - Publishing an update (existing app)
+
+The identity is fixed once the app is reserved, so an update is just a new submission:
+
+1. Rebuild the package with the **same** `-IdentityName` / `-Publisher` / `-PublisherDisplayName`.
+   The version remap (`YY.(M*100+D).HHmm.0`) is monotonic, so the new package is automatically newer
+   - no manual bump. Verify it exceeds the currently published version.
+2. Partner Center ▸ **Create new submission** ▸ replace the package ▸ refresh the listing(s) ▸ submit.
+3. **Localized listings** (e.g. Russian): *Store listings ▸ Manage additional languages* ▸ add the
+   locale ▸ paste its copy. CyrFlip keeps ready EN/RU/UK text in `msix/store-listings.md`. A listing
+   language is independent of the package's `<Resource Language>` set, so an English-UI app can still
+   have a Russian product page.
+
+> **`msstore` CLI caveat:** automation needs an Azure AD **service principal**
+> (`msstore reconfigure --tenantId .. --sellerId .. --clientId .. --clientSecret ..`). The
+> interactive `msstore reconfigure` **fails on an individual developer account** ("Error while
+> retrieving Organization" - there is no Azure AD org behind a personal MSA). For individual
+> accounts, the Partner Center web submission is the reliable path.
+
+---
+
 ## Reuse checklist for the next product
 
 1. Copy **`msix/`** → edit `AppxManifest.xml` (`DisplayName`, `Description`, `Application Id`) and the
