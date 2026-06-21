@@ -30,8 +30,15 @@ namespace CyrFlip
             Ctrl = ctrl; Shift = shift; Alt = alt; Win = win; Vk = vk; KeyName = keyName;
         }
 
-        /// <summary>The default hotkey, Ctrl+Shift+F12 (chosen to avoid common app conflicts).</summary>
+        /// <summary>The default flip hotkey, Ctrl+Shift+F12 (chosen to avoid common app conflicts).</summary>
         public static Hotkey Default => new Hotkey(true, true, false, false, 0x7B, "F12");
+
+        /// <summary>The default case-flip hotkey, Ctrl+Shift+F11 (sits beside the flip hotkey, no common conflicts).</summary>
+        public static Hotkey CaseDefault => new Hotkey(true, true, false, false, 0x7A, "F11");
+
+        /// <summary>True when both hotkeys resolve to the same physical chord (same trigger key + modifiers).</summary>
+        public bool SameChord(Hotkey other)
+            => Vk == other.Vk && Ctrl == other.Ctrl && Shift == other.Shift && Alt == other.Alt && Win == other.Win;
 
         public string Display
         {

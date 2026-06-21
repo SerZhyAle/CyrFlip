@@ -20,10 +20,12 @@ namespace CyrFlip
     /// </summary>
     internal sealed class CursorIndicator : IDisposable
     {
-        public event Action<string>? LayoutChanged;
+        /// <summary>Raised when the layout code or the CapsLock state changes (code, capsOn).</summary>
+        public event Action<string, bool>? LayoutChanged;
 
         private readonly Timer _timer = new Timer { Interval = 150 };
         private string _last = "";
+        private bool _lastCaps;
 
         public void Start()
         {
@@ -35,12 +37,17 @@ namespace CyrFlip
         private void Poll()
         {
             string code = DetectLayout();
-            if (code != _last)
+            bool caps = IsCapsLockOn();
+            if (code != _last || caps != _lastCaps)
             {
                 _last = code;
-                LayoutChanged?.Invoke(code);
+                _lastCaps = caps;
+                LayoutChanged?.Invoke(code, caps);
             }
         }
+
+        /// <summary>True when CapsLock is toggled on (low bit of the key's toggle state).</summary>
+        public static bool IsCapsLockOn() => (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
 
         public static string DetectLayout()
         {
@@ -66,8 +73,11 @@ namespace CyrFlip
             }
         }
 
-        /// <summary>Render a tray icon showing the layout <paramref name="code"/>.</summary>
-        public static Icon RenderIcon(string code)
+        /// <summary>
+        /// Render a tray icon showing the layout <paramref name="code"/>. When
+        /// <paramref name="capsOn"/> is true, a 1px layout-colour frame marks CapsLock as on.
+        /// </summary>
+        public static Icon RenderIcon(string code, bool capsOn = false)
         {
             using var bmp = new Bitmap(32, 32, PixelFormat.Format32bppArgb);
             using (var g = Graphics.FromImage(bmp))
@@ -88,6 +98,9 @@ namespace CyrFlip
 
                 using var font = new Font("Segoe UI", code.Length >= 2 ? 14f : 16f, FontStyle.Bold, GraphicsUnit.Pixel);
                 LayoutStyle.DrawCode(g, code, font, tile);
+
+                if (capsOn)
+                    LayoutStyle.DrawCapsFrame(g, tile, 7f, code);
             }
 
             return IconFromBitmap(bmp);

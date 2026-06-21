@@ -15,12 +15,15 @@ namespace CyrFlip
         private const string RegPath = @"Software\CyrFlip";
 
         public string Hotkey { get; set; } = "Ctrl+Shift+F12";
+        public string CaseHotkey { get; set; } = "Ctrl+Shift+F11";
         public int CursorSize { get; set; } = 24;
         public bool EnableCursorChange { get; set; } = false;
         public bool EnableCaretOverlay { get; set; } = true;
         public bool CaretDotMode { get; set; } = false;
         public bool EnableLanguageSwitch { get; set; } = false;
+        public bool FlipCapsLockAfter { get; set; } = false;
         public int FlipCount { get; set; } = 0;
+        public int CaseFlipCount { get; set; } = 0;
 
         public static AppConfig Load()
         {
@@ -34,12 +37,15 @@ namespace CyrFlip
                     return cfg;
                 }
                 cfg.Hotkey = key.GetValue("Hotkey") as string ?? cfg.Hotkey;
+                cfg.CaseHotkey = key.GetValue("CaseHotkey") as string ?? cfg.CaseHotkey;
                 cfg.CursorSize = GetInt(key, "CursorSize", cfg.CursorSize);
                 cfg.EnableCursorChange = GetBool(key, "EnableCursorChange", cfg.EnableCursorChange);
                 cfg.EnableCaretOverlay = GetBool(key, "EnableCaretOverlay", cfg.EnableCaretOverlay);
                 cfg.CaretDotMode = GetBool(key, "CaretDotMode", cfg.CaretDotMode);
                 cfg.EnableLanguageSwitch = GetBool(key, "EnableLanguageSwitch", cfg.EnableLanguageSwitch);
+                cfg.FlipCapsLockAfter = GetBool(key, "FlipCapsLockAfter", cfg.FlipCapsLockAfter);
                 cfg.FlipCount = GetInt(key, "FlipCount", cfg.FlipCount);
+                cfg.CaseFlipCount = GetInt(key, "CaseFlipCount", cfg.CaseFlipCount);
             }
             catch { /* keep defaults */ }
             return cfg;
@@ -52,12 +58,15 @@ namespace CyrFlip
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 if (key == null) return;
                 key.SetValue("Hotkey", Hotkey, RegistryValueKind.String);
+                key.SetValue("CaseHotkey", CaseHotkey, RegistryValueKind.String);
                 key.SetValue("CursorSize", CursorSize, RegistryValueKind.DWord);
                 key.SetValue("EnableCursorChange", EnableCursorChange ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableCaretOverlay", EnableCaretOverlay ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("CaretDotMode", CaretDotMode ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableLanguageSwitch", EnableLanguageSwitch ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("FlipCapsLockAfter", FlipCapsLockAfter ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("FlipCount", FlipCount, RegistryValueKind.DWord);
+                key.SetValue("CaseFlipCount", CaseFlipCount, RegistryValueKind.DWord);
             }
             catch { /* best effort */ }
         }
@@ -70,6 +79,18 @@ namespace CyrFlip
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 key?.SetValue("FlipCount", FlipCount, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
+        /// <summary>Increment the case-flip counter and persist only that value (cheap write).</summary>
+        public void IncrementCaseFlipCount()
+        {
+            CaseFlipCount++;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("CaseFlipCount", CaseFlipCount, RegistryValueKind.DWord);
             }
             catch { }
         }

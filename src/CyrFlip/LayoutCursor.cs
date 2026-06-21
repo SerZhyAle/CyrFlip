@@ -21,6 +21,7 @@ namespace CyrFlip
     {
         private readonly int _scale;
         private string _current = "";
+        private bool _currentCaps;
         private bool _applied;
 
         public LayoutCursor(int cursorSize)
@@ -29,13 +30,16 @@ namespace CyrFlip
             _scale = Math.Max(18, Math.Min(64, cursorSize == 0 ? 24 : cursorSize));
         }
 
-        /// <summary>Replace the system I-beam with a caret marked with <paramref name="code"/>.</summary>
-        public void Apply(string code)
+        /// <summary>
+        /// Replace the system I-beam with a caret marked with <paramref name="code"/>. When
+        /// <paramref name="capsOn"/> is true, a 1px frame around the marker flags CapsLock.
+        /// </summary>
+        public void Apply(string code, bool capsOn = false)
         {
-            if (code == _current && _applied)
+            if (code == _current && capsOn == _currentCaps && _applied)
                 return;
 
-            IntPtr hcur = BuildCursor(code);
+            IntPtr hcur = BuildCursor(code, capsOn);
             if (hcur == IntPtr.Zero)
                 return;
 
@@ -44,6 +48,7 @@ namespace CyrFlip
             {
                 _applied = true;
                 _current = code;
+                _currentCaps = capsOn;
                 ForceCursorRefresh();
             }
             else
@@ -83,9 +88,9 @@ namespace CyrFlip
 
         // -------------------------------------------------------------------- rendering
 
-        private IntPtr BuildCursor(string code)
+        private IntPtr BuildCursor(string code, bool capsOn)
         {
-            using Bitmap bmp = RenderCaret(code, _scale, out int hotX, out int hotY);
+            using Bitmap bmp = RenderCaret(code, _scale, capsOn, out int hotX, out int hotY);
 
             // GetHicon preserves alpha; rebuild it as a *cursor* (fIcon = false) with a hotspot.
             IntPtr hicon = bmp.GetHicon();
@@ -112,7 +117,7 @@ namespace CyrFlip
             }
         }
 
-        private static Bitmap RenderCaret(string code, int scale, out int hotX, out int hotY)
+        private static Bitmap RenderCaret(string code, int scale, bool capsOn, out int hotX, out int hotY)
         {
             float beamH = scale;
             float barW = Math.Max(2f, beamH * 0.10f);
@@ -161,6 +166,9 @@ namespace CyrFlip
                     g.FillPath(pillBg, pillPath);
                 }
                 LayoutStyle.DrawCode(g, code, font, pill);
+
+                if (capsOn)
+                    LayoutStyle.DrawCapsFrame(g, pill, beamH * 0.22f, code);
             }
 
             // Hotspot sits on the I-beam (where the text caret would be).

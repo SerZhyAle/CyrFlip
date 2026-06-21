@@ -22,6 +22,14 @@ namespace CyrFlip
         [DllImport("user32.dll")]
         public static extern short GetAsyncKeyState(int vKey);
 
+        // CapsLock state + toggling. GetKeyState's low bit is the toggle flag; the CyrFlip UI
+        // thread runs a global LL keyboard hook (pumping system-wide key input) so its key-state
+        // table stays current. VK_CAPITAL is also sent (down+up) to toggle CapsLock after a flip.
+        public const int VK_CAPITAL = 0x14;
+
+        [DllImport("user32.dll")]
+        public static extern short GetKeyState(int nVirtKey);
+
         public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll", SetLastError = true)]

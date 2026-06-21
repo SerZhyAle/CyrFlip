@@ -59,6 +59,43 @@ namespace CyrFlip
             g.SmoothingMode = prev;
         }
 
+        /// <summary>
+        /// Draw a 1px rounded frame in the layout colour just inside <paramref name="area"/> -
+        /// the CapsLock-is-on indicator drawn around the marker on all three surfaces.
+        /// </summary>
+        public static void DrawCapsFrame(Graphics g, RectangleF area, float radius, string code)
+        {
+            // Inset by half a pixel so the 1px stroke lands fully inside the badge.
+            var r = RectangleF.Inflate(area, -0.5f, -0.5f);
+            if (r.Width <= 0 || r.Height <= 0)
+                return;
+
+            SmoothingMode prev = g.SmoothingMode;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            using (var path = RoundedRect(r, Math.Min(radius, Math.Min(r.Width, r.Height) / 2f)))
+            using (var pen = new Pen(ColorFor(code), 1f))
+                g.DrawPath(pen, path);
+            g.SmoothingMode = prev;
+        }
+
+        private static GraphicsPath RoundedRect(RectangleF r, float radius)
+        {
+            var path = new GraphicsPath();
+            if (radius <= 0f)
+            {
+                path.AddRectangle(r);
+                path.CloseFigure();
+                return path;
+            }
+            float d = radius * 2f;
+            path.AddArc(r.X, r.Y, d, d, 180, 90);
+            path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+            path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+            path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+
         private static Color FromHsl(double h, double s, double l)
         {
             h /= 360.0;

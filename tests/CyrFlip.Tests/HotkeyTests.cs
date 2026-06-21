@@ -54,5 +54,24 @@ namespace CyrFlip.Tests
         {
             Assert.Equal("Ctrl+Shift+T", Hotkey.Parse("CTRL+shift+t").Display);
         }
+
+        [Fact]
+        public void CaseDefaultIsCtrlShiftF11()
+        {
+            var hk = Hotkey.CaseDefault;
+            Assert.True(hk.Ctrl);
+            Assert.True(hk.Shift);
+            Assert.False(hk.Alt);
+            Assert.Equal(0x7A, hk.Vk); // F11
+            Assert.Equal("Ctrl+Shift+F11", hk.Display);
+        }
+
+        [Fact]
+        public void SameChordDistinguishesTheDefaultHotkeys()
+        {
+            Assert.False(Hotkey.Default.SameChord(Hotkey.CaseDefault));
+            Assert.True(Hotkey.Default.SameChord(Hotkey.Parse("Shift+Ctrl+F12"))); // order-independent
+            Assert.False(Hotkey.Default.SameChord(Hotkey.Parse("Ctrl+Alt+F12"))); // modifiers matter
+        }
     }
 }

@@ -32,6 +32,7 @@ namespace CyrFlip
         private Thread? _thread;
         private volatile bool _running;
         private volatile string _code = "";
+        private volatile bool _caps;
 
         // UIA caret lookups are cross-process and expensive, so throttle them and reuse the last
         // position between polls. The cheap system-caret path still runs every tick.
@@ -53,8 +54,12 @@ namespace CyrFlip
             _thread.Start();
         }
 
-        /// <summary>Set the layout code shown by the overlay (called on layout change).</summary>
-        public void SetLayout(string code) => _code = code ?? "";
+        /// <summary>Set the layout code and CapsLock state shown by the overlay (called on change).</summary>
+        public void SetLayout(string code, bool capsOn = false)
+        {
+            _code = code ?? "";
+            _caps = capsOn;
+        }
 
         /// <summary>Switch between text label (EN/RU/UK) and colored dot rendering.</summary>
         public void SetDotMode(bool dot) => _form.SetDotMode(dot);
@@ -72,19 +77,20 @@ namespace CyrFlip
         private void Tick()
         {
             string code = _code;
+            bool caps = _caps;
             if (code.Length == 0)
             {
-                Post(false, 0, 0, code);
+                Post(false, 0, 0, code, caps);
                 return;
             }
 
             if (TryGetCaret(out int x, out int y))
-                Post(true, x, y, code);
+                Post(true, x, y, code, caps);
             else
-                Post(false, 0, 0, code);
+                Post(false, 0, 0, code, caps);
         }
 
-        private void Post(bool show, int x, int y, string code)
+        private void Post(bool show, int x, int y, string code, bool caps)
         {
             if (!_form.IsHandleCreated)
                 return;
@@ -94,7 +100,7 @@ namespace CyrFlip
                 {
                     if (show)
                     {
-                        _form.SetCode(code);
+                        _form.SetCode(code, caps);
                         _form.ShowAt(x, y);
                     }
                     else
@@ -227,6 +233,7 @@ namespace CyrFlip
             private readonly Font _font;
             private string _code = "";
             private bool _dotMode;
+            private bool _caps;
 
             public OverlayForm(int size, bool dotMode = false)
             {
@@ -256,12 +263,15 @@ namespace CyrFlip
                 }
             }
 
-            public void SetCode(string code)
+            public void SetCode(string code, bool caps)
             {
-                if (code == _code)
+                if (code == _code && caps == _caps)
                     return;
+                bool sizeAffectingChange = code != _code;
                 _code = code;
-                ResizeToContent();
+                _caps = caps;
+                if (sizeAffectingChange)
+                    ResizeToContent();
                 Invalidate();
             }
 
@@ -334,10 +344,19 @@ namespace CyrFlip
                 {
                     // Fill the entire (clipped-to-ellipse) window with the layout color.
                     g.Clear(_code.Length > 0 ? LayoutStyle.ColorFor(_code) : LayoutStyle.ColorFor("EN"));
+
+                    // CapsLock: a 1px contrasting ring just inside the dot.
+                    if (_caps)
+                        using (var pen = new Pen(Color.FromArgb(235, Color.Black), 1f))
+                            g.DrawEllipse(pen, 0.5f, 0.5f, Width - 1.5f, Height - 1.5f);
                 }
                 else
                 {
                     LayoutStyle.DrawCode(g, _code, _font, new RectangleF(0, 0, Width, Height));
+
+                    // CapsLock: a 1px layout-colour frame around the badge.
+                    if (_caps)
+                        LayoutStyle.DrawCapsFrame(g, new RectangleF(0, 0, Width, Height), Math.Max(3, _h / 4), _code);
                 }
             }
 

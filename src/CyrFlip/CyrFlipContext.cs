@@ -7,13 +7,18 @@ namespace CyrFlip
 {
     /// <summary>
     /// Background app shell living in the notification area (system tray). Owns the keyboard
-    /// hook, the layout indicator and the tray icon/menu, and runs the flip pipeline off the
-    /// hook on a dedicated background thread.
+    /// hook, the layout indicator and the tray icon/menu, and runs the flip/case-flip pipelines
+    /// off the hook on a dedicated background thread.
     ///
     /// Tray menu:
-    ///   - disabled header showing the current hotkey
+    ///   - disabled header showing the flip hotkey (EN ⇄ RU)
     ///   - "Set hotkey..." → opens HotkeyDialog
+    ///   - "Change the language after the flip" toggle
+    ///   - disabled header showing the case-flip hotkey (fix CapsLock)
+    ///   - "Set case hotkey..." → opens HotkeyDialog
+    ///   - "Flip CapsLock after the flip" toggle
     ///   - toggles for cursor indicator, caret overlay, caret dot style
+    ///   - "Diagnose caret position..."
     ///   - "Start with Windows"
     ///   - Exit
     /// </summary>
@@ -21,6 +26,7 @@ namespace CyrFlip
     {
         private readonly AppConfig _config;
         private Hotkey _hotkey;
+        private Hotkey _caseHotkey;
         private readonly KeyboardHook _hook = new KeyboardHook();
         private readonly CursorIndicator _indicator = new CursorIndicator();
         private readonly ClipboardHandler _clipboard = new ClipboardHandler();
@@ -29,20 +35,24 @@ namespace CyrFlip
         private readonly NotifyIcon _tray;
         private readonly ToolStripMenuItem _autostartItem;
         private readonly ToolStripMenuItem _flipHeader;
+        private readonly ToolStripMenuItem _caseHeader;
         private readonly ToolStripMenuItem _cursorItem;
         private readonly ToolStripMenuItem _caretItem;
         private readonly ToolStripMenuItem _dotModeItem;
         private readonly ToolStripMenuItem _langSwitchItem;
+        private readonly ToolStripMenuItem _capsAfterItem;
 
         private readonly SynchronizationContext? _ui;
         private Icon? _trayIcon;
-        private int _flipping; // 0 = idle, 1 = flip in progress
+        private int _busy; // 0 = idle, 1 = a clipboard op (flip or case-flip) is in progress
         private string _currentLayout = "";
+        private bool _capsOn;
 
         public CyrFlipContext(AppConfig config)
         {
             _config = config;
             _hotkey = Hotkey.Parse(_config.Hotkey);
+            _caseHotkey = Hotkey.Parse(_config.CaseHotkey);
             _layoutCursor = new LayoutCursor(_config.CursorSize);
             _caretOverlay = new CaretOverlay(_config.CursorSize, _config.CaretDotMode);
 
@@ -68,6 +78,7 @@ namespace CyrFlip
 
             // ---- Feature toggle items ----
             _flipHeader = new ToolStripMenuItem($"Flip EN ⇄ RU:  {_hotkey.Display}") { Enabled = false };
+            _caseHeader = new ToolStripMenuItem($"Flip case Aa ⇄ aA (fix CapsLock):  {_caseHotkey.Display}") { Enabled = false };
 
             _cursorItem = new ToolStripMenuItem("Cursor: layout indicator")
             {
@@ -98,11 +109,22 @@ namespace CyrFlip
             };
             _langSwitchItem.CheckedChanged += OnLangSwitchToggle;
 
+            _capsAfterItem = new ToolStripMenuItem("Flip CapsLock after the flip")
+            {
+                CheckOnClick = true,
+                Checked = _config.FlipCapsLockAfter,
+            };
+            _capsAfterItem.CheckedChanged += OnCapsAfterToggle;
+
             // ---- Menu ----
             var menu = new ContextMenuStrip();
             menu.Items.Add(_flipHeader);
             menu.Items.Add(new ToolStripMenuItem("Set hotkey...", null, OnSetHotkey));
             menu.Items.Add(_langSwitchItem);
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(_caseHeader);
+            menu.Items.Add(new ToolStripMenuItem("Set case hotkey...", null, OnSetCaseHotkey));
+            menu.Items.Add(_capsAfterItem);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(_cursorItem);
             menu.Items.Add(_caretItem);
@@ -137,7 +159,8 @@ namespace CyrFlip
 
             _indicator.LayoutChanged += OnLayoutChanged;
             _hook.HotkeyPressed += OnHotkeyPressed;
-            _hook.Install(_hotkey);
+            _hook.CaseHotkeyPressed += OnCaseHotkeyPressed;
+            _hook.Install(_hotkey, _caseHotkey);
             _caretOverlay.Start();
             _indicator.Start();
 
@@ -146,44 +169,60 @@ namespace CyrFlip
             _ui = SynchronizationContext.Current;
         }
 
-        private void OnLayoutChanged(string code)
+        private void OnLayoutChanged(string code, bool capsOn)
         {
             _currentLayout = code;
+            _capsOn = capsOn;
 
-            // Cursor indicator (global I-beam replacement).
+            // Cursor indicator (global I-beam replacement). A 1px frame flags CapsLock.
             if (_config.EnableCursorChange)
-                _layoutCursor.Apply(code);
+                _layoutCursor.Apply(code, capsOn);
             else
                 _layoutCursor.Restore();
 
             // Caret overlay (text label or dot near the blinking caret).
-            _caretOverlay.SetLayout(_config.EnableCaretOverlay ? code : "");
+            _caretOverlay.SetLayout(_config.EnableCaretOverlay ? code : "", capsOn);
             LayoutPublisher.Publish(code);
 
-            _tray.Text = $"CyrFlip - {code}  ({_hotkey.Display} to flip)";
-            Icon icon = CursorIndicator.RenderIcon(code);
+            _tray.Text = $"CyrFlip - {code}{(capsOn ? " (CAPS)" : "")}  ({_hotkey.Display} to flip)";
+            Icon icon = CursorIndicator.RenderIcon(code, capsOn);
             _tray.Icon = icon;
             _trayIcon?.Dispose();
             _trayIcon = icon;
         }
 
         private void OnHotkeyPressed(object? sender, EventArgs e)
+            => RunClipboardOp(
+                () => _clipboard.Flip(_config.EnableLanguageSwitch),
+                ClipboardHandler.FlipResult.Flipped, _config.IncrementFlipCount);
+
+        private void OnCaseHotkeyPressed(object? sender, EventArgs e)
+            => RunClipboardOp(
+                () => _clipboard.FlipCase(_config.FlipCapsLockAfter),
+                ClipboardHandler.FlipResult.Flipped, _config.IncrementCaseFlipCount);
+
+        /// <summary>
+        /// Run a clipboard transform off the hook on a dedicated background thread. The flip and
+        /// case-flip share one <see cref="_busy"/> guard so they never run concurrently (both
+        /// synthesize Ctrl+C/Ctrl+V and own the clipboard) and so key auto-repeat can't re-enter.
+        /// </summary>
+        private void RunClipboardOp(Func<ClipboardHandler.FlipResult> op,
+            ClipboardHandler.FlipResult countOn, Action onCounted)
         {
-            // Ignore re-triggers (key auto-repeat, or a flip already running).
-            if (Interlocked.CompareExchange(ref _flipping, 1, 0) != 0)
+            if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
                 return;
 
             var thread = new Thread(() =>
             {
                 try
                 {
-                    ClipboardHandler.FlipResult result = _clipboard.Flip(_config.EnableLanguageSwitch);
-                    if (result == ClipboardHandler.FlipResult.Flipped)
-                        _config.IncrementFlipCount();
+                    ClipboardHandler.FlipResult result = op();
+                    if (result == countOn)
+                        onCounted();
                     _ui?.Post(_ => ShowFlipResult(result), null);
                 }
-                catch { /* never let a flip take the app down */ }
-                finally { Interlocked.Exchange(ref _flipping, 0); }
+                catch { /* never let a clipboard op take the app down */ }
+                finally { Interlocked.Exchange(ref _busy, 0); }
             })
             {
                 IsBackground = true,
@@ -216,21 +255,56 @@ namespace CyrFlip
             if (newHotkey.Vk == 0)
                 return; // parse produced no trigger key - shouldn't happen if dialog is correct
 
+            if (newHotkey.SameChord(_caseHotkey))
+            {
+                WarnHotkeyClash("the case-flip hotkey");
+                return;
+            }
+
             _hotkey = newHotkey;
             _config.Hotkey = dlg.CapturedHotkey;
             _config.Save();
 
             _hook.UpdateHotkey(_hotkey);
             _flipHeader.Text = $"Flip EN ⇄ RU:  {_hotkey.Display}";
-            _tray.Text = $"CyrFlip - {_currentLayout}  ({_hotkey.Display} to flip)";
+            _tray.Text = $"CyrFlip - {_currentLayout}{(_capsOn ? " (CAPS)" : "")}  ({_hotkey.Display} to flip)";
         }
+
+        private void OnSetCaseHotkey(object? sender, EventArgs e)
+        {
+            using var dlg = new HotkeyDialog(_caseHotkey.Display, "Set case hotkey");
+            if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null)
+                return;
+
+            var newHotkey = Hotkey.Parse(dlg.CapturedHotkey);
+            if (newHotkey.Vk == 0)
+                return;
+
+            if (newHotkey.SameChord(_hotkey))
+            {
+                WarnHotkeyClash("the flip hotkey");
+                return;
+            }
+
+            _caseHotkey = newHotkey;
+            _config.CaseHotkey = dlg.CapturedHotkey;
+            _config.Save();
+
+            _hook.UpdateCaseHotkey(_caseHotkey);
+            _caseHeader.Text = $"Flip case Aa ⇄ aA (fix CapsLock):  {_caseHotkey.Display}";
+        }
+
+        private static void WarnHotkeyClash(string otherName)
+            => MessageBox.Show(
+                $"That combination is already used by {otherName}. Pick a different one.",
+                "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
         private void OnCursorToggle(object? sender, EventArgs e)
         {
             _config.EnableCursorChange = _cursorItem.Checked;
             if (_cursorItem.Checked)
             {
-                if (_currentLayout.Length > 0) _layoutCursor.Apply(_currentLayout);
+                if (_currentLayout.Length > 0) _layoutCursor.Apply(_currentLayout, _capsOn);
             }
             else
             {
@@ -243,7 +317,13 @@ namespace CyrFlip
         {
             _config.EnableCaretOverlay = _caretItem.Checked;
             _dotModeItem.Enabled = _caretItem.Checked;
-            _caretOverlay.SetLayout(_caretItem.Checked && _currentLayout.Length > 0 ? _currentLayout : "");
+            _caretOverlay.SetLayout(_caretItem.Checked && _currentLayout.Length > 0 ? _currentLayout : "", _capsOn);
+            _config.Save();
+        }
+
+        private void OnCapsAfterToggle(object? sender, EventArgs e)
+        {
+            _config.FlipCapsLockAfter = _capsAfterItem.Checked;
             _config.Save();
         }
 

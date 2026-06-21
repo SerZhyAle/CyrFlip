@@ -66,8 +66,8 @@
           <code>CyrFlip.exe</code>. Nothing to install; it runs on stock Windows 10/11.</li>
       </ul>
       <p>On launch, CyrFlip sits in the <strong>system tray</strong> (no window). The tray icon shows the active
-      layout (EN/RU/UK). Right-click it for the menu - the flip hotkey, a <strong>Start with Windows</strong>
-      toggle, and <strong>Exit</strong>.</p>
+      layout (EN/RU/UK). Right-click it for the menu - the flip and case-flip hotkeys, a
+      <strong>Start with Windows</strong> toggle, and <strong>Exit</strong>.</p>
       <p class="note">Turn on <strong>Start with Windows</strong> so the app - and therefore the layout marker
       everywhere, including in VS Code - is always available after a reboot.</p>
     </section>
@@ -106,7 +106,15 @@
         <li>Want the keyboard to follow the fix? Enable <strong>Change the language after the flip</strong>
           in the tray menu - after a flip CyrFlip also switches the active input language
           (EN → RU, otherwise → EN), so you can keep typing in the corrected layout.</li>
+        <li>Left <strong>CapsLock</strong> on by accident and got <code>hELLO wORLD</code>?
+          <strong>Select it</strong> and press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F11</kbd> -
+          CyrFlip swaps UPPER ↔ lower case in place. It has its own configurable hotkey, and an
+          optional <strong>Flip CapsLock after the flip</strong> toggle turns CapsLock off afterwards
+          so you can keep typing normally.</li>
       </ol>
+      <p class="note">When <strong>CapsLock is on</strong>, a thin frame appears around the
+      <code>EN</code>/<code>RU</code>/<code>UK</code> marker on the mouse cursor, the text caret and the
+      tray icon - so the CapsLock state is visible right where you type.</p>
     </section>
 
     <section>
@@ -139,7 +147,8 @@
           cursor on exit; if the process is force-killed (<em>End task</em>), run CyrFlip again or sign out and
           back in to restore it.</li>
         <li><strong>Hotkey does nothing.</strong> Make sure text is selected first, and that no other tool grabs
-          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>. You can change the hotkey in <code>config.json</code>.</li>
+          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> (flip) or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F11</kbd>
+          (case flip). You can change either one from the tray menu (<em>Set hotkey…</em> / <em>Set case hotkey…</em>).</li>
       </ul>
     </section>
 

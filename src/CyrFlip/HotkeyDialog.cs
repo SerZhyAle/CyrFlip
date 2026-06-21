@@ -23,9 +23,9 @@ namespace CyrFlip
         /// <summary>The hotkey string (e.g. "Ctrl+Shift+F12") if the user confirmed, else null.</summary>
         public string? CapturedHotkey { get; private set; }
 
-        public HotkeyDialog(string currentHotkey)
+        public HotkeyDialog(string currentHotkey, string title = "Set hotkey")
         {
-            Text = "Set hotkey";
+            Text = title;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
