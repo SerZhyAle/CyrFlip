@@ -54,6 +54,20 @@ namespace CyrFlip
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
+        // ---- IAccessible2 caret (Ia2Caret.cs) - the caret API screen readers use; the only
+        //      source that locates the caret in Chromium/Electron inputs (VS Code chat, browsers). ----
+        public const uint OBJID_CLIENT = 0xFFFFFFFC;
+
+        [DllImport("oleacc.dll")]
+        public static extern int AccessibleObjectFromWindow(IntPtr hwnd, uint id, ref Guid riid, out IntPtr ppvObject);
+
+        // ---- Window identity (CaretDiagnostics.cs) ----
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        public static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
+
         [DllImport("user32.dll")]
         public static extern IntPtr GetKeyboardLayout(uint idThread);
 

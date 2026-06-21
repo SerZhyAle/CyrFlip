@@ -17,10 +17,12 @@ namespace CyrFlip
     /// caret - the place that actually shows where text will land (the mouse pointer is often an
     /// arrow while you type).
     ///
-    /// Caret position comes from two sources, tried in order:
+    /// Caret position comes from three sources, tried in order:
     ///   1. <c>GetGUIThreadInfo</c> - fast, for classic Win32 edit controls.
-    ///   2. UI Automation <c>TextPattern</c> - for modern apps (WinUI Notepad, Chromium, etc.)
-    ///      that draw their own caret and expose no system caret.
+    ///   2. COM UIA <c>IUIAutomationTextPattern2.GetCaretRange</c> (<see cref="UiaCaretCom"/>) - the
+    ///      live-caret API; tracks the caret in Chromium/Electron webview inputs (VS Code chat,
+    ///      browsers) where GetSelection reports a stale/whole-line rect.
+    ///   3. managed UIA <c>TextPattern.GetSelection</c> - fallback for apps without GetCaretRange.
     /// Tracking runs on a background MTA thread so UIA's cross-process calls never block the UI;
     /// the overlay window itself is touched only via BeginInvoke on the UI thread.
     /// </summary>
@@ -33,7 +35,7 @@ namespace CyrFlip
 
         // UIA caret lookups are cross-process and expensive, so throttle them and reuse the last
         // position between polls. The cheap system-caret path still runs every tick.
-        private const int UiaThrottleMs = 180;
+        private const int UiaThrottleMs = 120;
         private readonly Stopwatch _clock = Stopwatch.StartNew();
         private long _lastUiaMs = -1000;
         private bool _haveUia;
@@ -113,12 +115,17 @@ namespace CyrFlip
                 return true;
             }
 
-            // 2) UI Automation fallback (modern apps) - expensive, so throttle it.
+            // 2) Cross-process caret APIs (modern apps) - expensive, so throttle. Try in order:
+            //    UIA GetCaretRange (TextPattern2: WinUI/UWP/WPF), then IAccessible2 (Chromium/Electron
+            //    webviews like the VS Code chat box - the only source that works there), then the
+            //    managed GetSelection path as a last resort.
             long now = _clock.ElapsedMilliseconds;
             if (now - _lastUiaMs >= UiaThrottleMs)
             {
                 _lastUiaMs = now;
-                if (TryUiaCaret(out int ux, out int uy))
+                if (UiaCaretCom.TryGetCaretRange(out int ux, out int uy)
+                    || Ia2Caret.TryGetCaret(out ux, out uy)
+                    || TryUiaCaret(out ux, out uy))
                 {
                     _haveUia = true; _uiaX = ux; _uiaY = uy;
                     x = ux; y = uy;

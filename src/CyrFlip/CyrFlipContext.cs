@@ -107,6 +107,7 @@ namespace CyrFlip
             menu.Items.Add(_cursorItem);
             menu.Items.Add(_caretItem);
             menu.Items.Add(_dotModeItem);
+            menu.Items.Add(new ToolStripMenuItem("Diagnose caret position...", null, OnDiagnoseCaret));
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(_autostartItem);
             menu.Items.Add(new ToolStripSeparator());
@@ -257,6 +258,33 @@ namespace CyrFlip
         {
             _config.EnableLanguageSwitch = _langSwitchItem.Checked;
             _config.Save();
+        }
+
+        private void OnDiagnoseCaret(object? sender, EventArgs e)
+        {
+            if (CaretDiagnostics.IsRunning)
+                return;
+
+            _tray.ShowBalloonTip(3000, "CyrFlip",
+                "Capturing for ~7s. Click into the chat/input box now and type or move the caret.",
+                ToolTipIcon.Info);
+
+            bool started = CaretDiagnostics.Run(
+                onDone: path => _ui?.Post(_ =>
+                {
+                    _tray.ShowBalloonTip(5000, "CyrFlip", "Caret diagnostics saved. Opening:\n" + path, ToolTipIcon.Info);
+                    try
+                    {
+                        System.Diagnostics.Process.Start(
+                            new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+                    }
+                    catch { /* best effort - the balloon still shows the path */ }
+                }, null),
+                onError: msg => _ui?.Post(_ =>
+                    _tray.ShowBalloonTip(5000, "CyrFlip", "Caret diagnostics failed: " + msg, ToolTipIcon.Warning), null));
+
+            if (!started)
+                _tray.ShowBalloonTip(2000, "CyrFlip", "A diagnostics capture is already running.", ToolTipIcon.Info);
         }
 
         private void OnToggleAutostart(object? sender, EventArgs e)
