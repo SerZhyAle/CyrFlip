@@ -2,16 +2,17 @@
 
 # CyrFlip
 
-CyrFlip is a tiny Windows tray tool with two jobs:
+CyrFlip is a tiny Windows tray tool with two modest jobs:
 
-1. **A live layout indicator where you type (the main feature).** A small **EN / RU / UK** marker rides both your mouse text cursor (the I-beam) **and the blinking text caret**, so you always know which layout you're about to type in - updated live as you switch. (The mouse cursor is often an arrow while typing, which is why the caret marker matters.)
-2. **One-key transliteration.** Text typed in the wrong layout can be flipped in place between QWERTY and ЙЦУКЕН (EN ↔ RU, UK planned) with a hotkey.
+1. **A live layout indicator where you type (the main feature).** A small **EN / RU / UK** marker rides both your mouse text cursor (the I-beam) **and the blinking text caret**, so you always know which layout you're about to type in - updated live as you switch. The idea being that you glance at it *before* committing a whole paragraph to the wrong alphabet. (The mouse cursor is often an arrow while typing, which is why the caret marker matters.)
+2. **One-key transliteration.** For when you ignored feature #1 anyway: text typed in the wrong layout can be flipped in place between QWERTY and ЙЦУКЕН (EN ↔ RU, UK planned) with a hotkey - no retyping, no shame.
 
 ![CyrFlip's layout-aware text cursor showing EN, RU and UK](assets/cursor-preview.png)
 
 ## Status
 
-Early development. See [PLAN/KeyboardTransliterator_Specification_v1.0.md](PLAN/KeyboardTransliterator_Specification_v1.0.md)
+Early development - which here means "it works, but we reserve the right to be humble about it." See
+[PLAN/KeyboardTransliterator_Specification_v1.0.md](PLAN/KeyboardTransliterator_Specification_v1.0.md)
 for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and conventions.
 
 ## How it works
@@ -23,8 +24,8 @@ for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and c
 
 ## Using CyrFlip
 
-- **Run it** - launch `CyrFlip.exe`. There's no window; it sits in the notification area (system tray). The icon shows the active keyboard layout (**EN/RU/UK**).
-- **Flip text** - select text typed in the wrong layout, press **Ctrl+Shift+F12**, and it's replaced in place. Works in any app (Notepad, Word, browsers, ..).
+- **Run it** - launch `CyrFlip.exe`. There's no window to admire; it sits quietly in the notification area (system tray). The icon shows the active keyboard layout (**EN/RU/UK**).
+- **Flip text** - select the `ghbdtn` you meant as «привет», press **Ctrl+Shift+F12**, and it's replaced in place. Works in any app (Notepad, Word, browsers, ..).
 - **Tray menu** (right-click the icon):
   - **Flip EN ⇄ RU: \<hotkey\>** - shows the active flip hotkey (disabled header).
   - **Set hotkey…** - opens a dialog where you press the new combination; saved immediately, no restart needed.
@@ -88,13 +89,13 @@ A legacy `config.json` (next to the exe or in `%APPDATA%\CyrFlip\`) is migrated 
 
 ## Known issues
 
-- **The caret marker doesn't appear in some apps.** CyrFlip locates the text caret via the Windows system caret or UI Automation. A few apps expose neither - chiefly **console/terminal windows** (Command Prompt, PowerShell, Windows Terminal) and the occasional app with custom-drawn text and weak UI Automation support. There the caret marker is hidden; the tray icon and mouse-cursor marker still show the layout. And in some editors (e.g. VS Code and other Monaco-based ones), UI Automation reports the caret position imprecisely, so the marker may appear toward the edge of the input rather than exactly at the caret - for VS Code, use the [companion extension](vscode-extension/), which places it exactly at the editor caret.
-- **The mouse text cursor (I-beam) can stay changed after a force-kill.** CyrFlip replaces the system I-beam globally and restores it on exit. If the process is killed hard (e.g. *End task* in Task Manager), Windows can't restore it until you run CyrFlip again or sign out and back in.
+- **The caret marker doesn't appear in some apps.** CyrFlip locates the text caret via the Windows system caret or UI Automation. A few apps keep their caret a closely guarded secret and expose neither - chiefly **console/terminal windows** (Command Prompt, PowerShell, Windows Terminal) and the occasional app with custom-drawn text and weak UI Automation support. There the caret marker bows out gracefully; the tray icon and mouse-cursor marker still show the layout. And in some editors (e.g. VS Code and other Monaco-based ones), UI Automation reports the caret position imprecisely, so the marker may appear toward the edge of the input rather than exactly at the caret - for VS Code, use the [companion extension](vscode-extension/), which places it exactly at the editor caret.
+- **The mouse text cursor (I-beam) can stay changed after a force-kill.** CyrFlip replaces the system I-beam globally and politely restores it on exit. If the process is killed hard (e.g. *End task* in Task Manager), it never gets to say goodbye, so Windows keeps the fancy cursor until you run CyrFlip again or sign out and back in.
 - **Transliteration is EN ↔ RU only.** The layout indicator handles EN/RU/UK, but the one-key flip currently converts between QWERTY and ЙЦУКЕН; Ukrainian-specific letters aren't transliterated yet.
 
 ## Antivirus false positives
 
-Some antivirus engines - notably **Avast / AVG**, which report it as `IDP.Generic` ("Behavior Shield") - may flag `CyrFlip.exe` as suspicious. This is a **heuristic false positive**, not malware, and it's **normal for every keyboard-layout indicator** (Punto Switcher and similar tools trip the same heuristics). By design, a layout indicator + transliterator does exactly what a behavioural keylogger heuristic watches for: it installs a global keyboard hook (`WH_KEYBOARD_LL`), synthesizes keystrokes (`SendInput`), reads/writes the clipboard, and swaps the system I-beam cursor.
+Some antivirus engines - notably **Avast / AVG**, which report it as `IDP.Generic` ("Behavior Shield") - may flag `CyrFlip.exe` as suspicious. This is a **heuristic false positive**, not malware, and it's **normal for every keyboard-layout indicator** (Punto Switcher and similar tools trip the same heuristics). In fairness to the antivirus, CyrFlip does look guilty on paper: by design, a layout indicator + transliterator does exactly what a behavioural keylogger heuristic watches for - it installs a global keyboard hook (`WH_KEYBOARD_LL`), synthesizes keystrokes (`SendInput`), reads/writes the clipboard, and swaps the system I-beam cursor. Same toolkit, very different intentions.
 
 CyrFlip is open source - you can read exactly what it does in [src/CyrFlip/](src/CyrFlip/) - and **static scanners agree it's clean: a build scores 0/71 on [VirusTotal](https://www.virustotal.com/gui/file/faa7534b168147a00854227c0787fbe0847d47ae82a70ab13327159b5b026dbc/detection)** (Avast and AVG included). The local flag is purely *behavioural* (Avast's runtime Behavior Shield) and reputational (unsigned exe, run from a temp folder) - things VirusTotal's static engines don't replicate.
 

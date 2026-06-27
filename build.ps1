@@ -1,11 +1,29 @@
 <#
-    CyrFlip local build + deploy.
+    CyrFlip local build + deploy  ==  a "СБОРКА" (build) in this project's vocabulary.
 
-    Builds Release, runs tests, and stages the single self-contained exe (net48 needs no
-    bundled runtime). Then copies it to the local sync folders. Mirrors the convention used
-    across SerZhyAle's Windows apps.
+    A СБОРКА is fully LOCAL and costs no GitHub Actions minutes:
+      build Release -> run tests -> stage the single self-contained exe -> deploy to sync folders.
+    net48 needs no bundled runtime. Mirrors the convention across SerZhyAle's Windows apps.
+
+    Optionally it also commits the result (the "если удачно - коммитим" half of a сборка):
+      -Commit            git add -A + commit AFTER a green build/test
+      -Message "<text>"  commit message (required with -Commit)
+      -Push              also push the branch to origin
+
+    The commit message gets "[skip ci]" appended automatically, so pushing a сборка to main
+    does NOT trigger the paid GitHub CI build - the build was already validated here.
+    (A РЕЛИЗ is the separate, paid path: see release.ps1 / RELEASE.md.)
 #>
+[CmdletBinding()]
+param(
+    [switch] $Commit,
+    [string] $Message,
+    [switch] $Push
+)
 $ErrorActionPreference = 'Stop'
+
+if ($Commit -and -not $Message) { throw 'Pass -Message "<text>" when using -Commit.' }
+if ($Push   -and -not $Commit)  { throw '-Push requires -Commit (nothing to push otherwise).' }
 
 $SolutionDir = $PSScriptRoot
 $Solution    = Join-Path $SolutionDir 'CyrFlip.sln'
@@ -63,4 +81,23 @@ foreach ($Destination in $Destinations) {
     }
     Copy-Item (Join-Path $SingleDir $ExeName) (Join-Path $Destination $ExeName) -Force
     Write-Host "Deployed -> $Destination$ExeName"
+}
+
+# Optional commit of the сборка. Always carries [skip ci] so the push to main does not
+# spend GitHub minutes re-building what we just built+tested locally.
+if ($Commit) {
+    $msg = $Message
+    if ($msg -notmatch '\[skip ci\]') { $msg = "$msg [skip ci]" }
+    Write-Host "Committing build.." -ForegroundColor Cyan
+    git add -A
+    if ($LASTEXITCODE -ne 0) { throw "git add failed (exit $LASTEXITCODE)." }
+    git commit -m $msg
+    if ($LASTEXITCODE -ne 0) { throw "git commit failed (exit $LASTEXITCODE) - nothing to commit?" }
+    Write-Host "Committed: $msg" -ForegroundColor Green
+    if ($Push) {
+        Write-Host "Pushing.." -ForegroundColor Cyan
+        git push
+        if ($LASTEXITCODE -ne 0) { throw "git push failed (exit $LASTEXITCODE)." }
+        Write-Host "Pushed (CI skipped via [skip ci] - no GitHub minutes spent)." -ForegroundColor Green
+    }
 }

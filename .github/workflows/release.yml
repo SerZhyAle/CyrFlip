@@ -12,9 +12,18 @@ on:
 permissions:
   contents: write
 
+# Serialise per-tag so a push + a manual dispatch of the same tag can't run twice.
+# cancel-in-progress is FALSE on purpose: releases for different tags must NOT cancel
+# each other, and a half-finished release should never be aborted by a later one.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
+    # Must be Windows: Authenticode signing uses signtool.exe from the Windows SDK.
     runs-on: windows-latest
+    timeout-minutes: 25            # sign + package take longer than CI — give extra headroom
     # Mapped at job level so they're visible to step `if:` conditions (step-level env is not).
     # Leave the secrets unset and signing is skipped; the unsigned exe still ships.
     env:
@@ -30,6 +39,15 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      # Same NuGet cache key as CI — the two workflows share one cache, so a release
+      # right after a green CI run restores packages instead of re-downloading them.
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
       - name: Resolve version from tag
         id: ver
         run: |
@@ -39,9 +57,15 @@ jobs:
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           Write-Host "Tag=$tag  Version=$version"
 
+      # Pin the embedded exe version to the tag (-p:Version), so the FileVersion inside the
+      # exe matches the ZIP/release name exactly. Without this the csproj stamps build-time
+      # YY.M.D.HHmm, which drifts from the tag minute.
       - name: Build (Release)
-        run: dotnet build CyrFlip.sln -c Release
+        run: dotnet build CyrFlip.sln -c Release -p:Version=${{ steps.ver.outputs.version }}
 
+      # CI already runs the full suite on every push/PR to main before a tag is cut, so
+      # this is a safety re-test of the exact tagged commit. Keep it — a release is rare
+      # and high-stakes, and tags can be pushed without first passing through a PR.
       - name: Test
         run: dotnet test CyrFlip.sln -c Release --no-build
 

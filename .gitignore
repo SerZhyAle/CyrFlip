@@ -3,6 +3,10 @@
 [Oo]bj/
 [Dd]ebug/
 [Rr]elease/
+# ...but not the /release skill folder, which the build-output [Rr]elease/ rule above
+# would otherwise silently swallow (it's source, not a build artifact).
+!.claude/skills/release/
+!.claude/skills/release/**
 
 # Visual Studio
 .vs/

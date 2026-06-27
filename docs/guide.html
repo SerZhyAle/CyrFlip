@@ -44,7 +44,7 @@
     <section>
       <h2>How the two pieces fit together</h2>
       <p>The app is the brain - it knows the active layout. The extension is just a display surface for VS Code,
-      because VS Code draws its own caret that the app can't track precisely from the outside.</p>
+      because VS Code draws its own caret and isn't keen on sharing its whereabouts with the outside world.</p>
       <pre><code>  CyrFlip.exe (tray app)            %LOCALAPPDATA%\CyrFlip\        VS Code extension
   detects EN / RU / UK   ──writes──▶      layout.txt      ──watches──▶  draws the marker
                                                                         at the editor caret</code></pre>
@@ -99,10 +99,10 @@
           bar shows <code>⌨ EN/RU/UK</code>.</li>
         <li>Everywhere <strong>else</strong> (other apps, dialogs, the desktop), the marker rides the mouse
           I-beam cursor and the tray icon, driven by the same app.</li>
-        <li>Typed something in the wrong layout? <strong>Select it</strong> and press
+        <li>Typed half a message in the wrong layout before looking up? <strong>Select it</strong> and press
           <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> - CyrFlip transliterates it in place
-          (QWERTY ↔ ЙЦУКЕН, EN ↔ RU). Each character is flipped by script, so mixed EN + RU text
-          is handled correctly too. Works in any app, VS Code included.</li>
+          (QWERTY ↔ ЙЦУКЕН, EN ↔ RU). Each character is flipped by script, so even the mixed EN + RU
+          masterpiece is handled correctly. Works in any app, VS Code included.</li>
         <li>Want the keyboard to follow the fix? Enable <strong>Change the language after the flip</strong>
           in the tray menu - after a flip CyrFlip also switches the active input language
           (EN → RU, otherwise → EN), so you can keep typing in the corrected layout.</li>
@@ -144,9 +144,9 @@
         <li><strong>Marker sits at the edge of an input (not in VS Code).</strong> In Monaco-based editors the app's
           external overlay can't read the caret precisely - that's exactly what the extension fixes, so install it.</li>
         <li><strong>The I-beam mouse cursor stays changed after a hard kill.</strong> CyrFlip restores the system
-          cursor on exit; if the process is force-killed (<em>End task</em>), run CyrFlip again or sign out and
-          back in to restore it.</li>
-        <li><strong>Hotkey does nothing.</strong> Make sure text is selected first, and that no other tool grabs
+          cursor on exit; if the process is force-killed (<em>End task</em>) it never gets to clean up after
+          itself - run CyrFlip again or sign out and back in to restore the cursor.</li>
+        <li><strong>Hotkey does nothing.</strong> Make sure text is actually selected first (the classic), and that no other tool grabs
           <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> (flip) or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F11</kbd>
           (case flip). You can change either one from the tray menu (<em>Set hotkey…</em> / <em>Set case hotkey…</em>).</li>
       </ul>

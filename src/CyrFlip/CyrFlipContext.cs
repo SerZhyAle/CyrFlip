@@ -235,10 +235,10 @@ namespace CyrFlip
             switch (result)
             {
                 case ClipboardHandler.FlipResult.NoSelection:
-                    _tray.ShowBalloonTip(1500, "CyrFlip", "Nothing selected to flip.", ToolTipIcon.Info);
+                    _tray.ShowBalloonTip(1500, "CyrFlip", "Nothing selected. I flip text, not thin air — highlight something first.", ToolTipIcon.Info);
                     break;
                 case ClipboardHandler.FlipResult.Failed:
-                    _tray.ShowBalloonTip(2000, "CyrFlip", "Couldn't read or replace the selection.", ToolTipIcon.Warning);
+                    _tray.ShowBalloonTip(2000, "CyrFlip", "Couldn't read or replace the selection. The clipboard had other plans.", ToolTipIcon.Warning);
                     break;
             }
         }
@@ -296,7 +296,7 @@ namespace CyrFlip
 
         private static void WarnHotkeyClash(string otherName)
             => MessageBox.Show(
-                $"That combination is already used by {otherName}. Pick a different one.",
+                $"That combination is already taken by {otherName}. They can't share — pick another one.",
                 "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
         private void OnCursorToggle(object? sender, EventArgs e)
@@ -346,13 +346,13 @@ namespace CyrFlip
                 return;
 
             _tray.ShowBalloonTip(3000, "CyrFlip",
-                "Capturing for ~7s. Click into the chat/input box now and type or move the caret.",
+                "Capturing for ~7s. Click into that uncooperative input box and type or wiggle the caret — show me where it's hiding.",
                 ToolTipIcon.Info);
 
             bool started = CaretDiagnostics.Run(
                 onDone: path => _ui?.Post(_ =>
                 {
-                    _tray.ShowBalloonTip(5000, "CyrFlip", "Caret diagnostics saved. Opening:\n" + path, ToolTipIcon.Info);
+                    _tray.ShowBalloonTip(5000, "CyrFlip", "Caret diagnostics saved — the caret's hiding spot is exposed. Opening:\n" + path, ToolTipIcon.Info);
                     try
                     {
                         System.Diagnostics.Process.Start(
@@ -361,10 +361,10 @@ namespace CyrFlip
                     catch { /* best effort - the balloon still shows the path */ }
                 }, null),
                 onError: msg => _ui?.Post(_ =>
-                    _tray.ShowBalloonTip(5000, "CyrFlip", "Caret diagnostics failed: " + msg, ToolTipIcon.Warning), null));
+                    _tray.ShowBalloonTip(5000, "CyrFlip", "Caret diagnostics failed (the caret won this round): " + msg, ToolTipIcon.Warning), null));
 
             if (!started)
-                _tray.ShowBalloonTip(2000, "CyrFlip", "A diagnostics capture is already running.", ToolTipIcon.Info);
+                _tray.ShowBalloonTip(2000, "CyrFlip", "Easy — one diagnostics capture is already snooping around.", ToolTipIcon.Info);
         }
 
         private void OnToggleAutostart(object? sender, EventArgs e)
@@ -376,7 +376,7 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 _autostartItem.Checked = Autostart.IsEnabled; // revert the checkmark on failure
-                MessageBox.Show("Couldn't update Windows startup:\n" + ex.Message,
+                MessageBox.Show("Couldn't update Windows startup (it's being difficult):\n" + ex.Message,
                     "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }

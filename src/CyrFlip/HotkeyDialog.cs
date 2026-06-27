@@ -36,7 +36,8 @@ namespace CyrFlip
 
             _hintLabel = new Label
             {
-                Text = "Press the new key combination:",
+                Text = "New combo (a modifier is non-negotiable):",
+                AutoSize = false,
                 Location = new Point(12, 16),
                 Size = new Size(296, 18),
             };

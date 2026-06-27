@@ -3,18 +3,60 @@ name: CI
 on:
   push:
     branches: [main]
+    # Path filtering: doc/plan/asset-only changes must not burn a full (×2-cost)
+    # Windows build. Code lives under src/ and tests/ — everything else is ignored.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'PLAN/**'
+      - 'winget/**'
+      - 'assets/**'
+      - 'vscode-extension/**'
+      - '.github/ISSUE_TEMPLATE/**'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'PLAN/**'
+      - 'winget/**'
+      - 'assets/**'
+      - 'vscode-extension/**'
+      - '.github/ISSUE_TEMPLATE/**'
+
+# A new push to the same ref cancels the previous still-running CI run, so a burst
+# of commits costs one active run instead of N parallel Windows runs.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-test:
+    # Skip the release commit (release.ps1 makes a "release: vX" commit + tag): the tag
+    # fires release.yml which already builds+tests, so running CI here too would double-bill.
+    # PRs always run. A local "сборка" commit carries [skip ci] and is skipped natively by GitHub.
+    if: ${{ github.event_name == 'pull_request' || !startsWith(github.event.head_commit.message, 'release:') }}
+    # net48 unit tests need real Windows (Mono is unreliable for WinForms/P-Invoke
+    # assemblies) — so the runner stays Windows; savings come from caching + filters below.
     runs-on: windows-latest
+    timeout-minutes: 15            # guard against a hung job (a normal run is < 5 min)
     steps:
       - uses: actions/checkout@v6
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
+      # Cache the global NuGet package folder. Keyed on every .csproj/.sln hash, so the
+      # cache invalidates only when dependencies actually change. Uses actions/cache
+      # directly (setup-dotnet's cache:true needs a packages.lock.json, which this repo
+      # doesn't have). The restore-keys line lets a partially-stale cache still hit.
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+          restore-keys: ${{ runner.os }}-nuget-
 
       - name: Restore
         run: dotnet restore CyrFlip.sln
