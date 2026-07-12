@@ -41,7 +41,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 15            # guard against a hung job (a normal run is < 5 min)
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v4
         with:
