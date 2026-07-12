@@ -8,11 +8,20 @@
   <meta property="og:title" content="CyrFlip - інструкція" />
   <meta property="og:description" content="Встановіть CyrFlip для миттєвого відображення розкладки всюди. Розширення для VS Code — необов'язковий додаток." />
   <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <meta name="theme-color" content="#0a0f0a" />
   <link rel="icon" type="image/png" href="../assets/favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../style.css" />
+
+  <!-- pre-paint: resolve theme before the stylesheet, so nothing flashes -->
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
 </head>
 <body>
   <div class="bg-blobs">
@@ -21,17 +30,17 @@
     <div class="blob blob-3"></div>
   </div>
   <div class="wrap">
-    <header>
-      <img class="banner" src="../assets/banner.png" alt="CyrFlip - інструкція" />
-      <nav class="langbar">
+    <header class="site-header">
+      <span class="brand"><img class="brand-icon" src="../assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
+      <nav class="langbar" aria-label="Мова">
         <a href="../ru/guide.html">RU</a>
         <a href="../guide.html">EN</a>
         <a href="guide.html" class="active" aria-current="page">UA</a>
       </nav>
+      <button class="theme-btn" id="themeBtn" aria-label="Перемкнути тему">◐</button>
       <div class="cta">
-        <a class="btn" href="./">← Огляд</a>
-        <a class="btn primary" href="https://github.com/SerZhyAle/CyrFlip/releases">Завантажити</a>
-        <a class="btn" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+        <a class="btn btn-ghost btn-sm" href="./">← Огляд</a>
+        <a class="btn btn-primary btn-sm" href="https://github.com/SerZhyAle/CyrFlip/releases">Завантажити</a>
       </div>
     </header>
 
@@ -163,5 +172,24 @@
       <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
     </footer>
   </div>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn');
+    var themeColor=document.querySelector('meta[name="theme-color"]');
+    function applyThemeMeta(){
+      var dark=doc.getAttribute('data-theme')!=='light';
+      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
+      themeBtn.setAttribute('aria-label',dark?'Switch to light theme':'Switch to dark theme');
+    }
+    themeBtn.addEventListener('click',function(){
+      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
+      doc.setAttribute('data-theme',next);
+      try{localStorage.setItem('sza-theme',next);}catch(e){}
+      applyThemeMeta();
+    });
+    applyThemeMeta();
+  })();
+  </script>
 </body>
 </html>

@@ -4,6 +4,15 @@
    for the legacy guide.html pages that still use the old class names. */
 @import url("assets/sza-kit.css");
 
+/* Scales with the viewport instead of stopping at a fixed cap (same trick
+   as universal-agent-kit's --wide) — the page actually fills wide screens
+   instead of leaving big idle side margins, and headings/content wrap into
+   fewer lines. Caps at 1440px so lines don't run absurdly long on huge monitors. */
+:root { --wide: min(1440px, 92vw); }
+
+/* App-icon badge shown next to the "CyrFlip" wordmark in every header. */
+.brand-icon { width: 24px; height: 24px; border-radius: 7px; vertical-align: -6px; margin-right: 8px; }
+
 /* ── i18n: pure-CSS data-lang toggle (RU / EN / UA) ──────────────── */
 html[data-lang="ru"] [data-l]:not([data-l="ru"]) { display: none; }
 html[data-lang="en"] [data-l]:not([data-l="en"]) { display: none; }
@@ -31,25 +40,40 @@ html[data-lang="ua"] [data-l]:not([data-l="ua"]) { display: none; }
   border-radius: 8px;
 }
 
+/* Tighter vertical rhythm than the kit default — fewer, denser sections
+   so the whole page fits with less scrolling. */
+.hero { padding: 1.4rem 1rem 1rem; }
+.hero .lead { max-width: 880px; }
+.get { padding: 1.1rem 1.3rem; margin: .8rem auto 1.4rem; max-width: 900px; }
+.section-card { padding: 1.3rem 1.5rem; }
+.section-card + .section-card { margin-top: .9rem; }
+
 /* Section headings get the subtle divider the original site had. */
 .section-card h2 {
   display: flex; align-items: center; gap: .75rem;
-  font-size: 1.35rem; font-weight: 700; margin-bottom: 1rem;
+  font-size: 1.35rem; font-weight: 700; margin-bottom: .8rem;
 }
 .section-card h2::after {
   content: ""; flex: 1; height: 1px;
   background: linear-gradient(90deg, var(--border), transparent);
 }
 
-/* Feature / step lists with green markers (CyrFlip content). */
-ol.steps { padding-left: 1.3rem; margin: 0; color: var(--text-2); }
+/* Feature / step lists with green markers (CyrFlip content). Bullet lists
+   flow into two columns on wide screens — fills the wide container usefully
+   and roughly halves the list's vertical height instead of leaving a lone
+   narrow column in a wide card. Numbered steps stay single-column so the
+   1-2-3 reading order stays unambiguous; both cap line length for readability. */
+ol.steps { padding-left: 1.3rem; margin: 0; max-width: 1040px; color: var(--text-2); }
 ol.steps li { margin: .5rem 0; }
 ol.steps li::marker { color: var(--acc); font-weight: 700; }
-ul.features { list-style: none; padding-left: 0; margin: 0; }
-ul.features li { position: relative; padding-left: 1.4rem; margin: .55rem 0; color: var(--text-2); }
+ul.features { list-style: none; padding-left: 0; margin: 0; max-width: 1400px; }
+ul.features li { position: relative; padding-left: 1.4rem; margin: .55rem 0; color: var(--text-2); break-inside: avoid; }
 ul.features li::before {
   content: ""; position: absolute; left: 0; top: .62em;
   width: 7px; height: 7px; border-radius: 50%; background: var(--acc);
+}
+@media (min-width: 720px) {
+  ul.features { columns: 2; column-gap: 2rem; }
 }
 
 /* Inline code chips inside prose. */
@@ -65,22 +89,17 @@ html[data-theme="light"] :not(pre):not(.copybox) > code { background: rgba(16, 4
    LEGACY COMPAT — guide.html (EN/RU/UK) still ships the old markup.
    Recolour those classes to Pine + Gold so no indigo/cyan survives.
    ================================================================= */
-.wrap { max-width: 880px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; position: relative; z-index: 1; }
-.wrap.wide { max-width: var(--wide); }
+.wrap { max-width: var(--wide); margin: 0 auto; padding: 0 20px 3rem; position: relative; z-index: 1; }
 
-.wrap > header { text-align: center; margin-bottom: 2rem; }
-.banner {
-  display: block; width: 100%; height: auto;
-  border-radius: 16px; border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-}
-.wrap h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 800; margin: 1.4rem 0 .5rem; color: var(--text); }
-.tagline { color: var(--muted); font-size: 1.05rem; margin: .5rem auto 0; max-width: 760px; }
+/* Compact sticky header, shared with index.html — replaces the old tall
+   banner-image header so guide/privacy pages don't burn a screen's worth
+   of scroll before any content shows. */
+.wrap h1 { font-size: clamp(1.7rem, 3.6vw, 2.3rem); font-weight: 800; margin: 1.6rem 0 .5rem; color: var(--text); }
+.tagline { color: var(--muted); font-size: 1.02rem; margin: .4rem 0 0; max-width: 860px; }
 
-/* old langbar (guide pages) → restyle as the kit .seg pill */
+/* old langbar (guide pages) → restyle as the kit .seg pill, usable inside .site-header */
 .langbar {
-  display: flex; justify-content: center; gap: 2px; width: fit-content;
-  margin: 1.4rem auto 0; padding: 3px;
+  display: flex; gap: 2px; width: fit-content; padding: 3px;
   background: rgba(255, 255, 255, .04); border: 1px solid var(--border); border-radius: 20px;
 }
 html[data-theme="light"] .langbar { background: rgba(16, 40, 20, .05); }
@@ -91,7 +110,7 @@ html[data-theme="light"] .langbar { background: rgba(16, 40, 20, .05); }
 .langbar a:hover { color: var(--text); }
 .langbar a.active { background: var(--acc); color: var(--acc-ink); }
 
-.cta { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; margin: 1.4rem 0 0; }
+.cta { display: flex; gap: .6rem; flex-wrap: wrap; }
 /* old .btn variants on the guide pages (kit base .btn already applies) */
 .btn.primary { background: var(--acc); color: var(--acc-ink); border-color: transparent; box-shadow: var(--glow); }
 .btn.primary:hover { background: var(--acc-strong); color: var(--acc-ink); }
@@ -102,11 +121,13 @@ html[data-theme="light"] .btn:not(.primary):not(.accent) { background: rgba(16, 
 
 /* old section cards (guide pages) */
 .wrap section {
-  margin-top: 1.25rem; background: var(--card); border: 1px solid var(--border);
+  margin-top: 1rem; background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius); backdrop-filter: blur(16px);
-  padding: 1.5rem 1.7rem; transition: border-color .3s, background .3s;
+  padding: 1.3rem 1.5rem; transition: border-color .3s, background .3s;
 }
 .wrap section:hover { border-color: var(--border-hover); }
+/* Prose stays readable even in the wide container; tables/code/lists still run full width. */
+.wrap section > p { max-width: 1040px; }
 .wrap section h2 {
   font-family: var(--font-heading); font-weight: 700; font-size: 1.35rem;
   margin: 0 0 1rem; color: var(--text); display: flex; align-items: center; gap: .75rem;
@@ -126,8 +147,8 @@ html[data-theme="light"] .btn:not(.primary):not(.accent) { background: rgba(16, 
 .wrap td:first-child { font-weight: 600; color: var(--text); }
 
 .wrap footer {
-  margin-top: 3rem; text-align: center; color: var(--muted); font-size: .9rem;
-  border-top: 1px solid var(--border); padding-top: 1.5rem;
+  margin-top: 2rem; text-align: center; color: var(--muted); font-size: .9rem;
+  border-top: 1px solid var(--border); padding-top: 1.2rem;
 }
 .wrap footer a { color: var(--text-2); }
 .wrap footer a:hover { color: var(--text); }
