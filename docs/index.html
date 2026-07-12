@@ -35,14 +35,16 @@
   </div>
 
   <header class="site-header">
-    <span class="brand"><img class="brand-icon" src="assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
-    <div class="seg" role="group" aria-label="Language">
-      <button data-lang="ru">RU</button><button data-lang="en">EN</button><button data-lang="ua">UA</button>
+    <div class="container">
+      <span class="brand"><img class="brand-icon" src="assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
+      <div class="seg" role="group" aria-label="Language">
+        <button data-lang="ru">RU</button><button data-lang="en">EN</button><button data-lang="ua">UA</button>
+      </div>
+      <button class="theme-btn" id="themeBtn" aria-label="Switch theme">◐</button>
+      <a class="btn btn-primary btn-sm" href="#get">
+        <span data-l="ru">Скачать</span><span data-l="en">Download</span><span data-l="ua">Завантажити</span>
+      </a>
     </div>
-    <button class="theme-btn" id="themeBtn" aria-label="Switch theme">◐</button>
-    <a class="btn btn-primary btn-sm" href="#get">
-      <span data-l="ru">Скачать</span><span data-l="en">Download</span><span data-l="ua">Завантажити</span>
-    </a>
   </header>
 
   <main class="container">
@@ -78,6 +80,7 @@
       <div class="copybox"><span class="tok">winget</span> install SerZhyAle.CyrFlip<button class="copy" data-copy="winget install SerZhyAle.CyrFlip">Copy</button></div>
     </section>
 
+    <div class="sections-grid">
     <!-- WHAT IT DOES -->
     <section class="card section-card">
       <h2><span data-l="ru">Что это</span><span data-l="en">What it does</span><span data-l="ua">Що це</span></h2>
@@ -173,6 +176,7 @@
         <li><strong>Переносний ZIP</strong> — завантажте зі <a href="https://github.com/SerZhyAle/CyrFlip/releases">сторінки релізів</a>, розпакуйте будь-куди та запустіть <code>CyrFlip.exe</code>. Встановлення та середовище виконання не потрібні.</li>
       </ul>
     </section>
+    </div>
   </main>
 
   <footer class="site-footer">
