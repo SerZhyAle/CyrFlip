@@ -24,7 +24,7 @@ Its second feature fixes text typed in the wrong layout: select it, press the ho
 
 It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11.
 
-Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform the flip you trigger. It does not log keystrokes, collect data, or use the network. Open source: https://github.com/SerZhyAle/CyrFlip
+Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform the flip you trigger. Optional clipboard history is off by default; if enabled, it is stored locally with Windows DPAPI encryption and can be paused or cleared at any time. CyrFlip does not log keystrokes or use the network. Open source: https://github.com/SerZhyAle/CyrFlip
 ```
 
 **Product features** (one per line)
@@ -40,7 +40,7 @@ Open source - no telemetry, no network, no data collection
 
 **What's new in this version**
 ```
-The layout marker now follows the caret inside Chromium/Electron inputs - the VS Code chat box and browsers - using the accessibility caret API. Added a tray "Diagnose caret position..." helper.
+Added optional encrypted local clipboard history with pin, delete, pause and clear controls, plus a compact Settings window for hotkeys, privacy and indicator preferences.
 ```
 
 ---
@@ -60,7 +60,7 @@ CyrFlip — это крошечная утилита в системном тр�
 
 Работает в системном трее, потребляет мало памяти и не требует ничего доустанавливать на Windows 10/11.
 
-Конфиденциальность: CyrFlip использует перехват клавиатуры и буфер обмена только для того, чтобы определить активную раскладку и выполнить запрошенную вами замену. Не ведёт журнал нажатий, не собирает данные и не использует сеть. Открытый исходный код: https://github.com/SerZhyAle/CyrFlip
+Конфиденциальность: CyrFlip использует перехват клавиатуры и буфер обмена только для того, чтобы определить активную раскладку и выполнить запрошенную вами замену. Необязательная история буфера по умолчанию выключена; при включении она хранится только локально и шифруется Windows DPAPI, её можно поставить на паузу или очистить. CyrFlip не ведёт журнал нажатий и не использует сеть. Открытый исходный код: https://github.com/SerZhyAle/CyrFlip
 ```
 
 **Функции продукта** (по одной в строке)
@@ -76,7 +76,7 @@ CyrFlip — это крошечная утилита в системном тр�
 
 **Что нового в этой версии**
 ```
-Маркер раскладки теперь следует за курсором внутри полей Chromium/Electron — в окне чата VS Code и в браузерах — через accessibility-API каретки. Добавлен пункт трея «Diagnose caret position...».
+Добавлена необязательная локальная зашифрованная история буфера: закрепление, удаление, пауза и очистка записей, а также компактное окно настроек для горячих клавиш, приватности и индикатора.
 ```
 
 ---
@@ -96,7 +96,7 @@ CyrFlip — це крихітна утиліта в системному тре�
 
 Працює в системному треї, споживає мало пам'яті й не потребує нічого додатково встановлювати на Windows 10/11.
 
-Конфіденційність: CyrFlip використовує перехоплення клавіатури та буфер обміну лише для того, щоб визначити активну розкладку й виконати запитану вами заміну. Не веде журнал натискань, не збирає дані та не використовує мережу. Відкритий вихідний код: https://github.com/SerZhyAle/CyrFlip
+Конфіденційність: CyrFlip використовує перехоплення клавіатури та буфер обміну лише для того, щоб визначити активну розкладку й виконати запитану вами заміну. Необов'язкова історія буфера типово вимкнена; після ввімкнення вона зберігається лише локально й шифрується Windows DPAPI, її можна призупинити або очистити. CyrFlip не веде журнал натискань і не використовує мережу. Відкритий вихідний код: https://github.com/SerZhyAle/CyrFlip
 ```
 
 **Функції продукту** (по одній у рядку)
@@ -112,7 +112,7 @@ CyrFlip — це крихітна утиліта в системному тре�
 
 **Що нового в цій версії**
 ```
-Маркер розкладки тепер слідує за курсором усередині полів Chromium/Electron — у вікні чату VS Code та в браузерах — через accessibility-API каретки. Додано пункт трея «Diagnose caret position...».
+Додано необов'язкову локальну зашифровану історію буфера: закріплення, видалення, пауза й очищення записів, а також компактне вікно налаштувань для гарячих клавіш, приватності та індикатора.
 ```
 
 ---
@@ -132,10 +132,10 @@ These APIs are available only to full-trust desktop apps. The app runs entirely 
 ## Submitting the update (Partner Center)
 
 The package is built and unsigned (Microsoft re-signs on certification):
-`msix/dist/CyrFlip-26.621.309.0-x64.msix` (version 26.621.309.0, > the published 26.616.2145.0).
+`msix/dist/CyrFlip-26.718.1539.0-x64.msix` (version 26.718.1539.0).
 
 1. [partner.microsoft.com/dashboard](https://partner.microsoft.com/dashboard) → **Apps and games → CyrFlip → Create new submission** (Update).
-2. **Packages** → remove the old `.msix` / upload `CyrFlip-26.621.309.0-x64.msix`.
+2. **Packages** → remove the old `.msix` / upload `CyrFlip-26.718.1539.0-x64.msix`.
 3. **Store listings → Manage additional languages** → add **Russian (ru-RU)** and **Ukrainian (uk-UA)** (if not present). For each language listing (and refresh English), paste the Short description, Description, and Product features above. Reuse the existing screenshots, or add localized ones.
 4. **Properties / Age ratings / Pricing** — unchanged.
 5. If asked again, paste the **runFullTrust justification** above.
