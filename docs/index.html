@@ -1,269 +1,145 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CyrFlip — fix wrong-layout typing on Windows</title>
-  <meta name="description" content="A tiny background Windows tool that transliterates text typed on the wrong keyboard layout (EN ↔ RU / ЙЦУКЕН) in place, via a global hotkey — and shows a live EN/RU/UA layout marker on the text caret." />
-  <meta name="theme-color" content="#0a0f0a" />
-  <meta property="og:title" content="CyrFlip" />
-  <meta property="og:description" content="Fix text typed on the wrong keyboard layout — instantly." />
-  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
-  <link rel="icon" type="image/png" href="assets/favicon.png" />
-
-  <!-- pre-paint: resolve theme + language before the stylesheet, so nothing flashes -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CyrFlip — fix wrong-layout text on Windows</title>
+  <meta name="description" content="CyrFlip is a Windows tray tool that shows the active EN/RU/UK layout where you type and fixes selected EN/RU text typed in the wrong layout.">
+  <meta name="theme-color" content="#0a0f0a">
+  <meta property="og:title" content="CyrFlip">
+  <meta property="og:description" content="See your keyboard layout while typing and fix text entered in the wrong layout.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <script>
   (function(){try{
     var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
     document.documentElement.setAttribute('data-theme',t);
     var l=localStorage.getItem('sza-lang');
-    if(!l){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+    if(!l){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')===0?'ru':n.indexOf('uk')===0?'ua':'en';}
     document.documentElement.setAttribute('data-lang',l);
   }catch(e){}})();
   </script>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="bg-blobs">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
-  </div>
+  <div class="bg-blobs" aria-hidden="true"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 
   <header class="site-header">
-    <div class="container">
-      <span class="brand"><img class="brand-icon" src="assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
-      <div class="seg" role="group" aria-label="Language">
-        <button data-lang="ru">RU</button><button data-lang="en">EN</button><button data-lang="ua">UA</button>
-      </div>
-      <button class="theme-btn" id="themeBtn" aria-label="Switch theme">◐</button>
-      <a class="btn btn-primary btn-sm" href="#get">
-        <span data-l="ru">Скачать</span><span data-l="en">Download</span><span data-l="ua">Завантажити</span>
-      </a>
+    <span class="brand">CyrFlip<span class="dot">.</span></span>
+    <div class="seg" role="group" aria-label="Language">
+      <button data-lang="ru">RU</button><button data-lang="en">EN</button><button data-lang="ua">UA</button>
     </div>
+    <button class="theme-btn" id="themeBtn" aria-label="Switch theme">◐</button>
+    <a class="btn btn-primary btn-sm" href="#get"><span data-l="ru">Установить</span><span data-l="en">Install</span><span data-l="ua">Встановити</span></a>
   </header>
 
   <main class="container">
-    <!-- HERO -->
     <section class="hero">
-      <h1>CyrFlip</h1>
-      <p class="lead">
-        <span data-l="ru">Исправляет текст, набранный не в той раскладке — и заранее предупреждает, чтобы вы и не набирали. Живой маркер EN/RU/UA прямо там, где вы печатаете.</span>
-        <span data-l="en">Fixes text typed in the wrong keyboard layout — and warns you beforehand, so ideally you don't. A live EN/RU/UA marker right where you type.</span>
-        <span data-l="ua">Виправляє текст, набраний не в тій розкладці — і попереджає заздалегідь, щоб ви й не набирали. Живий маркер EN/RU/UA прямо там, де ви друкуєте.</span>
-      </p>
+      <p class="kicker"><span data-l="ru">Windows · утилита в трее</span><span data-l="en">Windows · tray utility</span><span data-l="ua">Windows · утиліта в треї</span></p>
+      <h1><span data-l="ru">Исправляйте текст в неверной раскладке и видьте текущую до ввода.</span><span data-l="en">Fix wrong-layout text and see the active layout before you type.</span><span data-l="ua">Виправляйте текст у хибній розкладці й бачте поточну до введення.</span></h1>
+      <p class="lead"><span data-l="ru">CyrFlip показывает EN/RU/UK у каретки и помогает заменить уже набранный текст без перепечатывания.</span><span data-l="en">CyrFlip shows EN/RU/UK where you type and replaces already mistyped text without retyping it.</span><span data-l="ua">CyrFlip показує EN/RU/UK там, де ви друкуєте, і замінює вже помилково набраний текст без передруку.</span></p>
     </section>
 
-    <!-- GET IT (above the fold) -->
+    <section class="intro" aria-label="What CyrFlip is">
+      <p data-l="ru">Это фоновая утилита для Windows для тех, кто переключается между латиницей и кириллицей. Она живёт в области уведомлений: показывает активную раскладку у мигающей каретки и может исправить выделенный текст между QWERTY и ЙЦУКЕН.</p>
+      <p data-l="en">This is a background Windows utility for people who switch between Latin and Cyrillic layouts. It lives in the notification area, shows the active layout next to the blinking caret, and can fix selected text between QWERTY and ЙЦУКЕН.</p>
+      <p data-l="ua">Це фонова утиліта для Windows для тих, хто перемикається між латиницею та кирилицею. Вона працює в області сповіщень, показує активну розкладку біля миготливої каретки й може виправити виділений текст між QWERTY та ЙЦУКЕН.</p>
+    </section>
+
+    <div class="demo" aria-label="Transliteration example"><code>ghbdtn</code><span class="arrow">→ Ctrl+Shift+F12 →</span><code class="out">привет</code></div>
+
     <section class="get" id="get">
-      <p class="whatfor">
-        <span data-l="ru"><strong>Крошечная фоновая утилита для Windows.</strong> Для тех, кто печатает на двух раскладках и регулярно начинает фразу не в той — и замечает это абзаца через два: <code>ghbdtn</code> вместо «привет».</span>
-        <span data-l="en"><strong>A tiny background Windows tool.</strong> For anyone who types in two layouts and keeps starting a phrase in the wrong one — and notices about two paragraphs later: <code>ghbdtn</code> instead of “привет”.</span>
-        <span data-l="ua"><strong>Крихітна фонова утиліта для Windows.</strong> Для тих, хто друкує у двох розкладках і регулярно починає фразу не в тій — і помічає це абзаци через два: <code>ghbdtn</code> замість «привет».</span>
-      </p>
-
-      <div class="demo hero-demo">
-        <code>ghbdtn</code>
-        <span class="arrow">→ Ctrl+Shift+F12 →</span>
-        <code class="out">привет</code>
-      </div>
-
+      <p class="whatfor"><strong data-l="ru">Начните с обычного исправления текста.</strong><strong data-l="en">Start with an ordinary text correction.</strong><strong data-l="ua">Почніть зі звичайного виправлення тексту.</strong> <span data-l="ru">После запуска CyrFlip уже работает в трее; ничего опасного или необратимого в первом шаге нет.</span><span data-l="en">After launch CyrFlip is already working in the tray; the first step has no destructive action.</span><span data-l="ua">Після запуску CyrFlip уже працює в треї; перший крок не містить небезпечних або незворотних дій.</span></p>
       <div class="channels">
         <a class="btn btn-primary" href="https://apps.microsoft.com/detail/9NB4W41NGQJ4">Microsoft Store</a>
-        <a class="btn btn-ghost" id="ghDownload" href="https://github.com/SerZhyAle/CyrFlip/releases">GitHub Releases</a>
+        <a class="btn btn-ghost" id="ghDownload" href="https://github.com/SerZhyAle/CyrFlip/releases/latest">GitHub Releases</a>
       </div>
-
-      <div class="copybox"><span class="tok">winget</span> install SerZhyAle.CyrFlip<button class="copy" data-copy="winget install SerZhyAle.CyrFlip">Copy</button></div>
+      <div class="copybox"><span class="tok">winget</span> install SerZhyAle.CyrFlip<button class="copy" data-copy="winget install SerZhyAle.CyrFlip"><span data-l="ru">Копировать</span><span data-l="en">Copy</span><span data-l="ua">Копіювати</span></button></div>
+      <ol class="quickstart">
+        <li data-l="ru">Установите из Microsoft Store, через winget или распакуйте ZIP из GitHub Releases в постоянную папку.</li>
+        <li data-l="en">Install from Microsoft Store, with winget, or extract the ZIP from GitHub Releases to a permanent folder.</li>
+        <li data-l="ua">Установіть із Microsoft Store, через winget або розпакуйте ZIP із GitHub Releases у постійну папку.</li>
+        <li data-l="ru">Запустите <code>CyrFlip.exe</code> и найдите его значок в области уведомлений.</li>
+        <li data-l="en">Run <code>CyrFlip.exe</code> and find its icon in the notification area.</li>
+        <li data-l="ua">Запустіть <code>CyrFlip.exe</code> і знайдіть його значок в області сповіщень.</li>
+        <li data-l="ru">Выделите ошибочно набранный текст и нажмите <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>.</li>
+        <li data-l="en">Select mistyped text and press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>.</li>
+        <li data-l="ua">Виділіть помилково набраний текст і натисніть <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>.</li>
+      </ol>
     </section>
 
-    <div class="sections-grid">
-    <!-- WHAT IT DOES -->
-    <section class="card section-card">
-      <h2><span data-l="ru">Что это</span><span data-l="en">What it does</span><span data-l="ua">Що це</span></h2>
-      <div class="feature-row">
-        <div>
-          <p data-l="ru"><strong>Показывает раскладку прямо там, где вы печатаете.</strong> CyrFlip ставит маленький маркер <strong>EN / RU / UA</strong> на системный текстовый курсор (I-beam) <strong>и рядом с мигающей кареткой</strong>, обновляя его в реальном времени при смене раскладки — чтобы вы не начинали печатать не в той. А когда вы всё равно промахнулись (мы оба знали, что так и будет): выделите текст, нажмите горячую клавишу — и CyrFlip транслитерирует его на месте между QWERTY и ЙЦУКЕН.</p>
-          <p data-l="en"><strong>It shows your layout right where you type.</strong> CyrFlip puts a small <strong>EN / RU / UA</strong> marker on the system text cursor (the I-beam) <strong>and next to the blinking text caret</strong>, updated live as you switch layouts — so you never start typing in the wrong one. And when you slip anyway (we both knew you would): select the text, press the hotkey, and CyrFlip transliterates it in place between QWERTY and ЙЦУКЕН.</p>
-          <p data-l="ua"><strong>Показує розкладку прямо там, де ви друкуєте.</strong> CyrFlip ставить маленький маркер <strong>EN / RU / UA</strong> на системний текстовий курсор (I-beam) <strong>і поруч із мигаючою кареткою</strong>, оновлюючи його в реальному часі під час зміни розкладки — щоб ви не починали друкувати не в тій. А коли ви все одно промахнулися (ми обидва знали, що так і буде): виділіть текст, натисніть гарячу клавішу — і CyrFlip транслітерує його на місці між QWERTY та ЙЦУКЕН.</p>
-        </div>
-        <img class="feature-img" src="assets/cursor-preview.png" alt="Layout-aware cursor showing EN, RU and UA markers on light and dark backgrounds" />
-      </div>
-    </section>
-
-    <!-- HOW TO USE -->
-    <section class="card section-card">
-      <h2><span data-l="ru">Как пользоваться</span><span data-l="en">How to use</span><span data-l="ua">Як користуватися</span></h2>
-      <ol class="steps" data-l="ru">
-        <li>Запустите <code>CyrFlip.exe</code> — он сидит в системном трее (без окна). Значок показывает активную раскладку (EN/RU/UA).</li>
-        <li>Выделите текст, набранный в неправильной раскладке.</li>
-        <li>Нажмите <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — он заменится на месте.</li>
-      </ol>
-      <ol class="steps" data-l="en">
-        <li>Run <code>CyrFlip.exe</code> — it sits in the system tray (no window). The tray icon shows the active layout (EN/RU/UA).</li>
-        <li>Select the text you typed in the wrong layout.</li>
-        <li>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — it's replaced in place.</li>
-      </ol>
-      <ol class="steps" data-l="ua">
-        <li>Запустіть <code>CyrFlip.exe</code> — він сидить у системному треї (без вікна). Значок показує активну розкладку (EN/RU/UA).</li>
-        <li>Виділіть текст, набраний у неправильній розкладці.</li>
-        <li>Натисніть <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> — його буде замінено на місці.</li>
-      </ol>
-      <div class="note">
-        <span class="tag" data-l="ru">Заметка</span><span class="tag" data-l="en">Note</span><span class="tag" data-l="ua">Примітка</span>
-        <p data-l="ru">Правый клик по значку открывает меню: горячие клавиши флипа и смены регистра (обе настраиваются), переключатели «Change the language after the flip» и «Flip CapsLock after the flip», «Start with Windows» (автозапуск) и «Exit». CyrFlip работает в вашем сеансе — это не служба Windows, поэтому автозапуск это запись в автозагрузке пользователя.</p>
-        <p data-l="en">Right-click the tray icon for the menu: the flip and case-flip hotkeys (both configurable), the “Change the language after the flip” and “Flip CapsLock after the flip” toggles, “Start with Windows”, and “Exit”. CyrFlip runs in your session — it isn't a Windows service, so autostart is a per-user startup entry.</p>
-        <p data-l="ua">Правий клік на значку відкриває меню: гарячі клавіші фліпу та зміни регістру (обидві налаштовуються), перемикачі «Change the language after the flip» і «Flip CapsLock after the flip», «Start with Windows» (автозапуск) і «Exit». CyrFlip працює у вашому сеансі — це не служба Windows, тому автозапуск це запис в автозавантаженні користувача.</p>
+    <section class="section scenarios" aria-labelledby="scenarios-title">
+      <h2 id="scenarios-title"><span data-l="ru">Основные ситуации</span><span data-l="en">Common situations</span><span data-l="ua">Основні ситуації</span></h2>
+      <div class="grid scenario-grid">
+        <article class="card"><h3><span data-l="ru">Увидеть раскладку до ввода</span><span data-l="en">See the layout before typing</span><span data-l="ua">Побачити розкладку до введення</span></h3><p data-l="ru">Маркер EN/RU/UK появляется у каретки; при необходимости его можно включить и для текстового I-beam курсора.</p><p data-l="en">An EN/RU/UK marker appears at the caret; the text I-beam marker can also be enabled when useful.</p><p data-l="ua">Маркер EN/RU/UK з’являється біля каретки; за потреби його можна ввімкнути й для текстового I-beam курсора.</p></article>
+        <article class="card"><h3><span data-l="ru">Исправить уже набранную фразу</span><span data-l="en">Fix a phrase already typed</span><span data-l="ua">Виправити вже набрану фразу</span></h3><p data-l="ru">Выделите текст вроде <code>ghbdtn</code> и нажмите <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>.</p><p data-l="en">Select text such as <code>ghbdtn</code> and press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>.</p><p data-l="ua">Виділіть текст на кшталт <code>ghbdtn</code> і натисніть <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>.</p></article>
+        <article class="card"><h3><span data-l="ru">Исправить случайный CapsLock</span><span data-l="en">Fix accidental CapsLock</span><span data-l="ua">Виправити випадковий CapsLock</span></h3><p data-l="ru">Выделите текст и смените ВЕРХНИЙ/нижний регистр отдельной настраиваемой горячей клавишей.</p><p data-l="en">Select text and swap UPPER/lower case with a separate configurable hotkey.</p><p data-l="ua">Виділіть текст і змініть ВЕРХНІЙ/нижній регістр окремою налаштовуваною гарячою клавішею.</p></article>
+        <article class="card"><h3><span data-l="ru">Вернуться к недавнему фрагменту</span><span data-l="en">Return to a recent snippet</span><span data-l="ua">Повернутися до недавнього фрагмента</span></h3><p data-l="ru">История буфера включается вручную в трее; её можно приостановить, очистить или оставить скрытой при запуске.</p><p data-l="en">Clipboard history is enabled manually from the tray; it can be paused, cleared, or kept hidden at startup.</p><p data-l="ua">Історія буфера вмикається вручну з трея; її можна призупинити, очистити або лишити прихованою під час запуску.</p></article>
       </div>
     </section>
 
-    <!-- FEATURES -->
-    <section class="card section-card">
-      <h2><span data-l="ru">Возможности</span><span data-l="en">Features</span><span data-l="ua">Можливості</span></h2>
-      <ul class="features" data-l="ru">
-        <li><strong>Маркер раскладки на текстовом курсоре</strong> (и на значке в трее), обновляется в реальном времени.</li>
-        <li>Транслитерация одной клавишей — QWERTY ↔ ЙЦУКЕН, каждый символ переключается по скрипту (смешанный EN + RU обрабатывается корректно).</li>
-        <li><strong>Исправление случайного CapsLock</strong> — выделите текст и нажмите <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F11</kbd>, чтобы поменять БОЛЬШИЕ ↔ маленькие буквы. Своя настраиваемая горячая клавиша.</li>
-        <li><strong>Индикатор CapsLock</strong> — когда CapsLock включён, вокруг маркера EN/RU/UA появляется рамка: на курсоре, у каретки и на значке в трее.</li>
-        <li>Глобальная горячая клавиша (по умолчанию <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>), настраивается.</li>
-        <li>Один <code>.exe</code>, ничего не нужно устанавливать — работает на «голой» Windows 10/11. Никаких мастеров, тыкающих в вас «Далее».</li>
-        <li>Менее 50&nbsp;МБ памяти в покое — своё место в трее честно отрабатывает.</li>
-      </ul>
-      <ul class="features" data-l="en">
-        <li><strong>Layout marker on the text cursor</strong> (and the tray icon), updated live.</li>
-        <li>One-key transliteration — QWERTY ↔ ЙЦУКЕН, each character flipped by script (handles mixed EN + RU text correctly).</li>
-        <li><strong>Fix an accidental CapsLock</strong> — select text and press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F11</kbd> to swap UPPER ↔ lower case. Its own configurable hotkey.</li>
-        <li><strong>CapsLock indicator</strong> — when CapsLock is on, a frame appears around the EN/RU/UA marker: on the cursor, the caret and the tray icon.</li>
-        <li>Global hotkey (default <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>), configurable.</li>
-        <li>Single <code>.exe</code>, nothing to install — runs on stock Windows 10/11. No setup wizard clicking “Next” at you.</li>
-        <li>Under 50&nbsp;MB of memory at rest — it earns its spot in your tray.</li>
-      </ul>
-      <ul class="features" data-l="ua">
-        <li><strong>Маркер розкладки на текстовому курсорі</strong> (і на значку в треї), оновлюється в реальному часі.</li>
-        <li>Транслітерація однією клавішею — QWERTY ↔ ЙЦУКЕН, кожен символ перемикається за скриптом (змішаний EN + RU обробляється коректно).</li>
-        <li><strong>Виправлення випадкового CapsLock</strong> — виділіть текст і натисніть <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F11</kbd>, щоб поміняти ВЕЛИКІ ↔ малі літери. Власна налаштовувана гаряча клавіша.</li>
-        <li><strong>Індикатор CapsLock</strong> — коли CapsLock увімкнено, навколо маркера EN/RU/UA з'являється рамка: на курсорі, біля каретки та на значку в треї.</li>
-        <li>Глобальна гаряча клавіша (за замовчуванням <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>), налаштовується.</li>
-        <li>Один <code>.exe</code>, нічого не треба встановлювати — працює на «голій» Windows 10/11. Жодних майстрів, що тицяють у вас «Далі».</li>
-        <li>Менше ніж 50&nbsp;МБ пам'яті в спокої — своє місце в треї чесно відпрацьовує.</li>
-      </ul>
+    <section class="section guides" aria-labelledby="guides-title">
+      <h2 id="guides-title"><span data-l="ru">Продолжить по своей задаче</span><span data-l="en">Continue with your task</span><span data-l="ua">Продовжити зі своїм завданням</span></h2>
+      <p data-l="ru">Полное пошаговое руководство содержит установку, работу с VS Code и разбор типичных проблем. Политика приватности объясняет, когда используются клавиатурный хук, буфер обмена и локальные файлы.</p>
+      <p data-l="en">The full guide covers installation, VS Code, and common problems. The privacy policy explains when the keyboard hook, clipboard, and local files are used.</p>
+      <p data-l="ua">Повний посібник охоплює встановлення, VS Code і типові проблеми. Політика приватності пояснює, коли використовуються клавіатурний хук, буфер обміну та локальні файли.</p>
+      <div class="channels"><a class="btn btn-ghost" href="guide.html"><span data-l="ru">Инструкции</span><span data-l="en">Guides</span><span data-l="ua">Інструкції</span></a><a class="btn btn-ghost" href="privacy.html"><span data-l="ru">Приватность</span><span data-l="en">Privacy</span><span data-l="ua">Приватність</span></a><a class="btn btn-ghost" href="https://github.com/SerZhyAle/CyrFlip"><span data-l="ru">Исходный код</span><span data-l="en">Source code</span><span data-l="ua">Вихідний код</span></a></div>
     </section>
 
-    <!-- INSTALL -->
-    <section class="card section-card" id="install">
-      <h2><span data-l="ru">Установка</span><span data-l="en">Install</span><span data-l="ua">Встановлення</span></h2>
-      <p style="color:var(--text-2)">
-        <span data-l="ru">Три способа получить CyrFlip — выберите любой:</span>
-        <span data-l="en">Three ways to get CyrFlip — pick any:</span>
-        <span data-l="ua">Три способи отримати CyrFlip — оберіть будь-який:</span>
-      </p>
-      <ul class="features" data-l="ru">
-        <li><strong>Microsoft Store</strong> — найдите <strong>CyrFlip</strong> в приложении Microsoft Store на Windows 10/11.</li>
-        <li><strong>winget</strong> — выполните команду из блока выше: <code>winget install SerZhyAle.CyrFlip</code>.</li>
-        <li><strong>Переносимый ZIP</strong> — скачайте со <a href="https://github.com/SerZhyAle/CyrFlip/releases">страницы релизов</a>, распакуйте куда угодно и запустите <code>CyrFlip.exe</code>. Установка и среда выполнения не нужны.</li>
-      </ul>
-      <ul class="features" data-l="en">
-        <li><strong>Microsoft Store</strong> — search for <strong>CyrFlip</strong> in the Microsoft Store app on Windows 10/11.</li>
-        <li><strong>winget</strong> — run the command in the box above: <code>winget install SerZhyAle.CyrFlip</code>.</li>
-        <li><strong>Portable ZIP</strong> — download from the <a href="https://github.com/SerZhyAle/CyrFlip/releases">Releases page</a>, extract anywhere, and run <code>CyrFlip.exe</code>. No installer, no runtime required.</li>
-      </ul>
-      <ul class="features" data-l="ua">
-        <li><strong>Microsoft Store</strong> — знайдіть <strong>CyrFlip</strong> у застосунку Microsoft Store на Windows 10/11.</li>
-        <li><strong>winget</strong> — виконайте команду з блоку вище: <code>winget install SerZhyAle.CyrFlip</code>.</li>
-        <li><strong>Переносний ZIP</strong> — завантажте зі <a href="https://github.com/SerZhyAle/CyrFlip/releases">сторінки релізів</a>, розпакуйте будь-куди та запустіть <code>CyrFlip.exe</code>. Встановлення та середовище виконання не потрібні.</li>
-      </ul>
+    <section class="section details-section" aria-labelledby="details-title">
+      <h2 id="details-title"><span data-l="ru">Подробности и ограничения</span><span data-l="en">Details and limitations</span><span data-l="ua">Подробиці та обмеження</span></h2>
+      <details class="sec"><summary><span class="secnum">01</span><span data-l="ru">Все возможности и настройки</span><span data-l="en">Features and settings</span><span data-l="ua">Можливості та налаштування</span></summary>
+        <ul data-l="ru"><li>Маркер EN/RU/UK у каретки, на текстовом курсоре и значке в трее; переключатель точечного стиля и индикатор CapsLock.</li><li>Транслитерация QWERTY ↔ ЙЦУКЕН и смена регистра; горячие клавиши настраиваются из трея без перезапуска.</li><li>Автозапуск для текущего пользователя, без службы Windows.</li><li>Необязательная история буфера: закрепление и удаление записей, пауза захвата, локальное шифрование Windows DPAPI.</li></ul>
+        <ul data-l="en"><li>EN/RU/UK marker at the caret, text cursor, and tray icon; dot-style toggle and CapsLock indicator.</li><li>QWERTY ↔ ЙЦУКЕН transliteration and case flip; hotkeys can be changed from the tray without restart.</li><li>Per-user autostart, not a Windows service.</li><li>Optional clipboard history: pin and delete items, pause capture, and Windows DPAPI local encryption.</li></ul>
+        <ul data-l="ua"><li>Маркер EN/RU/UK біля каретки, на текстовому курсорі та значку в треї; перемикач точкового стилю та індикатор CapsLock.</li><li>Транслітерація QWERTY ↔ ЙЦУКЕН і зміна регістру; гарячі клавіші змінюються з трея без перезапуску.</li><li>Автозапуск для поточного користувача, а не служба Windows.</li><li>Необов’язкова історія буфера: закріплення й видалення записів, пауза захоплення, локальне шифрування Windows DPAPI.</li></ul>
+      </details>
+      <details class="sec"><summary><span class="secnum">02</span><span data-l="ru">Совместимость и существенные ограничения</span><span data-l="en">Compatibility and material limitations</span><span data-l="ua">Сумісність і суттєві обмеження</span></summary>
+        <div class="note"><span class="tag" data-l="ru">Важно знать</span><span class="tag" data-l="en">Important</span><span class="tag" data-l="ua">Важливо знати</span><p data-l="ru">Нужны Windows 10/11 x64. Маркер раскладки поддерживает EN/RU/UK, но преобразование текста пока только EN ↔ RU.</p><p data-l="en">Windows 10/11 x64 is required. The layout marker supports EN/RU/UK, but text conversion is currently EN ↔ RU only.</p><p data-l="ua">Потрібна Windows 10/11 x64. Маркер розкладки підтримує EN/RU/UK, але перетворення тексту наразі лише EN ↔ RU.</p></div>
+        <p data-l="ru">Некоторые терминалы и приложения с собственной кареткой не сообщают её положение Windows — в них маркер у каретки может не появиться. В VS Code внешний оверлей может быть неточным; для точной метки в редакторе есть дополнительное расширение VS Code.</p><p data-l="en">Some terminals and apps with a custom caret do not expose its position to Windows, so the caret marker may not appear there. In VS Code the external overlay can be imprecise; a companion VS Code extension provides an exact editor marker.</p><p data-l="ua">Деякі термінали й застосунки з власною кареткою не повідомляють її положення Windows, тому маркер біля каретки може там не з’явитися. У VS Code зовнішній оверлей може бути неточним; додаткове розширення VS Code дає точний маркер у редакторі.</p>
+        <p data-l="ru">Если принудительно завершить CyrFlip, системный I-beam может остаться изменённым до повторного запуска CyrFlip или нового входа в Windows. Не запускайте portable ZIP прямо из временной папки: сначала распакуйте его в постоянное место.</p><p data-l="en">If CyrFlip is force-killed, the system I-beam can remain changed until CyrFlip runs again or you sign in again. Do not run the portable ZIP from a temporary folder: extract it to a permanent place first.</p><p data-l="ua">Якщо примусово завершити CyrFlip, системний I-beam може лишитися зміненим до повторного запуску CyrFlip або нового входу в Windows. Не запускайте portable ZIP із тимчасової папки: спершу розпакуйте його в постійне місце.</p>
+      </details>
+      <details class="sec"><summary><span class="secnum">03</span><span data-l="ru">Приватность, техническая информация и релизы</span><span data-l="en">Privacy, technical information, and releases</span><span data-l="ua">Приватність, технічна інформація та релізи</span></summary>
+        <p data-l="ru">Горячая клавиша использует глобальный хук клавиатуры; при перевороте выделения приложение временно использует буфер обмена и восстанавливает прежнее содержимое. Эти операции выполняются локально. Исходный код, лицензия MIT, полный privacy note и история изменений доступны по ссылкам ниже.</p><p data-l="en">The hotkey uses a global keyboard hook; when flipping a selection, the app temporarily uses the clipboard and restores its previous contents. These operations happen locally. Source code, MIT licence, the full privacy note, and release history are available below.</p><p data-l="ua">Гаряча клавіша використовує глобальний хук клавіатури; під час перевороту виділення застосунок тимчасово використовує буфер обміну та відновлює попередній вміст. Ці операції виконуються локально. Вихідний код, ліцензія MIT, повний privacy note та історія релізів доступні за посиланнями нижче.</p>
+        <p><a href="privacy.html">Privacy</a> · <a href="https://github.com/SerZhyAle/CyrFlip/blob/main/LICENSE">MIT License</a> · <a href="https://github.com/SerZhyAle/CyrFlip/releases">GitHub Releases</a> · <a href="https://github.com/SerZhyAle/CyrFlip">GitHub</a></p>
+      </details>
+      <details class="sec"><summary><span class="secnum">04</span><span data-l="ru">VS Code: точный маркер в редакторе</span><span data-l="en">VS Code: an exact marker in the editor</span><span data-l="ua">VS Code: точний маркер у редакторі</span></summary>
+        <p data-l="ru">Дополнительное расширение читает код раскладки, который публикует CyrFlip, и рисует маркер прямо у каретки редактора VS Code. Для работы основное приложение должно быть запущено; webviews, терминал и другие не-редакторские панели не поддерживают decorations.</p><p data-l="en">The companion extension reads the layout code published by CyrFlip and draws a marker directly at the VS Code editor caret. The main application must be running; webviews, the terminal, and other non-editor panels cannot host decorations.</p><p data-l="ua">Додаткове розширення читає код розкладки, який публікує CyrFlip, і малює маркер прямо біля каретки редактора VS Code. Основний застосунок має бути запущений; webviews, термінал та інші не-редакторські панелі не підтримують decorations.</p>
+        <p><a href="guide.html">VS Code guide</a> · <a href="https://marketplace.visualstudio.com/items?itemName=SerZhyAle.cyrflip-vscode">VS Code Marketplace</a></p>
+      </details>
     </section>
-    </div>
   </main>
 
-  <footer class="site-footer">
-    <div class="container">
-      <div class="tools-grid">
-        <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>FastMediaSorter v2</b><span>Android media sorter</span></a>
-        <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>FastMediaSorter LITE</b><span>Windows media sorter</span></a>
-        <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows ebook converter</span></a>
-        <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows storage CLI</span></a>
-        <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI-dev methodology</span></a>
-        <a href="https://sza.od.ua"><b>SZA</b><span>Portfolio hub</span></a>
-      </div>
-      <div class="footer-bottom">
-        <span>© 2026 Serhii Zhyhunenko · MIT</span>
-        <span><a href="https://sza.od.ua">sza.od.ua</a> · <a href="https://github.com/SerZhyAle/CyrFlip">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></span>
-      </div>
+  <footer class="site-footer"><div class="container">
+    <div class="tools-grid">
+      <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>FastMediaSorter v2</b><span>Android media sorter</span></a>
+      <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>Windows media sorter</span></a>
+      <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows ebook converter</span></a>
+      <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows storage CLI</span></a>
+      <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI-dev methodology</span></a>
+      <a href="https://github.com/SerZhyAle/OneClickRunner"><b>OneClickRunner</b><span>Windows tray launcher</span></a>
+      <a href="https://sza.od.ua"><b>SZA</b><span>Portfolio hub</span></a>
     </div>
-  </footer>
+    <div class="footer-bottom"><span>© 2026 Serhii Zhyhunenko · MIT</span><span><a href="https://sza.od.ua">sza.od.ua</a> · <a href="https://github.com/SerZhyAle/CyrFlip">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></span></div>
+  </div></footer>
+  <button class="to-top" id="toTop" aria-label="Back to top">↑</button>
 
   <script>
   (function(){
-    var doc=document.documentElement;
-
-    /* ---- metadata per language ---- */
-    var META={
-      ru:{title:"CyrFlip — исправление текста в неправильной раскладке (Windows)",desc:"Крошечная фоновая утилита для Windows: транслитерирует текст, набранный в неправильной раскладке (EN ↔ RU / ЙЦУКЕН), прямо на месте по горячей клавише."},
-      en:{title:"CyrFlip — fix wrong-layout typing on Windows",desc:"A tiny background Windows tool that transliterates text typed on the wrong keyboard layout (EN ↔ RU / ЙЦУКЕН) in place, via a global hotkey."},
-      ua:{title:"CyrFlip — виправлення тексту в неправильній розкладці (Windows)",desc:"Крихітна фонова утиліта для Windows: транслітерує текст, набраний у неправильній розкладці (EN ↔ RU / ЙЦУКЕН), прямо на місці за гарячою клавішею."}
-    };
-    var descEl=document.querySelector('meta[name="description"]');
-
-    function setLang(l){
-      doc.setAttribute('data-lang',l);
-      doc.setAttribute('lang', l==='ua'?'uk':l);
-      try{localStorage.setItem('sza-lang',l);}catch(e){}
-      var m=META[l]||META.en;
-      document.title=m.title;
-      if(descEl)descEl.setAttribute('content',m.desc);
-      document.querySelectorAll('.seg button[data-lang]').forEach(function(b){
-        b.setAttribute('aria-pressed', b.getAttribute('data-lang')===l?'true':'false');
-      });
-    }
-    document.querySelectorAll('.seg button[data-lang]').forEach(function(b){
-      b.addEventListener('click',function(){setLang(b.getAttribute('data-lang'));});
-    });
-    setLang(doc.getAttribute('data-lang')||'en');
-
-    /* ---- theme toggle ---- */
-    var themeBtn=document.getElementById('themeBtn');
-    var themeColor=document.querySelector('meta[name="theme-color"]');
-    function applyThemeMeta(){
-      var dark=doc.getAttribute('data-theme')!=='light';
-      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
-      themeBtn.setAttribute('aria-label',dark?'Switch to light theme':'Switch to dark theme');
-    }
-    themeBtn.addEventListener('click',function(){
-      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
-      doc.setAttribute('data-theme',next);
-      try{localStorage.setItem('sza-theme',next);}catch(e){}
-      applyThemeMeta();
-    });
-    applyThemeMeta();
-
-    /* ---- copy buttons ---- */
-    document.querySelectorAll('.copy[data-copy]').forEach(function(btn){
-      btn.addEventListener('click',function(){
-        var txt=btn.getAttribute('data-copy');
-        var done=function(){var o=btn.textContent;btn.textContent='✓ Copied';btn.classList.add('done');
-          setTimeout(function(){btn.textContent=o;btn.classList.remove('done');},1600);};
-        if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fallback(txt,done);});}
-        else{fallback(txt,done);}
-      });
-    });
-    function fallback(txt,done){var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
-      document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}document.body.removeChild(ta);}
-
-    /* ---- dynamic GitHub latest release ---- */
-    var gh=document.getElementById('ghDownload');
-    fetch('https://api.github.com/repos/SerZhyAle/CyrFlip/releases/latest')
-      .then(function(r){return r.ok?r.json():Promise.reject();})
-      .then(function(d){
-        if(!d||!d.tag_name)return;
-        var asset=(d.assets||[]).filter(function(a){return /\.(zip|exe|msix)$/i.test(a.name);})[0];
-        gh.textContent='GitHub '+d.tag_name;
-        gh.href=asset?asset.browser_download_url:(d.html_url||gh.href);
-      })
-      .catch(function(){/* keep static fallback to /releases */});
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn'), themeColor=document.querySelector('meta[name="theme-color"]');
+    var META={ru:{title:'CyrFlip — исправление текста в неверной раскладке (Windows)',desc:'CyrFlip показывает EN/RU/UK там, где вы печатаете, и исправляет выделенный текст в неверной раскладке.'},en:{title:'CyrFlip — fix wrong-layout text on Windows',desc:'CyrFlip shows EN/RU/UK where you type and fixes selected text typed in the wrong layout.'},ua:{title:'CyrFlip — виправлення тексту в хибній розкладці (Windows)',desc:'CyrFlip показує EN/RU/UK там, де ви друкуєте, і виправляє виділений текст у хибній розкладці.'}};
+    var desc=document.querySelector('meta[name="description"]');
+    function setLang(l){var m=META[l]||META.en;doc.setAttribute('data-lang',l);doc.setAttribute('lang',l==='ua'?'uk':l);try{localStorage.setItem('sza-lang',l);}catch(e){}document.title=m.title;if(desc)desc.content=m.desc;document.querySelectorAll('.seg button[data-lang]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.lang===l?'true':'false');});}
+    document.querySelectorAll('.seg button[data-lang]').forEach(function(b){b.addEventListener('click',function(){setLang(b.dataset.lang);});});setLang(doc.getAttribute('data-lang')||'en');
+    function themeMeta(){var dark=doc.getAttribute('data-theme')!=='light';themeColor.content=dark?'#0a0f0a':'#eef3ea';themeBtn.setAttribute('aria-label',dark?'Switch to light theme':'Switch to dark theme');}
+    themeBtn.addEventListener('click',function(){var next=doc.getAttribute('data-theme')==='light'?'dark':'light';doc.setAttribute('data-theme',next);try{localStorage.setItem('sza-theme',next);}catch(e){}themeMeta();});themeMeta();
+    function fallback(text,done){var area=document.createElement('textarea');area.value=text;area.style.cssText='position:fixed;opacity:0';document.body.appendChild(area);area.select();try{document.execCommand('copy');done();}catch(e){}document.body.removeChild(area);}
+    document.querySelectorAll('.copy[data-copy]').forEach(function(btn){btn.addEventListener('click',function(){var text=btn.dataset.copy, old=btn.innerHTML, done=function(){btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(function(){btn.innerHTML=old;btn.classList.remove('done');},1600);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,function(){fallback(text,done);});}else{fallback(text,done);}});});
+    function openHash(){var id=location.hash.slice(1), el=id&&document.getElementById(id);if(el&&el.tagName==='DETAILS'){el.open=true;setTimeout(function(){el.scrollIntoView();},0);}}window.addEventListener('hashchange',openHash);openHash();
+    var top=document.getElementById('toTop');window.addEventListener('scroll',function(){top.classList.toggle('show',window.scrollY>600);},{passive:true});top.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+    var gh=document.getElementById('ghDownload');fetch('https://api.github.com/repos/SerZhyAle/CyrFlip/releases/latest').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(d){var asset=(d.assets||[]).filter(function(a){return/\.(zip|exe|msix)$/i.test(a.name);})[0];gh.href=asset?asset.browser_download_url:(d.html_url||gh.href);gh.textContent='GitHub '+d.tag_name;}).catch(function(){});
   })();
   </script>
 </body>

@@ -76,8 +76,9 @@
           <code>CyrFlip.exe</code>. Nothing to install; it runs on stock Windows 10/11.</li>
       </ul>
       <p>On launch, CyrFlip sits in the <strong>system tray</strong> (no window). The tray icon shows the active
-      layout (EN/RU/UK). Right-click it for the menu - the flip and case-flip hotkeys, a
-      <strong>Start with Windows</strong> toggle, and <strong>Exit</strong>.</p>
+      layout (EN/RU/UK). Right-click it to show the clipboard-history strip, enable or pause history,
+      change the indicator, or open <strong>Settings</strong>. Settings contains hotkeys, autostart,
+      privacy controls and diagnostics.</p>
       <p class="note">Turn on <strong>Start with Windows</strong> so the app - and therefore the layout marker
       everywhere, including in VS Code - is always available after a reboot.</p>
     </section>
@@ -128,6 +129,15 @@
     </section>
 
     <section>
+      <h2>Clipboard history (optional)</h2>
+      <p>Clipboard history is off until you enable it from the tray menu. It keeps recent Unicode text in a
+      small topmost strip. Click an item to use it; pin items you want to keep or delete individual entries.
+      Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F10</kbd> to show or hide the strip.</p>
+      <p class="note">History is stored locally and protected with Windows DPAPI for your Windows account.
+      Pause capture, clear the history, or disable it entirely in the tray menu or Settings.</p>
+    </section>
+
+    <section>
       <h2>Where the layout shows up</h2>
       <table>
         <tr><th>Surface</th><th>Shown by</th><th>Where</th></tr>
@@ -158,7 +168,8 @@
           itself - run CyrFlip again or sign out and back in to restore the cursor.</li>
         <li><strong>Hotkey does nothing.</strong> Make sure text is actually selected first (the classic), and that no other tool grabs
           <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> (flip) or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F11</kbd>
-          (case flip). You can change either one from the tray menu (<em>Set hotkey…</em> / <em>Set case hotkey…</em>).</li>
+          (case flip). Change either one in <em>Settings</em>. The history strip uses
+          <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F10</kbd> by default and can be changed there too.</li>
       </ul>
     </section>
 

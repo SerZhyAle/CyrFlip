@@ -39,7 +39,7 @@
   <div class="wrap">
     <section>
       <h2>Privacy Policy</h2>
-      <p class="note">Last updated: 14 June 2026</p>
+      <p class="note">Last updated: 18 July 2026</p>
 
       <p><strong>CyrFlip does not collect, store, log, or transmit any personal data.</strong> It runs
       entirely on your own device. It has no servers, makes no network requests, and contains no
@@ -57,7 +57,12 @@
         <li><strong>Clipboard.</strong> When you press the hotkey to transliterate a selection, CyrFlip
         temporarily reads the selected text (via a synthesized copy), converts it between layouts, and
         pastes the result back, then restores your previous clipboard contents. This happens locally and
-        only at the moment you trigger it. Nothing from the clipboard is retained, sent, or shared.</li>
+        only at the moment you trigger it. Nothing from the clipboard is sent or shared.</li>
+
+        <li><strong>Optional clipboard history.</strong> Clipboard history is <strong>off by default</strong>.
+        If you explicitly enable it, CyrFlip stores captured Unicode text locally so you can reopen it later.
+        The history is encrypted with Windows DPAPI for the current Windows user; it can be paused, cleared,
+        or disabled at any time from CyrFlip. CyrFlip never sends this history anywhere.</li>
 
         <li><strong>Active-window / layout info.</strong> The app reads which window is focused and its
         keyboard layout to position and update the indicator. This information is used in memory only and
@@ -72,8 +77,10 @@
         the Microsoft Store version) so the optional companion VS&nbsp;Code extension can display the marker
         at the editor caret. This file contains no personal data and never leaves your device.</li>
 
-        <li><strong>Configuration.</strong> The app may read an optional local <code>config.json</code>
-        (hotkey, cursor size). It is stored only on your device.</li>
+        <li><strong>Configuration and history.</strong> Settings are stored in
+        <code>HKCU\Software\CyrFlip</code>. When enabled, clipboard history is stored locally in the
+        CyrFlip application-data folder in DPAPI-protected form. A legacy <code>config.json</code> may be
+        read once during migration. None of these data leave your device.</li>
       </ul>
 
       <h2>Data sharing</h2>

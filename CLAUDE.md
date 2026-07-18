@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/` - GitHub Pages site in EN/RU/UK (served from `/docs`). `winget/` - manifest templates. `.github/` - CI + release workflows, issue/PR templates, dependabot. `build.ps1` - local build + deploy.
 - `PLAN/` - the spec.
 
-The spec is in Russian. Read the Markdown version - [PLAN/KeyboardTransliterator_Specification_v1.0.md](PLAN/KeyboardTransliterator_Specification_v1.0.md) - not the binary `.docx` beside it (the `.docx` is the original source of record; the `.md` is its readable conversion and they should be kept in sync).
+The spec is in Russian and lives in [PLAN/done/KeyboardTransliterator_Specification_v1.0.md](PLAN/done/KeyboardTransliterator_Specification_v1.0.md) (moved to `PLAN/done/` now that it's implemented). The Markdown file is the single source of truth; the original Word `.docx` was dropped (recoverable from git history if ever needed).
 
 Note: the empty `dev/` directory predates the scaffold and is unused - code lives in `src/`.
 
@@ -27,7 +27,7 @@ Per the user, the product has these features, in priority order:
 2. **Secondary: the transliteration flip.** A global hotkey (default **Ctrl+Shift+F12**) copies the selection, transliterates EN↔RU (QWERTY↔ЙЦУКЕН), and pastes it back.
 3. **Case flip (fix CapsLock).** A second global hotkey (default **Ctrl+Shift+F11**) copies the selection, inverts each letter's case (UPPER↔lower, `CaseFlipEngine`), and pastes it back - the "I left CapsLock on" fix. Same copy→transform→paste pipeline as the flip; its own user-configurable hotkey in the tray menu. Optional **"Flip CapsLock after the flip"** toggle (the case-flip counterpart of "Change the language after the flip"): after a successful case flip it also toggles the physical CapsLock key, so continued typing matches the corrected text.
 
-It runs in the **system tray** (icon also shows the layout; right-click menu = hotkey display, "Start with Windows", Exit). See [PLAN/Spec_v1.1_Cursor_and_Caret.md](PLAN/Spec_v1.1_Cursor_and_Caret.md) for the indicator design.
+It runs in the **system tray** (icon also shows the layout; right-click menu = hotkey display, "Start with Windows", Exit). See [PLAN/done/Spec_v1.1_Cursor_and_Caret.md](PLAN/done/Spec_v1.1_Cursor_and_Caret.md) for the indicator design.
 
 **On the mouse cursor (important):** `SetSystemCursor` is **global** - it changes every app's I-beam until restored. The default cursors are reloaded (`SystemParametersInfo(SPI_SETCURSORS)`) on `Dispose`, `Application.ApplicationExit`, `AppDomain.ProcessExit`, and `UnhandledException` (see `LayoutCursor.ForceRestore`). The one unavoidable gap is a hard `TerminateProcess` (kill). Only `OCR_IBEAM` is replaced (not the arrow). The *displayed* I-beam only repaints on `WM_SETCURSOR` (mouse move), so after a layout change `LayoutCursor` sends a zero-delta `SendInput` mouse move (`ForceCursorRefresh`) to repaint it in place.
 

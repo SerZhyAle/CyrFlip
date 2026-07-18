@@ -12,13 +12,14 @@ CyrFlip is a tiny Windows tray tool with two modest jobs:
 ## Status
 
 Early development - which here means "it works, but we reserve the right to be humble about it." See
-[PLAN/KeyboardTransliterator_Specification_v1.0.md](PLAN/KeyboardTransliterator_Specification_v1.0.md)
+[PLAN/done/KeyboardTransliterator_Specification_v1.0.md](PLAN/done/KeyboardTransliterator_Specification_v1.0.md)
 for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and conventions.
 
 ## How it works
 
 1. CyrFlip watches the active keyboard layout and replaces the system **text cursor** with a caret that shows the layout marker (EN/RU/UK). The same marker also appears on the tray icon.
 2. A global low-level keyboard hook listens for the flip hotkey (default **Ctrl+Shift+F12**); on trigger, the selection is copied, transliterated, and pasted back.
+3. **Clipboard history** is opt-in from the tray menu. It keeps Unicode text in a compact topmost strip; choose an item with the mouse, pin or delete it, or toggle it with **Ctrl+Shift+F10**. The encrypted local history is protected with Windows DPAPI and can be paused or cleared from the tray.
 
 > The cursor change is system-wide (`SetSystemCursor`) and is restored when CyrFlip exits. Only the text I-beam is changed, not the normal arrow pointer.
 
@@ -76,7 +77,7 @@ dotnet test CyrFlip.sln
 
 ## Configuration
 
-All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and are changed through the tray menu — no config file to edit.
+All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and are changed through Settings — no config file to edit.
 
 | Setting | Default | What it does |
 | --- | --- | --- |
@@ -84,6 +85,8 @@ All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and ar
 | Cursor indicator | off | Replaces the system I-beam with a layout-branded cursor |
 | Caret overlay | on | Shows the layout marker next to the blinking text caret |
 | Caret dot style | off | Coloured dot instead of EN/RU/UK letters in the overlay |
+| Clipboard history | off | Encrypted local text history; toggle it from the tray |
+| Show history window at startup | on | Keeps capture enabled without necessarily showing the clipboard strip on launch |
 
 A legacy `config.json` (next to the exe or in `%APPDATA%\CyrFlip\`) is migrated to the registry automatically on first run.
 

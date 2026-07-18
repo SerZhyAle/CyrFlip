@@ -4,88 +4,28 @@
    for the legacy guide.html pages that still use the old class names. */
 @import url("assets/sza-kit.css");
 
-/* Scales with the viewport instead of stopping at a fixed cap (same trick
-   as universal-agent-kit's --wide) — the page actually fills wide screens
-   instead of leaving big idle side margins, and headings/content wrap into
-   fewer lines. Caps at 1520px so lines don't run absurdly long on huge monitors. */
-:root { --wide: min(1520px, 94vw); }
-
-/* App-icon badge shown next to the "CyrFlip" wordmark in every header. */
-.brand-icon { width: 24px; height: 24px; border-radius: 7px; vertical-align: -6px; margin-right: 8px; }
-
 /* ── i18n: pure-CSS data-lang toggle (RU / EN / UA) ──────────────── */
 html[data-lang="ru"] [data-l]:not([data-l="ru"]) { display: none; }
 html[data-lang="en"] [data-l]:not([data-l="en"]) { display: none; }
 html[data-lang="ua"] [data-l]:not([data-l="ua"]) { display: none; }
 
-/* ── CyrFlip-specific: feature row (text beside the cursor shot) ──── */
-.feature-img {
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  display: block;
-}
-.feature-row { display: grid; gap: 1.4rem; align-items: center; }
-@media (min-width: 600px) {
-  .feature-row { grid-template-columns: 1.05fr 0.95fr; }
-}
-
-/* The kit demo strip is left-aligned; CyrFlip's hero demo reads better
-   centred and a touch larger, as the original "proof" band did. */
-.demo.hero-demo { justify-content: center; font-size: 1.05rem; margin: 0; }
-.demo.hero-demo code {
-  background: rgba(255, 255, 255, .05);
-  border: 1px solid var(--border);
-  padding: .25rem .6rem;
-  border-radius: 8px;
-}
-
-/* Tighter vertical rhythm than the kit default — fewer, denser sections
-   so the whole page fits with less scrolling. */
-.hero { padding: 1.2rem 1rem .9rem; }
-.hero .lead { max-width: 880px; }
-.get { padding: 1.1rem 1.3rem; margin: .7rem auto 1.1rem; max-width: 900px; }
-.section-card { padding: 1.3rem 1.5rem; margin: 0; }
-
-/* Section cards pair up on wide screens instead of stacking full-width —
-   uses the wide container horizontally and roughly halves the scroll depth
-   of this block on desktop monitors. Single column below the breakpoint,
-   where a half-width card would be too narrow to be worth it. */
-.sections-grid { display: grid; gap: .9rem; margin-top: .9rem; }
-@media (min-width: 1280px) {
-  .sections-grid { grid-template-columns: 1fr 1fr; align-items: start; }
-  /* two text-columns inside a card that is itself already one of two
-     columns reads cramped, so keep feature lists single-column here */
-  .sections-grid ul.features { columns: 1; }
-}
-
-/* Section headings get the subtle divider the original site had. */
-.section-card h2 {
-  display: flex; align-items: center; gap: .75rem;
-  font-size: 1.35rem; font-weight: 700; margin-bottom: .8rem;
-}
-.section-card h2::after {
-  content: ""; flex: 1; height: 1px;
-  background: linear-gradient(90deg, var(--border), transparent);
-}
-
-/* Feature / step lists with green markers (CyrFlip content). Bullet lists
-   flow into two columns on wide screens — fills the wide container usefully
-   and roughly halves the list's vertical height instead of leaving a lone
-   narrow column in a wide card. Numbered steps stay single-column so the
-   1-2-3 reading order stays unambiguous; both cap line length for readability. */
-ol.steps { padding-left: 1.3rem; margin: 0; max-width: 1040px; color: var(--text-2); }
-ol.steps li { margin: .5rem 0; }
-ol.steps li::marker { color: var(--acc); font-weight: 700; }
-ul.features { list-style: none; padding-left: 0; margin: 0; max-width: 1400px; }
-ul.features li { position: relative; padding-left: 1.4rem; margin: .55rem 0; color: var(--text-2); break-inside: avoid; }
-ul.features li::before {
-  content: ""; position: absolute; left: 0; top: .62em;
-  width: 7px; height: 7px; border-radius: 50%; background: var(--acc);
-}
-@media (min-width: 720px) {
-  ul.features { columns: 2; column-gap: 2rem; }
-}
+/* ── CyrFlip-specific page layout ─────────────────────────────── */
+.intro { color: var(--text-2); margin: 0 0 1rem; }
+.intro p { margin: 0; }
+.scenarios { padding-top: 1.5rem; }
+.section > h2 { font-size: clamp(1.35rem, 3vw, 1.8rem); margin-bottom: .85rem; }
+.scenario-grid { grid-template-columns: 1fr; gap: .8rem; }
+.scenario-grid .card { padding: 1.1rem; }
+.scenario-grid h3 { font-size: 1.05rem; margin-bottom: .45rem; }
+.scenario-grid p, .guides > p { color: var(--text-2); }
+.guides { padding-top: 1.3rem; }
+.guides .channels { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
+.details-section { padding-top: 1.3rem; }
+.details-section ul { padding-left: 1.25rem; color: var(--text-2); }
+.details-section li { margin: .45rem 0; }
+.details-section p { color: var(--text-2); }
+.get { margin-left: 0; margin-right: 0; }
+@media (min-width: 640px) { .scenario-grid { grid-template-columns: repeat(2, 1fr); } }
 
 /* Inline code chips inside prose. */
 :not(pre):not(.copybox) > code {

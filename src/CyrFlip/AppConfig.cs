@@ -16,6 +16,17 @@ namespace CyrFlip
 
         public string Hotkey { get; set; } = "Ctrl+Shift+F12";
         public string CaseHotkey { get; set; } = "Ctrl+Shift+F11";
+        public string ClipboardHistoryHotkey { get; set; } = "Ctrl+Shift+F10";
+        public string UiLanguage { get; set; } = "Русский";
+        public bool EnableClipboardHistory { get; set; } = false;
+        public bool PauseClipboardHistory { get; set; } = false;
+        public bool ShowClipboardHistoryOnStartup { get; set; } = true;
+        public int ClipboardHistoryX { get; set; } = int.MinValue;
+        public int ClipboardHistoryY { get; set; } = int.MinValue;
+        public int ClipboardHistoryWidth { get; set; } = 260;
+        public int ClipboardHistoryHeight { get; set; } = 360;
+        /// <summary>Opacity percentage for the clipboard-history strip (30..100).</summary>
+        public int ClipboardHistoryOpacity { get; set; } = 100;
         public int CursorSize { get; set; } = 24;
         public bool EnableCursorChange { get; set; } = false;
         public bool EnableCaretOverlay { get; set; } = true;
@@ -38,6 +49,16 @@ namespace CyrFlip
                 }
                 cfg.Hotkey = key.GetValue("Hotkey") as string ?? cfg.Hotkey;
                 cfg.CaseHotkey = key.GetValue("CaseHotkey") as string ?? cfg.CaseHotkey;
+                cfg.ClipboardHistoryHotkey = key.GetValue("ClipboardHistoryHotkey") as string ?? cfg.ClipboardHistoryHotkey;
+                cfg.UiLanguage = key.GetValue("UiLanguage") as string ?? cfg.UiLanguage;
+                cfg.EnableClipboardHistory = GetBool(key, "EnableClipboardHistory", cfg.EnableClipboardHistory);
+                cfg.PauseClipboardHistory = GetBool(key, "PauseClipboardHistory", cfg.PauseClipboardHistory);
+                cfg.ShowClipboardHistoryOnStartup = GetBool(key, "ShowClipboardHistoryOnStartup", cfg.ShowClipboardHistoryOnStartup);
+                cfg.ClipboardHistoryX = GetInt(key, "ClipboardHistoryX", cfg.ClipboardHistoryX);
+                cfg.ClipboardHistoryY = GetInt(key, "ClipboardHistoryY", cfg.ClipboardHistoryY);
+                cfg.ClipboardHistoryWidth = GetInt(key, "ClipboardHistoryWidth", cfg.ClipboardHistoryWidth);
+                cfg.ClipboardHistoryHeight = GetInt(key, "ClipboardHistoryHeight", cfg.ClipboardHistoryHeight);
+                cfg.ClipboardHistoryOpacity = Math.Max(30, Math.Min(100, GetInt(key, "ClipboardHistoryOpacity", cfg.ClipboardHistoryOpacity)));
                 cfg.CursorSize = GetInt(key, "CursorSize", cfg.CursorSize);
                 cfg.EnableCursorChange = GetBool(key, "EnableCursorChange", cfg.EnableCursorChange);
                 cfg.EnableCaretOverlay = GetBool(key, "EnableCaretOverlay", cfg.EnableCaretOverlay);
@@ -59,6 +80,16 @@ namespace CyrFlip
                 if (key == null) return;
                 key.SetValue("Hotkey", Hotkey, RegistryValueKind.String);
                 key.SetValue("CaseHotkey", CaseHotkey, RegistryValueKind.String);
+                key.SetValue("ClipboardHistoryHotkey", ClipboardHistoryHotkey, RegistryValueKind.String);
+                key.SetValue("UiLanguage", UiLanguage, RegistryValueKind.String);
+                key.SetValue("EnableClipboardHistory", EnableClipboardHistory ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("PauseClipboardHistory", PauseClipboardHistory ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ShowClipboardHistoryOnStartup", ShowClipboardHistoryOnStartup ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ClipboardHistoryX", ClipboardHistoryX, RegistryValueKind.DWord);
+                key.SetValue("ClipboardHistoryY", ClipboardHistoryY, RegistryValueKind.DWord);
+                key.SetValue("ClipboardHistoryWidth", ClipboardHistoryWidth, RegistryValueKind.DWord);
+                key.SetValue("ClipboardHistoryHeight", ClipboardHistoryHeight, RegistryValueKind.DWord);
+                key.SetValue("ClipboardHistoryOpacity", ClipboardHistoryOpacity, RegistryValueKind.DWord);
                 key.SetValue("CursorSize", CursorSize, RegistryValueKind.DWord);
                 key.SetValue("EnableCursorChange", EnableCursorChange ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableCaretOverlay", EnableCaretOverlay ? 1 : 0, RegistryValueKind.DWord);

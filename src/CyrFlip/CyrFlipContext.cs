@@ -10,23 +10,15 @@ namespace CyrFlip
     /// hook, the layout indicator and the tray icon/menu, and runs the flip/case-flip pipelines
     /// off the hook on a dedicated background thread.
     ///
-    /// Tray menu:
-    ///   - disabled header showing the flip hotkey (EN ⇄ RU)
-    ///   - "Set hotkey..." → opens HotkeyDialog
-    ///   - "Change the language after the flip" toggle
-    ///   - disabled header showing the case-flip hotkey (fix CapsLock)
-    ///   - "Set case hotkey..." → opens HotkeyDialog
-    ///   - "Flip CapsLock after the flip" toggle
-    ///   - toggles for cursor indicator, caret overlay, caret dot style
-    ///   - "Diagnose caret position..."
-    ///   - "Start with Windows"
-    ///   - Exit
+    /// The tray stays intentionally short: frequent display/history controls, Settings and Exit.
+    /// Less frequent configuration, privacy actions and diagnostics live in <see cref="SettingsForm"/>.
     /// </summary>
     internal sealed class CyrFlipContext : ApplicationContext
     {
         private readonly AppConfig _config;
         private Hotkey _hotkey;
         private Hotkey _caseHotkey;
+        private Hotkey _clipboardHistoryHotkey;
         private readonly KeyboardHook _hook = new KeyboardHook();
         private readonly CursorIndicator _indicator = new CursorIndicator();
         private readonly ClipboardHandler _clipboard = new ClipboardHandler();
@@ -34,13 +26,19 @@ namespace CyrFlip
         private readonly CaretOverlay _caretOverlay;
         private readonly NotifyIcon _tray;
         private readonly ToolStripMenuItem _autostartItem;
-        private readonly ToolStripMenuItem _flipHeader;
-        private readonly ToolStripMenuItem _caseHeader;
         private readonly ToolStripMenuItem _cursorItem;
         private readonly ToolStripMenuItem _caretItem;
         private readonly ToolStripMenuItem _dotModeItem;
         private readonly ToolStripMenuItem _langSwitchItem;
         private readonly ToolStripMenuItem _capsAfterItem;
+        private readonly ClipboardHistoryService _clipboardHistory;
+        private readonly ClipboardHistoryWindow _clipboardHistoryWindow;
+        private readonly ToolStripMenuItem _historyEnabledItem;
+        private readonly ToolStripMenuItem _historyPauseItem;
+        private readonly ToolStripMenuItem _showHistoryItem;
+        private readonly ToolStripMenuItem _settingsItem;
+        private readonly ToolStripMenuItem _exitItem;
+        private readonly SettingsForm _settings;
 
         private readonly SynchronizationContext? _ui;
         private Icon? _trayIcon;
@@ -53,6 +51,11 @@ namespace CyrFlip
             _config = config;
             _hotkey = Hotkey.Parse(_config.Hotkey);
             _caseHotkey = Hotkey.Parse(_config.CaseHotkey);
+            _clipboardHistoryHotkey = Hotkey.Parse(_config.ClipboardHistoryHotkey);
+            if (_clipboardHistoryHotkey.SameChord(_hotkey) || _clipboardHistoryHotkey.SameChord(_caseHotkey))
+                _clipboardHistoryHotkey = new Hotkey(true, true, false, false, 0x79, "F10");
+            _clipboardHistory = new ClipboardHistoryService(_config.EnableClipboardHistory, _config.PauseClipboardHistory);
+            _clipboardHistoryWindow = new ClipboardHistoryWindow(_clipboardHistory, _config);
             _layoutCursor = new LayoutCursor(_config.CursorSize);
             _caretOverlay = new CaretOverlay(_config.CursorSize, _config.CaretDotMode);
 
@@ -77,9 +80,6 @@ namespace CyrFlip
             }
 
             // ---- Feature toggle items ----
-            _flipHeader = new ToolStripMenuItem($"Flip EN ⇄ RU:  {_hotkey.Display}") { Enabled = false };
-            _caseHeader = new ToolStripMenuItem($"Flip case Aa ⇄ aA (fix CapsLock):  {_caseHotkey.Display}") { Enabled = false };
-
             _cursorItem = new ToolStripMenuItem("Cursor: layout indicator")
             {
                 CheckOnClick = true,
@@ -116,24 +116,27 @@ namespace CyrFlip
             };
             _capsAfterItem.CheckedChanged += OnCapsAfterToggle;
 
+            _historyEnabledItem = new ToolStripMenuItem { CheckOnClick = true, Checked = _config.EnableClipboardHistory };
+            _historyEnabledItem.CheckedChanged += OnHistoryEnabledToggle;
+            _historyPauseItem = new ToolStripMenuItem { CheckOnClick = true, Checked = _config.PauseClipboardHistory, Enabled = _config.EnableClipboardHistory };
+            _historyPauseItem.CheckedChanged += OnHistoryPauseToggle;
+            _showHistoryItem = new ToolStripMenuItem(null, null, (_, _) => _clipboardHistoryWindow.ToggleVisible());
+            _settingsItem = new ToolStripMenuItem(null, null, (_, _) => ShowSettings());
+            _exitItem = new ToolStripMenuItem(null, null, (_, _) => ExitThread());
+
             // ---- Menu ----
             var menu = new ContextMenuStrip();
-            menu.Items.Add(_flipHeader);
-            menu.Items.Add(new ToolStripMenuItem("Set hotkey...", null, OnSetHotkey));
-            menu.Items.Add(_langSwitchItem);
-            menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(_caseHeader);
-            menu.Items.Add(new ToolStripMenuItem("Set case hotkey...", null, OnSetCaseHotkey));
-            menu.Items.Add(_capsAfterItem);
+            menu.Items.Add(_showHistoryItem);
+            menu.Items.Add(_historyEnabledItem);
+            menu.Items.Add(_historyPauseItem);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(_cursorItem);
             menu.Items.Add(_caretItem);
             menu.Items.Add(_dotModeItem);
-            menu.Items.Add(new ToolStripMenuItem("Diagnose caret position...", null, OnDiagnoseCaret));
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(_autostartItem);
+            menu.Items.Add(_settingsItem);
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(new ToolStripMenuItem("Exit", null, (_, _) => ExitThread()));
+            menu.Items.Add(_exitItem);
 
             // Keep dynamic state in sync when the menu opens.
             menu.Opening += (_, _) =>
@@ -142,6 +145,7 @@ namespace CyrFlip
                     _autostartItem.Checked = Autostart.IsEnabled;
                 // Dot style only makes sense when the caret overlay is on.
                 _dotModeItem.Enabled = _caretItem.Checked;
+                _historyPauseItem.Enabled = _historyEnabledItem.Checked;
             };
 
             Icon initialIcon = TryGetAppIcon();
@@ -157,12 +161,31 @@ namespace CyrFlip
             if (initialIcon != SystemIcons.Application)
                 _trayIcon = initialIcon;
 
+            _settings = new SettingsForm(_config,
+                SetAutostartFromSettings,
+                value => _cursorItem.Checked = value, value => _caretItem.Checked = value, value => _dotModeItem.Checked = value,
+                value => _langSwitchItem.Checked = value, value => _capsAfterItem.Checked = value,
+                value => _historyEnabledItem.Checked = value, value => _historyPauseItem.Checked = value, SetHistoryStartup,
+                SetHistoryOpacity, SetUiLanguage,
+                () => OnSetHotkey(null, EventArgs.Empty), () => OnSetCaseHotkey(null, EventArgs.Empty), () => OnSetHistoryHotkey(null, EventArgs.Empty),
+                () => _clipboardHistory.Clear(), () => OnDiagnoseCaret(null, EventArgs.Empty));
+            _tray.DoubleClick += (_, _) => ShowSettings();
+            _clipboardHistoryWindow.VisibleChanged += (_, _) => UpdateTrayTexts();
+            UpdateTrayTexts();
+
             _indicator.LayoutChanged += OnLayoutChanged;
             _hook.HotkeyPressed += OnHotkeyPressed;
             _hook.CaseHotkeyPressed += OnCaseHotkeyPressed;
-            _hook.Install(_hotkey, _caseHotkey);
+            _hook.ClipboardHistoryHotkeyPressed += (_, _) => _clipboardHistoryWindow.ToggleVisible();
+            _clipboardHistory.ItemTooLarge += (_, _) => _tray.ShowBalloonTip(2000, "CyrFlip", "Fragment is too large for history (>128 KB).", ToolTipIcon.Info);
+            _hook.Install(_hotkey, _caseHotkey, _clipboardHistoryHotkey);
             _caretOverlay.Start();
             _indicator.Start();
+
+            // History is an opt-in feature, but once opted in it should be available immediately
+            // after every subsequent launch rather than waiting for a tray action.
+            if (_config.EnableClipboardHistory && _config.ShowClipboardHistoryOnStartup)
+                _clipboardHistoryWindow.ToggleVisible();
 
             // Captured after the overlay/indicator created control handles, so this is the
             // WinForms sync context - lets the background flip thread post tray feedback to the UI.
@@ -211,6 +234,7 @@ namespace CyrFlip
         {
             if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
                 return;
+            _clipboardHistory.SuppressFor(TimeSpan.FromSeconds(2));
 
             var thread = new Thread(() =>
             {
@@ -266,8 +290,8 @@ namespace CyrFlip
             _config.Save();
 
             _hook.UpdateHotkey(_hotkey);
-            _flipHeader.Text = $"Flip EN ⇄ RU:  {_hotkey.Display}";
             _tray.Text = $"CyrFlip - {_currentLayout}{(_capsOn ? " (CAPS)" : "")}  ({_hotkey.Display} to flip)";
+            _settings.Reload();
         }
 
         private void OnSetCaseHotkey(object? sender, EventArgs e)
@@ -291,7 +315,86 @@ namespace CyrFlip
             _config.Save();
 
             _hook.UpdateCaseHotkey(_caseHotkey);
-            _caseHeader.Text = $"Flip case Aa ⇄ aA (fix CapsLock):  {_caseHotkey.Display}";
+            _settings.Reload();
+        }
+
+        private void OnSetHistoryHotkey(object? sender, EventArgs e)
+        {
+            using var dlg = new HotkeyDialog(_clipboardHistoryHotkey.Display, "Set clipboard history hotkey");
+            if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
+            Hotkey next = Hotkey.Parse(dlg.CapturedHotkey);
+            if (next.Vk == 0 || next.SameChord(_hotkey) || next.SameChord(_caseHotkey)) { WarnHotkeyClash("another CyrFlip hotkey"); return; }
+            _clipboardHistoryHotkey = next; _config.ClipboardHistoryHotkey = dlg.CapturedHotkey; _config.Save(); _hook.UpdateClipboardHistoryHotkey(next);
+            _clipboardHistoryWindow.RefreshHeader();
+            _settings.Reload();
+        }
+
+        private void OnHistoryEnabledToggle(object? sender, EventArgs e)
+        {
+            _config.EnableClipboardHistory = _historyEnabledItem.Checked;
+            _historyPauseItem.Enabled = _historyEnabledItem.Checked;
+            _clipboardHistory.SetEnabled(_historyEnabledItem.Checked);
+            if (_historyEnabledItem.Checked && !_clipboardHistoryWindow.Visible)
+                _clipboardHistoryWindow.ToggleVisible();
+            else if (!_historyEnabledItem.Checked)
+                _clipboardHistoryWindow.Hide();
+            _config.Save();
+        }
+
+        private void OnHistoryPauseToggle(object? sender, EventArgs e)
+        {
+            _config.PauseClipboardHistory = _historyPauseItem.Checked;
+            _clipboardHistory.SetPaused(_historyPauseItem.Checked);
+            _config.Save();
+        }
+
+        private void SetHistoryOpacity(int opacity)
+        {
+            _config.ClipboardHistoryOpacity = opacity;
+            _clipboardHistoryWindow.ApplyOpacity();
+            _config.Save();
+        }
+
+        private void SetHistoryStartup(bool value)
+        {
+            _config.ShowClipboardHistoryOnStartup = value;
+            _config.Save();
+        }
+
+        private void SetUiLanguage(string language)
+        {
+            _config.UiLanguage = language;
+            _config.Save();
+            UpdateTrayTexts();
+        }
+
+        private void UpdateTrayTexts()
+        {
+            bool ru = _config.UiLanguage == "Русский";
+            bool uk = _config.UiLanguage == "Українська";
+            _showHistoryItem.Text = _clipboardHistoryWindow.Visible ? (ru ? "Скрыть историю" : uk ? "Сховати історію" : "Hide history") : (ru ? "Показать историю" : uk ? "Показати історію" : "Show history");
+            _historyEnabledItem.Text = ru ? "История буфера" : uk ? "Історія буфера" : "Clipboard history";
+            _historyPauseItem.Text = ru ? "Приостановить захват истории" : uk ? "Призупинити захоплення історії" : "Pause history capture";
+            _cursorItem.Text = ru ? "Курсор: индикатор раскладки" : uk ? "Курсор: індикатор розкладки" : "Cursor: layout indicator";
+            _caretItem.Text = ru ? "Каретка: метка раскладки" : uk ? "Каретка: мітка розкладки" : "Caret: overlay label";
+            _dotModeItem.Text = ru ? "Каретка: стиль точки" : uk ? "Каретка: стиль крапки" : "Caret: dot style";
+            _settingsItem.Text = ru ? "Настройки..." : uk ? "Налаштування..." : "Settings...";
+            _exitItem.Text = ru ? "Выход" : uk ? "Вихід" : "Exit";
+        }
+
+        private void SetAutostartFromSettings(bool value)
+        {
+            if (Autostart.ManagedByWindows) { OnOpenStartupSettings(null, EventArgs.Empty); return; }
+            try { Autostart.Set(value); _autostartItem.Checked = value; }
+            catch (Exception ex) { MessageBox.Show("Couldn't update Windows startup:\n" + ex.Message, "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+        }
+
+        private void ShowSettings()
+        {
+            _settings.Reload();
+            if (!_settings.Visible) _settings.Show();
+            _settings.WindowState = FormWindowState.Normal;
+            _settings.Activate();
         }
 
         private static void WarnHotkeyClash(string otherName)
@@ -411,6 +514,9 @@ namespace CyrFlip
                 _indicator.Dispose();
                 _layoutCursor.Dispose(); // restores the default system cursor
                 _caretOverlay.Dispose();
+                _clipboardHistoryWindow.Dispose();
+                _clipboardHistory.Dispose();
+                _settings.Dispose();
                 _tray.Visible = false;
                 _tray.Dispose();
                 _trayIcon?.Dispose();

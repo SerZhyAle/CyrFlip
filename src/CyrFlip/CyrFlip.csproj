@@ -37,6 +37,7 @@
   <ItemGroup>
     <!-- JavaScriptSerializer (config.json parsing) lives here; framework assembly, no NuGet. -->
     <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Security" />
     <!-- UI Automation - caret position fallback for apps without a system caret (CaretOverlay).
          Framework assemblies (ship with .NET on Win10/11), so still zero NuGet/runtime deps. -->
     <Reference Include="UIAutomationClient" />

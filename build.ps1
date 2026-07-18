@@ -18,7 +18,8 @@
 param(
     [switch] $Commit,
     [string] $Message,
-    [switch] $Push
+    [switch] $Push,
+    [switch] $NoRun
 )
 $ErrorActionPreference = 'Stop'
 
@@ -34,6 +35,19 @@ $Destinations = @(
     'C:\GD\i\',
     'C:\GD\tc\SZA\_APP\'
 )
+
+# A running .NET Framework exe may keep the previous build output locked. Local builds are the
+# fast test loop, so stop the single-instance tray app first and start the fresh output afterwards.
+# CyrFlip deliberately has a unique process name, therefore this also covers a copy launched from
+# one of the local sync folders.
+$running = @(Get-Process -Name 'CyrFlip' -ErrorAction SilentlyContinue)
+if ($running.Count -gt 0) {
+    Write-Host 'Stopping running CyrFlip..' -ForegroundColor Cyan
+    $running | Stop-Process -Force
+    foreach ($process in $running) {
+        try { $process.WaitForExit(5000) | Out-Null } catch { }
+    }
+}
 
 Write-Host 'Building Release..' -ForegroundColor Cyan
 dotnet build $Solution -c Release --nologo
@@ -81,6 +95,11 @@ foreach ($Destination in $Destinations) {
     }
     Copy-Item (Join-Path $SingleDir $ExeName) (Join-Path $Destination $ExeName) -Force
     Write-Host "Deployed -> $Destination$ExeName"
+}
+
+if (-not $NoRun) {
+    Write-Host "Starting fresh build: $ExePath" -ForegroundColor Cyan
+    Start-Process -FilePath $ExePath -WorkingDirectory $OutDir
 }
 
 # Optional commit of the сборка. Always carries [skip ci] so the push to main does not

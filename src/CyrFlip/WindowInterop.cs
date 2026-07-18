@@ -91,6 +91,13 @@ namespace CyrFlip
         // ---- Synthesized input for copy/paste (ClipboardHandler.cs) ----
         public const uint CF_UNICODETEXT = 13;
 
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AddClipboardFormatListener(IntPtr hwnd);
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool RemoveClipboardFormatListener(IntPtr hwnd);
+
         [DllImport("user32.dll")]
         public static extern uint GetClipboardSequenceNumber();
 

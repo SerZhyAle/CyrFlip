@@ -82,11 +82,11 @@ img{max-width:100%;height:auto}
 .container{max-width:var(--wide);margin:0 auto;padding:0 20px;position:relative;z-index:1}
 .section{padding:2rem 0}
 
-/* ---------- STICKY GLASS HEADER (edge-to-edge, full viewport width) ---------- */
-.site-header{position:sticky;top:0;z-index:30;
-  border-bottom:1px solid var(--border);
-  background:color-mix(in srgb,var(--bg-2) 82%,transparent);backdrop-filter:saturate(140%) blur(10px)}
-.site-header>.container{display:flex;align-items:center;gap:12px;padding:10px 20px;flex-wrap:wrap}
+/* ---------- STICKY GLASS HEADER ---------- */
+.site-header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;
+  padding:10px 16px;margin:14px auto;max-width:var(--wide);
+  border:1px solid var(--border);border-radius:14px;
+  background:color-mix(in srgb,var(--bg-2) 78%,transparent);backdrop-filter:saturate(140%) blur(10px)}
 .brand{font-family:var(--font-heading);font-weight:800;font-size:15px;letter-spacing:.2px;margin-right:auto;color:var(--text)}
 .brand .dot{color:var(--acc)}
 
@@ -115,11 +115,11 @@ html[data-theme="light"] .btn-ghost{background:rgba(16,40,20,.03)}
 .btn-sm{padding:.5rem 1rem;font-size:.8rem;border-radius:var(--radius-sm)}
 
 /* ---------- HERO ---------- */
-.hero{text-align:center;padding:2rem 1rem 1.5rem}
+.hero{text-align:left;padding:2rem 0 1.5rem}
 .hero .kicker{font-family:var(--font-heading);text-transform:uppercase;letter-spacing:.15em;
   font-size:.72rem;font-weight:700;color:var(--acc);margin-bottom:.8rem}
 .hero h1{font-size:clamp(2rem,5vw,2.9rem);font-weight:800;margin-bottom:.5rem}
-.hero .lead{color:var(--muted);max-width:600px;margin:0 auto 1.2rem;font-size:1.02rem}
+.hero .lead{color:var(--muted);max-width:none;margin:0 0 1.2rem;font-size:1.02rem}
 
 /* ---------- "GET IT" / DISTRIBUTION BLOCK (required above the fold on app sites) ---------- */
 .get{display:grid;gap:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);

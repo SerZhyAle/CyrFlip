@@ -19,16 +19,20 @@ namespace CyrFlip
         public event EventHandler? HotkeyPressed;
         /// <summary>Raised when the case-flip (fix CapsLock) hotkey is pressed.</summary>
         public event EventHandler? CaseHotkeyPressed;
+        /// <summary>Raised when the clipboard-history window should be shown or hidden.</summary>
+        public event EventHandler? ClipboardHistoryHotkeyPressed;
 
         private LowLevelKeyboardProc? _proc;
         private IntPtr _hook = IntPtr.Zero;
         private Hotkey _hotkey = Hotkey.Default;
         private Hotkey _caseHotkey = Hotkey.CaseDefault;
+        private Hotkey _clipboardHistoryHotkey = new Hotkey(true, true, false, false, 0x79, "F10");
 
-        public void Install(Hotkey hotkey, Hotkey caseHotkey)
+        public void Install(Hotkey hotkey, Hotkey caseHotkey, Hotkey clipboardHistoryHotkey)
         {
             _hotkey = hotkey;
             _caseHotkey = caseHotkey;
+            _clipboardHistoryHotkey = clipboardHistoryHotkey;
             if (_hook != IntPtr.Zero)
                 return;
 
@@ -61,6 +65,11 @@ namespace CyrFlip
                             CaseHotkeyPressed?.Invoke(this, EventArgs.Empty);
                             return (IntPtr)1;
                         }
+                        if (Matches(_clipboardHistoryHotkey, data.vkCode))
+                        {
+                            ClipboardHistoryHotkeyPressed?.Invoke(this, EventArgs.Empty);
+                            return (IntPtr)1;
+                        }
                     }
                 }
             }
@@ -91,6 +100,7 @@ namespace CyrFlip
 
         /// <summary>Change the matched case-flip hotkey without reinstalling the hook (thread-safe, as above).</summary>
         public void UpdateCaseHotkey(Hotkey hotkey) => _caseHotkey = hotkey;
+        public void UpdateClipboardHistoryHotkey(Hotkey hotkey) => _clipboardHistoryHotkey = hotkey;
 
         public void Dispose()
         {
