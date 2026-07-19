@@ -12,7 +12,7 @@ namespace CyrFlip
         private readonly Action<bool> _setAutostart, _setCursor, _setCaret, _setDot, _setLanguage, _setCaps, _setHistory, _setPause, _setHistoryStartup;
         private readonly Action<int> _setOpacity;
         private readonly Action<string> _setUiLanguage;
-        private readonly Action _setFlipHotkey, _setCaseHotkey, _setHistoryHotkey, _clearHistory, _diagnoseCaret;
+        private readonly Action _setFlipHotkey, _setCaseHotkey, _setHistoryHotkey, _openHistorySearch, _clearHistory, _diagnoseCaret;
         private readonly CheckBox _cursor = Check("Показывать раскладку на текстовом курсоре мыши");
         private readonly CheckBox _autostart = Check("Запускать CyrFlip вместе с Windows");
         private readonly ComboBox _uiLanguage = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 190 };
@@ -34,13 +34,13 @@ namespace CyrFlip
         public SettingsForm(AppConfig config,
             Action<bool> setAutostart, Action<bool> setCursor, Action<bool> setCaret, Action<bool> setDot, Action<bool> setLanguage, Action<bool> setCaps,
             Action<bool> setHistory, Action<bool> setPause, Action<bool> setHistoryStartup, Action<int> setOpacity, Action<string> setUiLanguage,
-            Action setFlipHotkey, Action setCaseHotkey, Action setHistoryHotkey, Action clearHistory, Action diagnoseCaret)
+            Action setFlipHotkey, Action setCaseHotkey, Action setHistoryHotkey, Action openHistorySearch, Action clearHistory, Action diagnoseCaret)
         {
             _config = config;
             _setAutostart = setAutostart; _setCursor = setCursor; _setCaret = setCaret; _setDot = setDot; _setLanguage = setLanguage; _setCaps = setCaps;
             _setHistory = setHistory; _setPause = setPause; _setHistoryStartup = setHistoryStartup; _setOpacity = setOpacity;
             _setUiLanguage = setUiLanguage;
-            _setFlipHotkey = setFlipHotkey; _setCaseHotkey = setCaseHotkey; _setHistoryHotkey = setHistoryHotkey; _clearHistory = clearHistory; _diagnoseCaret = diagnoseCaret;
+            _setFlipHotkey = setFlipHotkey; _setCaseHotkey = setCaseHotkey; _setHistoryHotkey = setHistoryHotkey; _openHistorySearch = openHistorySearch; _clearHistory = clearHistory; _diagnoseCaret = diagnoseCaret;
 
             Text = "Настройки CyrFlip"; StartPosition = FormStartPosition.CenterScreen; Size = new Size(1060, 680);
             MinimumSize = new Size(820, 540); ShowInTaskbar = true;
@@ -126,14 +126,14 @@ namespace CyrFlip
             {
                 ["Настройки CyrFlip"] = "CyrFlip Settings", ["Общие"] = "General", ["Индикаторы"] = "Indicators", ["Горячие клавиши"] = "Hotkeys", ["Буфер обмена"] = "Clipboard", ["О программе и дополнительно"] = "About & Advanced",
                 ["Запускать CyrFlip вместе с Windows"] = "Start CyrFlip with Windows", ["Язык интерфейса:"] = "Interface language:", ["Показывать раскладку на текстовом курсоре мыши"] = "Show layout on the text mouse cursor", ["Показывать метку раскладки рядом с кареткой"] = "Show layout label near the caret", ["Компактная точка вместо букв EN/RU/UK"] = "Compact dot instead of EN/RU/UK", ["Менять раскладку после переворота текста"] = "Change layout after flipping text", ["Синхронизировать CapsLock после исправления регистра"] = "Synchronize CapsLock after case correction",
-                ["Включить историю буфера"] = "Enable clipboard history", ["Приостановить захват истории"] = "Pause history capture", ["Показывать окно менеджера буфера при запуске"] = "Show clipboard manager on startup", ["Прозрачность окна истории:"] = "History window transparency:", ["Очистить всю историю"] = "Clear all history", ["Диагностика положения каретки..."] = "Diagnose caret position...", ["Изменить..."] = "Change...",
+                ["Включить историю буфера"] = "Enable clipboard history", ["Приостановить захват истории"] = "Pause history capture", ["Показывать окно менеджера буфера при запуске"] = "Show clipboard manager on startup", ["Прозрачность окна истории:"] = "History window transparency:", ["Поиск по истории"] = "Search history", ["Очистить всю историю"] = "Clear all history", ["Диагностика положения каретки..."] = "Diagnose caret position...", ["Изменить..."] = "Change...",
                 ["Разработчик: SerZhyAle"] = "Developer: SerZhyAle", ["Сайт программы: serzhyale.github.io/CyrFlip"] = "App website: serzhyale.github.io/CyrFlip", ["Сайт разработчика: sza.od.ua"] = "Developer website: sza.od.ua"
             };
             var ua = new Dictionary<string, string>
             {
                 ["Настройки CyrFlip"] = "Налаштування CyrFlip", ["Общие"] = "Загальні", ["Индикаторы"] = "Індикатори", ["Горячие клавиши"] = "Гарячі клавіші", ["Буфер обмена"] = "Буфер обміну", ["О программе и дополнительно"] = "Про програму й додатково",
                 ["Запускать CyrFlip вместе с Windows"] = "Запускати CyrFlip разом із Windows", ["Язык интерфейса:"] = "Мова інтерфейсу:", ["Показывать раскладку на текстовом курсоре мыши"] = "Показувати розкладку на текстовому курсорі миші", ["Показывать метку раскладки рядом с кареткой"] = "Показувати мітку розкладки біля каретки", ["Компактная точка вместо букв EN/RU/UK"] = "Компактна крапка замість EN/RU/UK", ["Менять раскладку после переворота текста"] = "Змінювати розкладку після перевороту тексту", ["Синхронизировать CapsLock после исправления регистра"] = "Синхронізувати CapsLock після виправлення регістру",
-                ["Включить историю буфера"] = "Увімкнути історію буфера", ["Приостановить захват истории"] = "Призупинити захоплення історії", ["Показывать окно менеджера буфера при запуске"] = "Показувати менеджер буфера під час запуску", ["Прозрачность окна истории:"] = "Прозорість вікна історії:", ["Очистить всю историю"] = "Очистити всю історію", ["Диагностика положения каретки..."] = "Діагностика положення каретки...", ["Изменить..."] = "Змінити...",
+                ["Включить историю буфера"] = "Увімкнути історію буфера", ["Приостановить захват истории"] = "Призупинити захоплення історії", ["Показывать окно менеджера буфера при запуске"] = "Показувати менеджер буфера під час запуску", ["Прозрачность окна истории:"] = "Прозорість вікна історії:", ["Поиск по истории"] = "Пошук в історії", ["Очистить всю историю"] = "Очистити всю історію", ["Диагностика положения каретки..."] = "Діагностика положення каретки...", ["Изменить..."] = "Змінити...",
                 ["Разработчик: SerZhyAle"] = "Розробник: SerZhyAle", ["Сайт программы: serzhyale.github.io/CyrFlip"] = "Сайт програми: serzhyale.github.io/CyrFlip", ["Сайт разработчика: sza.od.ua"] = "Сайт розробника: sza.od.ua"
             };
             AddDetailedTranslations(en, ua);
@@ -179,6 +179,8 @@ namespace CyrFlip
             ua["Позволяет вести историю в фоне, но не показывать её окно после каждого запуска CyrFlip."] = "Дозволяє вести історію у фоні, але не показувати її вікно після кожного запуску CyrFlip.";
             en["Задаёт прозрачность плавающего окна истории от 30% до 100%. Значение применяется сразу."] = "Sets the floating history window opacity from 30% to 100%. Applied immediately.";
             ua["Задаёт прозрачность плавающего окна истории от 30% до 100%. Значение применяется сразу."] = "Задає прозорість плаваючого вікна історії від 30% до 100%. Застосовується одразу.";
+            en["Открывает отдельное окно поиска по фрагменту текста. Для поиска нужно ввести не менее трёх символов."] = "Opens a separate window to search by a text fragment. Enter at least three characters to search.";
+            ua["Открывает отдельное окно поиска по фрагменту текста. Для пошуку потрібно ввести не менше трьох символів."] = "Відкриває окреме вікно для пошуку за фрагментом тексту. Для пошуку введіть щонайменше три символи.";
             en["Удаляет все записи из памяти и зашифрованного локального файла. Это действие нельзя отменить."] = "Deletes every entry from memory and the encrypted local file. This cannot be undone.";
             ua["Удаляет все записи из памяти и зашифрованного локального файла. Это действие нельзя отменить."] = "Видаляє всі записи з пам'яті та зашифрованого локального файлу. Цю дію не можна скасувати.";
             en["Редкие действия и техническая диагностика."] = "Occasional actions and technical diagnostics.";
@@ -198,6 +200,7 @@ namespace CyrFlip
             opacityLine.Controls.Add(new Label { Text = "Прозрачность окна истории:", AutoSize = true, Padding = new Padding(0, 8, 5, 0) });
             opacityLine.Controls.Add(_opacity); opacityLine.Controls.Add(_opacityValue);
             panel.Controls.Add(Setting(opacityLine, "Задаёт прозрачность плавающего окна истории от 30% до 100%. Значение применяется сразу."));
+            panel.Controls.Add(Setting(Button("Поиск по истории", _openHistorySearch), "Открывает отдельное окно поиска по фрагменту текста. Для поиска нужно ввести не менее трёх символов."));
             panel.Controls.Add(Setting(Button("Очистить всю историю", () => { if (MessageBox.Show(Translate("Удалить всю сохранённую историю буфера?"), "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes) _clearHistory(); }), "Удаляет все записи из памяти и зашифрованного локального файла. Это действие нельзя отменить."));
             return page;
         }

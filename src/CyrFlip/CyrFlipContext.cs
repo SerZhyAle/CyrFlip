@@ -33,6 +33,7 @@ namespace CyrFlip
         private readonly ToolStripMenuItem _capsAfterItem;
         private readonly ClipboardHistoryService _clipboardHistory;
         private readonly ClipboardHistoryWindow _clipboardHistoryWindow;
+        private ClipboardHistorySearchWindow? _clipboardHistorySearchWindow;
         private readonly ToolStripMenuItem _historyEnabledItem;
         private readonly ToolStripMenuItem _historyPauseItem;
         private readonly ToolStripMenuItem _showHistoryItem;
@@ -55,7 +56,7 @@ namespace CyrFlip
             if (_clipboardHistoryHotkey.SameChord(_hotkey) || _clipboardHistoryHotkey.SameChord(_caseHotkey))
                 _clipboardHistoryHotkey = new Hotkey(true, true, false, false, 0x79, "F10");
             _clipboardHistory = new ClipboardHistoryService(_config.EnableClipboardHistory, _config.PauseClipboardHistory);
-            _clipboardHistoryWindow = new ClipboardHistoryWindow(_clipboardHistory, _config);
+            _clipboardHistoryWindow = new ClipboardHistoryWindow(_clipboardHistory, _config, ShowHistorySearch);
             _layoutCursor = new LayoutCursor(_config.CursorSize);
             _caretOverlay = new CaretOverlay(_config.CursorSize, _config.CaretDotMode);
 
@@ -167,7 +168,7 @@ namespace CyrFlip
                 value => _langSwitchItem.Checked = value, value => _capsAfterItem.Checked = value,
                 value => _historyEnabledItem.Checked = value, value => _historyPauseItem.Checked = value, SetHistoryStartup,
                 SetHistoryOpacity, SetUiLanguage,
-                () => OnSetHotkey(null, EventArgs.Empty), () => OnSetCaseHotkey(null, EventArgs.Empty), () => OnSetHistoryHotkey(null, EventArgs.Empty),
+                () => OnSetHotkey(null, EventArgs.Empty), () => OnSetCaseHotkey(null, EventArgs.Empty), () => OnSetHistoryHotkey(null, EventArgs.Empty), ShowHistorySearch,
                 () => _clipboardHistory.Clear(), () => OnDiagnoseCaret(null, EventArgs.Empty));
             _tray.DoubleClick += (_, _) => ShowSettings();
             _clipboardHistoryWindow.VisibleChanged += (_, _) => UpdateTrayTexts();
@@ -397,6 +398,18 @@ namespace CyrFlip
             _settings.Activate();
         }
 
+        private void ShowHistorySearch()
+        {
+            if (_clipboardHistorySearchWindow == null || _clipboardHistorySearchWindow.IsDisposed)
+            {
+                _clipboardHistorySearchWindow = new ClipboardHistorySearchWindow(_clipboardHistory, _config.UiLanguage);
+                _clipboardHistorySearchWindow.FormClosed += (_, _) => _clipboardHistorySearchWindow = null;
+                _clipboardHistorySearchWindow.Show();
+            }
+            _clipboardHistorySearchWindow.WindowState = FormWindowState.Normal;
+            _clipboardHistorySearchWindow.Activate();
+        }
+
         private static void WarnHotkeyClash(string otherName)
             => MessageBox.Show(
                 $"That combination is already taken by {otherName}. They can't share — pick another one.",
@@ -515,6 +528,7 @@ namespace CyrFlip
                 _layoutCursor.Dispose(); // restores the default system cursor
                 _caretOverlay.Dispose();
                 _clipboardHistoryWindow.Dispose();
+                _clipboardHistorySearchWindow?.Dispose();
                 _clipboardHistory.Dispose();
                 _settings.Dispose();
                 _tray.Visible = false;

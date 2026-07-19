@@ -114,6 +114,13 @@ namespace CyrFlip
 
         private bool TryGetCaret(out int x, out int y)
         {
+            if (IsOwnForegroundWindow())
+            {
+                _haveUia = false;
+                x = 0; y = 0;
+                return false;
+            }
+
             // 1) System caret (classic Win32 edit controls) - cheap, run every tick.
             if (TrySystemCaret(out x, out y))
             {
@@ -152,6 +159,14 @@ namespace CyrFlip
             return false;
         }
 
+        private static bool IsOwnForegroundWindow()
+        {
+            IntPtr foreground = GetForegroundWindow();
+            return foreground != IntPtr.Zero
+                && GetWindowThreadProcessId(foreground, out uint processId) != 0
+                && processId == (uint)Process.GetCurrentProcess().Id;
+        }
+
         private static bool TrySystemCaret(out int x, out int y)
         {
             x = 0; y = 0;
@@ -159,7 +174,12 @@ namespace CyrFlip
             if (fg == IntPtr.Zero)
                 return false;
 
-            uint tid = GetWindowThreadProcessId(fg, out _);
+            uint tid = GetWindowThreadProcessId(fg, out uint processId);
+            // CyrFlip's own text boxes (notably history search) already have the normal caret.
+            // Putting our click-through topmost marker over them causes needless repainting and
+            // can make the dialog look as though it is losing focus.
+            if (processId == (uint)Process.GetCurrentProcess().Id)
+                return false;
             var gti = new GUITHREADINFO { cbSize = Marshal.SizeOf(typeof(GUITHREADINFO)) };
             if (GetGUIThreadInfo(tid, ref gti)
                 && gti.hwndCaret != IntPtr.Zero

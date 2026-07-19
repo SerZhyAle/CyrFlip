@@ -13,6 +13,9 @@ namespace CyrFlip
         private const int CellHeight = 84;
         private const int ResizeGrip = 6;
         private const int CellButtonWidth = 36;
+        private const int SearchButtonLeft = 8;
+        private const int HideButtonLeft = 38;
+        private const int HeaderTextLeft = 70;
         private const int WmNcHitTest = 0x0084;
         private const int HtClient = 1;
         private const int HtLeft = 10;
@@ -25,12 +28,13 @@ namespace CyrFlip
         private const int HtBottomRight = 17;
         private readonly ClipboardHistoryService _service;
         private readonly AppConfig _config;
+        private readonly Action _openSearch;
         private bool _dragging;
         private Point _dragStart;
 
-        public ClipboardHistoryWindow(ClipboardHistoryService service, AppConfig config)
+        public ClipboardHistoryWindow(ClipboardHistoryService service, AppConfig config, Action openSearch)
         {
-            _service = service; _config = config;
+            _service = service; _config = config; _openSearch = openSearch;
             Text = "Менеджер буфера"; TopMost = true; ShowInTaskbar = false;
             // WinForms otherwise paints a second, native title bar above our owner-drawn header.
             FormBorderStyle = FormBorderStyle.None; StartPosition = FormStartPosition.Manual;
@@ -38,6 +42,7 @@ namespace CyrFlip
             Size = new Size(Math.Max(100, config.ClipboardHistoryWidth), Math.Max(MinimumSize.Height, config.ClipboardHistoryHeight));
             ApplyOpacity();
             DoubleBuffered = true;
+            SetStyle(ControlStyles.ResizeRedraw, true);
             _service.Changed += (_, _) => { if (!IsDisposed) Invalidate(); };
             FormClosing += OnFormClosing;
             ResizeEnd += (_, _) => SaveBounds();
@@ -46,6 +51,7 @@ namespace CyrFlip
             MouseDown += OnMouseDown;
             MouseMove += OnMouseMove;
             MouseUp += (_, _) => _dragging = false;
+            Resize += (_, _) => Invalidate();
         }
 
         public void ToggleVisible()
@@ -92,6 +98,9 @@ namespace CyrFlip
         {
             bool dark = IsDarkTheme();
             Color header = dark ? Color.FromArgb(40, 40, 40) : Color.FromArgb(235, 235, 235);
+            // A layered (Opacity) owner-painted form can retain stale pixels in the newly exposed
+            // area after a shrink followed by an expansion unless every pixel is repainted.
+            e.Graphics.Clear(dark ? Color.FromArgb(55, 55, 55) : Color.White);
             using var headerBrush = new SolidBrush(header);
             e.Graphics.FillRectangle(headerBrush, new Rectangle(0, 0, ClientSize.Width, HeaderHeight));
             using var title = new Font(Font.FontFamily, 9, FontStyle.Bold);
@@ -99,16 +108,16 @@ namespace CyrFlip
             using var headerForeground = new SolidBrush(dark ? Color.LightSkyBlue : Color.MidnightBlue);
             using var hotkeyBrush = new SolidBrush(dark ? Color.Gray : Color.DimGray);
             string caption = "Менеджер буфера (" + _service.Entries.Count + ")";
-            e.Graphics.DrawString(caption, title, headerForeground, 8, 11);
+            using var iconPen = new Pen(dark ? Color.Gainsboro : SystemColors.ControlText, 1.5f);
+            // Keep the two actions before the caption: they remain reachable at every allowed width.
+            e.Graphics.DrawEllipse(iconPen, SearchButtonLeft, 13, 10, 10);
+            e.Graphics.DrawLine(iconPen, SearchButtonLeft + 9, 22, SearchButtonLeft + 13, 26);
+            e.Graphics.DrawLine(iconPen, HideButtonLeft + 1, 22, HideButtonLeft + 11, 22);
+            e.Graphics.DrawString(caption, title, headerForeground, HeaderTextLeft, 11);
             float captionWidth = e.Graphics.MeasureString(caption, title).Width;
             e.Graphics.DrawString(_config.ClipboardHistoryHotkey, hotkeyFont, hotkeyBrush,
-                new RectangleF(captionWidth + 12, 10, Math.Max(1, ClientSize.Width - captionWidth - 72), 20),
+                new RectangleF(HeaderTextLeft + captionWidth + 4, 10, Math.Max(1, ClientSize.Width - HeaderTextLeft - captionWidth - 4), 20),
                 new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap });
-            // The search button is intentionally only an affordance until stage 2.
-            using var iconPen = new Pen(dark ? Color.Gainsboro : SystemColors.ControlText, 1.5f);
-            e.Graphics.DrawEllipse(iconPen, ClientSize.Width - 49, 13, 10, 10);
-            e.Graphics.DrawLine(iconPen, ClientSize.Width - 40, 22, ClientSize.Width - 36, 26);
-            e.Graphics.DrawLine(iconPen, ClientSize.Width - 23, 22, ClientSize.Width - 13, 22);
             var items = _service.Entries.Take(Math.Max(3, (ClientSize.Height - HeaderHeight) / CellHeight)).ToList();
             for (int i = 0; i < items.Count; i++) DrawCell(e.Graphics, items[i], i, new Rectangle(0, HeaderHeight + i * CellHeight, ClientSize.Width, CellHeight), dark);
         }
@@ -158,7 +167,13 @@ namespace CyrFlip
 
         private void OnMouseDown(object? sender, MouseEventArgs e)
         {
-            if (e.Y < HeaderHeight) { if (e.X > ClientSize.Width - 30) Hide(); else { _dragging = true; _dragStart = e.Location; } return; }
+            if (e.Y < HeaderHeight)
+            {
+                if (e.X >= HideButtonLeft && e.X < HeaderTextLeft) Hide();
+                else if (e.X >= SearchButtonLeft && e.X < HideButtonLeft) _openSearch();
+                else { _dragging = true; _dragStart = e.Location; }
+                return;
+            }
             int index = (e.Y - HeaderHeight) / CellHeight;
             var items = _service.Entries.Take(Math.Max(3, (ClientSize.Height - HeaderHeight) / CellHeight)).ToList();
             if (index < 0 || index >= items.Count) return;
