@@ -52,7 +52,7 @@ jobs:
       # directly (setup-dotnet's cache:true needs a packages.lock.json, which this repo
       # doesn't have). The restore-keys line lets a partially-stale cache still hit.
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
