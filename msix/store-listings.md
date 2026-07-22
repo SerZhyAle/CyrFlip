@@ -40,7 +40,7 @@ Open source - no telemetry, no network, no data collection
 
 **What's new in this version**
 ```
-Added optional encrypted local clipboard history with pin, delete, pause and clear controls, plus a compact Settings window for hotkeys, privacy and indicator preferences.
+Added a full-history search window; independent on/off switches for each hotkey plus a master switch; an option to yield the hotkeys to a focused Remote Desktop client (mstsc/msrdc) so a CyrFlip inside the remote session handles them; the clipboard manager window now remembers whether it was open and stays that way on the next launch; and the interface language now follows your Windows language by default.
 ```
 
 ---
@@ -76,7 +76,7 @@ CyrFlip — это крошечная утилита в системном тр�
 
 **Что нового в этой версии**
 ```
-Добавлена необязательная локальная зашифрованная история буфера: закрепление, удаление, пауза и очистка записей, а также компактное окно настроек для горячих клавиш, приватности и индикатора.
+Добавлено окно поиска по всей истории буфера; отдельные выключатели для каждой горячей клавиши и общий выключатель; возможность уступать хоткеи активному клиенту удалённого рабочего стола (mstsc/msrdc), чтобы их обрабатывал CyrFlip внутри удалённого сеанса; окно менеджера буфера теперь запоминает, было ли оно открыто, и сохраняет это состояние при следующем запуске; а язык интерфейса теперь по умолчанию следует за языком Windows.
 ```
 
 ---
@@ -112,7 +112,7 @@ CyrFlip — це крихітна утиліта в системному тре�
 
 **Що нового в цій версії**
 ```
-Додано необов'язкову локальну зашифровану історію буфера: закріплення, видалення, пауза й очищення записів, а також компактне вікно налаштувань для гарячих клавіш, приватності та індикатора.
+Додано вікно пошуку по всій історії буфера; окремі вимикачі для кожної гарячої клавіші та загальний вимикач; можливість поступатися хоткеями активному клієнту віддаленого робочого столу (mstsc/msrdc), щоб їх обробляв CyrFlip у віддаленому сеансі; вікно менеджера буфера тепер запам'ятовує, чи було воно відкрите, і зберігає цей стан під час наступного запуску; а мова інтерфейсу тепер за замовчуванням відповідає мові Windows.
 ```
 
 ---

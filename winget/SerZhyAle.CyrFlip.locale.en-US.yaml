@@ -18,6 +18,13 @@ Description: >-
   via a global hotkey. All settings live in the tray menu: toggle the caret overlay or the
   cursor indicator, switch to a coloured dot style, or reassign the hotkey without restarting.
   Ships as a single portable exe with no installer and no runtime dependencies.
+ReleaseNotes: |-
+  - Search your full clipboard history in a dedicated window and paste any saved fragment.
+  - Enable or disable each hotkey independently (flip / fix-CapsLock / clipboard), with a master switch for all of them.
+  - Optionally yield the hotkeys to a focused Remote Desktop client (mstsc/msrdc) so a CyrFlip inside the remote session handles them.
+  - The clipboard manager window now remembers whether it was open and stays that way on the next launch.
+  - The interface language now follows your Windows language by default.
+ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
 Moniker: cyrflip
 Tags:
   - keyboard
