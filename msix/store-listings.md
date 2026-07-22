@@ -132,10 +132,10 @@ These APIs are available only to full-trust desktop apps. The app runs entirely 
 ## Submitting the update (Partner Center)
 
 The package is built and unsigned (Microsoft re-signs on certification):
-`msix/dist/CyrFlip-26.718.1539.0-x64.msix` (version 26.718.1539.0).
+`msix/dist/CyrFlip-26.722.1718.0-x64.msix` (version 26.722.1718.0).
 
 1. [partner.microsoft.com/dashboard](https://partner.microsoft.com/dashboard) → **Apps and games → CyrFlip → Create new submission** (Update).
-2. **Packages** → remove the old `.msix` / upload `CyrFlip-26.718.1539.0-x64.msix`.
+2. **Packages** → remove the old `.msix` / upload `CyrFlip-26.722.1718.0-x64.msix`.
 3. **Store listings → Manage additional languages** → add **Russian (ru-RU)** and **Ukrainian (uk-UA)** (if not present). For each language listing (and refresh English), paste the Short description, Description, and Product features above. Reuse the existing screenshots, or add localized ones.
 4. **Properties / Age ratings / Pricing** — unchanged.
 5. If asked again, paste the **runFullTrust justification** above.
