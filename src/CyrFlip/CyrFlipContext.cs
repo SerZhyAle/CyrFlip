@@ -172,7 +172,17 @@ namespace CyrFlip
                 () => _clipboardHistory.Clear(), () => OnDiagnoseCaret(null, EventArgs.Empty),
                 SetHotkeysEnabled, SetFlipHotkeyEnabled, SetCaseHotkeyEnabled, SetHistoryHotkeyEnabled, SetDeferToRemoteDesktop);
             _tray.DoubleClick += (_, _) => ShowSettings();
-            _clipboardHistoryWindow.VisibleChanged += (_, _) => UpdateTrayTexts();
+            _clipboardHistoryWindow.VisibleChanged += (_, _) =>
+            {
+                UpdateTrayTexts();
+                // Remember whether the manager window is open so the next launch restores that
+                // state: if you closed it, it stays closed instead of always reopening.
+                if (_config.ShowClipboardHistoryOnStartup != _clipboardHistoryWindow.Visible)
+                {
+                    _config.ShowClipboardHistoryOnStartup = _clipboardHistoryWindow.Visible;
+                    _config.Save();
+                }
+            };
             UpdateTrayTexts();
 
             _indicator.LayoutChanged += OnLayoutChanged;
@@ -361,8 +371,13 @@ namespace CyrFlip
 
         private void SetHistoryStartup(bool value)
         {
-            _config.ShowClipboardHistoryOnStartup = value;
-            _config.Save();
+            // The checkbox reflects and drives the live window state, which is remembered across
+            // restarts via VisibleChanged. Toggling it shows/hides the window immediately; the
+            // VisibleChanged handler persists ShowClipboardHistoryOnStartup and saves.
+            if (value && !_clipboardHistoryWindow.Visible)
+                _clipboardHistoryWindow.ToggleVisible();
+            else if (!value && _clipboardHistoryWindow.Visible)
+                _clipboardHistoryWindow.Hide();
         }
 
         private void SetUiLanguage(string language)

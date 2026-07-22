@@ -88,7 +88,7 @@ All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and ar
 | Caret overlay | on | Shows the layout marker next to the blinking text caret |
 | Caret dot style | off | Coloured dot instead of EN/RU/UK letters in the overlay |
 | Clipboard history | off | Encrypted local text history; toggle it from the tray |
-| Show history window at startup | on | Keeps capture enabled without necessarily showing the clipboard strip on launch |
+| Show clipboard manager window | on | Remembers whether the manager window is open — close it and it stays closed on the next launch, while history keeps capturing in the background |
 
 A legacy `config.json` (next to the exe or in `%APPDATA%\CyrFlip\`) is migrated to the registry automatically on first run.
 
