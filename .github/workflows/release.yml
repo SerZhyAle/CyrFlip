@@ -42,7 +42,7 @@ jobs:
       # Same NuGet cache key as CI — the two workflows share one cache, so a release
       # right after a green CI run restores packages instead of re-downloading them.
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
