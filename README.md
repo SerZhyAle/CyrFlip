@@ -82,6 +82,8 @@ All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and ar
 | Setting | Default | What it does |
 | --- | --- | --- |
 | Hotkey | `Ctrl+Shift+F12` | Flip hotkey; change via **Set hotkey…** in the tray menu |
+| Hotkey switches | on | A master switch plus per-hotkey toggles (flip / fix-CapsLock / clipboard) in Settings → Hotkeys, so any chord can be disabled independently |
+| Yield hotkeys to remote desktop | off | While a remote-desktop client (mstsc/msrdc) is focused, CyrFlip lets the chord pass to the remote session, so a CyrFlip running there handles it — avoids the double-instance clash on both ends of an RDP connection |
 | Cursor indicator | off | Replaces the system I-beam with a layout-branded cursor |
 | Caret overlay | on | Shows the layout marker next to the blinking text caret |
 | Caret dot style | off | Coloured dot instead of EN/RU/UK letters in the overlay |

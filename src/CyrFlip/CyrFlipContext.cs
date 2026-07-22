@@ -169,7 +169,8 @@ namespace CyrFlip
                 value => _historyEnabledItem.Checked = value, value => _historyPauseItem.Checked = value, SetHistoryStartup,
                 SetHistoryOpacity, SetUiLanguage,
                 () => OnSetHotkey(null, EventArgs.Empty), () => OnSetCaseHotkey(null, EventArgs.Empty), () => OnSetHistoryHotkey(null, EventArgs.Empty), ShowHistorySearch,
-                () => _clipboardHistory.Clear(), () => OnDiagnoseCaret(null, EventArgs.Empty));
+                () => _clipboardHistory.Clear(), () => OnDiagnoseCaret(null, EventArgs.Empty),
+                SetHotkeysEnabled, SetFlipHotkeyEnabled, SetCaseHotkeyEnabled, SetHistoryHotkeyEnabled, SetDeferToRemoteDesktop);
             _tray.DoubleClick += (_, _) => ShowSettings();
             _clipboardHistoryWindow.VisibleChanged += (_, _) => UpdateTrayTexts();
             UpdateTrayTexts();
@@ -179,7 +180,9 @@ namespace CyrFlip
             _hook.CaseHotkeyPressed += OnCaseHotkeyPressed;
             _hook.ClipboardHistoryHotkeyPressed += (_, _) => _clipboardHistoryWindow.ToggleVisible();
             _clipboardHistory.ItemTooLarge += (_, _) => _tray.ShowBalloonTip(2000, "CyrFlip", "Fragment is too large for history (>128 KB).", ToolTipIcon.Info);
-            _hook.Install(_hotkey, _caseHotkey, _clipboardHistoryHotkey);
+            _hook.Install(_hotkey, _caseHotkey, _clipboardHistoryHotkey,
+                _config.DeferToRemoteDesktop, _config.EnableHotkeys,
+                _config.EnableFlipHotkey, _config.EnableCaseHotkey, _config.EnableHistoryHotkey);
             _caretOverlay.Start();
             _indicator.Start();
 
@@ -453,6 +456,41 @@ namespace CyrFlip
         private void OnLangSwitchToggle(object? sender, EventArgs e)
         {
             _config.EnableLanguageSwitch = _langSwitchItem.Checked;
+            _config.Save();
+        }
+
+        private void SetHotkeysEnabled(bool value)
+        {
+            _config.EnableHotkeys = value;
+            _hook.UpdateEnabled(value);
+            _config.Save();
+        }
+
+        private void SetDeferToRemoteDesktop(bool value)
+        {
+            _config.DeferToRemoteDesktop = value;
+            _hook.UpdateDeferInRemoteClient(value);
+            _config.Save();
+        }
+
+        private void SetFlipHotkeyEnabled(bool value)
+        {
+            _config.EnableFlipHotkey = value;
+            _hook.UpdateFlipEnabled(value);
+            _config.Save();
+        }
+
+        private void SetCaseHotkeyEnabled(bool value)
+        {
+            _config.EnableCaseHotkey = value;
+            _hook.UpdateCaseEnabled(value);
+            _config.Save();
+        }
+
+        private void SetHistoryHotkeyEnabled(bool value)
+        {
+            _config.EnableHistoryHotkey = value;
+            _hook.UpdateHistoryEnabled(value);
             _config.Save();
         }
 

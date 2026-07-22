@@ -95,7 +95,8 @@ namespace CyrFlip
             }
             else
             {
-                existing = new ClipboardHistoryEntry { Uuid = uuid, Text = text, CreatedAt = DateTime.UtcNow };
+                ReadSource(out string sourceApp, out string sourceTitle);
+                existing = new ClipboardHistoryEntry { Uuid = uuid, Text = text, CreatedAt = DateTime.UtcNow, SourceApp = sourceApp, SourceTitle = sourceTitle };
                 _entries.Add(existing);
                 Append("add", existing);
             }
@@ -109,12 +110,46 @@ namespace CyrFlip
             Changed?.Invoke(this, EventArgs.Empty);
         }
 
+        /// <summary>The window owning the clipboard when it changed is, in practice, the app the text came from.</summary>
+        private static void ReadSource(out string app, out string title)
+        {
+            app = ""; title = "";
+            try
+            {
+                IntPtr hwnd = GetForegroundWindow();
+                if (hwnd == IntPtr.Zero) return;
+                var caption = new StringBuilder(256);
+                if (GetWindowText(hwnd, caption, caption.Capacity) > 0) title = caption.ToString();
+                if (GetWindowThreadProcessId(hwnd, out uint pid) == 0 || pid == 0) return;
+                IntPtr h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+                if (h == IntPtr.Zero) return;
+                try
+                {
+                    var buffer = new StringBuilder(1024);
+                    uint size = (uint)buffer.Capacity;
+                    if (!QueryFullProcessImageName(h, 0, buffer, ref size)) return;
+                    string path = buffer.ToString();
+                    int slash = path.LastIndexOf('\\');
+                    string file = slash >= 0 ? path.Substring(slash + 1) : path;
+                    int dot = file.LastIndexOf('.');
+                    app = dot >= 0 ? file.Substring(0, dot) : file;
+                }
+                finally { CloseHandle(h); }
+            }
+            catch { /* source metadata is best-effort; never let it affect the clipboard */ }
+        }
+
         private void Append(string action, ClipboardHistoryEntry entry)
         {
             try
             {
                 var record = new HistoryRecord { Action = action, Uuid = entry.Uuid, CreatedAt = entry.CreatedAt.Ticks, IsPinned = entry.IsPinned };
-                if (action == "add") record.Payload = Convert.ToBase64String(ProtectedData.Protect(Encoding.UTF8.GetBytes(entry.Text), null, DataProtectionScope.CurrentUser));
+                if (action == "add")
+                {
+                    record.Payload = Convert.ToBase64String(ProtectedData.Protect(Encoding.UTF8.GetBytes(entry.Text), null, DataProtectionScope.CurrentUser));
+                    record.SourceApp = entry.SourceApp;
+                    record.SourceTitle = entry.SourceTitle;
+                }
                 File.AppendAllText(_path, _json.Serialize(record) + Environment.NewLine, Encoding.UTF8);
             }
             catch { /* history must never affect the clipboard */ }
@@ -135,7 +170,7 @@ namespace CyrFlip
                     {
                         if (e != null || string.IsNullOrEmpty(r.Payload)) continue;
                         string text = Encoding.UTF8.GetString(ProtectedData.Unprotect(Convert.FromBase64String(r.Payload), null, DataProtectionScope.CurrentUser));
-                        _entries.Add(new ClipboardHistoryEntry { Uuid = r.Uuid, Text = text, CreatedAt = new DateTime(r.CreatedAt, DateTimeKind.Utc), IsPinned = r.IsPinned });
+                        _entries.Add(new ClipboardHistoryEntry { Uuid = r.Uuid, Text = text, CreatedAt = new DateTime(r.CreatedAt, DateTimeKind.Utc), IsPinned = r.IsPinned, SourceApp = r.SourceApp ?? "", SourceTitle = r.SourceTitle ?? "" });
                     }
                     else if (e != null) { e.CreatedAt = new DateTime(r.CreatedAt, DateTimeKind.Utc); e.IsPinned = r.IsPinned; }
                 }
@@ -155,6 +190,6 @@ namespace CyrFlip
             DestroyHandle();
         }
 
-        private sealed class HistoryRecord { public string Action { get; set; } = ""; public string Uuid { get; set; } = ""; public long CreatedAt { get; set; } public bool IsPinned { get; set; } public string? Payload { get; set; } }
+        private sealed class HistoryRecord { public string Action { get; set; } = ""; public string Uuid { get; set; } = ""; public long CreatedAt { get; set; } public bool IsPinned { get; set; } public string? Payload { get; set; } public string? SourceApp { get; set; } public string? SourceTitle { get; set; } }
     }
 }

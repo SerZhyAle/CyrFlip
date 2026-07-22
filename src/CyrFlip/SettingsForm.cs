@@ -13,6 +13,12 @@ namespace CyrFlip
         private readonly Action<int> _setOpacity;
         private readonly Action<string> _setUiLanguage;
         private readonly Action _setFlipHotkey, _setCaseHotkey, _setHistoryHotkey, _openHistorySearch, _clearHistory, _diagnoseCaret;
+        private readonly Action<bool> _setHotkeysEnabled, _setFlipEnabled, _setCaseEnabled, _setHistoryEnabled, _setDeferRdp;
+        private readonly CheckBox _enableHotkeys = Check("Слушать глобальные горячие клавиши");
+        private readonly CheckBox _flipEnabled = Check("Переворот EN ⇄ RU");
+        private readonly CheckBox _caseEnabled = Check("Исправить CapsLock");
+        private readonly CheckBox _historyEnabled = Check("Менеджер буфера");
+        private readonly CheckBox _deferRdp = Check("Уступать хоткеи удалённому рабочему столу (mstsc/msrdc)");
         private readonly CheckBox _cursor = Check("Показывать раскладку на текстовом курсоре мыши");
         private readonly CheckBox _autostart = Check("Запускать CyrFlip вместе с Windows");
         private readonly ComboBox _uiLanguage = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 190 };
@@ -34,13 +40,15 @@ namespace CyrFlip
         public SettingsForm(AppConfig config,
             Action<bool> setAutostart, Action<bool> setCursor, Action<bool> setCaret, Action<bool> setDot, Action<bool> setLanguage, Action<bool> setCaps,
             Action<bool> setHistory, Action<bool> setPause, Action<bool> setHistoryStartup, Action<int> setOpacity, Action<string> setUiLanguage,
-            Action setFlipHotkey, Action setCaseHotkey, Action setHistoryHotkey, Action openHistorySearch, Action clearHistory, Action diagnoseCaret)
+            Action setFlipHotkey, Action setCaseHotkey, Action setHistoryHotkey, Action openHistorySearch, Action clearHistory, Action diagnoseCaret,
+            Action<bool> setHotkeysEnabled, Action<bool> setFlipEnabled, Action<bool> setCaseEnabled, Action<bool> setHistoryEnabled, Action<bool> setDeferRdp)
         {
             _config = config;
             _setAutostart = setAutostart; _setCursor = setCursor; _setCaret = setCaret; _setDot = setDot; _setLanguage = setLanguage; _setCaps = setCaps;
             _setHistory = setHistory; _setPause = setPause; _setHistoryStartup = setHistoryStartup; _setOpacity = setOpacity;
             _setUiLanguage = setUiLanguage;
             _setFlipHotkey = setFlipHotkey; _setCaseHotkey = setCaseHotkey; _setHistoryHotkey = setHistoryHotkey; _openHistorySearch = openHistorySearch; _clearHistory = clearHistory; _diagnoseCaret = diagnoseCaret;
+            _setHotkeysEnabled = setHotkeysEnabled; _setFlipEnabled = setFlipEnabled; _setCaseEnabled = setCaseEnabled; _setHistoryEnabled = setHistoryEnabled; _setDeferRdp = setDeferRdp;
 
             Text = "Настройки CyrFlip"; StartPosition = FormStartPosition.CenterScreen; Size = new Size(1060, 680);
             MinimumSize = new Size(820, 540); ShowInTaskbar = true;
@@ -60,10 +68,12 @@ namespace CyrFlip
                 Setting(_dot, "Вместо букв EN/RU/UK рядом с кареткой показывает компактную цветную точку — удобно, если буквы отвлекают."),
                 Setting(_language, "После переворота текста переключает раскладку активного окна, чтобы можно было сразу продолжить печатать на правильном языке."),
                 Setting(_caps, "После исправления регистра меняет физическое состояние CapsLock, чтобы следующие нажатия соответствовали исправленному тексту.")), 1));
-            tabs.TabPages.Add(WithIcon(Page("Горячие клавиши", "Комбинации работают глобально, пока CyrFlip запущен в вашем сеансе Windows.",
-                HotkeyRow("Переворот EN ⇄ RU", _flipHotkeyValue, _setFlipHotkey, "Копирует выделение, переводит раскладку QWERTY ↔ ЙЦУКЕН и вставляет исправленный текст обратно."),
-                HotkeyRow("Исправить CapsLock", _caseHotkeyValue, _setCaseHotkey, "Меняет верхний и нижний регистр у выделенного текста. Удобно для случайно включённого CapsLock."),
-                HotkeyRow("Менеджер буфера", _historyHotkeyValue, _setHistoryHotkey, "Показывает или скрывает окно текстовой истории. Двум действиям CyrFlip нельзя назначить одну комбинацию.")), 2));
+            tabs.TabPages.Add(WithIcon(Page("Горячие клавиши", "Комбинации работают глобально, пока CyrFlip запущен в вашем сеансе Windows. Каждый хоткей можно включить или отключить отдельно.",
+                Setting(_enableHotkeys, "Общий выключатель всех горячих клавиш. Когда снят, CyrFlip не перехватывает ни одной комбинации — клавиши проходят в приложение как обычно."),
+                HotkeyRow(_flipEnabled, _flipHotkeyValue, _setFlipHotkey, "Копирует выделение, переводит раскладку QWERTY ↔ ЙЦУКЕН и вставляет исправленный текст обратно."),
+                HotkeyRow(_caseEnabled, _caseHotkeyValue, _setCaseHotkey, "Меняет верхний и нижний регистр у выделенного текста. Удобно для случайно включённого CapsLock."),
+                HotkeyRow(_historyEnabled, _historyHotkeyValue, _setHistoryHotkey, "Показывает или скрывает окно текстовой истории. Двум действиям CyrFlip нельзя назначить одну комбинацию."),
+                Setting(_deferRdp, "Когда в фокусе окно клиента удалённого рабочего стола (mstsc/msrdc), CyrFlip не перехватывает хоткеи — клавиша уходит в удалённый сеанс, где её обработает CyrFlip на той машине. Включите, если утилита запущена на обеих сторонах RDP.")), 2));
             tabs.TabPages.Add(WithIcon(ClipboardPage(), 3));
             tabs.TabPages.Add(WithIcon(AboutPage(), 5));
             Controls.Add(tabs);
@@ -77,6 +87,11 @@ namespace CyrFlip
             _history.CheckedChanged += (_, _) => Changed(_setHistory, _history.Checked);
             _pause.CheckedChanged += (_, _) => Changed(_setPause, _pause.Checked);
             _historyStartup.CheckedChanged += (_, _) => Changed(_setHistoryStartup, _historyStartup.Checked);
+            _enableHotkeys.CheckedChanged += (_, _) => Changed(_setHotkeysEnabled, _enableHotkeys.Checked);
+            _flipEnabled.CheckedChanged += (_, _) => Changed(_setFlipEnabled, _flipEnabled.Checked);
+            _caseEnabled.CheckedChanged += (_, _) => Changed(_setCaseEnabled, _caseEnabled.Checked);
+            _historyEnabled.CheckedChanged += (_, _) => Changed(_setHistoryEnabled, _historyEnabled.Checked);
+            _deferRdp.CheckedChanged += (_, _) => Changed(_setDeferRdp, _deferRdp.Checked);
             _uiLanguage.SelectedIndexChanged += (_, _) => { if (!_loading && _uiLanguage.SelectedItem is string language) { _setUiLanguage(language); ApplyLanguage(); } };
             _opacity.ValueChanged += (_, _) => { if (!_loading) { _opacityValue.Text = _opacity.Value + "%"; _setOpacity(_opacity.Value); } };
             Reload();
@@ -98,6 +113,11 @@ namespace CyrFlip
             _opacityValue.Text = _opacity.Value + "%";
             _flipHotkeyValue.Text = _config.Hotkey; _caseHotkeyValue.Text = _config.CaseHotkey; _historyHotkeyValue.Text = _config.ClipboardHistoryHotkey;
             _pause.Enabled = _history.Checked; _historyStartup.Enabled = _history.Checked; _opacity.Enabled = _history.Checked;
+            _enableHotkeys.Checked = _config.EnableHotkeys;
+            _flipEnabled.Checked = _config.EnableFlipHotkey; _caseEnabled.Checked = _config.EnableCaseHotkey; _historyEnabled.Checked = _config.EnableHistoryHotkey;
+            _deferRdp.Checked = _config.DeferToRemoteDesktop;
+            // The per-hotkey switches only matter while the master switch is on.
+            _flipEnabled.Enabled = _caseEnabled.Enabled = _historyEnabled.Enabled = _enableHotkeys.Checked;
             _loading = false;
             ApplyLanguage();
         }
@@ -163,6 +183,19 @@ namespace CyrFlip
             ua["После исправления регистра меняет физическое состояние CapsLock, чтобы следующие нажатия соответствовали исправленному тексту."] = "Змінює фізичний стан CapsLock після виправлення регістру, щоб наступні натискання відповідали виправленому тексту.";
             en["Комбинации работают глобально, пока CyrFlip запущен в вашем сеансе Windows."] = "These shortcuts work globally while CyrFlip runs in your Windows session.";
             ua["Комбинации работают глобально, пока CyrFlip запущен в вашем сеансе Windows."] = "Ці комбінації працюють глобально, поки CyrFlip запущений у вашому сеансі Windows.";
+            en["Комбинации работают глобально, пока CyrFlip запущен в вашем сеансе Windows. Каждый хоткей можно включить или отключить отдельно."] = "These shortcuts work globally while CyrFlip runs in your Windows session. Each hotkey can be enabled or disabled independently.";
+            ua["Комбинации работают глобально, пока CyrFlip запущен в вашем сеансе Windows. Каждый хоткей можно включить или отключить отдельно."] = "Ці комбінації працюють глобально, поки CyrFlip запущений у вашому сеансі Windows. Кожну гарячу клавішу можна ввімкнути чи вимкнути окремо.";
+            en["Слушать глобальные горячие клавиши"] = "Listen for global hotkeys";
+            ua["Слушать глобальные горячие клавиши"] = "Слухати глобальні гарячі клавіші";
+            en["Переворот EN ⇄ RU"] = "Flip EN ⇄ RU"; ua["Переворот EN ⇄ RU"] = "Переворот EN ⇄ RU";
+            en["Исправить CapsLock"] = "Fix CapsLock"; ua["Исправить CapsLock"] = "Виправити CapsLock";
+            en["Менеджер буфера"] = "Clipboard manager"; ua["Менеджер буфера"] = "Менеджер буфера";
+            en["Уступать хоткеи удалённому рабочему столу (mstsc/msrdc)"] = "Yield hotkeys to the remote desktop (mstsc/msrdc)";
+            ua["Уступать хоткеи удалённому рабочему столу (mstsc/msrdc)"] = "Поступатися хоткеями віддаленому робочому столу (mstsc/msrdc)";
+            en["Общий выключатель всех горячих клавиш. Когда снят, CyrFlip не перехватывает ни одной комбинации — клавиши проходят в приложение как обычно."] = "Master switch for all hotkeys. When off, CyrFlip intercepts none of the chords — keys reach the app as usual.";
+            ua["Общий выключатель всех горячих клавиш. Когда снят, CyrFlip не перехватывает ни одной комбинации — клавиши проходят в приложение как обычно."] = "Загальний вимикач усіх гарячих клавіш. Коли знято, CyrFlip не перехоплює жодної комбінації — клавіші потрапляють у застосунок як звичайно.";
+            en["Когда в фокусе окно клиента удалённого рабочего стола (mstsc/msrdc), CyrFlip не перехватывает хоткеи — клавиша уходит в удалённый сеанс, где её обработает CyrFlip на той машине. Включите, если утилита запущена на обеих сторонах RDP."] = "When a remote-desktop client window (mstsc/msrdc) is focused, CyrFlip does not intercept the hotkeys — the key travels to the remote session where that machine's CyrFlip handles it. Enable this if the app runs on both ends of the RDP connection.";
+            ua["Когда в фокусе окно клиента удалённого рабочего стола (mstsc/msrdc), CyrFlip не перехватывает хоткеи — клавиша уходит в удалённый сеанс, где её обработает CyrFlip на той машине. Включите, если утилита запущена на обеих сторонах RDP."] = "Коли у фокусі вікно клієнта віддаленого робочого столу (mstsc/msrdc), CyrFlip не перехоплює хоткеї — клавіша йде у віддалений сеанс, де її обробить CyrFlip на тій машині. Увімкніть, якщо застосунок запущено на обох боках RDP.";
             en["Копирует выделение, переводит раскладку QWERTY ↔ ЙЦУКЕН и вставляет исправленный текст обратно."] = "Copies the selection, converts QWERTY ↔ ЙЦУКЕН, and pastes the corrected text back.";
             ua["Копирует выделение, переводит раскладку QWERTY ↔ ЙЦУКЕН и вставляет исправленный текст обратно."] = "Копіює виділення, перетворює QWERTY ↔ ЙЦУКЕН і вставляє виправлений текст назад.";
             en["Меняет верхний и нижний регистр у выделенного текста. Удобно для случайно включённого CapsLock."] = "Swaps upper and lower case in the selection; useful after accidentally enabling CapsLock.";
@@ -276,6 +309,19 @@ namespace CyrFlip
             var block = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 7, 3, 7) };
             var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight };
             row.Controls.Add(new Label { Text = label + ":", AutoSize = true, Width = 150, Padding = new Padding(0, 7, 0, 0) });
+            value.Padding = new Padding(0, 7, 5, 0); row.Controls.Add(value); row.Controls.Add(Button("Изменить...", change));
+            block.Controls.Add(row);
+            block.Controls.Add(new Label { Text = description, AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(28, 0, 3, 3) });
+            return block;
+        }
+
+        // Variant with a leading enable checkbox: [☑ action]   chord   [Change...].
+        private static Control HotkeyRow(CheckBox enable, Label value, Action change, string description)
+        {
+            var block = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 7, 3, 7) };
+            var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight };
+            enable.AutoSize = false; enable.Width = 210; enable.Height = 24; enable.Padding = new Padding(0, 3, 0, 0); enable.Margin = new Padding(3, 3, 3, 3);
+            row.Controls.Add(enable);
             value.Padding = new Padding(0, 7, 5, 0); row.Controls.Add(value); row.Controls.Add(Button("Изменить...", change));
             block.Controls.Add(row);
             block.Controls.Add(new Label { Text = description, AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(28, 0, 3, 3) });

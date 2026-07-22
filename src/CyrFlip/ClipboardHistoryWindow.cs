@@ -163,6 +163,13 @@ namespace CyrFlip
             DrawPin(g, r.Right - 18, r.Y + 13, entry.IsPinned);
             g.DrawString("×", buttons, anchorBrush, r.Right - 23, r.Bottom - 29);
             g.DrawString(entry.CreatedAt.ToLocalTime().ToString("MM-dd:HH:mm"), small, timeBrush, 6, r.Bottom - 19);
+            if (entry.SourceApp.Length > 0)
+            {
+                using var sourceBrush = new SolidBrush(dark ? Color.MediumAquamarine : Color.SeaGreen);
+                using var sourceFormat = new StringFormat { Alignment = StringAlignment.Far, Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
+                float timeWidth = g.MeasureString("MM-dd:HH:mm", small).Width + 12;
+                g.DrawString(entry.SourceApp, small, sourceBrush, new RectangleF(6 + timeWidth, r.Bottom - 19, r.Right - 28 - (6 + timeWidth), 16), sourceFormat);
+            }
         }
 
         private void OnMouseDown(object? sender, MouseEventArgs e)

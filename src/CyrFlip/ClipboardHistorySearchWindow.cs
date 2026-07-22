@@ -35,8 +35,9 @@ namespace CyrFlip
             Controls.Add(_results);
             Controls.Add(top);
 
-            _results.Columns.Add(Localize("Текст", "Text", "Текст"), 540);
+            _results.Columns.Add(Localize("Текст", "Text", "Текст"), 420);
             _results.Columns.Add(Localize("Дата", "Date", "Дата"), 135);
+            _results.Columns.Add(Localize("Источник", "Source", "Джерело"), 120);
             var bottom = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 48, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(8) };
             var close = new Button { Text = Localize("Закрыть", "Close", "Закрити"), AutoSize = true };
             _restore.Text = Localize("Вернуть в буфер", "Restore to clipboard", "Повернути в буфер");
@@ -79,8 +80,9 @@ namespace CyrFlip
                 foreach (ClipboardHistoryEntry entry in matches)
                 {
                     string preview = entry.Text.Replace("\r", " ").Replace("\n", " ").Trim();
-                    var row = new ListViewItem(preview) { Tag = entry, ToolTipText = entry.Text };
+                    var row = new ListViewItem(preview) { Tag = entry, ToolTipText = entry.SourceTitle.Length > 0 ? entry.SourceTitle : entry.Text };
                     row.SubItems.Add(entry.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm"));
+                    row.SubItems.Add(entry.SourceApp);
                     _results.Items.Add(row);
                 }
             }
@@ -97,8 +99,8 @@ namespace CyrFlip
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            if (_results.Columns.Count > 1)
-                _results.Columns[0].Width = Math.Max(100, _results.ClientSize.Width - _results.Columns[1].Width - 6);
+            if (_results.Columns.Count > 2)
+                _results.Columns[0].Width = Math.Max(100, _results.ClientSize.Width - _results.Columns[1].Width - _results.Columns[2].Width - 6);
         }
 
         private string Localize(string ru, string en, string uk) => _language == "Українська" ? uk : _language == "Русский" ? ru : en;

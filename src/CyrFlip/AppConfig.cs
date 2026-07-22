@@ -17,7 +17,7 @@ namespace CyrFlip
         public string Hotkey { get; set; } = "Ctrl+Shift+F12";
         public string CaseHotkey { get; set; } = "Ctrl+Shift+F11";
         public string ClipboardHistoryHotkey { get; set; } = "Ctrl+Shift+F10";
-        public string UiLanguage { get; set; } = "Русский";
+        public string UiLanguage { get; set; } = DefaultUiLanguage();
         public bool EnableClipboardHistory { get; set; } = false;
         public bool PauseClipboardHistory { get; set; } = false;
         public bool ShowClipboardHistoryOnStartup { get; set; } = true;
@@ -33,8 +33,37 @@ namespace CyrFlip
         public bool CaretDotMode { get; set; } = false;
         public bool EnableLanguageSwitch { get; set; } = false;
         public bool FlipCapsLockAfter { get; set; } = false;
+        /// <summary>Master switch for the global hotkeys. When false the keyboard hook passes every key through.</summary>
+        public bool EnableHotkeys { get; set; } = true;
+        /// <summary>Per-hotkey switches, so each of the three chords can be enabled independently.</summary>
+        public bool EnableFlipHotkey { get; set; } = true;
+        public bool EnableCaseHotkey { get; set; } = true;
+        public bool EnableHistoryHotkey { get; set; } = true;
+        /// <summary>
+        /// When true, ignore the hotkeys while a remote-desktop client (mstsc/msrdc) window is focused,
+        /// so the key reaches the remote session and the CyrFlip running there handles it. Prevents the
+        /// double-instance clash when CyrFlip runs on both ends of an RDP connection.
+        /// </summary>
+        public bool DeferToRemoteDesktop { get; set; } = false;
         public int FlipCount { get; set; } = 0;
         public int CaseFlipCount { get; set; } = 0;
+
+        /// <summary>
+        /// UI language default for a fresh install (no saved value): follow the OS UI language.
+        /// Only ru/uk get their own translations; every other OS language falls back to English.
+        /// Fixes a Russian UI appearing on an English OS.
+        /// </summary>
+        private static string DefaultUiLanguage()
+        {
+            try
+            {
+                string iso = System.Globalization.CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+                if (iso == "ru") return "Русский";
+                if (iso == "uk") return "Українська";
+            }
+            catch { /* fall through to English */ }
+            return "English";
+        }
 
         public static AppConfig Load()
         {
@@ -65,6 +94,11 @@ namespace CyrFlip
                 cfg.CaretDotMode = GetBool(key, "CaretDotMode", cfg.CaretDotMode);
                 cfg.EnableLanguageSwitch = GetBool(key, "EnableLanguageSwitch", cfg.EnableLanguageSwitch);
                 cfg.FlipCapsLockAfter = GetBool(key, "FlipCapsLockAfter", cfg.FlipCapsLockAfter);
+                cfg.EnableHotkeys = GetBool(key, "EnableHotkeys", cfg.EnableHotkeys);
+                cfg.EnableFlipHotkey = GetBool(key, "EnableFlipHotkey", cfg.EnableFlipHotkey);
+                cfg.EnableCaseHotkey = GetBool(key, "EnableCaseHotkey", cfg.EnableCaseHotkey);
+                cfg.EnableHistoryHotkey = GetBool(key, "EnableHistoryHotkey", cfg.EnableHistoryHotkey);
+                cfg.DeferToRemoteDesktop = GetBool(key, "DeferToRemoteDesktop", cfg.DeferToRemoteDesktop);
                 cfg.FlipCount = GetInt(key, "FlipCount", cfg.FlipCount);
                 cfg.CaseFlipCount = GetInt(key, "CaseFlipCount", cfg.CaseFlipCount);
             }
@@ -96,6 +130,11 @@ namespace CyrFlip
                 key.SetValue("CaretDotMode", CaretDotMode ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableLanguageSwitch", EnableLanguageSwitch ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("FlipCapsLockAfter", FlipCapsLockAfter ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("EnableHotkeys", EnableHotkeys ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("EnableFlipHotkey", EnableFlipHotkey ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("EnableCaseHotkey", EnableCaseHotkey ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("EnableHistoryHotkey", EnableHistoryHotkey ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("DeferToRemoteDesktop", DeferToRemoteDesktop ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("FlipCount", FlipCount, RegistryValueKind.DWord);
                 key.SetValue("CaseFlipCount", CaseFlipCount, RegistryValueKind.DWord);
             }

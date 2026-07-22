@@ -62,6 +62,18 @@ namespace CyrFlip
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
+        // ---- Process identity of the foreground window (RemoteDesktop.cs) ----
+        public const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool QueryFullProcessImageName(IntPtr hProcess, uint dwFlags, System.Text.StringBuilder lpExeName, ref uint lpdwSize);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool CloseHandle(IntPtr hObject);
+
         // ---- IAccessible2 caret (Ia2Caret.cs) - the caret API screen readers use; the only
         //      source that locates the caret in Chromium/Electron inputs (VS Code chat, browsers). ----
         public const uint OBJID_CLIENT = 0xFFFFFFFC;
