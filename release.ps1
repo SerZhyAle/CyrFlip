@@ -45,6 +45,14 @@ if ($dirty -and -not $AllowDirty) {
 
 # --- Version ----------------------------------------------------------------
 if (-not $Version) { $Version = (Get-Date).ToString('yy.M.d.HHmm') }
+# Guard: a mistyped -Version must fail BEFORE tagging/pushing. The tag shape is
+# YY.M.D.HHmm (dotted, M/D not zero-padded); reject anything else and reject a
+# value that is not a real date (e.g. 26.13.40.9999).
+if ($Version -notmatch '^\d{2}\.\d{1,2}\.\d{1,2}\.\d{4}$') {
+    throw "Version '$Version' is not the YY.M.D.HHmm shape (e.g. 26.7.22.1712)."
+}
+try { [datetime]::ParseExact($Version, 'yy.M.d.HHmm', [Globalization.CultureInfo]::InvariantCulture) | Out-Null }
+catch { throw "Version '$Version' does not parse as a real YY.M.D.HHmm date/time." }
 $Tag = "v$Version"
 if (git tag --list $Tag) { throw "Tag $Tag already exists. Pick another -Version." }
 Write-Host "Release version: $Version  (tag $Tag)" -ForegroundColor Green

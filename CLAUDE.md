@@ -146,30 +146,60 @@ Version is stamped at build time as `YY.M.D.HHmm` via a `<Version>` property in 
 - **Integration** (planned): full hotkey→copy→transliterate→paste path across Notepad, Word, Chrome; live layout switching.
 - **Manual** (planned): cursor visibility/non-obstruction; memory stability over 1+ hour; edge cases (multiline, selection at boundaries).
 
-## Common project conventions (imported from FastMediaSorter_Lite)
+## Unified Rules & release conventions
 
-These are reusable conventions shared across SerZhyAle's Windows desktop apps. Code style is already wired into the csproj; the release pipeline (CI, `build.ps1`, installer) is **not** set up yet - apply those parts as the project gets a GitHub remote. Where a convention assumes classic msbuild, adapt to CyrFlip's `dotnet` SDK toolchain.
+The **universal** SZA conventions (repository layout, versioning principle, documentation, development
+discipline, testing, release & distribution, localization, security, support, AI-agent operation) live
+in one canonical home - reference it, do not restate it here:
 
-**Versioning** - Version string is `YY.M.D.HHmm` (e.g. `26.6.11.1627`), stamped at build time. Git release tags are the same with a `v` prefix: `vYY.M.D.HHmm`. The tag version is authoritative for release-asset names; keep it consistent with the build-time stamp.
+**Canon:** `P:\WEB\sites.google.comsiteszaodua\Unified_Rules` (start at `README.md`; CyrFlip is
+**Overlay A - Windows desktop, no-installer variant**, plus a **companion editor extension** on the VS
+Code Marketplace). The per-project record with full evidence is `contrib/cyrflip.md` in that repo. This
+project **references** the canon (does not mirror it); only the CyrFlip-specific deltas below stay local.
 
-**Release pipeline** - Cut a release by **pushing a `v*` tag** (or running the Release workflow manually with a tag input). The GitHub Actions workflow on `windows-latest`:
-1. Restores NuGet, then builds Release (`/t:Rebuild`).
-2. Stages the build output **excluding `.pdb`/`.xml`**, plus `README.md` and `LICENSE`, into `stage/<App>-<version>-windows-x64/`.
-3. Packages a **portable ZIP** and an **Inno Setup installer `.exe`** (`choco install innosetup`), each with a `.sha256` sidecar.
-4. Publishes a GitHub Release with the assets attached.
+**Overlay facts (this repo):**
+- **Version shape** - dotted `YY.M.D.HHmm` (e.g. `26.7.22.1712`), stamped at build time by the csproj
+  (`src/CyrFlip/CyrFlip.csproj`). The `v*` git tag is authoritative for release-asset names; `release.yml`
+  re-pins the embedded exe version to the tag (`-p:Version=<tag>`) so the in-file stamp matches the ZIP name.
+  The **VS Code extension runs its own semver clock** (`vscode-extension/package.json`, `0.1.1`), decoupled
+  from the app date tag.
+- **Channels (4 publish ops + a site).** GitHub Release (`CyrFlip-<ver>-windows-x64.zip` + `.sha256`, body
+  auto from `generate_release_notes`); **winget** `SerZhyAle.CyrFlip` (`winget/*.yaml`, `InstallerType: zip`
+  / `NestedInstallerType: portable`, alias `cyrflip`); **Microsoft Store** MSIX (`msix/build-msix.ps1`,
+  manual Partner Center); **VS Code Marketplace** (`npx @vscode/vsce publish`, manual). GitHub Pages from
+  `/docs` (trilingual). **No installer** - portable ZIP only (no Inno `.iss` / WiX `.wxs`).
+- **Frozen anchors** - winget `PackageIdentifier: SerZhyAle.CyrFlip`; MSIX Identity `Name: SZA.CyrFlip` +
+  `Publisher: CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD` + Store ID `9NB4W41NGQJ4`; exe/`AssemblyName`
+  `CyrFlip`; VS Code extension id `SerZhyAle.cyrflip-vscode`. No Inno `AppId` / WiX `UpgradeCode`.
+- **Companion extension** - `vscode-extension/` is **not** an edition and **not** a co-shipped binary: it
+  is a code-independent (TypeScript) companion coupled to the app by a **one-way file contract** (the app
+  writes `layout.txt` via `LayoutPublisher.cs`; the extension polls it), published on its own clock.
 
-Shipping an EXE installer (not just a ZIP) is intentional - it's required for GitHub-Store discoverability. Note: CyrFlip's spec currently says "standalone `.exe`, no installer"; reconcile with the user before adding the installer step.
+**Build/release wall & CI cost levers** (every repo runs on paid Windows minutes):
+- **`build.ps1`** = СБОРКА (free local build, appends `[skip ci]`, may push to `main` but **never tags**);
+  **`release.ps1`** = РЕЛИЗ (the only tagger; preflight = clean-tree + on-main + local build/test, then
+  `-Push` creates the `release: vX` anchor commit + tag). The billable boundary is that tag, not a
+  script-capability wall.
+- Levers wired: `[skip ci]` on build commits; `paths-ignore` on `ci.yml` (`**.md`, `docs/**`, `PLAN/**`,
+  `winget/**`, `assets/**`, `vscode-extension/**`); `if:` skip of `release:`-prefixed commits; the tag
+  triggers only `release.yml` (branch-only CI); `concurrency cancel-in-progress` true on CI / false on release.
+- **Tag-format gate** - `release.ps1` validates `^\d{2}\.\d{1,2}\.\d{1,2}\.\d{4}$` + `ParseExact` before
+  tagging, so a mistyped `-Version` fails before any push.
+- Releases ship **unsigned** (CI Authenticode step is opt-in via `SIGNING_CERT_*` secrets, which are unset;
+  the Store re-signs the MSIX). Don't claim releases are signed.
 
-**Local build/deploy** - Convention is a `build.ps1` at repo root that locates the toolchain (FMS uses `vswhere`→MSBuild; CyrFlip would use `dotnet`), restores packages (downloading `nuget.exe` to `tools/` if absent), builds Release, stages a single-file exe, and copies it to the local sync folders `C:\GD\i\` and `C:\GD\tc\SZA\_APP\`.
+**Repo-specific decisions (resolved 2026-07-23):**
+- **Store-listing source of truth = `msix/store-listing-export.csv`** (Partner Center export-then-merge).
+  `msix/store-listings.md` and `store/listing-*.txt` are **render targets** - update the CSV first.
+  (Follow-up: the `/release` checklist + skill still point at `store-listings.md` and want repointing.)
+- **VS Code extension is published by hand** (`vsce publish`, its own semver), only when `vscode-extension/`
+  changed - deliberately no `ext-vscode-v*` tag/workflow.
 
-**Distribution** - Single standalone `.exe`; enforce single-instance via a **path-independent named mutex** (not exe-path-based, so debug/release/renamed copies don't each start an instance). winget package id convention: `SerZhyAle.<AppName>`.
-
-**Code style** *(wired)* - `<Nullable>enable</Nullable>` (nullable issues stay warnings) plus a fixed `<WarningsAsErrors>` list of unused/unreachable/shadowing codes (`CS0108;CS0162;CS0164;CS0168;CS0219;CS0414;CS0649;CS1998`) - the C# analogue of the FMS VB `Option Strict/Explicit On` + warnings-as-errors convention. Keep clean builds warning-free.
-
-**Git & PR workflow** - Prefer small, targeted commits over broad rewrites. Preserve existing behavior unless a change is explicitly requested.
-
-**Validation** - Unlike FMS (no test suite), CyrFlip has an xUnit project for the pure logic; the interop pieces still need manual validation (run the `.exe`, exercise the hotkey in real apps).
-
-**Localization** - EN/RU/UK multi-language support is a standing convention across these apps (aligns with CyrFlip's EN/RU/UK layout targets).
-
-**Environment** - Windows 7/10/11 supported (CyrFlip targets 10/11 x64), developed primarily on Windows 11.
+**Local specifics (kept):**
+- Single-instance via a **path-independent named mutex** (`Local\CyrFlipSingleInstance`), so debug/release/
+  renamed copies don't each install a hook.
+- Code style is **wired in the csproj**: `<Nullable>enable</Nullable>` + a fixed `<WarningsAsErrors>` list
+  (`CS0108;CS0162;CS0164;CS0168;CS0219;CS0414;CS0649;CS1998`). Keep clean builds warning-free.
+- `build.ps1` deploys the staged exe to the local sync folders `C:\GD\i\` and `C:\GD\tc\SZA\_APP\`.
+- Interop pieces (hook, clipboard flip, layout detection) still need **manual validation** - run the tray
+  exe and exercise the hotkeys in real apps; xUnit only covers the pure logic.

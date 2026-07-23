@@ -1,3 +1,7 @@
+<!-- Render target. Source of truth for Store listing copy is msix/store-listing-export.csv
+     (Partner Center export-then-merge). This file and store/listing-*.txt render from it -
+     do not treat them as authoritative; update the CSV first. -->
+
 # Microsoft Store listings (EN / RU / UK)
 
 Ready-to-paste copy for the CyrFlip Store product (Partner Center → *Store listings*).
