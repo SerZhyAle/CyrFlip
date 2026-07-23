@@ -2,6 +2,12 @@
 
 # CyrFlip
 
+[![GitHub release](https://img.shields.io/github/v/release/SerZhyAle/CyrFlip)](https://github.com/SerZhyAle/CyrFlip/releases/latest)
+[![winget](https://img.shields.io/winget/v/SerZhyAle.CyrFlip)](https://winget.run/pkg/SerZhyAle/CyrFlip)
+[![Microsoft Store](https://img.shields.io/badge/Microsoft%20Store-CyrFlip-0078D4)](https://apps.microsoft.com/detail/9NB4W41NGQJ4)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/SerZhyAle.cyrflip-vscode)](https://marketplace.visualstudio.com/items?itemName=SerZhyAle.cyrflip-vscode)
+[![License: MIT](https://img.shields.io/github/license/SerZhyAle/CyrFlip)](LICENSE)
+
 CyrFlip is a tiny Windows tray tool with two modest jobs:
 
 1. **A live layout indicator where you type (the main feature).** A small **EN / RU / UK** marker rides both your mouse text cursor (the I-beam) **and the blinking text caret**, so you always know which layout you're about to type in - updated live as you switch. The idea being that you glance at it *before* committing a whole paragraph to the wrong alphabet. (The mouse cursor is often an arrow while typing, which is why the caret marker matters.)

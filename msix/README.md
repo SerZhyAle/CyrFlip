@@ -13,6 +13,7 @@ Store-distributed build is also the most effective answer to the Avast/AVG `IDP.
 | --- | --- |
 | [AppxManifest.xml](AppxManifest.xml) | Package manifest (full-trust app, `runFullTrust`, `startupTask`). Has `__PLACEHOLDERS__`. |
 | [build-msix.ps1](build-msix.ps1) | Builds Release, stages payload, generates logo PNGs, fills the manifest, packs the `.msix`. |
+| [store-listing-export.csv](store-listing-export.csv) | Partner Center bulk listing export/import format (Description, ReleaseNotes, Product features, Search terms for en-us/ru). Edit here, then re-import via *Store listings → Import* in Partner Center - keeps the listing content under version control instead of only living in the Partner Center UI. Screenshot/logo asset rows are Partner-Center-hosted URLs, left as-is. |
 
 The `stage/` and `dist/` folders are produced by the script (git-ignore them).
 

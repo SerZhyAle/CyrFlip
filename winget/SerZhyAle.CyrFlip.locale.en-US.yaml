@@ -29,10 +29,16 @@ Moniker: cyrflip
 Tags:
   - keyboard
   - keyboard-layout
+  - keyboard-layout-switcher
+  - input-language
   - transliteration
   - cyrillic
+  - russian
+  - ukrainian
   - qwerty
   - йцукен
+  - punto-switcher-alternative
+  - tray-utility
   - productivity
 ManifestType: defaultLocale
 ManifestVersion: 1.12.0
