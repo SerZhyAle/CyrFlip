@@ -17,6 +17,8 @@ Store-distributed build is also the most effective answer to the Avast/AVG `IDP.
 | [store-listing-import-13-languages.csv](store-listing-import-13-languages.csv) | **Generated** - the export above with every empty cell filled, ready for *Store listings → Import*. Do not hand-edit; run `build-store-listing-csv.ps1`. |
 | [build-store-listing-csv.ps1](build-store-listing-csv.ps1) | Fills the gaps in the export from `listing/`. It **only writes empty cells** and never reorders columns, so asset URLs and anything Partner Center already holds survive untouched. `-FillNothing` proves the writer is lossless: the output must come back byte-identical to the export. |
 | [listing/](listing/) | One `@@Field / value` text file per language for the 11 languages the export does not carry. Plain text on purpose: this is prose to be proofread, not code. |
+| [store-listing-import-test-1-control.csv](store-listing-import-test-1-control.csv) | Diagnostic: the export with **only** the BOM removed, not a byte else. If Partner Center refuses this, the problem is not our content. |
+| [store-listing-import-test-2-one-cell.csv](store-listing-import-test-2-one-cell.csv) | Diagnostic: the export plus **one** filled cell (Urdu short description). If test 1 imports and this does not, the trouble is the added text, not the file shape. |
 
 The `stage/` and `dist/` folders are produced by the script (git-ignore them).
 
