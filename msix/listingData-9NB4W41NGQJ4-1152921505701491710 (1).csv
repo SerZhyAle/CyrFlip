@@ -1,5 +1,5 @@
-"Field","ID","Type (Type)","default","en-us","ru","ar","bn","zh-hans","fr","de","hi","it","pt-br","es","uk","ur"
-"Description","2","Text","","CyrFlip is a tiny Windows tray app that shows your active keyboard layout right where you type, and converts text between layouts with a single key.
+﻿Field,ID,Type (Type),default,en-us,ru,ar,bn,zh-hans,fr,de,hi,it,pt-br,es,uk,ur
+Description,2,Text,,"CyrFlip is a tiny Windows tray app that shows your active keyboard layout right where you type, and converts text between layouts with a single key.
 
 Its headline feature is a live layout indicator pinned next to the blinking text caret, so you always know which layout you are about to type in - even in browsers and the VS Code chat box, where most indicators can't reach. The same marker can also replace the I-beam mouse cursor and is shown on the tray icon. Each of the 13 curated languages has its own colour, any other Windows layout still gets its own two-letter code, and CapsLock adds a thin frame around the marker.
 
@@ -239,28 +239,8 @@ Privacidad: CyrFlip usa un hook de teclado y el portapapeles solo para detectar 
 
 Інтерфейс доступний 13 мовами, зокрема з письмом справа наліво. Працює в системному треї, споживає мало пам'яті й не потребує нічого додатково встановлювати на Windows 10/11.
 
-Конфіденційність: CyrFlip використовує перехоплення клавіатури та буфер обміну лише для функцій, які запускаєте ви. Не веде журнал натискань і не відкриває жодного мережевого з'єднання, доки ви не ввімкнете переклад, — а той звертається лише до сервера Ollama, який ви вказали, типово до вашого ж комп'ютера. Відкритий вихідний код: https://github.com/SerZhyAle/CyrFlip","‏CyrFlip ونڈوز ٹرے میں چلنے والی ایک ننھی سی ایپ ہے، جو آپ کا فعال کی بورڈ لے آؤٹ ٹھیک وہیں دکھاتی ہے جہاں آپ لکھ رہے ہیں، اور ایک ہی کلید سے متن کو ایک لے آؤٹ سے دوسرے میں بدل دیتی ہے۔
-
-اس کی سب سے نمایاں خوبی ٹمٹماتے ٹیکسٹ کرسر کے ساتھ جڑا ہوا زندہ لے آؤٹ اشاریہ ہے، تاکہ آپ کو ہمیشہ معلوم رہے کہ اگلا حرف کس لے آؤٹ میں لکھا جائے گا - براؤزروں میں بھی اور ‏VS Code کے چیٹ باکس میں بھی، جہاں زیادہ تر اشاریے پہنچ ہی نہیں پاتے۔ یہی نشان ماؤس کے ‏I نما پوائنٹر کی جگہ بھی لے سکتا ہے اور ٹرے آئیکن پر بھی نظر آتا ہے۔ منتخب تیرہ زبانوں میں سے ہر ایک کا اپنا رنگ ہے، کوئی بھی دوسرا ونڈوز لے آؤٹ بھی اپنا دو حرفی کوڈ پاتا ہے، اور ‏CapsLock چالو ہو تو نشان کے گرد ایک باریک کنارہ آ جاتا ہے۔
-
-غلط لے آؤٹ میں لکھا ہوا متن منتخب کریں اور شارٹ کٹ دبائیں: ‏CyrFlip اسے وہیں کا وہیں ‏QWERTY اور ‏ЙЦУКЕН کے درمیان بدل دیتا ہے - دونوں سمتوں میں، اور ملے جلے متن میں بھی۔ ایک الگ، اپنی مرضی کا شارٹ کٹ اسی طرح غلطی سے چالو رہ جانے والے ‏CapsLock کو درست کر دیتا ہے۔
-
-مزید زبانیں درکار ہیں؟ لے آؤٹ تبدیلیوں کی ایک فہرست بنا لیں: ""اس لے آؤٹ سے اُس لے آؤٹ تک"" جتنے جوڑے چاہیں، ہر ایک کے اپنے عالمی شارٹ کٹ کے ساتھ۔ متن کلیدوں کی طبعی جگہ کے مطابق بدلتا ہے، اس لیے ‏AZERTY اور ‏QWERTZ لے آؤٹ بھی درست طور پر سنبھالے جاتے ہیں، اور ہر جوڑا دونوں سمتوں میں کام کرتا ہے - جب جوڑے کا دوسرا لے آؤٹ فعال ہو تو وہی امتزاج دوبارہ دبائیں اور متن واپس بدل جائے گا۔
-
-ترتیبات کی ونڈو ونڈوز کے زبان پینل کی جگہ بھی لے لیتی ہے: کی بورڈ لے آؤٹ نصب کریں، ترتیب بدلیں اور ہٹائیں (کچھ بھی ڈاؤن لوڈ نہیں ہوتا - یہ ونڈوز کے ساتھ ہی آتے ہیں)، زبانیں بدلنے والا شارٹ کٹ چنیں، اور ہر زبان کے لیے براہِ راست شارٹ کٹ مقرر کریں جنہیں ونڈوز خود سنبھالتا ہے، چنانچہ ‏CyrFlip بند ہونے پر بھی وہ کام کرتے رہتے ہیں۔ دونوں حصے آپ کی پچھلی حالت کا ایک بار کا بیک اپ رکھتے ہیں۔
-
-کلپ بورڈ کی تاریخ اختیاری ہے اور بطورِ طے شدہ بند رہتی ہے۔ چالو کرنے پر یہ حالیہ یونیکوڈ متن مقامی طور پر محفوظ رکھتی ہے، جسے اپنی الگ ونڈو میں تلاش کیا جا سکتا ہے؛ اندراجات پن، حذف، وقفہ یا صاف کیے جا سکتے ہیں، اور سب کچھ موجودہ ونڈوز صارف کے لیے ونڈوز ‏DPAPI خفیہ کاری سے محفوظ رہتا ہے۔
-
-فوری اجرا دوسرا اختیاری ماڈیول ہے، یہ بھی اُس وقت تک بند ہے جب تک آپ اسے چالو نہ کریں۔ یہ آپ کے پروگراموں، اسکرپٹوں اور ‏yt-dlp ڈاؤن لوڈز کو ایسے منظرناموں میں بدل دیتا ہے جنہیں آپ ٹرے کے ذیلی مینو سے، اپنے مخصوص عالمی شارٹ کٹ سے، یا ٹاسک بار کی جمپ لسٹ سے چلا سکتے ہیں - اگر پن کیا ہو تو ‏CyrFlip کے نہ چلنے پر بھی۔ یہ ماڈیول الگ ٹول ‏OneClickRunner کو اپنے اندر سمو لیتا ہے، اور اس کے منظرنامے پہلی بار چلانے پر اصل فائلوں کو چھوئے بغیر درآمد کیے جا سکتے ہیں۔
-
-اندرونی مترجم بھی اختیاری ہے اور چالو کرنے تک بند رہتا ہے۔ ونڈوز میں کہیں بھی متن منتخب کریں، اس کا شارٹ کٹ دبائیں، اور ترجمہ ماؤس پوائنٹر کے پاس ایک چھوٹی ونڈو میں نمودار ہو جاتا ہے، جوں جوں ماڈل لکھتا ہے توں توں بھرتا جاتا ہے۔ یہ ‏Ollama پر چلتا ہے - ایک مفت پروگرام جو آپ اپنے کمپیوٹر پر ایک بار نصب کرتے ہیں: ‏CyrFlip اسے ساتھ نہیں دیتا، اس کا کوئی کھاتہ یا کلید نہیں، اور بطورِ طے شدہ وہ صرف ‏http://localhost:11434 سے بات کرتا ہے - یعنی آپ ہی کی مشین سے - چنانچہ کوئی متن ڈویلپر کو یا کسی کلاؤڈ سروس کو نہیں بھیجا جاتا۔ ترجمے کی سمتیں بھی لے آؤٹ تبدیلیوں کی طرح ایک کھلی فہرست ہیں: ہر سطر ایک ہدف زبان ہے اپنے عالمی شارٹ کٹ کے ساتھ، اور کوئی سطر انٹرفیس کی زبان یا اُس ونڈو کے فعال لے آؤٹ کی زبان کی پیروی بھی کر سکتی ہے جہاں سے آپ ترجمہ کر رہے ہیں۔ نتیجہ کلپ بورڈ میں رکھا جا سکتا ہے، جہاں اختیاری تاریخ اسے کسی بھی دوسری نقل کی طرح درج کر لیتی ہے، یا سیدھا منتخب متن پر چسپاں کیا جا سکتا ہے - دونوں بطورِ طے شدہ بند ہیں۔ ""ترجمہ"" ٹیب ‏Ollama کا ڈاؤن لوڈ صفحہ کھولتا ہے، سرور چلاتا ہے، رابطہ جانچتا ہے اور ماڈل اتارتا ہے: ‏qwen2.5:3b (تقریباً 2 گیگابائٹ) طے شدہ ہے، ‏gemma2:2b (تقریباً 1.6 گیگابائٹ) کمزور مشینوں کے لیے مناسب ہے، اور ‏aya-expanse:8b (تقریباً 5 گیگابائٹ) 8 گیگابائٹ یا زیادہ ‏RAM پر نمایاں طور پر بہتر ترجمہ کرتا ہے۔ صاف بات: معیار مقامی ماڈل ہی کا ہوگا، ٹھنڈے آغاز کے بعد پہلا ترجمہ ماڈل لوڈ ہونے میں وقت لیتا ہے، ‏Ollama اور ایک ماڈل کئی گیگابائٹ کا ایک بار کا ڈاؤن لوڈ ہیں، اور ماڈل جو یادداشت لیتا ہے وہ ‏Ollama کے عمل کی ہے، ‏CyrFlip کی نہیں۔ 4000 حروف سے بڑے انتخاب وہیں تک ترجمہ ہوتے ہیں، اور ونڈو یہ بتا دیتی ہے۔
-
-ہر شارٹ کٹ الگ الگ چالو یا بند کیا جا سکتا ہے، سامنے موجود ریموٹ ڈیسک ٹاپ کلائنٹ کو ‏CyrFlip یہ شارٹ کٹ سونپ سکتا ہے تاکہ ریموٹ سیشن میں چلنے والی نقل انہیں سنبھالے، اور دو سوئچ ونڈوز کو کام کے دوران سونے یا اسکرین بجھانے سے روکتے ہیں۔
-
-انٹرفیس تیرہ زبانوں میں دستیاب ہے، اُن زبانوں سمیت جو دائیں سے بائیں لکھی جاتی ہیں۔ یہ سسٹم ٹرے میں چلتی ہے، بہت کم یادداشت لیتی ہے، اور ونڈوز 10/11 پر کسی اضافی تنصیب کی ضرورت نہیں۔
-
-رازداری: ‏CyrFlip کی بورڈ ہک اور کلپ بورڈ صرف فعال لے آؤٹ پہچاننے اور آپ کے شروع کیے ہوئے کام انجام دینے کے لیے استعمال کرتی ہے۔ یہ کلیدوں کا اندراج نہیں رکھتی، اور جب تک آپ مترجم چالو نہ کریں کوئی نیٹ ورک رابطہ نہیں کھولتی؛ مترجم بھی صرف اُسی ‏Ollama سرور سے بات کرتا ہے جو آپ بتائیں - بطورِ طے شدہ آپ ہی کا کمپیوٹر۔ اوپن سورس: https://github.com/SerZhyAle/CyrFlip"
-"ReleaseNotes","3","Text","","The biggest release so far: five new modules, each optional and off until you switch it on.
+Конфіденційність: CyrFlip використовує перехоплення клавіатури та буфер обміну лише для функцій, які запускаєте ви. Не веде журнал натискань і не відкриває жодного мережевого з'єднання, доки ви не ввімкнете переклад, — а той звертається лише до сервера Ollama, який ви вказали, типово до вашого ж комп'ютера. Відкритий вихідний код: https://github.com/SerZhyAle/CyrFlip",
+ReleaseNotes,3,Text,,"The biggest release so far: five new modules, each optional and off until you switch it on.
 
 Layout conversion is now an open table - any number of ""from layout to layout"" pairs, each with its own shortcut. Text is converted by physical key position, so AZERTY and QWERTZ are handled correctly, and every pair works in both directions. The original EN/RU flip is simply its first row.
 
@@ -284,7 +264,7 @@ The interface now speaks 13 languages, right-to-left included, and follows your 
 
 Два переключателя не дают Windows уснуть и погасить экран, пока вы работаете.
 
-Интерфейс теперь говорит на 13 языках, включая языки справа налево, и по умолчанию следует за языком Windows.","","","","","","","","","","Найбільший випуск за весь час: п'ять нових модулів, кожен необов'язковий і вимкнений, доки ви його не ввімкнете.
+Интерфейс теперь говорит на 13 языках, включая языки справа налево, и по умолчанию следует за языком Windows.",,,,,,,,,,"Найбільший випуск за весь час: п'ять нових модулів, кожен необов'язковий і вимкнений, доки ви його не ввімкнете.
 
 Конвертація розкладок тепер відкрита таблиця - скільки завгодно пар «з розкладки в розкладку», у кожної власне сполучення клавіш. Текст перетворюється за фізичним положенням клавіш, тож AZERTY і QWERTZ обробляються правильно, і кожна пара працює в обидва боки. Колишнє перевертання EN/RU - просто її перший рядок.
 
@@ -296,455 +276,455 @@ The interface now speaks 13 languages, right-to-left included, and follows your 
 
 Два перемикачі не дають Windows заснути та згасити екран, доки ви працюєте.
 
-Інтерфейс тепер говорить 13 мовами, зокрема справа наліво, і типово стежить за мовою Windows.",""
-"Title","4","Text","","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip"
-"ShortTitle","5","Text","","","","","","","","","","","","","",""
-"SortTitle","6","Text","","","","","","","","","","","","","",""
-"VoiceTitle","7","Text","","","","","","","","","","","","","",""
-"ShortDescription","8","Text","","Live keyboard-layout indicator right at your text caret, plus one-key conversion between any two installed layouts.","Живой индикатор раскладки прямо у текстового курсора и конвертация текста между любыми двумя установленными раскладками одной клавишей.","مؤشر حي لتخطيط لوحة المفاتيح بجوار مؤشر الكتابة، مع تحويل النص بين أي تخطيطين مثبَّتين بضغطة مفتاح واحدة.","টেক্সট কার্সরের ঠিক পাশে কীবোর্ড লেআউটের সরাসরি নির্দেশক, আর যেকোনো দুটি ইনস্টল করা লেআউটের মধ্যে এক কী চেপে লেখা বদল।","在文字光标旁实时显示键盘布局，并可一键在任意两种已安装布局之间转换文本。","Indicateur de disposition clavier juste à côté du curseur de texte et conversion entre deux dispositions installées d'une seule touche.","Live-Anzeige des Tastaturlayouts direkt an der Schreibmarke, plus Umwandlung zwischen zwei beliebigen installierten Layouts per Tastendruck.","टेक्स्ट कर्सर के ठीक पास कीबोर्ड लेआउट का लाइव संकेतक, और किन्हीं दो इंस्टॉल लेआउट के बीच एक ही कुंजी से टेक्स्ट बदलना।","Indicatore di layout della tastiera accanto al cursore di testo e conversione tra due layout installati con un solo tasto.","Indicador do layout de teclado ao lado do cursor de texto e conversão entre dois layouts instalados com uma única tecla.","Indicador de distribución de teclado junto al cursor de texto y conversión entre dos distribuciones instaladas con una sola tecla.","Живий індикатор розкладки просто біля текстового курсора та перетворення тексту між будь-якими двома встановленими розкладками однією клавішею.","ٹیکسٹ کرسر کے بالکل ساتھ کی بورڈ لے آؤٹ کا زندہ اشاریہ، اور کسی بھی دو نصب شدہ لے آؤٹ کے درمیان ایک کلید سے متن کی تبدیلی۔"
-"DevStudio","9","Text","","","","","","","","","","","","","",""
-"CopyrightTrademarkInformation","12","Text","","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko","(c) 2026 Serhii Zhyhunenko"
-"AdditionalLicenseTerms","13","Text","","","","","","","","","","","","","",""
-"DesktopScreenshot1","100","Relative path (or URL to file in Partner Center)","","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3002332669732948733","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3021531227208492720","store-listing-import/settings-ar.png","store-listing-import/settings-bn.png","store-listing-import/settings-zh-hans.png","store-listing-import/settings-fr.png","store-listing-import/settings-de.png","store-listing-import/settings-hi.png","store-listing-import/settings-it.png","store-listing-import/settings-pt-br.png","store-listing-import/settings-es.png","store-listing-import/settings-uk.png","store-listing-import/settings-ur.png"
-"DesktopScreenshot2","101","Relative path (or URL to file in Partner Center)","","store-listing-import/settings-en-us.png","store-listing-import/settings-ru.png","","","","","","","","","","",""
-"DesktopScreenshot3","102","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot4","103","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot5","104","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot6","105","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot7","106","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot8","107","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot9","108","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot10","109","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot11","110","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot12","111","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot13","112","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot14","113","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot15","114","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot16","115","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot17","116","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot18","117","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot19","118","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot20","119","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot21","120","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot22","121","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot23","122","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot24","123","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot25","124","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot26","125","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot27","126","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot28","127","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot29","128","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshot30","129","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption1","150","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption2","151","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption3","152","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption4","153","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption5","154","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption6","155","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption7","156","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption8","157","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption9","158","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption10","159","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption11","160","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption12","161","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption13","162","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption14","163","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption15","164","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption16","165","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption17","166","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption18","167","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption19","168","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption20","169","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption21","170","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption22","171","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption23","172","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption24","173","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption25","174","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption26","175","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption27","176","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption28","177","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption29","178","Text","","","","","","","","","","","","","",""
-"DesktopScreenshotCaption30","179","Text","","","","","","","","","","","","","",""
-"MobileScreenshot1","200","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot2","201","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot3","202","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot4","203","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot5","204","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot6","205","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot7","206","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot8","207","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot9","208","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot10","209","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot11","210","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot12","211","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot13","212","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot14","213","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot15","214","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot16","215","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot17","216","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot18","217","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot19","218","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot20","219","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot21","220","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot22","221","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot23","222","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot24","223","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot25","224","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot26","225","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot27","226","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot28","227","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot29","228","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshot30","229","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"MobileScreenshotCaption1","250","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption2","251","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption3","252","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption4","253","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption5","254","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption6","255","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption7","256","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption8","257","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption9","258","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption10","259","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption11","260","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption12","261","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption13","262","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption14","263","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption15","264","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption16","265","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption17","266","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption18","267","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption19","268","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption20","269","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption21","270","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption22","271","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption23","272","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption24","273","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption25","274","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption26","275","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption27","276","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption28","277","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption29","278","Text","","","","","","","","","","","","","",""
-"MobileScreenshotCaption30","279","Text","","","","","","","","","","","","","",""
-"XboxScreenshot1","300","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot2","301","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot3","302","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot4","303","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot5","304","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot6","305","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot7","306","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot8","307","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot9","308","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot10","309","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot11","310","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot12","311","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot13","312","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot14","313","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot15","314","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot16","315","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot17","316","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot18","317","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot19","318","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot20","319","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot21","320","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot22","321","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot23","322","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot24","323","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot25","324","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot26","325","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot27","326","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot28","327","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot29","328","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshot30","329","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxScreenshotCaption1","350","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption2","351","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption3","352","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption4","353","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption5","354","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption6","355","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption7","356","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption8","357","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption9","358","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption10","359","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption11","360","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption12","361","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption13","362","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption14","363","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption15","364","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption16","365","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption17","366","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption18","367","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption19","368","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption20","369","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption21","370","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption22","371","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption23","372","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption24","373","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption25","374","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption26","375","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption27","376","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption28","377","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption29","378","Text","","","","","","","","","","","","","",""
-"XboxScreenshotCaption30","379","Text","","","","","","","","","","","","","",""
-"HolographicScreenshot1","400","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot2","401","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot3","402","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot4","403","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot5","404","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot6","405","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot7","406","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot8","407","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot9","408","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot10","409","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot11","410","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot12","411","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot13","412","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot14","413","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot15","414","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot16","415","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot17","416","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot18","417","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot19","418","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot20","419","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot21","420","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot22","421","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot23","422","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot24","423","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot25","424","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot26","425","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot27","426","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot28","427","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot29","428","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshot30","429","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption1","450","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption2","451","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption3","452","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption4","453","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption5","454","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption6","455","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption7","456","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption8","457","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption9","458","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption10","459","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption11","460","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption12","461","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption13","462","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption14","463","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption15","464","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption16","465","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption17","466","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption18","467","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption19","468","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption20","469","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption21","470","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption22","471","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption23","472","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption24","473","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption25","474","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption26","475","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption27","476","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption28","477","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption29","478","Text","","","","","","","","","","","","","",""
-"HolographicScreenshotCaption30","479","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot11","510","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot12","511","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot13","512","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot14","513","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot15","514","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot16","515","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot17","516","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot18","517","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot19","518","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot20","519","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot21","520","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot22","521","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot23","522","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot24","523","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot25","524","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot26","525","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot27","526","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot28","527","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot29","528","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshot30","529","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption11","560","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption12","561","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption13","562","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption14","563","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption15","564","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption16","565","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption17","566","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption18","567","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption19","568","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption20","569","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption21","570","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption22","571","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption23","572","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption24","573","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption25","574","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption26","575","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption27","576","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption28","577","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption29","578","Text","","","","","","","","","","","","","",""
-"SurfaceHubScreenshotCaption30","579","Text","","","","","","","","","","","","","",""
-"StoreLogo720x1080","600","Relative path (or URL to file in Partner Center)","","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3024536845760649503","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3016062305556145027","","","","","","","","","","",""
-"StoreLogo1080x1080","601","Relative path (or URL to file in Partner Center)","","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3065505256797392410","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3064050062548199220","","","","","","","","","","",""
-"StoreLogo300x300","602","Relative path (or URL to file in Partner Center)","","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3011622184153582248","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3000937792344993296","","","","","","","","","","",""
-"OverrideLogosForWin10","603","True/False","","True","True","True","True","True","True","True","True","True","True","True","True","False"
-"StoreLogoOverride150x150","604","Relative path (or URL to file in Partner Center)","","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3033703904342428710","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3022149731566340303","","","","","","","","","","",""
-"StoreLogoOverride71x71","605","Relative path (or URL to file in Partner Center)","","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3033383520326831437","https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3059838894553140024","","","","","","","","","","",""
-"PromoImage1920x1080","606","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"PromoImage2400x1200","607","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxBrandedKeyArt584x800","608","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxTitledHero1920x1080","609","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"XboxFeaturedPromo1080x1080","610","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"OptionalPromo358x358","611","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"OptionalPromo1000x800","612","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"OptionalPromo414x180","613","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Feature1","700","Text","","Live layout marker next to the text caret - works in browsers and the VS Code chat","Живой маркер раскладки у текстового курсора — работает в браузерах и чате VS Code","علامة حية للتخطيط بجوار مؤشر الكتابة - تعمل في المتصفحات وفي محادثة VS Code","টেক্সট কার্সরের পাশে সরাসরি লেআউট চিহ্ন - ব্রাউজার ও VS Code চ্যাটেও কাজ করে","文字光标旁的实时布局标记 —— 在浏览器和 VS Code 聊天框中同样有效","Repère de disposition près du curseur de texte - fonctionne dans les navigateurs et le chat VS Code","Live-Layoutmarkierung neben der Schreibmarke - funktioniert in Browsern und im VS-Code-Chat","टेक्स्ट कर्सर के पास लाइव लेआउट चिह्न - ब्राउज़र और VS Code चैट में भी काम करता है","Contrassegno del layout accanto al cursore di testo - funziona nei browser e nella chat di VS Code","Marca do layout ao lado do cursor de texto - funciona em navegadores e no chat do VS Code","Marca de distribución junto al cursor de texto - funciona en navegadores y en el chat de VS Code","Живий маркер розкладки біля текстового курсора — працює в браузерах і чаті VS Code","ٹیکسٹ کرسر کے پاس زندہ لے آؤٹ نشان - براؤزروں اور VS Code چیٹ میں بھی کام کرتا ہے"
-"Feature2","701","Text","","13 curated languages, each with its own colour; any other Windows layout gets its code too","13 популярных языков, у каждого свой цвет; любая другая раскладка Windows тоже получает код","ثلاث عشرة لغة مختارة، لكل منها لونها؛ وأي تخطيط ويندوز آخر يحصل على رمزه أيضًا","বাছাই করা ১৩টি ভাষা, প্রত্যেকটির নিজস্ব রং; অন্য যেকোনো লেআউটও নিজের কোড পায়","13 种精选语言各有专属颜色；其他任何 Windows 布局也会显示自己的代码","13 langues retenues, chacune avec sa couleur ; toute autre disposition Windows a aussi son code","13 kuratierte Sprachen, jede mit eigener Farbe; jedes andere Windows-Layout bekommt sein Kürzel","13 चुनी हुई भाषाएँ, हर एक का अपना रंग; बाकी हर विंडोज़ लेआउट को भी उसका कोड मिलता है","13 lingue selezionate, ognuna con il suo colore; ogni altro layout di Windows ha il suo codice","13 idiomas selecionados, cada um com sua cor; qualquer outro layout também recebe seu código","13 idiomas seleccionados, cada uno con su color; cualquier otra distribución recibe su código","13 популярних мов, кожна зі своїм кольором; будь-яка інша розкладка Windows теж отримує код","منتخب تیرہ زبانیں، ہر ایک کا اپنا رنگ؛ ہر دوسرے ونڈوز لے آؤٹ کو بھی اپنا کوڈ ملتا ہے"
-"Feature3","702","Text","","One-key transliteration between QWERTY and ЙЦУКЕН, in place, both directions","Транслитерация одной клавишей между QWERTY и ЙЦУКЕН, на месте, в обе стороны","تحويل حرفي بين QWERTY وЙЦУКЕН بضغطة مفتاح، في مكانه، وفي الاتجاهين","QWERTY ও ЙЦУКЕН-এর মধ্যে এক কী চেপে জায়গামতোই লিপ্যন্তর, দুই দিকেই","一键在 QWERTY 与 ЙЦУКЕН 之间就地转写，双向均可","Translittération entre QWERTY et ЙЦУКЕН d'une touche, sur place, dans les deux sens","Transliteration zwischen QWERTY und ЙЦУКЕН per Taste, an Ort und Stelle, in beide Richtungen","QWERTY और ЙЦУКЕН के बीच एक कुंजी से वहीं का वहीं लिप्यंतरण, दोनों दिशाओं में","Traslitterazione tra QWERTY e ЙЦУКЕН con un tasto, sul posto, in entrambe le direzioni","Transliteração entre QWERTY e ЙЦУКЕН com uma tecla, no lugar, nos dois sentidos","Transliteración entre QWERTY y ЙЦУКЕН con una tecla, en el sitio, en ambos sentidos","Транслітерація однією клавішею між QWERTY та ЙЦУКЕН, на місці, в обидва боки","QWERTY اور ЙЦУКЕН کے درمیان ایک کلید سے وہیں کا وہیں تبادلہ، دونوں سمتوں میں"
-"Feature4","703","Text","","A table of layout conversions: any number of pairs, each with its own shortcut, both ways","Таблица конвертаций раскладок: любое число пар, у каждой своя комбинация, в обе стороны","جدول تحويلات التخطيط: أي عدد من الأزواج، لكل زوج اختصاره، وفي الاتجاهين","লেআউট রূপান্তরের তালিকা: যত ইচ্ছা জোড়া, প্রত্যেকটির নিজস্ব শর্টকাট, দুই দিকেই","布局转换表：任意多组配对，每组一个快捷键，双向转换","Table de conversions : autant de paires que voulu, chacune avec son raccourci, dans les deux sens","Tabelle von Layout-Umwandlungen: beliebig viele Paare, jedes mit eigenem Kürzel, in beide Richtungen","लेआउट रूपांतरणों की तालिका: जितने चाहें जोड़े, हर एक का अपना शॉर्टकट, दोनों दिशाओं में","Tabella di conversioni di layout: quante coppie vuoi, ognuna con la sua scorciatoia, nei due sensi","Tabela de conversões: quantos pares quiser, cada um com seu atalho, nos dois sentidos","Tabla de conversiones: tantos pares como quieras, cada uno con su atajo, en los dos sentidos","Таблиця перетворень розкладок: будь-яка кількість пар, кожна зі своїм сполученням, в обидва боки","لے آؤٹ تبدیلیوں کی فہرست: جتنے چاہیں جوڑے، ہر ایک کا اپنا شارٹ کٹ، دونوں سمتوں میں"
-"Feature5","704","Text","","Converts by physical key position, so AZERTY and QWERTZ layouts are handled correctly","Преобразование по физическим клавишам — AZERTY и QWERTZ обрабатываются корректно","يحوّل حسب الموضع الفعلي للمفاتيح، لذا تُعالَج AZERTY وQWERTZ معالجة صحيحة","কী-গুলোর ভৌত অবস্থান অনুযায়ী বদলায়, তাই AZERTY ও QWERTZ ঠিকঠাক সামলানো হয়","按物理按键位置转换，因此 AZERTY 与 QWERTZ 布局都能正确处理","Convertit d'après la position physique des touches : AZERTY et QWERTZ sont traités correctement","Wandelt nach physischer Tastenposition um, daher werden AZERTY und QWERTZ korrekt behandelt","कुंजियों की भौतिक स्थिति से बदलता है, इसलिए AZERTY और QWERTZ सही तरह संभाले जाते हैं","Converte in base alla posizione fisica dei tasti: AZERTY e QWERTZ sono gestiti correttamente","Converte pela posição física das teclas: AZERTY e QWERTZ são tratados corretamente","Convierte por la posición física de las teclas: AZERTY y QWERTZ se tratan correctamente","Перетворення за фізичними клавішами — AZERTY та QWERTZ обробляються коректно","کلیدوں کی طبعی جگہ کے مطابق بدلتا ہے، اس لیے AZERTY اور QWERTZ درست سنبھالے جاتے ہیں"
-"Feature6","705","Text","","Separate hotkey fixes accidental CapsLock (swaps UPPER/lower case)","Отдельная горячая клавиша исправляет случайный CapsLock (меняет ВЕРХНИЙ/нижний регистр)","اختصار مستقل يصحّح مفتاح الأحرف الكبيرة المفعَّل سهوًا (تبديل الكبيرة والصغيرة)","আলাদা শর্টকাট ভুলে চালু রাখা CapsLock ঠিক করে (বড়/ছোট হাতের অক্ষর অদলবদল)","单独的快捷键修正误开的大写锁定（大小写互换）","Un raccourci dédié corrige le verrouillage majuscules (échange MAJUSCULES et minuscules)","Eigenes Tastenkürzel korrigiert versehentliche Feststelltaste (GROSS/klein vertauschen)","अलग शॉर्टकट गलती से चालू CapsLock ठीक करता है (बड़े/छोटे अक्षर बदल देता है)","Una scorciatoia dedicata corregge il BLOC MAIUSC inserito per sbaglio (scambia MAIUSCOLE/minuscole)","Um atalho separado corrige o Caps Lock esquecido (troca MAIÚSCULAS e minúsculas)","Un atajo aparte corrige el BLOQ MAYÚS olvidado (intercambia MAYÚSCULAS y minúsculas)","Окрема гаряча клавіша виправляє випадковий CapsLock (міняє ВЕРХНІЙ/нижній регістр)","الگ شارٹ کٹ غلطی سے چالو CapsLock درست کرتا ہے (بڑے اور چھوٹے حروف بدل دیتا ہے)"
-"Feature7","706","Text","","Install, reorder and remove Windows keyboard layouts without the Windows language pane","Установка, порядок и удаление раскладок Windows без раздела языков Windows","ثبِّت تخطيطات ويندوز وأعد ترتيبها واحذفها دون فتح لوحة اللغات","উইন্ডোজের ভাষা প্যানেল ছাড়াই কীবোর্ড লেআউট ইনস্টল, ক্রম বদল ও অপসারণ","安装、重新排序和移除 Windows 键盘布局，无需打开语言面板","Installez, réordonnez et supprimez les dispositions Windows sans ouvrir le panneau des langues","Windows-Tastaturlayouts installieren, umsortieren und entfernen - ohne die Windows-Sprachverwaltung","विंडोज़ के भाषा पैनल के बिना कीबोर्ड लेआउट इंस्टॉल करें, क्रम बदलें और हटाएँ","Installa, riordina e rimuovi i layout di Windows senza aprire il pannello delle lingue","Instale, reordene e remova layouts do Windows sem abrir o painel de idiomas","Instala, reordena y quita distribuciones de Windows sin abrir el panel de idiomas","Встановлення, порядок і видалення розкладок Windows без розділу мов Windows","ونڈوز کے زبان پینل کے بغیر کی بورڈ لے آؤٹ نصب کریں، ترتیب بدلیں اور ہٹائیں"
-"Feature8","707","Text","","Per-language switch shortcuts that Windows handles itself, so they work when CyrFlip is closed","Прямые сочетания на язык обрабатывает сама Windows — работают и при закрытом CyrFlip","اختصارات لكل لغة يتولاها ويندوز نفسه، فتعمل حتى عند إغلاق CyrFlip","প্রতি ভাষার শর্টকাট যা উইন্ডোজ নিজেই সামলায় - CyrFlip বন্ধ থাকলেও কাজ করে","由 Windows 自身处理的按语言直达快捷键，CyrFlip 关闭后依然有效","Raccourcis par langue gérés par Windows : ils fonctionnent même quand CyrFlip est fermé","Sprachwechsel-Kürzel, die Windows selbst verarbeitet - sie wirken auch bei geschlossenem CyrFlip","हर भाषा के लिए शॉर्टकट जिन्हें विंडोज़ खुद संभालता है - CyrFlip बंद होने पर भी चलते हैं","Scorciatoie per lingua gestite da Windows: funzionano anche quando CyrFlip è chiuso","Atalhos por idioma processados pelo Windows: funcionam mesmo com o CyrFlip fechado","Atajos por idioma que gestiona Windows: siguen funcionando con CyrFlip cerrado","Прямі сполучення на мову обробляє сама Windows — працюють і за закритого CyrFlip","ہر زبان کے شارٹ کٹ جنہیں ونڈوز خود سنبھالتا ہے - CyrFlip بند ہو تب بھی چلتے ہیں"
-"Feature9","708","Text","","Optional encrypted clipboard history with search, pin, and Windows DPAPI protection","Необязательная зашифрованная история буфера: поиск, закрепление, защита Windows DPAPI","سجل حافظة اختياري ومشفَّر: بحث وتثبيت وحماية بتشفير DPAPI في ويندوز","ঐচ্ছিক এনক্রিপ্ট করা ক্লিপবোর্ড ইতিহাস: খোঁজা, পিন করা ও উইন্ডোজ DPAPI সুরক্ষা","可选的加密剪贴板历史：搜索、置顶，并有 Windows DPAPI 保护","Historique du presse-papiers facultatif et chiffré : recherche, épinglage, protection DPAPI","Optionaler verschlüsselter Zwischenablageverlauf mit Suche, Anheften und Windows-DPAPI-Schutz","वैकल्पिक एन्क्रिप्टेड क्लिपबोर्ड इतिहास: खोज, पिन और विंडोज़ DPAPI सुरक्षा","Cronologia appunti opzionale e cifrata, con ricerca, voci fissate e protezione DPAPI di Windows","Histórico opcional e criptografado da área de transferência: busca, fixar e proteção DPAPI","Historial del portapapeles opcional y cifrado, con búsqueda, anclaje y protección DPAPI","Необов'язкова зашифрована історія буфера: пошук, закріплення, захист Windows DPAPI","اختیاری خفیہ کردہ کلپ بورڈ تاریخ: تلاش، پن اور ونڈوز DPAPI تحفظ"
-"Feature10","709","Text","","Two keep-awake switches: no sleep and no screen blanking while you work","Два переключателя: не давать компьютеру заснуть и не гасить экран, пока вы работаете","مفتاحان لمنع السكون: لا سكون ولا إطفاء للشاشة أثناء العمل","দুটি সুইচ: কাজের সময় ঘুম নয়, পর্দা নেভানোও নয়","两个防休眠开关：工作时不进入睡眠，也不熄灭屏幕","Deux interrupteurs anti-veille : ni mise en veille ni extinction de l'écran pendant le travail","Zwei Wachhalte-Schalter: kein Ruhezustand und kein Bildschirmabschalten während der Arbeit","दो स्विच: काम के दौरान न स्लीप, न स्क्रीन बंद","Due interruttori anti-sospensione: niente standby e niente schermo spento mentre lavori","Dois interruptores anti-suspensão: sem dormir e sem apagar a tela enquanto você trabalha","Dos interruptores anti-suspensión: sin reposo y sin apagado de pantalla mientras trabajas","Два перемикачі: не давати комп'ютеру заснути й не гасити екран, поки ви працюєте","دو سوئچ: کام کے دوران نہ نیند، نہ اسکرین بند"
-"Feature11","710","Text","","Interface in 13 languages, right-to-left included; follows your Windows language","Интерфейс на 13 языках, включая письмо справа налево; следует за языком Windows","واجهة بثلاث عشرة لغة، بما فيها من اليمين إلى اليسار؛ تتبع لغة ويندوز","১৩টি ভাষায় ইন্টারফেস, ডান-থেকে-বামসহ; উইন্ডোজের ভাষা অনুসরণ করে","界面支持 13 种语言，含从右向左书写；默认跟随 Windows 语言","Interface en 13 langues, y compris de droite à gauche ; suit la langue de Windows","Oberfläche in 13 Sprachen, auch von rechts nach links; folgt Ihrer Windows-Sprache","13 भाषाओं में इंटरफ़ेस, दाएँ से बाएँ सहित; विंडोज़ की भाषा का अनुसरण करता है","Interfaccia in 13 lingue, anche da destra a sinistra; segue la lingua di Windows","Interface em 13 idiomas, inclusive da direita para a esquerda; segue o idioma do Windows","Interfaz en 13 idiomas, también de derecha a izquierda; sigue el idioma de Windows","Інтерфейс 13 мовами, зокрема з письмом справа наліво; слідує за мовою Windows","تیرہ زبانوں میں انٹرفیس، دائیں سے بائیں سمیت؛ ونڈوز کی زبان کی پیروی کرتا ہے"
-"Feature12","711","Text","","Runs quietly in the tray, low memory, nothing extra to install","Тихо работает в трее, мало памяти, ничего доустанавливать не нужно","يعمل بهدوء في علبة النظام، ذاكرة قليلة، ولا شيء إضافي للتثبيت","ট্রে-তে নিঃশব্দে চলে, কম মেমরি, বাড়তি কিছু ইনস্টল করার দরকার নেই","安静地运行在托盘中，内存占用低，无需额外安装","Tourne discrètement dans la zone de notification, peu de mémoire, rien de plus à installer","Läuft unauffällig im Infobereich, wenig Speicher, nichts zusätzlich zu installieren","ट्रे में चुपचाप चलता है, कम मेमोरी, अतिरिक्त कुछ इंस्टॉल करने की ज़रूरत नहीं","Gira discreta nell'area di notifica, poca memoria, nulla di aggiuntivo da installare","Roda discreto na área de notificação, pouca memória, nada extra para instalar","Funciona discreta en la bandeja, poca memoria, nada más que instalar","Тихо працює в треї, мало пам'яті, нічого додатково встановлювати не потрібно","ٹرے میں خاموشی سے چلتی ہے، کم یادداشت، کچھ اضافی نصب کرنے کی ضرورت نہیں"
-"Feature13","712","Text","","Open source - no telemetry and no data collection; the only network use is your own Ollama","Открытый код — без телеметрии и без сбора данных; в сеть ходит только перевод через ваш Ollama","مفتوح المصدر - بلا تتبع ولا جمع بيانات؛ والاستخدام الوحيد للشبكة هو Ollama لديك","ওপেন সোর্স - টেলিমেট্রি নেই, তথ্য সংগ্রহ নেই; নেটওয়ার্কের একমাত্র ব্যবহার আপনার Ollama","开源 —— 无遥测、不收集数据；唯一的网络访问是你自己的 Ollama","Code ouvert - pas de télémétrie ni de collecte ; le seul réseau utilisé est votre propre Ollama","Quelloffen - keine Telemetrie, keine Datenerfassung; das Netz nutzt nur Ihr eigenes Ollama","ओपन सोर्स - न टेलीमेट्री, न डेटा संग्रह; नेटवर्क का एकमात्र उपयोग आपका अपना Ollama","Codice aperto - niente telemetria né raccolta dati; l'unica rete usata è il tuo Ollama","Código aberto - sem telemetria nem coleta de dados; a única rede usada é o seu próprio Ollama","Código abierto - sin telemetría ni recogida de datos; la única red que usa es tu propio Ollama","Відкритий код — без телеметрії та збору даних; у мережу ходить лише ваш власний Ollama","اوپن سورس - نہ ٹیلی میٹری، نہ ڈیٹا جمع؛ نیٹ ورک کا واحد استعمال آپ کا اپنا Ollama"
-"Feature14","713","Text","","Optional Quick launch: your programs, scripts and yt-dlp downloads as one-click scenarios","Необязательный «Быстрый запуск»: программы, скрипты и загрузки yt-dlp как сценарии в один клик","تشغيل سريع اختياري: برامجك ونصوصك وتنزيلات yt-dlp كسيناريوهات بنقرة واحدة","ঐচ্ছিক দ্রুত চালু: প্রোগ্রাম, স্ক্রিপ্ট ও yt-dlp ডাউনলোড এক-ক্লিক দৃশ্যকল্প হিসেবে","可选的快速启动：程序、脚本和 yt-dlp 下载变成一键场景","Lancement rapide facultatif : programmes, scripts et téléchargements yt-dlp en un clic","Optionaler Schnellstart: Programme, Skripte und yt-dlp-Downloads als Szenarien mit einem Klick","वैकल्पिक क्विक लॉन्च: प्रोग्राम, स्क्रिप्ट और yt-dlp डाउनलोड एक-क्लिक परिदृश्य के रूप में","Avvio rapido opzionale: programmi, script e download yt-dlp come scenari a un clic","Inicialização rápida opcional: programas, scripts e downloads do yt-dlp em um clique","Inicio rápido opcional: programas, scripts y descargas de yt-dlp como escenarios de un clic","Необов'язковий «Швидкий запуск»: програми, скрипти та завантаження yt-dlp як сценарії в один клік","اختیاری فوری اجرا: پروگرام، اسکرپٹ اور yt-dlp ڈاؤن لوڈ ایک کلک کے منظرنامے"
-"Feature15","714","Text","","Start a scenario from the tray, its own global hotkey, or the taskbar Jump List","Запуск сценария из трея, по своей глобальной комбинации или из Jump List панели задач","شغّل سيناريو من علبة النظام أو باختصار عام خاص به أو من قائمة الانتقال","দৃশ্যকল্প চালান ট্রে থেকে, নিজস্ব গ্লোবাল শর্টকাট থেকে বা টাস্কবারের জাম্প লিস্ট থেকে","从托盘、专属全局快捷键或任务栏跳转列表启动场景","Lancez un scénario depuis la zone de notification, son raccourci global ou la liste de raccourcis","Szenario starten aus dem Infobereich, per eigenem globalem Kürzel oder aus der Sprungliste","परिदृश्य ट्रे से, अपने ग्लोबल शॉर्टकट से या टास्कबार जंप लिस्ट से चलाएँ","Avvia uno scenario dall'area di notifica, da una scorciatoia globale o dalla Jump List","Inicie um cenário pela área de notificação, por atalho global ou pela Jump List","Lanza un escenario desde la bandeja, con su atajo global o desde la Jump List","Запуск сценарію з трея, за своїм глобальним сполученням або з Jump List панелі завдань","منظرنامہ ٹرے سے، اپنے عالمی شارٹ کٹ سے یا ٹاسک بار کی جمپ لسٹ سے چلائیں"
-"Feature16","715","Text","","Optional local translator: a selection is translated by hotkey in a window at the mouse pointer","Необязательный локальный перевод: выделенный текст переводится по горячей клавише в окне у курсора мыши","مترجم محلي اختياري: يُترجَم النص المحدد باختصار، في نافذة بجوار مؤشر الفأرة","ঐচ্ছিক স্থানীয় অনুবাদক: নির্বাচিত লেখা শর্টকাটে, মাউস পয়েন্টারের পাশের উইন্ডোতে","可选的本地翻译器：按快捷键翻译所选文本，结果显示在鼠标指针旁","Traducteur local facultatif : la sélection est traduite par raccourci, près du pointeur","Optionaler lokaler Übersetzer: Auswahl per Tastenkürzel, Ergebnis im Fenster am Mauszeiger","वैकल्पिक स्थानीय अनुवादक: चुना हुआ टेक्स्ट शॉर्टकट से, माउस पॉइंटर के पास विंडो में","Traduttore locale opzionale: la selezione si traduce con una scorciatoia, accanto al puntatore","Tradutor local opcional: a seleção é traduzida por atalho, ao lado do ponteiro do mouse","Traductor local opcional: la selección se traduce con un atajo, junto al puntero del ratón","Необов'язковий локальний перекладач: виділення перекладається у вікні біля вказівника миші","اختیاری مقامی مترجم: منتخب متن شارٹ کٹ سے، ماؤس پوائنٹر کے پاس ونڈو میں"
-"Feature17","716","Text","","Translation runs on Ollama on your own computer - installed separately, off until you enable it","Перевод работает на Ollama на вашем компьютере — ставится отдельно, по умолчанию выключен","تعمل الترجمة عبر Ollama على حاسوبك - يُثبَّت على حدة، ومعطَّل افتراضيًا","অনুবাদ চলে আপনার নিজের কম্পিউটারের Ollama-তে - আলাদা ইনস্টল, ডিফল্টভাবে বন্ধ","翻译在你自己电脑的 Ollama 上运行 —— 单独安装，默认关闭","La traduction s'exécute sur Ollama, sur votre ordinateur - installé à part, éteint par défaut","Die Übersetzung läuft über Ollama auf Ihrem Rechner - separat installiert, standardmäßig aus","अनुवाद आपके अपने कंप्यूटर पर Ollama से चलता है - अलग से इंस्टॉल, डिफ़ॉल्ट रूप से बंद","La traduzione gira su Ollama sul tuo computer - installato a parte, spento finché non lo attivi","A tradução roda no Ollama no seu computador - instalado à parte, desligado por padrão","La traducción corre en Ollama en tu ordenador - se instala aparte y está apagada por defecto","Переклад працює на Ollama на вашому комп'ютері — встановлюється окремо, типово вимкнений","ترجمہ آپ کے اپنے کمپیوٹر پر Ollama سے چلتا ہے - الگ نصب، بطورِ طے شدہ بند"
-"Feature18","717","Text","","","","","","","","","","","","","",""
-"Feature19","718","Text","","","","","","","","","","","","","",""
-"Feature20","719","Text","","","","","","","","","","","","","",""
-"MinimumHardwareReq1","800","Text","","","","","","","","","","","","","",""
-"MinimumHardwareReq2","801","Text","","","","","","","","","","","","","",""
-"MinimumHardwareReq3","802","Text","","","","","","","","","","","","","",""
-"MinimumHardwareReq4","803","Text","","","","","","","","","","","","","",""
-"MinimumHardwareReq5","804","Text","","","","","","","","","","","","","",""
-"MinimumHardwareReq6","805","Text","","","","","","","","","","","","","",""
-"MinimumHardwareReq7","806","Text","","","","","","","","","","","","","",""
-"MinimumHardwareReq8","807","Text","","","","","","","","","","","","","",""
-"MinimumHardwareReq9","808","Text","","","","","","","","","","","","","",""
-"MinimumHardwareReq10","809","Text","","","","","","","","","","","","","",""
-"MinimumHardwareReq11","810","Text","","","","","","","","","","","","","",""
-"RecommendedHardwareReq1","850","Text","","","","","","","","","","","","","",""
-"RecommendedHardwareReq2","851","Text","","","","","","","","","","","","","",""
-"RecommendedHardwareReq3","852","Text","","","","","","","","","","","","","",""
-"RecommendedHardwareReq4","853","Text","","","","","","","","","","","","","",""
-"RecommendedHardwareReq5","854","Text","","","","","","","","","","","","","",""
-"RecommendedHardwareReq6","855","Text","","","","","","","","","","","","","",""
-"RecommendedHardwareReq7","856","Text","","","","","","","","","","","","","",""
-"RecommendedHardwareReq8","857","Text","","","","","","","","","","","","","",""
-"RecommendedHardwareReq9","858","Text","","","","","","","","","","","","","",""
-"RecommendedHardwareReq10","859","Text","","","","","","","","","","","","","",""
-"RecommendedHardwareReq11","860","Text","","","","","","","","","","","","","",""
-"SearchTerm1","900","Text","","keyboard layout switcher","раскладка клавиатуры","تبديل تخطيط لوحة المفاتيح","কীবোর্ড লেআউট পরিবর্তন","键盘布局切换","changer disposition clavier","Tastaturlayout wechseln","कीबोर्ड लेआउट स्विचर","cambio layout tastiera","trocar layout do teclado","cambiar distribución teclado","перемикач розкладки","کی بورڈ لے آؤٹ تبدیل"
-"SearchTerm2","901","Text","","layout indicator","индикатор раскладки","مؤشر التخطيط","লেআউট নির্দেশক","布局指示器","indicateur de clavier","Layout-Anzeige","लेआउट संकेतक","indicatore layout","indicador de teclado","indicador de teclado","індикатор розкладки","لے آؤٹ اشاریہ"
-"SearchTerm3","902","Text","","transliteration","транслитерация","تحويل حرفي","লিপ্যন্তর","键位转写","translittération","Transliteration","लिप्यंतरण","traslitterazione","transliteração","transliteración","транслітерація","حرفی تبادلہ"
-"SearchTerm4","903","Text","","caps lock fix","переключатель раскладки","إصلاح مفتاح الأحرف الكبيرة","ক্যাপস লক ঠিক করা","修正大写锁定","corriger verr maj","Feststelltaste korrigieren","कैप्स लॉक ठीक करें","correggi bloc maiusc","corrigir caps lock","arreglar bloq mayús","виправити caps lock","کیپس لاک درست کریں"
-"SearchTerm5","904","Text","","cyrillic keyboard","кириллица латиница","لوحة مفاتيح سيريلية","সিরিলিক কীবোর্ড","西里尔文键盘","clavier cyrillique","kyrillische Tastatur","सिरिलिक कीबोर्ड","tastiera cirillica","teclado cirílico","teclado cirílico","кирилична клавіатура","سیریلک کی بورڈ"
-"SearchTerm6","905","Text","","clipboard manager","история буфера обмена","سجل الحافظة","ক্লিপবোর্ড ইতিহাস","剪贴板历史","historique presse-papiers","Zwischenablage-Verlauf","क्लिपबोर्ड इतिहास","cronologia appunti","histórico da área de transferência","historial portapapeles","історія буфера обміну","کلپ بورڈ تاریخ"
-"SearchTerm7","906","Text","","input language","исправить капслок","لغة الإدخال","ইনপুট ভাষা","输入语言","langue de saisie","Eingabesprache","इनपुट भाषा","lingua di input","idioma de entrada","idioma de entrada","мова введення","اندراج کی زبان"
-"TrailerToPlayAtTopOfListing","999","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer1","1000","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer2","1001","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer3","1002","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer4","1003","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer5","1004","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer6","1005","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer7","1006","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer8","1007","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer9","1008","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer10","1009","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer11","1010","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer12","1011","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer13","1012","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer14","1013","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"Trailer15","1014","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerTitle1","1020","Text","","","","","","","","","","","","","",""
-"TrailerTitle2","1021","Text","","","","","","","","","","","","","",""
-"TrailerTitle3","1022","Text","","","","","","","","","","","","","",""
-"TrailerTitle4","1023","Text","","","","","","","","","","","","","",""
-"TrailerTitle5","1024","Text","","","","","","","","","","","","","",""
-"TrailerTitle6","1025","Text","","","","","","","","","","","","","",""
-"TrailerTitle7","1026","Text","","","","","","","","","","","","","",""
-"TrailerTitle8","1027","Text","","","","","","","","","","","","","",""
-"TrailerTitle9","1028","Text","","","","","","","","","","","","","",""
-"TrailerTitle10","1029","Text","","","","","","","","","","","","","",""
-"TrailerTitle11","1030","Text","","","","","","","","","","","","","",""
-"TrailerTitle12","1031","Text","","","","","","","","","","","","","",""
-"TrailerTitle13","1032","Text","","","","","","","","","","","","","",""
-"TrailerTitle14","1033","Text","","","","","","","","","","","","","",""
-"TrailerTitle15","1034","Text","","","","","","","","","","","","","",""
-"TrailerThumbnail1","1040","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail2","1041","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail3","1042","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail4","1043","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail5","1044","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail6","1045","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail7","1046","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail8","1047","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail9","1048","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail10","1049","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail11","1050","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail12","1051","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail13","1052","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail14","1053","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerThumbnail15","1054","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption1","1055","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption2","1056","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption3","1057","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption4","1058","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption5","1059","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption6","1060","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption7","1061","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption8","1062","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption9","1063","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption10","1064","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption11","1065","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption12","1066","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption13","1067","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption14","1068","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerClosedCaption15","1069","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription1","1070","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription2","1071","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription3","1072","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription4","1073","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription5","1074","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription6","1075","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription7","1076","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription8","1077","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription9","1078","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription10","1079","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription11","1080","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription12","1081","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription13","1082","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription14","1083","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"TrailerAudioDescription15","1084","Relative path (or URL to file in Partner Center)","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
-"","","","","","","","","","","","","","","","",""
+Інтерфейс тепер говорить 13 мовами, зокрема справа наліво, і типово стежить за мовою Windows.",
+Title,4,Text,,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,
+ShortTitle,5,Text,,,,,,,,,,,,,,
+SortTitle,6,Text,,,,,,,,,,,,,,
+VoiceTitle,7,Text,,,,,,,,,,,,,,
+ShortDescription,8,Text,,"Live keyboard-layout indicator right at your text caret, plus one-key conversion between any two installed layouts.",Живой индикатор раскладки прямо у текстового курсора и конвертация текста между любыми двумя установленными раскладками одной клавишей.,مؤشر حي لتخطيط لوحة المفاتيح بجوار مؤشر الكتابة، مع تحويل النص بين أي تخطيطين مثبَّتين بضغطة مفتاح واحدة.,"টেক্সট কার্সরের ঠিক পাশে কীবোর্ড লেআউটের সরাসরি নির্দেশক, আর যেকোনো দুটি ইনস্টল করা লেআউটের মধ্যে এক কী চেপে লেখা বদল।",在文字光标旁实时显示键盘布局，并可一键在任意两种已安装布局之间转换文本。,Indicateur de disposition clavier juste à côté du curseur de texte et conversion entre deux dispositions installées d'une seule touche.,"Live-Anzeige des Tastaturlayouts direkt an der Schreibmarke, plus Umwandlung zwischen zwei beliebigen installierten Layouts per Tastendruck.","टेक्स्ट कर्सर के ठीक पास कीबोर्ड लेआउट का लाइव संकेतक, और किन्हीं दो इंस्टॉल लेआउट के बीच एक ही कुंजी से टेक्स्ट बदलना।",Indicatore di layout della tastiera accanto al cursore di testo e conversione tra due layout installati con un solo tasto.,Indicador do layout de teclado ao lado do cursor de texto e conversão entre dois layouts instalados com uma única tecla.,Indicador de distribución de teclado junto al cursor de texto y conversión entre dos distribuciones instaladas con una sola tecla.,Живий індикатор розкладки просто біля текстового курсора та перетворення тексту між будь-якими двома встановленими розкладками однією клавішею.,
+DevStudio,9,Text,,,,,,,,,,,,,,
+CopyrightTrademarkInformation,12,Text,,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,
+AdditionalLicenseTerms,13,Text,,,,,,,,,,,,,,
+DesktopScreenshot1,100,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3002332669732948733,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3021531227208492720,,,,,,,,,,,
+DesktopScreenshot2,101,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot3,102,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot4,103,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot5,104,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot6,105,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot7,106,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot8,107,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot9,108,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot10,109,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot11,110,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot12,111,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot13,112,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot14,113,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot15,114,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot16,115,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot17,116,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot18,117,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot19,118,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot20,119,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot21,120,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot22,121,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot23,122,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot24,123,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot25,124,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot26,125,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot27,126,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot28,127,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot29,128,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshot30,129,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+DesktopScreenshotCaption1,150,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption2,151,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption3,152,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption4,153,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption5,154,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption6,155,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption7,156,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption8,157,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption9,158,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption10,159,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption11,160,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption12,161,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption13,162,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption14,163,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption15,164,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption16,165,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption17,166,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption18,167,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption19,168,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption20,169,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption21,170,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption22,171,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption23,172,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption24,173,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption25,174,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption26,175,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption27,176,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption28,177,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption29,178,Text,,,,,,,,,,,,,,
+DesktopScreenshotCaption30,179,Text,,,,,,,,,,,,,,
+MobileScreenshot1,200,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot2,201,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot3,202,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot4,203,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot5,204,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot6,205,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot7,206,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot8,207,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot9,208,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot10,209,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot11,210,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot12,211,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot13,212,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot14,213,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot15,214,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot16,215,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot17,216,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot18,217,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot19,218,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot20,219,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot21,220,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot22,221,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot23,222,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot24,223,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot25,224,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot26,225,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot27,226,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot28,227,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot29,228,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshot30,229,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+MobileScreenshotCaption1,250,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption2,251,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption3,252,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption4,253,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption5,254,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption6,255,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption7,256,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption8,257,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption9,258,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption10,259,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption11,260,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption12,261,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption13,262,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption14,263,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption15,264,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption16,265,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption17,266,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption18,267,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption19,268,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption20,269,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption21,270,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption22,271,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption23,272,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption24,273,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption25,274,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption26,275,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption27,276,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption28,277,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption29,278,Text,,,,,,,,,,,,,,
+MobileScreenshotCaption30,279,Text,,,,,,,,,,,,,,
+XboxScreenshot1,300,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot2,301,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot3,302,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot4,303,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot5,304,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot6,305,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot7,306,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot8,307,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot9,308,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot10,309,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot11,310,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot12,311,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot13,312,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot14,313,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot15,314,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot16,315,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot17,316,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot18,317,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot19,318,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot20,319,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot21,320,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot22,321,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot23,322,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot24,323,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot25,324,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot26,325,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot27,326,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot28,327,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot29,328,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshot30,329,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxScreenshotCaption1,350,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption2,351,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption3,352,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption4,353,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption5,354,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption6,355,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption7,356,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption8,357,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption9,358,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption10,359,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption11,360,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption12,361,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption13,362,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption14,363,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption15,364,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption16,365,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption17,366,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption18,367,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption19,368,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption20,369,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption21,370,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption22,371,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption23,372,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption24,373,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption25,374,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption26,375,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption27,376,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption28,377,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption29,378,Text,,,,,,,,,,,,,,
+XboxScreenshotCaption30,379,Text,,,,,,,,,,,,,,
+HolographicScreenshot1,400,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot2,401,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot3,402,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot4,403,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot5,404,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot6,405,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot7,406,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot8,407,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot9,408,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot10,409,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot11,410,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot12,411,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot13,412,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot14,413,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot15,414,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot16,415,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot17,416,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot18,417,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot19,418,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot20,419,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot21,420,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot22,421,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot23,422,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot24,423,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot25,424,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot26,425,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot27,426,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot28,427,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot29,428,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshot30,429,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+HolographicScreenshotCaption1,450,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption2,451,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption3,452,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption4,453,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption5,454,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption6,455,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption7,456,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption8,457,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption9,458,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption10,459,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption11,460,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption12,461,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption13,462,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption14,463,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption15,464,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption16,465,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption17,466,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption18,467,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption19,468,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption20,469,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption21,470,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption22,471,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption23,472,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption24,473,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption25,474,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption26,475,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption27,476,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption28,477,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption29,478,Text,,,,,,,,,,,,,,
+HolographicScreenshotCaption30,479,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshot11,510,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot12,511,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot13,512,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot14,513,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot15,514,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot16,515,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot17,516,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot18,517,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot19,518,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot20,519,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot21,520,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot22,521,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot23,522,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot24,523,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot25,524,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot26,525,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot27,526,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot28,527,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot29,528,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshot30,529,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption11,560,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption12,561,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption13,562,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption14,563,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption15,564,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption16,565,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption17,566,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption18,567,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption19,568,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption20,569,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption21,570,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption22,571,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption23,572,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption24,573,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption25,574,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption26,575,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption27,576,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption28,577,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption29,578,Text,,,,,,,,,,,,,,
+SurfaceHubScreenshotCaption30,579,Text,,,,,,,,,,,,,,
+StoreLogo720x1080,600,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3024536845760649503,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3016062305556145027,,,,,,,,,,,
+StoreLogo1080x1080,601,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3065505256797392410,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3064050062548199220,,,,,,,,,,,
+StoreLogo300x300,602,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3011622184153582248,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3000937792344993296,,,,,,,,,,,
+OverrideLogosForWin10,603,True/False,,True,True,True,True,True,True,True,True,True,True,True,True,False
+StoreLogoOverride150x150,604,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3033703904342428710,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3022149731566340303,,,,,,,,,,,
+StoreLogoOverride71x71,605,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025703689/listingassets/3033383520326831437,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505701491710/listings/1152922700025764004/listingassets/3059838894553140024,,,,,,,,,,,
+PromoImage1920x1080,606,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+PromoImage2400x1200,607,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxBrandedKeyArt584x800,608,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxTitledHero1920x1080,609,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+XboxFeaturedPromo1080x1080,610,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+OptionalPromo358x358,611,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+OptionalPromo1000x800,612,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+OptionalPromo414x180,613,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Feature1,700,Text,,Live layout marker next to the text caret - works in browsers and the VS Code chat,Живой маркер раскладки у текстового курсора — работает в браузерах и чате VS Code,علامة حية للتخطيط بجوار مؤشر الكتابة - تعمل في المتصفحات وفي محادثة VS Code,টেক্সট কার্সরের পাশে সরাসরি লেআউট চিহ্ন - ব্রাউজার ও VS Code চ্যাটেও কাজ করে,文字光标旁的实时布局标记 —— 在浏览器和 VS Code 聊天框中同样有效,Repère de disposition près du curseur de texte - fonctionne dans les navigateurs et le chat VS Code,Live-Layoutmarkierung neben der Schreibmarke - funktioniert in Browsern und im VS-Code-Chat,टेक्स्ट कर्सर के पास लाइव लेआउट चिह्न - ब्राउज़र और VS Code चैट में भी काम करता है,Contrassegno del layout accanto al cursore di testo - funziona nei browser e nella chat di VS Code,Marca do layout ao lado do cursor de texto - funciona em navegadores e no chat do VS Code,Marca de distribución junto al cursor de texto - funciona en navegadores y en el chat de VS Code,Живий маркер розкладки біля текстового курсора — працює в браузерах і чаті VS Code,
+Feature2,701,Text,,"13 curated languages, each with its own colour; any other Windows layout gets its code too","13 популярных языков, у каждого свой цвет; любая другая раскладка Windows тоже получает код",ثلاث عشرة لغة مختارة، لكل منها لونها؛ وأي تخطيط ويندوز آخر يحصل على رمزه أيضًا,"বাছাই করা ১৩টি ভাষা, প্রত্যেকটির নিজস্ব রং; অন্য যেকোনো লেআউটও নিজের কোড পায়",13 种精选语言各有专属颜色；其他任何 Windows 布局也会显示自己的代码,"13 langues retenues, chacune avec sa couleur ; toute autre disposition Windows a aussi son code","13 kuratierte Sprachen, jede mit eigener Farbe; jedes andere Windows-Layout bekommt sein Kürzel","13 चुनी हुई भाषाएँ, हर एक का अपना रंग; बाकी हर विंडोज़ लेआउट को भी उसका कोड मिलता है","13 lingue selezionate, ognuna con il suo colore; ogni altro layout di Windows ha il suo codice","13 idiomas selecionados, cada um com sua cor; qualquer outro layout também recebe seu código","13 idiomas seleccionados, cada uno con su color; cualquier otra distribución recibe su código","13 популярних мов, кожна зі своїм кольором; будь-яка інша розкладка Windows теж отримує код",
+Feature3,702,Text,,"One-key transliteration between QWERTY and ЙЦУКЕН, in place, both directions","Транслитерация одной клавишей между QWERTY и ЙЦУКЕН, на месте, в обе стороны",تحويل حرفي بين QWERTY وЙЦУКЕН بضغطة مفتاح، في مكانه، وفي الاتجاهين,"QWERTY ও ЙЦУКЕН-এর মধ্যে এক কী চেপে জায়গামতোই লিপ্যন্তর, দুই দিকেই",一键在 QWERTY 与 ЙЦУКЕН 之间就地转写，双向均可,"Translittération entre QWERTY et ЙЦУКЕН d'une touche, sur place, dans les deux sens","Transliteration zwischen QWERTY und ЙЦУКЕН per Taste, an Ort und Stelle, in beide Richtungen","QWERTY और ЙЦУКЕН के बीच एक कुंजी से वहीं का वहीं लिप्यंतरण, दोनों दिशाओं में","Traslitterazione tra QWERTY e ЙЦУКЕН con un tasto, sul posto, in entrambe le direzioni","Transliteração entre QWERTY e ЙЦУКЕН com uma tecla, no lugar, nos dois sentidos","Transliteración entre QWERTY y ЙЦУКЕН con una tecla, en el sitio, en ambos sentidos","Транслітерація однією клавішею між QWERTY та ЙЦУКЕН, на місці, в обидва боки",
+Feature4,703,Text,,"A table of layout conversions: any number of pairs, each with its own shortcut, both ways","Таблица конвертаций раскладок: любое число пар, у каждой своя комбинация, в обе стороны",جدول تحويلات التخطيط: أي عدد من الأزواج، لكل زوج اختصاره، وفي الاتجاهين,"লেআউট রূপান্তরের তালিকা: যত ইচ্ছা জোড়া, প্রত্যেকটির নিজস্ব শর্টকাট, দুই দিকেই",布局转换表：任意多组配对，每组一个快捷键，双向转换,"Table de conversions : autant de paires que voulu, chacune avec son raccourci, dans les deux sens","Tabelle von Layout-Umwandlungen: beliebig viele Paare, jedes mit eigenem Kürzel, in beide Richtungen","लेआउट रूपांतरणों की तालिका: जितने चाहें जोड़े, हर एक का अपना शॉर्टकट, दोनों दिशाओं में","Tabella di conversioni di layout: quante coppie vuoi, ognuna con la sua scorciatoia, nei due sensi","Tabela de conversões: quantos pares quiser, cada um com seu atalho, nos dois sentidos","Tabla de conversiones: tantos pares como quieras, cada uno con su atajo, en los dos sentidos","Таблиця перетворень розкладок: будь-яка кількість пар, кожна зі своїм сполученням, в обидва боки",
+Feature5,704,Text,,"Converts by physical key position, so AZERTY and QWERTZ layouts are handled correctly",Преобразование по физическим клавишам — AZERTY и QWERTZ обрабатываются корректно,يحوّل حسب الموضع الفعلي للمفاتيح، لذا تُعالَج AZERTY وQWERTZ معالجة صحيحة,"কী-গুলোর ভৌত অবস্থান অনুযায়ী বদলায়, তাই AZERTY ও QWERTZ ঠিকঠাক সামলানো হয়",按物理按键位置转换，因此 AZERTY 与 QWERTZ 布局都能正确处理,Convertit d'après la position physique des touches : AZERTY et QWERTZ sont traités correctement,"Wandelt nach physischer Tastenposition um, daher werden AZERTY und QWERTZ korrekt behandelt","कुंजियों की भौतिक स्थिति से बदलता है, इसलिए AZERTY और QWERTZ सही तरह संभाले जाते हैं",Converte in base alla posizione fisica dei tasti: AZERTY e QWERTZ sono gestiti correttamente,Converte pela posição física das teclas: AZERTY e QWERTZ são tratados corretamente,Convierte por la posición física de las teclas: AZERTY y QWERTZ se tratan correctamente,Перетворення за фізичними клавішами — AZERTY та QWERTZ обробляються коректно,
+Feature6,705,Text,,Separate hotkey fixes accidental CapsLock (swaps UPPER/lower case),Отдельная горячая клавиша исправляет случайный CapsLock (меняет ВЕРХНИЙ/нижний регистр),اختصار مستقل يصحّح مفتاح الأحرف الكبيرة المفعَّل سهوًا (تبديل الكبيرة والصغيرة),আলাদা শর্টকাট ভুলে চালু রাখা CapsLock ঠিক করে (বড়/ছোট হাতের অক্ষর অদলবদল),单独的快捷键修正误开的大写锁定（大小写互换）,Un raccourci dédié corrige le verrouillage majuscules (échange MAJUSCULES et minuscules),Eigenes Tastenkürzel korrigiert versehentliche Feststelltaste (GROSS/klein vertauschen),अलग शॉर्टकट गलती से चालू CapsLock ठीक करता है (बड़े/छोटे अक्षर बदल देता है),Una scorciatoia dedicata corregge il BLOC MAIUSC inserito per sbaglio (scambia MAIUSCOLE/minuscole),Um atalho separado corrige o Caps Lock esquecido (troca MAIÚSCULAS e minúsculas),Un atajo aparte corrige el BLOQ MAYÚS olvidado (intercambia MAYÚSCULAS y minúsculas),Окрема гаряча клавіша виправляє випадковий CapsLock (міняє ВЕРХНІЙ/нижній регістр),
+Feature7,706,Text,,"Install, reorder and remove Windows keyboard layouts without the Windows language pane","Установка, порядок и удаление раскладок Windows без раздела языков Windows",ثبِّت تخطيطات ويندوز وأعد ترتيبها واحذفها دون فتح لوحة اللغات,"উইন্ডোজের ভাষা প্যানেল ছাড়াই কীবোর্ড লেআউট ইনস্টল, ক্রম বদল ও অপসারণ",安装、重新排序和移除 Windows 键盘布局，无需打开语言面板,"Installez, réordonnez et supprimez les dispositions Windows sans ouvrir le panneau des langues","Windows-Tastaturlayouts installieren, umsortieren und entfernen - ohne die Windows-Sprachverwaltung","विंडोज़ के भाषा पैनल के बिना कीबोर्ड लेआउट इंस्टॉल करें, क्रम बदलें और हटाएँ","Installa, riordina e rimuovi i layout di Windows senza aprire il pannello delle lingue","Instale, reordene e remova layouts do Windows sem abrir o painel de idiomas","Instala, reordena y quita distribuciones de Windows sin abrir el panel de idiomas","Встановлення, порядок і видалення розкладок Windows без розділу мов Windows",
+Feature8,707,Text,,"Per-language switch shortcuts that Windows handles itself, so they work when CyrFlip is closed",Прямые сочетания на язык обрабатывает сама Windows — работают и при закрытом CyrFlip,اختصارات لكل لغة يتولاها ويندوز نفسه، فتعمل حتى عند إغلاق CyrFlip,প্রতি ভাষার শর্টকাট যা উইন্ডোজ নিজেই সামলায় - CyrFlip বন্ধ থাকলেও কাজ করে,由 Windows 自身处理的按语言直达快捷键，CyrFlip 关闭后依然有效,Raccourcis par langue gérés par Windows : ils fonctionnent même quand CyrFlip est fermé,"Sprachwechsel-Kürzel, die Windows selbst verarbeitet - sie wirken auch bei geschlossenem CyrFlip",हर भाषा के लिए शॉर्टकट जिन्हें विंडोज़ खुद संभालता है - CyrFlip बंद होने पर भी चलते हैं,Scorciatoie per lingua gestite da Windows: funzionano anche quando CyrFlip è chiuso,Atalhos por idioma processados pelo Windows: funcionam mesmo com o CyrFlip fechado,Atajos por idioma que gestiona Windows: siguen funcionando con CyrFlip cerrado,Прямі сполучення на мову обробляє сама Windows — працюють і за закритого CyrFlip,
+Feature9,708,Text,,"Optional encrypted clipboard history with search, pin, and Windows DPAPI protection","Необязательная зашифрованная история буфера: поиск, закрепление, защита Windows DPAPI",سجل حافظة اختياري ومشفَّر: بحث وتثبيت وحماية بتشفير DPAPI في ويندوز,"ঐচ্ছিক এনক্রিপ্ট করা ক্লিপবোর্ড ইতিহাস: খোঁজা, পিন করা ও উইন্ডোজ DPAPI সুরক্ষা",可选的加密剪贴板历史：搜索、置顶，并有 Windows DPAPI 保护,"Historique du presse-papiers facultatif et chiffré : recherche, épinglage, protection DPAPI","Optionaler verschlüsselter Zwischenablageverlauf mit Suche, Anheften und Windows-DPAPI-Schutz","वैकल्पिक एन्क्रिप्टेड क्लिपबोर्ड इतिहास: खोज, पिन और विंडोज़ DPAPI सुरक्षा","Cronologia appunti opzionale e cifrata, con ricerca, voci fissate e protezione DPAPI di Windows","Histórico opcional e criptografado da área de transferência: busca, fixar e proteção DPAPI","Historial del portapapeles opcional y cifrado, con búsqueda, anclaje y protección DPAPI","Необов'язкова зашифрована історія буфера: пошук, закріплення, захист Windows DPAPI",
+Feature10,709,Text,,Two keep-awake switches: no sleep and no screen blanking while you work,"Два переключателя: не давать компьютеру заснуть и не гасить экран, пока вы работаете",مفتاحان لمنع السكون: لا سكون ولا إطفاء للشاشة أثناء العمل,"দুটি সুইচ: কাজের সময় ঘুম নয়, পর্দা নেভানোও নয়",两个防休眠开关：工作时不进入睡眠，也不熄灭屏幕,Deux interrupteurs anti-veille : ni mise en veille ni extinction de l'écran pendant le travail,Zwei Wachhalte-Schalter: kein Ruhezustand und kein Bildschirmabschalten während der Arbeit,"दो स्विच: काम के दौरान न स्लीप, न स्क्रीन बंद",Due interruttori anti-sospensione: niente standby e niente schermo spento mentre lavori,Dois interruptores anti-suspensão: sem dormir e sem apagar a tela enquanto você trabalha,Dos interruptores anti-suspensión: sin reposo y sin apagado de pantalla mientras trabajas,"Два перемикачі: не давати комп'ютеру заснути й не гасити екран, поки ви працюєте",
+Feature11,710,Text,,"Interface in 13 languages, right-to-left included; follows your Windows language","Интерфейс на 13 языках, включая письмо справа налево; следует за языком Windows",واجهة بثلاث عشرة لغة، بما فيها من اليمين إلى اليسار؛ تتبع لغة ويندوز,"১৩টি ভাষায় ইন্টারফেস, ডান-থেকে-বামসহ; উইন্ডোজের ভাষা অনুসরণ করে",界面支持 13 种语言，含从右向左书写；默认跟随 Windows 语言,"Interface en 13 langues, y compris de droite à gauche ; suit la langue de Windows","Oberfläche in 13 Sprachen, auch von rechts nach links; folgt Ihrer Windows-Sprache","13 भाषाओं में इंटरफ़ेस, दाएँ से बाएँ सहित; विंडोज़ की भाषा का अनुसरण करता है","Interfaccia in 13 lingue, anche da destra a sinistra; segue la lingua di Windows","Interface em 13 idiomas, inclusive da direita para a esquerda; segue o idioma do Windows","Interfaz en 13 idiomas, también de derecha a izquierda; sigue el idioma de Windows","Інтерфейс 13 мовами, зокрема з письмом справа наліво; слідує за мовою Windows",
+Feature12,711,Text,,"Runs quietly in the tray, low memory, nothing extra to install","Тихо работает в трее, мало памяти, ничего доустанавливать не нужно",يعمل بهدوء في علبة النظام، ذاكرة قليلة، ولا شيء إضافي للتثبيت,"ট্রে-তে নিঃশব্দে চলে, কম মেমরি, বাড়তি কিছু ইনস্টল করার দরকার নেই",安静地运行在托盘中，内存占用低，无需额外安装,"Tourne discrètement dans la zone de notification, peu de mémoire, rien de plus à installer","Läuft unauffällig im Infobereich, wenig Speicher, nichts zusätzlich zu installieren","ट्रे में चुपचाप चलता है, कम मेमोरी, अतिरिक्त कुछ इंस्टॉल करने की ज़रूरत नहीं","Gira discreta nell'area di notifica, poca memoria, nulla di aggiuntivo da installare","Roda discreto na área de notificação, pouca memória, nada extra para instalar","Funciona discreta en la bandeja, poca memoria, nada más que instalar","Тихо працює в треї, мало пам'яті, нічого додатково встановлювати не потрібно",
+Feature13,712,Text,,Open source - no telemetry and no data collection; the only network use is your own Ollama,Открытый код — без телеметрии и без сбора данных; в сеть ходит только перевод через ваш Ollama,مفتوح المصدر - بلا تتبع ولا جمع بيانات؛ والاستخدام الوحيد للشبكة هو Ollama لديك,"ওপেন সোর্স - টেলিমেট্রি নেই, তথ্য সংগ্রহ নেই; নেটওয়ার্কের একমাত্র ব্যবহার আপনার Ollama",开源 —— 无遥测、不收集数据；唯一的网络访问是你自己的 Ollama,Code ouvert - pas de télémétrie ni de collecte ; le seul réseau utilisé est votre propre Ollama,"Quelloffen - keine Telemetrie, keine Datenerfassung; das Netz nutzt nur Ihr eigenes Ollama","ओपन सोर्स - न टेलीमेट्री, न डेटा संग्रह; नेटवर्क का एकमात्र उपयोग आपका अपना Ollama",Codice aperto - niente telemetria né raccolta dati; l'unica rete usata è il tuo Ollama,Código aberto - sem telemetria nem coleta de dados; a única rede usada é o seu próprio Ollama,Código abierto - sin telemetría ni recogida de datos; la única red que usa es tu propio Ollama,Відкритий код — без телеметрії та збору даних; у мережу ходить лише ваш власний Ollama,
+Feature14,713,Text,,"Optional Quick launch: your programs, scripts and yt-dlp downloads as one-click scenarios","Необязательный «Быстрый запуск»: программы, скрипты и загрузки yt-dlp как сценарии в один клик",تشغيل سريع اختياري: برامجك ونصوصك وتنزيلات yt-dlp كسيناريوهات بنقرة واحدة,"ঐচ্ছিক দ্রুত চালু: প্রোগ্রাম, স্ক্রিপ্ট ও yt-dlp ডাউনলোড এক-ক্লিক দৃশ্যকল্প হিসেবে",可选的快速启动：程序、脚本和 yt-dlp 下载变成一键场景,"Lancement rapide facultatif : programmes, scripts et téléchargements yt-dlp en un clic","Optionaler Schnellstart: Programme, Skripte und yt-dlp-Downloads als Szenarien mit einem Klick","वैकल्पिक क्विक लॉन्च: प्रोग्राम, स्क्रिप्ट और yt-dlp डाउनलोड एक-क्लिक परिदृश्य के रूप में","Avvio rapido opzionale: programmi, script e download yt-dlp come scenari a un clic","Inicialização rápida opcional: programas, scripts e downloads do yt-dlp em um clique","Inicio rápido opcional: programas, scripts y descargas de yt-dlp como escenarios de un clic","Необов'язковий «Швидкий запуск»: програми, скрипти та завантаження yt-dlp як сценарії в один клік",
+Feature15,714,Text,,"Start a scenario from the tray, its own global hotkey, or the taskbar Jump List","Запуск сценария из трея, по своей глобальной комбинации или из Jump List панели задач",شغّل سيناريو من علبة النظام أو باختصار عام خاص به أو من قائمة الانتقال,"দৃশ্যকল্প চালান ট্রে থেকে, নিজস্ব গ্লোবাল শর্টকাট থেকে বা টাস্কবারের জাম্প লিস্ট থেকে",从托盘、专属全局快捷键或任务栏跳转列表启动场景,"Lancez un scénario depuis la zone de notification, son raccourci global ou la liste de raccourcis","Szenario starten aus dem Infobereich, per eigenem globalem Kürzel oder aus der Sprungliste","परिदृश्य ट्रे से, अपने ग्लोबल शॉर्टकट से या टास्कबार जंप लिस्ट से चलाएँ","Avvia uno scenario dall'area di notifica, da una scorciatoia globale o dalla Jump List","Inicie um cenário pela área de notificação, por atalho global ou pela Jump List","Lanza un escenario desde la bandeja, con su atajo global o desde la Jump List","Запуск сценарію з трея, за своїм глобальним сполученням або з Jump List панелі завдань",
+Feature16,715,Text,,Optional local translator: a selection is translated by hotkey in a window at the mouse pointer,Необязательный локальный перевод: выделенный текст переводится по горячей клавише в окне у курсора мыши,مترجم محلي اختياري: يُترجَم النص المحدد باختصار، في نافذة بجوار مؤشر الفأرة,"ঐচ্ছিক স্থানীয় অনুবাদক: নির্বাচিত লেখা শর্টকাটে, মাউস পয়েন্টারের পাশের উইন্ডোতে",可选的本地翻译器：按快捷键翻译所选文本，结果显示在鼠标指针旁,"Traducteur local facultatif : la sélection est traduite par raccourci, près du pointeur","Optionaler lokaler Übersetzer: Auswahl per Tastenkürzel, Ergebnis im Fenster am Mauszeiger","वैकल्पिक स्थानीय अनुवादक: चुना हुआ टेक्स्ट शॉर्टकट से, माउस पॉइंटर के पास विंडो में","Traduttore locale opzionale: la selezione si traduce con una scorciatoia, accanto al puntatore","Tradutor local opcional: a seleção é traduzida por atalho, ao lado do ponteiro do mouse","Traductor local opcional: la selección se traduce con un atajo, junto al puntero del ratón",Необов'язковий локальний перекладач: виділення перекладається у вікні біля вказівника миші,
+Feature17,716,Text,,"Translation runs on Ollama on your own computer - installed separately, off until you enable it","Перевод работает на Ollama на вашем компьютере — ставится отдельно, по умолчанию выключен",تعمل الترجمة عبر Ollama على حاسوبك - يُثبَّت على حدة، ومعطَّل افتراضيًا,"অনুবাদ চলে আপনার নিজের কম্পিউটারের Ollama-তে - আলাদা ইনস্টল, ডিফল্টভাবে বন্ধ",翻译在你自己电脑的 Ollama 上运行 —— 单独安装，默认关闭,"La traduction s'exécute sur Ollama, sur votre ordinateur - installé à part, éteint par défaut","Die Übersetzung läuft über Ollama auf Ihrem Rechner - separat installiert, standardmäßig aus","अनुवाद आपके अपने कंप्यूटर पर Ollama से चलता है - अलग से इंस्टॉल, डिफ़ॉल्ट रूप से बंद","La traduzione gira su Ollama sul tuo computer - installato a parte, spento finché non lo attivi","A tradução roda no Ollama no seu computador - instalado à parte, desligado por padrão",La traducción corre en Ollama en tu ordenador - se instala aparte y está apagada por defecto,"Переклад працює на Ollama на вашому комп'ютері — встановлюється окремо, типово вимкнений",
+Feature18,717,Text,,,,,,,,,,,,,,
+Feature19,718,Text,,,,,,,,,,,,,,
+Feature20,719,Text,,,,,,,,,,,,,,
+MinimumHardwareReq1,800,Text,,,,,,,,,,,,,,
+MinimumHardwareReq2,801,Text,,,,,,,,,,,,,,
+MinimumHardwareReq3,802,Text,,,,,,,,,,,,,,
+MinimumHardwareReq4,803,Text,,,,,,,,,,,,,,
+MinimumHardwareReq5,804,Text,,,,,,,,,,,,,,
+MinimumHardwareReq6,805,Text,,,,,,,,,,,,,,
+MinimumHardwareReq7,806,Text,,,,,,,,,,,,,,
+MinimumHardwareReq8,807,Text,,,,,,,,,,,,,,
+MinimumHardwareReq9,808,Text,,,,,,,,,,,,,,
+MinimumHardwareReq10,809,Text,,,,,,,,,,,,,,
+MinimumHardwareReq11,810,Text,,,,,,,,,,,,,,
+RecommendedHardwareReq1,850,Text,,,,,,,,,,,,,,
+RecommendedHardwareReq2,851,Text,,,,,,,,,,,,,,
+RecommendedHardwareReq3,852,Text,,,,,,,,,,,,,,
+RecommendedHardwareReq4,853,Text,,,,,,,,,,,,,,
+RecommendedHardwareReq5,854,Text,,,,,,,,,,,,,,
+RecommendedHardwareReq6,855,Text,,,,,,,,,,,,,,
+RecommendedHardwareReq7,856,Text,,,,,,,,,,,,,,
+RecommendedHardwareReq8,857,Text,,,,,,,,,,,,,,
+RecommendedHardwareReq9,858,Text,,,,,,,,,,,,,,
+RecommendedHardwareReq10,859,Text,,,,,,,,,,,,,,
+RecommendedHardwareReq11,860,Text,,,,,,,,,,,,,,
+SearchTerm1,900,Text,,keyboard layout switcher,раскладка клавиатуры,تبديل تخطيط لوحة المفاتيح,কীবোর্ড লেআউট পরিবর্তন,键盘布局切换,changer disposition clavier,Tastaturlayout wechseln,कीबोर्ड लेआउट स्विचर,cambio layout tastiera,trocar layout do teclado,cambiar distribución teclado,перемикач розкладки,
+SearchTerm2,901,Text,,layout indicator,индикатор раскладки,مؤشر التخطيط,লেআউট নির্দেশক,布局指示器,indicateur de clavier,Layout-Anzeige,लेआउट संकेतक,indicatore layout,indicador de teclado,indicador de teclado,індикатор розкладки,
+SearchTerm3,902,Text,,transliteration,транслитерация,تحويل حرفي,লিপ্যন্তর,键位转写,translittération,Transliteration,लिप्यंतरण,traslitterazione,transliteração,transliteración,транслітерація,
+SearchTerm4,903,Text,,caps lock fix,переключатель раскладки,إصلاح مفتاح الأحرف الكبيرة,ক্যাপস লক ঠিক করা,修正大写锁定,corriger verr maj,Feststelltaste korrigieren,कैप्स लॉक ठीक करें,correggi bloc maiusc,corrigir caps lock,arreglar bloq mayús,виправити caps lock,
+SearchTerm5,904,Text,,cyrillic keyboard,кириллица латиница,لوحة مفاتيح سيريلية,সিরিলিক কীবোর্ড,西里尔文键盘,clavier cyrillique,kyrillische Tastatur,सिरिलिक कीबोर्ड,tastiera cirillica,teclado cirílico,teclado cirílico,кирилична клавіатура,
+SearchTerm6,905,Text,,clipboard manager,история буфера обмена,سجل الحافظة,ক্লিপবোর্ড ইতিহাস,剪贴板历史,historique presse-papiers,Zwischenablage-Verlauf,क्लिपबोर्ड इतिहास,cronologia appunti,histórico da área de transferência,historial portapapeles,історія буфера обміну,
+SearchTerm7,906,Text,,input language,исправить капслок,لغة الإدخال,ইনপুট ভাষা,输入语言,langue de saisie,Eingabesprache,इनपुट भाषा,lingua di input,idioma de entrada,idioma de entrada,мова введення,
+TrailerToPlayAtTopOfListing,999,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer1,1000,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer2,1001,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer3,1002,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer4,1003,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer5,1004,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer6,1005,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer7,1006,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer8,1007,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer9,1008,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer10,1009,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer11,1010,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer12,1011,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer13,1012,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer14,1013,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+Trailer15,1014,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerTitle1,1020,Text,,,,,,,,,,,,,,
+TrailerTitle2,1021,Text,,,,,,,,,,,,,,
+TrailerTitle3,1022,Text,,,,,,,,,,,,,,
+TrailerTitle4,1023,Text,,,,,,,,,,,,,,
+TrailerTitle5,1024,Text,,,,,,,,,,,,,,
+TrailerTitle6,1025,Text,,,,,,,,,,,,,,
+TrailerTitle7,1026,Text,,,,,,,,,,,,,,
+TrailerTitle8,1027,Text,,,,,,,,,,,,,,
+TrailerTitle9,1028,Text,,,,,,,,,,,,,,
+TrailerTitle10,1029,Text,,,,,,,,,,,,,,
+TrailerTitle11,1030,Text,,,,,,,,,,,,,,
+TrailerTitle12,1031,Text,,,,,,,,,,,,,,
+TrailerTitle13,1032,Text,,,,,,,,,,,,,,
+TrailerTitle14,1033,Text,,,,,,,,,,,,,,
+TrailerTitle15,1034,Text,,,,,,,,,,,,,,
+TrailerThumbnail1,1040,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail2,1041,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail3,1042,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail4,1043,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail5,1044,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail6,1045,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail7,1046,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail8,1047,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail9,1048,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail10,1049,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail11,1050,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail12,1051,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail13,1052,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail14,1053,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerThumbnail15,1054,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption1,1055,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption2,1056,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption3,1057,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption4,1058,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption5,1059,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption6,1060,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption7,1061,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption8,1062,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption9,1063,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption10,1064,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption11,1065,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption12,1066,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption13,1067,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption14,1068,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerClosedCaption15,1069,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription1,1070,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription2,1071,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription3,1072,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription4,1073,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription5,1074,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription6,1075,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription7,1076,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription8,1077,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription9,1078,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription10,1079,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription11,1080,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription12,1081,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription13,1082,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription14,1083,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+TrailerAudioDescription15,1084,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,

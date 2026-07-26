@@ -91,8 +91,17 @@ For an existing app you only create a new submission - the identity above is unc
    2. **Export**, and drop the downloaded file over `msix/store-listing-export.csv`. Do this
       **every time**: the export carries the current submission's listing ids in its asset URLs, and
       the languages present on it are exactly the columns an import will accept.
-   3. `.\msix\build-store-listing-csv.ps1` - fills the empty cells from `msix/listing/`.
-   4. **Import** `msix/store-listing-import-13-languages.csv`.
+   3. `.\msix\build-store-listing-csv.ps1 -ImportFolder` - fills the empty cells from
+      `msix/listing/` and stages `msix/store-listing-import/`: the CSV beside the screenshots, each
+      language's `DesktopScreenshot` pointing at its own file by relative path.
+   4. **Import listings → Import folder** and pick `msix/store-listing-import`.
+
+   > **A listing is complete only with a description AND at least one screenshot.** Text alone leaves
+   > the language sitting at *Incomplete*, which is what happened to the ten languages of the first
+   > import. Images cannot travel in a bare `.csv` - Partner Center only accepts new files through
+   > *Import folder*, where an image cell holds `<root folder name>/<file>`. Screenshots come from
+   > `.\tools\uitest\Save-StoreScreenshots.ps1` (the settings window per language, on the 1366x768
+   > canvas). A language that already has a screenshot keeps it and ours lands in the next free slot.
 
    > **A language that is not on the submission is dropped silently.** That is how the Urdu copy went
    > missing on the first attempt: `ur` had not been added yet, so Partner Center took the other
