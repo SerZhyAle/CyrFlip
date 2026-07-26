@@ -97,6 +97,13 @@ For an existing app you only create a new submission - the identity above is unc
    > twelve columns and said nothing about the thirteenth. Always read the per-language report the
    > script prints, then check the language count in Partner Center after the import.
 
+   > **The importer and the exporter disagree about the byte-order mark.** Partner Center exports
+   > UTF-8 **with** BOM and then refuses that same file - *"We couldn't process this .csv file"* -
+   > until the BOM is stripped, a long-standing report on
+   > [Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/960287/partner-center-import-csv-listings-stop-working-wi).
+   > So the script writes **UTF-8 without BOM** by default; `-KeepBom` restores it. It also quotes
+   > every field, which is what the one upload Partner Center did accept looked like.
+
    Screenshots and logos are **not** in the import (their rows are asset URLs tied to an existing
    listing id): upload them per language, or leave the default listing's images to stand.
    "What's new" is filled for **en-us/ru/uk only** - by decision, release notes are not translated

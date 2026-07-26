@@ -33,7 +33,13 @@ param(
     # The default instead quotes EVERY field, which is the shape of the import that actually went
     # through (PowerShell's Export-Csv wrote it that way). Not a theory worth defending, just the
     # one difference between the attempt that worked and the one that did not.
-    [switch] $Faithful
+    [switch] $Faithful,
+
+    # Write the byte-order mark the export itself carries. Off by default: Partner Center exports
+    # UTF-8 *with* BOM but its importer is widely reported to choke on it, and re-saving the same
+    # file without the BOM is the fix people land on. -FillNothing turns it back on, since a byte
+    # comparison against the export is meaningless without it.
+    [switch] $KeepBom
 )
 $ErrorActionPreference = 'Stop'
 
@@ -107,7 +113,8 @@ foreach ($row in $rows) {
     $out.Add((($columns | ForEach-Object { Quote $row.$_ }) -join ','))
 }
 # The export ends without a trailing newline; keep it that way.
-[System.IO.File]::WriteAllText($Dest, ($out -join "`r`n"), (New-Object System.Text.UTF8Encoding($true)))
+$bom = [bool] ($KeepBom -or $FillNothing)
+[System.IO.File]::WriteAllText($Dest, ($out -join "`r`n"), (New-Object System.Text.UTF8Encoding($bom)))
 
 if ($FillNothing) {
     $same = [System.Linq.Enumerable]::SequenceEqual([byte[]] [System.IO.File]::ReadAllBytes($Export), [byte[]] [System.IO.File]::ReadAllBytes($Dest))
