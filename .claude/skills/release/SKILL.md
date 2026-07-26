@@ -66,11 +66,23 @@ and the **SHA256** from the run log — the next steps need them.
 ## Phase 4 — Publish externally (manual; from the printed checklist)
 
 - [ ] **Site/docs** — GitHub Pages auto-deployed from `/docs` on the push. Verify it's live.
-- [ ] **winget** (`SerZhyAle.CyrFlip`):
+- [ ] **winget** (`SerZhyAle.CyrFlip`) — **not** `wingetcreate update`: that command rebuilds from the
+      manifest already published in winget-pkgs and only bumps version/URL/hash, so this repo's
+      `Description` / `ShortDescription` / `Tags` / `ReleaseNotes` never reach the store. Build from the
+      templates instead: copy `winget/*.yaml` to a scratch dir, replace `__VERSION__` / `__URL__` /
+      `__SHA256__`, point `ReleaseNotesUrl` at `/releases/tag/v<ver>`, then
       ```powershell
-      wingetcreate update SerZhyAle.CyrFlip --version <ver> --urls <ZIP_URL> --submit
+      winget validate --manifest <dir>     # yaml-only copy: validating winget/ itself
+                                           # trips over README.md being parsed as YAML
+      winget install  --manifest <dir>     # required by the PR checklist below
+      wingetcreate submit --prtitle "SerZhyAle.CyrFlip version <ver>" --no-open `
+        --token (gh auth token) <dir>
       ```
-      Opens a PR against `microsoft/winget-pkgs`. Track it to merge.
+- [ ] **Fill in the winget PR body** — `wingetcreate` submits Microsoft's template *untouched*: an empty
+      Description and every checklist box unticked, which reads as "nothing was verified" and stalls
+      review. Write the description and tick each box **after actually doing it** (`gh pr edit <n>
+      --repo microsoft/winget-pkgs --body-file <file>`), then re-read the body to confirm. Leave
+      "Linked to an issue" unticked and say *not applicable*. Track the PR to merge.
 - [ ] **Microsoft Store (MSIX)** — Store ID `9NB4W41NGQJ4`:
       ```powershell
       .\msix\build-msix.ps1 -IdentityName "SZA.CyrFlip" `
