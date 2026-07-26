@@ -10,6 +10,9 @@
       -Message "<text>"  commit message (required with -Commit)
       -Push              also push the branch to origin
 
+    A clean tree is never a blocker here: with nothing to commit the script says so and finishes
+    normally (the build and tests already passed, which is the point of a сборка).
+
     The commit message gets "[skip ci]" appended automatically, so pushing a сборка to main
     does NOT trigger the paid GitHub CI build - the build was already validated here.
     (A РЕЛИЗ is the separate, paid path: see release.ps1 / RELEASE.md.)
@@ -111,9 +114,17 @@ if ($Commit) {
     git add -A
     if ($LASTEXITCODE -ne 0) { throw "git add failed (exit $LASTEXITCODE)." }
     git commit -m $msg
-    if ($LASTEXITCODE -ne 0) { throw "git commit failed (exit $LASTEXITCODE) - nothing to commit?" }
-    Write-Host "Committed: $msg" -ForegroundColor Green
-    if ($Push) {
+    $committed = $LASTEXITCODE -eq 0
+    if (-not $committed) {
+        # "Nothing to commit" is not a failure of the сборка - the build and tests already passed.
+        # Say so and carry on; anything else is a real git problem and still stops the script.
+        if (@(git status --porcelain).Count -eq 0) {
+            Write-Host 'Nothing to commit - the tree was already clean.' -ForegroundColor DarkGray
+        }
+        else { throw "git commit failed (exit $LASTEXITCODE)." }
+    }
+    else { Write-Host "Committed: $msg" -ForegroundColor Green }
+    if ($Push -and $committed) {
         Write-Host "Pushing.." -ForegroundColor Cyan
         git push
         if ($LASTEXITCODE -ne 0) { throw "git push failed (exit $LASTEXITCODE)." }

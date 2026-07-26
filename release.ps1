@@ -6,9 +6,13 @@
 
     This script drives the automatable core safely and prints the manual checklist for the rest.
 
-      .\release.ps1                 # PREFLIGHT only: clean-tree + on-main checks, local build+test,
-                                    #   compute version, print the full checklist. Makes NO git changes,
-                                    #   spends NO GitHub minutes. Run this first, every time.
+      .\release.ps1                 # PREFLIGHT only: on-main check, local build+test, compute version,
+                                    #   print the full checklist. Makes NO git changes, spends NO GitHub
+                                    #   minutes. Run this first, every time.
+
+    A dirty working tree is NOT a blocker: this is a single-developer project, and stopping a
+    preflight over uncommitted files was pure friction. The preflight says how many files are
+    uncommitted and carries on. Pass -RequireClean to get the old refuse-if-dirty behaviour.
 
       .\release.ps1 -Push           # After a green preflight: create the "release: vX" commit + tag and
                                     #   push them. The tag triggers release.yml (the PAID GitHub build that
@@ -24,6 +28,11 @@
 param(
     [string] $Version,
     [switch] $Push,
+    # Refuse to release from a dirty tree. Off by default (see the header); the switch is here for
+    # the day this repo has more than one pair of hands.
+    [switch] $RequireClean,
+    # Kept so older invocations and the checklists that mention it still run: dirty is the default
+    # now, so this is a no-op.
     [switch] $AllowDirty
 )
 $ErrorActionPreference = 'Stop'
@@ -37,10 +46,16 @@ Step 'Preflight'
 $branch = (git rev-parse --abbrev-ref HEAD).Trim()
 if ($branch -ne 'main') { throw "Release must run from 'main' (you are on '$branch')." }
 
-$dirty = (git status --porcelain)
-if ($dirty -and -not $AllowDirty) {
-    Write-Host $dirty
-    throw "Working tree is not clean. Commit your сборки first (build.ps1 -Commit), or pass -AllowDirty."
+$dirty = @(git status --porcelain)
+if ($dirty.Count -gt 0) {
+    if ($RequireClean) {
+        Write-Host ($dirty -join "`n")
+        throw "Working tree is not clean ($($dirty.Count) path(s)) and -RequireClean was passed. Commit first: build.ps1 -Commit -Message '<text>'."
+    }
+    # Not a blocker, but the release ships what is COMMITTED: the tag points at the anchor commit,
+    # and release.yml builds from that. Anything uncommitted is simply not in the release.
+    Write-Host "Working tree has $($dirty.Count) uncommitted path(s) - they will NOT be in the release." -ForegroundColor Yellow
+    Write-Host "  Commit them first if they should ship: build.ps1 -Commit -Message '<text>'" -ForegroundColor DarkGray
 }
 
 # --- Version ----------------------------------------------------------------
