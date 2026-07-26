@@ -106,6 +106,13 @@ For an existing app you only create a new submission - the identity above is unc
    > `store-listing-import-13-languages.csv` carries **no** image paths at all - blank image cells
    > are safe, they leave whatever Partner Center already has in place.
 
+   > **Never copy `OverrideLogosForWin10` between languages.** The flag promises Windows-10 override
+   > logos for that listing, and Partner Center then holds the listing *Incomplete* until the logo
+   > files exist - silently, with no error and nothing marked on the page. An early version of this
+   > script copied it from `en-us` along with `Title` and the copyright, and ten listings sat at
+   > Incomplete with a full description and a screenshot while Urdu, typed in by hand and left at
+   > `False`, read Complete. `-LogoFlagOnly` writes the one-field repair.
+
    > **A listing is complete only with a description AND at least one screenshot.** Text alone leaves
    > the language sitting at *Incomplete*, which is what happened to the ten languages of the first
    > import. Images cannot travel in a bare `.csv` - Partner Center only accepts new files through

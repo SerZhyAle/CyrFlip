@@ -53,13 +53,19 @@ param(
     # *Import listings -> Import folder*, which is the only way to upload new images with the copy.
     # It matters: a listing counts as complete only once it has a description AND one screenshot, so
     # the ten languages that arrived with text alone are still shown as Incomplete.
-    [switch] $ImportFolder
+    [switch] $ImportFolder,
+
+    # Fill nothing, correct only OverrideLogosForWin10, and write to store-listing-fix-logo-flag.csv.
+    # The smallest possible import: it cannot disturb copy that was entered by hand since the last
+    # export, which a full fill would happily overwrite.
+    [switch] $LogoFlagOnly
 )
 $ErrorActionPreference = 'Stop'
 
 $MsixDir = $PSScriptRoot
 $Export  = Join-Path $MsixDir 'store-listing-export.csv'
 $LangDir = Join-Path $MsixDir 'listing'
+if ($LogoFlagOnly -and -not $OutFile) { $OutFile = 'store-listing-fix-logo-flag.csv' }
 $Dest    = if ($OutFile) { if ([System.IO.Path]::IsPathRooted($OutFile)) { $OutFile } else { Join-Path $MsixDir $OutFile } }
            else { Join-Path $MsixDir 'store-listing-import-13-languages.csv' }
 
@@ -99,7 +105,7 @@ $columns = $rows[0].PSObject.Properties.Name
 $langs   = $columns | Select-Object -Skip 4          # Field, ID, Type (Type), default, then languages
 
 $copy = @{}
-if (-not $FillNothing) {
+if (-not ($FillNothing -or $LogoFlagOnly)) {
     foreach ($code in $langs) {
         $name = if ($FileForCode.ContainsKey($code)) { $FileForCode[$code] } else { $code }
         $path = Join-Path $LangDir "$name.txt"
@@ -121,6 +127,24 @@ foreach ($row in $rows) {
         if (-not $filled.ContainsKey($code)) { $filled[$code] = 0 }
         $filled[$code]++
     }
+}
+
+# --- correction: OverrideLogosForWin10 --------------------------------------------------------
+# The flag promises Windows-10 override logos for that listing, and Partner Center then holds the
+# listing Incomplete until the logo files exist. An early version of this script copied the flag
+# from en-us into every language along with Title and the copyright, so ten listings ended up
+# claiming logos they do not have - which is exactly why they read Incomplete while Urdu, entered by
+# hand and left at False, read Complete. Clear it wherever the language has no logo of its own.
+$logoRows = @('StoreLogo720x1080', 'StoreLogo1080x1080', 'StoreLogo300x300',
+              'StoreLogoOverride150x150', 'StoreLogoOverride71x71')
+$flagRow = $rows | Where-Object Field -eq 'OverrideLogosForWin10'
+$cleared = @()
+foreach ($code in $langs) {
+    if ($flagRow.$code -ne 'True') { continue }
+    $hasLogo = $logoRows | Where-Object { ($rows | Where-Object Field -eq $_).$code -ne '' }
+    if ($hasLogo) { continue }
+    $flagRow.$code = 'False'
+    $cleared += $code
 }
 
 function Format-Csv {
@@ -182,5 +206,9 @@ if ($ImportFolder) {
     $staged | Format-Table -AutoSize | Out-String | Write-Host
     Write-Host "Import folder ready: $stageDir" -ForegroundColor Green
     Write-Host "Partner Center -> Store listings -> Import listings -> Import folder -> select '$stageName'" -ForegroundColor DarkGray
+}
+if ($cleared.Count -gt 0) {
+    Write-Host ''
+    Write-Host ("OverrideLogosForWin10 cleared (claimed logos it does not have): {0}" -f ($cleared -join ', ')) -ForegroundColor Yellow
 }
 Write-Host "Wrote $Dest" -ForegroundColor Green
