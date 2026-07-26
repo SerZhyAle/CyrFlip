@@ -123,10 +123,26 @@ foreach ($row in $rows) {
     }
 }
 
+function Format-Csv {
+    $lines = New-Object System.Collections.Generic.List[string]
+    $lines.Add(($columns | ForEach-Object { Quote $_ }) -join ',')
+    foreach ($row in $rows) { $lines.Add((($columns | ForEach-Object { Quote $row.$_ }) -join ',')) }
+    # The export ends without a trailing newline; keep it that way.
+    $lines -join "`r`n"
+}
+
+$bom = [bool] ($KeepBom -or $FillNothing)
+$encoding = New-Object System.Text.UTF8Encoding($bom)
+
+# The plain CSV carries text only. A relative image path in it would be rejected outright - Partner
+# Center resolves such a path only against a folder upload, and "Import .csv" has nowhere to look.
+[System.IO.File]::WriteAllText($Dest, (Format-Csv), $encoding)
+
 # --- screenshots -------------------------------------------------------------------------------
-# One shot per language, produced by tools/uitest/Save-StoreScreenshots.ps1. A language that already
-# has a screenshot in Partner Center keeps it and gets ours in the next free slot; the rest get slot
-# 1, which is what turns them from Incomplete into Complete.
+# One shot per language, produced by tools/uitest/Save-StoreScreenshots.ps1, staged into its own
+# folder with a second copy of the CSV that does reference them. A language that already has a
+# screenshot keeps it and gets ours in the next free slot; the rest get slot 1, which is what turns
+# them from Incomplete into Complete.
 $shotDir   = Join-Path $MsixDir 'screenshots'
 $stageDir  = Join-Path $MsixDir 'store-listing-import'
 $stageName = Split-Path $stageDir -Leaf
@@ -143,20 +159,8 @@ if ($ImportFolder) {
         ($rows | Where-Object Field -eq "DesktopScreenshot$slot").$code = "$stageName/settings-$code.png"
         $staged += [pscustomobject]@{ Language = $code; Slot = "DesktopScreenshot$slot"; File = "settings-$code.png" }
     }
-}
-
-$out = New-Object System.Collections.Generic.List[string]
-$out.Add(($columns | ForEach-Object { Quote $_ }) -join ',')
-foreach ($row in $rows) {
-    $out.Add((($columns | ForEach-Object { Quote $row.$_ }) -join ','))
-}
-# The export ends without a trailing newline; keep it that way.
-$bom = [bool] ($KeepBom -or $FillNothing)
-$text = $out -join "`r`n"
-[System.IO.File]::WriteAllText($Dest, $text, (New-Object System.Text.UTF8Encoding($bom)))
-if ($ImportFolder) {
     # Exactly one .csv in the folder - Partner Center refuses a folder holding more than one.
-    [System.IO.File]::WriteAllText((Join-Path $stageDir 'listings.csv'), $text, (New-Object System.Text.UTF8Encoding($bom)))
+    [System.IO.File]::WriteAllText((Join-Path $stageDir 'listings.csv'), (Format-Csv), $encoding)
 }
 
 if ($FillNothing) {

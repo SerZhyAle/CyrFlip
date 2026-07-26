@@ -96,6 +96,16 @@ For an existing app you only create a new submission - the identity above is unc
       language's `DesktopScreenshot` pointing at its own file by relative path.
    4. **Import listings → Import folder** and pick `msix/store-listing-import`.
 
+   > **An import is all-or-nothing.** If any cell is rejected, Partner Center saves *none* of the
+   > file - "even for fields without errors". So a single bad image path throws away the text too;
+   > read *View errors for last import* before assuming anything landed.
+
+   > **Only the folder upload understands a relative image path.** `store-listing-import/x.png` in a
+   > file imported through *Import .csv* fails with *"The value you provided is not valid"* on every
+   > image cell, because there is no folder to resolve it against. That is why the plain
+   > `store-listing-import-13-languages.csv` carries **no** image paths at all - blank image cells
+   > are safe, they leave whatever Partner Center already has in place.
+
    > **A listing is complete only with a description AND at least one screenshot.** Text alone leaves
    > the language sitting at *Incomplete*, which is what happened to the ten languages of the first
    > import. Images cannot travel in a bare `.csv` - Partner Center only accepts new files through
