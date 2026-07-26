@@ -114,9 +114,12 @@
           <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> - CyrFlip transliterates it in place
           (QWERTY ↔ ЙЦУКЕН, EN ↔ RU). Each character is flipped by script, so even the mixed EN + RU
           masterpiece is handled correctly. Works in any app, VS Code included.</li>
-        <li>Want the keyboard to follow the fix? Enable <strong>Change the language after the flip</strong>
-          in the tray menu - after a flip CyrFlip also switches the active input language
-          (EN → RU, otherwise → EN), so you can keep typing in the corrected layout.</li>
+        <li>Need another language pair? That <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> is simply the EN ⇄ RU
+          row the <strong>Layout conversions</strong> table starts with - all these chords live in that one table.
+          In <strong>Settings → Windows languages</strong>, install the 13 curated languages in one click or add any
+          Windows layout, then add a row for the pair you want. Each row has its own hotkey and its own on/off switch,
+          converts by physical key position, and works in <strong>both directions</strong> (press the same chord again
+          while the pair's target layout is active and it converts back).</li>
         <li>Left <strong>CapsLock</strong> on by accident and got <code>hELLO wORLD</code>?
           <strong>Select it</strong> and press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F11</kbd> -
           CyrFlip swaps UPPER ↔ lower case in place. It has its own configurable hotkey, and an
@@ -135,6 +138,96 @@
       Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F10</kbd> to show or hide the strip.</p>
       <p class="note">History is stored locally and protected with Windows DPAPI for your Windows account.
       Pause capture, clear the history, or disable it entirely in the tray menu or Settings.</p>
+    </section>
+
+    <section>
+      <h2>Settings, tab by tab</h2>
+      <p>Right-click the tray icon and choose <strong>Settings…</strong> (or double-click the icon). Every change
+      applies at once - there is nothing to restart and nothing to save.</p>
+      <table>
+        <tr><th>Tab</th><th>What lives there</th></tr>
+        <tr><td>General</td><td>Start with Windows; <strong>keep the computer awake</strong> and <strong>keep the screen on</strong> (both live only until you quit CyrFlip, and are off again on the next launch); the <strong>interface language</strong> - 13 to choose from.</td></tr>
+        <tr><td>Indicators</td><td>The I-beam cursor marker (off by default), the caret marker (on), the compact dot style, <strong>change the layout after converting text</strong>, and <strong>synchronize CapsLock after the case fix</strong>.</td></tr>
+        <tr><td>Hotkeys</td><td>A master switch plus a separate on/off and chord for the case fix and the clipboard manager - so a machine can keep only the one chord it needs. Also <strong>yield hotkeys to the remote desktop</strong>: while an mstsc/msrdc window is focused the chord is passed to the remote session, which is what you want when CyrFlip runs on both ends of an RDP connection.</td></tr>
+        <tr><td>Layout conversions</td><td>One table holding <strong>every</strong> chord that converts text between layouts. EN ⇄ RU on <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> is created on the first run and can be edited or deleted like any other row; add as many pairs as you like, each with its own chord and switch.</td></tr>
+        <tr><td>Windows languages</td><td>Windows' own input settings, without opening the Windows pane: install / reorder / remove keyboard layouts (nothing is downloaded - the layouts ship with Windows), the cycle chord (Alt+Shift, Ctrl+Shift, <code>`</code> or off), and <strong>direct per-language shortcuts</strong> that Windows handles itself, so they keep working when CyrFlip is closed - and, unlike the built-in Windows dialog, they are not limited to Ctrl+Shift+digit. Both sections snapshot your pre-CyrFlip state once and can restore it.</td></tr>
+        <tr><td>Clipboard</td><td>History on/off, pause capture, whether the manager window opens at startup, its transparency, full-history search, and clearing everything.</td></tr>
+        <tr><td>Translation</td><td>The optional local translator - see the section below.</td></tr>
+        <tr><td>Quick launch</td><td>The optional scenario launcher - see the section below.</td></tr>
+        <tr><td>About &amp; Advanced</td><td>Links and the <strong>caret-position diagnostics</strong> report.</td></tr>
+      </table>
+      <p class="note">A Windows-language change usually takes effect immediately, but Windows occasionally only
+      settles it after signing out and back in. The Microsoft Store build runs in a container, so Windows may
+      redirect those registry writes into the package - the tab says so and links to the Windows settings.</p>
+    </section>
+
+    <section>
+      <h2>Quick launch (scenario launcher, optional)</h2>
+      <p>An opt-in module that absorbs <a href="https://github.com/SerZhyAle/OneClickRunner">OneClickRunner</a>
+      into CyrFlip - one tray process instead of two. It is <strong>off by default</strong>: until you enable it on
+      Settings → <strong>Quick launch</strong>, CyrFlip behaves exactly as before - no extra tray entry and no
+      Jump List tasks.</p>
+      <ul>
+        <li><strong>Scenarios</strong> are either a <em>program/script</em> (path, arguments, working folder, an
+        optional "run as administrator") or a <em>yt-dlp download</em> (download folder + extra options; the link
+        is asked for on every run, and the external <code>yt-dlp</code> tool must be on <code>PATH</code>). The
+        settings table adds, edits, clones, reorders, searches, exports and imports them.</li>
+        <li><strong>Four ways to run one:</strong> the tray <em>Quick launch</em> submenu, the settings table
+        (double-click or <kbd>Enter</kbd>), an optional <strong>global hotkey per scenario</strong>, and the
+        taskbar <strong>Jump List</strong> - right-click the CyrFlip taskbar icon. Pin CyrFlip to the taskbar and
+        the list stays handy even while CyrFlip is not running: a Jump List click then performs a one-shot launch
+        without starting the tray.</li>
+        <li><strong>Storage:</strong> one XML per scenario in <code>%APPDATA%\CyrFlip\Scenarios</code>,
+        format-compatible with OneClickRunner. Turning the module off clears the tray and Jump List but keeps the
+        files for the next enable.</li>
+        <li><strong>Migration:</strong> the first enable offers to copy your existing OneClickRunner scenarios
+        (<code>%APPDATA%\OneClickRunner\Scenarios</code>); the originals are never modified, and the
+        "Import from OneClickRunner…" button repeats the import any time. <code>.ps1</code> runs via PowerShell
+        with a one-off <code>-ExecutionPolicy Bypass</code>, <code>.bat</code>/<code>.cmd</code> via
+        <code>cmd.exe</code>; elevation is requested only by scenarios marked "run as administrator".</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Translation (local model, optional)</h2>
+      <p>Select text anywhere in Windows, press the chord, and the translation appears in a small window next to the
+      mouse pointer, filling in as the model writes it. The translating is done by
+      <a href="https://ollama.com/">Ollama</a> - a free program you install once on your own computer. CyrFlip does
+      not bundle it, has no account and no key, and sends nothing to the author or to any cloud service. It is
+      <strong>off by default</strong>: until you enable it on Settings → <strong>Translation</strong>, no chord is
+      bound, there is no tray entry, and CyrFlip opens no network connection at all.</p>
+      <ul>
+        <li><strong>Directions are a table</strong>, like the layout conversions: every row is "translate into this
+        language" plus its own global hotkey. The starter row uses <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F9</kbd>
+        (<kbd>F12</kbd> is the layout flip, <kbd>F11</kbd> the case fix, <kbd>F10</kbd> the clipboard manager).
+        Besides the 13 interface languages, a row can target <em>the interface language</em> or <em>the language of
+        the keyboard layout active in the target window</em> - both resolved at the moment you press the chord.</li>
+        <li><strong>What happens to the result:</strong> the window shows it, and you can additionally have it
+        copied to the clipboard - where the optional clipboard history records it like any other copy - or pasted
+        straight over the selection. Both are off by default.</li>
+        <li><strong>Where the text goes:</strong> the address is <code>http://localhost:11434</code> by default,
+        your own machine, so the selection never leaves the computer. The tab says plainly that entering another
+        address sends the selected text to that machine.</li>
+        <li><strong>One-press helpers</strong> on the tab: install Ollama, start it, check the connection, and
+        download a model. Recommended models: <code>qwen2.5:3b</code> (~2 GB, the default),
+        <code>gemma2:2b</code> (~1.6 GB, for weaker machines), <code>llama3.2:3b</code> (~2 GB) and
+        <code>aya-expanse:8b</code> (~5 GB, translates noticeably better, wants 8 GB of RAM or more). In the
+        Microsoft Store build the install button only opens <code>ollama.com</code> - a Store app must not download
+        and run an installer.</li>
+        <li><strong>Long selections:</strong> the first 4000 characters are translated, and the window says so.</li>
+      </ul>
+      <p class="note">Worth knowing before you start: the quality is the local model's; the first translation after
+      a cold start takes a while, because the model has to load; and Ollama plus a model are a multi-gigabyte
+      download you make once. The model is held in memory by the Ollama process, not by CyrFlip - the app itself
+      stays within its 50 MB budget.</p>
+    </section>
+
+    <section>
+      <h2>Interface languages</h2>
+      <p>The interface is available in <strong>English, Русский, Українська, Deutsch, Italiano, Español, Français,
+      Português, العربية, हिन्दी, বাংলা, اردو and 中文</strong>. A fresh install follows the Windows display language
+      and falls back to English; Arabic and Urdu are mirrored right-to-left. Translations into languages the author
+      does not speak are machine-made and not proofread - corrections are very welcome on GitHub.</p>
     </section>
 
     <section>

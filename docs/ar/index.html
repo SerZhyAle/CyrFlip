@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CyrFlip — تصحيح النص المكتوب بتخطيط خاطئ على Windows</title>
+  <meta name="description" content="يعرض CyrFlip تخطيط لوحة المفاتيح النشط حيث تكتب، ويصحّح النص المحدّد الذي كُتب بتخطيط خاطئ.">
+  <meta name="theme-color" content="#0a0f0a">
+  <meta property="og:title" content="CyrFlip">
+  <meta property="og:description" content="يعرض CyrFlip تخطيط لوحة المفاتيح النشط حيث تكتب، ويصحّح النص المحدّد الذي كُتب بتخطيط خاطئ.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png">
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/ar/">
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/CyrFlip/ru/">
+  <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/CyrFlip/">
+  <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/CyrFlip/uk/">
+  <link rel="alternate" hreflang="de" href="https://serzhyale.github.io/CyrFlip/de/">
+  <link rel="alternate" hreflang="it" href="https://serzhyale.github.io/CyrFlip/it/">
+  <link rel="alternate" hreflang="es" href="https://serzhyale.github.io/CyrFlip/es/">
+  <link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/CyrFlip/fr/">
+  <link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/CyrFlip/pt/">
+  <link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/CyrFlip/ar/">
+  <link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/CyrFlip/hi/">
+  <link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/CyrFlip/bn/">
+  <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/CyrFlip/ur/">
+  <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/">
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="bg-blobs" aria-hidden="true"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+
+  <header class="site-header">
+    <span class="brand">CyrFlip<span class="dot">.</span></span>
+    <button class="theme-btn" id="themeBtn" aria-label="Switch theme">◐</button>
+    <a class="btn btn-primary btn-sm" href="#get">التثبيت</a>
+  </header>
+
+  <main class="container">
+    <nav class="langbar" aria-label="Language"><a href="../ru/">RU</a><a href="../">EN</a><a href="../uk/">UA</a><a href="../de/">DE</a><a href="../it/">IT</a><a href="../es/">ES</a><a href="../fr/">FR</a><a href="../pt/">PT</a><a aria-current="page" href="./">AR</a><a href="../hi/">HI</a><a href="../bn/">BN</a><a href="../ur/">UR</a><a href="../zh/">ZH</a></nav>
+
+    <section class="hero">
+      <p class="kicker">Windows · أداة في منطقة الإشعارات</p>
+      <h1>صحّح النص المكتوب بتخطيط خاطئ، وشاهد التخطيط النشط قبل أن تبدأ الكتابة.</h1>
+      <p class="lead">يعرض CyrFlip رمز التخطيط النشط بجوار مؤشر الكتابة، ويستبدل النص الخاطئ دون إعادة كتابته.</p>
+    </section>
+
+    <section class="intro"><p>أداة تعمل في الخلفية على Windows: تعرض التخطيط النشط بجوار المؤشر، وتثبّت 13 لغة شائعة، وتنشئ ما تشاء من أزواج التحويل بين التخطيطات التي تختارها.</p></section>
+
+    <div class="demo" aria-label="ghbdtn" dir="ltr"><code>ghbdtn</code><span class="arrow">→ Ctrl+Shift+F12 →</span><code class="out">привет</code></div>
+
+    <section class="get" id="get">
+      <div class="channels">
+        <a class="btn btn-primary" href="https://apps.microsoft.com/detail/9NB4W41NGQJ4">Microsoft Store</a>
+        <a class="btn btn-ghost" href="https://github.com/SerZhyAle/CyrFlip/releases/latest">GitHub Releases</a>
+      </div>
+      <div class="copybox" dir="ltr"><span class="tok">winget</span> install SerZhyAle.CyrFlip<button class="copy" data-copy="winget install SerZhyAle.CyrFlip">نسخ</button></div>
+      <ol class="quickstart"><li>ثبّت من Microsoft Store أو عبر winget، أو استخرج ملف ZIP من GitHub Releases إلى مجلد دائم.</li><li>شغّل <code>CyrFlip.exe</code> وابحث عن أيقونته في منطقة الإشعارات.</li><li>حدّد النص الخاطئ واضغط <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>.</li></ol>
+    </section>
+
+    <section class="section scenarios">
+      <div class="grid scenario-grid"><article class="card"><h3>رؤية التخطيط قبل الكتابة</h3><p>تظهر علامة من حرفين بجوار المؤشر؛ ولكل من اللغات الثلاث عشرة المختارة لون خاص، ويضيف CapsLock إطارًا حولها.</p></article><article class="card"><h3>تصحيح جملة كُتبت بالفعل</h3><p>حدّد نصًا مثل <code>ghbdtn</code> واضغط <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>.</p></article><article class="card"><h3>إصلاح CapsLock بالخطأ</h3><p>حدّد النص وبدّل بين الأحرف الكبيرة والصغيرة باختصار منفصل يمكنك تغييره.</p></article><article class="card"><h3>أزواج تخطيطات على مقاسك</h3><p>جدول تحويلات: أي عدد من الأزواج، لكل زوج اختصاره، ويعمل في الاتجاهين.</p></article><article class="card"><h3>التشغيل السريع</h3><p>اختياري: شغّل برامجك ونصوصك البرمجية وتنزيلات yt-dlp كسيناريوهات من علبة النظام، أو باختصار خاص بها، أو من قائمة الانتقال في شريط المهام. معطّل افتراضيًا.</p></article><article class="card"><h3>ترجمة النص المحدَّد</h3><p>اختياري: حدّد النص واضغط <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F9</kbd>، فتظهر الترجمة في نافذة صغيرة بجوار مؤشر الفأرة وهي تُكتب أولًا بأول؛ وتُضاف لغات الهدف صفوفًا، لكل صف اختصاره. تجري الترجمة على جهازك بواسطة Ollama، وهو برنامج مجاني تثبّته بنفسك مرة واحدة، ولا يُرسَل أي نص إلى أي خدمة سحابية. معطّل افتراضيًا.</p></article></div>
+    </section>
+
+    <section class="section guides">
+      <div class="note"><span class="tag">من المهم معرفته</span><p>يتطلب Windows 10/11 بمعمارية x64. يجري التحويل وفق الموضع الفعلي للمفاتيح، أما نص IME المُركَّب مسبقًا (مثل البينيين الصيني) فيُترك كما هو. وفي بعض الطرفيات والتطبيقات ذات المؤشر الخاص قد لا تظهر العلامة، لكن أيقونة منطقة الإشعارات ومؤشر الفأرة يظلّان يعرضان التخطيط.</p></div>
+      <p>الدليل الكامل وإشعار الخصوصية متاحان بالإنجليزية والروسية والأوكرانية.</p>
+      <div class="channels"><a class="btn btn-ghost" href="../guide.html">الدليل (EN)</a><a class="btn btn-ghost" href="../privacy.html">الخصوصية</a><a class="btn btn-ghost" href="https://github.com/SerZhyAle/CyrFlip">الشيفرة المصدرية</a></div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="container">
+    <div class="footer-bottom"><span>© 2026 Serhii Zhyhunenko · MIT</span><span><a href="https://sza.od.ua">sza.od.ua</a> · <a href="https://github.com/SerZhyAle/CyrFlip">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></span></div>
+  </div></footer>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn'), themeColor=document.querySelector('meta[name="theme-color"]');
+    function themeMeta(){var dark=doc.getAttribute('data-theme')!=='light';themeColor.content=dark?'#0a0f0a':'#eef3ea';}
+    themeBtn.addEventListener('click',function(){var next=doc.getAttribute('data-theme')==='light'?'dark':'light';doc.setAttribute('data-theme',next);try{localStorage.setItem('sza-theme',next);}catch(e){}themeMeta();});themeMeta();
+    document.querySelectorAll('.copy[data-copy]').forEach(function(btn){btn.addEventListener('click',function(){var text=btn.dataset.copy, old=btn.innerHTML;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){btn.textContent='✓';setTimeout(function(){btn.innerHTML=old;},1600);});}});});
+  })();
+  </script>
+</body>
+</html>

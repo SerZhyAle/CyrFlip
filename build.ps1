@@ -1,4 +1,4 @@
-<#
+﻿<#
     CyrFlip local build + deploy  ==  a "СБОРКА" (build) in this project's vocabulary.
 
     A СБОРКА is fully LOCAL and costs no GitHub Actions minutes:

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh" data-lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CyrFlip — 在 Windows 上修正用错误键盘布局输入的文本</title>
+  <meta name="description" content="CyrFlip 在你输入的位置显示当前键盘布局，并修正用错误布局输入的选中文本。">
+  <meta name="theme-color" content="#0a0f0a">
+  <meta property="og:title" content="CyrFlip">
+  <meta property="og:description" content="CyrFlip 在你输入的位置显示当前键盘布局，并修正用错误布局输入的选中文本。">
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png">
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/zh/">
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/CyrFlip/ru/">
+  <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/CyrFlip/">
+  <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/CyrFlip/uk/">
+  <link rel="alternate" hreflang="de" href="https://serzhyale.github.io/CyrFlip/de/">
+  <link rel="alternate" hreflang="it" href="https://serzhyale.github.io/CyrFlip/it/">
+  <link rel="alternate" hreflang="es" href="https://serzhyale.github.io/CyrFlip/es/">
+  <link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/CyrFlip/fr/">
+  <link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/CyrFlip/pt/">
+  <link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/CyrFlip/ar/">
+  <link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/CyrFlip/hi/">
+  <link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/CyrFlip/bn/">
+  <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/CyrFlip/ur/">
+  <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/">
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="bg-blobs" aria-hidden="true"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+
+  <header class="site-header">
+    <span class="brand">CyrFlip<span class="dot">.</span></span>
+    <button class="theme-btn" id="themeBtn" aria-label="Switch theme">◐</button>
+    <a class="btn btn-primary btn-sm" href="#get">安装</a>
+  </header>
+
+  <main class="container">
+    <nav class="langbar" aria-label="Language"><a href="../ru/">RU</a><a href="../">EN</a><a href="../uk/">UA</a><a href="../de/">DE</a><a href="../it/">IT</a><a href="../es/">ES</a><a href="../fr/">FR</a><a href="../pt/">PT</a><a href="../ar/">AR</a><a href="../hi/">HI</a><a href="../bn/">BN</a><a href="../ur/">UR</a><a aria-current="page" href="./">ZH</a></nav>
+
+    <section class="hero">
+      <p class="kicker">Windows · 通知区域小工具</p>
+      <h1>修正用错误布局输入的文本，并在开始输入前就看清当前布局。</h1>
+      <p class="lead">CyrFlip 在文本插入点旁显示当前布局的代码，并直接替换输错的文本，无需重打。</p>
+    </section>
+
+    <section class="intro"><p>这款 Windows 后台小工具会在插入点旁显示当前布局，可一键安装 13 种常用语言，并在你选定的布局之间创建任意多的转换配对。</p></section>
+
+    <div class="demo" aria-label="ghbdtn"><code>ghbdtn</code><span class="arrow">→ Ctrl+Shift+F12 →</span><code class="out">привет</code></div>
+
+    <section class="get" id="get">
+      <div class="channels">
+        <a class="btn btn-primary" href="https://apps.microsoft.com/detail/9NB4W41NGQJ4">Microsoft Store</a>
+        <a class="btn btn-ghost" href="https://github.com/SerZhyAle/CyrFlip/releases/latest">GitHub Releases</a>
+      </div>
+      <div class="copybox"><span class="tok">winget</span> install SerZhyAle.CyrFlip<button class="copy" data-copy="winget install SerZhyAle.CyrFlip">复制</button></div>
+      <ol class="quickstart"><li>从 Microsoft Store 安装、使用 winget 安装，或把 GitHub Releases 的 ZIP 解压到一个固定文件夹。</li><li>运行 <code>CyrFlip.exe</code>，在通知区域找到它的图标。</li><li>选中输错的文本并按 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>。</li></ol>
+    </section>
+
+    <section class="section scenarios">
+      <div class="grid scenario-grid"><article class="card"><h3>输入前先看清布局</h3><p>插入点旁会出现两个字母的标记；13 种精选语言各有自己的颜色，开启 CapsLock 时标记还会加上边框。</p></article><article class="card"><h3>修正已经打好的句子</h3><p>选中形如 <code>ghbdtn</code> 的文本，按 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>。</p></article><article class="card"><h3>修正误按的 CapsLock</h3><p>选中文本，用另一个可自定义的快捷键交换大小写。</p></article><article class="card"><h3>自定义布局配对</h3><p>一张转换表：可添加任意多的配对，每对都有自己的快捷键，并且双向有效。</p></article><article class="card"><h3>快速启动</h3><p>可选：把你的程序、脚本和 yt-dlp 下载做成方案，从托盘、专属快捷键或任务栏跳转列表运行。默认关闭。</p></article><article class="card"><h3>翻译选中的文本</h3><p>可选：选中文本并按 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F9</kbd>，译文会在鼠标指针旁的小窗口里边生成边出现；目标语言可以按行添加，每行有自己的快捷键。翻译由需要你另行安装的免费程序 Ollama 在你自己的电脑上完成，文本不会发送到任何云服务。默认关闭。</p></article></div>
+    </section>
+
+    <section class="section guides">
+      <div class="note"><span class="tag">需要知道</span><p>需要 Windows 10/11 x64。转换按按键的物理位置进行；已经由输入法合成的文本（例如中文拼音）会保持不变。在部分自绘光标的终端和应用中标记可能不出现——此时托盘图标和鼠标光标仍会显示当前布局。</p></div>
+      <p>完整指南和隐私说明提供英语、俄语和乌克兰语版本。</p>
+      <div class="channels"><a class="btn btn-ghost" href="../guide.html">指南（EN）</a><a class="btn btn-ghost" href="../privacy.html">隐私</a><a class="btn btn-ghost" href="https://github.com/SerZhyAle/CyrFlip">源代码</a></div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="container">
+    <div class="footer-bottom"><span>© 2026 Serhii Zhyhunenko · MIT</span><span><a href="https://sza.od.ua">sza.od.ua</a> · <a href="https://github.com/SerZhyAle/CyrFlip">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></span></div>
+  </div></footer>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn'), themeColor=document.querySelector('meta[name="theme-color"]');
+    function themeMeta(){var dark=doc.getAttribute('data-theme')!=='light';themeColor.content=dark?'#0a0f0a':'#eef3ea';}
+    themeBtn.addEventListener('click',function(){var next=doc.getAttribute('data-theme')==='light'?'dark':'light';doc.setAttribute('data-theme',next);try{localStorage.setItem('sza-theme',next);}catch(e){}themeMeta();});themeMeta();
+    document.querySelectorAll('.copy[data-copy]').forEach(function(btn){btn.addEventListener('click',function(){var text=btn.dataset.copy, old=btn.innerHTML;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){btn.textContent='✓';setTimeout(function(){btn.innerHTML=old;},1600);});}});});
+  })();
+  </script>
+</body>
+</html>

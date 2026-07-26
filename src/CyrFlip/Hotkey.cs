@@ -55,10 +55,18 @@ namespace CyrFlip
         }
 
         /// <summary>Parse a hotkey string; falls back to <see cref="Default"/> if it has no usable trigger key.</summary>
-        public static Hotkey Parse(string? text)
+        public static Hotkey Parse(string? text) => TryParse(text, out Hotkey parsed) ? parsed : Default;
+
+        /// <summary>
+        /// Parse without the <see cref="Default"/> fallback: returns false when the text carries no
+        /// trigger key. Used wherever a saved-but-corrupt chord must stay inert instead of quietly
+        /// becoming Ctrl+Shift+F12 (see <see cref="KeyboardHook.UpdateConversionProfiles"/>).
+        /// </summary>
+        public static bool TryParse(string? text, out Hotkey hotkey)
         {
+            hotkey = Default;
             if (string.IsNullOrWhiteSpace(text))
-                return Default;
+                return false;
 
             bool ctrl = false, shift = false, alt = false, win = false;
             int vk = 0;
@@ -89,7 +97,36 @@ namespace CyrFlip
                 }
             }
 
-            return vk == 0 ? Default : new Hotkey(ctrl, shift, alt, win, vk, keyName);
+            if (vk == 0) return false;
+            hotkey = new Hotkey(ctrl, shift, alt, win, vk, keyName);
+            return true;
+        }
+
+        /// <summary>
+        /// Canonical display name for a virtual-key code - the inverse of <see cref="TryParseKey"/>,
+        /// used when a chord arrives as a raw VK rather than as text (see <see cref="LanguageHotkeys"/>,
+        /// which reads Windows' own hotkey records). Unknown codes render as "0xNN" instead of
+        /// vanishing, so an unexpected key is visible in the UI rather than silently dropped.
+        /// </summary>
+        public static string NameForVk(int vk)
+        {
+            if (vk >= 0x41 && vk <= 0x5A) return ((char)vk).ToString();       // A-Z
+            if (vk >= 0x30 && vk <= 0x39) return ((char)vk).ToString();       // 0-9
+            if (vk >= 0x70 && vk <= 0x87) return "F" + (vk - 0x70 + 1);       // F1-F24
+
+            switch (vk)
+            {
+                case 0x20: return "Space";
+                case 0x0D: return "Enter";
+                case 0x09: return "Tab";
+                case 0x1B: return "Esc";
+                case 0x08: return "Backspace";
+                case 0x2E: return "Delete";
+                case 0x2D: return "Insert";
+                case 0x24: return "Home";
+                case 0x23: return "End";
+            }
+            return "0x" + vk.ToString("X2", CultureInfo.InvariantCulture);
         }
 
         private static bool TryParseKey(string tok, out int vk, out string canonical)

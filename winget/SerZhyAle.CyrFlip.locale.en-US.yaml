@@ -10,20 +10,31 @@ PackageUrl: https://github.com/SerZhyAle/CyrFlip
 License: MIT
 LicenseUrl: https://github.com/SerZhyAle/CyrFlip/blob/main/LICENSE
 Copyright: Copyright (c) 2026 SerZhyAle
-ShortDescription: Live EN/RU/UK layout indicator at the caret, plus one-key transliteration between QWERTY and ЙЦУКЕН.
+ShortDescription: Live keyboard-layout indicator at the caret, plus one-key conversion between any two installed layouts.
 Description: >-
-  CyrFlip is a tiny Windows tray utility with two features: it shows the active keyboard
-  layout (EN/RU/UK) right next to the blinking text caret so you always know which layout
-  you are typing in, and it transliterates selected text between QWERTY and ЙЦУКЕН in place
-  via a global hotkey. All settings live in the tray menu: toggle the caret overlay or the
-  cursor indicator, switch to a coloured dot style, or reassign the hotkey without restarting.
-  Ships as a single portable exe with no installer and no runtime dependencies.
+  CyrFlip is a tiny Windows tray utility. It shows the active keyboard layout right next to the
+  blinking text caret - on the mouse I-beam and the tray icon too - so you always know which
+  layout you are typing in, with its own colour for each of the 13 curated languages and a frame
+  when CapsLock is on. A global hotkey transliterates a selection between QWERTY and JCUKEN in
+  place, a second one fixes an accidental CapsLock, and a table of layout pairs adds as many
+  "from layout to layout" conversions as you need, each with its own chord and each working in
+  both directions. A settings window replaces the Windows language pane: install, reorder and
+  remove keyboard layouts, choose the switch chord, and assign per-language shortcuts that
+  Windows itself handles. An optional Quick launch module turns your programs, scripts and yt-dlp
+  downloads into scenarios started from the tray, from a global hotkey of their own, or from the
+  taskbar Jump List. A built-in translator, optional as well, sends a selection to Ollama - a free
+  program you install separately on your own computer - and shows the translation in a small
+  window at the mouse pointer; it stays off until you enable it and by default talks only to
+  localhost, so no text leaves your machine. Extras: an optional DPAPI-encrypted clipboard history
+  with search, two keep-awake switches, and an interface available in 13 languages. Ships as a
+  single portable exe with no installer and no runtime dependencies.
 ReleaseNotes: |-
-  - Search your full clipboard history in a dedicated window and paste any saved fragment.
-  - Enable or disable each hotkey independently (flip / fix-CapsLock / clipboard), with a master switch for all of them.
-  - Optionally yield the hotkeys to a focused Remote Desktop client (mstsc/msrdc) so a CyrFlip inside the remote session handles them.
-  - The clipboard manager window now remembers whether it was open and stays that way on the next launch.
-  - The interface language now follows your Windows language by default.
+  - A built-in translator, optional and off until you switch it on: select text, press your shortcut, and the translation streams into a small window beside the mouse pointer.
+  - It runs on Ollama, a free program you install once on your own computer, so the selected text goes to your machine - not to a cloud service and not to the developer.
+  - Translation directions are an open table: each row is a target language with its own shortcut, and a row can follow your interface language or the layout active in the window you type in.
+  - The result can be copied to the clipboard, where the optional history keeps it, or pasted straight over the selection - both off by default.
+  - The Translation tab installs Ollama, starts it, checks the connection and downloads a model, one press each; recommended models from ~1.6 GB.
+  - In the Microsoft Store build that install button opens ollama.com instead of downloading the installer itself.
 ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
 Moniker: cyrflip
 Tags:

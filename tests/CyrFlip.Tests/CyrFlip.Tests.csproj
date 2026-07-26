@@ -19,4 +19,16 @@
     <ProjectReference Include="..\..\src\CyrFlip\CyrFlip.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- DialogLayoutTests builds the real dialogs to check nothing is clipped; the other tests
+         reach the UI through reflection and need no reference of their own. -->
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Byte-exact OneClickRunner scenario XMLs (Фаза 0) - the launcher migration fixtures. -->
+    <None Update="Fixtures\**\*.xml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>abcdef12-3456-7890-abcd-ef1234567890</Id>
+  <Name>Start Hyper-V VM p7</Name>
+  <Path>powershell.exe</Path>
+  <Arguments>-Command "Start-VM -Name 'p7'"</Arguments>
+  <WorkingDirectory></WorkingDirectory>
+  <Filename>start_hyperv_p7.xml</Filename>
+</AppItem>

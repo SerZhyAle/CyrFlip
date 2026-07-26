@@ -11,40 +11,66 @@ translations (what shoppers read on the product page), which are independent of 
 
 Field limits: Description ≤ 10,000 chars; each Product feature ≤ 200 chars; Short description ≤ 1,000.
 
+The Partner Center export currently carries only the **en-us** and **ru** columns, so the CSV is the
+source for those two; the **Ukrainian** copy below is maintained here and pasted into Partner Center by
+hand until a `uk` column appears in an export.
+
 ---
 
 ## English (en-US)
 
 **Short description**
-> Live EN/RU/UK keyboard-layout indicator right at your text caret, plus one-key transliteration between QWERTY and ЙЦУКЕН.
+> Live keyboard-layout indicator right at your text caret, plus one-key conversion between any two installed layouts.
 
 **Description**
 ```
-CyrFlip is a tiny Windows tray app that shows your active keyboard layout (EN/RU/UK) right where you type, and flips text between layouts with a single key.
+CyrFlip is a tiny Windows tray app that shows your active keyboard layout right where you type, and converts text between layouts with a single key.
 
-Its headline feature is a live layout indicator pinned next to the blinking text caret, so you always know whether you are about to type Latin or Cyrillic - even in browsers and the VS Code chat box, where most indicators can't reach. The same EN/RU/UK marker can also replace the I-beam mouse cursor and is shown on the tray icon.
+Its headline feature is a live layout indicator pinned next to the blinking text caret, so you always know which layout you are about to type in - even in browsers and the VS Code chat box, where most indicators can't reach. The same marker can also replace the I-beam mouse cursor and is shown on the tray icon. Each of the 13 curated languages has its own colour, any other Windows layout still gets its own two-letter code, and CapsLock adds a thin frame around the marker.
 
-Its second feature fixes text typed in the wrong layout: select it, press the hotkey, and CyrFlip transliterates it in place between QWERTY and ЙЦУКЕН - in both directions, and even for mixed text. The hotkey is configurable from the tray without restarting.
+Select text typed in the wrong layout and press the hotkey: CyrFlip transliterates it in place between QWERTY and ЙЦУКЕН, in both directions and even for mixed text. A separate configurable hotkey fixes accidental CapsLock the same way.
 
-It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11.
+Need other languages? Build a table of layout conversions: as many "from layout to layout" pairs as you want, each with its own global shortcut. Text is converted by physical key position, so AZERTY and QWERTZ layouts are handled correctly, and every pair works in both directions - press the same chord again while the pair's other layout is active and the text converts back.
 
-Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform the flip you trigger. Optional clipboard history is off by default; if enabled, it is stored locally with Windows DPAPI encryption and can be paused or cleared at any time. CyrFlip does not log keystrokes or use the network. Open source: https://github.com/SerZhyAle/CyrFlip
+A settings window also replaces the Windows language pane: install, reorder and remove keyboard layouts (nothing is downloaded - they ship with Windows), pick the language-cycle shortcut, and assign direct per-language shortcuts that Windows itself handles, so they keep working even when CyrFlip is closed. Both sections keep a one-time backup of your previous state.
+
+Optional clipboard history is disabled by default. When enabled, it keeps recent Unicode text locally, searchable in its own window; entries can be pinned, deleted, paused, or cleared, and it is protected with Windows DPAPI encryption for the current Windows user.
+
+Quick launch is a second optional module, also off until you enable it. It turns your programs, scripts and yt-dlp downloads into scenarios you can start from the tray submenu, from a global hotkey of their own, or from the taskbar Jump List - even while CyrFlip is not running, if you pin it. Scenarios from the standalone OneClickRunner tool, which this module absorbs, can be imported on the first run without touching the originals.
+
+Every hotkey can be switched on or off independently, CyrFlip can yield them to a focused Remote Desktop client so the copy running inside the remote session handles them instead, and two keep-awake switches stop Windows sleeping or blanking the screen while you work.
+
+The interface is available in 13 languages, right-to-left ones included. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11.
+
+A built-in translator is optional too, and off until you enable it. Select text anywhere in Windows, press its shortcut, and the translation appears in a small window next to the mouse pointer, filling in as the model writes. It runs on Ollama, a free program you install once on your own computer: CyrFlip does not bundle it, has no account and no key, and by default talks only to http://localhost:11434 - your own machine - so no text is sent to the developer or to any cloud service. Directions are an open-ended table, like the layout conversions: every row is a target language with its own global shortcut, and a row can also follow the interface language or the language of the layout active in the window you translate from. The result can be copied to the clipboard, where the optional history records it like any other copy, or pasted straight over the selection - both are off by default. The Translation tab opens the Ollama download page, starts the server, checks the connection and downloads a model: qwen2.5:3b (~2 GB) is the default, gemma2:2b (~1.6 GB) suits weaker machines, and aya-expanse:8b (~5 GB) translates noticeably better on 8 GB of RAM or more. Fair warning: the quality is the local model's, the first translation after a cold start takes a while as the model loads, Ollama and a model are a multi-gigabyte download you make once, and the memory the model uses belongs to the Ollama process, not to CyrFlip. Selections longer than 4000 characters are translated up to that point, and the window says so.
+
+Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform actions you trigger. It does not log keystrokes, and it opens no network connection unless you enable the translator, which talks only to the Ollama server you point it at - your own computer by default. Open source: https://github.com/SerZhyAle/CyrFlip
 ```
 
-**Product features** (one per line)
+**Product features (one per line)**
 ```
-Live EN/RU/UK layout marker next to the text caret - works in browsers and the VS Code chat
-Optional layout-coloured mouse cursor and tray icon
+Live layout marker next to the text caret - works in browsers and the VS Code chat
+13 curated languages, each with its own colour; any other Windows layout gets its code too
 One-key transliteration between QWERTY and ЙЦУКЕН, in place, both directions
-Auto-detects direction per character - also fixes mixed-layout text
-Configurable global hotkey, changeable from the tray without restarting
+A table of layout conversions: any number of pairs, each with its own shortcut, both ways
+Converts by physical key position, so AZERTY and QWERTZ layouts are handled correctly
+Separate hotkey fixes accidental CapsLock (swaps UPPER/lower case)
+Install, reorder and remove Windows keyboard layouts without the Windows language pane
+Per-language switch shortcuts that Windows handles itself, so they work when CyrFlip is closed
+Optional encrypted clipboard history with search, pin, and Windows DPAPI protection
+Optional Quick launch: your programs, scripts and yt-dlp downloads as one-click scenarios
+Start a scenario from the tray, its own global hotkey, or the taskbar Jump List
+Two keep-awake switches: no sleep and no screen blanking while you work
+Interface in 13 languages, right-to-left included; follows your Windows language
 Runs quietly in the tray, low memory, nothing extra to install
-Open source - no telemetry, no network, no data collection
+Optional local translator: a selection is translated by hotkey in a window at the mouse pointer
+Translation runs on Ollama on your own computer - installed separately, off until you enable it
+Open source - no telemetry and no data collection; the only network use is your own Ollama
 ```
 
 **What's new in this version**
 ```
-Added a full-history search window; independent on/off switches for each hotkey plus a master switch; an option to yield the hotkeys to a focused Remote Desktop client (mstsc/msrdc) so a CyrFlip inside the remote session handles them; the clipboard manager window now remembers whether it was open and stays that way on the next launch; and the interface language now follows your Windows language by default.
+A built-in translator, optional and off until you switch it on. Select text anywhere in Windows, press your shortcut, and the translation appears in a small window beside the mouse pointer, filling in as the model writes it. It runs on Ollama - a free program you install once on your own computer - so the selected text goes to your own machine, never to a cloud service and never to the developer. Translation directions are an open table: each row is a target language with its own shortcut, and a row can also follow your interface language or the keyboard layout active in the window you are typing in. The result can be copied to the clipboard, where the optional history keeps it like any other copy, or pasted straight over the selection - both off by default. The Translation tab installs Ollama, starts it, checks the connection and downloads a language model, one press each; in the Microsoft Store version that button opens ollama.com instead.
 ```
 
 ---
@@ -52,35 +78,55 @@ Added a full-history search window; independent on/off switches for each hotkey 
 ## Русский (ru-RU)
 
 **Краткое описание**
-> Живой индикатор раскладки EN/RU/UK прямо у текстового курсора и транслитерация QWERTY⇄ЙЦУКЕН одной клавишей.
+> Живой индикатор раскладки прямо у текстового курсора и конвертация текста между любыми двумя установленными раскладками одной клавишей.
 
 **Описание**
 ```
-CyrFlip — это крошечная утилита в системном трее Windows: она показывает активную раскладку клавиатуры (EN/RU/UK) прямо там, где вы печатаете, и переключает текст между раскладками одной клавишей.
+CyrFlip — крошечная утилита Windows в системном трее: она показывает активную раскладку клавиатуры прямо там, где вы печатаете, и конвертирует текст между раскладками одной клавишей.
 
-Главная функция — живой индикатор раскладки рядом с мигающим текстовым курсором, поэтому вы всегда видите, латиницей или кириллицей набираете сейчас, — даже в браузерах и в окне чата VS Code, куда большинство индикаторов не дотягивается. Тот же значок EN/RU/UK может заменять курсор-«балку» мыши и отображается на иконке в трее.
+Главная функция — живой индикатор раскладки рядом с мигающей текстовой кареткой, поэтому вы заранее видите, какой раскладкой будете печатать, — даже в браузерах и в окне чата VS Code, куда большинство индикаторов не дотягивается. Тот же маркер может заменять текстовый курсор мыши и отображается на значке в трее. У каждого из 13 популярных языков свой цвет, любая другая раскладка Windows тоже получает свой двухбуквенный код, а при включённом CapsLock вокруг маркера появляется тонкая рамка.
 
-Вторая функция исправляет текст, набранный не в той раскладке: выделите его, нажмите горячую клавишу — и CyrFlip транслитерирует его на месте между QWERTY и ЙЦУКЕН, в обе стороны и даже для смешанного текста. Горячая клавиша настраивается прямо из трея, без перезапуска.
+Выделите текст, набранный не в той раскладке, и нажмите горячую клавишу: CyrFlip транслитерирует его на месте между QWERTY и ЙЦУКЕН, в обе стороны и даже для смешанного текста. Отдельная настраиваемая горячая клавиша так же исправляет случайно включённый CapsLock.
 
-Работает в системном трее, потребляет мало памяти и не требует ничего доустанавливать на Windows 10/11.
+Нужны другие языки? Соберите таблицу конвертаций: сколько угодно пар «из раскладки в раскладку», у каждой своя глобальная комбинация. Текст преобразуется по физическим клавишам, поэтому AZERTY и QWERTZ обрабатываются корректно, а каждая пара работает в обе стороны — нажмите ту же комбинацию, когда активна вторая раскладка пары, и текст конвертируется обратно.
 
-Конфиденциальность: CyrFlip использует перехват клавиатуры и буфер обмена только для того, чтобы определить активную раскладку и выполнить запрошенную вами замену. Необязательная история буфера по умолчанию выключена; при включении она хранится только локально и шифруется Windows DPAPI, её можно поставить на паузу или очистить. CyrFlip не ведёт журнал нажатий и не использует сеть. Открытый исходный код: https://github.com/SerZhyAle/CyrFlip
+Окно настроек заменяет и раздел языков Windows: установка, порядок и удаление раскладок (ничего не скачивается — они уже входят в состав Windows), сочетание перебора языков и прямые сочетания на каждый язык, которые обрабатывает сама Windows, поэтому они работают даже при закрытом CyrFlip. Оба раздела один раз сохраняют предыдущее состояние для отката.
+
+Необязательная история буфера обмена по умолчанию выключена. При включении она хранит недавние Unicode-тексты локально, с поиском по всей истории в отдельном окне; записи можно закреплять, удалять, приостанавливать захват или полностью очищать, а сама история защищена шифрованием Windows DPAPI для текущей учётной записи.
+
+«Быстрый запуск» — второй необязательный модуль, тоже выключенный, пока вы его не включите. Он превращает ваши программы, скрипты и загрузки yt-dlp в сценарии, которые запускаются из подменю в трее, по собственной глобальной комбинации или из Jump List панели задач — даже когда CyrFlip не запущен, если закрепить его на панели. Сценарии отдельной программы OneClickRunner, которую этот модуль вобрал в себя, можно перенести при первом включении, не трогая оригиналы.
+
+Каждую горячую клавишу можно включать и выключать независимо, можно уступать их активному клиенту удалённого рабочего стола, чтобы их обрабатывала копия CyrFlip внутри удалённого сеанса, а два переключателя не дают Windows заснуть или погасить экран, пока вы работаете.
+
+Интерфейс доступен на 13 языках, включая языки с письмом справа налево. Работает в системном трее, потребляет мало памяти и не требует ничего доустанавливать на Windows 10/11.
+
+Встроенный переводчик — тоже необязательный модуль, выключенный, пока вы его не включите. Выделите текст в любом приложении Windows, нажмите свою комбинацию — и перевод появится в маленьком окне у курсора мыши, дописываясь по мере того, как его пишет модель. Работает он на Ollama — бесплатной программе, которую вы один раз ставите на свой компьютер: CyrFlip её в себе не несёт, не требует ни учётной записи, ни ключа и по умолчанию обращается только к http://localhost:11434 — то есть к вашей же машине, — поэтому текст не уходит ни разработчику, ни в облако. Направления перевода — открытая таблица, как и конвертации раскладок: в каждой строке язык перевода и своя глобальная комбинация, а строка может следовать за языком интерфейса или за языком раскладки, активной в том окне, откуда вы переводите. Результат можно класть в буфер обмена, где необязательная история запишет его как обычную копию, или сразу вставлять вместо выделения — по умолчанию выключено и то и другое. Вкладка «Перевод» открывает страницу загрузки Ollama, запускает сервер, проверяет связь и загружает модель: по умолчанию qwen2.5:3b (~2 ГБ), для слабых машин gemma2:2b (~1,6 ГБ), а aya-expanse:8b (~5 ГБ) переводит заметно лучше при 8 ГБ ОЗУ и больше. Честные оговорки: качество — это качество локальной модели, первый перевод после холодного старта идёт дольше, пока модель загружается, Ollama вместе с моделью — это многогигабайтная загрузка, которую вы делаете один раз, а память под модель занимает процесс Ollama, а не CyrFlip. Выделение длиннее 4000 знаков переводится до этой границы, и окно об этом сообщает.
+
+Конфиденциальность: CyrFlip использует перехват клавиатуры и буфер обмена только для функций, которые запускаете вы. Не ведёт журнал нажатий и не открывает ни одного сетевого соединения, пока вы не включите перевод, — а тот обращается только к серверу Ollama, который вы указали, по умолчанию к вашему же компьютеру. Открытый исходный код: https://github.com/SerZhyAle/CyrFlip
 ```
 
-**Функции продукта** (по одной в строке)
+**Функции продукта (по одной в строке)**
 ```
-Живой маркер раскладки EN/RU/UK у текстового курсора — работает в браузерах и чате VS Code
-Необязательная замена курсора мыши и иконка в трее в цвете раскладки
+Живой маркер раскладки у текстового курсора — работает в браузерах и чате VS Code
+13 популярных языков, у каждого свой цвет; любая другая раскладка Windows тоже получает код
 Транслитерация одной клавишей между QWERTY и ЙЦУКЕН, на месте, в обе стороны
-Определяет направление по каждому символу — исправляет и смешанный текст
-Настраиваемая глобальная горячая клавиша, меняется из трея без перезапуска
+Таблица конвертаций раскладок: любое число пар, у каждой своя комбинация, в обе стороны
+Преобразование по физическим клавишам — AZERTY и QWERTZ обрабатываются корректно
+Отдельная горячая клавиша исправляет случайный CapsLock (меняет ВЕРХНИЙ/нижний регистр)
+Установка, порядок и удаление раскладок Windows без раздела языков Windows
+Прямые сочетания на язык обрабатывает сама Windows — работают и при закрытом CyrFlip
+Необязательная зашифрованная история буфера: поиск, закрепление, защита Windows DPAPI
+Необязательный «Быстрый запуск»: программы, скрипты и загрузки yt-dlp как сценарии в один клик
+Запуск сценария из трея, по своей глобальной комбинации или из Jump List панели задач
+Два переключателя: не давать компьютеру заснуть и не гасить экран, пока вы работаете
+Интерфейс на 13 языках, включая письмо справа налево; следует за языком Windows
 Тихо работает в трее, мало памяти, ничего доустанавливать не нужно
-Открытый код — без телеметрии, без сети, без сбора данных
+Открытый код — без телеметрии и без сбора данных; в сеть ходит только перевод через ваш Ollama
 ```
 
 **Что нового в этой версии**
 ```
-Добавлено окно поиска по всей истории буфера; отдельные выключатели для каждой горячей клавиши и общий выключатель; возможность уступать хоткеи активному клиенту удалённого рабочего стола (mstsc/msrdc), чтобы их обрабатывал CyrFlip внутри удалённого сеанса; окно менеджера буфера теперь запоминает, было ли оно открыто, и сохраняет это состояние при следующем запуске; а язык интерфейса теперь по умолчанию следует за языком Windows.
+Встроенный переводчик — необязательный модуль, выключенный, пока вы его не включите. Выделите текст где угодно в Windows, нажмите свою комбинацию — рядом с указателем мыши откроется небольшое окно, и перевод будет появляться в нём по мере того, как его пишет модель. Работает это на Ollama — бесплатной программе, которую вы один раз ставите на свой компьютер, поэтому выделенный текст уходит на вашу же машину, а не в облако и не разработчику. Направления перевода — открытая таблица: строка это язык перевода со своей комбинацией, и строка может следовать за языком интерфейса или за раскладкой, активной в том окне, где вы печатаете. Результат можно класть в буфер обмена, где его сохраняет необязательная история, или сразу вставлять вместо выделения — обе опции по умолчанию выключены. На вкладке «Перевод» Ollama устанавливается, запускается, проверяется и получает модель — по одной кнопке на действие; в версии из Microsoft Store эта кнопка открывает сайт ollama.com.
 ```
 
 ---
@@ -88,35 +134,55 @@ CyrFlip — это крошечная утилита в системном тр�
 ## Українська (uk-UA)
 
 **Короткий опис**
-> Живий індикатор розкладки EN/RU/UK просто біля текстового курсора та транслітерація QWERTY⇄ЙЦУКЕН однією клавішею.
+> Живий індикатор розкладки просто біля текстового курсора та перетворення тексту між будь-якими двома встановленими розкладками однією клавішею.
 
 **Опис**
 ```
-CyrFlip — це крихітна утиліта в системному треї Windows: вона показує активну розкладку клавіатури (EN/RU/UK) прямо там, де ви друкуєте, і перемикає текст між розкладками однією клавішею.
+CyrFlip — це крихітна утиліта в системному треї Windows: вона показує активну розкладку клавіатури прямо там, де ви друкуєте, і перетворює текст між розкладками однією клавішею.
 
-Головна функція — живий індикатор розкладки поруч із миготливим текстовим курсором, тож ви завжди бачите, латиницею чи кирилицею друкуєте зараз, — навіть у браузерах і у вікні чату VS Code, куди більшість індикаторів не дотягується. Той самий значок EN/RU/UK може замінювати курсор-«балку» миші та відображається на піктограмі в треї.
+Головна функція — живий індикатор розкладки поруч із миготливим текстовим курсором, тож ви завжди бачите, якою розкладкою друкуєте, — навіть у браузерах і у вікні чату VS Code, куди більшість індикаторів не дотягується. Той самий маркер може замінювати курсор-«балку» миші та відображається на піктограмі в треї. Кожна з 13 популярних мов має власний колір, будь-яка інша розкладка Windows теж отримує свій дволітерний код, а за увімкненого CapsLock навколо маркера з'являється тонка рамка.
 
-Друга функція виправляє текст, набраний не в тій розкладці: виділіть його, натисніть гарячу клавішу — і CyrFlip транслітерує його на місці між QWERTY та ЙЦУКЕН, в обидва боки й навіть для змішаного тексту. Гарячу клавішу можна налаштувати прямо з трея, без перезапуску.
+Виділіть текст, набраний не в тій розкладці, і натисніть гарячу клавішу: CyrFlip транслітерує його на місці між QWERTY та ЙЦУКЕН, в обидва боки й навіть для змішаного тексту. Окрема налаштовувана гаряча клавіша так само виправляє випадково увімкнений CapsLock.
 
-Працює в системному треї, споживає мало пам'яті й не потребує нічого додатково встановлювати на Windows 10/11.
+Потрібні інші мови? Складіть таблицю перетворень: скільки завгодно пар «з розкладки в розкладку», кожна зі своїм глобальним сполученням. Текст перетворюється за фізичними клавішами, тому AZERTY та QWERTZ обробляються коректно, а кожна пара працює в обидва боки — натисніть те саме сполучення, коли активна друга розкладка пари, і текст перетвориться назад.
 
-Конфіденційність: CyrFlip використовує перехоплення клавіатури та буфер обміну лише для того, щоб визначити активну розкладку й виконати запитану вами заміну. Необов'язкова історія буфера типово вимкнена; після ввімкнення вона зберігається лише локально й шифрується Windows DPAPI, її можна призупинити або очистити. CyrFlip не веде журнал натискань і не використовує мережу. Відкритий вихідний код: https://github.com/SerZhyAle/CyrFlip
+Вікно налаштувань замінює й розділ мов Windows: встановлення, порядок і видалення розкладок (нічого не завантажується — вони вже входять до складу Windows), сполучення перебору мов і прямі сполучення на кожну мову, які обробляє сама Windows, тому вони працюють навіть за закритого CyrFlip. Обидва розділи один раз зберігають попередній стан для відкату.
+
+Необов'язкова історія буфера обміну типово вимкнена. Після ввімкнення вона зберігає недавні Unicode-тексти лише локально, з пошуком в окремому вікні; записи можна закріплювати, видаляти, призупиняти захоплення або повністю очищати, а сама історія захищена шифруванням Windows DPAPI для поточного облікового запису.
+
+«Швидкий запуск» — другий необов'язковий модуль, теж вимкнений, доки ви його не ввімкнете. Він перетворює ваші програми, скрипти та завантаження yt-dlp на сценарії, які запускаються з підменю в треї, за власним глобальним сполученням або з Jump List панелі завдань — навіть коли CyrFlip не запущено, якщо закріпити його на панелі. Сценарії окремої програми OneClickRunner, яку цей модуль увібрав у себе, можна перенести під час першого ввімкнення, не чіпаючи оригінали.
+
+Кожну гарячу клавішу можна вмикати й вимикати окремо, можна поступатися ними активному клієнту віддаленого робочого столу, щоб їх обробляла копія CyrFlip у віддаленому сеансі, а два перемикачі не дають Windows заснути чи погасити екран, поки ви працюєте.
+
+Інтерфейс доступний 13 мовами, зокрема з письмом справа наліво. Працює в системному треї, споживає мало пам'яті й не потребує нічого додатково встановлювати на Windows 10/11.
+
+Вбудований перекладач — теж необов'язковий модуль, вимкнений, доки ви його не ввімкнете. Виділіть текст у будь-якій програмі Windows, натисніть своє сполучення — і переклад з'явиться в невеликому вікні біля вказівника миші, заповнюючись у міру того, як його пише модель. Працює це на Ollama, безкоштовній програмі, яку ви один раз встановлюєте на власний комп'ютер, тому виділений текст іде на вашу ж машину, а не в хмару. Напрямки перекладу — відкрита таблиця, кожен рядок зі своїм сполученням; результат за бажанням потрапляє в буфер обміну або одразу замінює виділення. Типово вимкнено.
+
+Конфіденційність: CyrFlip використовує перехоплення клавіатури та буфер обміну лише для функцій, які запускаєте ви. Не веде журнал натискань і не відкриває жодного мережевого з'єднання, доки ви не ввімкнете переклад, — а той звертається лише до сервера Ollama, який ви вказали, типово до вашого ж комп'ютера. Відкритий вихідний код: https://github.com/SerZhyAle/CyrFlip
 ```
 
-**Функції продукту** (по одній у рядку)
+**Функції продукту (по одній у рядку)**
 ```
-Живий маркер розкладки EN/RU/UK біля текстового курсора — працює в браузерах і чаті VS Code
-Необов'язкова заміна курсора миші та піктограма в треї в кольорі розкладки
+Живий маркер розкладки біля текстового курсора — працює в браузерах і чаті VS Code
+13 популярних мов, кожна зі своїм кольором; будь-яка інша розкладка Windows теж отримує код
 Транслітерація однією клавішею між QWERTY та ЙЦУКЕН, на місці, в обидва боки
-Визначає напрямок за кожним символом — виправляє й змішаний текст
-Налаштовувана глобальна гаряча клавіша, змінюється з трея без перезапуску
+Таблиця перетворень розкладок: будь-яка кількість пар, кожна зі своїм сполученням, в обидва боки
+Перетворення за фізичними клавішами — AZERTY та QWERTZ обробляються коректно
+Окрема гаряча клавіша виправляє випадковий CapsLock (міняє ВЕРХНІЙ/нижній регістр)
+Встановлення, порядок і видалення розкладок Windows без розділу мов Windows
+Прямі сполучення на мову обробляє сама Windows — працюють і за закритого CyrFlip
+Необов'язкова зашифрована історія буфера: пошук, закріплення, захист Windows DPAPI
+Необов'язковий «Швидкий запуск»: програми, скрипти та завантаження yt-dlp як сценарії в один клік
+Запуск сценарію з трея, за своїм глобальним сполученням або з Jump List панелі завдань
+Два перемикачі: не давати комп'ютеру заснути й не гасити екран, поки ви працюєте
+Інтерфейс 13 мовами, зокрема з письмом справа наліво; слідує за мовою Windows
 Тихо працює в треї, мало пам'яті, нічого додатково встановлювати не потрібно
-Відкритий код — без телеметрії, без мережі, без збору даних
+Відкритий код — без телеметрії та збору даних; у мережу ходить лише переклад через ваш Ollama
 ```
 
 **Що нового в цій версії**
 ```
-Додано вікно пошуку по всій історії буфера; окремі вимикачі для кожної гарячої клавіші та загальний вимикач; можливість поступатися хоткеями активному клієнту віддаленого робочого столу (mstsc/msrdc), щоб їх обробляв CyrFlip у віддаленому сеансі; вікно менеджера буфера тепер запам'ятовує, чи було воно відкрите, і зберігає цей стан під час наступного запуску; а мова інтерфейсу тепер за замовчуванням відповідає мові Windows.
+Вбудований перекладач — необов'язковий модуль, вимкнений, доки ви його не ввімкнете. Виділіть текст будь-де у Windows, натисніть своє сполучення — біля вказівника миші відкриється невелике вікно, і переклад з'являтиметься в ньому в міру того, як його пише модель. Працює це на Ollama — безкоштовній програмі, яку ви один раз встановлюєте на власний комп'ютер, тому виділений текст іде на вашу ж машину, а не в хмару й не розробникові. Напрямки перекладу — відкрита таблиця: рядок це мова перекладу з власним сполученням, і рядок може стежити за мовою інтерфейсу або за розкладкою, активною у вікні, де ви друкуєте. Результат можна класти в буфер обміну, де його зберігає необов'язкова історія, або одразу вставляти замість виділення — обидві опції типово вимкнені. На вкладці «Переклад» Ollama встановлюється, запускається, перевіряється й отримує модель — по одній кнопці на дію; у версії з Microsoft Store ця кнопка відкриває сайт ollama.com.
 ```
 
 ---
@@ -128,7 +194,7 @@ CyrFlip is a full-trust Win32 desktop app (.NET Framework / WinForms), not a UWP
 - A low-level keyboard hook (WH_KEYBOARD_LL) detects the configurable hotkey that triggers the in-place transliteration. It only matches the chord; it does not log or store keystrokes.
 - The clipboard (with SendInput copy/paste) reads the current selection and writes back the transliterated text for the flip the user explicitly triggers.
 - SetSystemCursor / UI Automation / IAccessible2 read the caret position to draw the layout indicator next to it.
-These APIs are available only to full-trust desktop apps. The app runs entirely locally, makes no network connections, and collects no user data. Open source: https://github.com/SerZhyAle/CyrFlip
+These APIs are available only to full-trust desktop apps. The app runs locally and collects no user data; it opens a network connection only when the user enables the optional translator, and then only to the Ollama address they configured (their own computer by default). Open source: https://github.com/SerZhyAle/CyrFlip
 ```
 
 ---

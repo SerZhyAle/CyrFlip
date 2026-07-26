@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>f47ac10b-58cc-4372-a567-0e02b2c3d479</Id>
+  <Name>Resume Hyper-V VM P7</Name>
+  <Path>powershell.exe</Path>
+  <Arguments>-NoProfile -Command "Resume-VM -Name P7 -Confirm:$false; Start-VM -Name P7 -Confirm:$false; Write-Host 'VM P7 started'"</Arguments>
+  <WorkingDirectory></WorkingDirectory>
+  <Filename>resume_hyperv_p7.xml</Filename>
+</AppItem>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>a5e2b8c1-7f3d-4a2e-9c1b-5d8e3f2a4b6c</Id>
+  <Name>Hibernate Hyper-V VM P7</Name>
+  <Path>powershell.exe</Path>
+  <Arguments>-NoProfile -Command "Save-VM -Name P7 -Confirm:$false; Write-Host 'VM P7 hibernated (saved)'"</Arguments>
+  <WorkingDirectory></WorkingDirectory>
+  <Filename>save_hyperv_p7.xml</Filename>
+</AppItem>

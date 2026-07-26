@@ -228,7 +228,9 @@ namespace CyrFlip
             if (p == IntPtr.Zero) return null;
             object o = Marshal.GetObjectForIUnknown(p);
             Marshal.Release(p);
-            return o as T;
+            if (o is T typed) return typed;
+            Release(o); // not the interface we asked for - release it now, don't wait for the finalizer
+            return null;
         }
 
         private static void Release(object? rcw)

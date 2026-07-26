@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="it" data-lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CyrFlip — correggere il testo digitato con il layout sbagliato su Windows</title>
+  <meta name="description" content="CyrFlip mostra il layout di tastiera attivo dove stai scrivendo e corregge il testo selezionato digitato con il layout sbagliato.">
+  <meta name="theme-color" content="#0a0f0a">
+  <meta property="og:title" content="CyrFlip">
+  <meta property="og:description" content="CyrFlip mostra il layout di tastiera attivo dove stai scrivendo e corregge il testo selezionato digitato con il layout sbagliato.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png">
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/it/">
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/CyrFlip/ru/">
+  <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/CyrFlip/">
+  <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/CyrFlip/uk/">
+  <link rel="alternate" hreflang="de" href="https://serzhyale.github.io/CyrFlip/de/">
+  <link rel="alternate" hreflang="it" href="https://serzhyale.github.io/CyrFlip/it/">
+  <link rel="alternate" hreflang="es" href="https://serzhyale.github.io/CyrFlip/es/">
+  <link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/CyrFlip/fr/">
+  <link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/CyrFlip/pt/">
+  <link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/CyrFlip/ar/">
+  <link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/CyrFlip/hi/">
+  <link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/CyrFlip/bn/">
+  <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/CyrFlip/ur/">
+  <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/">
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="bg-blobs" aria-hidden="true"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+
+  <header class="site-header">
+    <span class="brand">CyrFlip<span class="dot">.</span></span>
+    <button class="theme-btn" id="themeBtn" aria-label="Switch theme">◐</button>
+    <a class="btn btn-primary btn-sm" href="#get">Installa</a>
+  </header>
+
+  <main class="container">
+    <nav class="langbar" aria-label="Language"><a href="../ru/">RU</a><a href="../">EN</a><a href="../uk/">UA</a><a href="../de/">DE</a><a aria-current="page" href="./">IT</a><a href="../es/">ES</a><a href="../fr/">FR</a><a href="../pt/">PT</a><a href="../ar/">AR</a><a href="../hi/">HI</a><a href="../bn/">BN</a><a href="../ur/">UR</a><a href="../zh/">ZH</a></nav>
+
+    <section class="hero">
+      <p class="kicker">Windows · utilità nell'area di notifica</p>
+      <h1>Correggi il testo digitato con il layout sbagliato e vedi quello attivo prima di scrivere.</h1>
+      <p class="lead">CyrFlip mostra il codice del layout attivo accanto al cursore di testo e sostituisce il testo sbagliato senza riscriverlo.</p>
+    </section>
+
+    <section class="intro"><p>Questa utilità in background per Windows mostra il layout attivo accanto al cursore, installa 13 lingue diffuse e crea quante coppie di conversione vuoi fra i layout che scegli.</p></section>
+
+    <div class="demo" aria-label="ghbdtn"><code>ghbdtn</code><span class="arrow">→ Ctrl+Shift+F12 →</span><code class="out">привет</code></div>
+
+    <section class="get" id="get">
+      <div class="channels">
+        <a class="btn btn-primary" href="https://apps.microsoft.com/detail/9NB4W41NGQJ4">Microsoft Store</a>
+        <a class="btn btn-ghost" href="https://github.com/SerZhyAle/CyrFlip/releases/latest">GitHub Releases</a>
+      </div>
+      <div class="copybox"><span class="tok">winget</span> install SerZhyAle.CyrFlip<button class="copy" data-copy="winget install SerZhyAle.CyrFlip">Copia</button></div>
+      <ol class="quickstart"><li>Installa dal Microsoft Store, con winget, oppure estrai lo ZIP da GitHub Releases in una cartella permanente.</li><li>Avvia <code>CyrFlip.exe</code> e cerca la sua icona nell'area di notifica.</li><li>Seleziona il testo sbagliato e premi <kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>F12</kbd>.</li></ol>
+    </section>
+
+    <section class="section scenarios">
+      <div class="grid scenario-grid"><article class="card"><h3>Vedere il layout prima di scrivere</h3><p>Un indicatore di due lettere compare accanto al cursore; le 13 lingue curate hanno colori distinti e CapsLock aggiunge una cornice.</p></article><article class="card"><h3>Correggere una frase già scritta</h3><p>Seleziona un testo come <code>ghbdtn</code> e premi <kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>F12</kbd>.</p></article><article class="card"><h3>Sistemare un CapsLock accidentale</h3><p>Seleziona il testo e inverti MAIUSCOLE/minuscole con una scorciatoia dedicata e configurabile.</p></article><article class="card"><h3>Coppie di layout personalizzate</h3><p>Una tabella di conversioni: quante coppie vuoi, ognuna con la propria scorciatoia e attiva nei due sensi.</p></article><article class="card"><h3>Avvio rapido</h3><p>Opzionale: avvia programmi, script e download yt-dlp come scenari dall'area di notifica, con una scorciatoia dedicata o dalla Jump List della barra delle applicazioni. Disattivato per impostazione predefinita.</p></article><article class="card"><h3>Tradurre la selezione</h3><p>Opzionale: seleziona un testo e premi <kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>F9</kbd>; la traduzione compare in una finestrella accanto al puntatore e si riempie man mano che viene scritta. Funziona con Ollama, che installi a parte sul tuo computer; disattivato per impostazione predefinita.</p></article></div>
+    </section>
+
+    <section class="section guides">
+      <div class="note"><span class="tag">Da sapere</span><p>Serve Windows 10/11 x64. La conversione segue la posizione fisica dei tasti; il testo IME già composto (come il Pinyin cinese) resta invariato. In alcuni terminali e app con cursore proprio l'indicatore può non comparire: l'icona nell'area di notifica e il cursore del mouse mostrano comunque il layout.</p></div>
+      <p>La guida completa e l'informativa sulla privacy sono disponibili in inglese, russo e ucraino.</p>
+      <div class="channels"><a class="btn btn-ghost" href="../guide.html">Guida (EN)</a><a class="btn btn-ghost" href="../privacy.html">Privacy</a><a class="btn btn-ghost" href="https://github.com/SerZhyAle/CyrFlip">Codice sorgente</a></div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="container">
+    <div class="footer-bottom"><span>© 2026 Serhii Zhyhunenko · MIT</span><span><a href="https://sza.od.ua">sza.od.ua</a> · <a href="https://github.com/SerZhyAle/CyrFlip">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></span></div>
+  </div></footer>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn'), themeColor=document.querySelector('meta[name="theme-color"]');
+    function themeMeta(){var dark=doc.getAttribute('data-theme')!=='light';themeColor.content=dark?'#0a0f0a':'#eef3ea';}
+    themeBtn.addEventListener('click',function(){var next=doc.getAttribute('data-theme')==='light'?'dark':'light';doc.setAttribute('data-theme',next);try{localStorage.setItem('sza-theme',next);}catch(e){}themeMeta();});themeMeta();
+    document.querySelectorAll('.copy[data-copy]').forEach(function(btn){btn.addEventListener('click',function(){var text=btn.dataset.copy, old=btn.innerHTML;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){btn.textContent='✓';setTimeout(function(){btn.innerHTML=old;},1600);});}});});
+  })();
+  </script>
+</body>
+</html>

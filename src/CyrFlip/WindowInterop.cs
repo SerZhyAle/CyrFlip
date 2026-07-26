@@ -62,6 +62,9 @@ namespace CyrFlip
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
+        [DllImport("user32.dll")]
+        public static extern bool IsWindow(IntPtr hWnd);
+
         // ---- Process identity of the foreground window (RemoteDesktop.cs) ----
         public const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
 
@@ -96,6 +99,45 @@ namespace CyrFlip
 
         [DllImport("user32.dll")]
         public static extern uint GetKeyboardLayoutList(int nBuff, [Out] IntPtr[]? lpList);
+
+        // ---- Installing / removing keyboard layouts (InputLayouts.cs) ----
+        // These are the documented APIs for loading and unloading a keyboard layout at runtime; the
+        // persisted list lives in the registry (see InputLayouts). KLID is an 8-hex-digit string.
+        public const uint KLF_ACTIVATE = 0x00000001;
+        public const uint KLF_SUBSTITUTE_OK = 0x00000002;
+        public const uint KLF_REORDER = 0x00000008;
+        public const uint KLF_SETFORPROCESS = 0x00000100;
+        public const uint KLF_NOTELLSHELL = 0x00000080;
+        public const uint MAPVK_VK_TO_VSC = 0;
+        public const uint MAPVK_VSC_TO_VK = 1;
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool UnloadKeyboardLayout(IntPtr hkl);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr ActivateKeyboardLayout(IntPtr hkl, uint Flags);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        public static extern short VkKeyScanEx(char ch, IntPtr dwhkl);
+
+        [DllImport("user32.dll")]
+        public static extern uint MapVirtualKeyEx(uint uCode, uint uMapType, IntPtr dwhkl);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        public static extern int ToUnicodeEx(uint wVirtKey, uint wScanCode, byte[] lpKeyState,
+            System.Text.StringBuilder pwszBuff, int cchBuff, uint wFlags, IntPtr dwhkl);
+
+        // Resolves an "@file.dll,-123" indirect string to the localized display name of a layout.
+        [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+        public static extern int SHLoadIndirectString(string pszSource, System.Text.StringBuilder pszOutBuf, int cchOutBuf, IntPtr ppvReserved);
+
+        // LANGID -> BCP-47 tag ("ru-RU", "uk-UA"), used to name the modern per-language profile subkey.
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        public static extern int LCIDToLocaleName(uint Locale, System.Text.StringBuilder? lpName, int cchName, uint dwFlags);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
@@ -269,9 +311,32 @@ namespace CyrFlip
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
+        // ---- Taskbar anchor window (LauncherTaskbarWindow.cs) ----
+        // A drop-down only closes on the first outside click when its owner is the foreground
+        // window - the same rule tray menus have always had.
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+
         // ---- Cursor-refresh nudge (LayoutCursor.cs) ----
         public const uint INPUT_MOUSE = 0;
         public const uint MOUSEEVENTF_MOVE = 0x0001;
+
+        // ---- Keep-awake: don't sleep / don't blank the screen (KeepAwake.cs) ----
+        // One documented call, no registry, no admin rights. ES_CONTINUOUS makes the request
+        // "sticky" (one call per change, no polling loop); the request is bound to the calling
+        // thread, so it must be driven from a long-lived thread (the tray UI thread) - which also
+        // means a hard TerminateProcess clears it for free.
+        [Flags]
+        public enum EXECUTION_STATE : uint
+        {
+            ES_CONTINUOUS = 0x80000000,       // keep the request in effect until the next call
+            ES_SYSTEM_REQUIRED = 0x00000001,  // don't let the system sleep
+            ES_DISPLAY_REQUIRED = 0x00000002, // don't let the display turn off (video-player mode)
+        }
+
+        [DllImport("kernel32.dll")]
+        public static extern EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags);
 
         // ---- MSIX package identity (PackageInfo.cs) ----
         // Returned by GetCurrentPackageFullName when the process has no package identity

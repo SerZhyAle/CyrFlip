@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -26,6 +27,14 @@ namespace CyrFlip
         private const int HtBottom = 15;
         private const int HtBottomLeft = 16;
         private const int HtBottomRight = 17;
+        // Shared, never disposed: a StringFormat wraps a native GDI+ object, and every one of these
+        // used to be built inside the paint path - StringFormat.GenericTypographic in particular
+        // allocates a fresh one on each *property read*, and CountThatFits reads it once per step of
+        // its binary search. They hold no per-window state, so one instance each serves every paint.
+        private static readonly StringFormat Typographic = (StringFormat)StringFormat.GenericTypographic.Clone();
+        private static readonly StringFormat SingleLineFormat = new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
+        private static readonly StringFormat BodyFormat = new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.LineLimit };
+        private static readonly StringFormat SourceFormat = new StringFormat { Alignment = StringAlignment.Far, Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
         private readonly ClipboardHistoryService _service;
         private readonly AppConfig _config;
         private readonly Action _openSearch;
@@ -35,7 +44,7 @@ namespace CyrFlip
         public ClipboardHistoryWindow(ClipboardHistoryService service, AppConfig config, Action openSearch)
         {
             _service = service; _config = config; _openSearch = openSearch;
-            Text = "Менеджер буфера"; TopMost = true; ShowInTaskbar = false;
+            Text = Localization.Translate(config.UiLanguage, "Менеджер буфера"); TopMost = true; ShowInTaskbar = false;
             // WinForms otherwise paints a second, native title bar above our owner-drawn header.
             FormBorderStyle = FormBorderStyle.None; StartPosition = FormStartPosition.Manual;
             MinimumSize = new Size(100, HeaderHeight + 3 * CellHeight);
@@ -62,6 +71,13 @@ namespace CyrFlip
 
         public void ApplyOpacity() => Opacity = Math.Max(30, Math.Min(100, _config.ClipboardHistoryOpacity)) / 100.0;
         public void RefreshHeader() => Invalidate(new Rectangle(0, 0, ClientSize.Width, HeaderHeight));
+
+        /// <summary>Re-reads the UI language for the title and the owner-painted header, with no restart.</summary>
+        public void ApplyLanguage()
+        {
+            Text = Localization.Translate(_config.UiLanguage, "Менеджер буфера");
+            RefreshHeader();
+        }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -107,7 +123,11 @@ namespace CyrFlip
             using var hotkeyFont = new Font(Font.FontFamily, 7);
             using var headerForeground = new SolidBrush(dark ? Color.LightSkyBlue : Color.MidnightBlue);
             using var hotkeyBrush = new SolidBrush(dark ? Color.Gray : Color.DimGray);
-            string caption = "Менеджер буфера (" + _service.Entries.Count + ")";
+            // Read the language on every paint: the header follows a settings change with no restart.
+            // One Entries read per paint: the list is cached by the service, but the local keeps this
+            // paint consistent (the caption count and the cells can't disagree).
+            IReadOnlyList<ClipboardHistoryEntry> entries = _service.Entries;
+            string caption = Localization.Translate(_config.UiLanguage, "Менеджер буфера") + " (" + entries.Count + ")";
             using var iconPen = new Pen(dark ? Color.Gainsboro : SystemColors.ControlText, 1.5f);
             // Keep the two actions before the caption: they remain reachable at every allowed width.
             e.Graphics.DrawEllipse(iconPen, SearchButtonLeft, 13, 10, 10);
@@ -117,8 +137,8 @@ namespace CyrFlip
             float captionWidth = e.Graphics.MeasureString(caption, title).Width;
             e.Graphics.DrawString(_config.ClipboardHistoryHotkey, hotkeyFont, hotkeyBrush,
                 new RectangleF(HeaderTextLeft + captionWidth + 4, 10, Math.Max(1, ClientSize.Width - HeaderTextLeft - captionWidth - 4), 20),
-                new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap });
-            var items = _service.Entries.Take(Math.Max(3, (ClientSize.Height - HeaderHeight) / CellHeight)).ToList();
+                SingleLineFormat);
+            var items = entries.Take(Math.Max(3, (ClientSize.Height - HeaderHeight) / CellHeight)).ToList();
             for (int i = 0; i < items.Count; i++) DrawCell(e.Graphics, items[i], i, new Rectangle(0, HeaderHeight + i * CellHeight, ClientSize.Width, CellHeight), dark);
         }
 
@@ -143,11 +163,10 @@ namespace CyrFlip
             using var timeBrush = new SolidBrush(Color.Gold);
             int textRight = r.Right - CellButtonWidth - 3;
             const float firstLineTopOffset = 4;
-            using var typographic = (StringFormat)StringFormat.GenericTypographic.Clone();
-            SizeF anchorSize = g.MeasureString(anchor, big, PointF.Empty, typographic);
+            SizeF anchorSize = g.MeasureString(anchor, big, PointF.Empty, Typographic);
             // Draw both parts against one baseline. A layout rectangle gives GDI+ extra leading
             // and was clipping the small continuation on some DPI/font combinations.
-            g.DrawString(anchor, big, anchorBrush, new PointF(6, r.Y + firstLineTopOffset), typographic);
+            g.DrawString(anchor, big, anchorBrush, new PointF(6, r.Y + firstLineTopOffset), Typographic);
             float restLeft = Math.Min(textRight, 6 + anchorSize.Width);
             int firstLineCount = CountThatFits(g, rest, small, textRight - restLeft);
             string firstLineRest = firstLineCount == 0 ? "" : rest.Substring(0, firstLineCount);
@@ -155,20 +174,18 @@ namespace CyrFlip
             float smallTop = r.Y + firstLineTopOffset + big.GetHeight(g) - small.GetHeight(g);
             var clip = g.Save();
             g.SetClip(new RectangleF(restLeft, r.Y, Math.Max(1, textRight - restLeft), r.Height));
-            g.DrawString(firstLineRest, small, restBrush, new PointF(restLeft, smallTop), typographic);
+            g.DrawString(firstLineRest, small, restBrush, new PointF(restLeft, smallTop), Typographic);
             g.Restore(clip);
-            using var bodyFormat = new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.LineLimit };
             float bodyTop = r.Y + firstLineTopOffset + big.GetHeight(g) + 2;
-            g.DrawString(remainingRest, small, restBrush, new RectangleF(6, bodyTop, textRight - 6, r.Bottom - 24 - bodyTop), bodyFormat);
+            g.DrawString(remainingRest, small, restBrush, new RectangleF(6, bodyTop, textRight - 6, r.Bottom - 24 - bodyTop), BodyFormat);
             DrawPin(g, r.Right - 18, r.Y + 13, entry.IsPinned);
             g.DrawString("×", buttons, anchorBrush, r.Right - 23, r.Bottom - 29);
             g.DrawString(entry.CreatedAt.ToLocalTime().ToString("MM-dd:HH:mm"), small, timeBrush, 6, r.Bottom - 19);
             if (entry.SourceApp.Length > 0)
             {
                 using var sourceBrush = new SolidBrush(dark ? Color.MediumAquamarine : Color.SeaGreen);
-                using var sourceFormat = new StringFormat { Alignment = StringAlignment.Far, Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
                 float timeWidth = g.MeasureString("MM-dd:HH:mm", small).Width + 12;
-                g.DrawString(entry.SourceApp, small, sourceBrush, new RectangleF(6 + timeWidth, r.Bottom - 19, r.Right - 28 - (6 + timeWidth), 16), sourceFormat);
+                g.DrawString(entry.SourceApp, small, sourceBrush, new RectangleF(6 + timeWidth, r.Bottom - 19, r.Right - 28 - (6 + timeWidth), 16), SourceFormat);
             }
         }
 
@@ -211,7 +228,7 @@ namespace CyrFlip
             while (low < high)
             {
                 int middle = (low + high + 1) / 2;
-                if (g.MeasureString(text.Substring(0, middle), font, PointF.Empty, StringFormat.GenericTypographic).Width <= width) low = middle;
+                if (g.MeasureString(text.Substring(0, middle), font, PointF.Empty, Typographic).Width <= width) low = middle;
                 else high = middle - 1;
             }
             return low;

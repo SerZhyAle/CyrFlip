@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>c7d3a9e2-4b5f-6c8d-9e1f-2a3b4c5d6e7f</Id>
+  <Name>RDP Connect P7</Name>
+  <Path>mstsc.exe</Path>
+  <Arguments>"C:\Users\serzh\Documents\p7.rdp"</Arguments>
+  <WorkingDirectory></WorkingDirectory>
+  <Filename>rdp_p7.xml</Filename>
+</AppItem>

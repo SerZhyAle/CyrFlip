@@ -25,6 +25,8 @@ stage/
 
 # Local scratch
 temp/
+# UI-test output (tools/uitest screenshots) - throwaway by design
+artifacts/
 
 # NuGet
 *.nupkg

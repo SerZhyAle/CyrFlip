@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -14,33 +14,40 @@ namespace CyrFlip
         private readonly ListView _results = new ListView { Dock = DockStyle.Fill, FullRowSelect = true, HideSelection = false, MultiSelect = false, View = View.Details };
         private readonly Button _restore = new Button { AutoSize = true };
         private readonly string _language;
+        // This window is built fresh on every search, and a Form disposes neither the font nor the icon
+        // it was handed - only the small copy it derives from the icon itself. Both are ours to free.
+        private readonly Font? _ownFont;
+        private readonly System.Drawing.Icon? _ownIcon;
 
         public ClipboardHistorySearchWindow(ClipboardHistoryService service, string language)
         {
             _service = service;
             _language = language;
-            Text = Localize("Поиск по истории", "Search history", "Пошук в історії");
+            Text = Localize("Поиск по истории");
             StartPosition = FormStartPosition.CenterScreen;
             Size = new Size(760, 500);
             MinimumSize = new Size(500, 320);
+            if (Localization.IsRightToLeft(language)) { RightToLeft = RightToLeft.Yes; RightToLeftLayout = true; }
+            string? family = Localization.FontFamily(language);
+            if (family != null) { try { Font = _ownFont = new Font(family, SystemFonts.MessageBoxFont.SizeInPoints); } catch { } }
             // The manager strip is always topmost. Keep its search dialog above that strip so
             // Windows does not keep alternating the two topmost surfaces while it activates it.
             TopMost = true;
-            try { Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
+            try { Icon = _ownIcon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
 
             var top = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 1, Padding = new Padding(12, 12, 12, 4) };
-            top.Controls.Add(new Label { Text = Localize("Введите не менее 3 символов:", "Enter at least 3 characters:", "Введіть щонайменше 3 символи:"), AutoSize = true }, 0, 0);
+            top.Controls.Add(new Label { Text = Localize("Введите не менее 3 символов:"), AutoSize = true }, 0, 0);
             top.Controls.Add(_query, 0, 1);
             top.Controls.Add(_hint, 0, 2);
             Controls.Add(_results);
             Controls.Add(top);
 
-            _results.Columns.Add(Localize("Текст", "Text", "Текст"), 420);
-            _results.Columns.Add(Localize("Дата", "Date", "Дата"), 135);
-            _results.Columns.Add(Localize("Источник", "Source", "Джерело"), 120);
+            _results.Columns.Add(Localize("Текст"), 420);
+            _results.Columns.Add(Localize("Дата"), 135);
+            _results.Columns.Add(Localize("Источник"), 120);
             var bottom = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 48, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(8) };
-            var close = new Button { Text = Localize("Закрыть", "Close", "Закрити"), AutoSize = true };
-            _restore.Text = Localize("Вернуть в буфер", "Restore to clipboard", "Повернути в буфер");
+            var close = new Button { Text = Localize("Закрыть"), AutoSize = true };
+            _restore.Text = Localize("Вернуть в буфер");
             _restore.Enabled = false;
             bottom.Controls.Add(close);
             bottom.Controls.Add(_restore);
@@ -57,6 +64,16 @@ namespace CyrFlip
             RefreshResults();
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing); // the control tree first: it is still drawing with our font
+            if (disposing)
+            {
+                _ownFont?.Dispose();
+                _ownIcon?.Dispose();
+            }
+        }
+
         private void OnHistoryChanged(object? sender, EventArgs e)
         {
             if (!IsDisposed && IsHandleCreated) BeginInvoke((Action)RefreshResults);
@@ -69,14 +86,14 @@ namespace CyrFlip
             _results.Items.Clear();
             if (!ClipboardHistorySearch.IsReady(query))
             {
-                _hint.Text = Localize("Введите минимум 3 символа для поиска по части текста.", "Enter at least 3 characters to search by text fragment.", "Введіть щонайменше 3 символи для пошуку за фрагментом тексту.");
+                _hint.Text = Localize("Введите минимум 3 символа для поиска по части текста.");
             }
             else
             {
                 var matches = _service.Entries.Where(item => ClipboardHistorySearch.Matches(item, query)).ToList();
                 _hint.Text = matches.Count == 0
-                    ? Localize("Совпадений не найдено.", "No matches found.", "Збігів не знайдено.")
-                    : string.Format(Localize("Найдено: {0}", "Found: {0}", "Знайдено: {0}"), matches.Count);
+                    ? Localize("Совпадений не найдено.")
+                    : string.Format(Localize("Найдено: {0}"), matches.Count);
                 foreach (ClipboardHistoryEntry entry in matches)
                 {
                     string preview = entry.Text.Replace("\r", " ").Replace("\n", " ").Trim();
@@ -103,6 +120,6 @@ namespace CyrFlip
                 _results.Columns[0].Width = Math.Max(100, _results.ClientSize.Width - _results.Columns[1].Width - _results.Columns[2].Width - 6);
         }
 
-        private string Localize(string ru, string en, string uk) => _language == "Українська" ? uk : _language == "Русский" ? ru : en;
+        private string Localize(string ru) => Localization.Translate(_language, ru);
     }
 }

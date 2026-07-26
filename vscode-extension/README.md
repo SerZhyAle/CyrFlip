@@ -1,9 +1,10 @@
 # CyrFlip - keyboard layout at the caret (VS Code)
 
 Companion extension for the **[CyrFlip](https://github.com/SerZhyAle/CyrFlip)** Windows app.
-It shows the active keyboard layout (**EN / RU / UK**) right at the **text caret** inside the
-editor - accurately, because the extension reads Monaco's real caret position (something the
-external CyrFlip overlay can't do reliably in VS Code / Electron).
+It shows the active keyboard layout right at the **text caret** inside the editor - accurately,
+because the extension reads Monaco's real caret position (something the external CyrFlip overlay
+can't do reliably in VS Code / Electron). It displays the two-letter code of **any** layout the
+app reports - `EN`, `RU`, `UK`, `DE`, `FR`, `ZH`, `AR` and so on - not just the original three.
 
 > **Requires the CyrFlip desktop app to be running.** The app detects the layout; this extension
 > only displays it. Get the app here: **https://github.com/SerZhyAle/CyrFlip**
@@ -20,7 +21,7 @@ winget install --id SerZhyAle.CyrFlip -e
 **[winget](https://learn.microsoft.com/windows/package-manager/winget/)** (Windows Package
 Manager). Именно оно определяет текущую раскладку клавиатуры в Windows и
 записывает её в файл. Это расширение VS Code само раскладку не определяет - оно только читает
-данные от приложения и показывает `EN` / `RU` / `UK` прямо у текстового курсора.
+данные от приложения и показывает двухбуквенный код любой раскладки прямо у текстового курсора.
 
 ## How the two pieces fit together
 

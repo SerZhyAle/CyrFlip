@@ -95,6 +95,14 @@ For an existing app you only create a new submission - the identity above is unc
 > looks like a keylogger to automated checks). Describe the layout-indicator/transliterator purpose
 > plainly in the listing; be ready to justify it if asked.
 
+> **Search terms (policy 10.1.3) - never name a competitor.** Keywords must be **≤ 7 unique terms**,
+> relevant to the product, and **must not contain product titles we don't publish** - in *any*
+> language or spelling (a transliteration like `пунто свитчер` counts too). Submission `26.7.22.1712`
+> was rejected on 2026-07-23 for `punto switcher alternative` in the English listing; the
+> `SearchTerm5` row in [store-listing-export.csv](store-listing-export.csv) now reads
+> `cyrillic keyboard` / `кириллица латиница`. Keep competitor comparisons out of keywords entirely -
+> the Partner Center keyword hints are UI rules, not the policy.
+
 ## Test locally before submitting (self-signed)
 
 To sideload and run the package on your own machine, sign it with a throwaway cert (its subject must

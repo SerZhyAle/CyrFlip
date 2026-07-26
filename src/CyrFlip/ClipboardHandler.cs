@@ -7,10 +7,15 @@ using static CyrFlip.WindowInterop;
 namespace CyrFlip
 {
     /// <summary>
-    /// Runs a clipboard transform (transliteration <see cref="Flip"/> or case <see cref="FlipCase"/>):
-    /// grab the active selection (synthesized Ctrl+C), apply the transform, and paste the result
-    /// back (synthesized Ctrl+V); optionally switch the input language or toggle CapsLock afterwards.
-    /// (spec §2.2)
+    /// Runs a clipboard transform (a layout conversion <see cref="ConvertLayout"/> or a case flip
+    /// <see cref="FlipCase"/>): grab the active selection (synthesized Ctrl+C), apply the transform,
+    /// and paste the result back (synthesized Ctrl+V); optionally switch the input layout or toggle
+    /// CapsLock afterwards. (spec §2.2)
+    ///
+    /// The two halves are also available on their own - <see cref="TryCaptureSelection"/> and
+    /// <see cref="ReplaceSelection"/> - because the translator needs seconds of network time between
+    /// them and cannot hold the clipboard for that long. <see cref="Run"/> is exactly those two
+    /// halves back to back, so the flips keep their original single-backup behaviour.
     ///
     /// Clipboard access uses <see cref="Win32Clipboard"/> (raw Win32, no OLE) so it can't hang
     /// on the background thread. An empty selection is a no-op; if the foreground window changes
@@ -24,15 +29,59 @@ namespace CyrFlip
         /// <summary>Result of a flip, for the caller to surface (e.g. a tray balloon).</summary>
         public enum FlipResult { Flipped, NoSelection, NoChange, Cancelled, Failed }
 
+        /// <summary>Outcome of the copy half on its own.</summary>
+        public enum CaptureResult { Captured, NoSelection, Cancelled }
+
         /// <summary>
-        /// Flip the selection's keyboard layout (QWERTY ↔ ЙЦУКЕН) via <see cref="TransliterationEngine"/>.
+        /// The modifier keys the user was physically holding when the chord fired. Recorded before
+        /// we synthesize anything, because our own key-ups make <c>GetAsyncKeyState</c> report them
+        /// released from that moment on.
+        /// </summary>
+        internal readonly struct HeldModifiers
+        {
+            public readonly bool Ctrl, Shift, Alt, Win;
+
+            private HeldModifiers(bool ctrl, bool shift, bool alt, bool win)
+            {
+                Ctrl = ctrl; Shift = shift; Alt = alt; Win = win;
+            }
+
+            public static HeldModifiers Capture() => new HeldModifiers(
+                Down(Hotkey.VK_CONTROL), Down(Hotkey.VK_SHIFT), Down(Hotkey.VK_MENU),
+                Down(Hotkey.VK_LWIN) || Down(Hotkey.VK_RWIN));
+
+            private static bool Down(int vk) => (GetAsyncKeyState(vk) & 0x8000) != 0;
+        }
+
+        /// <summary>What the clipboard held before we borrowed it.</summary>
+        internal readonly struct ClipboardBackup
+        {
+            public readonly bool HadText;
+            public readonly string? Text;
+
+            public ClipboardBackup(bool hadText, string? text) { HadText = hadText; Text = text; }
+        }
+
+        /// <summary>
+        /// Convert a selection by physical key position between the two layouts of a table row - the
+        /// seeded EN ⇄ RU flip included. The pair works <b>both ways</b>: when the target layout is
+        /// already the active one, the text in front of the user was typed the other way round, so
+        /// the same chord converts target → source instead.
         /// </summary>
         /// <param name="switchLayoutAfter">
-        /// When true, after a successful flip also switch the target window's input language
-        /// (EN → RU, otherwise → EN) so the user can keep typing in the corrected layout.
+        /// When true, after a successful conversion also switch the target window's input language to
+        /// the layout the text now reads in, so the user can keep typing in it.
         /// </param>
-        public FlipResult Flip(bool switchLayoutAfter = false)
-            => Run(TransliterationEngine.Transliterate, switchLayoutAfter, toggleCapsAfter: false);
+        public FlipResult ConvertLayout(LayoutConversionProfile profile, bool switchLayoutAfter = false)
+        {
+            if (profile == null || !profile.IsUsable) return FlipResult.Failed;
+
+            bool reverse = KeyboardLayoutConverter.IsActiveLayout(GetForegroundWindow(), profile.TargetKlid);
+            string from = reverse ? profile.TargetKlid : profile.SourceKlid;
+            string to = reverse ? profile.SourceKlid : profile.TargetKlid;
+            return Run(text => KeyboardLayoutConverter.Convert(text, from, to),
+                toggleCapsAfter: false, targetKlid: switchLayoutAfter ? to : null);
+        }
 
         /// <summary>
         /// Invert the case of the selection (UPPER ↔ lower) via <see cref="CaseFlipEngine"/> -
@@ -43,102 +92,127 @@ namespace CyrFlip
         /// continued typing matches the corrected text (the analogue of switchLayoutAfter).
         /// </param>
         public FlipResult FlipCase(bool toggleCapsAfter = false)
-            => Run(CaseFlipEngine.Flip, switchLayoutAfter: false, toggleCapsAfter: toggleCapsAfter);
+            => Run(CaseFlipEngine.Flip, toggleCapsAfter: toggleCapsAfter);
 
         /// <param name="transform">The text transform to apply to the captured selection.</param>
-        /// <param name="switchLayoutAfter">
-        /// When true, after a successful replace also switch the target window's input language.
-        /// </param>
         /// <param name="toggleCapsAfter">When true, toggle CapsLock after a successful replace.</param>
-        private FlipResult Run(Func<string, string> transform, bool switchLayoutAfter, bool toggleCapsAfter)
+        /// <param name="targetKlid">
+        /// When set, the layout to switch the target window to after a successful replace.
+        /// </param>
+        private FlipResult Run(Func<string, string> transform, bool toggleCapsAfter, string? targetKlid = null)
         {
-            IntPtr foreground = GetForegroundWindow();
-
-            // Track physical modifier states before we release them.
-            bool ctrlDown = (GetAsyncKeyState(Hotkey.VK_CONTROL) & 0x8000) != 0;
-            bool shiftDown = (GetAsyncKeyState(Hotkey.VK_SHIFT) & 0x8000) != 0;
-            bool altDown = (GetAsyncKeyState(Hotkey.VK_MENU) & 0x8000) != 0;
-            bool winDown = (GetAsyncKeyState(Hotkey.VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(Hotkey.VK_RWIN) & 0x8000) != 0;
-
-            bool originalHadText = IsClipboardFormatAvailable(CF_UNICODETEXT);
-            string? original = originalHadText && Win32Clipboard.TryGetText(out string o) ? o : null;
-            uint initialSeq = GetClipboardSequenceNumber();
-
+            ClipboardBackup backup = BackupClipboard();
             try
             {
-                Thread.Sleep(20);
-                SendCopy();
-
-                // Wait for the copy to populate the clipboard (selection may be empty).
-                string selected = "";
-                for (int i = 0; i < 12; i++)
-                {
-                    Thread.Sleep(40);
-                    if (GetForegroundWindow() != foreground)
-                        return FlipResult.Cancelled;
-
-                    uint currentSeq = GetClipboardSequenceNumber();
-                    if (currentSeq != initialSeq)
-                    {
-                        if (Win32Clipboard.TryGetText(out string t) && t.Length > 0)
-                        {
-                            selected = t;
-                            break;
-                        }
-                    }
-                }
-
-                if (selected.Length == 0)
-                    return FlipResult.NoSelection; // spec §5.3 - nothing selected → no-op
+                CaptureResult captured = TryCaptureSelection(out string selected, out IntPtr foreground,
+                    out HeldModifiers held);
+                if (captured == CaptureResult.Cancelled) return FlipResult.Cancelled;
+                if (captured == CaptureResult.NoSelection) return FlipResult.NoSelection; // spec §5.3 - nothing selected → no-op
 
                 string converted = transform(selected);
                 if (converted == selected)
                     return FlipResult.NoChange;
 
-                // spec §5.3 - focus moved elsewhere mid-flip → don't paste into the wrong window.
-                if (GetForegroundWindow() != foreground)
-                    return FlipResult.Cancelled;
-
-                if (!Win32Clipboard.TrySetText(converted))
-                    return FlipResult.Failed;
-
-                Thread.Sleep(30);
-                SendPaste();
-                Thread.Sleep(140); // let the target app consume the paste before we restore
-
-                // Restore physical modifier keys that the user is still physically holding.
-                RestorePhysicalModifiers(ctrlDown, shiftDown, altDown, winDown);
-
-                // Optionally flip the keyboard layout too, so continued typing matches the result.
-                if (switchLayoutAfter)
-                    LayoutSwitcher.SwitchAfterFlip(foreground);
-
-                // Optionally toggle CapsLock (the case-flip counterpart of the layout switch).
-                if (toggleCapsAfter)
-                    ToggleCapsLock();
-
-                return FlipResult.Flipped;
+                return ReplaceSelection(converted, foreground, held, toggleCapsAfter, targetKlid);
             }
             finally
             {
-                // Only restore text if the clipboard originally held text.
-                if (originalHadText && original != null)
-                {
-                    Win32Clipboard.TrySetText(original);
-                }
+                RestoreClipboard(backup);
             }
         }
 
-        private static void RestorePhysicalModifiers(bool ctrl, bool shift, bool alt, bool win)
+        /// <summary>What the clipboard holds right now, so it can be handed back afterwards.</summary>
+        internal static ClipboardBackup BackupClipboard()
+        {
+            bool hadText = IsClipboardFormatAvailable(CF_UNICODETEXT);
+            string? text = hadText && Win32Clipboard.TryGetText(out string current) ? current : null;
+            return new ClipboardBackup(hadText, text);
+        }
+
+        /// <summary>Put back what the clipboard held; only text is restored, as before.</summary>
+        internal static void RestoreClipboard(ClipboardBackup backup)
+        {
+            if (backup.HadText && backup.Text != null)
+                Win32Clipboard.TrySetText(backup.Text);
+        }
+
+        /// <summary>
+        /// The copy half: synthesize a clean Ctrl+C and wait for the selection to reach the
+        /// clipboard. The caller owns the backup so a long-running transform (the translator) can
+        /// hand the clipboard back immediately and take it again later.
+        /// </summary>
+        internal CaptureResult TryCaptureSelection(out string selection, out IntPtr foreground,
+            out HeldModifiers held)
+        {
+            selection = "";
+            foreground = GetForegroundWindow();
+            held = HeldModifiers.Capture();
+            uint initialSeq = GetClipboardSequenceNumber();
+
+            Thread.Sleep(20);
+            SendCopy();
+
+            // Wait for the copy to populate the clipboard (selection may be empty).
+            for (int i = 0; i < 12; i++)
+            {
+                Thread.Sleep(40);
+                if (GetForegroundWindow() != foreground)
+                    return CaptureResult.Cancelled;
+
+                uint currentSeq = GetClipboardSequenceNumber();
+                if (currentSeq == initialSeq) continue;
+                if (Win32Clipboard.TryGetText(out string text) && text.Length > 0)
+                {
+                    selection = text;
+                    return CaptureResult.Captured;
+                }
+            }
+
+            return CaptureResult.NoSelection;
+        }
+
+        /// <summary>
+        /// The paste half: put <paramref name="text"/> on the clipboard and send Ctrl+V into
+        /// <paramref name="foreground"/>, provided it is still the focused window.
+        /// </summary>
+        internal FlipResult ReplaceSelection(string text, IntPtr foreground,
+            HeldModifiers held = default, bool toggleCapsAfter = false, string? targetKlid = null)
+        {
+            // spec §5.3 - focus moved elsewhere mid-flip → don't paste into the wrong window.
+            if (GetForegroundWindow() != foreground)
+                return FlipResult.Cancelled;
+
+            if (!Win32Clipboard.TrySetText(text))
+                return FlipResult.Failed;
+
+            Thread.Sleep(30);
+            SendPaste();
+            Thread.Sleep(140); // let the target app consume the paste before we restore
+
+            // Restore physical modifier keys that the user is still physically holding.
+            RestorePhysicalModifiers(held);
+
+            // Optionally flip the keyboard layout too, so continued typing matches the result.
+            if (targetKlid != null && targetKlid.Length > 0)
+                LayoutSwitcher.SwitchTo(foreground, targetKlid);
+
+            // Optionally toggle CapsLock (the case-flip counterpart of the layout switch).
+            if (toggleCapsAfter)
+                ToggleCapsLock();
+
+            return FlipResult.Flipped;
+        }
+
+        private static void RestorePhysicalModifiers(HeldModifiers held)
         {
             var restore = new System.Collections.Generic.List<(int vk, bool up)>();
-            if (ctrl && (GetAsyncKeyState(Hotkey.VK_CONTROL) & 0x8000) != 0)
+            if (held.Ctrl && (GetAsyncKeyState(Hotkey.VK_CONTROL) & 0x8000) != 0)
                 restore.Add((Hotkey.VK_CONTROL, false));
-            if (shift && (GetAsyncKeyState(Hotkey.VK_SHIFT) & 0x8000) != 0)
+            if (held.Shift && (GetAsyncKeyState(Hotkey.VK_SHIFT) & 0x8000) != 0)
                 restore.Add((Hotkey.VK_SHIFT, false));
-            if (alt && (GetAsyncKeyState(Hotkey.VK_MENU) & 0x8000) != 0)
+            if (held.Alt && (GetAsyncKeyState(Hotkey.VK_MENU) & 0x8000) != 0)
                 restore.Add((Hotkey.VK_MENU, false));
-            if (win && ((GetAsyncKeyState(Hotkey.VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(Hotkey.VK_RWIN) & 0x8000) != 0))
+            if (held.Win && ((GetAsyncKeyState(Hotkey.VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(Hotkey.VK_RWIN) & 0x8000) != 0))
                 restore.Add((Hotkey.VK_LWIN, false));
 
             if (restore.Count > 0)

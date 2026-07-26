@@ -26,6 +26,22 @@ namespace CyrFlip
         private readonly Timer _timer = new Timer { Interval = 150 };
         private string _last = "";
         private bool _lastCaps;
+        private IntPtr _lastActive;
+
+        /// <summary>
+        /// The window the user was last typing in - the foreground window with the taskbar and our
+        /// own windows filtered out. Clicking the tray icon moves the focus to the shell, so the
+        /// tray's layout switch has to act on the window the user came from, not on the taskbar.
+        /// Falls back to the live foreground window while nothing has been tracked yet.
+        /// </summary>
+        public IntPtr LastActiveWindow
+        {
+            get
+            {
+                IntPtr tracked = _lastActive;
+                return tracked != IntPtr.Zero && IsWindow(tracked) ? tracked : GetForegroundWindow();
+            }
+        }
 
         public void Start()
         {
@@ -36,6 +52,9 @@ namespace CyrFlip
 
         private void Poll()
         {
+            IntPtr foreground = GetForegroundWindow();
+            if (IsUserWindow(foreground)) _lastActive = foreground;
+
             string code = DetectLayout();
             bool caps = IsCapsLockOn();
             if (code != _last || caps != _lastCaps)
@@ -45,6 +64,36 @@ namespace CyrFlip
                 LayoutChanged?.Invoke(code, caps);
             }
         }
+
+        /// <summary>
+        /// True when the window is somebody else's document/input window: not the shell's taskbar
+        /// surfaces (which the notification area belongs to) and not one of ours - the settings
+        /// window, the history strip and the overlay must never become the layout-switch target.
+        /// </summary>
+        private static bool IsUserWindow(IntPtr hwnd)
+        {
+            if (hwnd == IntPtr.Zero) return false;
+
+            GetWindowThreadProcessId(hwnd, out uint pid);
+            if (pid == CurrentProcessId) return false;
+
+            var cls = new System.Text.StringBuilder(128);
+            if (GetClassName(hwnd, cls, cls.Capacity) == 0) return true; // unreadable class: assume a real window
+            switch (cls.ToString())
+            {
+                case "Shell_TrayWnd":                    // the taskbar itself (holds the tray)
+                case "Shell_SecondaryTrayWnd":           // taskbar on a secondary monitor
+                case "NotifyIconOverflowWindow":         // the hidden-icons flyout (Win10)
+                case "TopLevelWindowForOverflowXamlIsland": // the same flyout on Win11
+                case "XamlExplorerHostIslandWindow":     // Start / task view shells
+                    return false;
+                default:
+                    return true;
+            }
+        }
+
+        private static readonly uint CurrentProcessId =
+            (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
 
         /// <summary>True when CapsLock is toggled on (low bit of the key's toggle state).</summary>
         public static bool IsCapsLockOn() => (GetKeyState(VK_CAPITAL) & 0x0001) != 0;

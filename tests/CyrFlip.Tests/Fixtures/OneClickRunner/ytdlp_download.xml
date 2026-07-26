@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>e8b4f5c2-9d3a-4e7b-8f1c-6a2d5e9b3c7f</Id>
+  <Name>yt-dlp - download media</Name>
+  <Path>SPECIAL_YTDLP</Path>
+  <Arguments></Arguments>
+  <WorkingDirectory></WorkingDirectory>
+  <Filename>ytdlp_download.xml</Filename>
+</AppItem>

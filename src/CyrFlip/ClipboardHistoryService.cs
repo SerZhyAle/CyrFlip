@@ -16,8 +16,14 @@ namespace CyrFlip
         private const int WmClipboardUpdate = 0x031D;
         private const int MaxTextBytes = 128 * 1024;
         private readonly List<ClipboardHistoryEntry> _entries = new List<ClipboardHistoryEntry>();
+        // Uuid (the text's SHA-256) → its entry. The history is unbounded by design, so nothing may
+        // cost O(history): a repeat copy is recognised through this index instead of sorting or
+        // scanning the list, and replaying the log on startup stays linear rather than quadratic.
+        private readonly Dictionary<string, ClipboardHistoryEntry> _byUuid =
+            new Dictionary<string, ClipboardHistoryEntry>(StringComparer.Ordinal);
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private readonly string _path;
+        private List<ClipboardHistoryEntry>? _ordered; // display order; rebuilt only after a change
         private bool _enabled;
         private bool _paused;
         private bool _suppressNext;
@@ -25,7 +31,12 @@ namespace CyrFlip
 
         public event EventHandler? Changed;
         public event EventHandler? ItemTooLarge;
-        public IReadOnlyList<ClipboardHistoryEntry> Entries => _entries
+
+        /// <summary>
+        /// Pinned first, then newest first. Cached because every repaint of the strip asks for it (and
+        /// the list it sorts only grows) - <see cref="RaiseChanged"/> is the one place that drops it.
+        /// </summary>
+        public IReadOnlyList<ClipboardHistoryEntry> Entries => _ordered ??= _entries
             .OrderByDescending(x => x.IsPinned).ThenByDescending(x => x.CreatedAt).ToList();
 
         public ClipboardHistoryService(bool enabled, bool paused)
@@ -49,7 +60,7 @@ namespace CyrFlip
         {
             _suppressNext = true;
             bool written = Win32Clipboard.TrySetText(entry.Text);
-            if (written) SetCurrent(entry);
+            if (written) { SetCurrent(entry); RaiseChanged(); }
             return written;
         }
 
@@ -57,20 +68,34 @@ namespace CyrFlip
         {
             entry.IsPinned = !entry.IsPinned;
             Append(entry.IsPinned ? "pin" : "unpin", entry);
-            Changed?.Invoke(this, EventArgs.Empty);
+            RaiseChanged();
         }
 
         public void Delete(ClipboardHistoryEntry entry)
         {
             _entries.Remove(entry);
+            if (_byUuid.TryGetValue(entry.Uuid, out ClipboardHistoryEntry? indexed) && ReferenceEquals(indexed, entry))
+                _byUuid.Remove(entry.Uuid);
             Append("delete", entry);
-            Changed?.Invoke(this, EventArgs.Empty);
+            RaiseChanged();
         }
 
         public void Clear()
         {
             _entries.Clear();
+            _byUuid.Clear();
             try { if (File.Exists(_path)) File.Delete(_path); } catch { }
+            RaiseChanged();
+        }
+
+        /// <summary>
+        /// Drop the cached display order and tell the windows to repaint. Every change goes through
+        /// here exactly once: the strip repaints on this event and each repaint re-sorts the history,
+        /// so a second, redundant raise doubles the cost of every copy.
+        /// </summary>
+        private void RaiseChanged()
+        {
+            _ordered = null;
             Changed?.Invoke(this, EventArgs.Empty);
         }
 
@@ -87,8 +112,9 @@ namespace CyrFlip
             if (!Win32Clipboard.TryGetText(out string text) || text.Length == 0) return;
             if (Encoding.Unicode.GetByteCount(text) > MaxTextBytes) { ItemTooLarge?.Invoke(this, EventArgs.Empty); return; }
             string uuid = Hash(text);
-            ClipboardHistoryEntry? existing = _entries.OrderByDescending(x => x.CreatedAt).Take(1000).FirstOrDefault(x => x.Uuid == uuid);
-            if (existing != null)
+            // Identical text is one entry, however long ago it was first copied - the same rule the
+            // log replay in Load has always applied, now also applied live and in O(1).
+            if (_byUuid.TryGetValue(uuid, out ClipboardHistoryEntry? existing))
             {
                 existing.CreatedAt = DateTime.UtcNow;
                 Append("touch", existing);
@@ -98,16 +124,18 @@ namespace CyrFlip
                 ReadSource(out string sourceApp, out string sourceTitle);
                 existing = new ClipboardHistoryEntry { Uuid = uuid, Text = text, CreatedAt = DateTime.UtcNow, SourceApp = sourceApp, SourceTitle = sourceTitle };
                 _entries.Add(existing);
+                _byUuid[uuid] = existing;
                 Append("add", existing);
             }
             SetCurrent(existing);
-            Changed?.Invoke(this, EventArgs.Empty);
+            RaiseChanged();
         }
 
+        /// <summary>Mark one entry as the clipboard's current content. Raises nothing on its own:
+        /// it never changes the display order, and every caller raises the change itself.</summary>
         private void SetCurrent(ClipboardHistoryEntry entry)
         {
             foreach (ClipboardHistoryEntry item in _entries) item.IsCurrent = ReferenceEquals(item, entry);
-            Changed?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>The window owning the clipboard when it changed is, in practice, the app the text came from.</summary>
@@ -164,18 +192,20 @@ namespace CyrFlip
                 {
                     HistoryRecord? r = _json.Deserialize<HistoryRecord>(line);
                     if (r == null || string.IsNullOrEmpty(r.Uuid)) continue;
-                    ClipboardHistoryEntry? e = _entries.FirstOrDefault(x => x.Uuid == r.Uuid);
-                    if (r.Action == "delete") { if (e != null) _entries.Remove(e); continue; }
+                    _byUuid.TryGetValue(r.Uuid, out ClipboardHistoryEntry? e);
+                    if (r.Action == "delete") { if (e != null) { _entries.Remove(e); _byUuid.Remove(r.Uuid); } continue; }
                     if (r.Action == "add")
                     {
                         if (e != null || string.IsNullOrEmpty(r.Payload)) continue;
                         string text = Encoding.UTF8.GetString(ProtectedData.Unprotect(Convert.FromBase64String(r.Payload), null, DataProtectionScope.CurrentUser));
-                        _entries.Add(new ClipboardHistoryEntry { Uuid = r.Uuid, Text = text, CreatedAt = new DateTime(r.CreatedAt, DateTimeKind.Utc), IsPinned = r.IsPinned, SourceApp = r.SourceApp ?? "", SourceTitle = r.SourceTitle ?? "" });
+                        var entry = new ClipboardHistoryEntry { Uuid = r.Uuid, Text = text, CreatedAt = new DateTime(r.CreatedAt, DateTimeKind.Utc), IsPinned = r.IsPinned, SourceApp = r.SourceApp ?? "", SourceTitle = r.SourceTitle ?? "" };
+                        _entries.Add(entry);
+                        _byUuid[r.Uuid] = entry;
                     }
                     else if (e != null) { e.CreatedAt = new DateTime(r.CreatedAt, DateTimeKind.Utc); e.IsPinned = r.IsPinned; }
                 }
             }
-            catch { _entries.Clear(); }
+            catch { _entries.Clear(); _byUuid.Clear(); }
         }
 
         private static string Hash(string text)

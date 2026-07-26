@@ -9,7 +9,7 @@ namespace CyrFlip
     /// caret overlay, tray icon): a per-layout bright colour drawn with a black outline so
     /// the letters stay legible on any background.
     ///
-    /// EN = blue, RU = red, UK = green; every other layout gets a deterministic bright colour
+    /// The curated world languages get intentionally distinct colours; every other layout gets a deterministic bright colour
     /// derived from its code (stable across renders, never dark).
     /// </summary>
     internal static class LayoutStyle
@@ -17,6 +17,16 @@ namespace CyrFlip
         private static readonly Color En = ColorTranslator.FromHtml("#4DA3FF"); // blue
         private static readonly Color Ru = ColorTranslator.FromHtml("#FF5A5A"); // red
         private static readonly Color Uk = ColorTranslator.FromHtml("#5AD86A"); // green
+        private static readonly Color Zh = ColorTranslator.FromHtml("#F3B33D");
+        private static readonly Color Hi = ColorTranslator.FromHtml("#E68742");
+        private static readonly Color Es = ColorTranslator.FromHtml("#F06E9C");
+        private static readonly Color Fr = ColorTranslator.FromHtml("#8D7CF2");
+        private static readonly Color Ar = ColorTranslator.FromHtml("#35C6B4");
+        private static readonly Color Bn = ColorTranslator.FromHtml("#C67CDA");
+        private static readonly Color Pt = ColorTranslator.FromHtml("#46B978");
+        private static readonly Color Ur = ColorTranslator.FromHtml("#E5A3C7");
+        private static readonly Color De = ColorTranslator.FromHtml("#D8D14A");
+        private static readonly Color It = ColorTranslator.FromHtml("#7FB2E5");
 
         public static Color ColorFor(string code)
         {
@@ -25,6 +35,16 @@ namespace CyrFlip
                 case "EN": return En;
                 case "RU": return Ru;
                 case "UK": return Uk;
+                case "ZH": return Zh;
+                case "HI": return Hi;
+                case "ES": return Es;
+                case "FR": return Fr;
+                case "AR": return Ar;
+                case "BN": return Bn;
+                case "PT": return Pt;
+                case "UR": return Ur;
+                case "DE": return De;
+                case "IT": return It;
                 default: return BrightFromCode(code);
             }
         }

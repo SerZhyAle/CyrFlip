@@ -116,7 +116,15 @@ namespace CyrFlip
                 if (acc is not IAccessible a) break;
                 object? focused = null;
                 if (a.get_accFocus(out focused) != 0 || focused == null) break;
-                if (focused is not IAccessible) break; // a child id (int) => this element is the focus
+                if (focused is not IAccessible)
+                {
+                    // A child id (an int) means this element already is the focus. But the variant can
+                    // also carry a COM object that simply isn't an IAccessible - dropping that on the
+                    // floor holds a cross-process proxy alive until the RCW is finalized, eight times
+                    // a second. Release is a no-op for the int case.
+                    Release(focused);
+                    break;
+                }
                 Release(acc);
                 acc = focused;
             }
@@ -129,7 +137,10 @@ namespace CyrFlip
             Guid sid = IID_IAccessible2, rid = IID_IAccessibleText;
             if (sp.QueryService(ref sid, ref rid, out IntPtr pText) != 0 || pText == IntPtr.Zero)
                 return null;
-            return Wrap(pText) as IAccessibleText;
+            object? wrapped = Wrap(pText);
+            if (wrapped is IAccessibleText text) return text;
+            Release(wrapped); // QueryService handed back something else - don't leak the RCW
+            return null;
         }
 
         private static object? Wrap(IntPtr p)

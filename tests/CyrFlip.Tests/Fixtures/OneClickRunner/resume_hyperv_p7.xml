@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>87654321-4321-4321-4321-cba987654321</Id>
+  <Name>Resume Hyper-V VM p7</Name>
+  <Path>powershell.exe</Path>
+  <Arguments>-Command "Resume-VM -Name 'p7'"</Arguments>
+  <WorkingDirectory></WorkingDirectory>
+  <Filename>resume_hyperv_p7.xml</Filename>
+</AppItem>

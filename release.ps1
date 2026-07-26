@@ -1,4 +1,4 @@
-<#
+﻿<#
     CyrFlip РЕЛИЗ orchestrator.
 
     A РЕЛИЗ (release) is the paid, outward-facing path (vs a local "сборка" = build.ps1):
@@ -54,16 +54,61 @@ if ($Version -notmatch '^\d{2}\.\d{1,2}\.\d{1,2}\.\d{4}$') {
 try { [datetime]::ParseExact($Version, 'yy.M.d.HHmm', [Globalization.CultureInfo]::InvariantCulture) | Out-Null }
 catch { throw "Version '$Version' does not parse as a real YY.M.D.HHmm date/time." }
 $Tag = "v$Version"
-if (git tag --list $Tag) { throw "Tag $Tag already exists. Pick another -Version." }
+if (git tag --list $Tag) { throw "Tag $Tag already exists locally. Pick another -Version." }
+
+# The local tag list is not the whole story: a tag that exists only on the remote would fail at
+# push time, after the anchor commit and the local tag were already made. Ask origin first - and
+# while we are asking, make sure main is not behind, for the same reason.
+$remoteReachable = $true
+try {
+    git fetch --quiet --tags origin 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { $remoteReachable = $false }
+}
+catch { $remoteReachable = $false }
+
+if ($remoteReachable) {
+    if (git ls-remote --tags origin "refs/tags/$Tag") { throw "Tag $Tag already exists on origin. Pick another -Version." }
+    $behind = (git rev-list --count "HEAD..origin/$branch")
+    if ($LASTEXITCODE -eq 0 -and [int]$behind -gt 0) {
+        throw "Local $branch is $behind commit(s) behind origin/$branch. Pull first, then re-run."
+    }
+}
+else {
+    Write-Host 'Could not reach origin - the remote tag/sync check was skipped.' -ForegroundColor Yellow
+}
+
 Write-Host "Release version: $Version  (tag $Tag)" -ForegroundColor Green
 
 # --- Local build + test (fail BEFORE spending GitHub minutes) ---------------
 Step 'Local build + test'
+# A running tray app keeps bin\Release\net48\CyrFlip.exe locked, and the build then dies with
+# MSB3027 after ten retries - i.e. the preflight failed for a reason that has nothing to do with
+# the release. Stop it first, exactly as build.ps1 does; the process name is unique to CyrFlip, so
+# this also catches a copy started from one of the local sync folders.
+$running = @(Get-Process -Name 'CyrFlip' -ErrorAction SilentlyContinue)
+if ($running.Count -gt 0) {
+    Write-Host 'Stopping running CyrFlip (it locks the build output)..' -ForegroundColor Cyan
+    $running | Stop-Process -Force
+    foreach ($process in $running) {
+        try { $process.WaitForExit(5000) | Out-Null } catch { }
+    }
+}
+
 dotnet build CyrFlip.sln -c Release -p:Version=$Version --nologo
 if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
 dotnet test CyrFlip.sln -c Release --no-build --nologo
 if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
 Write-Host 'Local build + tests green.' -ForegroundColor Green
+
+# Put back what we stopped: a preflight is run repeatedly, and it should not leave the user's tray
+# app closed behind it. The fresh build is what starts, which is also a free smoke test.
+if ($running.Count -gt 0) {
+    $exe = Join-Path $RepoRoot 'src\CyrFlip\bin\Release\net48\CyrFlip.exe'
+    if (Test-Path $exe) {
+        Write-Host 'Restarting CyrFlip..' -ForegroundColor Cyan
+        Start-Process $exe | Out-Null
+    }
+}
 
 # --- Trigger the GitHub build (only with -Push) -----------------------------
 if (-not $Push) {
@@ -76,7 +121,8 @@ else {
     git commit --allow-empty -m "release: $Tag"
     if ($LASTEXITCODE -ne 0) { throw "release commit failed (exit $LASTEXITCODE)." }
     git tag $Tag
-    if ($LASTEXITCODE -ne 0) { throw "git tag failed (exit $LASTEXITCODE)." }
+    # The anchor commit already exists at this point; say so, or the next run trips over it.
+    if ($LASTEXITCODE -ne 0) { throw "git tag failed (exit $LASTEXITCODE). The empty 'release: $Tag' commit was made - drop it with 'git reset --hard HEAD~1' before retrying." }
     git push origin $branch
     if ($LASTEXITCODE -ne 0) { throw "git push (branch) failed (exit $LASTEXITCODE)." }
     git push origin $Tag
@@ -95,6 +141,9 @@ Step "РЕЛИЗ checklist for $Tag  (see RELEASE.md for detail)"
 
 [ ] 2. Site/docs (auto-deploys from /docs on the push above) - verify GitHub Pages updated:
         bump any version/changelog text in docs/ if the release changes user-facing behaviour.
+        The "what's new" copy lives in four places and they must agree:
+        msix/store-listing-export.csv (ReleaseNotes row) -> store/listing-*.txt,
+        msix/store-listings.md, winget/*.locale.*.yaml (ReleaseNotes).
 
 [ ] 3. winget (SerZhyAle.CyrFlip):
         wingetcreate update SerZhyAle.CyrFlip --version $Version --urls <ZIP_URL> --submit
@@ -103,8 +152,10 @@ Step "РЕЛИЗ checklist for $Tag  (see RELEASE.md for detail)"
           -IdentityName "SZA.CyrFlip" ``
           -Publisher "CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD" ``
           -PublisherDisplayName "SZA"
-        Then Partner Center -> CyrFlip -> Create new submission -> replace .msix -> refresh
-        EN/RU/UK listings from msix/store-listings.md -> Submit. (Store ID 9NB4W41NGQJ4)
+        Then Partner Center -> CyrFlip -> Create new submission -> replace .msix -> Store listings
+        -> Import from msix/store-listing-export.csv (the source of truth; store-listings.md and
+        store/listing-*.txt render from it, and the CSV carries only en-us + ru, so the Ukrainian
+        listing is still pasted by hand from msix/store-listings.md) -> Submit. (Store ID 9NB4W41NGQJ4)
 
 [ ] 5. VS Code extension (only if vscode-extension/ changed):
         bump version in vscode-extension/package.json, then in that folder:

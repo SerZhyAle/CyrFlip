@@ -8,6 +8,10 @@ namespace CyrFlip
     /// <summary>
     /// Modal dialog that captures a new hotkey combination from the user.
     /// Requires at least one modifier key (Ctrl / Shift / Alt) plus a trigger key.
+    ///
+    /// Sizes itself to its content (see <see cref="LayoutConversionDialog"/> for why): the hint is
+    /// translated into 13 languages and the whole dialog is drawn at whatever the display scaling makes
+    /// of the UI font, so fixed geometry clips captions.
     /// </summary>
     internal sealed class HotkeyDialog : Form
     {
@@ -15,6 +19,9 @@ namespace CyrFlip
         private readonly Label _previewLabel;
         private readonly Button _okButton;
         private readonly Button _cancelButton;
+        // WinForms never disposes a font that was assigned to a control, so the one we build here is
+        // ours to release - otherwise every trip through the dialog leaves a GDI font behind.
+        private readonly Font _previewFont;
 
         private bool _ctrl, _shift, _alt;
         private string _keyName = "";
@@ -23,57 +30,90 @@ namespace CyrFlip
         /// <summary>The hotkey string (e.g. "Ctrl+Shift+F12") if the user confirmed, else null.</summary>
         public string? CapturedHotkey { get; private set; }
 
-        public HotkeyDialog(string currentHotkey, string title = "Set hotkey")
+        public HotkeyDialog(string currentHotkey, string title = "Set hotkey", string uiLanguage = "English")
         {
             Text = title;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(320, 130);
             ShowInTaskbar = false;
             KeyPreview = true;
+            AutoSize = true;
+            AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            if (Localization.IsRightToLeft(uiLanguage)) { RightToLeft = RightToLeft.Yes; RightToLeftLayout = true; }
+            string? family = Localization.FontFamily(uiLanguage);
+            if (family != null)
+            {
+                try { Font = new Font(family, Font.SizeInPoints); }
+                catch { /* the font is missing on this machine - keep the default */ }
+            }
 
             _hintLabel = new Label
             {
-                Text = "New combo (a modifier is non-negotiable):",
-                AutoSize = false,
-                Location = new Point(12, 16),
-                Size = new Size(296, 18),
+                Text = Localization.Translate(uiLanguage, "Новая комбинация (модификатор обязателен):"),
+                AutoSize = true,
+                MaximumSize = new Size(TextWidth(new string('W', 34)), 0), // wrap rather than widen without limit
+                Margin = new Padding(3, 3, 3, 8),
             };
 
+            // Derived from the dialog's own font, not from a hard-coded family: the chord is shown large
+            // and bold, but in the family the current language needs (Devanagari, Bengali, Chinese).
+            Font previewFont = _previewFont = new Font(Font.FontFamily, Font.SizeInPoints * 1.4f, FontStyle.Bold);
             _previewLabel = new Label
             {
                 Text = currentHotkey,
-                Location = new Point(12, 42),
-                Size = new Size(296, 30),
-                Font = new Font("Segoe UI", 13f, FontStyle.Bold),
+                AutoSize = false,
+                Dock = DockStyle.Fill,
+                Height = previewFont.Height + 12,
+                MinimumSize = new Size(TextWidth("Ctrl+Shift+Backspace"), 0),
+                Font = previewFont,
                 TextAlign = ContentAlignment.MiddleCenter,
                 BorderStyle = BorderStyle.FixedSingle,
                 BackColor = SystemColors.Window,
             };
 
-            _okButton = new Button
-            {
-                Text = "OK",
-                Location = new Point(148, 90),
-                Size = new Size(72, 26),
-                DialogResult = DialogResult.OK,
-                Enabled = false,
-            };
+            _okButton = Command("OK", DialogResult.OK);
+            _okButton.Enabled = false;
+            _cancelButton = Command(Localization.Translate(uiLanguage, "Отмена"), DialogResult.Cancel);
 
-            _cancelButton = new Button
+            // RightToLeft flow puts the first control added on the right; WinForms mirrors it for RTL UIs.
+            var buttons = new FlowLayoutPanel
             {
-                Text = "Cancel",
-                Location = new Point(236, 90),
-                Size = new Size(72, 26),
-                DialogResult = DialogResult.Cancel,
+                FlowDirection = FlowDirection.RightToLeft, AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink, Dock = DockStyle.Fill,
+                Margin = new Padding(0, 12, 0, 0),
             };
+            buttons.Controls.Add(_cancelButton);
+            buttons.Controls.Add(_okButton);
+
+            var layout = new TableLayoutPanel
+            {
+                ColumnCount = 1, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                Dock = DockStyle.Fill, Padding = new Padding(12),
+            };
+            layout.Controls.Add(_hintLabel, 0, 0);
+            layout.Controls.Add(_previewLabel, 0, 1);
+            layout.Controls.Add(buttons, 0, 2);
 
             AcceptButton = _okButton;
             CancelButton = _cancelButton;
-            Controls.AddRange(new Control[] { _hintLabel, _previewLabel, _okButton, _cancelButton });
+            Controls.Add(layout);
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing); // frees the control tree, but not the font we handed the label
+            if (disposing) _previewFont.Dispose();
+        }
+
+        private Button Command(string text, DialogResult result) => new Button
+        {
+            Text = text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = result,
+        };
+
+        private int TextWidth(string text) => TextRenderer.MeasureText(text, Font).Width + 16;
 
         protected override void OnKeyDown(KeyEventArgs e)
         {

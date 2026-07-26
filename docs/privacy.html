@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CyrFlip - Privacy Policy</title>
-  <meta name="description" content="CyrFlip privacy policy: the app runs entirely on your device, collects nothing, and sends nothing over the network." />
+  <meta name="description" content="CyrFlip privacy policy: the app runs on your device, collects nothing, and has no servers of its own; the optional translator sends your selection only to the Ollama address you choose, by default your own computer." />
   <meta name="theme-color" content="#0a0f0a" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -39,19 +39,30 @@
   <div class="wrap">
     <section>
       <h2>Privacy Policy</h2>
-      <p class="note">Last updated: 18 July 2026</p>
+      <p class="note">Last updated: 26 July 2026</p>
 
       <p><strong>CyrFlip does not collect, store, log, or transmit any personal data.</strong> It runs
-      entirely on your own device. It has no servers, makes no network requests, and contains no
-      telemetry, analytics, advertising, tracking, or user accounts. The developer receives no data
-      about you or your use of the app.</p>
+      entirely on your own device. It has no servers of its own, no telemetry, analytics, advertising,
+      tracking, or user accounts. The developer receives no data about you or your use of the app.</p>
+
+      <p>There is exactly one feature that sends text anywhere, and it is <strong>off by default</strong>:
+      the optional <em>translator</em>. When you switch it on and press a translation shortcut, the text you
+      selected is sent to the Ollama server address configured in CyrFlip - by default
+      <code>http://localhost:11434</code>, which is a program running on your own computer, so the text
+      does not leave your device. If you change that address to another machine, the selected text is sent
+      to that machine; CyrFlip says so next to the setting. See the translator section below.</p>
 
       <h2>What the app accesses, and why</h2>
       <ul class="features">
         <li><strong>Keyboard.</strong> CyrFlip installs a global keyboard hook for two purposes only:
         to detect its activation hotkey (default <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>) and to
-        read the currently active keyboard layout (EN&nbsp;/&nbsp;RU&nbsp;/&nbsp;UK) so it can show the
-        on-screen indicator. <strong>It does not record, log, store, or transmit your keystrokes.</strong>
+        read the currently active keyboard layout code (any layout installed in Windows, including the 13 curated
+        EN, ZH, HI, ES, FR, AR, BN, PT, RU, UR, DE, IT and UK ones) so it can show the on-screen indicator.
+        Besides that hotkey it also watches the chords you assign to the case fix, the clipboard manager, each
+        row of your layout-conversion table, each row of your translation table, and any quick-launch scenario
+        you give a shortcut to. While a translation is being written it additionally watches for <kbd>Esc</kbd>,
+        so that key can cancel it - the key is passed on to the app you are in either way.
+        <strong>It does not record, log, store, or transmit your keystrokes.</strong>
         It is not a keylogger.</li>
 
         <li><strong>Clipboard.</strong> When you press the hotkey to transliterate a selection, CyrFlip
@@ -66,26 +77,70 @@
 
         <li><strong>Active-window / layout info.</strong> The app reads which window is focused and its
         keyboard layout to position and update the indicator. This information is used in memory only and
-        is never stored or transmitted.</li>
+        is never stored or transmitted. When you switch on <em>yield hotkeys to the remote desktop</em>, and only
+        when one of CyrFlip's own chords is actually pressed, it also reads the executable name of the focused
+        window to recognise a remote-desktop client.</li>
+
+        <li><strong>Windows input settings.</strong> The <em>Windows languages</em> tab edits Windows' own
+        configuration on your behalf: the installed keyboard layouts
+        (<code>HKCU\Keyboard Layout\Preload</code> and <code>HKCU\Control Panel\International\User Profile</code>),
+        the language-cycle chord, and the per-language switch shortcuts
+        (<code>HKCU\Control Panel\Input Method\Hot Keys</code>). These are system settings that stay on your
+        device and keep working when CyrFlip is closed. Before its first change CyrFlip stores a one-time snapshot
+        of the previous state in its own registry key, so you can restore it.</li>
+
+        <li><strong>Optional quick launch.</strong> The scenario launcher is <strong>off by default</strong>.
+        When you enable it, CyrFlip starts the programs, scripts and yt-dlp downloads <em>you</em> defined, and
+        only when you ask it to - from the tray, the settings table, a shortcut you assigned, or the taskbar
+        Jump List. It requests administrator rights only for a scenario you marked "run as administrator", and
+        the link you type for a yt-dlp download is handed to that tool for the single run and is not stored.
+        Enabling the module also publishes your scenario names to the Windows taskbar Jump List, which Windows
+        keeps in your own user profile.</li>
+
+        <li><strong>Optional translator.</strong> The translator is <strong>off by default</strong>; while it is
+        off CyrFlip opens no network connection at all. When you enable it and press a translation shortcut,
+        CyrFlip takes the selected text (the same synthesized copy as above) and sends it over HTTP to the
+        Ollama address in its settings - <code>http://localhost:11434</code> unless you change it, which means
+        a program on your own computer. The tray entry <em>Translate clipboard</em>, which appears only while
+        the translator is enabled, sends the text currently on your clipboard to that same address instead of
+        a selection. Ollama is a separate, free product you install yourself; CyrFlip does
+        not bundle it and has no account or key of its own. The translation is shown in a window and, only if
+        you turn those options on, copied to the clipboard (where the optional history stores it like any other
+        copy) or pasted over your selection. CyrFlip stores no translations, keeps no log of them, and sends
+        nothing to the developer. In the portable version the <em>Install Ollama</em> button downloads the
+        official installer from <code>ollama.com</code>; the Microsoft Store version only opens that website.</li>
       </ul>
 
       <h2>Local files CyrFlip writes</h2>
       <ul class="features">
         <li><strong>Layout file.</strong> CyrFlip writes the current layout code - a two-letter value such
-        as <code>EN</code>, <code>RU</code>, or <code>UK</code> - to a small local file
+        as <code>EN</code>, <code>ZH</code>, <code>RU</code>, or <code>AR</code> - to a small local file
         (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, or <code>%ProgramData%\CyrFlip\layout.txt</code> in
         the Microsoft Store version) so the optional companion VS&nbsp;Code extension can display the marker
         at the editor caret. This file contains no personal data and never leaves your device.</li>
 
         <li><strong>Configuration and history.</strong> Settings are stored in
-        <code>HKCU\Software\CyrFlip</code>. When enabled, clipboard history is stored locally in the
+        <code>HKCU\Software\CyrFlip</code> - including your layout-conversion table and the one-time backups of
+        the Windows input settings described above. When enabled, clipboard history is stored locally in the
         CyrFlip application-data folder in DPAPI-protected form. A legacy <code>config.json</code> may be
         read once during migration. None of these data leave your device.</li>
+
+        <li><strong>Quick-launch scenarios.</strong> Each scenario you create is stored as its own XML file in
+        <code>%APPDATA%\CyrFlip\Scenarios</code>, holding exactly what you entered: the name, the program or
+        script path, its arguments and working folder. They stay on your device, are yours to edit or delete,
+        and remain untouched if you switch the module off. The module also appends a short activity log
+        (<code>launcher.log</code>, next to the layout file) recording that a scenario started and why one
+        failed - it <strong>never</strong> records a yt-dlp link, clipboard contents, or keystrokes.</li>
+
+        <li><strong>Diagnostics report.</strong> Only when you run <em>Diagnose caret position…</em> yourself,
+        CyrFlip writes <code>caret-diagnostics.txt</code> next to the layout file. It records what Windows and UI
+        Automation report about the focused text field; it is never sent anywhere, and you can delete it.</li>
       </ul>
 
       <h2>Data sharing</h2>
-      <p>None. CyrFlip does not share any data with the developer or any third party, because it does not
-      collect or transmit any data in the first place.</p>
+      <p>None. CyrFlip does not share any data with the developer or any third party. The one thing it ever
+      sends is the text you selected, to the translator address you chose yourself - by default a program on
+      your own computer - and only while that optional feature is switched on.</p>
 
       <h2>Children's privacy</h2>
       <p>CyrFlip does not collect any data from anyone, including children.</p>

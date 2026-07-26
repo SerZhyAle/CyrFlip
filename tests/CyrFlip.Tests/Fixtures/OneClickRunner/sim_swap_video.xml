@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>e391f338-2539-517f-cc9c-732926e5928b</Id>
+  <Name>sim-swap video</Name>
+  <Path>C:\GIT\facefusion\sza_v.bat</Path>
+  <Arguments></Arguments>
+  <WorkingDirectory>C:\GIT\facefusion\</WorkingDirectory>
+  <Filename>sim_swap_video.xml</Filename>
+  <RunAsAdmin>true</RunAsAdmin>
+</AppItem>

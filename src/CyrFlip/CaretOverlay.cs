@@ -159,12 +159,19 @@ namespace CyrFlip
             return false;
         }
 
+        /// <summary>
+        /// Our own process id, resolved once. The tracker asks "is this window ours?" twice per tick,
+        /// eleven times a second, for the whole life of the app - and every
+        /// <c>Process.GetCurrentProcess()</c> is a finalizable object the GC then has to walk.
+        /// </summary>
+        private static readonly uint CurrentProcessId = (uint)Process.GetCurrentProcess().Id;
+
         private static bool IsOwnForegroundWindow()
         {
             IntPtr foreground = GetForegroundWindow();
             return foreground != IntPtr.Zero
                 && GetWindowThreadProcessId(foreground, out uint processId) != 0
-                && processId == (uint)Process.GetCurrentProcess().Id;
+                && processId == CurrentProcessId;
         }
 
         private static bool TrySystemCaret(out int x, out int y)
@@ -178,7 +185,7 @@ namespace CyrFlip
             // CyrFlip's own text boxes (notably history search) already have the normal caret.
             // Putting our click-through topmost marker over them causes needless repainting and
             // can make the dialog look as though it is losing focus.
-            if (processId == (uint)Process.GetCurrentProcess().Id)
+            if (processId == CurrentProcessId)
                 return false;
             var gti = new GUITHREADINFO { cbSize = Marshal.SizeOf(typeof(GUITHREADINFO)) };
             if (GetGUIThreadInfo(tid, ref gti)

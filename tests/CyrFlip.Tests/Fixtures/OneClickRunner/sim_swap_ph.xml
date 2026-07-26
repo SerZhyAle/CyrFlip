@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>d280e227-1428-406e-bb8b-621815d4817a</Id>
+  <Name>sim-swap ph</Name>
+  <Path>C:\GIT\facefusion\sza2.bat</Path>
+  <Arguments></Arguments>
+  <WorkingDirectory>C:\GIT\facefusion\</WorkingDirectory>
+  <Filename>sim_swap_ph.xml</Filename>
+  <RunAsAdmin>true</RunAsAdmin>
+</AppItem>
