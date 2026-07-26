@@ -1,4 +1,4 @@
-﻿namespace CyrFlip
+namespace CyrFlip
 {
     /// <summary>
     /// The built-in translator (a local Ollama server): the settings tab, the direction table, the
@@ -415,19 +415,21 @@
                 ur: "ونڈو بند کرنے کا وقفہ (سیکنڈ):",
                 zh: "自动关闭窗口（秒）：");
 
-            Add("0 — не закрывать по таймеру. Окно и так закроется по Esc, по кнопке закрытия или когда вы перейдёте в другое окно.",
-                en: "0 means no timer. The window still closes on Esc, on its close button, or when you move to another window.",
-                uk: "0 — не закривати за таймером. Вікно й так закриється за Esc, кнопкою закриття або коли ви перейдете в інше вікно.",
-                de: "0 bedeutet kein Timer. Das Fenster schließt sich ohnehin mit Esc, über die Schließen-Schaltfläche oder sobald Sie in ein anderes Fenster wechseln.",
-                it: "0 disattiva la chiusura a tempo. La finestra si chiude comunque con Esc, con il pulsante di chiusura o quando passi a un'altra finestra.",
-                es: "0: no cerrar por temporizador. La ventana se cierra igualmente con Esc, con su botón de cierre o cuando pase a otra ventana.",
-                fr: "0 désactive la minuterie. La fenêtre se ferme de toute façon avec Esc, avec son bouton de fermeture ou lorsque vous passez à une autre fenêtre.",
-                pt: "Com 0 não há temporizador. A janela fecha-se na mesma com Esc, com o botão de fecho ou quando mudar para outra janela.",
-                ar: "القيمة 0 تعني عدم الإغلاق بمؤقّت. وتُغلَق النافذة على أي حال بمفتاح Esc أو بزر الإغلاق أو عند الانتقال إلى نافذة أخرى.",
-                hi: "0 का मतलब है टाइमर से बंद न करना। विंडो वैसे भी Esc से, बंद करने वाले बटन से या किसी दूसरी विंडो में जाने पर बंद हो जाती है।",
-                bn: "0 দিলে টাইমারে বন্ধ হবে না। Esc চাপলে, বন্ধ করার বোতামে ক্লিক করলে বা অন্য উইন্ডোতে গেলে উইন্ডোটি এমনিতেই বন্ধ হয়ে যায়।",
-                ur: "0 کا مطلب کوئی ٹائمر نہیں۔ ونڈو یوں بھی Esc دبانے سے، بند کرنے کے بٹن سے یا آپ کے کسی دوسری ونڈو میں جانے پر بند ہو جاتی ہے۔",
-                zh: "0 表示不定时关闭。窗口仍可以按 Esc、点击关闭按钮或切换到其他窗口来关闭。");
+            Add("Отсчёт идёт с момента, когда перевод получен, и замирает, пока указатель мыши над окном. 0 — не закрывать по таймеру: окно всё равно закроется по Esc, по кнопке закрытия или когда вы перейдёте в другое окно.",
+                en: "The countdown starts when the translation arrives and pauses while the mouse pointer is over the window. 0 means no timer: the window still closes on Esc, on its close button, or when you move to another window.",
+                uk: "Відлік починається з моменту, коли переклад отримано, і зупиняється, доки вказівник миші над вікном. 0 — не закривати за таймером: вікно все одно закриється за Esc, кнопкою закриття або коли ви перейдете в інше вікно.",
+                de: "Die Zeit läuft ab dem Eintreffen der Übersetzung und pausiert, solange der Mauszeiger über dem Fenster steht. 0 bedeutet kein Timer: Das Fenster schließt trotzdem mit Esc, über seine Schaltfläche oder wenn Sie zu einem anderen Fenster wechseln.",
+                it: "Il conteggio parte da quando arriva la traduzione e si ferma finché il puntatore del mouse è sulla finestra. 0 significa nessun timer: la finestra si chiude comunque con Esc, con il pulsante di chiusura o quando passi a un'altra finestra.",
+                es: "La cuenta empieza cuando llega la traducción y se detiene mientras el puntero del ratón está sobre la ventana. 0 significa sin temporizador: la ventana se cierra igualmente con Esc, con su botón de cerrar o cuando pasa a otra ventana.",
+                fr: "Le compte à rebours démarre à l'arrivée de la traduction et se met en pause tant que le pointeur est sur la fenêtre. 0 signifie pas de minuteur : la fenêtre se ferme quand même avec Échap, par son bouton de fermeture ou lorsque vous passez à une autre fenêtre.",
+                pt: "A contagem começa quando a tradução chega e fica em pausa enquanto o ponteiro do rato estiver sobre a janela. 0 significa sem temporizador: a janela fecha na mesma com Esc, no botão de fechar ou quando passa para outra janela.",
+                ar: "يبدأ العد عند وصول الترجمة ويتوقف مؤقتًا ما دام مؤشر الفأرة فوق النافذة. القيمة 0 تعني بلا مؤقت: تُغلق النافذة على أي حال بمفتاح Esc أو بزر الإغلاق أو عند الانتقال إلى نافذة أخرى.",
+                hi: "गिनती अनुवाद आने के क्षण से शुरू होती है और जब तक माउस पॉइंटर विंडो पर है, रुकी रहती है। 0 का अर्थ है कोई टाइमर नहीं: विंडो फिर भी Esc से, बंद करने के बटन से या दूसरी विंडो पर जाने पर बंद हो जाती है।",
+                bn: "গণনা অনুবাদ আসার মুহূর্ত থেকে শুরু হয় এবং মাউস পয়েন্টার জানালার উপর থাকা পর্যন্ত থেমে থাকে। 0 মানে কোনো টাইমার নেই: জানালা তবুও Esc, বন্ধ করার বোতাম বা অন্য জানালায় গেলে বন্ধ হয়।",
+                ur: "گنتی ترجمہ آنے کے لمحے سے شروع ہوتی ہے اور جب تک ماؤس پوائنٹر ونڈو پر ہے رکی رہتی ہے۔ 0 کا مطلب کوئی ٹائمر نہیں: ونڈو پھر بھی Esc سے، بند کرنے کے بٹن سے یا دوسری ونڈو پر جانے سے بند ہو جاتی ہے۔",
+                zh: "倒计时从译文送达时开始，鼠标指针停在窗口上时暂停。0 表示不用定时器：窗口仍可用 Esc、关闭按钮关闭，或在您切换到其他窗口时关闭。");
+
+
 
             // ---- The direction table ----
             Add("На язык",

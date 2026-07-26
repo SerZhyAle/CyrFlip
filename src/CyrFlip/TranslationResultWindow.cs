@@ -17,6 +17,10 @@ namespace CyrFlip
     /// </summary>
     internal sealed class TranslationResultWindow : Form
     {
+        /// <summary>The size the first build shipped with - see the constructor for why it matters.</summary>
+        private const int FirstReleaseWidth = 460;
+        private const int FirstReleaseHeight = 260;
+
         private readonly AppConfig _config;
         private readonly Label _header = new Label { AutoSize = false, AutoEllipsis = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
         private readonly TextBox _source = new TextBox { Multiline = true, ReadOnly = true, Dock = DockStyle.Fill, ScrollBars = ScrollBars.Vertical, BackColor = SystemColors.Control };
@@ -55,9 +59,19 @@ namespace CyrFlip
             StartPosition = FormStartPosition.Manual;
             ShowInTaskbar = false;
             TopMost = true;
-            MinimumSize = new Size(280, 180);
-            Size = new Size(Math.Max(MinimumSize.Width, config.TranslateWindowWidth),
-                Math.Max(MinimumSize.Height, config.TranslateWindowHeight));
+            MinimumSize = new Size(360, 240);
+
+            int width = config.TranslateWindowWidth;
+            int height = config.TranslateWindowHeight;
+            // A size the user chose is theirs. But the first build shipped a box too small to read a
+            // paragraph in, and it was written to the registry before anyone resized anything - so
+            // exactly that size means "never customised" and gets today's roomier default instead.
+            if (width == FirstReleaseWidth && height == FirstReleaseHeight)
+            {
+                width = AppConfig.DefaultTranslateWindowWidth;
+                height = AppConfig.DefaultTranslateWindowHeight;
+            }
+            Size = new Size(Math.Max(MinimumSize.Width, width), Math.Max(MinimumSize.Height, height));
 
             _copy = Command("Копировать", () => CopyRequested?.Invoke(this, EventArgs.Empty));
             _paste = Command("Вставить", () => PasteRequested?.Invoke(this, EventArgs.Empty));
@@ -305,7 +319,19 @@ namespace CyrFlip
         /// </summary>
         private void WatchForeground()
         {
-            if (!Visible || ContainsFocus) return;
+            if (!Visible) return;
+
+            // Reading it counts as using it: while the pointer is over the popup the auto-close
+            // countdown keeps restarting, so a translation never vanishes mid-sentence. It resumes
+            // the moment the pointer leaves.
+            if (_autoClose.Enabled && Bounds.Contains(MousePosition))
+            {
+                _autoClose.Stop();
+                _autoClose.Start();
+                return;
+            }
+
+            if (ContainsFocus) return;
             IntPtr foreground = GetForegroundWindow();
             if (foreground == Handle || foreground == _openedOver || foreground == IntPtr.Zero) return;
             Dismiss();
@@ -315,6 +341,11 @@ namespace CyrFlip
         {
             Point cursor = MousePosition;
             Rectangle area = Screen.FromPoint(cursor).WorkingArea;
+            // A remembered size from a bigger monitor must not hang off this one.
+            int fitWidth = Math.Max(MinimumSize.Width, Math.Min(Width, area.Width - 24));
+            int fitHeight = Math.Max(MinimumSize.Height, Math.Min(Height, area.Height - 24));
+            if (fitWidth != Width || fitHeight != Height) Size = new Size(fitWidth, fitHeight);
+
             int x = cursor.X + 12;
             int y = cursor.Y + 12;
             if (x + Width > area.Right) x = cursor.X - Width - 12;

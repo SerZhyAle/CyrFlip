@@ -117,8 +117,14 @@ namespace CyrFlip
         public bool TranslateShowSource { get; set; } = false;
         /// <summary>Seconds before the result window closes itself; 0 = never.</summary>
         public int TranslateWindowTimeout { get; set; } = 0;
-        public int TranslateWindowWidth { get; set; } = 460;
-        public int TranslateWindowHeight { get; set; } = 260;
+        /// <summary>
+        /// Roomy on purpose: the popup shows a paragraph of translated text next to the pointer, and
+        /// the first build's 460×260 had people scrolling to read three sentences.
+        /// </summary>
+        public const int DefaultTranslateWindowWidth = 700;
+        public const int DefaultTranslateWindowHeight = 460;
+        public int TranslateWindowWidth { get; set; } = DefaultTranslateWindowWidth;
+        public int TranslateWindowHeight { get; set; } = DefaultTranslateWindowHeight;
         /// <summary>Opacity percentage for the result window (30..100).</summary>
         public int TranslateWindowOpacity { get; set; } = 100;
         public int FlipCount { get; set; } = 0;

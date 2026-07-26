@@ -349,7 +349,7 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `TranslatePasteResult` | `REG_DWORD` | `0` | 1 = paste the translation over the selection (skipped, with a note, if the focus moved) |
 | `TranslateShowSource` | `REG_DWORD` | `0` | 1 = show the source text above the translation |
 | `TranslateWindowTimeout` | `REG_DWORD` | `0` | Auto-close the result window after N seconds; 0 = never |
-| `TranslateWindowWidth` / `Height` | `REG_DWORD` | `460` / `260` | Remembered size of the result window (its position is always at the cursor) |
+| `TranslateWindowWidth` / `Height` | `REG_DWORD` | `700` / `460` | Remembered size of the result window (its position is always at the cursor). A stored `460`/`260` - the first build's default, i.e. "never resized" - is replaced by today's, and any size is clamped to the monitor the pointer is on |
 | `TranslateWindowOpacity` | `REG_DWORD` | `100` | Opacity of the result window, 30..100 |
 | `FlipCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful transliteration |
 | `CaseFlipCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful case flip |
@@ -424,9 +424,12 @@ project **references** the canon (does not mirror it); only the CyrFlip-specific
 
 **Build/release wall & CI cost levers** (every repo runs on paid Windows minutes):
 - **`build.ps1`** = СБОРКА (free local build, appends `[skip ci]`, may push to `main` but **never tags**);
-  **`release.ps1`** = РЕЛИЗ (the only tagger; preflight = clean-tree + on-main + local build/test, then
+  **`release.ps1`** = РЕЛИЗ (the only tagger; preflight = on-main + local build/test, then
   `-Push` creates the `release: vX` anchor commit + tag). The billable boundary is that tag, not a
-  script-capability wall.
+  script-capability wall. **A dirty tree blocks neither script** (single-developer repo): the preflight
+  reports how many paths are uncommitted - they simply won't be in the release, since the tag points at
+  the anchor commit - and carries on; `-RequireClean` brings the old refusal back. `build.ps1 -Commit`
+  with nothing to commit likewise reports and finishes instead of failing.
 - Levers wired: `[skip ci]` on build commits; `paths-ignore` on `ci.yml` (`**.md`, `docs/**`, `PLAN/**`,
   `winget/**`, `assets/**`, `vscode-extension/**`); `if:` skip of `release:`-prefixed commits; the tag
   triggers only `release.yml` (branch-only CI); `concurrency cancel-in-progress` true on CI / false on release.

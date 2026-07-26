@@ -2,6 +2,12 @@
 
 All notable changes to the **CyrFlip - keyboard layout at the caret** extension are documented here.
 
+## [0.1.2] - 2026-07-26
+
+- The marker is no longer described as EN/RU/UK only: the app now reports a two-letter code for **any**
+  installed layout (`DE`, `FR`, `ZH`, `AR`, ..) and the extension has always displayed whatever it is told.
+- Marketplace description and README updated to say so, in English and Russian.
+
 ## [0.1.1] - 2026-06-13
 
 - Added a `winget` install command for the required CyrFlip desktop app to the Marketplace README.
