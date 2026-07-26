@@ -70,7 +70,19 @@ Open source - no telemetry and no data collection; the only network use is your 
 
 **What's new in this version**
 ```
-A built-in translator, optional and off until you switch it on. Select text anywhere in Windows, press your shortcut, and the translation appears in a small window beside the mouse pointer, filling in as the model writes it. It runs on Ollama - a free program you install once on your own computer - so the selected text goes to your own machine, never to a cloud service and never to the developer. Translation directions are an open table: each row is a target language with its own shortcut, and a row can also follow your interface language or the keyboard layout active in the window you are typing in. The result can be copied to the clipboard, where the optional history keeps it like any other copy, or pasted straight over the selection - both off by default. The Translation tab installs Ollama, starts it, checks the connection and downloads a language model, one press each; in the Microsoft Store version that button opens ollama.com instead.
+The biggest release so far: five new modules, each optional and off until you switch it on.
+
+Layout conversion is now an open table - any number of "from layout to layout" pairs, each with its own shortcut. Text is converted by physical key position, so AZERTY and QWERTZ are handled correctly, and every pair works in both directions. The original EN/RU flip is simply its first row.
+
+A settings page replaces the Windows language pane: install, reorder and remove keyboard layouts, choose the language-cycle shortcut, and assign direct per-language shortcuts that Windows itself handles - they keep working even when CyrFlip is closed.
+
+A built-in translator: select text, press your shortcut, and the translation appears in a small window beside the mouse pointer, filling in as the model writes it. It runs on Ollama, a free program you install once on your own computer, so the text goes to your own machine - never to a cloud service and never to the developer.
+
+Quick launch turns your programs, scripts and yt-dlp downloads into scenarios you can start from the tray, from a global hotkey of their own, or from the taskbar Jump List.
+
+Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
+
+The interface now speaks 13 languages, right-to-left included, and follows your Windows language by default.
 ```
 
 ---
@@ -126,7 +138,19 @@ CyrFlip — крошечная утилита Windows в системном тр
 
 **Что нового в этой версии**
 ```
-Встроенный переводчик — необязательный модуль, выключенный, пока вы его не включите. Выделите текст где угодно в Windows, нажмите свою комбинацию — рядом с указателем мыши откроется небольшое окно, и перевод будет появляться в нём по мере того, как его пишет модель. Работает это на Ollama — бесплатной программе, которую вы один раз ставите на свой компьютер, поэтому выделенный текст уходит на вашу же машину, а не в облако и не разработчику. Направления перевода — открытая таблица: строка это язык перевода со своей комбинацией, и строка может следовать за языком интерфейса или за раскладкой, активной в том окне, где вы печатаете. Результат можно класть в буфер обмена, где его сохраняет необязательная история, или сразу вставлять вместо выделения — обе опции по умолчанию выключены. На вкладке «Перевод» Ollama устанавливается, запускается, проверяется и получает модель — по одной кнопке на действие; в версии из Microsoft Store эта кнопка открывает сайт ollama.com.
+Самый большой выпуск за всё время: пять новых модулей, каждый необязательный и выключенный, пока вы его не включите.
+
+Конвертация раскладок теперь открытая таблица - сколько угодно пар «из раскладки в раскладку», у каждой своя комбинация клавиш. Текст переводится по физическому положению клавиш, поэтому AZERTY и QWERTZ обрабатываются правильно, и каждая пара работает в обе стороны. Прежний переворот EN/RU - просто её первая строка.
+
+Отдельная страница настроек заменяет языковую панель Windows: устанавливайте, переставляйте и удаляйте раскладки, выбирайте комбинацию для перебора языков и назначайте прямые сочетания на конкретный язык, которые обрабатывает сама Windows - они работают, даже когда CyrFlip закрыт.
+
+Встроенный переводчик: выделите текст, нажмите свою комбинацию - и перевод появится в небольшом окне рядом с указателем мыши, заполняясь по мере того, как его пишет модель. Работает на Ollama, бесплатной программе, которую вы один раз ставите себе сами, поэтому текст уходит на вашу же машину, а не в облако и не разработчику.
+
+«Быстрый запуск» превращает ваши программы, скрипты и загрузки yt-dlp в сценарии, которые запускаются из трея, по собственной горячей клавише или из списка переходов на панели задач.
+
+Два переключателя не дают Windows уснуть и погасить экран, пока вы работаете.
+
+Интерфейс теперь говорит на 13 языках, включая языки справа налево, и по умолчанию следует за языком Windows.
 ```
 
 ---
@@ -182,7 +206,19 @@ CyrFlip — це крихітна утиліта в системному тре�
 
 **Що нового в цій версії**
 ```
-Вбудований перекладач — необов'язковий модуль, вимкнений, доки ви його не ввімкнете. Виділіть текст будь-де у Windows, натисніть своє сполучення — біля вказівника миші відкриється невелике вікно, і переклад з'являтиметься в ньому в міру того, як його пише модель. Працює це на Ollama — безкоштовній програмі, яку ви один раз встановлюєте на власний комп'ютер, тому виділений текст іде на вашу ж машину, а не в хмару й не розробникові. Напрямки перекладу — відкрита таблиця: рядок це мова перекладу з власним сполученням, і рядок може стежити за мовою інтерфейсу або за розкладкою, активною у вікні, де ви друкуєте. Результат можна класти в буфер обміну, де його зберігає необов'язкова історія, або одразу вставляти замість виділення — обидві опції типово вимкнені. На вкладці «Переклад» Ollama встановлюється, запускається, перевіряється й отримує модель — по одній кнопці на дію; у версії з Microsoft Store ця кнопка відкриває сайт ollama.com.
+Найбільший випуск за весь час: п'ять нових модулів, кожен необов'язковий і вимкнений, доки ви його не ввімкнете.
+
+Конвертація розкладок тепер відкрита таблиця - скільки завгодно пар «з розкладки в розкладку», у кожної власне сполучення клавіш. Текст перетворюється за фізичним положенням клавіш, тож AZERTY і QWERTZ обробляються правильно, і кожна пара працює в обидва боки. Колишнє перевертання EN/RU - просто її перший рядок.
+
+Окрема сторінка налаштувань замінює мовну панель Windows: встановлюйте, переставляйте та вилучайте розкладки, обирайте сполучення для перебору мов і призначайте прямі сполучення на конкретну мову, які обробляє сама Windows - вони працюють, навіть коли CyrFlip закрито.
+
+Вбудований перекладач: виділіть текст, натисніть своє сполучення - і переклад з'явиться в невеликому вікні біля вказівника миші, заповнюючись у міру того, як його пише модель. Працює на Ollama, безкоштовній програмі, яку ви один раз встановлюєте собі самі, тому текст іде на вашу ж машину, а не в хмару й не розробникові.
+
+«Швидкий запуск» перетворює ваші програми, скрипти та завантаження yt-dlp на сценарії, які запускаються з трея, за власною гарячою клавішею або зі списку переходів на панелі задач.
+
+Два перемикачі не дають Windows заснути та згасити екран, доки ви працюєте.
+
+Інтерфейс тепер говорить 13 мовами, зокрема справа наліво, і типово стежить за мовою Windows.
 ```
 
 ---
