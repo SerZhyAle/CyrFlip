@@ -14,8 +14,8 @@ Store-distributed build is also the most effective answer to the Avast/AVG `IDP.
 | [AppxManifest.xml](AppxManifest.xml) | Package manifest (full-trust app, `runFullTrust`, `startupTask`). Has `__PLACEHOLDERS__`. |
 | [build-msix.ps1](build-msix.ps1) | Builds Release, stages payload, generates logo PNGs, fills the manifest, packs the `.msix`. |
 | [store-listing-export.csv](store-listing-export.csv) | Partner Center bulk listing export/import format (Description, ReleaseNotes, Product features, Search terms for en-us/ru). Edit here, then re-import via *Store listings → Import* in Partner Center - keeps the listing content under version control instead of only living in the Partner Center UI. Screenshot/logo asset rows are Partner-Center-hosted URLs, left as-is. |
-| [store-listing-import-13-languages.csv](store-listing-import-13-languages.csv) | **Generated** - the same listing in all 13 languages the app's interface speaks, as one import file. Do not hand-edit; run `build-store-listing-csv.ps1`. |
-| [build-store-listing-csv.ps1](build-store-listing-csv.ps1) | Builds the 13-language import CSV: `en-us`/`ru` copied verbatim from the export above, the other 11 read from `listing/`. Prints a per-language completeness report. `-Codes` overrides the column headers if Partner Center spells a language code differently. |
+| [store-listing-import-13-languages.csv](store-listing-import-13-languages.csv) | **Generated** - the export above with every empty cell filled, ready for *Store listings → Import*. Do not hand-edit; run `build-store-listing-csv.ps1`. |
+| [build-store-listing-csv.ps1](build-store-listing-csv.ps1) | Fills the gaps in the export from `listing/`. It **only writes empty cells** and never reorders columns, so asset URLs and anything Partner Center already holds survive untouched. `-FillNothing` proves the writer is lossless: the output must come back byte-identical to the export. |
 | [listing/](listing/) | One `@@Field / value` text file per language for the 11 languages the export does not carry. Plain text on purpose: this is prose to be proofread, not code. |
 
 The `stage/` and `dist/` folders are produced by the script (git-ignore them).
@@ -82,13 +82,21 @@ For an existing app you only create a new submission - the identity above is unc
 2. [Partner Center](https://partner.microsoft.com/dashboard) → **Apps and games ▸ CyrFlip ▸ Create
    new submission**.
 3. **Packages** → remove the old `.msix`, upload the new one from `msix/dist/`.
-4. **Store listings ▸ Manage additional languages** → add every language you intend to ship
-   (the app's own 13: English, Russian, Ukrainian, German, Italian, Spanish, French, Portuguese,
-   Chinese Simplified, Hindi, Bengali, Arabic, Urdu), then **Store listings ▸ Import** the generated
-   [store-listing-import-13-languages.csv](store-listing-import-13-languages.csv). A language must
-   exist on the submission before its column is accepted, and the column header has to be the code
-   Partner Center itself uses - **export once after adding the languages** and, if a header differs
-   from the script's default, re-run `build-store-listing-csv.ps1 -Codes <the exported list>`.
+4. **Store listings** - the listing copy is imported, not typed:
+   1. **Manage additional languages** → add every language you intend to ship (the app's own 13:
+      English, Russian, Ukrainian, German, Italian, Spanish, French, Portuguese (Brazil), Chinese
+      Simplified, Hindi, Bengali, Arabic, Urdu → `en-us ru uk de it es fr pt-br zh-hans hi bn ar ur`).
+   2. **Export**, and drop the downloaded file over `msix/store-listing-export.csv`. Do this
+      **every time**: the export carries the current submission's listing ids in its asset URLs, and
+      the languages present on it are exactly the columns an import will accept.
+   3. `.\msix\build-store-listing-csv.ps1` - fills the empty cells from `msix/listing/`.
+   4. **Import** `msix/store-listing-import-13-languages.csv`.
+
+   > **A language that is not on the submission is dropped silently.** That is how the Urdu copy went
+   > missing on the first attempt: `ur` had not been added yet, so Partner Center took the other
+   > twelve columns and said nothing about the thirteenth. Always read the per-language report the
+   > script prints, then check the language count in Partner Center after the import.
+
    Screenshots and logos are **not** in the import (their rows are asset URLs tied to an existing
    listing id): upload them per language, or leave the default listing's images to stand.
    "What's new" is filled for **en-us/ru/uk only** - by decision, release notes are not translated
