@@ -24,8 +24,16 @@
 [CmdletBinding()]
 param(
     # Emit a pure round trip of the export. Any difference from the source file is a bug in the
-    # writer below, not in the copy - which is the point of having the switch.
-    [switch] $FillNothing
+    # writer below, not in the copy - which is the point of having the switch. Implies -Faithful,
+    # since byte-identity is only meaningful against the export's own quoting.
+    [switch] $FillNothing,
+
+    # Quote a field only where CSV requires it, exactly as the export does. Produces a readable
+    # diff - and a file Partner Center has so far refused with "We couldn't process this .csv file".
+    # The default instead quotes EVERY field, which is the shape of the import that actually went
+    # through (PowerShell's Export-Csv wrote it that way). Not a theory worth defending, just the
+    # one difference between the attempt that worked and the one that did not.
+    [switch] $Faithful
 )
 $ErrorActionPreference = 'Stop'
 
@@ -56,9 +64,11 @@ function Read-LangFile([string] $path) {
     $map
 }
 
-# Partner Center quotes a field only when it has to; match that or the diff is unreadable.
+$quoteEverything = -not ($Faithful -or $FillNothing)
+
 function Quote([string] $value) {
-    if ($null -eq $value) { return '' }
+    if ($null -eq $value) { $value = '' }
+    if ($quoteEverything) { return '"' + $value.Replace('"', '""') + '"' }
     if ($value.IndexOfAny([char[]] @(',', '"', "`r", "`n")) -ge 0) { return '"' + $value.Replace('"', '""') + '"' }
     $value
 }
