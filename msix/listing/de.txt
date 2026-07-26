@@ -1,0 +1,72 @@
+@@ShortDescription
+Live-Anzeige des Tastaturlayouts direkt an der Schreibmarke, plus Umwandlung zwischen zwei beliebigen installierten Layouts per Tastendruck.
+@@Description
+CyrFlip ist eine winzige Windows-Infobereich-App, die Ihr aktives Tastaturlayout genau dort anzeigt, wo Sie schreiben, und Text mit einer einzigen Taste zwischen Layouts umwandelt.
+
+Das Hauptmerkmal ist eine Live-Layoutanzeige direkt neben der blinkenden Schreibmarke, damit Sie immer wissen, in welchem Layout Sie gleich tippen - selbst in Browsern und im Chatfeld von VS Code, wohin die meisten Anzeigen nicht reichen. Dieselbe Markierung kann auch den Textcursor der Maus ersetzen und erscheint im Infobereichssymbol. Jede der 13 kuratierten Sprachen hat ihre eigene Farbe, jedes andere Windows-Layout erhält weiterhin sein eigenes Zweibuchstaben-Kürzel, und die Feststelltaste fügt einen dünnen Rahmen um die Markierung hinzu.
+
+Markieren Sie im falschen Layout getippten Text und drücken Sie das Tastenkürzel: CyrFlip transliteriert ihn an Ort und Stelle zwischen QWERTY und ЙЦУКЕН, in beide Richtungen und sogar bei gemischtem Text. Ein separates, frei wählbares Tastenkürzel korrigiert eine versehentlich aktivierte Feststelltaste auf dieselbe Weise.
+
+Sie brauchen weitere Sprachen? Legen Sie eine Tabelle von Layout-Umwandlungen an: beliebig viele Paare "von Layout zu Layout", jedes mit einem eigenen globalen Tastenkürzel. Der Text wird nach der physischen Tastenposition umgewandelt, sodass AZERTY- und QWERTZ-Layouts korrekt behandelt werden, und jedes Paar funktioniert in beide Richtungen - drücken Sie dasselbe Kürzel erneut, während das andere Layout des Paares aktiv ist, und der Text wird zurückverwandelt.
+
+Ein Einstellungsfenster ersetzt außerdem die Windows-Sprachverwaltung: Tastaturlayouts installieren, umsortieren und entfernen (nichts wird heruntergeladen - sie sind Teil von Windows), das Kürzel für den Sprachwechsel wählen und direkte Kürzel pro Sprache zuweisen, die Windows selbst verarbeitet, sodass sie auch bei geschlossenem CyrFlip weiter funktionieren. Beide Bereiche legen eine einmalige Sicherung Ihres vorherigen Zustands an.
+
+Der optionale Zwischenablageverlauf ist standardmäßig deaktiviert. Aktiviert bewahrt er zuletzt kopierten Unicode-Text lokal auf, durchsuchbar in einem eigenen Fenster; Einträge lassen sich anheften, löschen, pausieren oder leeren, und alles ist mit der Windows-DPAPI-Verschlüsselung für den aktuellen Windows-Benutzer geschützt.
+
+Der Schnellstart ist ein zweites optionales Modul, ebenfalls aus, bis Sie es einschalten. Er macht aus Ihren Programmen, Skripten und yt-dlp-Downloads Szenarien, die Sie über das Infobereichsmenü, über ein eigenes globales Tastenkürzel oder über die Sprungliste der Taskleiste starten - bei angehefteter Verknüpfung sogar dann, wenn CyrFlip nicht läuft. Szenarien aus dem eigenständigen Werkzeug OneClickRunner, das dieses Modul aufnimmt, lassen sich beim ersten Start importieren, ohne die Originale anzurühren.
+
+Auch der eingebaute Übersetzer ist optional und aus, bis Sie ihn einschalten. Markieren Sie Text irgendwo in Windows, drücken Sie sein Tastenkürzel, und die Übersetzung erscheint in einem kleinen Fenster neben dem Mauszeiger und füllt sich, während das Modell schreibt. Er läuft auf Ollama, einem kostenlosen Programm, das Sie einmalig auf Ihrem eigenen Rechner installieren: CyrFlip liefert es nicht mit, hat weder Konto noch Schlüssel und spricht standardmäßig nur mit http://localhost:11434 - Ihrem eigenen Rechner - es wird also kein Text an den Entwickler oder an einen Cloud-Dienst gesendet. Die Richtungen sind eine offene Tabelle wie die Layout-Umwandlungen: jede Zeile ist eine Zielsprache mit eigenem globalem Tastenkürzel, und eine Zeile kann auch der Oberflächensprache oder der Sprache des im Ausgangsfenster aktiven Layouts folgen. Das Ergebnis kann in die Zwischenablage gelegt werden, wo der optionale Verlauf es wie jede andere Kopie festhält, oder direkt über die Auswahl eingefügt werden - beides ist standardmäßig aus. Der Reiter "Übersetzung" öffnet die Ollama-Downloadseite, startet den Server, prüft die Verbindung und lädt ein Modell herunter: qwen2.5:3b (~2 GB) ist die Voreinstellung, gemma2:2b (~1,6 GB) passt zu schwächeren Rechnern, und aya-expanse:8b (~5 GB) übersetzt ab 8 GB RAM spürbar besser. Ehrlich gesagt: die Qualität ist die des lokalen Modells, die erste Übersetzung nach einem Kaltstart dauert, weil das Modell geladen wird, Ollama und ein Modell sind ein einmaliger Download von mehreren Gigabyte, und der belegte Arbeitsspeicher gehört dem Ollama-Prozess, nicht CyrFlip. Auswahlen über 4000 Zeichen werden bis zu dieser Grenze übersetzt, und das Fenster weist darauf hin.
+
+Jedes Tastenkürzel lässt sich einzeln ein- und ausschalten, CyrFlip kann sie an ein aktives Remotedesktop-Fenster abgeben, damit die Kopie in der Remotesitzung sie verarbeitet, und zwei Wachhalte-Schalter verhindern, dass Windows schläft oder den Bildschirm abschaltet, während Sie arbeiten.
+
+Die Oberfläche ist in 13 Sprachen verfügbar, auch in solchen mit Schreibrichtung von rechts nach links. Sie läuft im Infobereich, braucht wenig Speicher und erfordert unter Windows 10/11 keine zusätzliche Installation.
+
+Datenschutz: CyrFlip nutzt einen Tastaturhook und die Zwischenablage ausschließlich, um das aktive Layout zu erkennen und die von Ihnen ausgelösten Aktionen auszuführen. Es protokolliert keine Tastenanschläge und öffnet keine Netzwerkverbindung, solange Sie den Übersetzer nicht einschalten, der nur mit dem von Ihnen angegebenen Ollama-Server spricht - standardmäßig Ihrem eigenen Rechner. Quelloffen: https://github.com/SerZhyAle/CyrFlip
+@@Feature1
+Live-Layoutmarkierung neben der Schreibmarke - funktioniert in Browsern und im VS-Code-Chat
+@@Feature2
+13 kuratierte Sprachen, jede mit eigener Farbe; jedes andere Windows-Layout bekommt sein Kürzel
+@@Feature3
+Transliteration zwischen QWERTY und ЙЦУКЕН per Taste, an Ort und Stelle, in beide Richtungen
+@@Feature4
+Tabelle von Layout-Umwandlungen: beliebig viele Paare, jedes mit eigenem Kürzel, in beide Richtungen
+@@Feature5
+Wandelt nach physischer Tastenposition um, daher werden AZERTY und QWERTZ korrekt behandelt
+@@Feature6
+Eigenes Tastenkürzel korrigiert versehentliche Feststelltaste (GROSS/klein vertauschen)
+@@Feature7
+Windows-Tastaturlayouts installieren, umsortieren und entfernen - ohne die Windows-Sprachverwaltung
+@@Feature8
+Sprachwechsel-Kürzel, die Windows selbst verarbeitet - sie wirken auch bei geschlossenem CyrFlip
+@@Feature9
+Optionaler verschlüsselter Zwischenablageverlauf mit Suche, Anheften und Windows-DPAPI-Schutz
+@@Feature10
+Zwei Wachhalte-Schalter: kein Ruhezustand und kein Bildschirmabschalten während der Arbeit
+@@Feature11
+Oberfläche in 13 Sprachen, auch von rechts nach links; folgt Ihrer Windows-Sprache
+@@Feature12
+Läuft unauffällig im Infobereich, wenig Speicher, nichts zusätzlich zu installieren
+@@Feature13
+Quelloffen - keine Telemetrie, keine Datenerfassung; das Netz nutzt nur Ihr eigenes Ollama
+@@Feature14
+Optionaler Schnellstart: Programme, Skripte und yt-dlp-Downloads als Szenarien mit einem Klick
+@@Feature15
+Szenario starten aus dem Infobereich, per eigenem globalem Kürzel oder aus der Sprungliste
+@@Feature16
+Optionaler lokaler Übersetzer: Auswahl per Tastenkürzel, Ergebnis im Fenster am Mauszeiger
+@@Feature17
+Die Übersetzung läuft über Ollama auf Ihrem Rechner - separat installiert, standardmäßig aus
+@@SearchTerm1
+Tastaturlayout wechseln
+@@SearchTerm2
+Layout-Anzeige
+@@SearchTerm3
+Transliteration
+@@SearchTerm4
+Feststelltaste korrigieren
+@@SearchTerm5
+kyrillische Tastatur
+@@SearchTerm6
+Zwischenablage-Verlauf
+@@SearchTerm7
+Eingabesprache

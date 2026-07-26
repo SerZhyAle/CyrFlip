@@ -1,0 +1,72 @@
+@@ShortDescription
+Indicateur de disposition clavier juste à côté du curseur de texte et conversion entre deux dispositions installées d'une seule touche.
+@@Description
+CyrFlip est une petite application de la zone de notification Windows qui affiche la disposition de clavier active là où vous écrivez et convertit le texte d'une disposition à l'autre d'une seule touche.
+
+Sa fonction phare est un indicateur de disposition en direct, épinglé à côté du curseur de texte clignotant, pour que vous sachiez toujours dans quelle disposition vous allez taper - même dans les navigateurs et dans la zone de discussion de VS Code, où la plupart des indicateurs n'arrivent pas. Le même repère peut aussi remplacer le pointeur en I de la souris et s'affiche sur l'icône de la zone de notification. Chacune des 13 langues retenues a sa propre couleur, toute autre disposition Windows reçoit malgré tout son code de deux lettres, et le verrouillage majuscules ajoute un fin cadre autour du repère.
+
+Sélectionnez le texte saisi dans la mauvaise disposition et appuyez sur le raccourci : CyrFlip le translittère sur place entre QWERTY et ЙЦУКЕН, dans les deux sens et même pour du texte mélangé. Un raccourci distinct et configurable corrige de la même façon un verrouillage majuscules resté actif.
+
+Besoin d'autres langues ? Constituez une table de conversions de disposition : autant de paires « d'une disposition vers une autre » que vous voulez, chacune avec son raccourci global. Le texte est converti d'après la position physique des touches, si bien que les dispositions AZERTY et QWERTZ sont traitées correctement, et chaque paire fonctionne dans les deux sens - appuyez de nouveau sur la même combinaison alors que l'autre disposition de la paire est active et le texte revient en arrière.
+
+Une fenêtre de réglages remplace également le panneau des langues de Windows : installez, réordonnez et supprimez des dispositions de clavier (rien n'est téléchargé - elles sont livrées avec Windows), choisissez le raccourci qui fait défiler les langues et attribuez des raccourcis directs par langue que Windows gère lui-même, de sorte qu'ils continuent de fonctionner même CyrFlip fermé. Les deux sections conservent une sauvegarde unique de votre état précédent.
+
+L'historique du presse-papiers est facultatif et désactivé par défaut. Une fois activé, il conserve localement le texte Unicode récent, consultable dans sa propre fenêtre ; les entrées peuvent être épinglées, supprimées, mises en pause ou effacées, et le tout est protégé par le chiffrement DPAPI de Windows pour l'utilisateur courant.
+
+Le lancement rapide est un deuxième module facultatif, lui aussi éteint tant que vous ne l'activez pas. Il transforme vos programmes, scripts et téléchargements yt-dlp en scénarios que vous lancez depuis le sous-menu de la zone de notification, depuis un raccourci global qui leur est propre ou depuis la liste de raccourcis de la barre des tâches - même lorsque CyrFlip n'est pas en cours d'exécution, si vous l'épinglez. Les scénarios de l'outil autonome OneClickRunner, que ce module absorbe, peuvent être importés au premier démarrage sans toucher aux originaux.
+
+Le traducteur intégré est facultatif lui aussi et reste éteint tant que vous ne l'activez pas. Sélectionnez du texte n'importe où dans Windows, appuyez sur son raccourci, et la traduction apparaît dans une petite fenêtre près du pointeur de la souris, en se remplissant au fil de l'écriture du modèle. Il fonctionne avec Ollama, un programme gratuit que vous installez une fois sur votre propre ordinateur : CyrFlip ne l'embarque pas, n'a ni compte ni clé et, par défaut, ne parle qu'à http://localhost:11434 - votre propre machine - aucun texte n'est donc envoyé au développeur ni à un service en nuage. Les directions forment une table ouverte, comme les conversions de disposition : chaque ligne est une langue cible avec son raccourci global, et une ligne peut aussi suivre la langue de l'interface ou celle de la disposition active dans la fenêtre d'où vous traduisez. Le résultat peut être copié dans le presse-papiers, où l'historique facultatif l'enregistre comme n'importe quelle autre copie, ou collé directement à la place de la sélection - les deux options sont désactivées par défaut. L'onglet « Traduction » ouvre la page de téléchargement d'Ollama, démarre le serveur, vérifie la connexion et télécharge un modèle : qwen2.5:3b (~2 Go) est celui par défaut, gemma2:2b (~1,6 Go) convient aux machines modestes, et aya-expanse:8b (~5 Go) traduit nettement mieux à partir de 8 Go de RAM. Soyons honnêtes : la qualité est celle du modèle local, la première traduction après un démarrage à froid prend du temps car le modèle se charge, Ollama et un modèle représentent un téléchargement de plusieurs gigaoctets à faire une fois, et la mémoire utilisée par le modèle appartient au processus Ollama, pas à CyrFlip. Les sélections de plus de 4000 caractères sont traduites jusqu'à cette limite, et la fenêtre le signale.
+
+Chaque raccourci s'active ou se désactive séparément, CyrFlip peut les céder à un client Bureau à distance au premier plan pour que la copie exécutée dans la session distante s'en charge, et deux interrupteurs empêchent Windows de se mettre en veille ou d'éteindre l'écran pendant que vous travaillez.
+
+L'interface est disponible en 13 langues, y compris celles qui s'écrivent de droite à gauche. Elle tourne dans la zone de notification, consomme peu de mémoire et ne demande rien de plus à installer sous Windows 10/11.
+
+Confidentialité : CyrFlip n'utilise le hook clavier et le presse-papiers que pour détecter la disposition active et exécuter les actions que vous déclenchez. Il n'enregistre pas les frappes et n'ouvre aucune connexion réseau tant que vous n'activez pas le traducteur, qui ne parle qu'au serveur Ollama que vous lui indiquez - votre propre ordinateur par défaut. Code ouvert : https://github.com/SerZhyAle/CyrFlip
+@@Feature1
+Repère de disposition près du curseur de texte - fonctionne dans les navigateurs et le chat VS Code
+@@Feature2
+13 langues retenues, chacune avec sa couleur ; toute autre disposition Windows a aussi son code
+@@Feature3
+Translittération entre QWERTY et ЙЦУКЕН d'une touche, sur place, dans les deux sens
+@@Feature4
+Table de conversions : autant de paires que voulu, chacune avec son raccourci, dans les deux sens
+@@Feature5
+Convertit d'après la position physique des touches : AZERTY et QWERTZ sont traités correctement
+@@Feature6
+Un raccourci dédié corrige le verrouillage majuscules (échange MAJUSCULES et minuscules)
+@@Feature7
+Installez, réordonnez et supprimez les dispositions Windows sans ouvrir le panneau des langues
+@@Feature8
+Raccourcis par langue gérés par Windows : ils fonctionnent même quand CyrFlip est fermé
+@@Feature9
+Historique du presse-papiers facultatif et chiffré : recherche, épinglage, protection DPAPI
+@@Feature10
+Deux interrupteurs anti-veille : ni mise en veille ni extinction de l'écran pendant le travail
+@@Feature11
+Interface en 13 langues, y compris de droite à gauche ; suit la langue de Windows
+@@Feature12
+Tourne discrètement dans la zone de notification, peu de mémoire, rien de plus à installer
+@@Feature13
+Code ouvert - pas de télémétrie ni de collecte ; le seul réseau utilisé est votre propre Ollama
+@@Feature14
+Lancement rapide facultatif : programmes, scripts et téléchargements yt-dlp en un clic
+@@Feature15
+Lancez un scénario depuis la zone de notification, son raccourci global ou la liste de raccourcis
+@@Feature16
+Traducteur local facultatif : la sélection est traduite par raccourci, près du pointeur
+@@Feature17
+La traduction s'exécute sur Ollama, sur votre ordinateur - installé à part, éteint par défaut
+@@SearchTerm1
+changer disposition clavier
+@@SearchTerm2
+indicateur de clavier
+@@SearchTerm3
+translittération
+@@SearchTerm4
+corriger verr maj
+@@SearchTerm5
+clavier cyrillique
+@@SearchTerm6
+historique presse-papiers
+@@SearchTerm7
+langue de saisie

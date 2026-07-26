@@ -1,0 +1,72 @@
+@@ShortDescription
+Indicatore di layout della tastiera accanto al cursore di testo e conversione tra due layout installati con un solo tasto.
+@@Description
+CyrFlip è una piccola applicazione per l'area di notifica di Windows che mostra il layout di tastiera attivo proprio dove stai scrivendo e converte il testo tra i layout con un solo tasto.
+
+La funzione principale è un indicatore di layout in tempo reale fissato accanto al cursore di testo lampeggiante, così sai sempre in quale layout stai per digitare - anche nei browser e nella casella di chat di VS Code, dove la maggior parte degli indicatori non arriva. Lo stesso contrassegno può sostituire anche il puntatore a barra del mouse e compare sull'icona nell'area di notifica. Ognuna delle 13 lingue selezionate ha il proprio colore, qualunque altro layout di Windows riceve comunque il suo codice di due lettere, e il BLOC MAIUSC aggiunge una sottile cornice attorno al contrassegno.
+
+Seleziona il testo digitato nel layout sbagliato e premi la scorciatoia: CyrFlip lo traslittera sul posto tra QWERTY e ЙЦУКЕН, in entrambe le direzioni e persino per il testo misto. Una scorciatoia separata e configurabile corregge allo stesso modo un BLOC MAIUSC lasciato inserito per sbaglio.
+
+Servono altre lingue? Costruisci una tabella di conversioni di layout: quante coppie "da un layout a un altro" vuoi, ciascuna con la propria scorciatoia globale. Il testo viene convertito in base alla posizione fisica dei tasti, quindi i layout AZERTY e QWERTZ sono gestiti correttamente, e ogni coppia funziona in entrambe le direzioni - premi di nuovo la stessa combinazione mentre è attivo l'altro layout della coppia e il testo torna indietro.
+
+Una finestra delle impostazioni sostituisce anche il pannello delle lingue di Windows: installa, riordina e rimuovi i layout di tastiera (non si scarica nulla - sono già inclusi in Windows), scegli la scorciatoia per scorrere le lingue e assegna scorciatoie dirette per singola lingua gestite da Windows stesso, così continuano a funzionare anche a CyrFlip chiuso. Entrambe le sezioni conservano un backup una tantum dello stato precedente.
+
+La cronologia degli appunti è opzionale e disattivata per impostazione predefinita. Se attivata, conserva localmente il testo Unicode recente, consultabile in una finestra dedicata; le voci si possono fissare, eliminare, mettere in pausa o cancellare, ed è protetta con la cifratura DPAPI di Windows per l'utente corrente.
+
+L'avvio rapido è un secondo modulo opzionale, anch'esso spento finché non lo attivi. Trasforma programmi, script e download yt-dlp in scenari che puoi avviare dal sottomenu nell'area di notifica, da una scorciatoia globale dedicata o dalla Jump List della barra delle applicazioni - persino mentre CyrFlip non è in esecuzione, se lo aggiungi alla barra. Gli scenari dello strumento autonomo OneClickRunner, che questo modulo assorbe, si possono importare al primo avvio senza toccare gli originali.
+
+Anche il traduttore integrato è opzionale e spento finché non lo attivi. Seleziona il testo ovunque in Windows, premi la sua scorciatoia e la traduzione appare in una finestrella accanto al puntatore del mouse, riempiendosi man mano che il modello scrive. Funziona con Ollama, un programma gratuito che installi una volta sola sul tuo computer: CyrFlip non lo include, non ha account né chiavi e per impostazione predefinita parla solo con http://localhost:11434 - il tuo computer - quindi nessun testo viene inviato allo sviluppatore o a un servizio cloud. Le direzioni sono una tabella aperta, come le conversioni di layout: ogni riga è una lingua di destinazione con la propria scorciatoia globale, e una riga può anche seguire la lingua dell'interfaccia o quella del layout attivo nella finestra da cui traduci. Il risultato può essere copiato negli appunti, dove la cronologia opzionale lo registra come qualsiasi altra copia, oppure incollato direttamente al posto della selezione - entrambe le opzioni sono disattivate per impostazione predefinita. La scheda "Traduzione" apre la pagina di download di Ollama, avvia il server, verifica la connessione e scarica un modello: qwen2.5:3b (~2 GB) è quello predefinito, gemma2:2b (~1,6 GB) va bene su macchine meno potenti e aya-expanse:8b (~5 GB) traduce nettamente meglio con 8 GB di RAM o più. Un avviso onesto: la qualità è quella del modello locale, la prima traduzione dopo un avvio a freddo richiede tempo perché il modello viene caricato, Ollama e un modello sono un download di più gigabyte da fare una volta sola, e la memoria usata dal modello appartiene al processo Ollama, non a CyrFlip. Le selezioni oltre 4000 caratteri vengono tradotte fino a quel punto, e la finestra lo segnala.
+
+Ogni scorciatoia si può attivare o disattivare singolarmente, CyrFlip può cederle a un client Desktop remoto in primo piano perché le gestisca la copia in esecuzione nella sessione remota, e due interruttori impediscono a Windows di sospendersi o di spegnere lo schermo mentre lavori.
+
+L'interfaccia è disponibile in 13 lingue, comprese quelle che si scrivono da destra a sinistra. Gira nell'area di notifica, usa poca memoria e non richiede nulla di aggiuntivo su Windows 10/11.
+
+Privacy: CyrFlip usa un hook della tastiera e gli appunti solo per rilevare il layout attivo ed eseguire le azioni che avvii tu. Non registra i tasti premuti e non apre alcuna connessione di rete a meno che tu non attivi il traduttore, che parla solo con il server Ollama che indichi - il tuo computer per impostazione predefinita. Codice aperto: https://github.com/SerZhyAle/CyrFlip
+@@Feature1
+Contrassegno del layout accanto al cursore di testo - funziona nei browser e nella chat di VS Code
+@@Feature2
+13 lingue selezionate, ognuna con il suo colore; ogni altro layout di Windows ha il suo codice
+@@Feature3
+Traslitterazione tra QWERTY e ЙЦУКЕН con un tasto, sul posto, in entrambe le direzioni
+@@Feature4
+Tabella di conversioni di layout: quante coppie vuoi, ognuna con la sua scorciatoia, nei due sensi
+@@Feature5
+Converte in base alla posizione fisica dei tasti: AZERTY e QWERTZ sono gestiti correttamente
+@@Feature6
+Una scorciatoia dedicata corregge il BLOC MAIUSC inserito per sbaglio (scambia MAIUSCOLE/minuscole)
+@@Feature7
+Installa, riordina e rimuovi i layout di Windows senza aprire il pannello delle lingue
+@@Feature8
+Scorciatoie per lingua gestite da Windows: funzionano anche quando CyrFlip è chiuso
+@@Feature9
+Cronologia appunti opzionale e cifrata, con ricerca, voci fissate e protezione DPAPI di Windows
+@@Feature10
+Due interruttori anti-sospensione: niente standby e niente schermo spento mentre lavori
+@@Feature11
+Interfaccia in 13 lingue, anche da destra a sinistra; segue la lingua di Windows
+@@Feature12
+Gira discreta nell'area di notifica, poca memoria, nulla di aggiuntivo da installare
+@@Feature13
+Codice aperto - niente telemetria né raccolta dati; l'unica rete usata è il tuo Ollama
+@@Feature14
+Avvio rapido opzionale: programmi, script e download yt-dlp come scenari a un clic
+@@Feature15
+Avvia uno scenario dall'area di notifica, da una scorciatoia globale o dalla Jump List
+@@Feature16
+Traduttore locale opzionale: la selezione si traduce con una scorciatoia, accanto al puntatore
+@@Feature17
+La traduzione gira su Ollama sul tuo computer - installato a parte, spento finché non lo attivi
+@@SearchTerm1
+cambio layout tastiera
+@@SearchTerm2
+indicatore layout
+@@SearchTerm3
+traslitterazione
+@@SearchTerm4
+correggi bloc maiusc
+@@SearchTerm5
+tastiera cirillica
+@@SearchTerm6
+cronologia appunti
+@@SearchTerm7
+lingua di input

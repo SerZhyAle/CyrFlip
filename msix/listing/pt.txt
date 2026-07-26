@@ -1,0 +1,72 @@
+@@ShortDescription
+Indicador do layout de teclado ao lado do cursor de texto e conversão entre dois layouts instalados com uma única tecla.
+@@Description
+O CyrFlip é um pequeno aplicativo da área de notificação do Windows que mostra o layout de teclado ativo bem onde você digita e converte o texto entre layouts com uma única tecla.
+
+Seu recurso principal é um indicador de layout ao vivo fixado ao lado do cursor de texto piscante, para você sempre saber em que layout está prestes a digitar - até nos navegadores e na caixa de chat do VS Code, aonde a maioria dos indicadores não chega. A mesma marca também pode substituir o ponteiro de texto do mouse e aparece no ícone da área de notificação. Cada um dos 13 idiomas selecionados tem sua própria cor, qualquer outro layout do Windows ainda recebe seu código de duas letras, e o Caps Lock acrescenta uma moldura fina em volta da marca.
+
+Selecione o texto digitado no layout errado e pressione o atalho: o CyrFlip translitera no lugar entre QWERTY e ЙЦУКЕН, nos dois sentidos e mesmo em texto misturado. Um atalho separado e configurável corrige da mesma forma um Caps Lock deixado ligado sem querer.
+
+Precisa de outros idiomas? Monte uma tabela de conversões de layout: quantos pares "de um layout para outro" você quiser, cada um com seu próprio atalho global. O texto é convertido pela posição física das teclas, então os layouts AZERTY e QWERTZ são tratados corretamente, e cada par funciona nos dois sentidos - pressione a mesma combinação de novo enquanto o outro layout do par estiver ativo e o texto volta ao original.
+
+Uma janela de configurações também substitui o painel de idiomas do Windows: instale, reordene e remova layouts de teclado (nada é baixado - eles já vêm com o Windows), escolha o atalho que percorre os idiomas e atribua atalhos diretos por idioma que o próprio Windows processa, de modo que continuam funcionando mesmo com o CyrFlip fechado. As duas seções guardam um backup único do seu estado anterior.
+
+O histórico da área de transferência é opcional e vem desativado. Quando ativado, guarda localmente o texto Unicode recente, pesquisável em uma janela própria; os itens podem ser fixados, excluídos, pausados ou limpos, e tudo é protegido com a criptografia DPAPI do Windows para o usuário atual.
+
+A inicialização rápida é um segundo módulo opcional, também desligado até você ativá-lo. Ela transforma seus programas, scripts e downloads do yt-dlp em cenários que você inicia pelo submenu da área de notificação, por um atalho global próprio ou pela Jump List da barra de tarefas - até mesmo enquanto o CyrFlip não está em execução, se você fixá-lo. Os cenários da ferramenta independente OneClickRunner, que este módulo absorve, podem ser importados na primeira execução sem tocar nos originais.
+
+O tradutor integrado também é opcional e fica desligado até você ativá-lo. Selecione o texto em qualquer lugar do Windows, pressione o atalho dele, e a tradução aparece em uma janelinha ao lado do ponteiro do mouse, preenchendo-se conforme o modelo escreve. Ele funciona no Ollama, um programa gratuito que você instala uma vez no seu próprio computador: o CyrFlip não o inclui, não tem conta nem chave e, por padrão, fala apenas com http://localhost:11434 - a sua própria máquina - portanto nenhum texto é enviado ao desenvolvedor nem a qualquer serviço de nuvem. As direções formam uma tabela aberta, como as conversões de layout: cada linha é um idioma de destino com seu próprio atalho global, e uma linha também pode seguir o idioma da interface ou o do layout ativo na janela de onde você traduz. O resultado pode ser copiado para a área de transferência, onde o histórico opcional o registra como qualquer outra cópia, ou colado direto sobre a seleção - as duas opções vêm desativadas. A guia "Tradução" abre a página de download do Ollama, inicia o servidor, verifica a conexão e baixa um modelo: qwen2.5:3b (~2 GB) é o padrão, gemma2:2b (~1,6 GB) serve para máquinas mais fracas, e aya-expanse:8b (~5 GB) traduz visivelmente melhor com 8 GB de RAM ou mais. Um aviso honesto: a qualidade é a do modelo local, a primeira tradução após um início frio demora porque o modelo é carregado, o Ollama e um modelo são um download de vários gigabytes feito uma única vez, e a memória usada pelo modelo pertence ao processo do Ollama, não ao CyrFlip. Seleções acima de 4000 caracteres são traduzidas até esse ponto, e a janela avisa.
+
+Cada atalho pode ser ligado ou desligado separadamente, o CyrFlip pode cedê-los a um cliente de Área de Trabalho Remota em primeiro plano para que a cópia em execução na sessão remota os processe, e dois interruptores impedem que o Windows durma ou apague a tela enquanto você trabalha.
+
+A interface está disponível em 13 idiomas, incluindo os escritos da direita para a esquerda. Ela roda na área de notificação, usa pouca memória e não exige nada extra instalado no Windows 10/11.
+
+Privacidade: o CyrFlip usa um hook de teclado e a área de transferência apenas para detectar o layout ativo e executar as ações que você aciona. Ele não registra as teclas digitadas e não abre nenhuma conexão de rede, a menos que você ative o tradutor, que fala somente com o servidor Ollama que você indicar - o seu próprio computador, por padrão. Código aberto: https://github.com/SerZhyAle/CyrFlip
+@@Feature1
+Marca do layout ao lado do cursor de texto - funciona em navegadores e no chat do VS Code
+@@Feature2
+13 idiomas selecionados, cada um com sua cor; qualquer outro layout também recebe seu código
+@@Feature3
+Transliteração entre QWERTY e ЙЦУКЕН com uma tecla, no lugar, nos dois sentidos
+@@Feature4
+Tabela de conversões: quantos pares quiser, cada um com seu atalho, nos dois sentidos
+@@Feature5
+Converte pela posição física das teclas: AZERTY e QWERTZ são tratados corretamente
+@@Feature6
+Um atalho separado corrige o Caps Lock esquecido (troca MAIÚSCULAS e minúsculas)
+@@Feature7
+Instale, reordene e remova layouts do Windows sem abrir o painel de idiomas
+@@Feature8
+Atalhos por idioma processados pelo Windows: funcionam mesmo com o CyrFlip fechado
+@@Feature9
+Histórico opcional e criptografado da área de transferência: busca, fixar e proteção DPAPI
+@@Feature10
+Dois interruptores anti-suspensão: sem dormir e sem apagar a tela enquanto você trabalha
+@@Feature11
+Interface em 13 idiomas, inclusive da direita para a esquerda; segue o idioma do Windows
+@@Feature12
+Roda discreto na área de notificação, pouca memória, nada extra para instalar
+@@Feature13
+Código aberto - sem telemetria nem coleta de dados; a única rede usada é o seu próprio Ollama
+@@Feature14
+Inicialização rápida opcional: programas, scripts e downloads do yt-dlp em um clique
+@@Feature15
+Inicie um cenário pela área de notificação, por atalho global ou pela Jump List
+@@Feature16
+Tradutor local opcional: a seleção é traduzida por atalho, ao lado do ponteiro do mouse
+@@Feature17
+A tradução roda no Ollama no seu computador - instalado à parte, desligado por padrão
+@@SearchTerm1
+trocar layout do teclado
+@@SearchTerm2
+indicador de teclado
+@@SearchTerm3
+transliteração
+@@SearchTerm4
+corrigir caps lock
+@@SearchTerm5
+teclado cirílico
+@@SearchTerm6
+histórico da área de transferência
+@@SearchTerm7
+idioma de entrada
