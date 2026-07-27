@@ -31,8 +31,10 @@ The **same `CyrFlip.exe`** ships packaged and unpackaged; it detects which at ru
 
 1. **Autostart.** Unpackaged uses `HKCU\..\Run`. Under MSIX that write is virtualized and ignored at
    sign-in, so autostart is declared in the manifest as a **`windows.startupTask`** (off by default).
-   The tray menu item becomes **"Start with Windows.."** and opens *Settings ▸ Apps ▸ Startup*, where
-   the user toggles it.
+   The settings checkbox therefore can't flip it: clicking opens *Settings ▸ Apps ▸ Startup*, where the
+   user does. It still shows the real state, read from
+   `HKCU\Software\Classes\Local Settings\..\AppModel\SystemAppData\<PackageFamilyName>\CyrFlipStartup\State`
+   (`StartupTaskState`: 2 = Enabled, 4 = EnabledByPolicy), and re-read whenever the window is activated.
 2. **`layout.txt` for the VS Code extension.** Unpackaged writes `%LOCALAPPDATA%\CyrFlip\layout.txt`.
    Under MSIX `%LOCALAPPDATA%` is virtualized into the package container - invisible to the (unpackaged)
    extension - so the packaged app writes **`%ProgramData%\CyrFlip\layout.txt`** instead. The extension

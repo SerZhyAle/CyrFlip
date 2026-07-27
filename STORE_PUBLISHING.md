@@ -22,7 +22,7 @@ ships packaged and unpackaged, so detect which at runtime and branch where it ma
 | Concern | Why it breaks under MSIX | Fix (CyrFlip reference) |
 | --- | --- | --- |
 | "Am I packaged?" | need to branch behaviour | `GetCurrentPackageFullName` → `src/CyrFlip/PackageInfo.cs` |
-| Autostart | a packaged `HKCU\..\Run` write is **virtualized and ignored** at sign-in | declare a manifest `windows.startupTask`; tray item opens `ms-settings:startupapps` (`Autostart.cs`, `CyrFlipContext.cs`) |
+| Autostart | a packaged `HKCU\..\Run` write is **virtualized and ignored** at sign-in | declare a manifest `windows.startupTask`; the checkbox opens `ms-settings:startupapps` and **reads** the task state from `..\AppModel\SystemAppData\<PFN>\<TaskId>\State` so it isn't stuck on "off" (`Autostart.cs`, `PackageInfo.FamilyName`) |
 | Files read by *other* processes | `%LOCALAPPDATA%` is redirected into the package container | write to `%ProgramData%` when packaged (`LayoutPublisher.cs`); have the reader check both paths |
 
 **Rule of thumb:** anything that writes to `%LOCALAPPDATA%` / `HKCU` and must be visible outside the

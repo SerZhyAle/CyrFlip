@@ -41,3 +41,16 @@ desktop.ini
 # it) but it is a copy of tracked files, so it is not tracked itself.
 msix/store-listing-import/
 msix/listingData-*.csv
+
+# Secrets and signing material - pre-empt the leak, never catch it afterwards.
+*.snk
+*.jks
+*.keystore
+.env
+*token*
+*secret*
+
+# Stray agent-kit export - not produced by this repo and not read by it. It is an export of a
+# generic agents/skills/rules pack from a different project, swept in by an accidental
+# stage-everything in commit 72f30b9 ("1"). Nothing here references it, so a clone does not need it.
+universal_agent_pack.zip
