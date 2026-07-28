@@ -16,7 +16,8 @@ CyrFlip is a tiny Windows tray tool with a few modest jobs:
 4. **A settings window that also replaces the Windows language pane.** Install, reorder and remove keyboard layouts, pick the whole-cycle switch chord, and assign per-language switch shortcuts that **Windows** handles (so they keep working when CyrFlip is closed). Nothing is downloaded - the layouts already ship with Windows.
 5. **An opt-in quick-launch module (the absorbed [OneClickRunner](https://github.com/SerZhyAle/OneClickRunner)).** Your programs, scripts and yt-dlp downloads as scenarios, launched from the tray, the settings table, an optional per-scenario global hotkey, or the taskbar **Jump List**. Off by default - until you enable it, CyrFlip behaves exactly as before.
 6. **An opt-in translator that runs on your own computer.** Select text anywhere in Windows, press a chord, and the translation appears in a small window next to the mouse pointer, filling in as the model writes it. It runs on [Ollama](https://ollama.com), a free program you install once yourself - no account, no key, and no text sent to the developer or to a cloud service. Off by default.
-7. **Extras that fit a tray tool:** an opt-in encrypted clipboard history with search, two keep-awake switches, and a UI available in **13 languages**.
+7. **An opt-in context menu of CyrFlip's own.** Hold **Ctrl** and right-click a selection: Copy/Cut/Paste, your layout conversions, the case fix, your translation rows, Quick launch and the clipboard history, all at the pointer. The menu never takes the focus, so the selection survives it. Off by default - and while it is off, the mouse hook is not installed at all.
+8. **Extras that fit a tray tool:** an opt-in encrypted clipboard history with search, two keep-awake switches, and a UI available in **13 languages**.
 
 ![CyrFlip's layout-aware text cursor showing EN, RU, ZH and AR](assets/cursor-preview.png)
 
@@ -43,7 +44,7 @@ for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and c
 - **Settings** (nine tabs, every change applied at once, no restart):
   - **General** - start with Windows, keep the computer awake, keep the screen on (both remembered across restarts), and the interface language (13 to choose from).
   - **Indicators** - the I-beam cursor marker (off by default), the caret marker (on by default), the compact dot style, "change the layout after converting text", and "synchronize CapsLock after the case fix".
-  - **Hotkeys** - the master switch plus a separate on/off and chord for the case fix and the clipboard manager, and the option to yield the chords to a focused remote-desktop client.
+  - **Hotkeys** - the master switch plus a separate on/off and chord for the case fix and the clipboard manager, the option to yield the chords to a focused remote-desktop client, and the **context menu** switch with the mouse chord that opens it.
   - **Layout conversions** - one table holding **every** chord that converts text between layouts, EN ⇄ RU included. Each row is a pair of installed layouts plus its own combination and on/off switch, and each works in both directions.
   - **Windows languages** - install / reorder / remove Windows keyboard layouts, choose the cycle chord (Alt+Shift, Ctrl+Shift, `` ` `` or off), and assign direct per-language shortcuts that Windows itself handles. Both sections take a one-time backup of your pre-CyrFlip state with a one-click restore.
   - **Quick launch** - the scenario launcher (see below).
@@ -134,7 +135,8 @@ All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and ar
 | Clipboard history | off | Encrypted local text history; toggle it from the tray or Settings |
 | Show clipboard manager window | on | Remembers whether the manager window is open - close it and it stays closed on the next launch, while history keeps capturing in the background |
 | Quick launch | off | The scenario launcher: tray submenu, per-scenario hotkeys and taskbar Jump List tasks. Scenarios live in `%APPDATA%\CyrFlip\Scenarios` (one XML each) and survive the switch being turned off |
-| Translation | off | The local translator. Holds the table of directions with their own chords (the first row gets `Ctrl+Shift+F9`), the Ollama address (`http://localhost:11434` by default) and model (`qwen2.5:3b`), and whether the result is copied to the clipboard or pasted over the selection (both off). Ollama itself is installed separately |
+| Translation | off | The local translator. Holds the table of directions with their own chords (the first row gets `Ctrl+Shift+F9`), the Ollama address (`http://localhost:11434` by default) and model (`aya-expanse:8b`), and whether the result is copied to the clipboard or pasted over the selection (both off). A row can target any language Windows knows; what the model actually handles is a question for the model, and the editor links to its page. Ollama itself is installed separately |
+| Context menu | off | CyrFlip's own menu over the selection, opened by a mouse chord (`Ctrl+RightClick` by default; the right button always needs a modifier, or every context menu in Windows would be swallowed). While off, no mouse hook is installed |
 
 Settings → **Windows languages** writes **Windows'** own settings rather than CyrFlip's: the installed keyboard layouts (`HKCU\Keyboard Layout\Preload` plus the modern user-profile store), the cycle chord and the per-language switch shortcuts (`HKCU\Control Panel\Input Method\Hot Keys`). Each of the two sections snapshots your pre-CyrFlip state once and can restore it.
 

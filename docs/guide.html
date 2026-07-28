@@ -168,7 +168,7 @@
         <tr><th>Tab</th><th>What lives there</th></tr>
         <tr><td>General</td><td>Start with Windows; <strong>keep the computer awake</strong> and <strong>keep the screen on</strong> (both are remembered - a switch left on keeps the machine awake after a restart too, and CyrFlip will not watch your battery for you); the <strong>interface language</strong> - 13 to choose from.</td></tr>
         <tr><td>Indicators</td><td>The I-beam cursor marker (off by default), the caret marker (on), the compact dot style, <strong>change the layout after converting text</strong>, and <strong>synchronize CapsLock after the case fix</strong>.</td></tr>
-        <tr><td>Hotkeys</td><td>A master switch plus a separate on/off and chord for the case fix and the clipboard manager - so a machine can keep only the one chord it needs. Also <strong>yield hotkeys to the remote desktop</strong>: while an mstsc/msrdc window is focused the chord is passed to the remote session, which is what you want when CyrFlip runs on both ends of an RDP connection.</td></tr>
+        <tr><td>Hotkeys</td><td>A master switch plus a separate on/off and chord for the case fix and the clipboard manager - so a machine can keep only the one chord it needs. Also <strong>yield hotkeys to the remote desktop</strong>: while an mstsc/msrdc window is focused the chord is passed to the remote session, which is what you want when CyrFlip runs on both ends of an RDP connection. The <strong>context menu</strong> lives here too: its on/off switch and the mouse chord that opens it.</td></tr>
         <tr><td>Layout conversions</td><td>One table holding <strong>every</strong> chord that converts text between layouts. EN ⇄ RU on <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> is created on the first run and can be edited or deleted like any other row; add as many pairs as you like, each with its own chord and switch.</td></tr>
         <tr><td>Windows languages</td><td>Windows' own input settings, without opening the Windows pane: install / reorder / remove keyboard layouts (nothing is downloaded - the layouts ship with Windows), the cycle chord (Alt+Shift, Ctrl+Shift, <code>`</code> or off), and <strong>direct per-language shortcuts</strong> that Windows handles itself, so they keep working when CyrFlip is closed - and, unlike the built-in Windows dialog, they are not limited to Ctrl+Shift+digit. Both sections snapshot your pre-CyrFlip state once and can restore it.</td></tr>
         <tr><td>Clipboard</td><td>History on/off, pause capture, whether the manager window opens at startup, its transparency, full-history search, and clearing everything.</td></tr>
@@ -220,8 +220,11 @@
         <li><strong>Directions are a table</strong>, like the layout conversions: every row is "translate into this
         language" plus its own global hotkey. The starter row uses <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F9</kbd>
         (<kbd>F12</kbd> is the layout flip, <kbd>F11</kbd> the case fix, <kbd>F10</kbd> the clipboard manager).
-        Besides the 13 interface languages, a row can target <em>the interface language</em> or <em>the language of
-        the keyboard layout active in the target window</em> - both resolved at the moment you press the chord.</li>
+        The picker offers <strong>every language Windows knows</strong>, and a row can instead target <em>the
+        interface language</em> or <em>the language of the keyboard layout active in the target window</em> - both
+        resolved at the moment you press the chord. CyrFlip claims nothing about which of those languages your
+        model actually handles: coverage belongs to the model, not to us, so the row editor links to the model's
+        own page instead. We dispatch the text; the model translates it.</li>
         <li><strong>What happens to the result:</strong> the window shows it, and you can additionally have it
         copied to the clipboard - where the optional clipboard history records it like any other copy - or pasted
         straight over the selection. Both are off by default.</li>
@@ -240,6 +243,37 @@
       a cold start takes a while, because the model has to load; and Ollama plus a model are a multi-gigabyte
       download you make once. The model is held in memory by the Ollama process, not by CyrFlip - the app itself
       stays within its 50 MB budget.</p>
+    </section>
+
+    <section>
+      <h2>CyrFlip's own context menu (optional)</h2>
+      <p>Everything CyrFlip can do to a selection lives behind a hotkey. This module puts the same commands on the
+      mouse: hold <kbd>Ctrl</kbd> and right-click a selection, and CyrFlip's own menu opens at the pointer -
+      Copy / Cut / Paste, then your layout conversions, the case fix and your translation rows, then Quick launch
+      and the clipboard history, then Settings. It is <strong>off by default</strong>, and while it is off the
+      mouse hook is <strong>not installed at all</strong>: a hook that sits in the path of every mouse move on the
+      machine has no business existing for a feature nobody switched on.</p>
+      <ul>
+        <li><strong>The chord always carries a modifier.</strong> You pick from a fixed list of six - Ctrl, Shift
+        or Alt with the right or middle button - rather than capturing any chord you like. A bare right click is
+        refused on purpose: CyrFlip would then swallow every context menu in Windows. <kbd>Ctrl</kbd> plus the
+        right button is the default because nothing in Windows uses it - Shift plus right button would take
+        Explorer's extended menu away from you, and the middle button would cost you autoscroll and
+        open-link-in-new-tab.</li>
+        <li><strong>The selection survives.</strong> The menu never takes the keyboard focus, so the text stays
+        selected under it and the command acts on what you actually highlighted.</li>
+        <li><strong>Greyed, not hidden.</strong> When CyrFlip can tell that nothing is selected, the commands that
+        need a selection are greyed out. When it cannot tell - and in some apps it genuinely cannot - they stay
+        enabled: a greyed command next to a live selection is the worse failure, and a command that runs on nothing
+        simply does nothing, which is what CyrFlip does everywhere else anyway.</li>
+        <li><strong>Why CyrFlip draws its own menu</strong> instead of adding an item to the app's: a modern app -
+        Electron, WinUI, WPF, Qt - draws its menu itself and has no Windows menu to add to, and editing a classic
+        one would mean injecting a library into every running process. That is the end of "one exe, nothing to
+        install", and an automatic rejection from the Microsoft Store.</li>
+      </ul>
+      <p class="note">This module reads no text and stores nothing. It watches for its own chord and, while its
+      menu is open, for a click outside it - a menu that belongs to a background process never hears the click
+      that should dismiss it, so CyrFlip closes it itself.</p>
     </section>
 
     <section>
