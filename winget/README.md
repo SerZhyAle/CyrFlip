@@ -12,15 +12,28 @@ The placeholders `__VERSION__`, `__URL__`, and `__SHA256__` are filled in per re
 
 ## Submitting an update
 
-The easiest path is [`wingetcreate`](https://github.com/microsoft/winget-create):
+**Fill these templates and `wingetcreate submit` them.** Do *not* use `wingetcreate update
+SerZhyAle.CyrFlip --submit`: it rebuilds the manifests from what is already published, so the
+listing copy maintained here - the ru-RU and uk-UA locale files, the `ReleaseNotes`, the
+`PrivacyUrl` - is silently dropped, and the PR arrives carrying only what the previous release
+happened to contain.
 
 ```powershell
-wingetcreate update SerZhyAle.CyrFlip `
-  --version <VERSION> `
-  --urls <ZIP_URL> `
-  --submit
+$ver = '<VERSION>'
+$url = "https://github.com/SerZhyAle/CyrFlip/releases/download/v$ver/CyrFlip-$ver-windows-x64.zip"
+$sha = (Get-Content <the .sha256 sidecar> -Raw -split '\s+')[0]
+
+$stage = Join-Path $env:TEMP "winget-SerZhyAle.CyrFlip-$ver"
+New-Item -ItemType Directory -Force $stage | Out-Null
+Get-ChildItem winget/*.yaml | ForEach-Object {
+  (Get-Content $_.FullName -Raw).Replace('__VERSION__',$ver).Replace('__URL__',$url).Replace('__SHA256__',$sha) |
+    Set-Content (Join-Path $stage $_.Name) -NoNewline
+}
+
+winget validate --manifest $stage          # must pass before anything is pushed
+wingetcreate submit --no-open --prtitle "New version: SerZhyAle.CyrFlip version $ver" `
+  --token (gh auth token) $stage
 ```
 
-`wingetcreate` recomputes the SHA256, updates the manifests, validates them, and opens the
-PR against `microsoft/winget-pkgs` for you. Alternatively, copy these files, replace the
-placeholders by hand, validate with `winget validate`, and open the PR manually.
+Check the resulting PR lists **all five** files - the two package manifests plus en-US, ru-RU and
+uk-UA. Four files means a locale went missing.
