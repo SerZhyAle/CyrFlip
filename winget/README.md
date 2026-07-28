@@ -37,3 +37,20 @@ wingetcreate submit --no-open --prtitle "New version: SerZhyAle.CyrFlip version 
 
 Check the resulting PR lists **all five** files - the two package manifests plus en-US, ru-RU and
 uk-UA. Four files means a locale went missing.
+
+**Submitting is not finished until the PR body is rewritten.** `wingetcreate` posts Microsoft's
+template untouched: an empty Description and every checklist box unticked, which reads as "nothing
+was verified". Fill it in and tick only what was actually done:
+
+```powershell
+gh pr edit <n> --repo microsoft/winget-pkgs --body-file <file>
+gh pr view <n> --repo microsoft/winget-pkgs --json body   # re-read it - do not assume it landed
+```
+
+`winget install --manifest <dir>` is what makes the "tested locally" box honest, and it is a real
+end-to-end check: it downloads the release ZIP from the URL in the manifest and verifies the hash.
+Also run `gh pr list --repo microsoft/winget-pkgs --author SerZhyAle --state open` first - an older
+open PR for this package makes the "no other open pull requests" box false.
+
+The full release procedure lives in [.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md);
+`release.ps1` is only the tagging step inside it.
