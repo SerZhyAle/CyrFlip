@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip - 隐私政策</title>
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/zh/privacy.html">
+  <meta name="description" content="CyrFlip 隐私政策：应用在你自己的设备上运行，不收集任何内容，也没有自己的服务器；可选的翻译功能只把你选中的文本发送到你指定的 Ollama 地址，默认就是你自己的电脑。" />
+  <meta property="og:title" content="CyrFlip - 隐私政策" />
+  <meta property="og:description" content="CyrFlip 不收集、不存储、不记录、不传输任何个人数据。一切都在你自己的设备上完成。" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <meta name="theme-color" content="#0a0f0a" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+</head>
+<body>
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+  <header class="site-header">
+    <div class="container">
+      <span class="brand"><img class="brand-icon" src="../assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
+      <button class="theme-btn" id="themeBtn" aria-label="切换主题">◐</button>
+      <div class="cta">
+        <a class="btn btn-ghost btn-sm" href="./">← 首页</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </div>
+  </header>
+  <div class="wrap">
+    <section>
+      <h1>隐私政策</h1>
+      <p class="note">最后更新：2026 年 7 月 28 日 · <a href="../privacy.html">English（原文）</a></p>
+
+      <p><strong>CyrFlip 不收集、不存储、不记录、不传输任何个人数据。</strong>它完全在你自己的设备上运行。
+      它没有自己的服务器，没有遥测、分析、广告、追踪，也没有用户账号。开发者不会获得任何关于你或你如何使用
+      本应用的数据。</p>
+
+      <p>只有一项功能会把文本发送到别处，而且它<strong>默认关闭</strong>：可选的<em>翻译</em>。当你打开它
+      并按下翻译快捷键时，选中的文本会被发送到 CyrFlip 中设置的 Ollama 服务器地址 - 默认是
+      <code>http://localhost:11434</code>，也就是运行在你自己电脑上的一个程序，所以文本不会离开你的设备。
+      如果你把该地址改成另一台机器，文本就会发到那台机器上；CyrFlip 在该设置旁边就写明了这一点。</p>
+
+      <h2>应用访问什么，为什么</h2>
+      <ul class="features">
+        <li><strong>键盘。</strong>CyrFlip 安装全局键盘钩子只有两个目的：识别自己的快捷键（默认
+        <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>），以及读取当前键盘布局的代码（Windows 中安装的
+        任何布局），以便显示屏幕上的指示标记。除该快捷键外，它还会留意你分配给大小写修正、剪贴板管理器、
+        布局转换表每一行、翻译表每一行，以及任何你设置了快捷键的快速启动方案的组合键。在翻译逐字输出期间，
+        它还会留意 <kbd>Esc</kbd>，以便这个键可以取消翻译 - 无论如何，该按键都会照常传给你正在使用的程序。
+        <strong>它不会记录、不会保存、不会传输你的按键。</strong>它不是键盘记录器。</li>
+
+        <li><strong>剪贴板。</strong>当你按下快捷键时，CyrFlip 会短暂读取选中的文本（通过一次模拟复制），
+        在布局之间转换，粘贴结果，然后恢复剪贴板原有的内容。这一切都在本地进行，而且只在你触发的那一刻发生。
+        其中没有任何内容被发送出去。</li>
+
+        <li><strong>剪贴板历史（可选）。</strong><strong>默认关闭。</strong>如果你打开它，CyrFlip 会把捕获
+        到的 Unicode 文本保存在本地。历史记录使用 Windows DPAPI 针对当前 Windows 账户加密；你随时可以暂停、
+        清空或关闭它。CyrFlip 绝不会把它发送到任何地方。</li>
+
+        <li><strong>活动窗口与布局。</strong>应用会读取哪个窗口处于焦点、它使用哪种键盘布局，以便放置和更新
+        指示标记。这些信息仅在内存中使用，从不保存也从不传输。如果你打开<em>把快捷键让给远程桌面</em>，并且
+        只在 CyrFlip 自己的某个快捷键真正被按下的那一刻，它还会读取活动窗口可执行文件的名称，以识别远程桌面
+        客户端。</li>
+
+        <li><strong>Windows 输入设置。</strong>「Windows 语言」选项卡代你修改 Windows 自身的配置：已安装的
+        键盘布局（<code>HKCU\Keyboard Layout\Preload</code> 和
+        <code>HKCU\Control Panel\International\User Profile</code>）、语言循环切换组合键，以及各语言的直达
+        快捷键（<code>HKCU\Control Panel\Input Method\Hot Keys</code>）。这些是系统设置：它们留在你的设备上，
+        并且在 CyrFlip 关闭后依然生效。在首次修改之前，CyrFlip 会把此前的状态一次性快照保存到自己的注册表项中，
+        以便你随时还原。</li>
+
+        <li><strong>快速启动（可选）。</strong>方案启动器<strong>默认关闭</strong>。打开后，它只运行
+        <em>你自己</em>定义的程序、脚本和 yt-dlp 下载，而且只在你要求时运行：从通知区域、从设置表格、用你指定
+        的快捷键，或从任务栏跳转列表。只有被你标记为「以管理员身份运行」的方案才会请求管理员权限；你为 yt-dlp
+        下载输入的链接只交给该工具用于这一次运行，不会被保存。启用该模块还会把你的方案名称发布到任务栏跳转
+        列表，而该列表由 Windows 保存在你自己的用户配置文件中。</li>
+
+        <li><strong>翻译（可选）。</strong><strong>默认关闭</strong>；只要它是关闭的，CyrFlip 根本不会打开任何
+        网络连接。打开后，当你按下翻译快捷键，CyrFlip 会取走选中的文本（与上文相同的模拟复制），并通过 HTTP
+        发送到设置中填写的 Ollama 地址 - 如果你没有改过，就是 <code>http://localhost:11434</code>，也就是
+        你自己电脑上的一个程序。只有在翻译功能开启时才会出现的通知区域菜单项<em>翻译剪贴板</em>，则会把剪贴板
+        当前的内容（而不是选中的文本）发送到同一个地址。Ollama 是一个独立的免费产品，由你自己安装；CyrFlip
+        既不捆绑它，也没有自己的账号或密钥。译文会显示在一个窗口中，并且只有在你打开相应选项时，才会被复制到
+        剪贴板（可选的历史记录会像对待任何其他复制一样把它记下来）或粘贴覆盖你的选中内容。CyrFlip 不保存译文、
+        不留任何记录，也不向开发者发送任何东西。在便携版中，<em>安装 Ollama</em> 按钮会从 <code>ollama.com</code>
+        下载官方安装程序；Microsoft Store 版本只会打开该网站。模型擅长哪些语言，这个问题该问模型：CyrFlip 只是
+        把文本交给它。</li>
+      </ul>
+
+      <h2>CyrFlip 写入的本地文件</h2>
+      <ul class="features">
+        <li><strong>布局文件。</strong>CyrFlip 会把当前布局的代码 - 诸如 <code>EN</code>、<code>ZH</code>、
+        <code>RU</code>、<code>AR</code> 这样的两字母值 - 写入一个很小的本地文件
+        （<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>，Microsoft Store 版本为
+        <code>%ProgramData%\CyrFlip\layout.txt</code>），以便可选的 VS&nbsp;Code 扩展能在编辑器光标处显示标记。
+        该文件不含个人数据，也从不离开你的设备。</li>
+
+        <li><strong>配置与历史。</strong>设置保存在 <code>HKCU\Software\CyrFlip</code> - 包括你的转换表以及上文
+        所述的 Windows 输入设置的一次性备份。剪贴板历史开启时，会以 DPAPI 保护的形式保存在应用数据文件夹中。
+        旧版的 <code>config.json</code> 可能在迁移时被读取一次。这些内容都不会离开你的设备。</li>
+
+        <li><strong>快速启动方案。</strong>你创建的每个方案都以单独的 XML 文件保存在
+        <code>%APPDATA%\CyrFlip\Scenarios</code>，其中只包含你填写的内容：名称、程序或脚本的路径、参数和工作
+        文件夹。它们留在你的设备上，你可以随意修改或删除；即使关闭该模块也不会被动过。该模块还会追加一份简短
+        的活动日志（<code>launcher.log</code>，与布局文件放在一起），记录某个方案已启动以及某个方案为何失败 -
+        它<strong>绝不</strong>记录 yt-dlp 链接、剪贴板内容或按键。</li>
+
+        <li><strong>诊断报告。</strong>只有你自己运行<em>诊断光标位置…</em>时，CyrFlip 才会在布局文件旁写入
+        <code>caret-diagnostics.txt</code>。它记录 Windows 与 UI 自动化就当前焦点文本框返回了什么；该文件不会
+        被发送到任何地方，你可以删除它。</li>
+      </ul>
+
+      <h2>数据共享</h2>
+      <p>没有。CyrFlip 不与开发者或任何第三方共享任何数据。唯一会被发送出去的，是你选中的文本，发往你自己
+      选定的翻译地址 - 默认是你自己电脑上的一个程序 - 而且仅在该可选功能处于开启状态时。</p>
+
+      <h2>儿童隐私</h2>
+      <p>CyrFlip 不向任何人收集数据，儿童也不例外。</p>
+
+      <h2>开放源代码</h2>
+      <p>CyrFlip 是开源软件。你可以确切地查看它做了什么：
+      <a href="https://github.com/SerZhyAle/CyrFlip">github.com/SerZhyAle/CyrFlip</a>。</p>
+
+      <h2>本政策的变更</h2>
+      <p>如果本政策发生变更，更新后的版本会连同新的更新日期发布在本页面。以
+      <a href="../privacy.html">英文原文</a>为准；如有出入，以英文版为准。</p>
+
+      <h2>联系方式</h2>
+      <p>关于本政策的问题：<a href="mailto:sza@ukr.net">sza@ukr.net</a>。</p>
+    </section>
+
+    <footer>
+      <p>MIT 许可证 · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">GitHub 上的源代码</a><br />
+      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
+    </footer>
+  </div>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn');
+    var themeColor=document.querySelector('meta[name="theme-color"]');
+    function applyThemeMeta(){
+      var dark=doc.getAttribute('data-theme')!=='light';
+      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
+      themeBtn.setAttribute('aria-label',dark?'浅色主题':'深色主题');
+    }
+    themeBtn.addEventListener('click',function(){
+      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
+      doc.setAttribute('data-theme',next);
+      try{localStorage.setItem('sza-theme',next);}catch(e){}
+      applyThemeMeta();
+    });
+    applyThemeMeta();
+  })();
+  </script>
+</body>
+</html>

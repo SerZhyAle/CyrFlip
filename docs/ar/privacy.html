@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip - سياسة الخصوصية</title>
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/ar/privacy.html">
+  <meta name="description" content="سياسة خصوصية CyrFlip: يعمل التطبيق على جهازك، ولا يجمع أي شيء، وليست له خوادم خاصة؛ والمترجم الاختياري يرسل النص المحدَّد إلى عنوان Ollama الذي تختاره أنت فقط، وهو افتراضيًا حاسوبك نفسه." />
+  <meta property="og:title" content="CyrFlip - سياسة الخصوصية" />
+  <meta property="og:description" content="لا يجمع CyrFlip أي بيانات شخصية ولا يخزّنها ولا يسجّلها ولا ينقلها. كل شيء يجري على جهازك أنت." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <meta name="theme-color" content="#0a0f0a" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+</head>
+<body>
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+  <header class="site-header">
+    <div class="container">
+      <span class="brand"><img class="brand-icon" src="../assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
+      <button class="theme-btn" id="themeBtn" aria-label="تبديل السمة">◐</button>
+      <div class="cta">
+        <a class="btn btn-ghost btn-sm" href="./">→ الصفحة الرئيسية</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </div>
+  </header>
+  <div class="wrap">
+    <section>
+      <h1>سياسة الخصوصية</h1>
+      <p class="note">آخر تحديث: 28 يوليو 2026 · <a href="../privacy.html">English (الأصل)</a></p>
+
+      <p><strong>لا يجمع CyrFlip أي بيانات شخصية ولا يخزّنها ولا يسجّلها ولا ينقلها.</strong> يعمل
+      التطبيق بالكامل على جهازك أنت. ليست له خوادم خاصة، ولا قياس عن بُعد، ولا تحليلات، ولا إعلانات،
+      ولا تتبُّع، ولا حسابات مستخدمين. والمطوِّر لا يتلقى أي بيانات عنك أو عن استخدامك للتطبيق.</p>
+
+      <p>ثمة ميزة واحدة فقط ترسل نصًا إلى أي مكان، وهي <strong>معطّلة افتراضيًا</strong>:
+      <em>المترجم</em> الاختياري. حين تفعّله وتضغط اختصار الترجمة، يُرسَل النص الذي حدّدته إلى عنوان
+      خادم Ollama المضبوط في CyrFlip - وهو افتراضيًا <code dir="ltr">http://localhost:11434</code>،
+      أي برنامج يعمل على حاسوبك نفسه، فلا يغادر النص جهازك. وإذا غيّرت هذا العنوان إلى جهاز آخر،
+      فسيذهب النص إلى ذلك الجهاز؛ وCyrFlip يقول ذلك بجوار الإعداد مباشرة.</p>
+
+      <h2>ما الذي يصل إليه التطبيق، ولماذا</h2>
+      <ul class="features">
+        <li><strong>لوحة المفاتيح.</strong> يثبّت CyrFlip خطّافًا عامًا للوحة المفاتيح لغرضين اثنين لا
+        غير: التقاط اختصاره (افتراضيًا <kbd dir="ltr">Ctrl</kbd>+<kbd dir="ltr">Shift</kbd>+<kbd dir="ltr">F12</kbd>)
+        وقراءة رمز تخطيط لوحة المفاتيح النشط (أي تخطيط مثبَّت في Windows) ليعرض المؤشر على الشاشة. وإلى
+        جانب ذلك الاختصار، يراقب التركيبات التي تسنِدها إلى تصحيح حالة الأحرف، ومدير الحافظة، وكل صف من
+        جدول تحويل التخطيطات، وكل صف من جدول الترجمة، وأي سيناريو تشغيل سريع أعطيته اختصارًا. وأثناء
+        كتابة الترجمة يراقب أيضًا <kbd dir="ltr">Esc</kbd> كي يتمكن هذا المفتاح من إلغائها - والمفتاح
+        يصل إلى التطبيق الذي تعمل فيه على أي حال.
+        <strong>وهو لا يسجّل ضغطات مفاتيحك ولا يخزّنها ولا ينقلها.</strong> ليس برنامج تجسس على لوحة
+        المفاتيح.</li>
+
+        <li><strong>الحافظة.</strong> عند ضغط الاختصار يقرأ CyrFlip النص المحدَّد لبرهة (عبر نسخ
+        مُصطنَع)، ويحوّله بين التخطيطات، ويلصق النتيجة، ثم يعيد ما كان في الحافظة قبل ذلك. كل هذا يجري
+        محليًا وفي اللحظة التي تطلبه فيها فقط. ولا يُرسَل منه شيء.</li>
+
+        <li><strong>سجل الحافظة (اختياري).</strong> <strong>معطّل افتراضيًا.</strong> إن فعّلته، حفظ
+        CyrFlip النص اليونيكودي الملتقَط محليًا. ويُشفَّر السجل بواسطة DPAPI في Windows لحساب Windows
+        الحالي؛ ويمكنك إيقافه مؤقتًا أو تفريغه أو تعطيله في أي وقت. ولا يرسله CyrFlip إلى أي مكان
+        أبدًا.</li>
+
+        <li><strong>النافذة النشطة والتخطيط.</strong> يقرأ التطبيق أي نافذة في التركيز وأي تخطيط لوحة
+        مفاتيح تستخدمه، ليضع المؤشر ويحدّثه. وتُستخدم هذه المعلومات في الذاكرة فقط، ولا تُحفظ ولا
+        تُنقل أبدًا. وإذا فعّلت <em>ترْك الاختصارات لسطح المكتب البعيد</em>، وفي لحظة الضغط الفعلي على
+        أحد اختصارات CyrFlip فقط، فإنه يقرأ كذلك اسم الملف التنفيذي للنافذة النشطة ليتعرّف على عميل
+        سطح مكتب بعيد.</li>
+
+        <li><strong>إعدادات الإدخال في Windows.</strong> تحرّر علامة التبويب «لغات Windows» نيابةً عنك
+        إعدادات Windows نفسها: تخطيطات لوحة المفاتيح المثبَّتة
+        (<code dir="ltr">HKCU\Keyboard Layout\Preload</code> و
+        <code dir="ltr">HKCU\Control Panel\International\User Profile</code>)، وتركيبة التبديل الدوري
+        بين اللغات، واختصارات التبديل المباشر لكل لغة
+        (<code dir="ltr">HKCU\Control Panel\Input Method\Hot Keys</code>). هذه إعدادات نظام: تبقى على
+        جهازك وتظل تعمل بعد إغلاق CyrFlip. وقبل أول تغيير يجريه، يحفظ CyrFlip لقطة واحدة للحالة السابقة
+        في مفتاح السجل الخاص به، لتتمكن من استعادتها.</li>
+
+        <li><strong>التشغيل السريع (اختياري).</strong> مشغّل السيناريوهات <strong>معطّل
+        افتراضيًا</strong>. وحين تفعّله يشغّل البرامج والنصوص البرمجية وتنزيلات yt-dlp التي عرّفتَها
+        <em>أنت</em>، وحين تطلب ذلك فقط: من منطقة الإشعارات، أو من جدول الإعدادات، أو باختصار أسندتَه،
+        أو من قائمة الانتقال في شريط المهام. ولا يطلب صلاحيات المسؤول إلا لسيناريو وسمتَه بـ«التشغيل
+        كمسؤول»، أما الرابط الذي تكتبه لتنزيل yt-dlp فيُسلَّم إلى تلك الأداة لتلك المرة الواحدة ولا
+        يُحفظ. كما أن تفعيل الوحدة ينشر أسماء سيناريوهاتك في قائمة الانتقال بشريط المهام، وهي قائمة
+        يحتفظ بها Windows داخل ملفك الشخصي.</li>
+
+        <li><strong>المترجم (اختياري).</strong> <strong>معطّل افتراضيًا</strong>؛ وما دام معطّلًا لا
+        يفتح CyrFlip أي اتصال بالشبكة إطلاقًا. وحين تفعّله وتضغط اختصار الترجمة، يأخذ CyrFlip النص
+        المحدَّد (بالنسخ المصطنَع نفسه المذكور أعلاه) ويرسله عبر HTTP إلى عنوان Ollama المذكور في
+        إعداداته - وهو <code dir="ltr">http://localhost:11434</code> ما لم تغيّره، أي برنامج على
+        حاسوبك أنت. أما عنصر منطقة الإشعارات <em>ترجمة الحافظة</em>، الذي لا يظهر إلا والمترجم مفعَّل،
+        فيرسل إلى العنوان نفسه محتوى الحافظة الحالي بدل النص المحدَّد. وOllama منتج منفصل ومجاني
+        تثبّته بنفسك؛ لا يضمّه CyrFlip وليس له حساب ولا مفتاح. وتظهر الترجمة في نافذة، وتُنسخ إلى
+        الحافظة (حيث يسجّلها السجل الاختياري كأي نسخة أخرى) أو تُلصق فوق النص المحدَّد - إن فعّلت هذين
+        الخيارين فقط. ولا يحفظ CyrFlip الترجمات ولا يسجّلها ولا يرسل شيئًا إلى المطوِّر. وفي النسخة
+        المحمولة يُنزّل زر <em>تثبيت Ollama</em> المثبِّت الرسمي من <code dir="ltr">ollama.com</code>؛
+        أما نسخة Microsoft Store فتفتح ذلك الموقع فحسب. وأما اللغات التي يتقنها النموذج فسؤال يُوجَّه
+        إلى النموذج: كل ما يفعله CyrFlip هو تمرير النص إليه.</li>
+      </ul>
+
+      <h2>الملفات المحلية التي يكتبها CyrFlip</h2>
+      <ul class="features">
+        <li><strong>ملف التخطيط.</strong> يكتب CyrFlip رمز التخطيط الحالي - قيمة من حرفين مثل
+        <code dir="ltr">EN</code> أو <code dir="ltr">ZH</code> أو <code dir="ltr">RU</code> أو
+        <code dir="ltr">AR</code> - في ملف محلي صغير (<code dir="ltr">%LOCALAPPDATA%\CyrFlip\layout.txt</code>،
+        أو <code dir="ltr">%ProgramData%\CyrFlip\layout.txt</code> في نسخة Microsoft Store)، لتتمكن
+        إضافة VS&nbsp;Code الاختيارية من عرض العلامة عند مؤشر الكتابة في المحرِّر. ولا يحتوي الملف على
+        بيانات شخصية ولا يغادر جهازك أبدًا.</li>
+
+        <li><strong>الإعدادات والسجل.</strong> تُحفظ الإعدادات في
+        <code dir="ltr">HKCU\Software\CyrFlip</code> - بما فيها جدول التحويل والنسخ الاحتياطية المفردة
+        لإعدادات الإدخال في Windows الموصوفة أعلاه. وإذا كان سجل الحافظة مفعَّلًا، حُفظ محليًا في مجلد
+        بيانات التطبيق محميًا بـDPAPI. وقد يُقرأ ملف <code dir="ltr">config.json</code> قديم مرة واحدة
+        أثناء الترحيل. ولا يغادر أي من ذلك جهازك.</li>
+
+        <li><strong>سيناريوهات التشغيل السريع.</strong> يُحفظ كل سيناريو تنشئه في ملف XML خاص به داخل
+        <code dir="ltr">%APPDATA%\CyrFlip\Scenarios</code>، ويحوي ما أدخلتَه بالضبط: الاسم، ومسار
+        البرنامج أو النص البرمجي، ووسائطه، ومجلد العمل. تبقى هذه الملفات على جهازك، ولك تعديلها أو
+        حذفها، وتظل كما هي إن عطّلت الوحدة. كما تُلحق الوحدة سجل نشاط موجزًا
+        (<code dir="ltr">launcher.log</code>، بجوار ملف التخطيط) يدوّن أن سيناريو قد بدأ ولماذا أخفق
+        آخر - ولا يدوّن <strong>أبدًا</strong> رابط yt-dlp ولا محتوى الحافظة ولا ضغطات المفاتيح.</li>
+
+        <li><strong>تقرير التشخيص.</strong> لا يكتب CyrFlip ملف
+        <code dir="ltr">caret-diagnostics.txt</code> بجوار ملف التخطيط إلا إذا شغّلت أنت <em>تشخيص
+        موضع مؤشر الكتابة…</em> بنفسك. ويدوّن ما يبلّغ عنه Windows وأتمتة واجهة المستخدم بشأن حقل النص
+        المركَّز عليه؛ ولا يُرسَل إلى أي مكان، ويمكنك حذفه.</li>
+      </ul>
+
+      <h2>مشاركة البيانات</h2>
+      <p>لا شيء. لا يشارك CyrFlip أي بيانات مع المطوِّر ولا مع أي طرف ثالث. والشيء الوحيد الذي يُرسَل
+      أصلًا هو النص الذي حدّدته أنت، إلى عنوان المترجم الذي اخترته بنفسك - وهو افتراضيًا برنامج على
+      حاسوبك أنت - وذلك ما دامت هذه الميزة الاختيارية مفعَّلة فقط.</p>
+
+      <h2>خصوصية الأطفال</h2>
+      <p>لا يجمع CyrFlip بيانات من أحد، بمن في ذلك الأطفال.</p>
+
+      <h2>مفتوح المصدر</h2>
+      <p>CyrFlip مفتوح المصدر. ويمكنك أن تطّلع على ما يفعله بالضبط:
+      <a href="https://github.com/SerZhyAle/CyrFlip">github.com/SerZhyAle/CyrFlip</a>.</p>
+
+      <h2>تغييرات هذه السياسة</h2>
+      <p>إن تغيّرت هذه السياسة، نُشرت النسخة المحدَّثة على هذه الصفحة بتاريخ تحديث جديد. والنص المرجعي
+      هو <a href="../privacy.html">الأصل الإنجليزي</a>؛ وعند الاختلاف تكون له الغلبة.</p>
+
+      <h2>التواصل</h2>
+      <p>للأسئلة حول هذه السياسة: <a href="mailto:sza@ukr.net">sza@ukr.net</a>.</p>
+    </section>
+
+    <footer>
+      <p>رخصة MIT · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">الشيفرة المصدرية على GitHub</a><br />
+      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
+    </footer>
+  </div>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn');
+    var themeColor=document.querySelector('meta[name="theme-color"]');
+    function applyThemeMeta(){
+      var dark=doc.getAttribute('data-theme')!=='light';
+      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
+      themeBtn.setAttribute('aria-label',dark?'سمة فاتحة':'سمة داكنة');
+    }
+    themeBtn.addEventListener('click',function(){
+      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
+      doc.setAttribute('data-theme',next);
+      try{localStorage.setItem('sza-theme',next);}catch(e){}
+      applyThemeMeta();
+    });
+    applyThemeMeta();
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip - গোপনীয়তা নীতি</title>
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/bn/privacy.html">
+  <meta name="description" content="CyrFlip-এর গোপনীয়তা নীতি: অ্যাপটি আপনার নিজের যন্ত্রেই চলে, কিছুই সংগ্রহ করে না এবং এর নিজস্ব কোনো সার্ভার নেই; ঐচ্ছিক অনুবাদক আপনার নির্বাচিত লেখা কেবল আপনার বেছে নেওয়া Ollama ঠিকানায় পাঠায় - পূর্বনির্ধারিতভাবে আপনার নিজের কম্পিউটারে।" />
+  <meta property="og:title" content="CyrFlip - গোপনীয়তা নীতি" />
+  <meta property="og:description" content="CyrFlip কোনো ব্যক্তিগত তথ্য সংগ্রহ, সংরক্ষণ, নথিভুক্ত বা প্রেরণ করে না। সবকিছু আপনার নিজের যন্ত্রেই ঘটে।" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <meta name="theme-color" content="#0a0f0a" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+</head>
+<body>
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+  <header class="site-header">
+    <div class="container">
+      <span class="brand"><img class="brand-icon" src="../assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
+      <button class="theme-btn" id="themeBtn" aria-label="থিম বদলান">◐</button>
+      <div class="cta">
+        <a class="btn btn-ghost btn-sm" href="./">← প্রথম পাতা</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </div>
+  </header>
+  <div class="wrap">
+    <section>
+      <h1>গোপনীয়তা নীতি</h1>
+      <p class="note">সর্বশেষ হালনাগাদ: ২৮ জুলাই ২০২৬ · <a href="../privacy.html">English (মূল)</a></p>
+
+      <p><strong>CyrFlip কোনো ব্যক্তিগত তথ্য সংগ্রহ, সংরক্ষণ, নথিভুক্ত বা প্রেরণ করে না।</strong> এটি
+      সম্পূর্ণরূপে আপনার নিজের যন্ত্রে চলে। এর নিজস্ব কোনো সার্ভার নেই, নেই টেলিমেট্রি, বিশ্লেষণ,
+      বিজ্ঞাপন, নজরদারি বা ব্যবহারকারী-অ্যাকাউন্ট। ডেভেলপার আপনার সম্পর্কে বা অ্যাপ ব্যবহারের বিষয়ে
+      কোনো তথ্য পান না।</p>
+
+      <p>ঠিক একটি বৈশিষ্ট্যই কোথাও লেখা পাঠায়, এবং তা <strong>পূর্বনির্ধারিতভাবে বন্ধ</strong>: ঐচ্ছিক
+      <em>অনুবাদক</em>। আপনি সেটি চালু করে অনুবাদের শর্টকাট চাপলে নির্বাচিত লেখা CyrFlip-এ নির্ধারিত
+      Ollama সার্ভারের ঠিকানায় যায় - পূর্বনির্ধারিতভাবে <code>http://localhost:11434</code>, অর্থাৎ
+      আপনার নিজের কম্পিউটারে চলা একটি প্রোগ্রাম, ফলে লেখাটি যন্ত্র ছেড়ে যায় না। আপনি যদি ওই ঠিকানা
+      বদলে অন্য কোনো মেশিনের করেন, লেখা সেখানেই যাবে; CyrFlip সেটিংসের পাশেই এ কথা লিখে দেয়।</p>
+
+      <h2>অ্যাপ কীসে হাত দেয়, আর কেন</h2>
+      <ul class="features">
+        <li><strong>কীবোর্ড।</strong> CyrFlip কেবল দুটি উদ্দেশ্যে একটি বৈশ্বিক কীবোর্ড হুক বসায়: নিজের
+        শর্টকাট শনাক্ত করতে (পূর্বনির্ধারিত <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>) এবং সক্রিয়
+        কীবোর্ড বিন্যাসের কোড পড়তে (Windows-এ ইনস্টল করা যেকোনো বিন্যাস), যাতে পর্দায় নির্দেশক দেখাতে
+        পারে। ওই শর্টকাট ছাড়াও এটি সেই সংমিশ্রণগুলোর দিকে নজর রাখে যেগুলো আপনি অক্ষরের ছাঁদ সংশোধন,
+        ক্লিপবোর্ড ব্যবস্থাপক, আপনার বিন্যাস-রূপান্তর সারণির প্রতিটি সারি, আপনার অনুবাদ সারণির প্রতিটি
+        সারি এবং যেকোনো দ্রুত-চালু দৃশ্যকল্পে বরাদ্দ করেছেন। অনুবাদ লেখা হওয়ার সময় এটি
+        <kbd>Esc</kbd>-এর দিকেও নজর রাখে, যাতে ওই কী দিয়ে তা বাতিল করা যায় - কী-টি এমনিতেও আপনি যে
+        অ্যাপে কাজ করছেন সেখানে পৌঁছায়।
+        <strong>এটি আপনার কী-চাপ রেকর্ড, নথিভুক্ত, সংরক্ষণ বা প্রেরণ করে না।</strong> এটি কীলগার নয়।</li>
+
+        <li><strong>ক্লিপবোর্ড।</strong> আপনি শর্টকাট চাপলে CyrFlip নির্বাচিত লেখাটি ক্ষণিকের জন্য পড়ে
+        (একটি কৃত্রিম কপির মাধ্যমে), বিন্যাসের মধ্যে রূপান্তর করে, ফলাফল সেঁটে দেয়, তারপর ক্লিপবোর্ডের
+        আগের বিষয়বস্তু ফিরিয়ে আনে। এসবই স্থানীয়ভাবে এবং কেবল আপনি যে মুহূর্তে চালান তখনই ঘটে। এর কিছুই
+        কোথাও পাঠানো হয় না।</li>
+
+        <li><strong>ক্লিপবোর্ডের ইতিহাস (ঐচ্ছিক)।</strong> <strong>পূর্বনির্ধারিতভাবে বন্ধ।</strong>
+        চালু করলে CyrFlip ধরা পড়া ইউনিকোড লেখা স্থানীয়ভাবে রাখে। ইতিহাসটি বর্তমান Windows অ্যাকাউন্টের
+        জন্য Windows DPAPI দিয়ে এনক্রিপ্ট করা হয়; আপনি যেকোনো সময় তা থামাতে, খালি করতে বা বন্ধ করতে
+        পারেন। CyrFlip তা কোথাও পাঠায় না।</li>
+
+        <li><strong>সক্রিয় জানালা ও বিন্যাস।</strong> অ্যাপটি পড়ে কোন জানালা ফোকাসে আছে এবং সেটি কোন
+        কীবোর্ড বিন্যাস ব্যবহার করছে, যাতে নির্দেশকটি বসাতে ও হালনাগাদ করতে পারে। এই তথ্য কেবল স্মৃতিতে
+        ব্যবহৃত হয়, কখনও সংরক্ষণ বা প্রেরণ করা হয় না। আপনি <em>শর্টকাট রিমোট ডেস্কটপকে ছেড়ে দিন</em>
+        চালু করলে, এবং কেবল সেই মুহূর্তে যখন CyrFlip-এর নিজের কোনো শর্টকাট সত্যিই চাপা হয়, তখন এটি
+        সক্রিয় জানালার নির্বাহযোগ্য ফাইলের নামও পড়ে, যাতে রিমোট ডেস্কটপ ক্লায়েন্ট চিনতে পারে।</li>
+
+        <li><strong>Windows-এর ইনপুট সেটিংস।</strong> «Windows-এর ভাষা» ট্যাবটি আপনার হয়ে স্বয়ং
+        Windows-এর বিন্যাস সম্পাদনা করে: ইনস্টল করা কীবোর্ড বিন্যাস
+        (<code>HKCU\Keyboard Layout\Preload</code> এবং <code>HKCU\Control Panel\International\User Profile</code>),
+        ভাষা-চক্রের সংমিশ্রণ এবং প্রতি-ভাষার সরাসরি শর্টকাট
+        (<code>HKCU\Control Panel\Input Method\Hot Keys</code>)। এগুলো সিস্টেমের সেটিংস: এগুলো আপনার
+        যন্ত্রেই থাকে এবং CyrFlip বন্ধ থাকলেও কাজ করে যায়। প্রথম পরিবর্তনের আগে CyrFlip আগের অবস্থার
+        একবারের একটি স্ন্যাপশট নিজের রেজিস্ট্রি কী-তে রেখে দেয়, যাতে আপনি তা ফিরিয়ে আনতে পারেন।</li>
+
+        <li><strong>দ্রুত চালু (ঐচ্ছিক)।</strong> দৃশ্যকল্প-লঞ্চার <strong>পূর্বনির্ধারিতভাবে
+        বন্ধ</strong>। চালু করলে এটি সেই প্রোগ্রাম, স্ক্রিপ্ট ও yt-dlp ডাউনলোড চালায় যেগুলো
+        <em>আপনি</em> ঠিক করেছেন, এবং কেবল আপনি বললেই: বিজ্ঞপ্তি এলাকা থেকে, সেটিংসের সারণি থেকে, আপনার
+        দেওয়া শর্টকাট দিয়ে, কিংবা টাস্কবারের জাম্প লিস্ট থেকে। প্রশাসকের অধিকার এটি কেবল সেই দৃশ্যকল্পের
+        জন্য চায় যেটিকে আপনি «প্রশাসক হিসেবে চালান» চিহ্নিত করেছেন, আর yt-dlp ডাউনলোডের জন্য আপনার লেখা
+        লিংকটি ওই একবারের চালানোর জন্য সেই সরঞ্জামকে দেওয়া হয় এবং সংরক্ষণ করা হয় না। মডিউলটি চালু করলে
+        আপনার দৃশ্যকল্পের নামগুলো টাস্কবারের জাম্প লিস্টেও প্রকাশিত হয়, যা Windows আপনার নিজের
+        ব্যবহারকারী প্রোফাইলে রাখে।</li>
+
+        <li><strong>অনুবাদক (ঐচ্ছিক)।</strong> <strong>পূর্বনির্ধারিতভাবে বন্ধ</strong>; আর বন্ধ থাকা
+        অবস্থায় CyrFlip কোনো নেটওয়ার্ক সংযোগই খোলে না। চালু থাকলে, অনুবাদের শর্টকাট চাপলে CyrFlip
+        নির্বাচিত লেখা নেয় (উপরে বর্ণিত সেই একই কৃত্রিম কপি) এবং HTTP-র মাধ্যমে তার সেটিংসে থাকা Ollama
+        ঠিকানায় পাঠায় - না বদলালে <code>http://localhost:11434</code>, অর্থাৎ আপনার নিজের কম্পিউটারের
+        একটি প্রোগ্রাম। বিজ্ঞপ্তি এলাকার <em>ক্লিপবোর্ড অনুবাদ করুন</em> এন্ট্রিটি, যা কেবল অনুবাদক চালু
+        থাকলেই দেখা যায়, নির্বাচিত লেখার বদলে ক্লিপবোর্ডের বর্তমান বিষয়বস্তু ওই একই ঠিকানায় পাঠায়।
+        Ollama একটি স্বতন্ত্র, বিনামূল্যের পণ্য যা আপনি নিজে ইনস্টল করেন; CyrFlip তা সঙ্গে দেয় না এবং
+        এর নিজস্ব কোনো অ্যাকাউন্ট বা কী নেই। অনুবাদটি একটি জানালায় দেখানো হয় এবং - কেবল আপনি এই
+        বিকল্পগুলো চালু করলে - ক্লিপবোর্ডে কপি হয় (যেখানে ঐচ্ছিক ইতিহাস তা অন্য যেকোনো কপির মতোই রাখে)
+        অথবা আপনার নির্বাচনের উপরে সেঁটে দেওয়া হয়। CyrFlip কোনো অনুবাদ সংরক্ষণ করে না, তার কোনো নথি
+        রাখে না এবং ডেভেলপারকে কিছুই পাঠায় না। পোর্টেবল সংস্করণে <em>Ollama ইনস্টল করুন</em> বোতামটি
+        দাপ্তরিক ইনস্টলারটি <code>ollama.com</code> থেকে নামায়; Microsoft Store সংস্করণ কেবল ওই
+        ওয়েবসাইটটি খোলে। মডেলটি কোন কোন ভাষায় দক্ষ, সে প্রশ্ন মডেলের কাছে: CyrFlip কেবল লেখাটি তার হাতে
+        তুলে দেয়।</li>
+      </ul>
+
+      <h2>CyrFlip যেসব স্থানীয় ফাইল লেখে</h2>
+      <ul class="features">
+        <li><strong>বিন্যাস ফাইল।</strong> CyrFlip বর্তমান বিন্যাসের কোড - <code>EN</code>,
+        <code>ZH</code>, <code>RU</code> বা <code>AR</code>-এর মতো দুই অক্ষরের একটি মান - একটি ছোট
+        স্থানীয় ফাইলে লেখে (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, অথবা Microsoft Store
+        সংস্করণে <code>%ProgramData%\CyrFlip\layout.txt</code>), যাতে ঐচ্ছিক VS&nbsp;Code এক্সটেনশনটি
+        সম্পাদকের কার্সরের পাশে চিহ্নটি দেখাতে পারে। এতে কোনো ব্যক্তিগত তথ্য থাকে না এবং তা কখনও আপনার
+        যন্ত্র ছেড়ে যায় না।</li>
+
+        <li><strong>বিন্যাস ও ইতিহাস।</strong> সেটিংস <code>HKCU\Software\CyrFlip</code>-এ রাখা হয় -
+        আপনার রূপান্তর সারণি এবং উপরে বর্ণিত Windows ইনপুট সেটিংসের একবারের অনুলিপিসহ। ক্লিপবোর্ডের
+        ইতিহাস চালু থাকলে তা অ্যাপের ডেটা ফোল্ডারে DPAPI-সুরক্ষিত রূপে স্থানীয়ভাবে রাখা হয়। পুরোনো কোনো
+        <code>config.json</code> মাইগ্রেশনের সময় একবার পড়া হতে পারে। এর কিছুই আপনার যন্ত্র ছেড়ে যায়
+        না।</li>
+
+        <li><strong>দ্রুত-চালু দৃশ্যকল্প।</strong> আপনার তৈরি প্রতিটি দৃশ্যকল্প নিজস্ব XML ফাইল হিসেবে
+        <code>%APPDATA%\CyrFlip\Scenarios</code>-এ থাকে এবং তাতে ঠিক তা-ই থাকে যা আপনি লিখেছেন: নাম,
+        প্রোগ্রাম বা স্ক্রিপ্টের পথ, তার আর্গুমেন্ট ও কাজের ফোল্ডার। এগুলো আপনার যন্ত্রেই থাকে, আপনি
+        সেগুলো বদলাতে বা মুছতে পারেন, এবং মডিউল বন্ধ করলেও অক্ষত থাকে। মডিউলটি একটি সংক্ষিপ্ত কার্যবিবরণী
+        লগও যোগ করে (<code>launcher.log</code>, বিন্যাস ফাইলের পাশে) যাতে লেখা থাকে কোন দৃশ্যকল্প শুরু
+        হয়েছে আর কোনটি কেন ব্যর্থ হয়েছে - এতে yt-dlp-র লিংক, ক্লিপবোর্ডের বিষয়বস্তু বা কী-চাপ
+        <strong>কখনও</strong> লেখা হয় না।</li>
+
+        <li><strong>ডায়াগনস্টিক প্রতিবেদন।</strong> CyrFlip
+        <code>caret-diagnostics.txt</code> ফাইলটি বিন্যাস ফাইলের পাশে কেবল তখনই লেখে যখন আপনি নিজে
+        <em>কার্সরের অবস্থান নির্ণয় করুন…</em> চালান। তাতে লেখা থাকে ফোকাসে থাকা লেখার ঘরটি নিয়ে Windows
+        ও UI Automation কী জানায়; এটি কোথাও পাঠানো হয় না, এবং আপনি তা মুছে ফেলতে পারেন।</li>
+      </ul>
+
+      <h2>তথ্য ভাগাভাগি</h2>
+      <p>কিছুই নয়। CyrFlip ডেভেলপার বা কোনো তৃতীয় পক্ষের সঙ্গে কোনো তথ্য ভাগ করে না। যা কখনও পাঠানো হয়
+      তা কেবল আপনার নির্বাচিত লেখা, আপনার নিজের বেছে নেওয়া অনুবাদক ঠিকানায় - পূর্বনির্ধারিতভাবে আপনার
+      নিজের কম্পিউটারের একটি প্রোগ্রাম - এবং কেবল যতক্ষণ ওই ঐচ্ছিক বৈশিষ্ট্যটি চালু থাকে।</p>
+
+      <h2>শিশুদের গোপনীয়তা</h2>
+      <p>CyrFlip কারও কাছ থেকেই তথ্য সংগ্রহ করে না, শিশুদের কাছ থেকেও নয়।</p>
+
+      <h2>মুক্ত উৎস</h2>
+      <p>CyrFlip মুক্ত উৎসের। এটি ঠিক কী করে তা আপনি নিজেই দেখে নিতে পারেন:
+      <a href="https://github.com/SerZhyAle/CyrFlip">github.com/SerZhyAle/CyrFlip</a>।</p>
+
+      <h2>এই নীতির পরিবর্তন</h2>
+      <p>এই নীতি বদলালে হালনাগাদ সংস্করণটি নতুন তারিখসহ এই পাতাতেই প্রকাশ করা হবে। নির্ভরযোগ্য পাঠ
+      <a href="../privacy.html">ইংরেজি মূল</a>; অমিল হলে সেটিই প্রাধান্য পাবে।</p>
+
+      <h2>যোগাযোগ</h2>
+      <p>এই নীতি সম্পর্কে প্রশ্ন: <a href="mailto:sza@ukr.net">sza@ukr.net</a>।</p>
+    </section>
+
+    <footer>
+      <p>MIT লাইসেন্স · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">GitHub-এ উৎস</a><br />
+      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
+    </footer>
+  </div>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn');
+    var themeColor=document.querySelector('meta[name="theme-color"]');
+    function applyThemeMeta(){
+      var dark=doc.getAttribute('data-theme')!=='light';
+      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
+      themeBtn.setAttribute('aria-label',dark?'হালকা থিম':'গাঢ় থিম');
+    }
+    themeBtn.addEventListener('click',function(){
+      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
+      doc.setAttribute('data-theme',next);
+      try{localStorage.setItem('sza-theme',next);}catch(e){}
+      applyThemeMeta();
+    });
+    applyThemeMeta();
+  })();
+  </script>
+</body>
+</html>

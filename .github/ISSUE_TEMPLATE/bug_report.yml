@@ -27,6 +27,6 @@ body:
     id: context
     attributes:
       label: Where it happened
-      description: Which app had focus (Notepad, Word, Chrome, …), source/target layout (EN/RU/UK), and the text you selected.
+      description: Which app had focus (Notepad, Word, Chrome, …), the source and target keyboard layouts, and the text you selected.
     validations:
       required: false

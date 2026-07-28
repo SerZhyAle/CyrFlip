@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip - Politique de confidentialité</title>
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/fr/privacy.html">
+  <meta name="description" content="Politique de confidentialité de CyrFlip : l'application fonctionne sur votre appareil, ne collecte rien et n'a aucun serveur ; le traducteur optionnel n'envoie votre sélection qu'à l'adresse Ollama que vous choisissez, par défaut votre propre ordinateur." />
+  <meta property="og:title" content="CyrFlip - Politique de confidentialité" />
+  <meta property="og:description" content="CyrFlip ne collecte, ne stocke, ne journalise ni ne transmet aucune donnée personnelle. Tout se passe sur votre propre appareil." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <meta name="theme-color" content="#0a0f0a" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+</head>
+<body>
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+  <header class="site-header">
+    <div class="container">
+      <span class="brand"><img class="brand-icon" src="../assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
+      <button class="theme-btn" id="themeBtn" aria-label="Changer de thème">◐</button>
+      <div class="cta">
+        <a class="btn btn-ghost btn-sm" href="./">← Accueil</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </div>
+  </header>
+  <div class="wrap">
+    <section>
+      <h1>Politique de confidentialité</h1>
+      <p class="note">Dernière mise à jour : 28 juillet 2026 · <a href="../privacy.html">English (original)</a></p>
+
+      <p><strong>CyrFlip ne collecte, ne stocke, ne journalise ni ne transmet aucune donnée
+      personnelle.</strong> L'application fonctionne entièrement sur votre propre appareil. Elle n'a
+      aucun serveur, aucune télémétrie, aucune analyse d'audience, aucune publicité, aucun pistage et
+      aucun compte utilisateur. Le développeur ne reçoit aucune donnée sur vous ni sur votre usage de
+      l'application.</p>
+
+      <p>Une seule fonction envoie du texte quelque part, et elle est <strong>désactivée par
+      défaut</strong> : le <em>traducteur</em> optionnel. Lorsque vous l'activez et appuyez sur un
+      raccourci de traduction, le texte sélectionné est envoyé à l'adresse du serveur Ollama configurée
+      dans CyrFlip - par défaut <code>http://localhost:11434</code>, c'est-à-dire un programme qui
+      tourne sur votre propre ordinateur, de sorte que le texte ne quitte pas l'appareil. Si vous
+      remplacez cette adresse par celle d'une autre machine, le texte y sera envoyé ; CyrFlip le dit
+      juste à côté du réglage.</p>
+
+      <h2>Ce à quoi l'application accède, et pourquoi</h2>
+      <ul class="features">
+        <li><strong>Clavier.</strong> CyrFlip installe un hook clavier global à deux fins seulement :
+        détecter son raccourci d'activation (par défaut
+        <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>F12</kbd>) et lire le code de la disposition de clavier
+        active (n'importe quelle disposition installée dans Windows) afin d'afficher l'indicateur à
+        l'écran. Au-delà de ce raccourci, il surveille les combinaisons que vous attribuez à la
+        correction de casse, au gestionnaire de presse-papiers, à chaque ligne de votre tableau de
+        conversion de dispositions, à chaque ligne de votre tableau de traduction et à tout scénario de
+        lancement rapide auquel vous donnez un raccourci. Pendant l'écriture d'une traduction, il
+        surveille en plus <kbd>Échap</kbd>, pour que cette touche puisse l'annuler - la touche parvient
+        de toute façon à l'application dans laquelle vous travaillez.
+        <strong>Il n'enregistre, ne journalise, ne stocke ni ne transmet vos frappes.</strong> Ce n'est
+        pas un enregistreur de frappe.</li>
+
+        <li><strong>Presse-papiers.</strong> Lorsque vous appuyez sur le raccourci, CyrFlip lit
+        brièvement le texte sélectionné (via une copie simulée), le convertit d'une disposition à
+        l'autre, colle le résultat, puis restaure le contenu précédent du presse-papiers. Tout se passe
+        localement et uniquement au moment où vous le déclenchez. Rien n'est envoyé.</li>
+
+        <li><strong>Historique du presse-papiers (optionnel).</strong> Il est <strong>désactivé par
+        défaut</strong>. Si vous l'activez, CyrFlip conserve localement le texte Unicode capturé.
+        L'historique est chiffré avec la DPAPI de Windows pour le compte Windows courant ; vous pouvez
+        le suspendre, le vider ou le désactiver à tout moment. CyrFlip ne l'envoie jamais nulle
+        part.</li>
+
+        <li><strong>Fenêtre active et disposition.</strong> L'application lit quelle fenêtre a le focus
+        et quelle disposition de clavier elle utilise, afin de placer et de mettre à jour l'indicateur.
+        Ces informations ne servent qu'en mémoire, ne sont jamais enregistrées ni transmises. Si vous
+        activez <em>céder les raccourcis au bureau à distance</em>, et uniquement au moment où l'un des
+        raccourcis de CyrFlip est réellement pressé, il lit également le nom de l'exécutable de la
+        fenêtre active pour reconnaître un client de bureau à distance.</li>
+
+        <li><strong>Paramètres de saisie de Windows.</strong> L'onglet « Langues Windows » modifie pour
+        vous la configuration propre à Windows : les dispositions de clavier installées
+        (<code>HKCU\Keyboard Layout\Preload</code> et <code>HKCU\Control Panel\International\User Profile</code>),
+        la combinaison de bascule cyclique et les raccourcis directs par langue
+        (<code>HKCU\Control Panel\Input Method\Hot Keys</code>). Ce sont des réglages système : ils
+        restent sur votre appareil et continuent de fonctionner une fois CyrFlip fermé. Avant sa
+        première modification, CyrFlip enregistre un instantané unique de l'état antérieur dans sa
+        propre clé de registre, pour que vous puissiez le restaurer.</li>
+
+        <li><strong>Lancement rapide (optionnel).</strong> Le lanceur de scénarios est
+        <strong>désactivé par défaut</strong>. Une fois activé, il démarre les programmes, scripts et
+        téléchargements yt-dlp que <em>vous</em> avez définis, et seulement à votre demande : depuis la
+        zone de notification, depuis le tableau des paramètres, par un raccourci que vous avez attribué
+        ou depuis la Jump List de la barre des tâches. Il ne demande les droits d'administrateur que
+        pour un scénario que vous avez marqué « exécuter en tant qu'administrateur », et le lien que
+        vous saisissez pour un téléchargement yt-dlp est transmis à cet outil pour cette seule
+        exécution et n'est pas conservé. Activer le module publie aussi les noms de vos scénarios dans
+        la Jump List de la barre des tâches, que Windows conserve dans votre propre profil
+        utilisateur.</li>
+
+        <li><strong>Traducteur (optionnel).</strong> Il est <strong>désactivé par défaut</strong> ;
+        tant qu'il l'est, CyrFlip n'ouvre aucune connexion réseau. Une fois activé, lorsque vous
+        appuyez sur un raccourci de traduction, CyrFlip prend le texte sélectionné (la même copie
+        simulée que ci-dessus) et l'envoie en HTTP à l'adresse Ollama indiquée dans ses paramètres -
+        <code>http://localhost:11434</code> si vous ne l'avez pas changée, c'est-à-dire un programme
+        sur votre propre ordinateur. L'entrée <em>Traduire le presse-papiers</em> de la zone de
+        notification, visible uniquement quand le traducteur est activé, envoie à cette même adresse le
+        contenu actuel du presse-papiers plutôt qu'une sélection. Ollama est un produit distinct et
+        gratuit que vous installez vous-même ; CyrFlip ne le fournit pas et n'a ni compte ni clé. La
+        traduction s'affiche dans une fenêtre et, uniquement si vous activez ces options, est copiée
+        dans le presse-papiers (où l'historique optionnel l'enregistre comme n'importe quelle autre
+        copie) ou collée par-dessus votre sélection. CyrFlip ne conserve aucune traduction, n'en tient
+        aucun journal et n'envoie rien au développeur. Dans la version portable, le bouton
+        <em>Installer Ollama</em> télécharge l'installateur officiel depuis <code>ollama.com</code> ;
+        la version du Microsoft Store se contente d'ouvrir ce site. Les langues que le modèle maîtrise
+        sont une question à poser au modèle : CyrFlip ne fait que lui transmettre le texte.</li>
+      </ul>
+
+      <h2>Fichiers locaux écrits par CyrFlip</h2>
+      <ul class="features">
+        <li><strong>Fichier de disposition.</strong> CyrFlip écrit le code de la disposition courante -
+        une valeur de deux lettres telle que <code>EN</code>, <code>ZH</code>, <code>RU</code> ou
+        <code>AR</code> - dans un petit fichier local (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>,
+        ou <code>%ProgramData%\CyrFlip\layout.txt</code> dans la version du Microsoft Store), afin que
+        l'extension VS&nbsp;Code optionnelle puisse afficher le marqueur au niveau du curseur de
+        l'éditeur. Il ne contient aucune donnée personnelle et ne quitte jamais votre appareil.</li>
+
+        <li><strong>Configuration et historique.</strong> Les réglages sont stockés dans
+        <code>HKCU\Software\CyrFlip</code> - y compris votre tableau de conversion et les sauvegardes
+        uniques des paramètres de saisie de Windows décrites plus haut. Si l'historique du
+        presse-papiers est activé, il est conservé localement dans le dossier de données de
+        l'application, protégé par DPAPI. Un ancien <code>config.json</code> peut être lu une seule
+        fois lors de la migration. Rien de tout cela ne quitte votre appareil.</li>
+
+        <li><strong>Scénarios de lancement rapide.</strong> Chaque scénario que vous créez est
+        enregistré dans son propre fichier XML sous <code>%APPDATA%\CyrFlip\Scenarios</code> et
+        contient exactement ce que vous avez saisi : le nom, le chemin du programme ou du script, ses
+        arguments et son dossier de travail. Ils restent sur votre appareil, vous pouvez les modifier
+        ou les supprimer, et ils demeurent intacts si vous désactivez le module. Le module ajoute aussi
+        un bref journal d'activité (<code>launcher.log</code>, à côté du fichier de disposition) notant
+        qu'un scénario a démarré et pourquoi un autre a échoué - il n'y consigne <strong>jamais</strong>
+        de lien yt-dlp, de contenu du presse-papiers ni de frappes clavier.</li>
+
+        <li><strong>Rapport de diagnostic.</strong> Uniquement si vous lancez vous-même
+        <em>Diagnostiquer la position du curseur…</em>, CyrFlip écrit
+        <code>caret-diagnostics.txt</code> à côté du fichier de disposition. Il note ce que Windows et
+        l'automatisation de l'interface rapportent sur le champ de texte actif ; il n'est envoyé nulle
+        part et vous pouvez le supprimer.</li>
+      </ul>
+
+      <h2>Partage de données</h2>
+      <p>Aucun. CyrFlip ne partage aucune donnée avec le développeur ni avec des tiers. La seule chose
+      qui soit jamais envoyée est le texte que vous avez sélectionné, à l'adresse du traducteur que
+      vous avez vous-même choisie - par défaut un programme sur votre propre ordinateur - et seulement
+      tant que cette fonction optionnelle est activée.</p>
+
+      <h2>Vie privée des enfants</h2>
+      <p>CyrFlip ne collecte de données auprès de personne, enfants compris.</p>
+
+      <h2>Code source ouvert</h2>
+      <p>CyrFlip est un logiciel libre. Vous pouvez vérifier exactement ce qu'il fait :
+      <a href="https://github.com/SerZhyAle/CyrFlip">github.com/SerZhyAle/CyrFlip</a>.</p>
+
+      <h2>Modifications de cette politique</h2>
+      <p>Si cette politique change, la version mise à jour sera publiée sur cette page avec une
+      nouvelle date de mise à jour. Le texte de référence est l'<a href="../privacy.html">original
+      anglais</a> ; en cas de divergence, c'est lui qui prévaut.</p>
+
+      <h2>Contact</h2>
+      <p>Questions sur cette politique : <a href="mailto:sza@ukr.net">sza@ukr.net</a>.</p>
+    </section>
+
+    <footer>
+      <p>Licence MIT · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">Code source sur GitHub</a><br />
+      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
+    </footer>
+  </div>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn');
+    var themeColor=document.querySelector('meta[name="theme-color"]');
+    function applyThemeMeta(){
+      var dark=doc.getAttribute('data-theme')!=='light';
+      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
+      themeBtn.setAttribute('aria-label',dark?'Thème clair':'Thème sombre');
+    }
+    themeBtn.addEventListener('click',function(){
+      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
+      doc.setAttribute('data-theme',next);
+      try{localStorage.setItem('sza-theme',next);}catch(e){}
+      applyThemeMeta();
+    });
+    applyThemeMeta();
+  })();
+  </script>
+</body>
+</html>

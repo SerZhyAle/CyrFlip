@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CyrFlip - setup guide</title>
   <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/guide.html">
-  <meta name="description" content="Step-by-step guide: install the CyrFlip Windows app to get live EN/RU/UK layout indicators on your cursor and text caret everywhere. The optional VS Code extension adds a precise in-editor marker." />
+  <meta name="description" content="Step-by-step guide: install the CyrFlip Windows app to get live keyboard-layout indicators on your cursor and text caret everywhere. The optional VS Code extension adds a precise in-editor marker." />
   <meta property="og:title" content="CyrFlip - setup guide" />
   <meta property="og:description" content="Install CyrFlip for instant layout indicators everywhere. The VS Code extension is optional." />
   <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
@@ -21,7 +21,7 @@
     "@type": "TechArticle",
     "headline": "CyrFlip setup guide",
     "url": "https://serzhyale.github.io/CyrFlip/guide.html",
-    "description": "Step-by-step guide: install the CyrFlip Windows app to get live EN/RU/UK layout indicators on your cursor and text caret everywhere. The optional VS Code extension adds a precise in-editor marker.",
+    "description": "Step-by-step guide: install the CyrFlip Windows app to get live keyboard-layout indicators on your cursor and text caret everywhere. The optional VS Code extension adds a precise in-editor marker.",
     "inLanguage": "en",
     "about": { "@type": "SoftwareApplication", "name": "CyrFlip", "operatingSystem": "Windows 10, Windows 11" },
     "author": { "@type": "Person", "name": "SerZhyAle", "url": "https://github.com/SerZhyAle" },
@@ -66,7 +66,7 @@
   </header>
   <div class="wrap">
     <h1>CyrFlip setup guide</h1>
-    <p class="tagline">The <strong>CyrFlip desktop app</strong> works standalone — it puts the EN/RU/UK marker on
+    <p class="tagline">The <strong>CyrFlip desktop app</strong> works standalone — it puts the layout marker on
     the system cursor and next to the text caret everywhere, and transliterates mistyped text with one hotkey.
     If you use VS Code, the optional <strong>VS Code extension</strong> adds the same marker precisely at the
     Monaco editor caret. Here's how to set them up.</p>
@@ -76,7 +76,7 @@
       <p>The app is the brain - it knows the active layout. The extension is just a display surface for VS Code,
       because VS Code draws its own caret and isn't keen on sharing its whereabouts with the outside world.</p>
       <pre><code>  CyrFlip.exe (tray app)            %LOCALAPPDATA%\CyrFlip\        VS Code extension
-  detects EN / RU / UK   ──writes──▶      layout.txt      ──watches──▶  draws the marker
+  detects the layout   ──writes──▶        layout.txt      ──watches──▶  draws the marker
                                                                         at the editor caret</code></pre>
       <p class="note"><strong>The app must be running</strong> for the extension to show anything - the extension
       only reads what the app publishes. Without VS Code you still get the tray icon, the mouse-cursor marker,
@@ -96,7 +96,7 @@
           <code>CyrFlip.exe</code>. Nothing to install; it runs on stock Windows 10/11.</li>
       </ul>
       <p>On launch, CyrFlip sits in the <strong>system tray</strong> (no window). The tray icon shows the active
-      layout (EN/RU/UK). Right-click it to show the clipboard-history strip, enable or pause history,
+      layout. Right-click it to show the clipboard-history strip, enable or pause history,
       change the indicator, or open <strong>Settings</strong>. Settings contains hotkeys, autostart,
       privacy controls and diagnostics.</p>
       <p class="note">Turn on <strong>Start with Windows</strong> so the app - and therefore the layout marker
@@ -124,10 +124,10 @@
     <section>
       <h2>Step 3 - Use them together</h2>
       <ol class="steps">
-        <li>Make sure the <strong>CyrFlip app is running</strong> (its tray icon shows EN/RU/UK).</li>
+        <li>Make sure the <strong>CyrFlip app is running</strong> (its tray icon shows the layout code).</li>
         <li>Click into a <strong>code editor</strong> in VS Code and start typing. Switch your keyboard layout -
           the coloured <code>EN</code>/<code>RU</code>/<code>UK</code> marker follows your caret, and the status
-          bar shows <code>⌨ EN/RU/UK</code>.</li>
+          bar shows <code>⌨ EN</code>, <code>⌨ DE</code>, <code>⌨ ZH</code> - whatever is active.</li>
         <li>Everywhere <strong>else</strong> (other apps, dialogs, the desktop), the marker rides the mouse
           I-beam cursor and the tray icon, driven by the same app.</li>
         <li>Typed half a message in the wrong layout before looking up? <strong>Select it</strong> and press
@@ -166,7 +166,7 @@
       applies at once - there is nothing to restart and nothing to save.</p>
       <table>
         <tr><th>Tab</th><th>What lives there</th></tr>
-        <tr><td>General</td><td>Start with Windows; <strong>keep the computer awake</strong> and <strong>keep the screen on</strong> (both live only until you quit CyrFlip, and are off again on the next launch); the <strong>interface language</strong> - 13 to choose from.</td></tr>
+        <tr><td>General</td><td>Start with Windows; <strong>keep the computer awake</strong> and <strong>keep the screen on</strong> (both are remembered - a switch left on keeps the machine awake after a restart too, and CyrFlip will not watch your battery for you); the <strong>interface language</strong> - 13 to choose from.</td></tr>
         <tr><td>Indicators</td><td>The I-beam cursor marker (off by default), the caret marker (on), the compact dot style, <strong>change the layout after converting text</strong>, and <strong>synchronize CapsLock after the case fix</strong>.</td></tr>
         <tr><td>Hotkeys</td><td>A master switch plus a separate on/off and chord for the case fix and the clipboard manager - so a machine can keep only the one chord it needs. Also <strong>yield hotkeys to the remote desktop</strong>: while an mstsc/msrdc window is focused the chord is passed to the remote session, which is what you want when CyrFlip runs on both ends of an RDP connection.</td></tr>
         <tr><td>Layout conversions</td><td>One table holding <strong>every</strong> chord that converts text between layouts. EN ⇄ RU on <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> is created on the first run and can be edited or deleted like any other row; add as many pairs as you like, each with its own chord and switch.</td></tr>
@@ -229,9 +229,9 @@
         your own machine, so the selection never leaves the computer. The tab says plainly that entering another
         address sends the selected text to that machine.</li>
         <li><strong>One-press helpers</strong> on the tab: install Ollama, start it, check the connection, and
-        download a model. Recommended models: <code>qwen2.5:3b</code> (~2 GB, the default),
-        <code>gemma2:2b</code> (~1.6 GB, for weaker machines), <code>llama3.2:3b</code> (~2 GB) and
-        <code>aya-expanse:8b</code> (~5 GB, translates noticeably better, wants 8 GB of RAM or more). In the
+        download a model. Recommended models: <code>aya-expanse:8b</code> (~4.7 GB, the default - the best translation of those tested) and
+        <code>gemma2:9b</code> (~5 GB). Models under 4 GB failed the Russian and Ukrainian check outright,
+        so <code>gemma2:2b</code> (~1.5 GB) is there only for a machine short on space, and it will make mistakes. In the
         Microsoft Store build the install button only opens <code>ollama.com</code> - a Store app must not download
         and run an installer.</li>
         <li><strong>Long selections:</strong> the first 4000 characters are translated, and the window says so.</li>

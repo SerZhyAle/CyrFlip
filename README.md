@@ -18,7 +18,7 @@ CyrFlip is a tiny Windows tray tool with a few modest jobs:
 6. **An opt-in translator that runs on your own computer.** Select text anywhere in Windows, press a chord, and the translation appears in a small window next to the mouse pointer, filling in as the model writes it. It runs on [Ollama](https://ollama.com), a free program you install once yourself - no account, no key, and no text sent to the developer or to a cloud service. Off by default.
 7. **Extras that fit a tray tool:** an opt-in encrypted clipboard history with search, two keep-awake switches, and a UI available in **13 languages**.
 
-![CyrFlip's layout-aware text cursor showing EN, RU and UK](assets/cursor-preview.png)
+![CyrFlip's layout-aware text cursor showing EN, RU, ZH and AR](assets/cursor-preview.png)
 
 ## Status
 
@@ -41,7 +41,7 @@ for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and c
 - **Fix CapsLock** - select the `hELLO` you meant as `Hello` and press **Ctrl+Shift+F11**.
 - **Tray menu** (right-click the icon) keeps the frequent switches: show/hide history, clipboard history on/off, pause capture, the three indicator toggles, the two keep-awake switches, the **Quick launch** submenu and **Translate clipboard** (each shown only while its module is enabled), **Settings…** and **Exit**. Double-clicking the icon opens Settings.
 - **Settings** (nine tabs, every change applied at once, no restart):
-  - **General** - start with Windows, keep the computer awake, keep the screen on, and the interface language (13 to choose from).
+  - **General** - start with Windows, keep the computer awake, keep the screen on (both remembered across restarts), and the interface language (13 to choose from).
   - **Indicators** - the I-beam cursor marker (off by default), the caret marker (on by default), the compact dot style, "change the layout after converting text", and "synchronize CapsLock after the case fix".
   - **Hotkeys** - the master switch plus a separate on/off and chord for the case fix and the clipboard manager, and the option to yield the chords to a focused remote-desktop client.
   - **Layout conversions** - one table holding **every** chord that converts text between layouts, EN ⇄ RU included. Each row is a pair of installed layouts plus its own combination and on/off switch, and each works in both directions.
@@ -73,7 +73,7 @@ An optional module that translates the selected text with a language model runni
 - **[Ollama](https://ollama.com) is installed separately** - a free program you install once on your own machine. CyrFlip doesn't bundle it, has no account and no key, and no text is sent to the developer or to any cloud service. The address is `http://localhost:11434` by default, that is your own computer; the settings tab says plainly that entering another address sends the selected text to that machine.
 - **Directions are an open-ended table**, like the layout conversions: each row is "translate into this language" plus its own global hotkey. Besides the 13 interface languages a row can target **the interface language** or **the language of the keyboard layout active in the target window**, both resolved at the moment the chord is pressed.
 - **The result** can be copied to the clipboard - where the optional clipboard history records it like any other copy - or pasted straight over the selection. Both off by default.
-- **One-press helpers** on the settings tab: install Ollama, start it, check the connection, and download a model. The recommended ones are `qwen2.5:3b` (~2 GB, the default), `gemma2:2b` (~1.6 GB, for weaker machines), `llama3.2:3b` (~2 GB) and `aya-expanse:8b` (~5 GB, translates noticeably better, wants 8 GB of RAM or more). The model is held in memory by the **Ollama** process, not by CyrFlip, which stays inside its 50 MB budget. In the Microsoft Store build the install button only opens ollama.com - a Store app must not download and run an installer.
+- **One-press helpers** on the settings tab: install Ollama, start it, check the connection, and download a model. The recommended ones are `aya-expanse:8b` (~4.7 GB, the default - the best translation of those tested) and `gemma2:9b` (~5 GB). Models under 4 GB failed the Russian and Ukrainian check outright, so `gemma2:2b` (~1.5 GB) is there only for a machine short on space, and it will make mistakes. The model is held in memory by the **Ollama** process, not by CyrFlip, which stays inside its 50 MB budget. In the Microsoft Store build the install button only opens ollama.com - a Store app must not download and run an installer.
 - **Worth knowing:** the quality is the local model's; the first translation after a cold start takes a while, because the model has to load; Ollama and a model are a multi-gigabyte download you make once; and of a long selection the first 4000 characters are translated, which the window tells you.
 
 ## VS Code extension
@@ -130,7 +130,7 @@ All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and ar
 | Change the layout after converting text | off | After a conversion, also switches the active window to the layout the text now reads in, so you can keep typing straight away |
 | Synchronize CapsLock after the case fix | off | After a case fix, also toggles the physical CapsLock key so the next keystrokes match |
 | Interface language | OS language | 13 languages; falls back to English when Windows runs in a language CyrFlip has no translation for |
-| Keep awake / keep the screen on | off | Live-only switches (never persisted, off on every launch) that stop Windows sleeping or blanking the screen on idle |
+| Keep awake / keep the screen on | off | Stop Windows sleeping or blanking the screen on idle. Both are remembered: leave one on and it keeps the machine awake after a restart too - CyrFlip will not watch your battery for you |
 | Clipboard history | off | Encrypted local text history; toggle it from the tray or Settings |
 | Show clipboard manager window | on | Remembers whether the manager window is open - close it and it stays closed on the next launch, while history keeps capturing in the background |
 | Quick launch | off | The scenario launcher: tray submenu, per-scenario hotkeys and taskbar Jump List tasks. Scenarios live in `%APPDATA%\CyrFlip\Scenarios` (one XML each) and survive the switch being turned off |
