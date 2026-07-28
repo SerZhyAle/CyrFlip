@@ -1,0 +1,52 @@
+{
+  "_comment": [
+    "The shared layout-marker palette. CyrFlip draws the marker on four surfaces - the mouse I-beam,",
+    "the caret overlay, the tray icon (all three from src/CyrFlip/LayoutStyle.cs) and, inside VS Code,",
+    "this extension. They used to carry three separate copies of the table, and the extension's copy",
+    "knew only EN/RU/UK: ten of the thirteen curated languages rendered grey there while the app drew",
+    "them in colour.",
+    "",
+    "SOURCE OF TRUTH is src/CyrFlip/LayoutStyle.cs - the app ships as one exe with nothing to read at",
+    "runtime, so its table has to live in code. This file is the machine-readable copy for everything",
+    "outside that exe, and LayoutColorsTests fails the build if the two disagree.",
+    "",
+    "It lives under vscode-extension/src/ rather than assets/ because vsce packages only what is inside",
+    "the extension root; a file one directory up would simply be missing from the published .vsix.",
+    "",
+    "Anything not listed in 'curated' gets a deterministic bright colour derived from its code, so a",
+    "layout outside the curated set still reads as its own colour instead of a shared grey. Both",
+    "implementations must produce identical output; 'fallbackSamples' pins a few of them, and the C#",
+    "side is checked against those samples by LayoutColorsTests. The TypeScript side has no test",
+    "runner of its own - if you touch colorFor() in extension.ts, verify it against these samples."
+  ],
+  "curated": {
+    "EN": "#4DA3FF",
+    "RU": "#FF5A5A",
+    "UK": "#5AD86A",
+    "ZH": "#F3B33D",
+    "HI": "#E68742",
+    "ES": "#F06E9C",
+    "FR": "#8D7CF2",
+    "AR": "#35C6B4",
+    "BN": "#C67CDA",
+    "PT": "#46B978",
+    "UR": "#E5A3C7",
+    "DE": "#D8D14A",
+    "IT": "#7FB2E5"
+  },
+  "fallback": {
+    "_algorithm": "hash = 17; for each char: hash = hash * 31 + charCode (32-bit signed wrap). hue = ((hash % 360) + 360) % 360. Then HSL(hue, saturation, lightness) -> RGB.",
+    "hashSeed": 17,
+    "hashMultiplier": 31,
+    "saturation": 0.85,
+    "lightness": 0.66
+  },
+  "fallbackSamples": {
+    "PL": "#5FF2E1",
+    "JA": "#F25F9A",
+    "TR": "#F25FEB",
+    "KO": "#F2925F",
+    "CS": "#5FF288",
+    "VI": "#F25F68"
+  }
+}

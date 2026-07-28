@@ -8,7 +8,9 @@
     "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    // src/layout-colors.json is imported by extension.ts - the palette shared with the app.
+    "resolveJsonModule": true
   },
   "exclude": ["node_modules", "out", ".vscode-test"]
 }

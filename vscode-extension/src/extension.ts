@@ -3,13 +3,13 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-// Per-layout colour, matching the CyrFlip app (EN=blue, RU=red, UK=green).
-const COLORS: Record<string, string> = {
-  EN: '#4DA3FF',
-  RU: '#FF5A5A',
-  UK: '#5AD86A',
-};
-const DEFAULT_COLOR = '#CCCCCC';
+// Per-layout colour, shared with the app rather than restated here: layout-colors.json is the
+// machine-readable copy of src/CyrFlip/LayoutStyle.cs, and a C# test fails the build if the two
+// disagree. This file used to carry its own three-entry table (EN/RU/UK), so ten of the thirteen
+// curated languages rendered grey in the editor while the app drew them in colour.
+import * as palette from './layout-colors.json';
+
+const COLORS: Record<string, string> = palette.curated;
 
 // 4-direction black outline so the bright code stays legible on any background.
 const OUTLINE = '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000';
@@ -56,8 +56,46 @@ function layoutFilePath(): string {
   return best ?? candidates[0];
 }
 
+/**
+ * Any layout outside the curated set gets a deterministic bright colour derived from its code, so
+ * a Polish or Turkish keyboard reads as its own colour instead of a shared grey. This must produce
+ * byte-identical output to LayoutStyle.BrightFromCode in the app - the constants and a handful of
+ * expected results live in layout-colors.json, and the app side is pinned to those samples by
+ * LayoutColorsTests. There is no test runner in this extension: if you touch this function, check
+ * it against `fallbackSamples` by hand.
+ */
+function brightFromCode(code: string): string {
+  let hash = palette.fallback.hashSeed;
+  for (const ch of code) {
+    // Math.imul keeps the 32-bit signed wrap-around that C# `int` arithmetic has; plain `*`
+    // would drift into float territory for long codes and diverge from the app.
+    hash = Math.imul(hash, palette.fallback.hashMultiplier) + ch.charCodeAt(0) | 0;
+  }
+  const hue = ((hash % 360) + 360) % 360;
+  return hslToHex(hue, palette.fallback.saturation, palette.fallback.lightness);
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  const hn = h / 360;
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const channel = (t: number): number => {
+    if (t < 0) { t += 1; }
+    if (t > 1) { t -= 1; }
+    if (t < 1 / 6) { return p + (q - p) * 6 * t; }
+    if (t < 1 / 2) { return q; }
+    if (t < 2 / 3) { return p + (q - p) * (2 / 3 - t) * 6; }
+    return p;
+  };
+  const byte = (v: number): string => {
+    const clamped = Math.max(0, Math.min(255, Math.round(v * 255)));
+    return clamped.toString(16).toUpperCase().padStart(2, '0');
+  };
+  return `#${byte(channel(hn + 1 / 3))}${byte(channel(hn))}${byte(channel(hn - 1 / 3))}`;
+}
+
 function colorFor(code: string): string {
-  return COLORS[code] ?? DEFAULT_COLOR;
+  return COLORS[code] ?? brightFromCode(code);
 }
 
 function decorationFor(code: string): vscode.TextEditorDecorationType {
