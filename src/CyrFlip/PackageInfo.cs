@@ -18,8 +18,34 @@ namespace CyrFlip
     internal static class PackageInfo
     {
         private static readonly Lazy<bool> _isPackaged = new Lazy<bool>(Detect);
+        private static readonly Lazy<string> _familyName = new Lazy<string>(ReadFamilyName);
 
         public static bool IsPackaged => _isPackaged.Value;
+
+        /// <summary>
+        /// The package family name ("SZA.CyrFlip_fdk7e19xt9z9j"), or an empty string when the
+        /// process is unpackaged. Windows keys the package's per-user state by this name - which
+        /// is how <see cref="Autostart"/> reads the startupTask's on/off state.
+        /// </summary>
+        public static string FamilyName => _familyName.Value;
+
+        private static string ReadFamilyName()
+        {
+            if (!IsPackaged) return string.Empty;
+            try
+            {
+                int length = 0;
+                int rc = WindowInterop.GetCurrentPackageFamilyName(ref length, null);
+                if (rc != WindowInterop.ERROR_INSUFFICIENT_BUFFER || length <= 0) return string.Empty;
+                var buffer = new System.Text.StringBuilder(length);
+                rc = WindowInterop.GetCurrentPackageFamilyName(ref length, buffer);
+                return rc == 0 ? buffer.ToString() : string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
 
         private static bool Detect()
         {

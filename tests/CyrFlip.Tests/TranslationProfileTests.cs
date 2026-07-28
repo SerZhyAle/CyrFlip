@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -162,5 +163,45 @@ namespace CyrFlip.Tests
             Assert.NotEqual(TranslationLanguages.Label(TranslationLanguages.UiToken, "English"),
                 TranslationLanguages.Label(TranslationLanguages.ActiveToken, "English"));
         }
+
+        /// <summary>
+        /// The picker is open (spec §3.3.3): the list is every language Windows knows, not the 13 the
+        /// interface is translated into. Measured on a live Ollama, the old set was wrong in both
+        /// directions - it offered languages the default model garbles and hid Japanese, which it does
+        /// perfectly - so the assertions here are "much more than 13" and "japanese is in".
+        /// </summary>
+        [Fact]
+        public void ThePickerOffersEveryLanguageWindowsKnows()
+        {
+            string[] all = TranslationLanguages.AllCodes;
+
+            Assert.True(all.Length > 50, "Only " + all.Length + " languages on offer");
+            Assert.Contains("ja", all);   // works on the default model, was missing from the old list
+            Assert.Contains("pl", all);
+            Assert.Contains("tr", all);
+            // The 13 CyrFlip itself ships in are always offerable, whatever the OS answered.
+            foreach (string code in Localization.Codes) Assert.Contains(code, all);
+            // Sorted and deduplicated: the picker sorts by label, but a duplicate code would show twice.
+            Assert.Equal(all.Length, new HashSet<string>(all, StringComparer.OrdinalIgnoreCase).Count);
+            // The invariant culture is not a language anyone translates into.
+            Assert.DoesNotContain("iv", all);
+        }
+
+        /// <summary>
+        /// The link behind "which languages the model knows is in its own description". The tag after
+        /// ':' is the size, not part of the path, and a name with '/' came from outside the Ollama
+        /// library, where there is no page to guess.
+        /// </summary>
+        [Theory]
+        [InlineData("qwen2.5:3b", "https://ollama.com/library/qwen2.5")]
+        [InlineData("qwen2.5", "https://ollama.com/library/qwen2.5")]
+        [InlineData("  gemma2:latest  ", "https://ollama.com/library/gemma2")]
+        [InlineData("aya:35b-23-q4_0", "https://ollama.com/library/aya")]
+        [InlineData("hf.co/user/repo:q4", "https://ollama.com/library")]
+        [InlineData("", "https://ollama.com/library")]
+        [InlineData(null, "https://ollama.com/library")]
+        [InlineData(":3b", "https://ollama.com/library")]
+        public void TheModelPageUrlDropsTheSizeTag(string? model, string expected)
+            => Assert.Equal(expected, TranslationLanguages.ModelPageUrl(model));
     }
 }

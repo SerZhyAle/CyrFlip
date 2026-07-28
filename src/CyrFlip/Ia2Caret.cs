@@ -70,6 +70,36 @@ namespace CyrFlip
             finally { Release(text); Release(acc); }
         }
 
+        /// <summary>
+        /// Whether the focused element holds a text selection - the IAccessible2 source of
+        /// <see cref="SelectionProbe"/>, and the only one that answers inside Chromium/Electron.
+        /// Returns null when this element exposes no IA2 text at all (i.e. "cannot tell", never
+        /// "nothing selected").
+        /// </summary>
+        [HandleProcessCorruptedStateExceptions, SecurityCritical]
+        public static bool? TryGetHasSelection()
+        {
+            object? acc = null;
+            IAccessibleText? text = null;
+            try
+            {
+                acc = FocusedAccessible();
+                if (acc == null) return null;
+
+                text = QueryText(acc);
+                if (text == null) return null;
+
+                if (text.get_nSelections(out int count) != 0) return null;
+                if (count <= 0) return false;
+
+                // A provider can report a selection that is in fact the collapsed caret.
+                if (text.get_selection(0, out int start, out int end) != 0) return null;
+                return start != end;
+            }
+            catch { return null; }
+            finally { Release(text); Release(acc); }
+        }
+
         /// <summary>Human-readable IA2 caret result, for the caret diagnostics.</summary>
         [HandleProcessCorruptedStateExceptions, SecurityCritical]
         public static string Diagnose()
@@ -197,6 +227,9 @@ namespace CyrFlip
             [PreserveSig] int _get_attributes(int offset, out int startOffset, out int endOffset, [MarshalAs(UnmanagedType.BStr)] out string attributes); // 2
             [PreserveSig] int get_caretOffset(out int offset);                           // 3
             [PreserveSig] int get_characterExtents(int offset, uint coordType, out int x, out int y, out int width, out int height); // 4
+            [PreserveSig] int get_nSelections(out int nSelections);                      // 5
+            [PreserveSig] int _get_offsetAtPoint(int x, int y, uint coordType, out int offset); // 6
+            [PreserveSig] int get_selection(int selectionIndex, out int startOffset, out int endOffset); // 7
         }
     }
 }

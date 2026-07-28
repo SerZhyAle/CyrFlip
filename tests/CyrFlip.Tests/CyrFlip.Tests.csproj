@@ -24,6 +24,9 @@
          reach the UI through reflection and need no reference of their own. -->
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
+    <!-- LayoutColorsTests parses the palette the VS Code extension ships, with the same JSON reader
+         the app uses for its own config - no NuGet dependency on either side. -->
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
 
   <ItemGroup>

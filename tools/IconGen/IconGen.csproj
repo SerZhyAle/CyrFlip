@@ -17,4 +17,11 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The layout palette, compiled rather than copied: the preview asset has to show the same
+         colours the app draws, and a third hand-maintained table is exactly how it drifted before
+         (IconGen knew only EN/RU/UK). LayoutStyle has no dependency beyond System.Drawing. -->
+    <Compile Include="..\..\src\CyrFlip\LayoutStyle.cs" Link="LayoutStyle.cs" />
+  </ItemGroup>
+
 </Project>

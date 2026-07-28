@@ -52,6 +52,12 @@ namespace CyrFlip
         private readonly LauncherIpc _launcherIpc;
         private LauncherTaskbarWindow? _launcherTaskbar;
 
+        // ---- Text context menu (own menu over the selection) ----
+        private readonly MouseHook _mouseHook = new MouseHook();
+        private readonly ContextMenuStrip _textMenu = new ContextMenuStrip();
+        private SelectionProbe.Run? _selectionProbe;
+        private IntPtr _textMenuTarget;
+
         // ---- Translator (local Ollama) ----
         private readonly TranslationService _translation;
         private readonly ToolStripMenuItem _translateClipboardItem;
@@ -59,6 +65,8 @@ namespace CyrFlip
         private CancellationTokenSource? _translateCts;
         private string _translateSource = "";
         private string _translateCode = "";
+        // The expected source language of the pair rows; null for every auto-detecting row.
+        private string? _translateSourceCode;
         private IntPtr _translateTarget = IntPtr.Zero;
 
         private readonly SynchronizationContext? _ui;
@@ -80,6 +88,12 @@ namespace CyrFlip
             _clipboardHistoryWindow = new ClipboardHistoryWindow(_clipboardHistory, _config, ShowHistorySearch);
             _layoutCursor = new LayoutCursor(_config.CursorSize);
             _caretOverlay = new CaretOverlay(_config.CursorSize, _config.CaretDotMode);
+
+            // The saved keep-awake state, re-applied before the tray items are built so their Checked
+            // flags are seeded from the live state rather than the other way round. The request is
+            // bound to the calling thread, and this constructor runs on the tray UI thread, which
+            // lives as long as the process does.
+            KeepAwake.Restore(_config.KeepSystemAwake, _config.KeepScreenOn);
 
             // SetSystemCursor is global and the keep-awake request changes the system idle policy -
             // guarantee both are restored even if the app is killed or throws.
@@ -183,8 +197,8 @@ namespace CyrFlip
             // Keep dynamic state in sync when the menu opens.
             menu.Opening += (_, _) =>
             {
-                if (!Autostart.ManagedByWindows)
-                    _autostartItem.Checked = Autostart.IsEnabled;
+                // Both builds can now answer this truthfully: the packaged one reads the startupTask.
+                _autostartItem.Checked = Autostart.IsEnabled;
                 // Dot style only makes sense when the caret overlay is on.
                 _dotModeItem.Enabled = _caretItem.Checked;
                 _historyPauseItem.Enabled = _historyEnabledItem.Checked;
@@ -217,6 +231,7 @@ namespace CyrFlip
             _settings.ConversionProfilesChanged += (_, _) => OnConversionProfilesChanged();
             _settings.LauncherScenariosChanged += (_, _) => RefreshLauncherSurfaces();
             _settings.TranslationChanged += (_, _) => OnTranslationChanged();
+            _settings.TextMenuChanged += (_, _) => OnContextMenuChanged();
             // Tray mouse: double click opens Settings, single click walks the OS layout rotation.
             // The shell delivers the first click of a double click as an ordinary click too, so the
             // switch waits out the system double-click time before acting - otherwise every trip to
@@ -255,6 +270,20 @@ namespace CyrFlip
             _hook.LauncherHotkeyPressed += OnLauncherHotkeyPressed;
             _hook.TranslateHotkeyPressed += OnTranslateHotkeyPressed;
             _hook.CancelKeyPressed += (_, _) => _ui?.Post(_ => CancelTranslationFromEscape(), null);
+            // Mouse chord → own context menu. The probe starts on the press so the 80-150 ms the user
+            // spends holding the button pays for it; the menu itself is only ever shown from the UI
+            // thread, never from inside the hook callback.
+            _mouseHook.ChordPressed += (_, _) =>
+            {
+                // Remember the window the menu is being opened over. Every action of this menu
+                // synthesizes input, and synthesized input follows the foreground window - so the
+                // one thing we must not lose is which window that was before the menu appeared.
+                _textMenuTarget = WindowInterop.GetForegroundWindow();
+                _selectionProbe = SelectionProbe.Start();
+            };
+            _mouseHook.ChordReleased += (x, y) => _ui?.Post(_ => ShowTextContextMenu(x, y), null);
+            _mouseHook.ForeignButtonDown += (x, y) => _ui?.Post(_ => CloseTextMenuIfOutside(x, y), null);
+            _textMenu.Closed += (_, _) => _mouseHook.UpdateForeignClickWatch(false);
             _clipboardHistory.ItemTooLarge += (_, _) => _tray.ShowBalloonTip(2000, "CyrFlip", T("Фрагмент слишком велик для истории (>128 КБ)."), ToolTipIcon.Info);
             _hook.Install(_caseHotkey, _clipboardHistoryHotkey,
                 _config.DeferToRemoteDesktop, _config.EnableHotkeys,
@@ -276,6 +305,8 @@ namespace CyrFlip
             // Launcher surfaces (tray submenu + Jump List + hook chords) and the command listener.
             // Started after _ui is captured: the IPC thread posts every command to the UI thread.
             RefreshLauncherSurfaces();
+            // The mouse hook, likewise, only after _ui exists - its callback posts to the UI thread.
+            RefreshContextMenuBinding();
             _launcherIpc = new LauncherIpc(cmd => _ui?.Post(_ => OnLauncherIpcCommand(cmd), null));
             _launcherIpc.Start();
 
@@ -331,12 +362,17 @@ namespace CyrFlip
         /// concurrently (all synthesize Ctrl+C/Ctrl+V and own the clipboard) and so key auto-repeat
         /// can't re-enter.
         /// </summary>
+        /// <param name="suppressHistory">
+        /// False only for the context menu's own Copy/Cut: a flip's internal copy is scaffolding and
+        /// has no business in the history, but a copy the user explicitly asked for is the point.
+        /// </param>
         private void RunClipboardOp(Func<ClipboardHandler.FlipResult> op,
-            ClipboardHandler.FlipResult countOn, Action onCounted)
+            ClipboardHandler.FlipResult countOn, Action onCounted, bool suppressHistory = true)
         {
             if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
                 return;
-            _clipboardHistory.SuppressFor(TimeSpan.FromSeconds(2));
+            if (suppressHistory)
+                _clipboardHistory.SuppressFor(TimeSpan.FromSeconds(2));
 
             var thread = new Thread(() =>
             {
@@ -369,6 +405,203 @@ namespace CyrFlip
             }
         }
 
+        // ---- Text context menu (spec: PLAN/ContextMenu_Spec_Idea_v0.1.md) ----
+
+        /// <summary>
+        /// Install, retune or remove the mouse hook to match the settings. While the feature is off
+        /// the hook is <b>not installed at all</b>: a WH_MOUSE_LL hook sits in the path of every
+        /// mouse move on the machine, and a GC pause on its thread stalls the pointer system-wide.
+        /// </summary>
+        private void RefreshContextMenuBinding()
+        {
+            if (_config.EnableContextMenu)
+            {
+                MouseChord chord = MouseChord.Parse(_config.ContextMenuChord);
+                try
+                {
+                    if (_mouseHook.Installed) _mouseHook.UpdateChord(chord);
+                    else _mouseHook.Install(chord);
+                }
+                catch
+                {
+                    // A hook Windows refuses is a feature that does not work, not a crash.
+                    _tray.ShowBalloonTip(3000, "CyrFlip",
+                        T("Не удалось перехватить мышь, контекстное меню не будет открываться."),
+                        ToolTipIcon.Warning);
+                }
+                return;
+            }
+
+            if (!_mouseHook.Installed) return;
+            if (_textMenu.Visible) _textMenu.Close();
+            _mouseHook.Dispose();
+        }
+
+        /// <summary>The context-menu settings changed (the settings window writes straight into the config).</summary>
+        private void OnContextMenuChanged()
+        {
+            _config.Save();
+            RefreshContextMenuBinding();
+        }
+
+        /// <summary>
+        /// The chord was released: collect whatever the selection probe has and show the menu at the
+        /// pointer. Collecting can block this thread for the remainder of
+        /// <see cref="SelectionProbe.BudgetMs"/> - deliberately bounded well under the 300 ms Windows
+        /// gives a low-level hook, since the keyboard hook shares this thread.
+        /// </summary>
+        private void ShowTextContextMenu(int x, int y)
+        {
+            if (!_config.EnableContextMenu) return;
+            if (_textMenu.Visible) _textMenu.Close();
+
+            SelectionState selection = _selectionProbe?.Collect() ?? SelectionState.Unknown;
+            _selectionProbe = null;
+
+            // Actions that synthesize input go through DeferOnTarget: they must land in the window the
+            // menu was opened over. The two that merely open a window of ours use plain Defer.
+            TextContextMenu.Rebuild(_textMenu, BuildTextMenuState(selection), T,
+                command => { TextMenuLog.Log("click: " + command); DeferOnTarget(() => RunEditCommand(command)); },
+                id => { TextMenuLog.Log("click: conversion"); DeferOnTarget(() => OnLayoutConversionHotkeyPressed(id)); },
+                () => { TextMenuLog.Log("click: case flip"); DeferOnTarget(() => OnCaseHotkeyPressed(null, EventArgs.Empty)); },
+                id => { TextMenuLog.Log("click: translate"); DeferOnTarget(() => OnTranslateHotkeyPressed(id)); },
+                _config.EnableScenarioLauncher ? (Action<ToolStripMenuItem>)FillLauncherSubmenu : null,
+                () => { TextMenuLog.Log("click: history"); Defer(() => _clipboardHistoryWindow.ToggleVisible()); },
+                () => { TextMenuLog.Log("click: settings"); Defer(ShowSettings); });
+
+            if (_textMenu.Items.Count == 0) return;
+            TextMenuLog.Log("menu shown at " + x + "," + y + " with " + _textMenu.Items.Count
+                + " items, selection=" + selection + ", target " + TextMenuLog.Describe(_textMenuTarget));
+
+            // A drop-down whose owner is not the foreground window never sees the click that should
+            // dismiss it - so the mouse hook watches for one while the menu is up. SetForegroundWindow
+            // (the trick the taskbar button uses) is out of the question here: it would take the focus
+            // away from the very field whose selection we are about to work on.
+            _mouseHook.UpdateForeignClickWatch(true);
+            _textMenu.Show(new Point(x, y));
+        }
+
+        /// <summary>
+        /// The outside click that dismisses the menu - and the single most dangerous line in this
+        /// feature, because it runs on the <b>button-down</b> while the item's <c>Click</c> is only
+        /// raised on the button-up. Get "outside" wrong and the menu closes in between: the item is
+        /// disposed before it is ever clicked, and every command silently does nothing.
+        ///
+        /// So "inside" is not decided by comparing coordinates against a drop-down's bounds - which
+        /// misses the sub-menu (a window of its own) and trusts WinForms' idea of a top-level
+        /// control's rectangle. It is decided by asking Windows <b>which window is under the
+        /// pointer</b>: if it belongs to this process, the click is ours and the menu stays.
+        /// </summary>
+        private void CloseTextMenuIfOutside(int x, int y)
+        {
+            if (!_textMenu.Visible) return;
+            if (OverOwnWindow(x, y)) return;
+            TextMenuLog.Log("outside click at " + x + "," + y + " -> closing the menu");
+            _textMenu.Close();
+        }
+
+        private static readonly uint OwnProcessId = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
+
+        private static bool OverOwnWindow(int x, int y)
+        {
+            IntPtr hwnd = WindowInterop.WindowFromPoint(new WindowInterop.POINT { X = x, Y = y });
+            if (hwnd == IntPtr.Zero) return false;
+            WindowInterop.GetWindowThreadProcessId(hwnd, out uint pid);
+            return pid == OwnProcessId;
+        }
+
+        /// <summary>
+        /// Everything the menu's shape depends on, read once per opening. Chords are shown only while
+        /// they would actually fire, so the menu never advertises a hotkey the user has switched off.
+        /// </summary>
+        private TextContextMenuState BuildTextMenuState(SelectionState selection)
+        {
+            bool chordsLive = _config.EnableHotkeys;
+            var state = new TextContextMenuState
+            {
+                Selection = selection,
+                ClipboardHasText = WindowInterop.IsClipboardFormatAvailable(WindowInterop.CF_UNICODETEXT),
+                CaseShortcut = chordsLive && _config.EnableCaseHotkey ? _caseHotkey.Display : "",
+                ShowLauncher = _config.EnableScenarioLauncher,
+                ShowHistory = _config.EnableClipboardHistory,
+            };
+
+            foreach (LayoutConversionProfile profile in _config.LayoutConversionProfiles)
+                if (profile.Enabled && profile.IsUsable)
+                    state.Conversions.Add(new TextMenuRow(
+                        WorldLayouts.CodeForKlid(profile.SourceKlid) + " ⇄ " + WorldLayouts.CodeForKlid(profile.TargetKlid),
+                        chordsLive ? profile.Hotkey : "", profile.Id));
+
+            if (_config.EnableTranslate)
+                foreach (TranslationProfile profile in _config.TranslateProfiles)
+                    if (profile.Enabled && profile.IsUsable)
+                        state.Translations.Add(new TextMenuRow(
+                            TranslationLanguages.Label(profile.TargetLang, _config.UiLanguage),
+                            chordsLive ? profile.Hotkey : "", profile.Id));
+
+            return state;
+        }
+
+        /// <summary>
+        /// The launcher list inside the context menu - built by the same code as the tray's, but with
+        /// its actions deferred for the same reason as the rest of this menu's (see above).
+        /// </summary>
+        private void FillLauncherSubmenu(ToolStripMenuItem parent)
+            => LauncherTrayMenu.Rebuild(parent, _launcherStore.All,
+                scenario => Defer(() => RunLauncherScenario(scenario)),
+                () => Defer(ShowSettings),
+                LauncherMigration.SourceExists() ? (Action)RequestOneClickRunnerImport : null, T);
+
+        /// <summary>Run an action on the next turn of the UI thread's message loop.</summary>
+        private void Defer(Action action) => _ui?.Post(_ => action(), null);
+
+        /// <summary>
+        /// Run a menu action <b>against the window the menu was opened over</b>, on the next turn of
+        /// the message loop.
+        ///
+        /// Both halves are load-bearing. Deferring matters because inside the <c>Click</c> the
+        /// drop-down is still tearing down and still holds the mouse capture. Restoring the
+        /// foreground matters because everything this menu does is ultimately a synthesized
+        /// keystroke, and a keystroke goes to <b>whatever window is in the foreground at that
+        /// instant</b> - not to the window the user was pointing at. The menu is a no-activate
+        /// drop-down precisely so the user's window keeps its selection, but "should not have taken
+        /// the focus" is not the same as "did not", and when it did, the chord lands nowhere.
+        /// </summary>
+        private void DeferOnTarget(Action action) => _ui?.Post(_ =>
+        {
+            RestoreTargetForeground();
+            action();
+        }, null);
+
+        private void RestoreTargetForeground()
+        {
+            IntPtr target = _textMenuTarget;
+            IntPtr current = WindowInterop.GetForegroundWindow();
+            if (target == IntPtr.Zero || !WindowInterop.IsWindow(target) || current == target)
+            {
+                TextMenuLog.Log("action: foreground already " + TextMenuLog.Describe(current)
+                    + ", target " + TextMenuLog.Describe(target));
+                return;
+            }
+
+            ForegroundActivator.Activate(target);
+            TextMenuLog.Log("action: foreground was " + TextMenuLog.Describe(current)
+                + ", restored to " + TextMenuLog.Describe(target)
+                + " -> now " + TextMenuLog.Describe(WindowInterop.GetForegroundWindow()));
+        }
+
+        /// <summary>
+        /// Cut / Copy / Paste - down the same guarded background path as every flip, so there is one
+        /// clipboard pipeline in this app and not two. The history is <b>not</b> suppressed here:
+        /// a copy the user asked for belongs in it, unlike the internal copy a flip makes.
+        /// </summary>
+        private void RunEditCommand(ClipboardHandler.EditCommand command)
+        {
+            TextMenuLog.Log(command + " -> " + TextMenuLog.Describe(WindowInterop.GetForegroundWindow()));
+            RunClipboardOp(() => _clipboard.RunEdit(command),
+                ClipboardHandler.FlipResult.Flipped, () => { }, suppressHistory: false);
+        }
+
         // ---- Translator (local Ollama) ----
 
         /// <summary>
@@ -378,11 +611,15 @@ namespace CyrFlip
         /// </summary>
         private void OnTranslateHotkeyPressed(string id)
         {
-            if (!_config.EnableTranslate) return;
+            if (!_config.EnableTranslate) { TranslateLog.Log("chord ignored: the translator is off"); return; }
             TranslationProfile? profile = _config.TranslateProfiles.Find(p => p.Id == id && p.Enabled);
-            if (profile == null) return;
-            string code = TranslationLanguages.Resolve(profile.TargetLang, _config.UiLanguage, _currentLayout);
-            CaptureSelectionForTranslation(code);
+            if (profile == null) { TranslateLog.Log("chord ignored: no enabled row with id " + id); return; }
+            TranslationDirection direction = TranslationLanguages.ResolveDirection(
+                profile.TargetLang, _config.UiLanguage, _currentLayout,
+                _config.TranslateSourceLang, _config.TranslateTargetLang);
+            TranslateLog.Log("chord: row " + profile.TargetLang + " -> into " + direction.TargetCode
+                + (direction.SourceCode == null ? " (auto-detect source)" : " from " + direction.SourceCode));
+            CaptureSelectionForTranslation(direction.TargetCode, direction.SourceCode);
         }
 
         /// <summary>
@@ -390,10 +627,17 @@ namespace CyrFlip
         /// clipboard straight back, and release <see cref="_busy"/>. The model call must not hold the
         /// clipboard lock: a translation takes seconds, and a flip pressed meanwhile has to work.
         /// </summary>
-        private void CaptureSelectionForTranslation(string code)
+        private void CaptureSelectionForTranslation(string code, string? sourceCode)
         {
             if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
+            {
+                // Used to return in silence, which from the outside is indistinguishable from a dead
+                // hotkey - the single worst way for this feature to fail (spec §12.2).
+                TranslateLog.Log("capture skipped: another clipboard operation is still running");
+                _tray.ShowBalloonTip(2000, "CyrFlip",
+                    T("Другая операция с буфером ещё не закончилась. Повторите через секунду."), ToolTipIcon.Info);
                 return;
+            }
             _clipboardHistory.SuppressFor(TimeSpan.FromSeconds(2));
 
             var thread = new Thread(() =>
@@ -413,15 +657,23 @@ namespace CyrFlip
                 ClipboardHandler.CaptureResult result = captured;
                 string selection = text;
                 IntPtr window = target;
+                TranslateLog.Log("capture: " + result + ", " + selection.Length + " chars");
                 _ui?.Post(_ =>
                 {
-                    if (result == ClipboardHandler.CaptureResult.Cancelled) return;
+                    if (result == ClipboardHandler.CaptureResult.Cancelled)
+                    {
+                        // Also used to be silent. The user pressed a chord; they are owed an answer
+                        // even when the answer is "you switched windows while I was copying".
+                        _tray.ShowBalloonTip(2000, "CyrFlip",
+                            T("Окно сменилось, пока я забирал выделение. Перевод отменён."), ToolTipIcon.Info);
+                        return;
+                    }
                     if (result != ClipboardHandler.CaptureResult.Captured || selection.Trim().Length == 0)
                     {
                         ShowFlipResult(ClipboardHandler.FlipResult.NoSelection);
                         return;
                     }
-                    BeginTranslate(selection, window, code);
+                    BeginTranslate(selection, window, code, sourceCode);
                 }, null);
             })
             {
@@ -447,11 +699,12 @@ namespace CyrFlip
         /// the first (the user changed their mind about the fragment), which is what the token
         /// identity check at the end is for.
         /// </summary>
-        private async void BeginTranslate(string text, IntPtr target, string code)
+        private async void BeginTranslate(string text, IntPtr target, string code, string? sourceCode = null)
         {
             _translateSource = text;
             _translateTarget = target;
             _translateCode = code;
+            _translateSourceCode = sourceCode;
 
             _translateCts?.Cancel();
             var cts = new CancellationTokenSource();
@@ -470,15 +723,27 @@ namespace CyrFlip
                 chunk => _ui?.Post(_ => { if (ReferenceEquals(_translateCts, cts)) window.AppendChunk(chunk); }, null),
                 () => _ui?.Post(_ => { if (ReferenceEquals(_translateCts, cts)) window.ResetStream(); }, null));
 
+            TranslateLog.Log("translating " + text.Length + " chars into " + code
+                + " (model '" + _config.TranslateModel + "', keep_alive "
+                + (_config.TranslateKeepAliveMinutes < 0 ? "forever" : _config.TranslateKeepAliveMinutes + "m")
+                + ", load budget " + Math.Max(5, _config.TranslateTimeoutSeconds) + "s, answer budget "
+                + TranslationService.AnswerTimeoutMs(Math.Min(text.Length, TranslationService.MaxChars)) / 1000 + "s)");
+
             TranslationResult result;
             try
             {
-                result = await _translation.TranslateAsync(text, code, sink, cts.Token);
+                result = await _translation.TranslateAsync(text, code, sourceCode, sink, cts.Token);
             }
-            catch
+            catch (Exception ex)
             {
+                TranslateLog.Log("translate threw: " + ex.GetType().Name + " " + ex.Message);
                 result = new TranslationResult { Status = TranslationStatus.Failed };
             }
+
+            TranslateLog.Log("result: " + result.Status
+                + (result.Model.Length > 0 ? ", model " + result.Model : "")
+                + (result.Error.Length > 0 ? ", error " + result.Error : "")
+                + ", " + result.Text.Length + " chars back");
 
             if (!ReferenceEquals(_translateCts, cts))
             {
@@ -619,7 +884,7 @@ namespace CyrFlip
             var window = new TranslationResultWindow(_config, _config.UiLanguage);
             window.CopyRequested += (_, _) => DeliverTranslation(window.ResultText, window, copy: true, paste: false, manual: true);
             window.PasteRequested += (_, _) => DeliverTranslation(window.ResultText, window, copy: false, paste: true, manual: true);
-            window.RetryRequested += (_, _) => BeginTranslate(_translateSource, _translateTarget, _translateCode);
+            window.RetryRequested += (_, _) => BeginTranslate(_translateSource, _translateTarget, _translateCode, _translateSourceCode);
             window.SettingsRequested += (_, _) => ShowSettings();
             window.StartServerRequested += (_, _) => StartOllamaAndRetry();
             window.CancelRequested += (_, _) => _translateCts?.Cancel();
@@ -637,7 +902,7 @@ namespace CyrFlip
         {
             OllamaManager.StartServer();
             if (_translateSource.Length > 0)
-                BeginTranslate(_translateSource, _translateTarget, _translateCode);
+                BeginTranslate(_translateSource, _translateTarget, _translateCode, _translateSourceCode);
         }
 
         /// <summary>The line above the translation: the language, and anything the user should know.</summary>
@@ -663,7 +928,7 @@ namespace CyrFlip
                 case TranslationStatus.NotInstalled: return T("Не найден Ollama — локальный переводчик. Его нужно установить один раз.");
                 case TranslationStatus.NotRunning: return T("Ollama не запущен.");
                 case TranslationStatus.StartFailed: return T("Не удалось запустить Ollama.");
-                case TranslationStatus.NoModel: return T("Не установлена ни одна модель. Рекомендуем qwen2.5:3b (~2 ГБ) — загрузите её в настройках.");
+                case TranslationStatus.NoModel: return T("Не установлена ни одна модель. Рекомендуем aya-expanse:8b (~4,7 ГБ) — загрузите её в настройках.");
                 case TranslationStatus.Timeout: return T("Модель не ответила вовремя. Возможно, она слишком велика для этого компьютера.");
                 // The server's own words, when it gave any: "model not found" is worth reading verbatim.
                 case TranslationStatus.ServerError:
@@ -990,7 +1255,10 @@ namespace CyrFlip
             _settings.Reload();
             if (!_settings.Visible) _settings.Show();
             _settings.WindowState = FormWindowState.Normal;
-            _settings.Activate();
+            // Not _settings.Activate(): opened from the text context menu this process holds no
+            // foreground rights, and Windows refuses the activation silently - the window would come
+            // up behind the user's editor, which reads as "the menu item did nothing".
+            ForegroundActivator.Activate(_settings);
         }
 
         private void ShowHistorySearch()
@@ -1002,7 +1270,7 @@ namespace CyrFlip
                 _clipboardHistorySearchWindow.Show();
             }
             _clipboardHistorySearchWindow.WindowState = FormWindowState.Normal;
-            _clipboardHistorySearchWindow.Activate();
+            ForegroundActivator.Activate(_clipboardHistorySearchWindow);
         }
 
         /// <summary>
@@ -1078,17 +1346,22 @@ namespace CyrFlip
             _config.Save();
         }
 
-        // The two keep-awake toggles change only the live idle policy, never persisted state (§5):
-        // no _config write, no Save. UpdateTrayTooltip surfaces "keeping awake" while either is on.
+        // The two keep-awake toggles: change the live idle policy, then remember it. Persisting them
+        // reverses the original spec §5 - a switch that forgot itself on every launch read as broken.
+        // UpdateTrayTooltip surfaces "keeping awake" while either is on, which is its only other sign.
         private void OnKeepAwakeToggle(object? sender, EventArgs e)
         {
             KeepAwake.SetSystemAwake(_keepAwakeItem.Checked);
+            _config.KeepSystemAwake = _keepAwakeItem.Checked;
+            _config.Save();
             UpdateTrayTooltip();
         }
 
         private void OnKeepScreenToggle(object? sender, EventArgs e)
         {
             KeepAwake.SetScreenOn(_keepScreenItem.Checked);
+            _config.KeepScreenOn = _keepScreenItem.Checked;
+            _config.Save();
             UpdateTrayTooltip();
         }
 
@@ -1372,6 +1645,8 @@ namespace CyrFlip
                 _translateWindow?.Dispose();
                 _trayClickTimer.Stop();
                 _trayClickTimer.Dispose();
+                _mouseHook.Dispose();
+                _textMenu.Dispose();
                 _hook.Dispose();
                 _indicator.Dispose();
                 KeepAwake.Reset(); // restore Windows' normal sleep/screen idle timeouts

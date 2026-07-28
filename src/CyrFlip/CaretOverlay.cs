@@ -13,7 +13,7 @@ using static CyrFlip.WindowInterop;
 namespace CyrFlip
 {
     /// <summary>
-    /// Feature #1b: a small marker (EN/RU/UK or a colored dot) pinned next to the blinking text
+    /// Feature #1b: a small marker (the layout code, or a colored dot) pinned next to the blinking text
     /// caret - the place that actually shows where text will land (the mouse pointer is often an
     /// arrow while you type).
     ///
@@ -61,7 +61,7 @@ namespace CyrFlip
             _caps = capsOn;
         }
 
-        /// <summary>Switch between text label (EN/RU/UK) and colored dot rendering.</summary>
+        /// <summary>Switch between text label (the layout code) and colored dot rendering.</summary>
         public void SetDotMode(bool dot) => _form.SetDotMode(dot);
 
         private void Loop()

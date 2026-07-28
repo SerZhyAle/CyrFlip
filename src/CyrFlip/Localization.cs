@@ -45,6 +45,7 @@ namespace CyrFlip
             AddTrayStrings();
             AddLauncherStrings();
             AddTranslateStrings();
+            AddContextMenuStrings();
         }
 
         /// <summary>Every registered source string with its translations - used by the localization test.</summary>

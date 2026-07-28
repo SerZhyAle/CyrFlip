@@ -345,10 +345,14 @@ namespace IconGen
                 g.FillRectangle(dark, w / 2, 0, w - w / 2, h);
             }
 
-            string[] codes = { "EN", "RU", "UK" };
+            // Four codes across three scripts, not the original EN/RU/UK. This image sits in both
+            // READMEs and on the site, so it is a promise about the product: three Cyrillic-adjacent
+            // codes said "this tool knows three languages", which stopped being true once the marker
+            // covered every layout Windows has. Each colour here is the app's own (LayoutStyle).
+            string[] codes = { "EN", "RU", "ZH", "AR" };
             for (int i = 0; i < codes.Length; i++)
             {
-                float cx = w * (0.18f + i * 0.30f);
+                float cx = w * (0.10f + i * 0.235f);
                 DrawCaret(g, cx, h / 2f, 56f, codes[i]);
             }
             return bmp;
@@ -391,16 +395,12 @@ namespace IconGen
             }
         }
 
-        private static Color PreviewColor(string code)
-        {
-            switch (code)
-            {
-                case "EN": return ColorTranslator.FromHtml("#4DA3FF");
-                case "RU": return ColorTranslator.FromHtml("#FF5A5A");
-                case "UK": return ColorTranslator.FromHtml("#5AD86A");
-                default: return ColorTranslator.FromHtml("#CCCCCC");
-            }
-        }
+        /// <summary>
+        /// The app's own palette, not a copy of it: LayoutStyle.cs is compiled into this tool (see the
+        /// csproj). The previous local table knew EN/RU/UK and painted everything else grey, which is
+        /// how a preview image could show colours the app never draws.
+        /// </summary>
+        private static Color PreviewColor(string code) => CyrFlip.LayoutStyle.ColorFor(code);
 
         // ----------------------------------------------------------------- util
 

@@ -21,13 +21,16 @@ namespace CyrFlip
         private readonly CheckBox _caseEnabled = Check("Исправить CapsLock");
         private readonly CheckBox _historyEnabled = Check("Менеджер буфера");
         private readonly CheckBox _deferRdp = Check("Уступать хоткеи удалённому рабочему столу (mstsc/msrdc)");
+        // ---- Text context menu (CyrFlip's own menu over the selection) ----
+        private readonly CheckBox _contextMenuEnabled = Check("Своё контекстное меню над выделенным текстом");
+        private readonly ComboBox _contextMenuChord = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 260 };
         private readonly CheckBox _cursor = Check("Показывать раскладку на текстовом курсоре мыши");
         private readonly CheckBox _autostart = Check("Запускать CyrFlip вместе с Windows");
         private readonly CheckBox _keepAwake = Check("Не давать компьютеру засыпать");
         private readonly CheckBox _keepScreen = Check("Не блокировать экран (как при видео)");
         private readonly ComboBox _uiLanguage = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 190 };
         private readonly CheckBox _caret = Check("Показывать метку раскладки рядом с кареткой");
-        private readonly CheckBox _dot = Check("Компактная точка вместо букв EN/RU/UK");
+        private readonly CheckBox _dot = Check("Компактная точка вместо букв раскладки");
         private readonly CheckBox _language = Check("Менять раскладку после конвертации текста");
         private readonly CheckBox _caps = Check("Синхронизировать CapsLock после исправления регистра");
         private readonly CheckBox _history = Check("Включить историю буфера");
@@ -74,7 +77,8 @@ namespace CyrFlip
         // string and reset on the next language change.
         private readonly TextBox _translateEndpoint = new TextBox { Width = 260, Margin = new Padding(3, 4, 3, 4) };
         private readonly ComboBox _translateModel = new ComboBox { DropDownStyle = ComboBoxStyle.DropDown, Width = 220, Margin = new Padding(3, 4, 3, 4) };
-        private readonly NumericUpDown _translateKeepAlive = new NumericUpDown { Minimum = 0, Maximum = 120, Width = 70, Margin = new Padding(3, 4, 3, 4) };
+        // -1 is a real value here, not a guard: Ollama reads it as "keep the model loaded forever".
+        private readonly NumericUpDown _translateKeepAlive = new NumericUpDown { Minimum = -1, Maximum = 120, Width = 70, Margin = new Padding(3, 4, 3, 4) };
         private readonly NumericUpDown _translateTimeout = new NumericUpDown { Minimum = 5, Maximum = 600, Width = 70, Margin = new Padding(3, 4, 3, 4) };
         private readonly NumericUpDown _translateWindowTimeout = new NumericUpDown { Minimum = 0, Maximum = 600, Width = 70, Margin = new Padding(3, 4, 3, 4) };
         private readonly Label _translateStatus = new Label { AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(3, 6, 3, 6) };
@@ -119,6 +123,13 @@ namespace CyrFlip
         /// </summary>
         public event EventHandler? TranslationChanged;
 
+        /// <summary>
+        /// Raised after the text context menu's switch or chord changes, so the context can save and
+        /// install (or drop) the mouse hook. Named TextMenuChanged, not ContextMenuChanged: the latter
+        /// is an inherited <see cref="Control"/> event, and hiding it is a build error here (CS0108).
+        /// </summary>
+        public event EventHandler? TextMenuChanged;
+
         public SettingsForm(AppConfig config,
             Action<bool> setAutostart, Action<bool> setCursor, Action<bool> setCaret, Action<bool> setDot, Action<bool> setLanguage, Action<bool> setCaps,
             Action<bool> setHistory, Action<bool> setPause, Action<bool> setHistoryStartup, Action<int> setOpacity, Action<string> setUiLanguage,
@@ -157,14 +168,16 @@ namespace CyrFlip
             tabs.DrawItem += DrawTab;
             _uiLanguage.Items.AddRange(Localization.Names);
             tabs.TabPages.Add(WithIcon(Page("Общие", "Основные параметры приложения. Все изменения применяются сразу.",
-                Setting(_autostart, "Добавляет CyrFlip в автозагрузку только текущего пользователя Windows. При следующем входе утилита запустится в фоне и появится в системном трее."),
-                Setting(_keepAwake, "Пока включено, Windows не уходит в сон или гибернацию по простою — удобно для долгих загрузок, копирования или рендера. Действует только до выхода из CyrFlip: при следующем запуске опция снова выключена."),
-                Setting(_keepScreen, "Экран не гаснет и не блокируется по бездействию, как во время просмотра видео. Блокировку по паролю (Win+L или политику безопасности) это не отменяет."),
+                Setting(_autostart, Autostart.ManagedByWindows
+                    ? "Автозапуском версии из Microsoft Store управляет сама Windows. Флажок показывает текущее состояние, а нажатие открывает «Параметры ▸ Приложения ▸ Автозагрузка», где автозапуск включается и выключается."
+                    : "Добавляет CyrFlip в автозагрузку только текущего пользователя Windows. При следующем входе утилита запустится в фоне и появится в системном трее."),
+                Setting(_keepAwake, "Пока включено, Windows не уходит в сон или гибернацию по простою — удобно для долгих загрузок, копирования или рендера. Состояние сохраняется: забытый включённым переключатель не даст компьютеру уснуть и после перезапуска - следить за вашей батареей CyrFlip не станет."),
+                Setting(_keepScreen, "Экран не гаснет и не блокируется по бездействию, как во время просмотра видео. Блокировку по паролю (Win+L или политику безопасности) это не отменяет. Состояние сохраняется: забытый включённым переключатель не даст экрану погаснуть и после перезапуска."),
                 Setting(LanguageRow(), "Выберите язык интерфейса CyrFlip. Значение сохраняется вместе с остальными настройками и применяется также к меню в трее.")), 0));
             tabs.TabPages.Add(WithIcon(Page("Индикаторы", "Параметры, которые помогают увидеть активную раскладку до ввода текста.",
-                Setting(_cursor, "Заменяет стандартный текстовый курсор I-beam на курсор с маленькой меткой EN, RU или UK. Обычная стрелка мыши не меняется."),
+                Setting(_cursor, "Заменяет стандартный текстовый курсор I-beam на курсор с маленькой меткой текущей раскладки. Обычная стрелка мыши не меняется."),
                 Setting(_caret, "Рисует небольшую метку рядом с мигающей кареткой в поле ввода. Работает в приложениях, которые передают Windows положение каретки."),
-                Setting(_dot, "Вместо букв EN/RU/UK рядом с кареткой показывает компактную цветную точку — удобно, если буквы отвлекают."),
+                Setting(_dot, "Вместо букв раскладки рядом с кареткой показывает компактную цветную точку — удобно, если буквы отвлекают."),
                 Setting(_language, "После конвертации текста переключает раскладку активного окна на ту, в которой текст теперь набран, чтобы можно было сразу продолжить печатать."),
                 Setting(_caps, "После исправления регистра меняет физическое состояние CapsLock, чтобы следующие нажатия соответствовали исправленному тексту.")), 1));
             tabs.TabPages.Add(WithIcon(Page("Горячие клавиши", "Комбинации работают глобально, пока CyrFlip запущен в вашем сеансе Windows. Каждый хоткей можно включить или отключить отдельно.",
@@ -172,7 +185,9 @@ namespace CyrFlip
                 HotkeyRow(_caseEnabled, _caseHotkeyValue, _setCaseHotkey, "Меняет верхний и нижний регистр у выделенного текста. Удобно для случайно включённого CapsLock."),
                 HotkeyRow(_historyEnabled, _historyHotkeyValue, _setHistoryHotkey, "Показывает или скрывает окно текстовой истории. Двум действиям CyrFlip нельзя назначить одну комбинацию."),
                 Setting(_deferRdp, "Когда в фокусе окно клиента удалённого рабочего стола (mstsc/msrdc), CyrFlip не перехватывает хоткеи — клавиша уходит в удалённый сеанс, где её обработает CyrFlip на той машине. Включите, если утилита запущена на обеих сторонах RDP."),
-                new Label { Text = "Здесь только эти два хоткея. Все комбинации, которые конвертируют текст из одной раскладки в другую — включая EN ⇄ RU на Ctrl+Shift+F12 — живут одной таблицей на вкладке «Конвертация раскладок».", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(3, 6, 3, 4) }), 2));
+                new Label { Text = "Здесь только эти два хоткея. Все комбинации, которые конвертируют текст из одной раскладки в другую — включая EN ⇄ RU на Ctrl+Shift+F12 — живут одной таблицей на вкладке «Конвертация раскладок».", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(3, 6, 3, 4) },
+                Setting(_contextMenuEnabled, "Аккорд мыши открывает меню CyrFlip рядом с указателем: копировать, вырезать, вставить, конвертация раскладок, регистр, перевод, быстрый запуск. Родное меню приложения при этом не появляется. Пока флажок снят, CyrFlip вообще не следит за мышью."),
+                Setting(ContextMenuChordRow(), "Ctrl и правая кнопка ничем в Windows не заняты. Shift и правая кнопка отберут у Проводника расширенное меню, а средняя кнопка отберёт автоскролл и открытие ссылки в новой вкладке.")), 2));
             tabs.TabPages.Add(WithIcon(ConversionsPage(), 7));
             tabs.TabPages.Add(WithIcon(LanguagesPage(), 6));
             tabs.TabPages.Add(WithIcon(ClipboardPage(), 3));
@@ -188,7 +203,19 @@ namespace CyrFlip
             tabs.SelectedIndexChanged += (_, _) => _config.SaveSettingsTab(tabs.SelectedIndex);
 
             _cursor.CheckedChanged += (_, _) => Changed(_setCursor, _cursor.Checked);
-            _autostart.CheckedChanged += (_, _) => Changed(_setAutostart, _autostart.Checked);
+            if (Autostart.ManagedByWindows)
+            {
+                // Packaged build: the startupTask is Windows' to flip, not ours. The checkbox reports
+                // the state (AutoCheck off, so a click never fakes a change it cannot make) and the
+                // click opens the Startup-apps page; the state is re-read when the window comes back.
+                _autostart.AutoCheck = false;
+                _autostart.Click += (_, _) => { if (!_loading) _setAutostart(!_autostart.Checked); };
+                Activated += (_, _) => RefreshAutostart();
+            }
+            else
+            {
+                _autostart.CheckedChanged += (_, _) => Changed(_setAutostart, _autostart.Checked);
+            }
             _keepAwake.CheckedChanged += (_, _) => Changed(_setKeepAwake, _keepAwake.Checked);
             _keepScreen.CheckedChanged += (_, _) => Changed(_setKeepScreen, _keepScreen.Checked);
             _caret.CheckedChanged += (_, _) => Changed(_setCaret, _caret.Checked);
@@ -202,6 +229,15 @@ namespace CyrFlip
             _caseEnabled.CheckedChanged += (_, _) => Changed(_setCaseEnabled, _caseEnabled.Checked);
             _historyEnabled.CheckedChanged += (_, _) => Changed(_setHistoryEnabled, _historyEnabled.Checked);
             _deferRdp.CheckedChanged += (_, _) => Changed(_setDeferRdp, _deferRdp.Checked);
+            // Same shape as the translator tab: write the value, say "something changed", let the
+            // context save the config and install or drop the mouse hook.
+            _contextMenuEnabled.CheckedChanged += (_, _) =>
+                TextMenuSettingChanged(() => _config.EnableContextMenu = _contextMenuEnabled.Checked, reload: true);
+            _contextMenuChord.SelectedIndexChanged += (_, _) =>
+            {
+                if (_contextMenuChord.SelectedItem is ChordItem item)
+                    TextMenuSettingChanged(() => _config.ContextMenuChord = item.Token);
+            };
             _restoreLanguageHotkeys.Click += (_, _) => RestoreLanguageHotkeys();
             _restoreLayouts.Click += (_, _) => RestoreLayouts();
             _toggleCombo.SelectedIndexChanged += (_, _) => OnToggleChanged();
@@ -232,7 +268,8 @@ namespace CyrFlip
         {
             _loading = true;
             _autostart.Checked = Autostart.IsEnabled;
-            // Keep-awake state lives only in memory (never persisted), so mirror the live values.
+            // The live request is the truth here, not the config: the tray items flip it too, and the
+            // config is only what it was restored from (and is written back to) on the next toggle.
             _keepAwake.Checked = KeepAwake.KeepSystemAwake;
             _keepScreen.Checked = KeepAwake.KeepScreenOn;
             _uiLanguage.SelectedItem = _config.UiLanguage;
@@ -250,10 +287,27 @@ namespace CyrFlip
             _deferRdp.Checked = _config.DeferToRemoteDesktop;
             // The per-hotkey switches only matter while the master switch is on.
             _caseEnabled.Enabled = _historyEnabled.Enabled = _enableHotkeys.Checked;
+            // The context menu is a mouse chord, so it is deliberately NOT gated by the keyboard
+            // master switch: it still works when the hotkeys are off (it just shows no chords).
+            _contextMenuEnabled.Checked = _config.EnableContextMenu;
+            _contextMenuChord.Enabled = _config.EnableContextMenu;
             _launcherEnabled.Checked = _config.EnableScenarioLauncher;
             ReloadTranslateState();
             _loading = false;
             ApplyLanguage();
+        }
+
+        /// <summary>
+        /// Re-reads the Windows-owned autostart state (packaged build) without letting the refresh
+        /// count as a user change - the user flips it in Windows' own Startup-apps page, so the
+        /// checkbox has to catch up when the settings window is activated again.
+        /// </summary>
+        private void RefreshAutostart()
+        {
+            bool loading = _loading;
+            _loading = true;
+            _autostart.Checked = Autostart.IsEnabled;
+            _loading = loading;
         }
 
         private void RememberRussianTexts(Control root)
@@ -290,7 +344,56 @@ namespace CyrFlip
             ReloadConversionRows();
             ReloadTranslationRows();
             ReloadToggleCombo();
+            ReloadContextMenuChords();
             ReloadLauncherRows();
+        }
+
+        /// <summary>
+        /// Refill the chord dropdown in the current language. The stored value is an invariant token,
+        /// so switching the UI language re-labels the list without touching what is saved.
+        /// </summary>
+        private void ReloadContextMenuChords()
+        {
+            bool loading = _loading;
+            _loading = true;
+            _contextMenuChord.Items.Clear();
+            string current = MouseChord.Parse(_config.ContextMenuChord).Token;
+            int select = 0;
+            foreach (string token in MouseChord.Choices)
+            {
+                int i = _contextMenuChord.Items.Add(new ChordItem
+                {
+                    Token = token,
+                    Label = MouseChord.Parse(token).Display(Translate),
+                });
+                if (token == current) select = i;
+            }
+            _contextMenuChord.SelectedIndex = select;
+            _loading = loading;
+        }
+
+        private sealed class ChordItem
+        {
+            public string Token = "";
+            public string Label = "";
+            public override string ToString() => Label;
+        }
+
+        private Control ContextMenuChordRow()
+        {
+            var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 5, 3, 5) };
+            row.Controls.Add(new Label { Text = "Аккорд мыши:", AutoSize = true, Width = 155, Padding = new Padding(0, 7, 0, 0) });
+            row.Controls.Add(_contextMenuChord);
+            return row;
+        }
+
+        /// <summary>Apply one context-menu setting and tell the context; mirrors <see cref="TranslateChanged"/>.</summary>
+        private void TextMenuSettingChanged(Action apply, bool reload = false)
+        {
+            if (_loading) return;
+            apply();
+            TextMenuChanged?.Invoke(this, EventArgs.Empty);
+            if (reload) Reload();
         }
 
         /// <summary>
@@ -986,7 +1089,7 @@ namespace CyrFlip
             modelRow.Controls.Add(_translateModel);
             modelRow.Controls.Add(TranslateButton("Загрузить модель", PullTranslateModel));
             panel.Controls.Add(Setting(modelRow,
-                "Рекомендуемые: qwen2.5:3b (~2 ГБ, по умолчанию), gemma2:2b (~1,6 ГБ, для слабых машин), llama3.2:3b (~2 ГБ), aya-expanse:8b (~5 ГБ, заметно лучше переводит, нужно от 8 ГБ ОЗУ). Модель занимает память процесса Ollama, а не CyrFlip."));
+                "Рекомендуемые: aya-expanse:8b (~4,7 ГБ, по умолчанию - лучший перевод из проверенных), gemma2:9b (~5 ГБ). Модели меньше 4 ГБ проверку на русском и украинском не прошли: gemma2:2b (~1,5 ГБ) берите, только если места мало, и ждите ошибок. Модель занимает память процесса Ollama, а не CyrFlip."));
 
             var actions = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 2, 3, 2) };
             actions.Controls.Add(TranslateButton("Установить Ollama", InstallOllama));
@@ -998,9 +1101,9 @@ namespace CyrFlip
             panel.Controls.Add(Setting(_translateAutoStart,
                 "Если сервер не отвечает в момент перевода, CyrFlip один раз попробует запустить его сам и подождёт до восьми секунд."));
             panel.Controls.Add(Setting(LabeledRow("Держать модель в памяти (мин):", _translateKeepAlive),
-                "Сколько Ollama держит модель загруженной после перевода. Больше — следующий перевод почти мгновенный, но несколько гигабайт памяти заняты. 0 — выгружать сразу."));
-            panel.Controls.Add(Setting(LabeledRow("Ждать ответа не дольше (с):", _translateTimeout),
-                "Если модель не ответила за это время, перевод прерывается и окно предлагает повторить."));
+                "Сколько Ollama держит модель загруженной после перевода. -1 держит её всегда, и это значение по умолчанию: первая загрузка на машине без подходящей видеокарты занимает минуты, и платить за неё заново каждые несколько минут хуже, чем занятые гигабайты. 0 выгружает сразу."));
+            panel.Controls.Add(Setting(LabeledRow("Ждать загрузки модели не дольше (с):", _translateTimeout),
+                "Это время на первый ответ модели, то есть почти целиком на её загрузку в память. Время на сам перевод считается отдельно и от длины текста: 15 секунд плюс по секунде на каждые 40 знаков."));
 
             panel.Controls.Add(SectionHeader("Направления перевода"));
             panel.Controls.Add(_translationRows);
@@ -1185,7 +1288,9 @@ namespace CyrFlip
 
         private void EditTranslationProfile(TranslationProfile? existing)
         {
-            using var dialog = new TranslationDialog(existing, _config.UiLanguage);
+            // The model comes from the field, not from the saved config: the user may have just typed a
+            // different one, and "which languages does it know" has to point at the model they mean now.
+            using var dialog = new TranslationDialog(existing, _config.UiLanguage, _translateModel.Text.Trim());
             if (dialog.ShowDialog(this) != DialogResult.OK || dialog.Profile == null) return;
             TranslationProfile profile = dialog.Profile;
             // Only a real chord can clash - and Hotkey.Parse("") would answer Ctrl+Shift+F12, which
@@ -1313,7 +1418,7 @@ namespace CyrFlip
             string model = _translateModel.Text.Trim();
             if (model.Length == 0)
             {
-                _translateStatus.Text = Translate("Укажите имя модели, например qwen2.5:3b.");
+                _translateStatus.Text = Translate("Укажите имя модели, например aya-expanse:8b.");
                 return;
             }
 
@@ -1818,7 +1923,7 @@ namespace CyrFlip
         }
         private TabPage AboutPage()
         {
-            var page = Page("О программе и дополнительно", "CyrFlip — лёгкая утилита для Windows: показывает EN/RU/UK у текстового курсора и каретки, исправляет текст, набранный в неверной раскладке, и хранит необязательную локальную историю буфера.\n\nПриложение не передаёт историю буфера в сеть. Если история включена, записи защищены Windows DPAPI и читаются только той же учётной записью Windows.");
+            var page = Page("О программе и дополнительно", "CyrFlip — лёгкая утилита для Windows: показывает код текущей раскладки у текстового курсора и каретки, исправляет текст, набранный в неверной раскладке, и хранит необязательную локальную историю буфера.\n\nПриложение не передаёт историю буфера в сеть. Если история включена, записи защищены Windows DPAPI и читаются только той же учётной записью Windows.");
             var panel = ContentPanel(page);
             panel.Controls.Add(new Label { Text = "Разработчик: SerZhyAle", AutoSize = true, Font = BoldFont, Margin = new Padding(3, 14, 3, 4) });
             panel.Controls.Add(Link("Сайт программы: serzhyale.github.io/CyrFlip", "https://serzhyale.github.io/CyrFlip/"));

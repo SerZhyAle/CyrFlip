@@ -9,6 +9,7 @@ re-hitting the same traps every time. This folder is that script, kept.
 | `CyrFlip.UiTest.psm1` | The module: DPI, tray icon lookup (MSAA), synthesized clicks, window/layout queries, window screenshots |
 | `TargetWindow.ps1` | A plain WinForms text box standing in for "the app the user was typing in" |
 | `Test-TrayMouse.ps1` | End-to-end: single tray click switches the last active window's layout; double click opens Settings |
+| `Test-KeepAwake.ps1` | End-to-end: the saved keep-awake state becomes a real Windows power request (`powercfg /requests`) and stops being one when saved off |
 | `Save-SettingsShots.ps1` | PNG of every settings tab - for layout/localization eyeballing |
 
 Nothing here is wired into `dotnet test`, `build.ps1` or CI: these drive the real desktop (they
@@ -19,6 +20,7 @@ move the mouse and steal focus), so they are run deliberately, on a machine some
 ```powershell
 dotnet build CyrFlip.sln -c Release
 .\tools\uitest\Test-TrayMouse.ps1 -StartApp -Fresh      # exit code 0 = pass
+.\tools\uitest\Test-KeepAwake.ps1                       # three UAC prompts (powercfg needs admin)
 .\tools\uitest\Save-SettingsShots.ps1 -StartApp         # -> artifacts\uitest\settings-tab*.png
 ```
 
@@ -77,3 +79,10 @@ Save-WindowShot -Handle (Wait-AppWindow).Handle -Path shot.png
   for DWM-composed WinForms windows, and a background window captures fine this way.
 - **A real `mouse_event` click, not a UIA `Invoke`.** The tray path is only meaningful when it is
   driven the way a user drives it.
+- **Only `powercfg /requests` can confirm keep-awake, and it needs administrator rights.**
+  `SetThreadExecutionState` returns the *previous* state, never a confirmation, so from inside the
+  process an ignored request is indistinguishable from a granted one. `Test-KeepAwake.ps1` elevates
+  that one call per reading and matches on `net48\CyrFlip.exe` - powercfg prints a device path
+  (`\Device\HarddiskVolumeN\..`), not a drive letter, so a literal full-path comparison never hits.
+  Expect other processes in the same lists (PowerToys Awake, "Legacy Kernel Caller"); they are not
+  ours and must not be asserted on.

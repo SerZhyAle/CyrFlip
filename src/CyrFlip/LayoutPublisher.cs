@@ -4,7 +4,7 @@ using System.IO;
 namespace CyrFlip
 {
     /// <summary>
-    /// Publishes the current layout code (EN/RU/UK/..) to a small file so external tools can read
+    /// Publishes the current layout code (EN, RU, DE, ZH, ..) to a small file so external tools can read
     /// it - chiefly the companion VS Code extension, which can place the marker exactly at the
     /// editor caret (something the external UIA overlay can't do reliably in Monaco/Electron).
     ///

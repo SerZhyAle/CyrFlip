@@ -21,8 +21,18 @@ namespace CyrFlip
         /// flip and the clipboard history, so the translator starts one key further down.
         /// </summary>
         public const string DefaultTranslateHotkey = "Ctrl+Shift+F9";
-        /// <summary>Small enough for an ordinary laptop (~2 GB), good enough to translate.</summary>
-        public const string DefaultTranslateModel = "qwen2.5:3b";
+        /// <summary>
+        /// The default model. <b>Chosen by measurement, not by size</b> (2026-07-28, live Ollama): the
+        /// previous default <c>qwen2.5:3b</c> put <i>Chinese characters into a Russian translation</i> -
+        /// against an explicit instruction in the prompt not to - and answered Ukrainian with gibberish.
+        /// <c>gemma2:2b</c> was no better on Ukrainian. Every small model tested failed the same way, so
+        /// there is no ~2 GB option that clears the bar; <c>aya-expanse:8b</c> is the smallest that does.
+        ///
+        /// <para>The trade is honest and deliberate: ~4.7 GB to download once, and roughly 3 s per
+        /// translation on the dev machine. The RAM belongs to the Ollama process, not to CyrFlip.
+        /// Changing this only affects a fresh install - an existing user keeps the model they saved.</para>
+        /// </summary>
+        public const string DefaultTranslateModel = "aya-expanse:8b";
         private const string UsKlid = "00000409";
         private const string RussianKlid = "00000419";
 
@@ -50,6 +60,15 @@ namespace CyrFlip
         public bool CaretDotMode { get; set; } = false;
         public bool EnableLanguageSwitch { get; set; } = false;
         public bool FlipCapsLockAfter { get; set; } = false;
+        /// <summary>
+        /// The two keep-awake switches (see <see cref="KeepAwake"/>). Persisted since 2026-07-28, on the
+        /// user's second call: a switch that silently forgets itself on every launch reads as broken.
+        /// The original spec (§5) kept them in memory only, to guarantee a forgotten switch can never
+        /// keep a laptop warm in a bag - that guarantee is now the user's to hold, and the tray tooltip
+        /// is what says the mode is live.
+        /// </summary>
+        public bool KeepSystemAwake { get; set; } = false;
+        public bool KeepScreenOn { get; set; } = false;
         /// <summary>Master switch for the global hotkeys. When false the keyboard hook passes every key through.</summary>
         public bool EnableHotkeys { get; set; } = true;
         /// <summary>
@@ -64,6 +83,18 @@ namespace CyrFlip
         /// double-instance clash when CyrFlip runs on both ends of an RDP connection.
         /// </summary>
         public bool DeferToRemoteDesktop { get; set; } = false;
+        /// <summary>
+        /// CyrFlip's own context menu over the selected text. Off by default: while false the
+        /// low-level mouse hook is not installed at all, so a feature nobody asked for never sits in
+        /// the path of every mouse move on the machine (see <see cref="MouseHook"/>).
+        /// </summary>
+        public bool EnableContextMenu { get; set; } = false;
+        /// <summary>
+        /// The chord that opens it, as an invariant token (see <see cref="MouseChord"/>). Ctrl + right
+        /// click by default - Shift + right click is the shell's own extended menu and the bare middle
+        /// button is autoscroll, so neither may be taken without the user saying so.
+        /// </summary>
+        public string ContextMenuChord { get; set; } = MouseChord.Default.Token;
         /// <summary>
         /// Snapshot of Windows' own input-language hotkeys as they were before CyrFlip first touched
         /// them (see <see cref="LanguageHotkeys"/>). Captured once, never overwritten, so "put it back
@@ -103,13 +134,25 @@ namespace CyrFlip
         public bool TranslateSeeded { get; set; } = false;
         /// <summary>Every "translate into this language" row, each with its own chord and switch.</summary>
         public List<TranslationProfile> TranslateProfiles { get; set; } = new List<TranslationProfile>();
+        /// <summary>
+        /// "My language" - the one the user writes in, used by the two fixed-pair rows. Empty follows
+        /// the UI language, which is right for almost everyone; it is a setting of its own so that an
+        /// English interface and a Russian keyboard can coexist.
+        /// </summary>
+        public string TranslateSourceLang { get; set; } = "";
+        /// <summary>The language the user wants text in. Empty means English.</summary>
+        public string TranslateTargetLang { get; set; } = "en";
         /// <summary>Empty means <see cref="OllamaClient.DefaultEndpoint"/> (localhost).</summary>
         public string TranslateEndpoint { get; set; } = "";
         /// <summary>Empty means "use whichever model is installed" (see TranslationService).</summary>
         public string TranslateModel { get; set; } = DefaultTranslateModel;
         public int TranslateTimeoutSeconds { get; set; } = 120;
-        /// <summary>How long Ollama keeps the model in RAM after a translation; 0 unloads at once.</summary>
-        public int TranslateKeepAliveMinutes { get; set; } = 5;
+        /// <summary>
+        /// How long Ollama keeps the model in RAM after a translation. <b>-1 = forever</b> and is the
+        /// default: a cold load costs minutes on a machine without a usable GPU, so unloading after a
+        /// few idle minutes is what makes the next translation feel broken. 0 unloads at once.
+        /// </summary>
+        public int TranslateKeepAliveMinutes { get; set; } = -1;
         public bool TranslateAutoStartServer { get; set; } = true;
         /// <summary>Put the translation on the clipboard - where the history picks it up as usual.</summary>
         public bool TranslateCopyResult { get; set; } = false;
@@ -172,10 +215,16 @@ namespace CyrFlip
                     cfg.CaretDotMode = GetBool(key, "CaretDotMode", cfg.CaretDotMode);
                     cfg.EnableLanguageSwitch = GetBool(key, "EnableLanguageSwitch", cfg.EnableLanguageSwitch);
                     cfg.FlipCapsLockAfter = GetBool(key, "FlipCapsLockAfter", cfg.FlipCapsLockAfter);
+                    cfg.KeepSystemAwake = GetBool(key, "KeepSystemAwake", cfg.KeepSystemAwake);
+                    cfg.KeepScreenOn = GetBool(key, "KeepScreenOn", cfg.KeepScreenOn);
                     cfg.EnableHotkeys = GetBool(key, "EnableHotkeys", cfg.EnableHotkeys);
                     cfg.EnableCaseHotkey = GetBool(key, "EnableCaseHotkey", cfg.EnableCaseHotkey);
                     cfg.EnableHistoryHotkey = GetBool(key, "EnableHistoryHotkey", cfg.EnableHistoryHotkey);
                     cfg.DeferToRemoteDesktop = GetBool(key, "DeferToRemoteDesktop", cfg.DeferToRemoteDesktop);
+                    cfg.EnableContextMenu = GetBool(key, "EnableContextMenu", cfg.EnableContextMenu);
+                    // Parse, not the raw string: a hand-edited or corrupt token must land on the
+                    // default rather than on something that swallows every context menu in Windows.
+                    cfg.ContextMenuChord = MouseChord.Parse(key.GetValue("ContextMenuChord") as string).Token;
                     cfg.LanguageHotkeysBackup = key.GetValue("LanguageHotkeysBackup") as string ?? cfg.LanguageHotkeysBackup;
                     cfg.InputLayoutsBackup = key.GetValue("InputLayoutsBackup") as string ?? cfg.InputLayoutsBackup;
                     cfg.EnableScenarioLauncher = GetBool(key, "EnableScenarioLauncher", cfg.EnableScenarioLauncher);
@@ -184,10 +233,13 @@ namespace CyrFlip
                     cfg.EnableTranslate = GetBool(key, "EnableTranslate", cfg.EnableTranslate);
                     cfg.TranslateSeeded = GetBool(key, "TranslateSeeded", cfg.TranslateSeeded);
                     cfg.TranslateProfiles = ReadTranslationProfiles(key.GetValue("TranslateProfiles") as string);
+                    cfg.TranslateSourceLang = key.GetValue("TranslateSourceLang") as string ?? cfg.TranslateSourceLang;
+                    cfg.TranslateTargetLang = key.GetValue("TranslateTargetLang") as string ?? cfg.TranslateTargetLang;
                     cfg.TranslateEndpoint = key.GetValue("TranslateEndpoint") as string ?? cfg.TranslateEndpoint;
                     cfg.TranslateModel = key.GetValue("TranslateModel") as string ?? cfg.TranslateModel;
                     cfg.TranslateTimeoutSeconds = Math.Max(5, GetInt(key, "TranslateTimeoutSeconds", cfg.TranslateTimeoutSeconds));
-                    cfg.TranslateKeepAliveMinutes = Math.Max(0, GetInt(key, "TranslateKeepAliveMinutes", cfg.TranslateKeepAliveMinutes));
+                    // -1 (forever) is a legitimate value, so the floor is -1 and not 0.
+                    cfg.TranslateKeepAliveMinutes = Math.Max(-1, GetInt(key, "TranslateKeepAliveMinutes", cfg.TranslateKeepAliveMinutes));
                     cfg.TranslateAutoStartServer = GetBool(key, "TranslateAutoStartServer", cfg.TranslateAutoStartServer);
                     cfg.TranslateCopyResult = GetBool(key, "TranslateCopyResult", cfg.TranslateCopyResult);
                     cfg.TranslatePasteResult = GetBool(key, "TranslatePasteResult", cfg.TranslatePasteResult);
@@ -247,16 +299,22 @@ namespace CyrFlip
                 key.SetValue("CaretDotMode", CaretDotMode ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableLanguageSwitch", EnableLanguageSwitch ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("FlipCapsLockAfter", FlipCapsLockAfter ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("KeepSystemAwake", KeepSystemAwake ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("KeepScreenOn", KeepScreenOn ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableHotkeys", EnableHotkeys ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableCaseHotkey", EnableCaseHotkey ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableHistoryHotkey", EnableHistoryHotkey ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("DeferToRemoteDesktop", DeferToRemoteDesktop ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("EnableContextMenu", EnableContextMenu ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ContextMenuChord", ContextMenuChord, RegistryValueKind.String);
                 key.SetValue("LanguageHotkeysBackup", LanguageHotkeysBackup, RegistryValueKind.String);
                 key.SetValue("InputLayoutsBackup", InputLayoutsBackup, RegistryValueKind.String);
                 key.SetValue("EnableScenarioLauncher", EnableScenarioLauncher ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("LauncherFirstEnableDone", LauncherFirstEnableDone ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableTranslate", EnableTranslate ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("TranslateSeeded", TranslateSeeded ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("TranslateSourceLang", TranslateSourceLang, RegistryValueKind.String);
+                key.SetValue("TranslateTargetLang", TranslateTargetLang, RegistryValueKind.String);
                 key.SetValue("TranslateEndpoint", TranslateEndpoint, RegistryValueKind.String);
                 key.SetValue("TranslateModel", TranslateModel, RegistryValueKind.String);
                 key.SetValue("TranslateTimeoutSeconds", TranslateTimeoutSeconds, RegistryValueKind.DWord);

@@ -25,7 +25,16 @@ namespace CyrFlip
         /// <paramref name="onLine"/> as it arrives (Ollama streams NDJSON). False when the request
         /// itself failed; a cancelled request throws <see cref="OperationCanceledException"/>.
         /// </summary>
-        Task<bool> PostLinesAsync(string url, string json, Action<string> onLine, int timeoutMs, CancellationToken ct);
+        /// <param name="timeoutMs">
+        /// Budget for the <b>first</b> line. On a cold model this is almost entirely loading time -
+        /// minutes on a CPU-only machine - and has nothing to do with how hard the text is.
+        /// </param>
+        /// <param name="answerTimeoutMs">
+        /// Budget for the rest, re-armed once the first line proves the model is loaded and writing.
+        /// 0 keeps the original single budget.
+        /// </param>
+        Task<bool> PostLinesAsync(string url, string json, Action<string> onLine,
+            int timeoutMs, int answerTimeoutMs, CancellationToken ct);
     }
 
     /// <summary>The real transport: one shared <see cref="HttpClient"/>, per-request timeouts.</summary>
@@ -60,7 +69,8 @@ namespace CyrFlip
             catch { return null; }
         }
 
-        public async Task<bool> PostLinesAsync(string url, string json, Action<string> onLine, int timeoutMs, CancellationToken ct)
+        public async Task<bool> PostLinesAsync(string url, string json, Action<string> onLine,
+            int timeoutMs, int answerTimeoutMs, CancellationToken ct)
         {
             using var linked = Linked(ct, timeoutMs);
             try
@@ -94,6 +104,7 @@ namespace CyrFlip
                     try { stream.Dispose(); } catch { }
                 });
 
+                bool firstLine = true;
                 while (true)
                 {
                     string? line;
@@ -102,6 +113,14 @@ namespace CyrFlip
                     if (line == null) break;
                     linked.Token.ThrowIfCancellationRequested();
                     if (line.Length == 0) continue;
+                    if (firstLine)
+                    {
+                        // The model has answered, so it is loaded: from here the clock is about how
+                        // long the text takes to translate, not about how long a cold model takes to
+                        // come up. CancelAfter re-arms the existing timer.
+                        firstLine = false;
+                        if (answerTimeoutMs > 0) linked.CancelAfter(answerTimeoutMs);
+                    }
                     onLine(line);
                 }
                 linked.Token.ThrowIfCancellationRequested();
@@ -200,7 +219,7 @@ namespace CyrFlip
                 if (error != null) { failed = true; progress?.Report(error); return; }
                 if (done) success = true;
                 if (text.Length > 0) progress?.Report(text);
-            }, 0, ct).ConfigureAwait(false);
+            }, 0, 0, ct).ConfigureAwait(false);
 
             return sent && success && !failed;
         }
@@ -214,8 +233,15 @@ namespace CyrFlip
         /// purpose: it is raised on whatever thread the HTTP read completed on, and marshalling is
         /// the caller's business - an IProgress created down here would capture the wrong context.
         /// </summary>
+        /// <param name="keepAliveMinutes">
+        /// How long Ollama keeps the model in RAM afterwards. <b>Negative means forever</b>, which is
+        /// Ollama's own <c>-1</c> and the default here: the first call after a cold start costs
+        /// minutes on a CPU-only machine, and paying that again every few minutes is the single
+        /// biggest thing that makes the feature feel broken.
+        /// </param>
         public async Task<string?> GenerateAsync(string model, string system, string prompt,
-            int keepAliveMinutes, Action<string>? partial, int timeoutMs, CancellationToken ct)
+            int keepAliveMinutes, Action<string>? partial, int timeoutMs, int answerTimeoutMs,
+            CancellationToken ct)
         {
             string body = Json(new Dictionary<string, object>
             {
@@ -223,7 +249,7 @@ namespace CyrFlip
                 { "system", system },
                 { "prompt", prompt },
                 { "stream", true },
-                { "keep_alive", Math.Max(0, keepAliveMinutes) + "m" },
+                { "keep_alive", KeepAliveValue(keepAliveMinutes) },
                 { "options", new Dictionary<string, object> { { "temperature", 0 } } },
             });
 
@@ -237,11 +263,19 @@ namespace CyrFlip
                 if (chunk.Length == 0) return;
                 text.Append(chunk);
                 partial?.Invoke(chunk);
-            }, timeoutMs, ct).ConfigureAwait(false);
+            }, timeoutMs, answerTimeoutMs, ct).ConfigureAwait(false);
 
             if (!ok || serverError) return null;
             return text.ToString();
         }
+
+        /// <summary>
+        /// What goes into <c>keep_alive</c>: the number -1 for "keep it loaded until Ollama exits",
+        /// otherwise a duration string. A <b>number</b> and not "-1m" - Ollama reads the negative
+        /// number as forever, and a negative duration string as an error.
+        /// </summary>
+        internal static object KeepAliveValue(int keepAliveMinutes)
+            => keepAliveMinutes < 0 ? (object)(-1) : keepAliveMinutes + "m";
 
         // ---- parsers (pure, unit-tested) ------------------------------------------------
 

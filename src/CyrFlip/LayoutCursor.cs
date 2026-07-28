@@ -9,7 +9,7 @@ namespace CyrFlip
 {
     /// <summary>
     /// CyrFlip's headline feature: while writing, the system text cursor (the I-beam) is
-    /// replaced with a caret carrying the current keyboard-layout marker (EN/RU/UK), updated
+    /// replaced with a caret carrying the current keyboard-layout marker (any layout code), updated
     /// live as the layout changes.
     ///
     /// This uses <c>SetSystemCursor(OCR_IBEAM)</c>, which is **global** - every app's text

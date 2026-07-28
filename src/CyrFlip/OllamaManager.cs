@@ -136,6 +136,13 @@ namespace CyrFlip
         public static void OpenWebPage() => Open(WebPage);
 
         /// <summary>
+        /// Open a model's own page in the user's browser. CyrFlip never fetches it: the request is the
+        /// browser's, made because the user clicked - so the app still opens no socket of its own
+        /// (see <see cref="TranslationLanguages.ModelPageUrl"/> for why we send people there at all).
+        /// </summary>
+        public static void OpenModelPage(string? model) => Open(TranslationLanguages.ModelPageUrl(model));
+
+        /// <summary>
         /// net48 picks SSL3/TLS1.0 by default, which ollama.com rejects - without this the download
         /// fails with an opaque "connection closed" on an otherwise healthy machine.
         /// </summary>

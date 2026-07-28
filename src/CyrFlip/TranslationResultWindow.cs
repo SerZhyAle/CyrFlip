@@ -392,7 +392,7 @@ namespace CyrFlip
             _language.Items.Clear();
             _language.Items.Add(new LanguageItem(TranslationLanguages.UiToken, _uiLanguage));
             _language.Items.Add(new LanguageItem(TranslationLanguages.ActiveToken, _uiLanguage));
-            foreach (string code in TranslationLanguages.Codes)
+            foreach (string code in TranslationLanguages.AllCodes)
                 _language.Items.Add(new LanguageItem(code, _uiLanguage));
             _loading = false;
             MeasureLanguageWidth();

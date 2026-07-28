@@ -140,7 +140,7 @@ namespace CyrFlip.Tests
             var chunks = new List<string>();
 
             string? answer = await client.GenerateAsync("qwen2.5:3b", "system", "prompt", 5,
-                chunk => chunks.Add(chunk), 1000, CancellationToken.None);
+                chunk => chunks.Add(chunk), 1000, 5000, CancellationToken.None);
 
             Assert.Equal("Hello, world", answer);
             Assert.Equal(new[] { "Hello", ", ", "world" }, chunks);
@@ -154,7 +154,7 @@ namespace CyrFlip.Tests
             var client = new OllamaClient("", transport);
 
             await client.GenerateAsync("qwen2.5:3b", "you are an engine", "translate this", 7,
-                null, 1000, CancellationToken.None);
+                null, 1000, 5000, CancellationToken.None);
 
             string body = Assert.Single(transport.Posts).Body;
             Assert.Contains("\"model\":\"qwen2.5:3b\"", body);
@@ -171,7 +171,7 @@ namespace CyrFlip.Tests
             var transport = new FakeTransport { PostSucceeds = false };
             var client = new OllamaClient("", transport);
 
-            Assert.Null(await client.GenerateAsync("m", "s", "p", 5, null, 1000, CancellationToken.None));
+            Assert.Null(await client.GenerateAsync("m", "s", "p", 5, null, 1000, 5000, CancellationToken.None));
         }
 
         [Fact]
@@ -181,7 +181,7 @@ namespace CyrFlip.Tests
             transport.Lines.Enqueue(new[] { "{\"error\":\"model 'nope' not found\"}" });
             var client = new OllamaClient("", transport);
 
-            Assert.Null(await client.GenerateAsync("nope", "s", "p", 5, null, 1000, CancellationToken.None));
+            Assert.Null(await client.GenerateAsync("nope", "s", "p", 5, null, 1000, 5000, CancellationToken.None));
         }
 
         [Fact]
@@ -233,9 +233,16 @@ namespace CyrFlip.Tests
             public Task<string?> GetStringAsync(string url, int timeoutMs, CancellationToken ct)
                 => Task.FromResult(Body);
 
-            public Task<bool> PostLinesAsync(string url, string json, Action<string> onLine, int timeoutMs, CancellationToken ct)
+            /// <summary>The two budgets the real transport applies, recorded so tests can assert them.</summary>
+            public int LastTimeoutMs;
+            public int LastAnswerTimeoutMs;
+
+            public Task<bool> PostLinesAsync(string url, string json, Action<string> onLine,
+                int timeoutMs, int answerTimeoutMs, CancellationToken ct)
             {
                 if (ThrowOnPost) throw new OperationCanceledException(ct);
+                LastTimeoutMs = timeoutMs;
+                LastAnswerTimeoutMs = answerTimeoutMs;
                 Posts.Add(new Posted(url, json));
                 if (Lines.Count > 0)
                     foreach (string line in Lines.Dequeue())

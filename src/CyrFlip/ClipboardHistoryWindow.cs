@@ -66,7 +66,9 @@ namespace CyrFlip
         public void ToggleVisible()
         {
             if (Visible) { Hide(); return; }
-            RestorePlacement(); Show(); Activate(); Invalidate();
+            // ForegroundActivator, not Activate(): from the text context menu this process has no
+            // foreground rights and Windows refuses the activation without saying so.
+            RestorePlacement(); Show(); ForegroundActivator.Activate(this); Invalidate();
         }
 
         public void ApplyOpacity() => Opacity = Math.Max(30, Math.Min(100, _config.ClipboardHistoryOpacity)) / 100.0;

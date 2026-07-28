@@ -55,6 +55,47 @@ namespace CyrFlip
             public IntPtr dwExtraInfo;
         }
 
+        // ---- Low-level mouse hook (MouseHook.cs) ----
+        // Installed only while the text context menu is enabled: this hook sees every mouse move
+        // (up to 1000/s on a gaming mouse) and a GC pause on its thread stalls the pointer
+        // system-wide, so a disabled feature must not pay - or make anyone else pay - for it.
+        public const int WH_MOUSE_LL = 14;
+        public const int WM_LBUTTONDOWN = 0x0201;
+        public const int WM_RBUTTONDOWN = 0x0204;
+        public const int WM_RBUTTONUP = 0x0205;
+        public const int WM_RBUTTONDBLCLK = 0x0206;
+        public const int WM_MBUTTONDOWN = 0x0207;
+        public const int WM_MBUTTONUP = 0x0208;
+        public const int WM_MBUTTONDBLCLK = 0x0209;
+
+        // MSLLHOOKSTRUCT.flags bit: event was injected (our own SendInput, or another tool's).
+        public const uint LLMHF_INJECTED = 0x00000001;
+
+        public delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MSLLHOOKSTRUCT
+        {
+            public POINT pt;
+            public uint mouseData;
+            public uint flags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+
+        // ---- Selection probe (SelectionProbe.cs) ----
+        // EM_GETSEL with both out-pointers null returns the range packed into the result, so it is
+        // safe to send across processes. Sent with a timeout: a hung app must not hang the probe.
+        public const uint EM_GETSEL = 0x00B0;
+        public const uint SMTO_ABORTIFHUNG = 0x0002;
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam,
+            uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
+
         // ---- Active window + layout (CursorIndicator.cs / ClipboardHandler.cs) ----
         [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
@@ -64,6 +105,11 @@ namespace CyrFlip
 
         [DllImport("user32.dll")]
         public static extern bool IsWindow(IntPtr hWnd);
+
+        // Which window is under a screen point - used to tell "the user clicked our own menu" from
+        // "the user clicked away", without trusting anyone's idea of a drop-down's bounds.
+        [DllImport("user32.dll")]
+        public static extern IntPtr WindowFromPoint(POINT Point);
 
         // ---- Process identity of the foreground window (RemoteDesktop.cs) ----
         public const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
@@ -318,6 +364,21 @@ namespace CyrFlip
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
 
+        // ---- Bringing a window up from a surface that never had the focus (ForegroundActivator.cs) ----
+        // Windows refuses SetForegroundWindow to a process that is neither the foreground one nor the
+        // receiver of the last input event, and refuses it silently. Sharing the foreground thread's
+        // input queue for the duration of the call makes the two count as one for that rule.
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+
+        [DllImport("kernel32.dll")]
+        public static extern uint GetCurrentThreadId();
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool BringWindowToTop(IntPtr hWnd);
+
         // ---- Cursor-refresh nudge (LayoutCursor.cs) ----
         public const uint INPUT_MOUSE = 0;
         public const uint MOUSEEVENTF_MOVE = 0x0001;
@@ -345,5 +406,12 @@ namespace CyrFlip
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         public static extern int GetCurrentPackageFullName(ref int packageFullNameLength, System.Text.StringBuilder? packageFullName);
+
+        // The family name ("SZA.CyrFlip_fdk7e19xt9z9j") is the key Windows files the package's own
+        // state under - including the startupTask state Autostart reads.
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        public static extern int GetCurrentPackageFamilyName(ref int packageFamilyNameLength, System.Text.StringBuilder? packageFamilyName);
+
+        public const int ERROR_INSUFFICIENT_BUFFER = 122;
     }
 }

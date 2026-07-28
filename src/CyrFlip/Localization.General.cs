@@ -50,6 +50,20 @@ namespace CyrFlip
                 ur: "CyrFlip کو صرف موجودہ Windows صارف کے اسٹارٹ اپ میں شامل کرتا ہے۔ اگلی بار سائن اِن پر یہ پس منظر میں چلے گا اور نوٹیفکیشن ایریا میں نظر آئے گا۔",
                 zh: "仅为当前 Windows 用户添加开机启动。下次登录时程序将在后台运行并出现在通知区域。");
 
+            Add("Автозапуском версии из Microsoft Store управляет сама Windows. Флажок показывает текущее состояние, а нажатие открывает «Параметры ▸ Приложения ▸ Автозагрузка», где автозапуск включается и выключается.",
+                en: "Windows itself owns autostart for the Microsoft Store build. The checkbox shows the current state, and clicking it opens Settings ▸ Apps ▸ Startup, where autostart is turned on or off.",
+                uk: "Автозапуском версії з Microsoft Store керує сама Windows. Прапорець показує поточний стан, а натискання відкриває «Параметри ▸ Застосунки ▸ Автозавантаження», де автозапуск вмикається та вимикається.",
+                de: "Bei der Microsoft-Store-Version verwaltet Windows den Autostart selbst. Das Kontrollkästchen zeigt den aktuellen Zustand, ein Klick öffnet „Einstellungen ▸ Apps ▸ Autostart“, wo er ein- und ausgeschaltet wird.",
+                it: "Per la versione del Microsoft Store è Windows a gestire l'avvio automatico. La casella mostra lo stato attuale e il clic apre «Impostazioni ▸ App ▸ Avvio», dove si attiva o disattiva.",
+                es: "En la versión de Microsoft Store, el inicio automático lo gestiona Windows. La casilla muestra el estado actual y, al hacer clic, se abre «Configuración ▸ Aplicaciones ▸ Inicio», donde se activa o desactiva.",
+                fr: "Pour la version du Microsoft Store, c'est Windows qui gère le démarrage automatique. La case affiche l'état actuel et le clic ouvre « Paramètres ▸ Applications ▸ Démarrage », où on l'active ou le désactive.",
+                pt: "Na versão da Microsoft Store, quem controla a inicialização automática é o próprio Windows. A caixa mostra o estado atual e o clique abre «Configurações ▸ Aplicativos ▸ Inicializar», onde ela é ligada ou desligada.",
+                ar: "في نسخة Microsoft Store يتولى Windows نفسه التشغيل التلقائي. يعرض المربع الحالة الراهنة، والنقر عليه يفتح «الإعدادات ▸ التطبيقات ▸ بدء التشغيل» حيث يمكن تفعيله أو إيقافه.",
+                hi: "Microsoft Store संस्करण का ऑटोस्टार्ट Windows स्वयं नियंत्रित करता है। चेकबॉक्स मौजूदा स्थिति दिखाता है, और क्लिक करने पर «सेटिंग्स ▸ ऐप्स ▸ स्टार्टअप» खुलता है, जहाँ इसे चालू या बंद किया जाता है।",
+                bn: "Microsoft Store সংস্করণের অটোস্টার্ট Windows নিজেই নিয়ন্ত্রণ করে। চেকবক্সটি বর্তমান অবস্থা দেখায়, আর ক্লিক করলে «সেটিংস ▸ অ্যাপস ▸ স্টার্টআপ» খোলে, যেখানে এটি চালু বা বন্ধ করা যায়।",
+                ur: "Microsoft Store ورژن کا خودکار آغاز خود Windows سنبھالتا ہے۔ چیک باکس موجودہ حالت دکھاتا ہے، اور کلک کرنے پر «ترتیبات ▸ ایپس ▸ اسٹارٹ اپ» کھلتا ہے جہاں اسے آن یا آف کیا جاتا ہے۔",
+                zh: "Microsoft Store 版本的开机启动由 Windows 自己管理。复选框显示当前状态，点击会打开“设置 ▸ 应用 ▸ 启动”，在那里开启或关闭。");
+
             Add("Не давать компьютеру засыпать",
                 en: "Keep the computer awake", uk: "Не давати комп'ютеру засинати",
                 de: "Computer wach halten", it: "Impedisci la sospensione del computer",
@@ -58,19 +72,19 @@ namespace CyrFlip
                 hi: "कंप्यूटर को स्लीप में न जाने दें", bn: "কম্পিউটারকে ঘুমাতে দেবেন না",
                 ur: "کمپیوٹر کو سلیپ میں نہ جانے دیں", zh: "阻止计算机进入睡眠");
 
-            Add("Пока включено, Windows не уходит в сон или гибернацию по простою — удобно для долгих загрузок, копирования или рендера. Действует только до выхода из CyrFlip: при следующем запуске опция снова выключена.",
-                en: "While on, Windows will not sleep or hibernate on idle — handy for long downloads, copies or renders. It lasts only until you quit CyrFlip: the option is off again on the next launch.",
-                uk: "Поки ввімкнено, Windows не переходить у сон чи гібернацію під час простою — зручно для довгих завантажень, копіювання чи рендеру. Діє лише до виходу з CyrFlip: під час наступного запуску опція знову вимкнена.",
-                de: "Solange aktiv, wechselt Windows im Leerlauf nicht in den Energiespar- oder Ruhezustand — praktisch bei langen Downloads, Kopiervorgängen oder Renderings. Gilt nur bis zum Beenden von CyrFlip: beim nächsten Start ist die Option wieder aus.",
-                it: "Finché è attiva, Windows non va in sospensione o ibernazione durante l'inattività — comodo per download, copie o rendering lunghi. Vale solo fino alla chiusura di CyrFlip: al prossimo avvio l'opzione è di nuovo disattivata.",
-                es: "Mientras está activo, Windows no se suspende ni hiberna por inactividad: útil para descargas, copias o renderizados largos. Solo dura hasta que cierres CyrFlip: en el siguiente inicio la opción vuelve a estar desactivada.",
-                fr: "Tant que l'option est active, Windows ne se met pas en veille ni en veille prolongée en cas d'inactivité — pratique pour les longs téléchargements, copies ou rendus. Elle ne dure que jusqu'à la fermeture de CyrFlip : au prochain lancement, elle est de nouveau désactivée.",
-                pt: "Enquanto ativado, o Windows não entra em suspensão ou hibernação por inatividade — útil para downloads, cópias ou renderizações longas. Vale apenas até você fechar o CyrFlip: na próxima execução a opção está desligada novamente.",
-                ar: "أثناء التفعيل لن ينتقل Windows إلى وضع السكون أو الإسبات عند الخمول — مفيد لعمليات التنزيل أو النسخ أو المعالجة الطويلة. يستمر ذلك حتى إغلاق CyrFlip فقط: عند التشغيل التالي يعود الخيار إلى وضع الإيقاف.",
-                hi: "चालू रहने तक Windows निष्क्रियता पर स्लीप या हाइबरनेट नहीं होगा — लंबे डाउनलोड, कॉपी या रेंडर के लिए उपयोगी। यह केवल CyrFlip बंद करने तक चलता है: अगली बार शुरू करने पर विकल्प फिर से बंद रहता है।",
-                bn: "চালু থাকা অবস্থায় নিষ্ক্রিয়তায় Windows ঘুমাবে বা হাইবারনেট করবে না — দীর্ঘ ডাউনলোড, কপি বা রেন্ডারের জন্য সুবিধাজনক। এটি কেবল CyrFlip বন্ধ করা পর্যন্ত কার্যকর: পরের বার চালু করলে বিকল্পটি আবার বন্ধ থাকে।",
-                ur: "جب تک آن ہے، بے عملی پر Windows سلیپ یا ہائبرنیٹ نہیں ہوگا — لمبے ڈاؤن لوڈ، کاپی یا رینڈر کے لیے مفید۔ یہ صرف CyrFlip بند کرنے تک رہتا ہے: اگلی بار چلانے پر یہ آپشن دوبارہ بند ہوتا ہے۔",
-                zh: "启用后，Windows 在空闲时不会睡眠或休眠——适合长时间下载、复制或渲染。该设置仅在 CyrFlip 运行期间有效：下次启动时会自动关闭。");
+            Add("Пока включено, Windows не уходит в сон или гибернацию по простою — удобно для долгих загрузок, копирования или рендера. Состояние сохраняется: забытый включённым переключатель не даст компьютеру уснуть и после перезапуска - следить за вашей батареей CyrFlip не станет.",
+                en: "While on, Windows will not sleep or hibernate on idle — handy for long downloads, copies or renders. The state is saved: a switch left on keeps the computer awake after a restart too - CyrFlip will not watch your battery for you.",
+                uk: "Поки ввімкнено, Windows не переходить у сон чи гібернацію під час простою — зручно для довгих завантажень, копіювання чи рендеру. Стан зберігається: забутий увімкненим перемикач не дасть комп'ютеру заснути й після перезапуску - стежити за вашою батареєю CyrFlip не буде.",
+                de: "Solange aktiv, wechselt Windows im Leerlauf nicht in den Energiespar- oder Ruhezustand — praktisch bei langen Downloads, Kopiervorgängen oder Renderings. Der Zustand wird gespeichert: ein eingeschaltet vergessener Schalter hält den Computer auch nach einem Neustart wach - CyrFlip überwacht Ihren Akku nicht für Sie.",
+                it: "Finché è attiva, Windows non va in sospensione o ibernazione durante l'inattività — comodo per download, copie o rendering lunghi. Lo stato viene salvato: un interruttore lasciato attivo tiene sveglio il computer anche dopo un riavvio - CyrFlip non sorveglia la batteria al posto tuo.",
+                es: "Mientras está activo, Windows no se suspende ni hiberna por inactividad: útil para descargas, copias o renderizados largos. El estado se guarda: un interruptor que dejes activado mantiene el equipo despierto también tras reiniciar - CyrFlip no vigilará la batería por ti.",
+                fr: "Tant que l'option est active, Windows ne se met pas en veille ni en veille prolongée en cas d'inactivité — pratique pour les longs téléchargements, copies ou rendus. L'état est enregistré : un interrupteur laissé actif garde l'ordinateur éveillé même après un redémarrage - CyrFlip ne surveillera pas votre batterie à votre place.",
+                pt: "Enquanto ativado, o Windows não entra em suspensão ou hibernação por inatividade — útil para downloads, cópias ou renderizações longas. O estado é salvo: um botão deixado ligado mantém o computador acordado também depois de reiniciar - o CyrFlip não vai cuidar da sua bateria por você.",
+                ar: "أثناء التفعيل لن ينتقل Windows إلى وضع السكون أو الإسبات عند الخمول — مفيد لعمليات التنزيل أو النسخ أو المعالجة الطويلة. تُحفظ الحالة: المفتاح الذي تتركه مفعَّلًا يُبقي الكمبيوتر مستيقظًا حتى بعد إعادة التشغيل - ولن يراقب CyrFlip بطاريتك نيابةً عنك.",
+                hi: "चालू रहने तक Windows निष्क्रियता पर स्लीप या हाइबरनेट नहीं होगा — लंबे डाउनलोड, कॉपी या रेंडर के लिए उपयोगी। स्थिति सहेजी जाती है: चालू छोड़ा गया स्विच पुनः आरंभ के बाद भी कंप्यूटर को जगाए रखेगा - CyrFlip आपकी बैटरी पर नज़र नहीं रखेगा।",
+                bn: "চালু থাকা অবস্থায় নিষ্ক্রিয়তায় Windows ঘুমাবে বা হাইবারনেট করবে না — দীর্ঘ ডাউনলোড, কপি বা রেন্ডারের জন্য সুবিধাজনক। অবস্থা সংরক্ষিত হয়: চালু রেখে দেওয়া সুইচ পুনরায় চালুর পরেও কম্পিউটারকে জাগিয়ে রাখবে - CyrFlip আপনার ব্যাটারির দেখাশোনা করবে না।",
+                ur: "جب تک آن ہے، بے عملی پر Windows سلیپ یا ہائبرنیٹ نہیں ہوگا — لمبے ڈاؤن لوڈ، کاپی یا رینڈر کے لیے مفید۔ حالت محفوظ ہوتی ہے: آن چھوڑا گیا سوئچ دوبارہ چلانے کے بعد بھی کمپیوٹر کو جاگتا رکھے گا - CyrFlip آپ کی بیٹری کی نگرانی نہیں کرے گا۔",
+                zh: "启用后，Windows 在空闲时不会睡眠或休眠——适合长时间下载、复制或渲染。状态会被保存：忘记关闭的开关在重启后仍会让计算机保持唤醒——CyrFlip 不会替你盯着电池。");
 
             Add("Не блокировать экран (как при видео)",
                 en: "Keep the screen on (like video)", uk: "Не блокувати екран (як під час відео)",
@@ -80,19 +94,19 @@ namespace CyrFlip
                 hi: "स्क्रीन चालू रखें (वीडियो की तरह)", bn: "স্ক্রিন চালু রাখুন (ভিডিওর মতো)",
                 ur: "اسکرین آن رکھیں (ویڈیو کی طرح)", zh: "保持屏幕常亮（如播放视频时）");
 
-            Add("Экран не гаснет и не блокируется по бездействию, как во время просмотра видео. Блокировку по паролю (Win+L или политику безопасности) это не отменяет.",
-                en: "The screen does not turn off or lock on idle, just like while watching a video. It does not override a password lock (Win+L or a security policy).",
-                uk: "Екран не гасне й не блокується під час бездіяльності, як під час перегляду відео. Блокування паролем (Win+L або політику безпеки) це не скасовує.",
-                de: "Der Bildschirm wird bei Inaktivität weder ausgeschaltet noch gesperrt, genau wie beim Ansehen eines Videos. Eine Kennwortsperre (Win+L oder eine Sicherheitsrichtlinie) wird dadurch nicht aufgehoben.",
-                it: "Lo schermo non si spegne né si blocca durante l'inattività, come quando guardi un video. Non annulla il blocco con password (Win+L o un criterio di sicurezza).",
-                es: "La pantalla no se apaga ni se bloquea por inactividad, igual que al ver un vídeo. No anula el bloqueo por contraseña (Win+L o una directiva de seguridad).",
-                fr: "L'écran ne s'éteint ni ne se verrouille en cas d'inactivité, comme pendant une vidéo. Cela n'annule pas le verrouillage par mot de passe (Win+L ou une stratégie de sécurité).",
-                pt: "A tela não desliga nem bloqueia por inatividade, como ao assistir a um vídeo. Isso não anula o bloqueio por senha (Win+L ou uma política de segurança).",
-                ar: "لا تنطفئ الشاشة ولا تُقفل عند الخمول، تمامًا كما أثناء مشاهدة فيديو. هذا لا يلغي القفل بكلمة المرور (Win+L أو سياسة أمان).",
-                hi: "स्क्रीन निष्क्रियता पर बंद या लॉक नहीं होती, ठीक वैसे ही जैसे वीडियो देखते समय। यह पासवर्ड लॉक (Win+L या सुरक्षा नीति) को रद्द नहीं करता।",
-                bn: "ভিডিও দেখার সময়ের মতোই নিষ্ক্রিয়তায় স্ক্রিন বন্ধ বা লক হয় না। এটি পাসওয়ার্ড লক (Win+L বা নিরাপত্তা নীতি) বাতিল করে না।",
-                ur: "بے عملی پر اسکرین بند یا لاک نہیں ہوتی، بالکل ویڈیو دیکھنے کی طرح۔ یہ پاس ورڈ لاک (Win+L یا سیکیورٹی پالیسی) کو منسوخ نہیں کرتا۔",
-                zh: "屏幕在空闲时不会熄灭或锁定，就像观看视频时一样。这不会取消密码锁定（Win+L 或安全策略）。");
+            Add("Экран не гаснет и не блокируется по бездействию, как во время просмотра видео. Блокировку по паролю (Win+L или политику безопасности) это не отменяет. Состояние сохраняется: забытый включённым переключатель не даст экрану погаснуть и после перезапуска.",
+                en: "The screen does not turn off or lock on idle, just like while watching a video. It does not override a password lock (Win+L or a security policy). The state is saved: a switch left on keeps the screen alive after a restart too.",
+                uk: "Екран не гасне й не блокується під час бездіяльності, як під час перегляду відео. Блокування паролем (Win+L або політику безпеки) це не скасовує. Стан зберігається: забутий увімкненим перемикач не дасть екрану згаснути й після перезапуску.",
+                de: "Der Bildschirm wird bei Inaktivität weder ausgeschaltet noch gesperrt, genau wie beim Ansehen eines Videos. Eine Kennwortsperre (Win+L oder eine Sicherheitsrichtlinie) wird dadurch nicht aufgehoben. Der Zustand wird gespeichert: ein eingeschaltet vergessener Schalter hält den Bildschirm auch nach einem Neustart an.",
+                it: "Lo schermo non si spegne né si blocca durante l'inattività, come quando guardi un video. Non annulla il blocco con password (Win+L o un criterio di sicurezza). Lo stato viene salvato: un interruttore lasciato attivo tiene acceso lo schermo anche dopo un riavvio.",
+                es: "La pantalla no se apaga ni se bloquea por inactividad, igual que al ver un vídeo. No anula el bloqueo por contraseña (Win+L o una directiva de seguridad). El estado se guarda: un interruptor que dejes activado mantiene la pantalla encendida también tras reiniciar.",
+                fr: "L'écran ne s'éteint ni ne se verrouille en cas d'inactivité, comme pendant une vidéo. Cela n'annule pas le verrouillage par mot de passe (Win+L ou une stratégie de sécurité). L'état est enregistré : un interrupteur laissé actif garde l'écran allumé même après un redémarrage.",
+                pt: "A tela não desliga nem bloqueia por inatividade, como ao assistir a um vídeo. Isso não anula o bloqueio por senha (Win+L ou uma política de segurança). O estado é salvo: um botão deixado ligado mantém a tela ligada também depois de reiniciar.",
+                ar: "لا تنطفئ الشاشة ولا تُقفل عند الخمول، تمامًا كما أثناء مشاهدة فيديو. هذا لا يلغي القفل بكلمة المرور (Win+L أو سياسة أمان). تُحفظ الحالة: المفتاح الذي تتركه مفعَّلًا يُبقي الشاشة مضاءة حتى بعد إعادة التشغيل.",
+                hi: "स्क्रीन निष्क्रियता पर बंद या लॉक नहीं होती, ठीक वैसे ही जैसे वीडियो देखते समय। यह पासवर्ड लॉक (Win+L या सुरक्षा नीति) को रद्द नहीं करता। स्थिति सहेजी जाती है: चालू छोड़ा गया स्विच पुनः आरंभ के बाद भी स्क्रीन को चालू रखेगा।",
+                bn: "ভিডিও দেখার সময়ের মতোই নিষ্ক্রিয়তায় স্ক্রিন বন্ধ বা লক হয় না। এটি পাসওয়ার্ড লক (Win+L বা নিরাপত্তা নীতি) বাতিল করে না। অবস্থা সংরক্ষিত হয়: চালু রেখে দেওয়া সুইচ পুনরায় চালুর পরেও স্ক্রিন চালু রাখবে।",
+                ur: "بے عملی پر اسکرین بند یا لاک نہیں ہوتی، بالکل ویڈیو دیکھنے کی طرح۔ یہ پاس ورڈ لاک (Win+L یا سیکیورٹی پالیسی) کو منسوخ نہیں کرتا۔ حالت محفوظ ہوتی ہے: آن چھوڑا گیا سوئچ دوبارہ چلانے کے بعد بھی اسکرین آن رکھے گا۔",
+                zh: "屏幕在空闲时不会熄灭或锁定，就像观看视频时一样。这不会取消密码锁定（Win+L 或安全策略）。状态会被保存：忘记关闭的开关在重启后仍会让屏幕保持常亮。");
 
             Add("Язык интерфейса:",
                 en: "Interface language:", uk: "Мова інтерфейсу:", de: "Sprache der Oberfläche:",
@@ -143,7 +157,7 @@ namespace CyrFlip
                 bn: "মাউসের টেক্সট কার্সরে লেআউট দেখান", ur: "ماؤس کے ٹیکسٹ کرسر پر لے آؤٹ دکھائیں",
                 zh: "在鼠标文本光标上显示布局");
 
-            Add("Заменяет стандартный текстовый курсор I-beam на курсор с маленькой меткой EN, RU или UK. Обычная стрелка мыши не меняется.",
+            Add("Заменяет стандартный текстовый курсор I-beam на курсор с маленькой меткой текущей раскладки. Обычная стрелка мыши не меняется.",
                 en: "Replaces the standard I-beam with a cursor carrying a small language marker. The normal mouse arrow is unchanged.",
                 uk: "Замінює стандартний курсор I-beam курсором із невеликою міткою мови. Звичайна стрілка миші не змінюється.",
                 de: "Ersetzt den Standard-Textcursor (I-Beam) durch einen Cursor mit einer kleinen Sprachmarkierung. Der normale Mauszeiger bleibt unverändert.",
@@ -181,7 +195,7 @@ namespace CyrFlip
                 ur: "ان پٹ فیلڈ میں جھپکتے کیریٹ کے پاس ایک چھوٹا نشان بناتا ہے۔ یہ اُن ایپس میں کام کرتا ہے جو کیریٹ کی جگہ Windows کو بتاتی ہیں۔",
                 zh: "在输入框中闪烁的插入点旁绘制一个小标记。适用于向 Windows 报告插入点位置的应用。");
 
-            Add("Компактная точка вместо букв EN/RU/UK",
+            Add("Компактная точка вместо букв раскладки",
                 en: "Compact dot instead of language letters", uk: "Компактна крапка замість літер мови",
                 de: "Kompakter Punkt statt Sprachkürzel", it: "Punto compatto al posto delle lettere della lingua",
                 es: "Punto compacto en lugar de las letras del idioma",
@@ -191,7 +205,7 @@ namespace CyrFlip
                 bn: "ভাষার অক্ষরের বদলে ছোট বিন্দু", ur: "زبان کے حروف کی جگہ چھوٹا نقطہ",
                 zh: "用小圆点代替语言字母");
 
-            Add("Вместо букв EN/RU/UK рядом с кареткой показывает компактную цветную точку — удобно, если буквы отвлекают.",
+            Add("Вместо букв раскладки рядом с кареткой показывает компактную цветную точку — удобно, если буквы отвлекают.",
                 en: "Shows a compact colour dot beside the caret instead of the language letters — handy if the letters distract you.",
                 uk: "Показує компактну кольорову крапку біля каретки замість літер мови — зручно, якщо літери відволікають.",
                 de: "Zeigt neben der Schreibmarke einen kompakten farbigen Punkt statt der Sprachkürzel — praktisch, wenn die Buchstaben ablenken.",
@@ -260,7 +274,7 @@ namespace CyrFlip
                 pt: "Sobre e avançado", ar: "حول وخيارات متقدمة", hi: "बारे में और उन्नत",
                 bn: "সম্পর্কে ও উন্নত", ur: "تعارف اور جدید", zh: "关于与高级");
 
-            Add("CyrFlip — лёгкая утилита для Windows: показывает EN/RU/UK у текстового курсора и каретки, исправляет текст, набранный в неверной раскладке, и хранит необязательную локальную историю буфера.\n\nПриложение не передаёт историю буфера в сеть. Если история включена, записи защищены Windows DPAPI и читаются только той же учётной записью Windows.",
+            Add("CyrFlip — лёгкая утилита для Windows: показывает код текущей раскладки у текстового курсора и каретки, исправляет текст, набранный в неверной раскладке, и хранит необязательную локальную историю буфера.\n\nПриложение не передаёт историю буфера в сеть. Если история включена, записи защищены Windows DPAPI и читаются только той же учётной записью Windows.",
                 en: "CyrFlip is a lightweight Windows utility: it shows the active layout at the text cursor and caret, fixes text typed in the wrong layout, and keeps an optional local clipboard history.\n\nThe app never sends clipboard history over the network. When history is on, entries are protected by Windows DPAPI and readable only by the same Windows account.",
                 uk: "CyrFlip — легкий застосунок для Windows: показує активну розкладку біля текстового курсора та каретки, виправляє текст, набраний у неправильній розкладці, і зберігає необов'язкову локальну історію буфера.\n\nЗастосунок не передає історію буфера в мережу. Якщо історію ввімкнено, записи захищені Windows DPAPI і читаються лише тим самим обліковим записом Windows.",
                 de: "CyrFlip ist ein schlankes Windows-Werkzeug: Es zeigt das aktive Tastaturlayout am Text- und Mauscursor, korrigiert im falschen Layout getippten Text und führt eine optionale lokale Zwischenablage-Historie.\n\nDie App sendet die Historie nie über das Netzwerk. Ist sie aktiviert, sind die Einträge durch Windows DPAPI geschützt und nur mit demselben Windows-Konto lesbar.",

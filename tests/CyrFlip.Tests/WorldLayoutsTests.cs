@@ -58,6 +58,32 @@ namespace CyrFlip.Tests
             Assert.Equal("zzzz", WorldLayouts.CodeForKlid("zzzz"));   // unparsable input is returned as-is
         }
 
+        /// <summary>
+        /// The settings tables (via <see cref="WorldLayouts.CodeForKlid"/>) and the live marker (via
+        /// <see cref="CursorIndicator.DetectLayout"/>) decode a language id through this one method.
+        /// They used to own a copy each, with different fallbacks - "??" on the marker, the raw KLID in
+        /// the table - so the same exotic layout could read two different ways in the same window.
+        /// </summary>
+        [Theory]
+        [InlineData(0x0409, "EN")]  // US
+        [InlineData(0x0809, "EN")]  // UK English - a different sublang, still EN
+        [InlineData(0x0419, "RU")]
+        [InlineData(0x0422, "UK")]
+        [InlineData(0x0415, "PL")]  // outside the curated 13
+        [InlineData(0x0411, "JA")]
+        public void ALanguageIdDecodesToTheCodeTheMarkerDraws(int langId, string expected)
+            => Assert.Equal(expected, WorldLayouts.CodeForLangId(langId));
+
+        [Fact]
+        public void ALanguageWindowsCannotNameShowsItsIdInsteadOfQuestionMarks()
+        {
+            // 0x0C00 is the "custom locale" placeholder: no CultureInfo, and the old code drew "??"
+            // on the cursor, the caret and the tray icon alike - three surfaces saying nothing at all.
+            string code = WorldLayouts.CodeForLangId(0x0C00);
+            Assert.NotEqual("??", code);
+            Assert.Equal("0C00", code);
+        }
+
         [Fact]
         public void TheCuratedLanguagesAreVisuallyDistinct()
         {

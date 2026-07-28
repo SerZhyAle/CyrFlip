@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
-using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 using static CyrFlip.WindowInterop;
@@ -11,8 +10,8 @@ using static CyrFlip.WindowInterop;
 namespace CyrFlip
 {
     /// <summary>
-    /// Tracks the active window's keyboard layout and surfaces it as a two-letter code
-    /// (EN/RU/UK). (spec §2.3 - layout detection + label rendering.)
+    /// Tracks the active window's keyboard layout and surfaces it as a two-letter code - any layout
+    /// Windows knows, not a fixed set. (spec §2.3 - layout detection + label rendering.)
     ///
     /// Note: the spec describes replacing the mouse cursor globally. That requires
     /// SetSystemCursor (system-wide, must be restored on crash) and is intentionally avoided
@@ -98,28 +97,28 @@ namespace CyrFlip
         /// <summary>True when CapsLock is toggled on (low bit of the key's toggle state).</summary>
         public static bool IsCapsLockOn() => (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
 
+        /// <summary>
+        /// The code the marker shows for the foreground window's layout. The low word of the HKL is the
+        /// language id; decoding it is <see cref="WorldLayouts.CodeForLangId"/>'s job, so the indicator
+        /// and the settings tables can never disagree about what to call the same layout.
+        ///
+        /// <para>Hand-written EN/RU/UK cases used to sit in front of that call. They were not a limit -
+        /// the decode answers EN, RU and UK for those very ids anyway - just a leftover from when three
+        /// languages were the whole product.</para>
+        ///
+        /// <para><b>This is a language, not a layout:</b> US and Dvorak both read EN, and the standard
+        /// Russian layout and Russian Typewriter both read RU. That is a deliberate decision, not an
+        /// oversight - the marker is a few pixels wide and gains nothing from a variant number. The
+        /// exact KLID of every installed layout is on the "Языки Windows" tab, and conversion profiles
+        /// bind to it.</para>
+        /// </summary>
         public static string DetectLayout()
         {
             IntPtr hwnd = GetForegroundWindow();
             uint threadId = GetWindowThreadProcessId(hwnd, out _);
             IntPtr hkl = GetKeyboardLayout(threadId);
             int langId = (int)((long)hkl & 0xFFFF);
-
-            switch (langId & 0x3FF) // primary language id
-            {
-                case 0x09: return "EN";
-                case 0x19: return "RU";
-                case 0x22: return "UK";
-            }
-
-            try
-            {
-                return new CultureInfo(langId).TwoLetterISOLanguageName.ToUpperInvariant();
-            }
-            catch (CultureNotFoundException)
-            {
-                return "??";
-            }
+            return WorldLayouts.CodeForLangId(langId);
         }
 
         /// <summary>

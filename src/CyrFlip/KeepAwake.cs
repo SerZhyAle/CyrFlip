@@ -12,9 +12,12 @@ namespace CyrFlip
     ///   idle - the same "as while watching video" behaviour any media player asks for).</item>
     /// </list>
     ///
-    /// State lives only in memory and both start OFF on every launch by design - "keep awake" is a
-    /// deliberate per-session action, so it is never persisted to the registry (see the spec at
-    /// <c>PLAN/done/KeepAwake_Spec_Idea_v0.1.md</c>, §5).
+    /// Both switches are <b>persisted</b> (<c>AppConfig.KeepSystemAwake</c> / <c>KeepScreenOn</c>) and
+    /// re-applied at startup through <see cref="Restore"/>. This reverses the original spec §5, which
+    /// kept them in memory only so a forgotten switch could never outlive the session; a switch that
+    /// silently forgot itself on every launch read as broken instead. This class still owns no
+    /// persistence of its own - <c>CyrFlipContext</c> writes the config and hands the state back here,
+    /// so the P/Invoke stays the only thing to fake in tests.
     ///
     /// <c>ES_CONTINUOUS</c> makes the request sticky, so one call per change is enough. The request
     /// is bound to the thread that made it, so this must be driven from a long-lived thread (the
@@ -44,6 +47,23 @@ namespace CyrFlip
         public static void SetScreenOn(bool on)
         {
             KeepScreenOn = on;
+            Apply();
+        }
+
+        /// <summary>
+        /// Apply the saved state at startup: both switches in <b>one</b> call, not two, so a launch
+        /// with both on never sends an intermediate mask that asks Windows for only half of what the
+        /// user left switched on.
+        /// </summary>
+        public static void Restore(bool systemAwake, bool screenOn)
+        {
+            bool wasIdle = !KeepSystemAwake && !KeepScreenOn;
+            KeepSystemAwake = systemAwake;
+            KeepScreenOn = screenOn;
+            // A launch with both switches saved off must not touch the machine's idle policy at all -
+            // but only while there is nothing of ours to undo, or "restore to off" would silently
+            // leave an earlier request standing.
+            if (wasIdle && !systemAwake && !screenOn) return;
             Apply();
         }
 

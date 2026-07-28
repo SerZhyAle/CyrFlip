@@ -121,19 +121,19 @@ namespace CyrFlip
                 ur: "ماڈل ڈاؤن لوڈ کریں",
                 zh: "下载模型");
 
-            Add("Рекомендуемые: qwen2.5:3b (~2 ГБ, по умолчанию), gemma2:2b (~1,6 ГБ, для слабых машин), llama3.2:3b (~2 ГБ), aya-expanse:8b (~5 ГБ, заметно лучше переводит, нужно от 8 ГБ ОЗУ). Модель занимает память процесса Ollama, а не CyrFlip.",
-                en: "Recommended: qwen2.5:3b (~2 GB, the default), gemma2:2b (~1.6 GB, for weaker machines), llama3.2:3b (~2 GB), aya-expanse:8b (~5 GB, translates noticeably better, needs 8 GB of RAM or more). The model occupies the memory of the Ollama process, not of CyrFlip.",
-                uk: "Рекомендовані: qwen2.5:3b (~2 ГБ, за замовчуванням), gemma2:2b (~1,6 ГБ, для слабких машин), llama3.2:3b (~2 ГБ), aya-expanse:8b (~5 ГБ, помітно краще перекладає, потрібно від 8 ГБ ОЗП). Модель займає пам'ять процесу Ollama, а не CyrFlip.",
-                de: "Empfohlen: qwen2.5:3b (~2 GB, Standard), gemma2:2b (~1,6 GB, für schwächere Rechner), llama3.2:3b (~2 GB), aya-expanse:8b (~5 GB, übersetzt merklich besser, benötigt mindestens 8 GB RAM). Das Modell belegt den Speicher des Ollama-Prozesses, nicht den von CyrFlip.",
-                it: "Consigliati: qwen2.5:3b (~2 GB, predefinito), gemma2:2b (~1,6 GB, per macchine poco potenti), llama3.2:3b (~2 GB), aya-expanse:8b (~5 GB, traduce nettamente meglio, richiede almeno 8 GB di RAM). Il modello occupa la memoria del processo Ollama, non quella di CyrFlip.",
-                es: "Recomendados: qwen2.5:3b (~2 GB, el predeterminado), gemma2:2b (~1,6 GB, para equipos poco potentes), llama3.2:3b (~2 GB), aya-expanse:8b (~5 GB, traduce bastante mejor, necesita 8 GB de RAM o más). El modelo ocupa la memoria del proceso de Ollama, no la de CyrFlip.",
-                fr: "Recommandés : qwen2.5:3b (~2 Go, par défaut), gemma2:2b (~1,6 Go, pour les machines modestes), llama3.2:3b (~2 Go), aya-expanse:8b (~5 Go, traduit nettement mieux, nécessite au moins 8 Go de RAM). Le modèle occupe la mémoire du processus Ollama, pas celle de CyrFlip.",
-                pt: "Recomendados: qwen2.5:3b (~2 GB, predefinido), gemma2:2b (~1,6 GB, para máquinas menos potentes), llama3.2:3b (~2 GB), aya-expanse:8b (~5 GB, traduz bastante melhor, precisa de 8 GB de RAM ou mais). O modelo ocupa a memória do processo do Ollama, não a do CyrFlip.",
-                ar: "المُوصى بها: qwen2.5:3b (~2 غ.ب، الافتراضي)، gemma2:2b (~1.6 غ.ب، للأجهزة الضعيفة)، llama3.2:3b (~2 غ.ب)، aya-expanse:8b (~5 غ.ب، ترجمته أفضل بوضوح، ويحتاج 8 غ.ب من الذاكرة العشوائية على الأقل). يشغل النموذج ذاكرة عملية Ollama، لا ذاكرة CyrFlip.",
-                hi: "अनुशंसित: qwen2.5:3b (~2 जीबी, डिफ़ॉल्ट), gemma2:2b (~1.6 जीबी, कमज़ोर मशीनों के लिए), llama3.2:3b (~2 जीबी), aya-expanse:8b (~5 जीबी, अनुवाद काफ़ी बेहतर करता है, कम से कम 8 जीबी रैम चाहिए)। मॉडल Ollama प्रोसेस की मेमोरी घेरता है, CyrFlip की नहीं।",
-                bn: "প্রস্তাবিত: qwen2.5:3b (~2 জিবি, ডিফল্ট), gemma2:2b (~1.6 জিবি, দুর্বল মেশিনের জন্য), llama3.2:3b (~2 জিবি), aya-expanse:8b (~5 জিবি, লক্ষণীয়ভাবে ভালো অনুবাদ করে, কমপক্ষে 8 জিবি র‍্যাম প্রয়োজন)। মডেলটি CyrFlip-এর নয়, Ollama প্রসেসের মেমরি দখল করে।",
-                ur: "تجویز کردہ: qwen2.5:3b (~2 جی بی، طے شدہ)، gemma2:2b (~1.6 جی بی، کم طاقت والی مشینوں کے لیے)، llama3.2:3b (~2 جی بی)، aya-expanse:8b (~5 جی بی، ترجمہ نمایاں طور پر بہتر کرتا ہے، کم از کم 8 جی بی ریم درکار ہے)۔ ماڈل Ollama کے پروسیس کی میموری گھیرتا ہے، CyrFlip کی نہیں۔",
-                zh: "推荐：qwen2.5:3b（约 2 GB，默认）、gemma2:2b（约 1.6 GB，适合配置较低的电脑）、llama3.2:3b（约 2 GB）、aya-expanse:8b（约 5 GB，翻译效果明显更好，需要 8 GB 以上内存）。模型占用的是 Ollama 进程的内存，而不是 CyrFlip 的内存。");
+            Add("Рекомендуемые: aya-expanse:8b (~4,7 ГБ, по умолчанию - лучший перевод из проверенных), gemma2:9b (~5 ГБ). Модели меньше 4 ГБ проверку на русском и украинском не прошли: gemma2:2b (~1,5 ГБ) берите, только если места мало, и ждите ошибок. Модель занимает память процесса Ollama, а не CyrFlip.",
+                en: "Recommended: aya-expanse:8b (~4.7 GB, the default - the best translation of those tested), gemma2:9b (~5 GB). Models under 4 GB failed the Russian and Ukrainian check: take gemma2:2b (~1.5 GB) only if space is tight, and expect mistakes. The model occupies the memory of the Ollama process, not of CyrFlip.",
+                uk: "Рекомендовані: aya-expanse:8b (~4,7 ГБ, за замовчуванням - найкращий переклад із перевірених), gemma2:9b (~5 ГБ). Моделі менші за 4 ГБ перевірки українською та російською не пройшли: gemma2:2b (~1,5 ГБ) беріть, лише якщо мало місця, і чекайте помилок. Модель займає пам'ять процесу Ollama, а не CyrFlip.",
+                de: "Empfohlen: aya-expanse:8b (~4,7 GB, Standard - die beste Übersetzung im Test), gemma2:9b (~5 GB). Modelle unter 4 GB fielen bei Russisch und Ukrainisch durch: gemma2:2b (~1,5 GB) nur bei knappem Speicher, und mit Fehlern ist zu rechnen. Das Modell belegt den Speicher des Ollama-Prozesses, nicht den von CyrFlip.",
+                it: "Consigliati: aya-expanse:8b (~4,7 GB, predefinito - la traduzione migliore tra quelle provate), gemma2:9b (~5 GB). I modelli sotto i 4 GB non hanno superato la prova su russo e ucraino: prendi gemma2:2b (~1,5 GB) solo se hai poco spazio, e aspettati errori. Il modello occupa la memoria del processo Ollama, non quella di CyrFlip.",
+                es: "Recomendados: aya-expanse:8b (~4,7 GB, el predeterminado: la mejor traducción de las probadas), gemma2:9b (~5 GB). Los modelos de menos de 4 GB no superaron la prueba en ruso y ucraniano: usa gemma2:2b (~1,5 GB) solo si te falta espacio, y cuenta con errores. El modelo ocupa la memoria del proceso de Ollama, no la de CyrFlip.",
+                fr: "Recommandés : aya-expanse:8b (~4,7 Go, par défaut - la meilleure traduction parmi celles testées), gemma2:9b (~5 Go). Les modèles de moins de 4 Go ont échoué au test russe et ukrainien : ne prenez gemma2:2b (~1,5 Go) que si la place manque, et attendez-vous à des erreurs. Le modèle occupe la mémoire du processus Ollama, pas celle de CyrFlip.",
+                pt: "Recomendados: aya-expanse:8b (~4,7 GB, predefinido - a melhor tradução entre as testadas), gemma2:9b (~5 GB). Os modelos abaixo de 4 GB não passaram no teste de russo e ucraniano: use o gemma2:2b (~1,5 GB) só se faltar espaço, e conte com erros. O modelo ocupa a memória do processo do Ollama, não a do CyrFlip.",
+                ar: "المُوصى بها: aya-expanse:8b (‏~4.7 غ.ب، الافتراضي - أفضل ترجمة بين ما جُرِّب)، gemma2:9b (‏~5 غ.ب). النماذج الأصغر من 4 غ.ب لم تجتز اختبار الروسية والأوكرانية: لا تأخذ gemma2:2b (‏~1.5 غ.ب) إلا عند ضيق المساحة، وتوقَّع أخطاء. يشغل النموذج ذاكرة عملية Ollama، لا ذاكرة CyrFlip.",
+                hi: "अनुशंसित: aya-expanse:8b (~4.7 जीबी, डिफ़ॉल्ट - परखे गए मॉडलों में सबसे अच्छा अनुवाद), gemma2:9b (~5 जीबी)। 4 जीबी से छोटे मॉडल रूसी और यूक्रेनी की जाँच में विफल रहे: gemma2:2b (~1.5 जीबी) तभी लें जब जगह कम हो, और ग़लतियों की अपेक्षा रखें। मॉडल Ollama प्रोसेस की मेमोरी घेरता है, CyrFlip की नहीं।",
+                bn: "প্রস্তাবিত: aya-expanse:8b (~4.7 জিবি, ডিফল্ট - পরীক্ষিতগুলোর মধ্যে সেরা অনুবাদ), gemma2:9b (~5 জিবি)। 4 জিবির কম মডেলগুলো রুশ ও ইউক্রেনীয় পরীক্ষায় উতরায়নি: জায়গা কম হলে তবেই gemma2:2b (~1.5 জিবি) নিন, আর ভুল হবে ধরে নিন। মডেলটি CyrFlip-এর নয়, Ollama প্রসেসের মেমরি দখল করে।",
+                ur: "تجویز کردہ: aya-expanse:8b (~4.7 جی بی، طے شدہ - آزمائے گئے ماڈلوں میں بہترین ترجمہ)، gemma2:9b (~5 جی بی)۔ 4 جی بی سے چھوٹے ماڈل روسی اور یوکرینی کے امتحان میں ناکام رہے: gemma2:2b (~1.5 جی بی) صرف اُس وقت لیں جب جگہ کم ہو، اور غلطیوں کی توقع رکھیں۔ ماڈل Ollama کے پروسیس کی میموری گھیرتا ہے، CyrFlip کی نہیں۔",
+                zh: "推荐：aya-expanse:8b（约 4.7 GB，默认——实测中翻译最好）、gemma2:9b（约 5 GB）。小于 4 GB 的模型没能通过俄语和乌克兰语的检验：只有在空间紧张时才选 gemma2:2b（约 1.5 GB），并且要预期出错。模型占用的是 Ollama 进程的内存，而不是 CyrFlip 的内存。");
 
             Add("Установить Ollama",
                 en: "Install Ollama",
@@ -629,19 +629,19 @@ namespace CyrFlip
                 ur: "Ollama نہیں ملا — ”Ollama انسٹال کریں“ دبائیں۔",
                 zh: "未找到 Ollama，请点击「安装 Ollama」。");
 
-            Add("Укажите имя модели, например qwen2.5:3b.",
-                en: "Enter a model name, for example qwen2.5:3b.",
-                uk: "Укажіть назву моделі, наприклад qwen2.5:3b.",
-                de: "Geben Sie einen Modellnamen an, zum Beispiel qwen2.5:3b.",
-                it: "Indica il nome di un modello, ad esempio qwen2.5:3b.",
-                es: "Indique el nombre del modelo, por ejemplo qwen2.5:3b.",
-                fr: "Indiquez un nom de modèle, par exemple qwen2.5:3b.",
-                pt: "Indique o nome de um modelo, por exemplo qwen2.5:3b.",
-                ar: "أدخل اسم النموذج، مثل qwen2.5:3b.",
-                hi: "मॉडल का नाम बताएँ, जैसे qwen2.5:3b।",
-                bn: "মডেলের নাম লিখুন, যেমন qwen2.5:3b।",
-                ur: "ماڈل کا نام درج کریں، مثلاً qwen2.5:3b۔",
-                zh: "请填写模型名称，例如 qwen2.5:3b。");
+            Add("Укажите имя модели, например aya-expanse:8b.",
+                en: "Enter a model name, for example aya-expanse:8b.",
+                uk: "Укажіть назву моделі, наприклад aya-expanse:8b.",
+                de: "Geben Sie einen Modellnamen an, zum Beispiel aya-expanse:8b.",
+                it: "Indica il nome di un modello, ad esempio aya-expanse:8b.",
+                es: "Indique el nombre del modelo, por ejemplo aya-expanse:8b.",
+                fr: "Indiquez un nom de modèle, par exemple aya-expanse:8b.",
+                pt: "Indique o nome de um modelo, por exemplo aya-expanse:8b.",
+                ar: "أدخل اسم النموذج، مثل aya-expanse:8b.",
+                hi: "मॉडल का नाम बताएँ, जैसे aya-expanse:8b।",
+                bn: "মডেলের নাম লিখুন, যেমন aya-expanse:8b।",
+                ur: "ماڈل کا نام درج کریں، مثلاً aya-expanse:8b۔",
+                zh: "请填写模型名称，例如 aya-expanse:8b。");
 
             Add("Загружаю модель:",
                 en: "Downloading the model:",
@@ -856,6 +856,111 @@ namespace CyrFlip
                 zh: "当前键盘布局语言");
 
             // ---- Tray entry, progress and the messages the result window shows ----
+            Add("Сколько Ollama держит модель загруженной после перевода. -1 держит её всегда, и это значение по умолчанию: первая загрузка на машине без подходящей видеокарты занимает минуты, и платить за неё заново каждые несколько минут хуже, чем занятые гигабайты. 0 выгружает сразу.",
+                en: "How long Ollama keeps the model loaded after a translation. -1 keeps it forever, and that is the default: the first load on a machine without a suitable graphics card takes minutes, and paying it again every few minutes is worse than the gigabytes it holds. 0 unloads it at once.",
+                uk: "Скільки Ollama тримає модель завантаженою після перекладу. -1 тримає її завжди, і це значення за замовчуванням: перше завантаження на машині без придатної відеокартки триває хвилини, і платити за нього знову кожні кілька хвилин гірше, ніж зайняті гігабайти. 0 вивантажує одразу.",
+                de: "Wie lange Ollama das Modell nach einer Übersetzung geladen hält. -1 behält es dauerhaft und ist die Voreinstellung: Das erste Laden dauert auf einem Rechner ohne geeignete Grafikkarte Minuten, und das alle paar Minuten erneut zu zahlen ist schlimmer als die belegten Gigabyte. 0 entlädt sofort.",
+                it: "Per quanto tempo Ollama tiene il modello caricato dopo una traduzione. -1 lo tiene per sempre ed è il valore predefinito: il primo caricamento su una macchina senza una scheda grafica adatta richiede minuti, e ripagarlo ogni pochi minuti è peggio dei gigabyte occupati. 0 lo scarica subito.",
+                es: "Cuánto tiempo mantiene Ollama el modelo cargado tras una traducción. -1 lo mantiene siempre y es el valor predeterminado: la primera carga en un equipo sin una tarjeta gráfica adecuada tarda minutos, y volver a pagarla cada pocos minutos es peor que los gigabytes ocupados. 0 lo descarga de inmediato.",
+                fr: "Combien de temps Ollama garde le modèle chargé après une traduction. -1 le garde indéfiniment, et c'est la valeur par défaut : le premier chargement sur une machine sans carte graphique adaptée prend des minutes, et le repayer toutes les quelques minutes est pire que les gigaoctets occupés. 0 le décharge aussitôt.",
+                pt: "Por quanto tempo o Ollama mantém o modelo carregado após uma tradução. -1 o mantém para sempre e é o padrão: a primeira carga em uma máquina sem placa de vídeo adequada leva minutos, e pagá-la de novo a cada poucos minutos é pior que os gigabytes ocupados. 0 o descarrega na hora.",
+                ar: "المدة التي يُبقي فيها Ollama النموذج محمّلًا بعد الترجمة. القيمة -1 تُبقيه محمّلًا دائمًا وهي الافتراضية: التحميل الأول على جهاز بلا بطاقة رسوميات مناسبة يستغرق دقائق، ودفع ذلك من جديد كل بضع دقائق أسوأ من الجيجابايتات المحجوزة. والقيمة 0 تُفرغه فورًا.",
+                hi: "अनुवाद के बाद Ollama मॉडल को कितनी देर मेमोरी में रखता है। -1 उसे हमेशा रखता है और यही डिफ़ॉल्ट है: उपयुक्त ग्राफ़िक्स कार्ड के बिना पहली लोडिंग में मिनट लगते हैं, और हर कुछ मिनट में उसे दोबारा चुकाना घिरे हुए गीगाबाइट से बुरा है। 0 तुरंत हटा देता है।",
+                bn: "অনুবাদের পর Ollama কতক্ষণ মডেলটি মেমরিতে রাখে। -1 সেটি চিরকাল রাখে এবং এটিই ডিফল্ট: উপযুক্ত গ্রাফিক্স কার্ড ছাড়া প্রথম লোডিং কয়েক মিনিট নেয়, আর প্রতি কয়েক মিনিট পরপর তা আবার দেওয়া দখল করা গিগাবাইটের চেয়ে খারাপ। 0 সঙ্গে সঙ্গে আনলোড করে।",
+                ur: "ترجمے کے بعد Ollama ماڈل کو کتنی دیر میموری میں رکھتا ہے۔ -1 اسے ہمیشہ رکھتا ہے اور یہی طے شدہ قدر ہے: مناسب گرافکس کارڈ کے بغیر پہلی لوڈنگ منٹ لیتی ہے، اور ہر چند منٹ بعد اسے دوبارہ ادا کرنا مختص گیگابائٹس سے بدتر ہے۔ 0 فوراً اتار دیتا ہے۔",
+                zh: "翻译结束后 Ollama 让模型在内存中停留多久。-1 表示一直保留，这也是默认值：在没有合适显卡的机器上首次加载需要数分钟，每隔几分钟重付一次这个代价，比占用的那几个 GB 更糟。0 表示立即卸载。");
+
+            Add("Ждать загрузки модели не дольше (с):",
+                en: "Wait for the model to load no longer than (s):",
+                uk: "Чекати завантаження моделі не довше (с):",
+                de: "Auf das Laden des Modells höchstens warten (s):",
+                it: "Attendere il caricamento del modello al massimo (s):",
+                es: "Esperar la carga del modelo como máximo (s):",
+                fr: "Attendre le chargement du modèle au plus (s) :",
+                pt: "Aguardar o carregamento do modelo no máximo (s):",
+                ar: "أقصى انتظار لتحميل النموذج (ثانية):",
+                hi: "मॉडल लोड होने की अधिकतम प्रतीक्षा (से):",
+                bn: "মডেল লোড হওয়ার সর্বোচ্চ অপেক্ষা (সে):",
+                ur: "ماڈل لوڈ ہونے کا زیادہ سے زیادہ انتظار (سیکنڈ):",
+                zh: "等待模型加载最长时间（秒）：");
+
+            Add("Это время на первый ответ модели, то есть почти целиком на её загрузку в память. Время на сам перевод считается отдельно и от длины текста: 15 секунд плюс по секунде на каждые 40 знаков.",
+                en: "This is the allowance for the model's first token, i.e. almost entirely for loading it into memory. The time for the translation itself is counted separately, from the length of the text: 15 seconds plus one second per 40 characters.",
+                uk: "Це час на першу відповідь моделі, тобто майже цілком на її завантаження в пам'ять. Час на сам переклад рахується окремо і від довжини тексту: 15 секунд плюс по секунді на кожні 40 знаків.",
+                de: "Das ist die Zeit für die erste Antwort des Modells, also fast vollständig für das Laden in den Speicher. Die Zeit für die Übersetzung selbst wird getrennt aus der Textlänge berechnet: 15 Sekunden plus eine Sekunde je 40 Zeichen.",
+                it: "È il tempo concesso alla prima risposta del modello, cioè quasi tutto al suo caricamento in memoria. Il tempo della traduzione vera e propria si calcola a parte, dalla lunghezza del testo: 15 secondi più un secondo ogni 40 caratteri.",
+                es: "Es el tiempo para la primera respuesta del modelo, es decir, casi todo para cargarlo en memoria. El tiempo de la traducción en sí se calcula aparte, a partir de la longitud del texto: 15 segundos más un segundo por cada 40 caracteres.",
+                fr: "C'est le temps accordé à la première réponse du modèle, donc presque entièrement à son chargement en mémoire. Le temps de la traduction elle-même se calcule à part, d'après la longueur du texte : 15 secondes plus une seconde par tranche de 40 caractères.",
+                pt: "É o tempo para a primeira resposta do modelo, ou seja, quase todo para carregá-lo na memória. O tempo da tradução em si é calculado à parte, pelo comprimento do texto: 15 segundos mais um segundo a cada 40 caracteres.",
+                ar: "هذا هو الوقت المتاح لأول رد من النموذج، أي كله تقريبًا لتحميله في الذاكرة. أما وقت الترجمة نفسها فيُحسب على حدة من طول النص: 15 ثانية زائد ثانية لكل 40 حرفًا.",
+                hi: "यह मॉडल के पहले उत्तर का समय है, यानी लगभग पूरा समय उसे मेमोरी में लोड करने का। अनुवाद का समय अलग से पाठ की लंबाई से गिना जाता है: 15 सेकंड और हर 40 अक्षरों पर एक सेकंड।",
+                bn: "এটি মডেলের প্রথম উত্তরের সময়, অর্থাৎ প্রায় পুরোটাই তাকে মেমরিতে লোড করার। অনুবাদের নিজের সময় আলাদাভাবে লেখার দৈর্ঘ্য থেকে গোনা হয়: 15 সেকেন্ড আর প্রতি 40 অক্ষরে এক সেকেন্ড।",
+                ur: "یہ ماڈل کے پہلے جواب کا وقت ہے، یعنی تقریباً پورا وقت اسے میموری میں لوڈ کرنے کا۔ خود ترجمے کا وقت الگ سے متن کی لمبائی سے گنا جاتا ہے: 15 سیکنڈ اور ہر 40 حروف پر ایک سیکنڈ۔",
+                zh: "这是留给模型首个回复的时间，也就是几乎全部用于把它加载进内存。翻译本身的时间另行按文本长度计算：15 秒，外加每 40 个字符一秒。");
+
+            Add("Другая операция с буфером ещё не закончилась. Повторите через секунду.",
+                en: "Another clipboard operation has not finished yet. Try again in a second.",
+                uk: "Інша операція з буфером ще не завершилася. Повторіть за секунду.",
+                de: "Ein anderer Zwischenablage-Vorgang läuft noch. Versuchen Sie es in einer Sekunde erneut.",
+                it: "Un'altra operazione sugli appunti non è ancora finita. Riprova tra un secondo.",
+                es: "Otra operación con el portapapeles aún no ha terminado. Inténtalo de nuevo en un segundo.",
+                fr: "Une autre opération sur le presse-papiers n'est pas terminée. Réessayez dans une seconde.",
+                pt: "Outra operação da área de transferência ainda não terminou. Tente de novo em um segundo.",
+                ar: "لم تنتهِ بعد عملية أخرى على الحافظة. أعد المحاولة بعد ثانية.",
+                hi: "क्लिपबोर्ड की दूसरी क्रिया अभी पूरी नहीं हुई। एक सेकंड बाद फिर आज़माएँ।",
+                bn: "ক্লিপবোর্ডের আরেকটি কাজ এখনো শেষ হয়নি। এক সেকেন্ড পরে আবার চেষ্টা করুন।",
+                ur: "کلپ بورڈ کا دوسرا عمل ابھی مکمل نہیں ہوا۔ ایک سیکنڈ بعد دوبارہ کوشش کریں۔",
+                zh: "另一个剪贴板操作尚未完成。请一秒后重试。");
+
+            Add("Окно сменилось, пока я забирал выделение. Перевод отменён.",
+                en: "The window changed while I was taking the selection. The translation was cancelled.",
+                uk: "Вікно змінилося, поки я забирав виділення. Переклад скасовано.",
+                de: "Das Fenster wechselte, während ich die Auswahl geholt habe. Die Übersetzung wurde abgebrochen.",
+                it: "La finestra è cambiata mentre prendevo la selezione. La traduzione è stata annullata.",
+                es: "La ventana cambió mientras tomaba la selección. La traducción se canceló.",
+                fr: "La fenêtre a changé pendant que je récupérais la sélection. La traduction a été annulée.",
+                pt: "A janela mudou enquanto eu pegava a seleção. A tradução foi cancelada.",
+                ar: "تغيّرت النافذة أثناء أخذ التحديد، فأُلغيت الترجمة.",
+                hi: "चयन लेते समय विंडो बदल गई। अनुवाद रद्द कर दिया गया।",
+                bn: "নির্বাচন নেওয়ার সময় উইন্ডো বদলে গেছে। অনুবাদ বাতিল করা হয়েছে।",
+                ur: "انتخاب لیتے وقت ونڈو بدل گئی۔ ترجمہ منسوخ کر دیا گیا۔",
+                zh: "取选中内容时窗口切换了，翻译已取消。");
+
+            Add("Автоопределение → язык перевода",
+                en: "Auto-detect → translation language", uk: "Автовизначення → мова перекладу",
+                de: "Automatisch erkennen → Zielsprache", it: "Rilevamento automatico → lingua di traduzione",
+                es: "Detección automática → idioma de traducción", fr: "Détection automatique → langue de traduction",
+                pt: "Detecção automática → idioma de tradução", ar: "كشف تلقائي ← لغة الترجمة",
+                hi: "स्वतः पहचान → अनुवाद की भाषा", bn: "স্বয়ংক্রিয় শনাক্তকরণ → অনুবাদের ভাষা",
+                ur: "خودکار شناخت ← ترجمے کی زبان", zh: "自动识别 → 翻译语言");
+
+            Add("Мой язык → язык перевода",
+                en: "My language → translation language", uk: "Моя мова → мова перекладу",
+                de: "Meine Sprache → Zielsprache", it: "La mia lingua → lingua di traduzione",
+                es: "Mi idioma → idioma de traducción", fr: "Ma langue → langue de traduction",
+                pt: "Meu idioma → idioma de tradução", ar: "لغتي ← لغة الترجمة",
+                hi: "मेरी भाषा → अनुवाद की भाषा", bn: "আমার ভাষা → অনুবাদের ভাষা",
+                ur: "میری زبان ← ترجمے کی زبان", zh: "我的语言 → 翻译语言");
+
+            Add("Язык перевода → мой язык",
+                en: "Translation language → my language", uk: "Мова перекладу → моя мова",
+                de: "Zielsprache → meine Sprache", it: "Lingua di traduzione → la mia lingua",
+                es: "Idioma de traducción → mi idioma", fr: "Langue de traduction → ma langue",
+                pt: "Idioma de tradução → meu idioma", ar: "لغة الترجمة ← لغتي",
+                hi: "अनुवाद की भाषा → मेरी भाषा", bn: "অনুবাদের ভাষা → আমার ভাষা",
+                ur: "ترجمے کی زبان ← میری زبان", zh: "翻译语言 → 我的语言");
+
+            Add("Мой язык:",
+                en: "My language:", uk: "Моя мова:", de: "Meine Sprache:", it: "La mia lingua:",
+                es: "Mi idioma:", fr: "Ma langue :", pt: "Meu idioma:", ar: "لغتي:",
+                hi: "मेरी भाषा:", bn: "আমার ভাষা:", ur: "میری زبان:", zh: "我的语言：");
+
+            Add("Язык перевода:",
+                en: "Translation language:", uk: "Мова перекладу:", de: "Zielsprache:",
+                it: "Lingua di traduzione:", es: "Idioma de traducción:", fr: "Langue de traduction :",
+                pt: "Idioma de tradução:", ar: "لغة الترجمة:", hi: "अनुवाद की भाषा:",
+                bn: "অনুবাদের ভাষা:", ur: "ترجمے کی زبان:", zh: "翻译语言：");
+
             Add("Перевести буфер обмена",
                 en: "Translate the clipboard",
                 uk: "Перекласти буфер обміну",
@@ -968,19 +1073,19 @@ namespace CyrFlip
                 ur: "Ollama چل نہیں رہا۔",
                 zh: "Ollama 未在运行。");
 
-            Add("Не установлена ни одна модель. Рекомендуем qwen2.5:3b (~2 ГБ) — загрузите её в настройках.",
-                en: "No model is installed. We recommend qwen2.5:3b (~2 GB) - download it in the settings.",
-                uk: "Не встановлено жодної моделі. Рекомендуємо qwen2.5:3b (~2 ГБ) — завантажте її в налаштуваннях.",
-                de: "Es ist kein Modell installiert. Wir empfehlen qwen2.5:3b (~2 GB) - laden Sie es in den Einstellungen herunter.",
-                it: "Non è installato alcun modello. Consigliamo qwen2.5:3b (~2 GB): scaricalo nelle impostazioni.",
-                es: "No hay ningún modelo instalado. Recomendamos qwen2.5:3b (~2 GB): descárguelo en la configuración.",
-                fr: "Aucun modèle n'est installé. Nous recommandons qwen2.5:3b (~2 Go) - téléchargez-le dans les paramètres.",
-                pt: "Não há nenhum modelo instalado. Recomendamos o qwen2.5:3b (~2 GB) - transfira-o nas definições.",
-                ar: "لا يوجد أي نموذج مثبَّت. نوصي بـ qwen2.5:3b (‏~2 غيغابايت) — نزّله من الإعدادات.",
-                hi: "कोई भी मॉडल इंस्टॉल नहीं है। हमारा सुझाव है qwen2.5:3b (~2 GB) — इसे सेटिंग्स में डाउनलोड करें।",
-                bn: "কোনো মডেল ইনস্টল করা নেই। আমরা qwen2.5:3b (~2 GB) সুপারিশ করি — সেটিংস থেকে ডাউনলোড করুন।",
-                ur: "کوئی ماڈل انسٹال نہیں ہے۔ ہم qwen2.5:3b (~2 GB) تجویز کرتے ہیں — اسے ترتیبات میں ڈاؤن لوڈ کریں۔",
-                zh: "尚未安装任何模型。建议使用 qwen2.5:3b（约 2 GB），请在设置中下载。");
+            Add("Не установлена ни одна модель. Рекомендуем aya-expanse:8b (~4,7 ГБ) — загрузите её в настройках.",
+                en: "No model is installed. We recommend aya-expanse:8b (~4.7 GB) - download it in the settings.",
+                uk: "Не встановлено жодної моделі. Рекомендуємо aya-expanse:8b (~4,7 ГБ) — завантажте її в налаштуваннях.",
+                de: "Es ist kein Modell installiert. Wir empfehlen aya-expanse:8b (~4,7 GB) - laden Sie es in den Einstellungen herunter.",
+                it: "Non è installato alcun modello. Consigliamo aya-expanse:8b (~4,7 GB): scaricalo nelle impostazioni.",
+                es: "No hay ningún modelo instalado. Recomendamos aya-expanse:8b (~4,7 GB): descárguelo en la configuración.",
+                fr: "Aucun modèle n'est installé. Nous recommandons aya-expanse:8b (~4,7 Go) - téléchargez-le dans les paramètres.",
+                pt: "Não há nenhum modelo instalado. Recomendamos o aya-expanse:8b (~4,7 GB) - transfira-o nas definições.",
+                ar: "لا يوجد أي نموذج مثبَّت. نوصي بـ aya-expanse:8b (‏~4.7 غيغابايت) — نزّله من الإعدادات.",
+                hi: "कोई भी मॉडल इंस्टॉल नहीं है। हमारा सुझाव है aya-expanse:8b (~4.7 GB) — इसे सेटिंग्स में डाउनलोड करें।",
+                bn: "কোনো মডেল ইনস্টল করা নেই। আমরা aya-expanse:8b (~4.7 GB) সুপারিশ করি — সেটিংস থেকে ডাউনলোড করুন।",
+                ur: "کوئی ماڈل انسٹال نہیں ہے۔ ہم aya-expanse:8b (~4.7 GB) تجویز کرتے ہیں — اسے ترتیبات میں ڈاؤن لوڈ کریں۔",
+                zh: "尚未安装任何模型。建议使用 aya-expanse:8b（约 4.7 GB），请在设置中下载。");
 
             Add("Ollama ответил ошибкой:",
                 en: "Ollama answered with an error:",
@@ -1051,6 +1156,22 @@ namespace CyrFlip
                 bn: "লেখার অনুবাদ",
                 ur: "متن کا ترجمہ",
                 zh: "文本翻译");
+
+            // CyrFlip offers every language and promises none: coverage belongs to the model, and the
+            // model's own page is the only honest answer to "does it know mine?" (spec §3.3.3).
+            Add("Какие языки понимает модель - в её описании",
+                en: "Which languages the model knows is in its own description",
+                uk: "Які мови розуміє модель - у її описі",
+                de: "Welche Sprachen das Modell kann, steht in seiner Beschreibung",
+                it: "Quali lingue conosce il modello è scritto nella sua descrizione",
+                es: "Qué idiomas entiende el modelo figura en su descripción",
+                fr: "Les langues comprises par le modèle sont indiquées dans sa description",
+                pt: "Os idiomas que o modelo entende estão na descrição dele",
+                ar: "اللغات التي يفهمها النموذج مذكورة في وصفه",
+                hi: "मॉडल कौन-सी भाषाएँ समझता है, यह उसके विवरण में लिखा है",
+                bn: "মডেল কোন কোন ভাষা বোঝে তা তার নিজের বিবরণে লেখা আছে",
+                ur: "ماڈل کون سی زبانیں سمجھتا ہے، یہ اس کی تفصیل میں لکھا ہے",
+                zh: "模型支持哪些语言，写在它自己的说明里");
         }
     }
 }

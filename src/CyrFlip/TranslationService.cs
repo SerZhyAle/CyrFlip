@@ -93,7 +93,14 @@ namespace CyrFlip
         /// realistic download, in rising order of appetite. The sizes are spelled out in the settings
         /// text rather than here, so the list stays a list of model names the API accepts verbatim.
         /// </summary>
-        public static readonly string[] RecommendedModels = { "qwen2.5:3b", "gemma2:2b", "llama3.2:3b", "aya-expanse:8b" };
+        /// <summary>
+        /// Offered in the model dropdown, best first. Trimmed on 2026-07-28 after measuring every
+        /// candidate on English ⇄ Russian ⇄ Ukrainian against a live Ollama: <c>qwen2.5:3b</c> and
+        /// <c>llama3.2:3b</c> were dropped outright (the first emitted Chinese characters inside a
+        /// Russian translation, the second does not claim Russian or Ukrainian at all), and
+        /// <c>gemma2:2b</c> is kept only as the small-machine compromise it is - the UI text says so.
+        /// </summary>
+        public static readonly string[] RecommendedModels = { "aya-expanse:8b", "gemma2:9b", "gemma2:2b" };
 
         private readonly AppConfig _config;
         private readonly Func<string, OllamaClient> _clientFactory;
@@ -123,8 +130,16 @@ namespace CyrFlip
         /// Translate one selection into <paramref name="targetCode"/>, streaming into
         /// <paramref name="sink"/> as the model writes.
         /// </summary>
-        public async Task<TranslationResult> TranslateAsync(string text, string targetCode,
+        public Task<TranslationResult> TranslateAsync(string text, string targetCode,
             TranslationSink? sink, CancellationToken ct)
+            => TranslateAsync(text, targetCode, null, sink, ct);
+
+        /// <param name="sourceCode">
+        /// The language the text is expected to be in (the fixed-pair rows), or null to let the model
+        /// work it out - which is what every auto-detecting row does.
+        /// </param>
+        public async Task<TranslationResult> TranslateAsync(string text, string targetCode,
+            string? sourceCode, TranslationSink? sink, CancellationToken ct)
         {
             var result = new TranslationResult { SourceLength = (text ?? "").Length };
             string source = Truncate(text ?? "", MaxChars, out bool truncated).Trim();
@@ -153,12 +168,16 @@ namespace CyrFlip
             result.Model = model;
 
             string language = TranslationLanguages.EnglishName(targetCode);
+            string? sourceLanguage = string.IsNullOrEmpty(sourceCode) || string.Equals(sourceCode, targetCode, StringComparison.OrdinalIgnoreCase)
+                ? null
+                : TranslationLanguages.EnglishName(sourceCode);
 
             string? answer;
             try
             {
-                answer = await client.GenerateAsync(model, SystemPrompt, BuildPrompt(language, source),
-                    _config.TranslateKeepAliveMinutes, chunk => sink?.Chunk(chunk), TimeoutMs, ct).ConfigureAwait(false);
+                answer = await client.GenerateAsync(model, SystemPrompt, BuildPrompt(language, source, sourceLanguage),
+                    _config.TranslateKeepAliveMinutes, chunk => sink?.Chunk(chunk),
+                    TimeoutMs, AnswerTimeoutMs(source.Length), ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -181,8 +200,9 @@ namespace CyrFlip
                 string? second;
                 try
                 {
-                    second = await client.GenerateAsync(model, SystemPrompt, BuildRetryPrompt(language, source),
-                        _config.TranslateKeepAliveMinutes, chunk => sink?.Chunk(chunk), TimeoutMs, ct).ConfigureAwait(false);
+                    second = await client.GenerateAsync(model, SystemPrompt, BuildRetryPrompt(language, source, sourceLanguage),
+                        _config.TranslateKeepAliveMinutes, chunk => sink?.Chunk(chunk),
+                    TimeoutMs, AnswerTimeoutMs(source.Length), ct).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -248,7 +268,24 @@ namespace CyrFlip
             return PickPreferredModel(installed);
         }
 
+        /// <summary>
+        /// Budget for the <b>first</b> token, i.e. for loading the model. Cold-loading a 7B model on
+        /// a machine with no usable GPU is minutes, and that has nothing to do with the selection.
+        /// </summary>
         private int TimeoutMs => Math.Max(5, _config.TranslateTimeoutSeconds) * 1000;
+
+        /// <summary>Base allowance once the model is writing - the part that is not loading.</summary>
+        internal const int AnswerBaseSeconds = 15;
+        /// <summary>Extra seconds per this many source characters (a long text legitimately takes longer).</summary>
+        internal const int CharsPerExtraSecond = 40;
+
+        /// <summary>
+        /// How long the answer itself may take, counted from the first token. Deliberately derived
+        /// rather than configured: the user cannot know how many seconds their paragraph is worth,
+        /// but the length is right there.
+        /// </summary>
+        internal static int AnswerTimeoutMs(int sourceLength)
+            => (AnswerBaseSeconds + Math.Max(0, sourceLength) / CharsPerExtraSecond) * 1000;
 
         // ---- pure helpers (unit-tested) --------------------------------------------------
 
@@ -258,15 +295,27 @@ namespace CyrFlip
             return truncated ? text.Substring(0, max) : text;
         }
 
-        internal static string BuildPrompt(string languageName, string text)
-            => "Translate the FULL following text into " + languageName + "." + "\n" +
+        /// <summary>
+        /// The source-language line for a fixed-pair row. Phrased as an <b>expectation</b>: pressing
+        /// the wrong half of the pair must degrade to a correct translation, not to a model dutifully
+        /// translating out of a language the text is not in.
+        /// </summary>
+        internal static string SourceHintLine(string? sourceLanguageName)
+            => string.IsNullOrEmpty(sourceLanguageName) ? "" :
+               "The text is expected to be in " + sourceLanguageName +
+               "; if it plainly is not, translate from whatever language it is actually in.\n";
+
+        internal static string BuildPrompt(string languageName, string text, string? sourceLanguageName = null)
+            => SourceHintLine(sourceLanguageName) +
+               "Translate the FULL following text into " + languageName + "." + "\n" +
                "Translate every sentence and detail faithfully; do not summarize, shorten, or omit anything." + "\n" +
                "Write the translation ENTIRELY in " + languageName + " using its native alphabet; do NOT use " +
                "Chinese characters or any other language. Output only the translation, no notes and no quotes." + "\n" +
                "Text: " + text;
 
-        internal static string BuildRetryPrompt(string languageName, string text)
-            => "Translate this ENTIRE text into " + languageName + " ONLY. Translate every sentence and detail; " +
+        internal static string BuildRetryPrompt(string languageName, string text, string? sourceLanguageName = null)
+            => SourceHintLine(sourceLanguageName) +
+               "Translate this ENTIRE text into " + languageName + " ONLY. Translate every sentence and detail; " +
                "do not summarize, shorten, or omit anything. The output must be written entirely in " +
                languageName + "'s native alphabet. Produce a genuine translation, not a copy. " +
                "Output only the translation." + "\n" +

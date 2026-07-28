@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -14,8 +15,14 @@ namespace CyrFlip
         private readonly string _uiLanguage;
         private readonly ComboBox _target = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
         private readonly Label _hotkey = new Label { AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 8, 3, 3) };
+        // One line, never wrapped: DialogLayoutTests measures a Label's unconstrained preferred size,
+        // so a MaximumSize that wraps the text would read to it as a clipped caption.
+        private readonly LinkLabel _coverage = new LinkLabel
+        {
+            AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 0, 3, 8),
+        };
 
-        public TranslationDialog(TranslationProfile? existing, string uiLanguage)
+        public TranslationDialog(TranslationProfile? existing, string uiLanguage, string? model = null)
         {
             _uiLanguage = uiLanguage;
             Text = T(existing == null ? "Новое направление перевода" : "Изменить направление перевода");
@@ -28,12 +35,23 @@ namespace CyrFlip
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             ApplyScript(uiLanguage);
 
+            // The two live tokens first - they are modes, not languages - then every language Windows
+            // knows, sorted by the label actually drawn so the list reads alphabetically in this UI
+            // language rather than by ISO code.
             _target.Items.Add(new LanguageItem(TranslationLanguages.UiToken, uiLanguage));
             _target.Items.Add(new LanguageItem(TranslationLanguages.ActiveToken, uiLanguage));
-            foreach (string code in TranslationLanguages.Codes)
-                _target.Items.Add(new LanguageItem(code, uiLanguage));
+            var languages = new List<LanguageItem>();
+            foreach (string code in TranslationLanguages.AllCodes)
+                languages.Add(new LanguageItem(code, uiLanguage));
+            languages.Sort((a, b) => string.Compare(a.ToString(), b.ToString(), StringComparison.CurrentCultureIgnoreCase));
+            foreach (LanguageItem item in languages) _target.Items.Add(item);
             _target.Width = ComboWidth();
             SelectCode(existing?.TargetLang ?? TranslationLanguages.UiToken);
+
+            // CyrFlip claims nothing about what the model understands - it dispatches, the model
+            // translates. The one honest answer is the model's own page, so that is what we offer.
+            _coverage.Text = T("Какие языки понимает модель - в её описании");
+            _coverage.LinkClicked += (_, _) => OllamaManager.OpenModelPage(model);
 
             _hotkey.Text = string.IsNullOrEmpty(existing?.Hotkey) ? T("Не назначено") : existing!.Hotkey;
             _hotkey.MinimumSize = new Size(TextWidth("Ctrl+Shift+Backspace"), 0); // the longest chord we can produce
@@ -76,10 +94,12 @@ namespace CyrFlip
             grid.Controls.Add(Caption(T("Переводить на:")), 0, 0);
             grid.Controls.Add(_target, 1, 0);
             grid.SetColumnSpan(_target, 2);
-            grid.Controls.Add(Caption(T("Комбинация:")), 0, 1);
-            grid.Controls.Add(_hotkey, 1, 1);
-            grid.Controls.Add(set, 2, 1);
-            grid.Controls.Add(buttons, 0, 2);
+            grid.Controls.Add(_coverage, 1, 1);
+            grid.SetColumnSpan(_coverage, 2);
+            grid.Controls.Add(Caption(T("Комбинация:")), 0, 2);
+            grid.Controls.Add(_hotkey, 1, 2);
+            grid.Controls.Add(set, 2, 2);
+            grid.Controls.Add(buttons, 0, 3);
             grid.SetColumnSpan(buttons, 3);
             Controls.Add(grid);
 

@@ -25,9 +25,13 @@ namespace CyrFlip
     {
         private const int VK_C = 0x43;
         private const int VK_V = 0x56;
+        private const int VK_DELETE = 0x2E;
 
         /// <summary>Result of a flip, for the caller to surface (e.g. a tray balloon).</summary>
         public enum FlipResult { Flipped, NoSelection, NoChange, Cancelled, Failed }
+
+        /// <summary>The plain editing commands CyrFlip's own context menu offers first.</summary>
+        public enum EditCommand { Copy, Cut, Paste }
 
         /// <summary>Outcome of the copy half on its own.</summary>
         public enum CaptureResult { Captured, NoSelection, Cancelled }
@@ -93,6 +97,52 @@ namespace CyrFlip
         /// </param>
         public FlipResult FlipCase(bool toggleCapsAfter = false)
             => Run(CaseFlipEngine.Flip, toggleCapsAfter: toggleCapsAfter);
+
+        /// <summary>
+        /// Cut / Copy / Paste from the text context menu, <b>through the very pipeline the flips
+        /// use</b> - not a second implementation of it.
+        ///
+        /// That is the whole point of this method. A hand-rolled "just SendInput a Ctrl+C" looks
+        /// equivalent and is not: <see cref="TryCaptureSelection"/> settles before it injects
+        /// anything, then <b>waits for the clipboard sequence number to actually change</b> - which is
+        /// what makes the copy reliable instead of hopeful, and what tells "nothing was selected"
+        /// apart from "the app ignored us". The paste half likewise gives the target the same 30 ms
+        /// before and 140 ms after that <see cref="ReplaceSelection"/> gives it.
+        ///
+        /// Unlike a flip this <b>does not back up and restore the clipboard</b>: the user asked to
+        /// copy, so the copy has to stay - on the clipboard and, with the feature on, in the history.
+        ///
+        /// Cut is copy plus a Delete rather than a Ctrl+X, so its visible half rides on the capture we
+        /// have just verified; in a field that cannot be edited the Delete simply does nothing, which
+        /// is the correct outcome there anyway.
+        /// </summary>
+        public FlipResult RunEdit(EditCommand command)
+        {
+            if (command == EditCommand.Paste)
+            {
+                IntPtr foreground = GetForegroundWindow();
+                HeldModifiers pasteHeld = HeldModifiers.Capture();
+                Thread.Sleep(30);
+                SendPaste();
+                Thread.Sleep(140); // let the target app consume the paste
+                if (GetForegroundWindow() != foreground) return FlipResult.Cancelled;
+                RestorePhysicalModifiers(pasteHeld);
+                return FlipResult.Flipped;
+            }
+
+            CaptureResult captured = TryCaptureSelection(out _, out _, out HeldModifiers held);
+            if (captured == CaptureResult.Cancelled) return FlipResult.Cancelled;
+            if (captured == CaptureResult.NoSelection) return FlipResult.NoSelection;
+
+            if (command == EditCommand.Cut)
+            {
+                Send((VK_DELETE, false), (VK_DELETE, true));
+                Thread.Sleep(60);
+            }
+
+            RestorePhysicalModifiers(held);
+            return FlipResult.Flipped;
+        }
 
         /// <param name="transform">The text transform to apply to the captured selection.</param>
         /// <param name="toggleCapsAfter">When true, toggle CapsLock after a successful replace.</param>

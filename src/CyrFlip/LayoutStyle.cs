@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
@@ -14,49 +15,48 @@ namespace CyrFlip
     /// </summary>
     internal static class LayoutStyle
     {
-        private static readonly Color En = ColorTranslator.FromHtml("#4DA3FF"); // blue
-        private static readonly Color Ru = ColorTranslator.FromHtml("#FF5A5A"); // red
-        private static readonly Color Uk = ColorTranslator.FromHtml("#5AD86A"); // green
-        private static readonly Color Zh = ColorTranslator.FromHtml("#F3B33D");
-        private static readonly Color Hi = ColorTranslator.FromHtml("#E68742");
-        private static readonly Color Es = ColorTranslator.FromHtml("#F06E9C");
-        private static readonly Color Fr = ColorTranslator.FromHtml("#8D7CF2");
-        private static readonly Color Ar = ColorTranslator.FromHtml("#35C6B4");
-        private static readonly Color Bn = ColorTranslator.FromHtml("#C67CDA");
-        private static readonly Color Pt = ColorTranslator.FromHtml("#46B978");
-        private static readonly Color Ur = ColorTranslator.FromHtml("#E5A3C7");
-        private static readonly Color De = ColorTranslator.FromHtml("#D8D14A");
-        private static readonly Color It = ColorTranslator.FromHtml("#7FB2E5");
+        /// <summary>
+        /// The curated palette, and <b>the source of truth for it</b>. The app ships as one exe with
+        /// nothing to read at runtime, so the table has to live in code; the machine-readable copy for
+        /// everything outside the exe (the VS Code extension) is
+        /// <c>vscode-extension/src/layout-colors.json</c>, and <c>LayoutColorsTests</c> fails the build
+        /// when the two disagree. <c>tools/IconGen</c> needs no copy at all - it compiles this very file.
+        /// </summary>
+        public static readonly IReadOnlyDictionary<string, Color> Curated = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "EN", ColorTranslator.FromHtml("#4DA3FF") }, // blue
+            { "RU", ColorTranslator.FromHtml("#FF5A5A") }, // red
+            { "UK", ColorTranslator.FromHtml("#5AD86A") }, // green
+            { "ZH", ColorTranslator.FromHtml("#F3B33D") },
+            { "HI", ColorTranslator.FromHtml("#E68742") },
+            { "ES", ColorTranslator.FromHtml("#F06E9C") },
+            { "FR", ColorTranslator.FromHtml("#8D7CF2") },
+            { "AR", ColorTranslator.FromHtml("#35C6B4") },
+            { "BN", ColorTranslator.FromHtml("#C67CDA") },
+            { "PT", ColorTranslator.FromHtml("#46B978") },
+            { "UR", ColorTranslator.FromHtml("#E5A3C7") },
+            { "DE", ColorTranslator.FromHtml("#D8D14A") },
+            { "IT", ColorTranslator.FromHtml("#7FB2E5") },
+        };
+
+        // The fallback's constants, named because the TypeScript side has to reproduce them exactly.
+        internal const int HashSeed = 17;
+        internal const int HashMultiplier = 31;
+        internal const double FallbackSaturation = 0.85;
+        internal const double FallbackLightness = 0.66;
 
         public static Color ColorFor(string code)
-        {
-            switch (code)
-            {
-                case "EN": return En;
-                case "RU": return Ru;
-                case "UK": return Uk;
-                case "ZH": return Zh;
-                case "HI": return Hi;
-                case "ES": return Es;
-                case "FR": return Fr;
-                case "AR": return Ar;
-                case "BN": return Bn;
-                case "PT": return Pt;
-                case "UR": return Ur;
-                case "DE": return De;
-                case "IT": return It;
-                default: return BrightFromCode(code);
-            }
-        }
+            => Curated.TryGetValue(code ?? string.Empty, out Color known) ? known : BrightFromCode(code);
 
         // Deterministic, always-bright colour for any other world layout.
-        private static Color BrightFromCode(string code)
+        internal static Color BrightFromCode(string? code)
         {
-            int hash = 17;
+            int hash = HashSeed;
             foreach (char c in code ?? string.Empty)
-                hash = hash * 31 + c;
+                hash = hash * HashMultiplier + c;
             double hue = (((hash % 360) + 360) % 360);
-            return FromHsl(hue, 0.85, 0.66); // high saturation + lightness => bright on black
+            // high saturation + lightness => bright on black
+            return FromHsl(hue, FallbackSaturation, FallbackLightness);
         }
 
         /// <summary>Draw <paramref name="code"/> centred in <paramref name="area"/> with a bright

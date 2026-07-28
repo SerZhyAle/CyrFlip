@@ -82,11 +82,29 @@ namespace CyrFlip
             string curated = LabelForKlid(klid!);
             if (curated.Length > 0) return curated;
 
-            // A KLID's low 4 hex digits are its language id (see InputLayouts).
+            // A KLID's low 4 hex digits are its language id (see InputLayouts). Something that is not
+            // a KLID at all (a hand-edited registry value) is handed back untouched - inventing a
+            // language for it would be worse than showing what is actually stored.
             if (!int.TryParse(klid!.Substring(klid.Length - 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int langId) || langId == 0)
                 return klid!;
+            return CodeForLangId(langId);
+        }
+
+        /// <summary>
+        /// Language id → the code drawn on the marker. <b>The single place that decoding happens</b>:
+        /// <see cref="CodeForKlid"/> (the settings tables and the tray tooltip) and
+        /// <see cref="CursorIndicator.DetectLayout"/> (the live indicator) used to each own a copy, with
+        /// different fallbacks, so the same layout could read one way in the table and another on screen.
+        ///
+        /// <para>A language Windows cannot name comes back as its four hex digits rather than as "??".
+        /// Both are unhelpful, but one of them is at least identifiable: it is what the user types into
+        /// a search engine, and what makes a bug report actionable.</para>
+        /// </summary>
+        public static string CodeForLangId(int langId)
+        {
             try { return new CultureInfo(langId).TwoLetterISOLanguageName.ToUpperInvariant(); }
-            catch (CultureNotFoundException) { return klid!; }
+            catch (CultureNotFoundException) { return langId.ToString("X4", CultureInfo.InvariantCulture); }
+            catch (ArgumentException) { return langId.ToString("X4", CultureInfo.InvariantCulture); }
         }
     }
 }
