@@ -29,14 +29,15 @@ Description: >-
   with search, two keep-awake switches, and an interface available in 13 languages. Ships as a
   single portable exe with no installer and no runtime dependencies.
 ReleaseNotes: |-
-  The biggest release so far: five new modules, each optional and off until you switch it on.
-  - Layout conversion is now an open table: any number of "from layout to layout" pairs, each with its own shortcut, converted by physical key position (AZERTY and QWERTZ included) and working in both directions. The original EN/RU flip is simply its first row.
-  - A settings page replaces the Windows language pane: install, reorder and remove keyboard layouts, choose the language-cycle shortcut, and assign direct per-language shortcuts that Windows itself handles - they keep working even when CyrFlip is closed.
-  - A built-in translator: select text, press your shortcut, and the translation streams into a small window beside the mouse pointer. It runs on Ollama, a free program you install once on your own computer, so the text goes to your machine - not to a cloud service and not to the developer.
-  - Quick launch turns your programs, scripts and yt-dlp downloads into scenarios you can start from the tray, from a global hotkey of their own, or from the taskbar Jump List.
-  - Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
-  - The interface now speaks 13 languages, right-to-left included, and follows your Windows language by default.
+  This release is about the translator, and about the places where the text had fallen behind the app.
+  - Translation is no longer limited to the thirteen interface languages: the picker now offers every language Windows knows. CyrFlip promises nothing about which of them your model can handle - it says so plainly and links to the model's own description, because coverage belongs to the model, not to us. We dispatch the text; the model translates it.
+  - The default model changed to aya-expanse:8b. That was decided by measurement, not by size: the previous default put Chinese characters into a Russian translation and answered Ukrainian with nonsense, and every model under 4 GB failed the same way. It is a larger one-time download, and English, Russian and Ukrainian are now genuinely correct.
+  - The two keep-awake switches are remembered between launches. Leave one on and it keeps the machine awake after a restart too - CyrFlip will not watch your battery for you, and the setting says so.
+  - The VS Code companion extension draws the layout marker in the app's own colours for every language, instead of colouring three and leaving the rest grey.
+  - The privacy policy is now published in all 13 interface languages, not only English.
+  - Several settings still described the marker as EN/RU/UK. It has shown the code of any installed layout for a long time; the text now matches what the app does.
 ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
+PrivacyUrl: https://serzhyale.github.io/CyrFlip/privacy.html
 Moniker: cyrflip
 Tags:
   - keyboard

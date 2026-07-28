@@ -31,8 +31,10 @@ The same notes must land in **four** places. Missing one ships a release with st
 
 - [ ] **GitHub Release** — `release.yml` sets `generate_release_notes: true` (auto from commits).
       Make sure the squashed commit history reads sensibly; you may edit the release body after.
-- [ ] **Microsoft Store** — update the **"What's new in this version"** block (line ~41) in
-      [msix/store-listings.md](../../../msix/store-listings.md), for **EN, RU, and UK**.
+- [ ] **Microsoft Store** — update the **"What's new in this version"** block in
+      [msix/store-listing-export.csv](../../../msix/store-listing-export.csv), the source of truth for
+      the listing, in **all 13 languages**. `msix/store-listings.md` and `store/listing-*.txt` are
+      render targets - regenerate them from the CSV, never hand-edit them.
 - [ ] **winget** — set/refresh `ReleaseNotes` (and `ReleaseNotesUrl` → the GitHub Release) in the
       locale manifests `winget/SerZhyAle.CyrFlip.locale.{en-US,ru-RU,uk-UA}.yaml`. Add the field
       if absent (schema 1.12.0 supports it).
@@ -41,7 +43,8 @@ The same notes must land in **four** places. Missing one ships a release with st
       [vscode-extension/CHANGELOG.md](../../../vscode-extension/CHANGELOG.md), and bump `version`
       in `vscode-extension/package.json`.
 
-Also update README EN/RU/UK + the site under `docs/` if user-facing behaviour changed. Commit
+Also update README EN/RU + the site under `docs/` (the trilingual root page, the EN/RU/UK guides and
+the 13 language first pages) if user-facing behaviour changed. Commit
 these doc changes as a normal `/build` commit **first** (they ride to GitHub Pages on push).
 
 ## Phase 2 — Preflight (free, no git changes, no GitHub minutes)
@@ -89,8 +92,8 @@ and the **SHA256** from the run log — the next steps need them.
         -Publisher "CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD" -PublisherDisplayName "SZA"
       ```
       Upload the **unsigned** `.msix` (Microsoft re-signs). Partner Center → CyrFlip → **Create
-      new submission** → replace the package → refresh EN/RU/UK listings + the **"What's new"**
-      from `msix/store-listings.md` → Submit. Detail: [msix/README.md](../../../msix/README.md),
+      new submission** → replace the package → refresh all 13 listings + the **"What's new"**
+      from `msix/store-listing-export.csv` → Submit. Detail: [msix/README.md](../../../msix/README.md),
       [STORE_PUBLISHING.md](../../../STORE_PUBLISHING.md). Certification takes a few business days.
 - [ ] **VS Code Marketplace** (only if the extension changed) — in `vscode-extension/`:
       ```powershell

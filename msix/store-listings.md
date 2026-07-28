@@ -42,7 +42,7 @@ Every hotkey can be switched on or off independently, CyrFlip can yield them to 
 
 The interface is available in 13 languages, right-to-left ones included. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11.
 
-A built-in translator is optional too, and off until you enable it. Select text anywhere in Windows, press its shortcut, and the translation appears in a small window next to the mouse pointer, filling in as the model writes. It runs on Ollama, a free program you install once on your own computer: CyrFlip does not bundle it, has no account and no key, and by default talks only to http://localhost:11434 - your own machine - so no text is sent to the developer or to any cloud service. Directions are an open-ended table, like the layout conversions: every row is a target language with its own global shortcut, and a row can also follow the interface language or the language of the layout active in the window you translate from. The result can be copied to the clipboard, where the optional history records it like any other copy, or pasted straight over the selection - both are off by default. The Translation tab opens the Ollama download page, starts the server, checks the connection and downloads a model: qwen2.5:3b (~2 GB) is the default, gemma2:2b (~1.6 GB) suits weaker machines, and aya-expanse:8b (~5 GB) translates noticeably better on 8 GB of RAM or more. Fair warning: the quality is the local model's, the first translation after a cold start takes a while as the model loads, Ollama and a model are a multi-gigabyte download you make once, and the memory the model uses belongs to the Ollama process, not to CyrFlip. Selections longer than 4000 characters are translated up to that point, and the window says so.
+A built-in translator is optional too, and off until you enable it. Select text anywhere in Windows, press its shortcut, and the translation appears in a small window next to the mouse pointer, filling in as the model writes. It runs on Ollama, a free program you install once on your own computer: CyrFlip does not bundle it, has no account and no key, and by default talks only to http://localhost:11434 - your own machine - so no text is sent to the developer or to any cloud service. Directions are an open-ended table, like the layout conversions: every row is a target language with its own global shortcut, and a row can also follow the interface language or the language of the layout active in the window you translate from. The result can be copied to the clipboard, where the optional history records it like any other copy, or pasted straight over the selection - both are off by default. The Translation tab opens the Ollama download page, starts the server, checks the connection and downloads a model: aya-expanse:8b (~4.7 GB) is the default and the best of those tested, with gemma2:9b (~5 GB) as the alternative. Every model under 4 GB failed the Russian and Ukrainian check, so gemma2:2b (~1.5 GB) is there only for a machine short on space, and it will make mistakes. Fair warning: the quality is the local model's, the first translation after a cold start takes a while as the model loads, Ollama and a model are a multi-gigabyte download you make once, and the memory the model uses belongs to the Ollama process, not to CyrFlip. Selections longer than 4000 characters are translated up to that point, and the window says so.
 
 Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform actions you trigger. It does not log keystrokes, and it opens no network connection unless you enable the translator, which talks only to the Ollama server you point it at - your own computer by default. Open source: https://github.com/SerZhyAle/CyrFlip
 ```
@@ -70,19 +70,17 @@ Open source - no telemetry and no data collection; the only network use is your 
 
 **What's new in this version**
 ```
-The biggest release so far: five new modules, each optional and off until you switch it on.
+Translation is no longer limited to the thirteen interface languages. The picker now offers every language Windows knows, and CyrFlip makes no promise about which of them your model can actually handle - it says so plainly and links to the model's own description, because coverage belongs to the model, not to us. We dispatch the text; the model translates it.
 
-Layout conversion is now an open table - any number of "from layout to layout" pairs, each with its own shortcut. Text is converted by physical key position, so AZERTY and QWERTZ are handled correctly, and every pair works in both directions. The original EN/RU flip is simply its first row.
+The default model changed to aya-expanse:8b. That was decided by measurement, not by size: the previous default put Chinese characters into a Russian translation and answered Ukrainian with nonsense, and every model under 4 GB failed the same way. The new one is a larger one-time download, and English, Russian and Ukrainian are now genuinely correct.
 
-A settings page replaces the Windows language pane: install, reorder and remove keyboard layouts, choose the language-cycle shortcut, and assign direct per-language shortcuts that Windows itself handles - they keep working even when CyrFlip is closed.
+The two keep-awake switches are remembered between launches. Leave one on and it keeps the machine awake after a restart too - CyrFlip will not watch your battery for you, and the setting says so.
 
-A built-in translator: select text, press your shortcut, and the translation appears in a small window beside the mouse pointer, filling in as the model writes it. It runs on Ollama, a free program you install once on your own computer, so the text goes to your own machine - never to a cloud service and never to the developer.
+The VS Code companion extension now draws the layout marker in the app's own colours for every language, instead of colouring three and leaving the rest grey.
 
-Quick launch turns your programs, scripts and yt-dlp downloads into scenarios you can start from the tray, from a global hotkey of their own, or from the taskbar Jump List.
+The privacy policy is now published in all 13 interface languages, not only English.
 
-Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
-
-The interface now speaks 13 languages, right-to-left included, and follows your Windows language by default.
+Several settings still described the marker as EN/RU/UK. It has shown the code of any installed layout for a long time; the text now matches what the app does.
 ```
 
 ---
@@ -112,7 +110,7 @@ CyrFlip — крошечная утилита Windows в системном тр
 
 Интерфейс доступен на 13 языках, включая языки с письмом справа налево. Работает в системном трее, потребляет мало памяти и не требует ничего доустанавливать на Windows 10/11.
 
-Встроенный переводчик — тоже необязательный модуль, выключенный, пока вы его не включите. Выделите текст в любом приложении Windows, нажмите свою комбинацию — и перевод появится в маленьком окне у курсора мыши, дописываясь по мере того, как его пишет модель. Работает он на Ollama — бесплатной программе, которую вы один раз ставите на свой компьютер: CyrFlip её в себе не несёт, не требует ни учётной записи, ни ключа и по умолчанию обращается только к http://localhost:11434 — то есть к вашей же машине, — поэтому текст не уходит ни разработчику, ни в облако. Направления перевода — открытая таблица, как и конвертации раскладок: в каждой строке язык перевода и своя глобальная комбинация, а строка может следовать за языком интерфейса или за языком раскладки, активной в том окне, откуда вы переводите. Результат можно класть в буфер обмена, где необязательная история запишет его как обычную копию, или сразу вставлять вместо выделения — по умолчанию выключено и то и другое. Вкладка «Перевод» открывает страницу загрузки Ollama, запускает сервер, проверяет связь и загружает модель: по умолчанию qwen2.5:3b (~2 ГБ), для слабых машин gemma2:2b (~1,6 ГБ), а aya-expanse:8b (~5 ГБ) переводит заметно лучше при 8 ГБ ОЗУ и больше. Честные оговорки: качество — это качество локальной модели, первый перевод после холодного старта идёт дольше, пока модель загружается, Ollama вместе с моделью — это многогигабайтная загрузка, которую вы делаете один раз, а память под модель занимает процесс Ollama, а не CyrFlip. Выделение длиннее 4000 знаков переводится до этой границы, и окно об этом сообщает.
+Встроенный переводчик — тоже необязательный модуль, выключенный, пока вы его не включите. Выделите текст в любом приложении Windows, нажмите свою комбинацию — и перевод появится в маленьком окне у курсора мыши, дописываясь по мере того, как его пишет модель. Работает он на Ollama — бесплатной программе, которую вы один раз ставите на свой компьютер: CyrFlip её в себе не несёт, не требует ни учётной записи, ни ключа и по умолчанию обращается только к http://localhost:11434 — то есть к вашей же машине, — поэтому текст не уходит ни разработчику, ни в облако. Направления перевода — открытая таблица, как и конвертации раскладок: в каждой строке язык перевода и своя глобальная комбинация, а строка может следовать за языком интерфейса или за языком раскладки, активной в том окне, откуда вы переводите. Результат можно класть в буфер обмена, где необязательная история запишет его как обычную копию, или сразу вставлять вместо выделения — по умолчанию выключено и то и другое. Вкладка «Перевод» открывает страницу загрузки Ollama, запускает сервер, проверяет связь и загружает модель: по умолчанию aya-expanse:8b (~4,7 ГБ) - лучший перевод из проверенных, рядом gemma2:9b (~5 ГБ). Все модели меньше 4 ГБ проверку на русском и украинском не прошли, поэтому gemma2:2b (~1,5 ГБ) остаётся только для машин, где мало места, и будет ошибаться. Честные оговорки: качество — это качество локальной модели, первый перевод после холодного старта идёт дольше, пока модель загружается, Ollama вместе с моделью — это многогигабайтная загрузка, которую вы делаете один раз, а память под модель занимает процесс Ollama, а не CyrFlip. Выделение длиннее 4000 знаков переводится до этой границы, и окно об этом сообщает.
 
 Конфиденциальность: CyrFlip использует перехват клавиатуры и буфер обмена только для функций, которые запускаете вы. Не ведёт журнал нажатий и не открывает ни одного сетевого соединения, пока вы не включите перевод, — а тот обращается только к серверу Ollama, который вы указали, по умолчанию к вашему же компьютеру. Открытый исходный код: https://github.com/SerZhyAle/CyrFlip
 ```
@@ -138,19 +136,17 @@ CyrFlip — крошечная утилита Windows в системном тр
 
 **Что нового в этой версии**
 ```
-Самый большой выпуск за всё время: пять новых модулей, каждый необязательный и выключенный, пока вы его не включите.
+Перевод больше не ограничен тринадцатью языками интерфейса. В списке теперь все языки, которые знает Windows, и CyrFlip не обещает, какие из них потянет ваша модель: он честно об этом пишет и даёт ссылку на её описание, потому что охват языков - свойство модели, а не наше. Мы отправляем текст, переводит модель.
 
-Конвертация раскладок теперь открытая таблица - сколько угодно пар «из раскладки в раскладку», у каждой своя комбинация клавиш. Текст переводится по физическому положению клавиш, поэтому AZERTY и QWERTZ обрабатываются правильно, и каждая пара работает в обе стороны. Прежний переворот EN/RU - просто её первая строка.
+Модель по умолчанию заменена на aya-expanse:8b. Решено замером, а не размером: прежняя вставляла китайские иероглифы в русский перевод и отвечала бессмыслицей на украинском, и точно так же провалились все модели меньше 4 ГБ. Новая - более крупная разовая загрузка, зато английский, русский и украинский теперь действительно корректны.
 
-Отдельная страница настроек заменяет языковую панель Windows: устанавливайте, переставляйте и удаляйте раскладки, выбирайте комбинацию для перебора языков и назначайте прямые сочетания на конкретный язык, которые обрабатывает сама Windows - они работают, даже когда CyrFlip закрыт.
+Два переключателя - «не давать засыпать» и «не блокировать экран» - запоминаются между запусками. Забытый включённым не даст компьютеру уснуть и после перезапуска: следить за вашей батареей CyrFlip не станет, и подсказка так и говорит.
 
-Встроенный переводчик: выделите текст, нажмите свою комбинацию - и перевод появится в небольшом окне рядом с указателем мыши, заполняясь по мере того, как его пишет модель. Работает на Ollama, бесплатной программе, которую вы один раз ставите себе сами, поэтому текст уходит на вашу же машину, а не в облако и не разработчику.
+Расширение для VS Code рисует маркер раскладки цветами самого приложения для всех языков, а не для трёх, оставляя остальные серыми.
 
-«Быстрый запуск» превращает ваши программы, скрипты и загрузки yt-dlp в сценарии, которые запускаются из трея, по собственной горячей клавише или из списка переходов на панели задач.
+Политика приватности теперь опубликована на всех 13 языках интерфейса, а не только на английском.
 
-Два переключателя не дают Windows уснуть и погасить экран, пока вы работаете.
-
-Интерфейс теперь говорит на 13 языках, включая языки справа налево, и по умолчанию следует за языком Windows.
+Несколько настроек всё ещё описывали маркер как EN/RU/UK. Он давно показывает код любой установленной раскладки - текст приведён в соответствие с тем, что программа делает на самом деле.
 ```
 
 ---
@@ -176,7 +172,7 @@ CyrFlip — це крихітна утиліта в системному тре�
 
 «Швидкий запуск» — другий необов'язковий модуль, теж вимкнений, доки ви його не ввімкнете. Він перетворює ваші програми, скрипти та завантаження yt-dlp на сценарії, які запускаються з підменю в треї, за власним глобальним сполученням або з Jump List панелі завдань — навіть коли CyrFlip не запущено, якщо закріпити його на панелі. Сценарії окремої програми OneClickRunner, яку цей модуль увібрав у себе, можна перенести під час першого ввімкнення, не чіпаючи оригінали.
 
-Вбудований перекладач теж необов'язковий і вимкнений, доки ви його не ввімкнете. Виділіть текст будь-де у Windows, натисніть його сполучення — і переклад з'явиться в невеликому вікні біля вказівника миші, заповнюючись у міру того, як його пише модель. Працює це на Ollama, безкоштовній програмі, яку ви один раз встановлюєте на власний комп'ютер: CyrFlip її не містить, не має ні облікового запису, ні ключа й типово звертається лише до http://localhost:11434 — вашої ж машини, — тому жоден текст не йде ні розробникові, ні до будь-якої хмарної служби. Напрямки — відкрита таблиця, як і перетворення розкладок: кожен рядок це мова перекладу з власним глобальним сполученням, а рядок може ще й стежити за мовою інтерфейсу або за мовою розкладки, активної у вікні, з якого ви перекладаєте. Результат можна класти в буфер обміну, де його записує необов'язкова історія, як і будь-яку іншу копію, або одразу вставляти замість виділення — обидві опції типово вимкнені. Вкладка «Переклад» відкриває сторінку завантаження Ollama, запускає сервер, перевіряє з'єднання й отримує модель: qwen2.5:3b (~2 ГБ) типова, gemma2:2b (~1,6 ГБ) пасує слабшим комп'ютерам, а aya-expanse:8b (~5 ГБ) на 8 ГБ пам'яті й більше перекладає помітно краще. Скажемо чесно: якість буде така, як у локальної моделі; перший переклад після холодного старту триває довше, бо модель завантажується; Ollama з моделлю — це кількагігабайтне завантаження, яке ви робите один раз; а пам'ять, яку займає модель, належить процесу Ollama, а не CyrFlip. Виділення, довші за 4000 символів, перекладаються до цієї межі, і вікно про це повідомляє.
+Вбудований перекладач теж необов'язковий і вимкнений, доки ви його не ввімкнете. Виділіть текст будь-де у Windows, натисніть його сполучення — і переклад з'явиться в невеликому вікні біля вказівника миші, заповнюючись у міру того, як його пише модель. Працює це на Ollama, безкоштовній програмі, яку ви один раз встановлюєте на власний комп'ютер: CyrFlip її не містить, не має ні облікового запису, ні ключа й типово звертається лише до http://localhost:11434 — вашої ж машини, — тому жоден текст не йде ні розробникові, ні до будь-якої хмарної служби. Напрямки — відкрита таблиця, як і перетворення розкладок: кожен рядок це мова перекладу з власним глобальним сполученням, а рядок може ще й стежити за мовою інтерфейсу або за мовою розкладки, активної у вікні, з якого ви перекладаєте. Результат можна класти в буфер обміну, де його записує необов'язкова історія, як і будь-яку іншу копію, або одразу вставляти замість виділення — обидві опції типово вимкнені. Вкладка «Переклад» відкриває сторінку завантаження Ollama, запускає сервер, перевіряє з'єднання й отримує модель: aya-expanse:8b (~4,7 ГБ) типова - найкращий переклад із перевірених, поруч gemma2:9b (~5 ГБ). Усі моделі менші за 4 ГБ перевірки українською та російською не пройшли, тож gemma2:2b (~1,5 ГБ) лишається тільки для машин, де мало місця, і помилятиметься. Скажемо чесно: якість буде така, як у локальної моделі; перший переклад після холодного старту триває довше, бо модель завантажується; Ollama з моделлю — це кількагігабайтне завантаження, яке ви робите один раз; а пам'ять, яку займає модель, належить процесу Ollama, а не CyrFlip. Виділення, довші за 4000 символів, перекладаються до цієї межі, і вікно про це повідомляє.
 
 Кожну гарячу клавішу можна вмикати й вимикати окремо, можна поступатися ними активному клієнту віддаленого робочого столу, щоб їх обробляла копія CyrFlip у віддаленому сеансі, а два перемикачі не дають Windows заснути чи погасити екран, поки ви працюєте.
 
@@ -208,19 +204,17 @@ CyrFlip — це крихітна утиліта в системному тре�
 
 **Що нового в цій версії**
 ```
-Найбільший випуск за весь час: п'ять нових модулів, кожен необов'язковий і вимкнений, доки ви його не ввімкнете.
+Переклад більше не обмежений тринадцятьма мовами інтерфейсу. У списку тепер усі мови, які знає Windows, і CyrFlip не обіцяє, які з них потягне ваша модель: він чесно про це пише й дає посилання на її опис, бо охоплення мов - властивість моделі, а не наша. Ми надсилаємо текст, перекладає модель.
 
-Конвертація розкладок тепер відкрита таблиця - скільки завгодно пар «з розкладки в розкладку», у кожної власне сполучення клавіш. Текст перетворюється за фізичним положенням клавіш, тож AZERTY і QWERTZ обробляються правильно, і кожна пара працює в обидва боки. Колишнє перевертання EN/RU - просто її перший рядок.
+Модель за замовчуванням змінено на aya-expanse:8b. Вирішено виміром, а не розміром: попередня вставляла китайські ієрогліфи в російський переклад і відповідала нісенітницею українською, і так само провалилися всі моделі, менші за 4 ГБ. Нова - більше одноразове завантаження, зате англійська, російська та українська тепер справді коректні.
 
-Окрема сторінка налаштувань замінює мовну панель Windows: встановлюйте, переставляйте та вилучайте розкладки, обирайте сполучення для перебору мов і призначайте прямі сполучення на конкретну мову, які обробляє сама Windows - вони працюють, навіть коли CyrFlip закрито.
+Два перемикачі - «не давати засинати» та «не блокувати екран» - запам'ятовуються між запусками. Забутий увімкненим не дасть комп'ютеру заснути й після перезапуску: стежити за вашою батареєю CyrFlip не буде, і підказка так і каже.
 
-Вбудований перекладач: виділіть текст, натисніть своє сполучення - і переклад з'явиться в невеликому вікні біля вказівника миші, заповнюючись у міру того, як його пише модель. Працює на Ollama, безкоштовній програмі, яку ви один раз встановлюєте собі самі, тому текст іде на вашу ж машину, а не в хмару й не розробникові.
+Розширення для VS Code малює маркер розкладки кольорами самого застосунку для всіх мов, а не для трьох, лишаючи решту сірими.
 
-«Швидкий запуск» перетворює ваші програми, скрипти та завантаження yt-dlp на сценарії, які запускаються з трея, за власною гарячою клавішею або зі списку переходів на панелі задач.
+Політику приватності тепер опубліковано всіма 13 мовами інтерфейсу, а не лише англійською.
 
-Два перемикачі не дають Windows заснути та згасити екран, доки ви працюєте.
-
-Інтерфейс тепер говорить 13 мовами, зокрема справа наліво, і типово стежить за мовою Windows.
+Кілька налаштувань усе ще описували маркер як EN/RU/UK. Він давно показує код будь-якої встановленої розкладки - текст приведено у відповідність до того, що програма робить насправді.
 ```
 
 ---

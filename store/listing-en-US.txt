@@ -23,7 +23,7 @@ Optional clipboard history is disabled by default. When enabled, it keeps recent
 
 Quick launch is a second optional module, also off until you enable it. It turns your programs, scripts and yt-dlp downloads into scenarios you can start from the tray submenu, from a global hotkey of their own, or from the taskbar Jump List - even while CyrFlip is not running, if you pin it. Scenarios from the standalone OneClickRunner tool, which this module absorbs, can be imported on the first run without touching the originals.
 
-A built-in translator is optional too, and off until you enable it. Select text anywhere in Windows, press its shortcut, and the translation appears in a small window next to the mouse pointer, filling in as the model writes. It runs on Ollama, a free program you install once on your own computer: CyrFlip does not bundle it, has no account and no key, and by default talks only to http://localhost:11434 - your own machine - so no text is sent to the developer or to any cloud service. Directions are an open-ended table, like the layout conversions: every row is a target language with its own global shortcut, and a row can also follow the interface language or the language of the layout active in the window you translate from. The result can be copied to the clipboard, where the optional history records it like any other copy, or pasted straight over the selection - both are off by default. The Translation tab opens the Ollama download page, starts the server, checks the connection and downloads a model: qwen2.5:3b (~2 GB) is the default, gemma2:2b (~1.6 GB) suits weaker machines, and aya-expanse:8b (~5 GB) translates noticeably better on 8 GB of RAM or more. Fair warning: the quality is the local model's, the first translation after a cold start takes a while as the model loads, Ollama and a model are a multi-gigabyte download you make once, and the memory the model uses belongs to the Ollama process, not to CyrFlip. Selections longer than 4000 characters are translated up to that point, and the window says so.
+A built-in translator is optional too, and off until you enable it. Select text anywhere in Windows, press its shortcut, and the translation appears in a small window next to the mouse pointer, filling in as the model writes. It runs on Ollama, a free program you install once on your own computer: CyrFlip does not bundle it, has no account and no key, and by default talks only to http://localhost:11434 - your own machine - so no text is sent to the developer or to any cloud service. Directions are an open-ended table, like the layout conversions: every row is a target language with its own global shortcut, and a row can also follow the interface language or the language of the layout active in the window you translate from. The result can be copied to the clipboard, where the optional history records it like any other copy, or pasted straight over the selection - both are off by default. The Translation tab opens the Ollama download page, starts the server, checks the connection and downloads a model: aya-expanse:8b (~4.7 GB) is the default and the best of those tested, with gemma2:9b (~5 GB) as the alternative. Every model under 4 GB failed the Russian and Ukrainian check, so gemma2:2b (~1.5 GB) is there only for a machine short on space, and it will make mistakes. Fair warning: the quality is the local model's, the first translation after a cold start takes a while as the model loads, Ollama and a model are a multi-gigabyte download you make once, and the memory the model uses belongs to the Ollama process, not to CyrFlip. Selections longer than 4000 characters are translated up to that point, and the window says so.
 
 Every hotkey can be switched on or off independently, CyrFlip can yield them to a focused Remote Desktop client so the copy running inside the remote session handles them instead, and two keep-awake switches stop Windows sleeping or blanking the screen while you work.
 
@@ -55,19 +55,17 @@ PRODUCT FEATURES (max 200 chars each)
 
 WHAT'S NEW IN THIS VERSION
 --------------------------
-The biggest release so far: five new modules, each optional and off until you switch it on.
+Translation is no longer limited to the thirteen interface languages. The picker now offers every language Windows knows, and CyrFlip makes no promise about which of them your model can actually handle - it says so plainly and links to the model's own description, because coverage belongs to the model, not to us. We dispatch the text; the model translates it.
 
-Layout conversion is now an open table - any number of "from layout to layout" pairs, each with its own shortcut. Text is converted by physical key position, so AZERTY and QWERTZ are handled correctly, and every pair works in both directions. The original EN/RU flip is simply its first row.
+The default model changed to aya-expanse:8b. That was decided by measurement, not by size: the previous default put Chinese characters into a Russian translation and answered Ukrainian with nonsense, and every model under 4 GB failed the same way. The new one is a larger one-time download, and English, Russian and Ukrainian are now genuinely correct.
 
-A settings page replaces the Windows language pane: install, reorder and remove keyboard layouts, choose the language-cycle shortcut, and assign direct per-language shortcuts that Windows itself handles - they keep working even when CyrFlip is closed.
+The two keep-awake switches are remembered between launches. Leave one on and it keeps the machine awake after a restart too - CyrFlip will not watch your battery for you, and the setting says so.
 
-A built-in translator: select text, press your shortcut, and the translation appears in a small window beside the mouse pointer, filling in as the model writes it. It runs on Ollama, a free program you install once on your own computer, so the text goes to your own machine - never to a cloud service and never to the developer.
+The VS Code companion extension now draws the layout marker in the app's own colours for every language, instead of colouring three and leaving the rest grey.
 
-Quick launch turns your programs, scripts and yt-dlp downloads into scenarios you can start from the tray, from a global hotkey of their own, or from the taskbar Jump List.
+The privacy policy is now published in all 13 interface languages, not only English.
 
-Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
-
-The interface now speaks 13 languages, right-to-left included, and follows your Windows language by default.
+Several settings still described the marker as EN/RU/UK. It has shown the code of any installed layout for a long time; the text now matches what the app does.
 
 
 SEARCH TERMS
