@@ -413,5 +413,72 @@ namespace CyrFlip
         public static extern int GetCurrentPackageFamilyName(ref int packageFamilyNameLength, System.Text.StringBuilder? packageFamilyName);
 
         public const int ERROR_INSUFFICIENT_BUFFER = 122;
+
+        // ---- Simple MAPI: hand the log archive to the user's mail client (MailSender.cs) ----
+        // Why MAPI at all: mailto: cannot carry an attachment - RFC 2368 has no such field and the
+        // non-standard attach= is deliberately ignored by every modern client (it was a hole). Simple
+        // MAPI's MAPISendMail with MAPI_DIALOG opens a compose window in the registered default mail
+        // client with the file already attached, which is exactly the requested behaviour.
+        //
+        // Two traps, both handled in MailSender:
+        //   - ANSI only: every string below is LPStr, so a non-ASCII path (a Cyrillic Windows account
+        //     name) has to be passed as its 8.3 short form via GetShortPathName;
+        //   - bitness: mapi32.dll in System32 is a stub forwarding into the registered client's DLL,
+        //     so a 32-bit Outlook answers our 64-bit process with MAPI_E_FAILURE. That is not fixable
+        //     - it is precisely why the mailto: fallback exists.
+        public const uint MAPI_SUCCESS_SUCCESS = 0;
+        public const uint MAPI_USER_ABORT = 1;      // user closed the compose window - the scenario succeeded
+        public const uint MAPI_E_FAILURE = 2;
+        public const uint MAPI_LOGON_UI = 0x00000001;
+        public const uint MAPI_DIALOG = 0x00000008; // show the compose window instead of sending silently
+        public const uint MAPI_TO = 1;              // MapiRecipDesc.ulRecipClass
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+        public struct MapiMessage
+        {
+            public uint ulReserved;
+            [MarshalAs(UnmanagedType.LPStr)] public string? lpszSubject;
+            [MarshalAs(UnmanagedType.LPStr)] public string? lpszNoteText;
+            [MarshalAs(UnmanagedType.LPStr)] public string? lpszMessageType;
+            [MarshalAs(UnmanagedType.LPStr)] public string? lpszDateReceived;
+            [MarshalAs(UnmanagedType.LPStr)] public string? lpszConversationID;
+            public uint flFlags;
+            public IntPtr lpOriginator;
+            public uint nRecipCount;
+            public IntPtr lpRecips;
+            public uint nFileCount;
+            public IntPtr lpFiles;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+        public struct MapiRecipDesc
+        {
+            public uint ulReserved;
+            public uint ulRecipClass;
+            [MarshalAs(UnmanagedType.LPStr)] public string? lpszName;
+            [MarshalAs(UnmanagedType.LPStr)] public string? lpszAddress;
+            public uint ulEIDSize;
+            public IntPtr lpEntryID;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+        public struct MapiFileDesc
+        {
+            public uint ulReserved;
+            public uint flFlags;
+            public uint nPosition;   // 0xFFFFFFFF = append at the end of the note text
+            [MarshalAs(UnmanagedType.LPStr)] public string? lpszPathName;
+            [MarshalAs(UnmanagedType.LPStr)] public string? lpszFileName;
+            public IntPtr lpFileType;
+        }
+
+        [DllImport("mapi32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        public static extern uint MAPISendMail(IntPtr lhSession, IntPtr ulUIParam,
+            ref MapiMessage lpMessage, uint flFlags, uint ulReserved);
+
+        // The 8.3 form of a path, so an ANSI MAPI call survives a non-ASCII account name. Returns 0
+        // on failure, and a volume with 8.3 names disabled legitimately fails here.
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern uint GetShortPathName(string lpszLongPath, System.Text.StringBuilder? lpszShortPath, uint cchBuffer);
     }
 }

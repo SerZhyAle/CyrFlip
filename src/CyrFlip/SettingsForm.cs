@@ -17,6 +17,9 @@ namespace CyrFlip
         private readonly Action _setCaseHotkey, _setHistoryHotkey, _openHistorySearch, _clearHistory, _diagnoseCaret;
         private readonly Action<bool> _setHotkeysEnabled, _setCaseEnabled, _setHistoryEnabled, _setDeferRdp;
         private readonly Action<bool> _setKeepAwake, _setKeepScreen;
+        // Disabled while a bundle is being packed or a compose window is open, so a second click
+        // cannot start a second archive on top of the first.
+        private Button? _sendLogs;
         private readonly CheckBox _enableHotkeys = Check("Слушать глобальные горячие клавиши");
         private readonly CheckBox _caseEnabled = Check("Исправить CapsLock");
         private readonly CheckBox _historyEnabled = Check("Менеджер буфера");
@@ -1931,7 +1934,80 @@ namespace CyrFlip
             panel.Controls.Add(Link("Сайт разработчика: sza.od.ua", "https://sza.od.ua/"));
             panel.Controls.Add(new Label { Text = "CyrFlip работает локально, без телеметрии и сетевой синхронизации истории буфера.", AutoSize = true, MaximumSize = new Size(690, 0), Padding = new Padding(0, 14, 0, 0), ForeColor = SystemColors.GrayText });
             panel.Controls.Add(Setting(Button("Диагностика положения каретки...", _diagnoseCaret), "Создаёт локальный отчёт о том, как Windows и UI Automation видят каретку. Нужен только если метка не появляется или рисуется не там в конкретной программе."));
+            _sendLogs = Button("Отправить логи автору..", SendLogsToAuthor);
+            panel.Controls.Add(Setting(_sendLogs, "Собирает логи CyrFlip в один архив и открывает письмо автору с этим вложением. Письмо отправляете вы сами — CyrFlip ничего не передаёт в сеть. История буфера обмена в архив не попадает."));
             return page;
+        }
+
+        /// <summary>
+        /// Collect the logs, show what was collected, and - only if the user says so - hand the archive
+        /// to their mail client. Off the UI thread twice over, and for two different reasons: packing
+        /// is disk work, and <c>MAPISendMail</c> with <c>MAPI_DIALOG</c> blocks until the compose
+        /// window is closed.
+        /// </summary>
+        private void SendLogsToAuthor()
+        {
+            if (_sendLogs != null) _sendLogs.Enabled = false;
+            Task.Run(() =>
+            {
+                try
+                {
+                    SupportBundle.Result result = SupportBundle.CreateDefault(_config, DateTime.Now);
+                    BeginInvoke(new Action(() => ShowSupportBundle(result)));
+                }
+                catch (Exception ex)
+                {
+                    BeginInvoke(new Action(() =>
+                    {
+                        if (_sendLogs != null) _sendLogs.Enabled = true;
+                        MessageBox.Show(this, Translate("Не удалось собрать архив с логами:") + "\n" + ex.Message,
+                            "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }));
+                }
+            });
+        }
+
+        private void ShowSupportBundle(SupportBundle.Result result)
+        {
+            DialogResult answer;
+            using (var dialog = new SupportBundleDialog(result, _config.UiLanguage))
+                answer = dialog.ShowDialog(this);
+            if (answer != DialogResult.OK)
+            {
+                // The archive stays on disk: the user may well want to attach it by hand later.
+                if (_sendLogs != null) _sendLogs.Enabled = true;
+                return;
+            }
+
+            SupportMail mail = MailSender.Compose(result.ArchivePath, SupportBundle.AppVersion(),
+                MailSender.LanguageCode(_config.UiLanguage), MailSender.DescribeSystem());
+            IntPtr owner = Handle;
+            Task.Run(() =>
+            {
+                MailOutcome outcome = MailSender.Send(mail, new MailSender.WindowsMailTransport(owner));
+                BeginInvoke(new Action(() => AfterSupportMail(outcome, result)));
+            });
+        }
+
+        private void AfterSupportMail(MailOutcome outcome, SupportBundle.Result result)
+        {
+            if (_sendLogs != null) _sendLogs.Enabled = true;
+            switch (outcome)
+            {
+                // A mailto: message cannot carry an attachment - no mail client accepts one from a
+                // link. Say so plainly instead of letting the user send an empty report.
+                case MailOutcome.MailtoOpened:
+                    MessageBox.Show(this,
+                        Translate("Ваша почтовая программа не принимает вложение из ссылки. Письмо открыто, а архив выделен в проводнике — перетащите его в письмо перед отправкой."),
+                        "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    break;
+                case MailOutcome.Manual:
+                    MessageBox.Show(this,
+                        Translate("Не удалось открыть почтовую программу. Отправьте архив вручную на адрес:")
+                        + "\n" + MailSender.AuthorAddress + "\n\n" + result.ArchivePath,
+                        "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    break;
+            }
         }
         private static LinkLabel Link(string text, string url)
         {

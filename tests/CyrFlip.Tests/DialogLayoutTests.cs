@@ -24,6 +24,19 @@ namespace CyrFlip.Tests
             new InputLayouts.Installed { Klid = "00000419", LangId = 0x0419, LanguageName = "русский (Россия)", DisplayName = "Russian" },
         };
 
+        /// <summary>A collected bundle with one truncated and one dropped file - every row shape at once.</summary>
+        private static readonly SupportBundle.Result Bundle = new SupportBundle.Result
+        {
+            ArchivePath = @"C:\Users\u\AppData\Local\CyrFlip\reports\CyrFlip-logs-26.7.29.2340-20260729-2340.zip",
+            ArchiveBytes = 41_000,
+            Entries = new List<SupportBundle.Entry>
+            {
+                new SupportBundle.Entry { Name = "report.txt", Bytes = 2_100 },
+                new SupportBundle.Entry { Name = "launcher.log", Bytes = 524_288, Truncated = true, OmittedBytes = 9_000_000 },
+            },
+            Dropped = new List<string> { "caret-diagnostics.txt" },
+        };
+
         [Fact]
         public void NoCaptionIsClippedInAnyLanguage()
         {
@@ -52,6 +65,10 @@ namespace CyrFlip.Tests
                     // the one window whose buttons sit in a row that has to survive 13 languages.
                     using (var window = new TranslationResultWindow(new AppConfig { UiLanguage = language }, language))
                         inspected += Check(window, language, "TranslationResultWindow", problems);
+                    // The log bundle dialog: three buttons in a row plus two wrapped paragraphs, in
+                    // 13 languages - the exact shape that used to clip.
+                    using (var dialog = new SupportBundleDialog(Bundle, language))
+                        inspected += Check(dialog, language, "SupportBundleDialog", problems);
                 }
             }, problems);
 

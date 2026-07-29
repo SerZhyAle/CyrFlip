@@ -49,7 +49,7 @@ for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and c
   - **Windows languages** - install / reorder / remove Windows keyboard layouts, choose the cycle chord (Alt+Shift, Ctrl+Shift, `` ` `` or off), and assign direct per-language shortcuts that Windows itself handles. Both sections take a one-time backup of your pre-CyrFlip state with a one-click restore.
   - **Quick launch** - the scenario launcher (see below).
   - **Translation** - the local translator (see below): the Ollama address and model, the buttons that install, start and check it, the table of translation directions, and what to do with the result.
-  - **Clipboard** and **About & Advanced** - history options, its transparency and search, plus the caret-position diagnostics.
+  - **Clipboard** and **About & Advanced** - history options, its transparency and search, plus the caret-position diagnostics and **Send logs to the author..** (see below).
 
 CyrFlip is a normal desktop app, not a Windows service: a global keyboard hook and the layout indicator must run in your interactive session, so "autostart" is a per-user startup entry rather than a service.
 
@@ -149,6 +149,26 @@ A legacy `config.json` (next to the exe or in `%APPDATA%\CyrFlip\`) is migrated 
 - **IME and dead-key input.** A conversion profile changes characters Windows can resolve to one physical key. Composed/dead-key output and already composed IME text (such as Chinese Pinyin) are ambiguous and are left unchanged; the target layout still switches after a successful conversion.
 - **Two layouts of one language share a code.** The indicator shows the language, not the variant, so US and Dvorak both read `EN`, and the standard Russian layout and Russian Typewriter both read `RU`. The **Windows languages** tab shows the exact KLID of each installed layout, which is what conversion profiles bind to.
 - **Some Windows-language changes need a sign-out.** Installing, reordering or removing a layout, and the per-language shortcuts, are applied to the live session immediately, but Windows occasionally only settles them after signing out and back in. The Microsoft Store build additionally runs in a container, so Windows may redirect those registry writes into the package - the tab warns about this and links to the Windows settings.
+
+## Reporting a problem
+
+**Settings → About & Advanced → Send logs to the author..** packs CyrFlip's own diagnostic logs
+(`launcher.log`, `context-menu.log`, `translate.log`, the caret diagnostics, `layout.txt`) plus a
+configuration report into one ZIP under `reports`, next to the layout file, and opens a message to
+[sza@ukr.net](mailto:sza@ukr.net) with that archive attached.
+
+- **You send it.** CyrFlip opens no network connection of its own; the transport is your own mail
+  program, and the Send button is yours. Nothing happens without the button being pressed.
+- **Clipboard history is never in the archive.** Before anything is sent you get the file list, the
+  sizes and the archive's path, and can open the folder to read it - that, not a row of checkboxes,
+  is the consent step. The logs do contain file paths, so they carry your Windows account name.
+- **If your mail client can't take an attachment from a link** - webmail and the new Outlook can't,
+  because `mailto:` has no attachment field at all - CyrFlip opens the message anyway and selects the
+  archive in Explorer so you can drag it in. Classic Outlook and Thunderbird attach it directly.
+- The archive stays on your disk either way; the five newest are kept and older ones removed.
+
+An issue on [GitHub](https://github.com/SerZhyAle/CyrFlip/issues) works just as well - attach the same
+archive there if the problem is not obvious from the description.
 
 ## Antivirus false positives
 

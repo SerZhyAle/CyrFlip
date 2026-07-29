@@ -41,6 +41,10 @@
     <!-- HttpClient for the local Ollama translator; framework assembly on net48, but the SDK does
          not reference it implicitly, so `using System.Net.Http` needs this line. -->
     <Reference Include="System.Net.Http" />
+    <!-- ZipFile/ZipArchive for the "send logs to the author" bundle; framework assembly on net48,
+         but the SDK does not reference it implicitly. Still zero NuGet runtime deps. -->
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <!-- UI Automation - caret position fallback for apps without a system caret (CaretOverlay).
          Framework assemblies (ship with .NET on Win10/11), so still zero NuGet/runtime deps. -->
     <Reference Include="UIAutomationClient" />

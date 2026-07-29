@@ -10,6 +10,7 @@ re-hitting the same traps every time. This folder is that script, kept.
 | `TargetWindow.ps1` | A plain WinForms text box standing in for "the app the user was typing in" |
 | `Test-TrayMouse.ps1` | End-to-end: single tray click switches the last active window's layout; double click opens Settings |
 | `Test-KeepAwake.ps1` | End-to-end: the saved keep-awake state becomes a real Windows power request (`powercfg /requests`) and stops being one when saved off |
+| `Test-SupportBundle.ps1` | The "Send logs to the author" archive: contents, truncation markers, retention. `-NoUi` builds the bundle itself (reflection into the built exe, real log folder and registry) so the disk half runs unattended; without it, you press the button and it checks what appeared. Either way the compose window is yours to look at |
 | `Save-SettingsShots.ps1` | PNG of every settings tab - for layout/localization eyeballing |
 
 Nothing here is wired into `dotnet test`, `build.ps1` or CI: these drive the real desktop (they
@@ -22,6 +23,8 @@ dotnet build CyrFlip.sln -c Release
 .\tools\uitest\Test-TrayMouse.ps1 -StartApp -Fresh      # exit code 0 = pass
 .\tools\uitest\Test-KeepAwake.ps1                       # three UAC prompts (powercfg needs admin)
 .\tools\uitest\Save-SettingsShots.ps1 -StartApp         # -> artifacts\uitest\settings-tab*.png
+.\tools\uitest\Test-SupportBundle.ps1 -NoUi             # unattended: disk half only
+.\tools\uitest\Test-SupportBundle.ps1                   # then press the About-tab button yourself
 ```
 
 Ad hoc, in a session:

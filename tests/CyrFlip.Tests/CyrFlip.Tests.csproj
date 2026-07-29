@@ -27,6 +27,9 @@
     <!-- LayoutColorsTests parses the palette the VS Code extension ships, with the same JSON reader
          the app uses for its own config - no NuGet dependency on either side. -->
     <Reference Include="System.Web.Extensions" />
+    <!-- SupportBundleTests opens the produced archive to check what did (and did not) go in. -->
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
 
   <ItemGroup>

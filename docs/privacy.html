@@ -23,7 +23,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/privacy.html",
     "description": "CyrFlip does not collect, store, log, or transmit any personal data. It runs entirely on your own device.",
     "inLanguage": "en",
-    "dateModified": "2026-07-26",
+    "dateModified": "2026-07-30",
     "about": { "@type": "SoftwareApplication", "name": "CyrFlip", "operatingSystem": "Windows 10, Windows 11" },
     "publisher": { "@type": "Person", "name": "SerZhyAle", "url": "https://github.com/SerZhyAle" }
   }
@@ -62,7 +62,7 @@
   <div class="wrap">
     <section>
       <h1>Privacy Policy</h1>
-      <p class="note">Last updated: 26 July 2026</p>
+      <p class="note">Last updated: 30 July 2026</p>
 
       <p><strong>CyrFlip does not collect, store, log, or transmit any personal data.</strong> It runs
       entirely on your own device. It has no servers of its own, no telemetry, analytics, advertising,
@@ -158,12 +158,20 @@
         <li><strong>Diagnostics report.</strong> Only when you run <em>Diagnose caret position…</em> yourself,
         CyrFlip writes <code>caret-diagnostics.txt</code> next to the layout file. It records what Windows and UI
         Automation report about the focused text field; it is never sent anywhere, and you can delete it.</li>
+
+        <li><strong>Log archive for the author.</strong> Only when you press <em>Send logs to the
+        author..</em> yourself, CyrFlip packs its own diagnostic logs and a configuration report into a ZIP
+        in the <code>reports</code> folder next to the layout file, and opens a message to the developer
+        with that file attached. <strong>Clipboard history is never part of that archive.</strong> The logs
+        do contain file paths, and with them your Windows account name; the dialog says so plainly and lets
+        you open the archive before any message exists. Nothing is sent until you press Send in your own
+        mail program - CyrFlip has no sending channel of its own.</li>
       </ul>
 
       <h2>Data sharing</h2>
       <p>None. CyrFlip does not share any data with the developer or any third party. The one thing it ever
       sends is the text you selected, to the translator address you chose yourself - by default a program on
-      your own computer - and only while that optional feature is switched on.</p>
+      your own computer - and only while that optional feature is switched on. The <em>Send logs to the author</em> button is no exception: it prepares a message in your own mail program, with an archive you can inspect first, and only you can send it.</p>
 
       <h2>Children's privacy</h2>
       <p>CyrFlip does not collect any data from anyone, including children.</p>
