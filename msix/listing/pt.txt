@@ -21,7 +21,7 @@ Cada atalho pode ser ligado ou desligado separadamente, o CyrFlip pode cedê-los
 
 A interface está disponível em 13 idiomas, incluindo os escritos da direita para a esquerda. Ela roda na área de notificação, usa pouca memória e não exige nada extra instalado no Windows 10/11.
 
-Privacidade: o CyrFlip usa um hook de teclado e a área de transferência apenas para detectar o layout ativo e executar as ações que você aciona. Ele não registra as teclas digitadas e não abre nenhuma conexão de rede, a menos que você ative o tradutor, que fala somente com o servidor Ollama que você indicar - o seu próprio computador, por padrão. Código aberto: https://github.com/SerZhyAle/CyrFlip
+Privacidade: o CyrFlip usa um hook de teclado e a área de transferência apenas para detectar o layout ativo e executar as ações que você aciona. Ele não registra as teclas digitadas e não abre nenhuma conexão de rede, a menos que você ative o tradutor, que fala somente com o servidor Ollama que você indicar - o seu próprio computador, por padrão. Se algo der errado, a janela de configurações reúne os logs do CyrFlip em um único arquivo e abre uma mensagem ao autor com esse anexo. Você mesmo envia a mensagem - o CyrFlip não transmite nada pela rede e o histórico da área de transferência nunca entra no arquivo. Código aberto: https://github.com/SerZhyAle/CyrFlip
 @@Feature1
 Marca do layout ao lado do cursor de texto - funciona em navegadores e no chat do VS Code
 @@Feature2

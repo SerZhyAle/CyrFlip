@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Script.Serialization;
@@ -15,15 +14,12 @@ namespace CyrFlip
     {
         private const int WmClipboardUpdate = 0x031D;
         private const int MaxTextBytes = 128 * 1024;
-        private readonly List<ClipboardHistoryEntry> _entries = new List<ClipboardHistoryEntry>();
-        // Uuid (the text's SHA-256) → its entry. The history is unbounded by design, so nothing may
-        // cost O(history): a repeat copy is recognised through this index instead of sorting or
-        // scanning the list, and replaying the log on startup stays linear rather than quadratic.
-        private readonly Dictionary<string, ClipboardHistoryEntry> _byUuid =
-            new Dictionary<string, ClipboardHistoryEntry>(StringComparer.Ordinal);
+        // The entries, their display order and the Uuid index, all maintained incrementally. The
+        // history is unbounded by design, so nothing may cost O(history) per copy - see
+        // <see cref="ClipboardHistoryOrder"/> for why that class exists at all.
+        private readonly ClipboardHistoryOrder _order = new ClipboardHistoryOrder();
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private readonly string _path;
-        private List<ClipboardHistoryEntry>? _ordered; // display order; rebuilt only after a change
         private bool _enabled;
         private bool _paused;
         private bool _suppressNext;
@@ -33,11 +29,10 @@ namespace CyrFlip
         public event EventHandler? ItemTooLarge;
 
         /// <summary>
-        /// Pinned first, then newest first. Cached because every repaint of the strip asks for it (and
-        /// the list it sorts only grows) - <see cref="RaiseChanged"/> is the one place that drops it.
+        /// Pinned first, then newest first. Already in that order - <see cref="ClipboardHistoryOrder"/>
+        /// keeps it so on every change, instead of the strip re-sorting the whole history on each repaint.
         /// </summary>
-        public IReadOnlyList<ClipboardHistoryEntry> Entries => _ordered ??= _entries
-            .OrderByDescending(x => x.IsPinned).ThenByDescending(x => x.CreatedAt).ToList();
+        public IReadOnlyList<ClipboardHistoryEntry> Entries => _order.Entries;
 
         public ClipboardHistoryService(bool enabled, bool paused)
         {
@@ -60,44 +55,40 @@ namespace CyrFlip
         {
             _suppressNext = true;
             bool written = Win32Clipboard.TrySetText(entry.Text);
-            if (written) { SetCurrent(entry); RaiseChanged(); }
-            return written;
+            // A failed write means our own clipboard traffic never happened, so the flag has to come
+            // back down: left standing it swallowed the user's *next real copy*, silently and for good.
+            if (!written) { _suppressNext = false; return false; }
+            _order.SetCurrent(entry);
+            RaiseChanged();
+            return true;
         }
 
         public void TogglePin(ClipboardHistoryEntry entry)
         {
-            entry.IsPinned = !entry.IsPinned;
+            _order.Update(entry, entry.CreatedAt, !entry.IsPinned);
             Append(entry.IsPinned ? "pin" : "unpin", entry);
             RaiseChanged();
         }
 
         public void Delete(ClipboardHistoryEntry entry)
         {
-            _entries.Remove(entry);
-            if (_byUuid.TryGetValue(entry.Uuid, out ClipboardHistoryEntry? indexed) && ReferenceEquals(indexed, entry))
-                _byUuid.Remove(entry.Uuid);
+            _order.Remove(entry);
             Append("delete", entry);
             RaiseChanged();
         }
 
         public void Clear()
         {
-            _entries.Clear();
-            _byUuid.Clear();
+            _order.Clear();
             try { if (File.Exists(_path)) File.Delete(_path); } catch { }
             RaiseChanged();
         }
 
         /// <summary>
-        /// Drop the cached display order and tell the windows to repaint. Every change goes through
-        /// here exactly once: the strip repaints on this event and each repaint re-sorts the history,
-        /// so a second, redundant raise doubles the cost of every copy.
+        /// Tell the windows to repaint. Every change goes through here exactly once: the strip
+        /// repaints on this event, so a second, redundant raise doubles the cost of every copy.
         /// </summary>
-        private void RaiseChanged()
-        {
-            _ordered = null;
-            Changed?.Invoke(this, EventArgs.Empty);
-        }
+        private void RaiseChanged() => Changed?.Invoke(this, EventArgs.Empty);
 
         protected override void WndProc(ref Message m)
         {
@@ -114,28 +105,21 @@ namespace CyrFlip
             string uuid = Hash(text);
             // Identical text is one entry, however long ago it was first copied - the same rule the
             // log replay in Load has always applied, now also applied live and in O(1).
-            if (_byUuid.TryGetValue(uuid, out ClipboardHistoryEntry? existing))
+            ClipboardHistoryEntry? existing = _order.Find(uuid);
+            if (existing != null)
             {
-                existing.CreatedAt = DateTime.UtcNow;
+                _order.Update(existing, DateTime.UtcNow, existing.IsPinned);
                 Append("touch", existing);
             }
             else
             {
                 ReadSource(out string sourceApp, out string sourceTitle);
                 existing = new ClipboardHistoryEntry { Uuid = uuid, Text = text, CreatedAt = DateTime.UtcNow, SourceApp = sourceApp, SourceTitle = sourceTitle };
-                _entries.Add(existing);
-                _byUuid[uuid] = existing;
+                _order.Add(existing);
                 Append("add", existing);
             }
-            SetCurrent(existing);
+            _order.SetCurrent(existing);
             RaiseChanged();
-        }
-
-        /// <summary>Mark one entry as the clipboard's current content. Raises nothing on its own:
-        /// it never changes the display order, and every caller raises the change itself.</summary>
-        private void SetCurrent(ClipboardHistoryEntry entry)
-        {
-            foreach (ClipboardHistoryEntry item in _entries) item.IsCurrent = ReferenceEquals(item, entry);
         }
 
         /// <summary>The window owning the clipboard when it changed is, in practice, the app the text came from.</summary>
@@ -192,20 +176,19 @@ namespace CyrFlip
                 {
                     HistoryRecord? r = _json.Deserialize<HistoryRecord>(line);
                     if (r == null || string.IsNullOrEmpty(r.Uuid)) continue;
-                    _byUuid.TryGetValue(r.Uuid, out ClipboardHistoryEntry? e);
-                    if (r.Action == "delete") { if (e != null) { _entries.Remove(e); _byUuid.Remove(r.Uuid); } continue; }
+                    ClipboardHistoryEntry? e = _order.Find(r.Uuid);
+                    if (r.Action == "delete") { if (e != null) _order.Remove(e); continue; }
                     if (r.Action == "add")
                     {
                         if (e != null || string.IsNullOrEmpty(r.Payload)) continue;
                         string text = Encoding.UTF8.GetString(ProtectedData.Unprotect(Convert.FromBase64String(r.Payload), null, DataProtectionScope.CurrentUser));
-                        var entry = new ClipboardHistoryEntry { Uuid = r.Uuid, Text = text, CreatedAt = new DateTime(r.CreatedAt, DateTimeKind.Utc), IsPinned = r.IsPinned, SourceApp = r.SourceApp ?? "", SourceTitle = r.SourceTitle ?? "" };
-                        _entries.Add(entry);
-                        _byUuid[r.Uuid] = entry;
+                        _order.Add(new ClipboardHistoryEntry { Uuid = r.Uuid, Text = text, CreatedAt = new DateTime(r.CreatedAt, DateTimeKind.Utc), IsPinned = r.IsPinned, SourceApp = r.SourceApp ?? "", SourceTitle = r.SourceTitle ?? "" });
                     }
-                    else if (e != null) { e.CreatedAt = new DateTime(r.CreatedAt, DateTimeKind.Utc); e.IsPinned = r.IsPinned; }
+                    // touch / pin / unpin all carry the same two fields, so one call covers them.
+                    else if (e != null) _order.Update(e, new DateTime(r.CreatedAt, DateTimeKind.Utc), r.IsPinned);
                 }
             }
-            catch { _entries.Clear(); _byUuid.Clear(); }
+            catch { _order.Clear(); }
         }
 
         private static string Hash(string text)

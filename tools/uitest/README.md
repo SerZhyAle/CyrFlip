@@ -11,6 +11,7 @@ re-hitting the same traps every time. This folder is that script, kept.
 | `Test-TrayMouse.ps1` | End-to-end: single tray click switches the last active window's layout; double click opens Settings |
 | `Test-KeepAwake.ps1` | End-to-end: the saved keep-awake state becomes a real Windows power request (`powercfg /requests`) and stops being one when saved off |
 | `Test-SupportBundle.ps1` | The "Send logs to the author" archive: contents, truncation markers, retention. `-NoUi` builds the bundle itself (reflection into the built exe, real log folder and registry) so the disk half runs unattended; without it, you press the button and it checks what appeared. Either way the compose window is yours to look at |
+| `Test-LongRun.ps1` | Hours-long watch of a live instance: GDI/USER handle counts (a leak there is invisible in the memory column), private bytes and threads, sampled to CSV while a throwaway window's layout is switched to drive the icon/cursor/overlay rendering. Fails on handle growth; private bytes are reported but never judged, since the clipboard history is unbounded by design |
 | `Save-SettingsShots.ps1` | PNG of every settings tab - for layout/localization eyeballing |
 
 Nothing here is wired into `dotnet test`, `build.ps1` or CI: these drive the real desktop (they
@@ -25,7 +26,14 @@ dotnet build CyrFlip.sln -c Release
 .\tools\uitest\Save-SettingsShots.ps1 -StartApp         # -> artifacts\uitest\settings-tab*.png
 .\tools\uitest\Test-SupportBundle.ps1 -NoUi             # unattended: disk half only
 .\tools\uitest\Test-SupportBundle.ps1                   # then press the About-tab button yourself
+.\tools\uitest\Test-LongRun.ps1 -DurationMinutes 60     # watches a *running* instance; ends by
+                                                        # asking you to press the history chord
 ```
+
+`Test-LongRun.ps1` deliberately never synthesizes a chord: CyrFlip ignores injected keystrokes
+(`LLKHF_INJECTED`), so a synthetic Ctrl+Shift+F10 would prove nothing about whether the keyboard
+hook is still alive. That question is put to a human at the end of the run - and it is the one that
+catches Windows having silently dropped the hook. Use `-SkipHookCheck` for an unattended run.
 
 Ad hoc, in a session:
 

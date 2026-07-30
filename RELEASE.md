@@ -60,13 +60,19 @@ GitHub-минуты **не тратятся**.
    и создал GitHub Release. Скопировать URL ZIP-ассета и SHA256 из лога.
 2. **Сайт/доки** - деплоятся из `/docs` автоматически на пуше выше. Проверить GitHub Pages;
    обновить версии/чейнджлог в `docs/`, если менялось поведение для пользователя.
-3. **winget** (`SerZhyAle.CyrFlip`):
-   ```powershell
-   wingetcreate update SerZhyAle.CyrFlip --version <ver> --urls <ZIP_URL> --submit
-   ```
+3. **winget** (`SerZhyAle.CyrFlip`) - **не** `wingetcreate update`: та команда пересобирает манифест из
+   уже опубликованного в winget-pkgs и меняет только версию с URL, так что `Description`,
+   `ShortDescription`, `Tags` и `ReleaseNotes` этого репозитория до магазина не доезжают. Собирать из
+   шаблонов `winget/*.yaml`: скопировать их в отдельную папку, подставить `__VERSION__` / `__URL__` /
+   `__SHA256__`, нацелить `ReleaseNotesUrl` на `/releases/tag/v<ver>`, затем `winget validate` +
+   `winget install --manifest <dir>` и `wingetcreate submit --prtitle "SerZhyAle.CyrFlip version <ver>"`.
+   **Тело PR заполнить руками** (`gh pr edit`): `wingetcreate` отправляет шаблон Microsoft нетронутым,
+   с пустым описанием и снятыми галочками, и такой PR читается как «ничего не проверено».
 4. **Microsoft Store (MSIX)** - `msix\build-msix.ps1` с реальной identity (Store ID `9NB4W41NGQJ4`),
-   затем Partner Center → Create new submission → заменить `.msix` → обновить EN/RU/UK листинги из
-   `msix/store-listings.md` → Submit. Детали: [msix/README.md](msix/README.md), [STORE_PUBLISHING.md](STORE_PUBLISHING.md).
+   затем Partner Center → Create new submission → заменить `.msix` → *Store listings → Import* из
+   `msix/store-listing-export.csv` (источник истины, все 13 языков; `msix/store-listings.md` и
+   `store/listing-*.txt` **генерируются** из него скриптом `msix/render-listing-mirrors.ps1` и годятся
+   только как ручной фолбэк) → Submit. Детали: [msix/README.md](msix/README.md), [STORE_PUBLISHING.md](STORE_PUBLISHING.md).
 5. **Расширение VS Code** (только если менялся `vscode-extension/`) - поднять `version` в
    `vscode-extension/package.json`, затем `npm install ; npm run compile ; npx @vscode/vsce publish`.
 6. **Smoke-тест** опубликованного: `winget install` / установка из Store после прохождения сертификации.

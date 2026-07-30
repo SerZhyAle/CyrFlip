@@ -27,6 +27,9 @@ stage/
 temp/
 # UI-test output (tools/uitest screenshots) - throwaway by design
 artifacts/
+# Samples written by tools/uitest/Test-LongRun.ps1 next to the script - one file per run, and the
+# verdict is printed rather than stored, so nothing here is worth keeping.
+tools/uitest/longrun-*.csv
 
 # NuGet
 *.nupkg

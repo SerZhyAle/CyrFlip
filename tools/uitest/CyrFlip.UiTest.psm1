@@ -77,6 +77,29 @@ public static class CyrFlipUi {
     [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, IntPtr extra);
     [DllImport("kernel32.dll")] public static extern uint GetCurrentThreadId();
     [DllImport("oleacc.dll")] public static extern int AccessibleObjectFromWindow(IntPtr hwnd, uint objId, ref Guid iid, out IntPtr ppv);
+    [DllImport("user32.dll")] public static extern uint GetGuiResources(IntPtr process, uint flags);
+    [DllImport("kernel32.dll")] public static extern IntPtr OpenProcess(uint access, bool inherit, uint pid);
+    [DllImport("kernel32.dll")] public static extern bool CloseHandle(IntPtr h);
+    [DllImport("user32.dll")] public static extern IntPtr PostMessageW(IntPtr h, uint msg, IntPtr w, IntPtr l);
+
+    // GDI and USER handle counts of another process - the two that actually leak in a WinForms tray
+    // app (icons, bitmaps, fonts, windows). Private Bytes is read from the Process object instead;
+    // these two have no managed equivalent. Returns "gdi user" or "" when the process is gone.
+    public static string GuiResources(uint pid) {
+        const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
+        IntPtr h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+        if (h == IntPtr.Zero) return "";
+        try { return GetGuiResources(h, 0) + " " + GetGuiResources(h, 1); }   // 0 = GDI, 1 = USER
+        finally { CloseHandle(h); }
+    }
+
+    // Ask a window's input thread to switch layout, the same way CyrFlip's own LayoutSwitcher does.
+    // Posting to the target window (rather than clicking the tray) keeps a long run from churning
+    // the layout of whatever the person at the machine is really typing in.
+    public static bool SwitchLayout(IntPtr h, IntPtr hkl) {
+        const uint WM_INPUTLANGCHANGEREQUEST = 0x0050;
+        return PostMessageW(h, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, hkl) != IntPtr.Zero;
+    }
 
     public delegate bool EnumProc(IntPtr h, IntPtr p);
     [StructLayout(LayoutKind.Sequential)] public struct POINT { public int X; public int Y; }
@@ -450,6 +473,56 @@ function Get-InstalledLayouts {
     }
 }
 
+function Get-AppResourceUsage {
+    <#
+    .SYNOPSIS
+    One sample of what a long run has to watch: private bytes, GDI and USER handles, threads.
+    .DESCRIPTION
+    GDI and USER handles are the ones that matter for a tray app that renders its own icon and
+    cursor - a leak there is invisible in Task Manager's memory column and ends in the app (or the
+    whole session) running out of handles. Private bytes are reported but deliberately not judged:
+    the clipboard history is unbounded by design, so it is *expected* to grow.
+    #>
+    [CmdletBinding()]
+    param([string]$ProcessName = 'CyrFlip')
+    Initialize-UiTestNative
+    Get-Process $ProcessName -ErrorAction SilentlyContinue | ForEach-Object {
+        $counts = [CyrFlipUi]::GuiResources([uint32]$_.Id) -split ' '
+        [pscustomobject]@{
+            Time         = Get-Date
+            ProcessId    = $_.Id
+            PrivateBytes = $_.PrivateMemorySize64
+            WorkingSet   = $_.WorkingSet64
+            GdiObjects   = if ($counts.Count -eq 2) { [int]$counts[0] } else { -1 }
+            UserObjects  = if ($counts.Count -eq 2) { [int]$counts[1] } else { -1 }
+            Threads      = $_.Threads.Count
+            Handles      = $_.HandleCount
+        }
+    }
+}
+
+function Switch-WindowLayout {
+    <#
+    .SYNOPSIS
+    Moves a window's input thread to the next installed layout (wrapping), and returns the new HKL.
+    .DESCRIPTION
+    Drives the indicator the way real typing does - CursorIndicator polls the foreground window, so
+    a switch here makes it re-render the tray icon, the I-beam cursor and the caret overlay, which
+    is exactly the GDI path a long run needs to exercise. Posts to the window rather than clicking
+    the tray, so it never touches the layout of the user's own windows.
+    #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][IntPtr]$Handle)
+    Initialize-UiTestNative
+    $installed = @([CyrFlipUi]::InstalledLayouts())
+    if ($installed.Count -lt 2) { Write-Warning 'Only one keyboard layout is installed - nothing to switch between.'; return }
+    $current = [CyrFlipUi]::Hkl($Handle)
+    $index = [Array]::IndexOf($installed, $current)
+    $next = if ($index -ge 0) { $installed[($index + 1) % $installed.Count] } else { $installed[0] }
+    [void][CyrFlipUi]::SwitchLayout($Handle, $next)
+    $next
+}
+
 function Get-ForegroundWindowInfo {
     Initialize-UiTestNative
     $h = [CyrFlipUi]::GetForegroundWindow()
@@ -559,4 +632,4 @@ function Save-WindowShot {
 Export-ModuleMember -Function Enable-UiTestDpi, Get-CyrFlipExe, Start-CyrFlipApp, Stop-CyrFlipApp,
     Get-TrayIcons, Get-TrayIcon, Invoke-MouseClick, Invoke-TrayClick, Start-TargetWindow, Get-WindowLayout,
     Set-WindowForeground, Get-InstalledLayouts, Get-ForegroundWindowInfo, Get-AppWindows,
-    Wait-AppWindow, Find-AppWindow, Save-WindowShot
+    Wait-AppWindow, Find-AppWindow, Save-WindowShot, Get-AppResourceUsage, Switch-WindowLayout

@@ -90,10 +90,28 @@ namespace CyrFlip
                 Post(false, 0, 0, code, caps);
         }
 
+        // What was last handed to the UI thread. The tracker ticks eleven times a second for the
+        // whole life of the app, and most of those ticks say exactly what the previous one said -
+        // overwhelmingly "still hidden" (a console, the desktop, any window with no caret). Posting
+        // that costs an allocation and a wake-up of the UI thread to change nothing at all. The
+        // initial values are the form's real initial state: created, hidden, no code.
+        private bool _postedShow;
+        private int _postedX, _postedY;
+        private string _postedCode = "";
+        private bool _postedCaps;
+
         private void Post(bool show, int x, int y, string code, bool caps)
         {
             if (!_form.IsHandleCreated)
                 return;
+            if (show == _postedShow && x == _postedX && y == _postedY
+                && code == _postedCode && caps == _postedCaps)
+                return;
+            _postedShow = show;
+            _postedX = x;
+            _postedY = y;
+            _postedCode = code;
+            _postedCaps = caps;
             try
             {
                 _form.BeginInvoke((Action)(() =>

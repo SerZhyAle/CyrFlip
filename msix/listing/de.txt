@@ -21,7 +21,7 @@ Jedes Tastenkürzel lässt sich einzeln ein- und ausschalten, CyrFlip kann sie a
 
 Die Oberfläche ist in 13 Sprachen verfügbar, auch in solchen mit Schreibrichtung von rechts nach links. Sie läuft im Infobereich, braucht wenig Speicher und erfordert unter Windows 10/11 keine zusätzliche Installation.
 
-Datenschutz: CyrFlip nutzt einen Tastaturhook und die Zwischenablage ausschließlich, um das aktive Layout zu erkennen und die von Ihnen ausgelösten Aktionen auszuführen. Es protokolliert keine Tastenanschläge und öffnet keine Netzwerkverbindung, solange Sie den Übersetzer nicht einschalten, der nur mit dem von Ihnen angegebenen Ollama-Server spricht - standardmäßig Ihrem eigenen Rechner. Quelloffen: https://github.com/SerZhyAle/CyrFlip
+Datenschutz: CyrFlip nutzt einen Tastaturhook und die Zwischenablage ausschließlich, um das aktive Layout zu erkennen und die von Ihnen ausgelösten Aktionen auszuführen. Es protokolliert keine Tastenanschläge und öffnet keine Netzwerkverbindung, solange Sie den Übersetzer nicht einschalten, der nur mit dem von Ihnen angegebenen Ollama-Server spricht - standardmäßig Ihrem eigenen Rechner. Wenn etwas schiefgeht, fasst das Einstellungsfenster die Protokolle von CyrFlip in einem Archiv zusammen und öffnet eine Nachricht an den Autor mit diesem Anhang. Gesendet wird sie von Ihnen - CyrFlip überträgt nichts ins Netz, und der Zwischenablage-Verlauf kommt nie ins Archiv. Quelloffen: https://github.com/SerZhyAle/CyrFlip
 @@Feature1
 Live-Layoutmarkierung neben der Schreibmarke - funktioniert in Browsern und im VS-Code-Chat
 @@Feature2

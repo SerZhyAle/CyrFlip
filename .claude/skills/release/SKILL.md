@@ -34,7 +34,8 @@ The same notes must land in **four** places. Missing one ships a release with st
 - [ ] **Microsoft Store** — update the **"What's new in this version"** block in
       [msix/store-listing-export.csv](../../../msix/store-listing-export.csv), the source of truth for
       the listing, in **all 13 languages**. `msix/store-listings.md` and `store/listing-*.txt` are
-      render targets - regenerate them from the CSV, never hand-edit them.
+      render targets: run `.\msix\render-listing-mirrors.ps1` and commit what it rewrites, never
+      hand-edit the copy in them. The preflight runs the same script with `-Check` and fails on drift.
 - [ ] **winget** — set/refresh `ReleaseNotes` (and `ReleaseNotesUrl` → the GitHub Release) in the
       locale manifests `winget/SerZhyAle.CyrFlip.locale.{en-US,ru-RU,uk-UA}.yaml`. Add the field
       if absent (schema 1.12.0 supports it).
@@ -52,8 +53,9 @@ these doc changes as a normal `/build` commit **first** (they ride to GitHub Pag
 ```powershell
 .\release.ps1
 ```
-Runs clean-tree + on-main checks, a full local build + test, computes the version, and prints
-the checklist. If anything is red — fix it now, before spending a minute on GitHub.
+Runs on-main + dirty-tree reporting, a full local build + test, the listing-mirror drift check
+(`render-listing-mirrors.ps1 -Check`), computes the version, and prints the checklist. If anything
+is red — fix it now, before spending a minute on GitHub.
 
 ## Phase 3 — Trigger the signed GitHub build (this spends minutes)
 

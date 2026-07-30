@@ -25,6 +25,23 @@ namespace CyrFlip
                 ur: "جب تک CyrFlip آپ کے Windows سیشن میں چل رہا ہے، یہ شارٹ کٹس پورے سسٹم میں کام کرتے ہیں۔ ہر شارٹ کٹ الگ سے آن یا آف کیا جا سکتا ہے۔",
                 zh: "只要 CyrFlip 在你的 Windows 会话中运行，这些快捷键就全局有效。每个快捷键都可以单独启用或禁用。");
 
+            // The hook watchdog's only voice: Windows drops a low-level hook that overran its
+            // timeout and tells nobody, so a re-arm that keeps failing is the one thing the user has
+            // to hear about - the chords are dead until CyrFlip restarts.
+            Add("Windows не отдаёт перехват клавиатуры — горячие клавиши могут не работать. Помогает перезапуск CyrFlip.",
+                en: "Windows will not grant the keyboard hook — the hotkeys may not work. Restarting CyrFlip usually helps.",
+                uk: "Windows не віддає перехоплення клавіатури — гарячі клавіші можуть не працювати. Допомагає перезапуск CyrFlip.",
+                de: "Windows gibt den Tastatur-Hook nicht frei — die Tastenkürzel funktionieren möglicherweise nicht. Ein Neustart von CyrFlip hilft meist.",
+                it: "Windows non concede l'aggancio della tastiera: le scorciatoie potrebbero non funzionare. Di solito basta riavviare CyrFlip.",
+                es: "Windows no concede el enganche del teclado: los atajos pueden no funcionar. Reiniciar CyrFlip suele ayudar.",
+                fr: "Windows refuse le hook clavier : les raccourcis risquent de ne pas fonctionner. Redémarrer CyrFlip résout généralement le problème.",
+                pt: "O Windows não concede o hook do teclado: os atalhos podem não funcionar. Reiniciar o CyrFlip costuma resolver.",
+                ar: "لا يمنح Windows اعتراض لوحة المفاتيح — قد لا تعمل الاختصارات. عادةً ما تفيد إعادة تشغيل CyrFlip.",
+                hi: "Windows कीबोर्ड हुक नहीं दे रहा — शॉर्टकट शायद काम न करें। आमतौर पर CyrFlip को दोबारा शुरू करने से मदद मिलती है।",
+                bn: "Windows কীবোর্ড হুক দিচ্ছে না — শর্টকাট কাজ না-ও করতে পারে। সাধারণত CyrFlip পুনরায় চালু করলে কাজ হয়।",
+                ur: "Windows کی بورڈ ہک نہیں دے رہا — شارٹ کٹس شاید کام نہ کریں۔ عام طور پر CyrFlip دوبارہ شروع کرنے سے مدد ملتی ہے۔",
+                zh: "Windows 未授予键盘挂钩 — 快捷键可能失效。重启 CyrFlip 通常可以解决。");
+
             Add("Слушать глобальные горячие клавиши",
                 en: "Listen for global hotkeys", uk: "Слухати глобальні гарячі клавіші",
                 de: "Auf globale Tastenkürzel reagieren", it: "Ascolta le scorciatoie globali",

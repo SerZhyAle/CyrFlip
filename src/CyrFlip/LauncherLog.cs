@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 namespace CyrFlip
 {
@@ -12,25 +11,9 @@ namespace CyrFlip
     /// </summary>
     internal static class LauncherLog
     {
-        private static readonly object Lock = new object();
-        private static readonly string FilePath = Path.Combine(
-            Environment.GetFolderPath(PackageInfo.IsPackaged
-                ? Environment.SpecialFolder.CommonApplicationData   // %ProgramData%
-                : Environment.SpecialFolder.LocalApplicationData),  // %LOCALAPPDATA%
-            "CyrFlip", "launcher.log");
+        private static readonly string FilePath = DiagnosticLog.Path("launcher.log");
 
         public static void Log(string message)
-        {
-            try
-            {
-                lock (Lock)
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-                    File.AppendAllText(FilePath,
-                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message + Environment.NewLine);
-                }
-            }
-            catch { /* diagnostics must never affect the app */ }
-        }
+            => DiagnosticLog.Append(FilePath, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
     }
 }

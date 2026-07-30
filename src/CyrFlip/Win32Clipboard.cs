@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -93,6 +94,94 @@ namespace CyrFlip
                     return false;
                 }
                 return true; // the system owns hMem now
+            }
+            finally { CloseClipboard(); }
+        }
+
+        /// <summary>
+        /// A raw clipboard format as bytes, so a flip can hand back what it borrowed even when that
+        /// was not text (see <see cref="ClipboardHandler.BackupClipboard"/>). Returns false when the
+        /// clipboard could not be opened; <paramref name="data"/> is null when the format is absent.
+        /// </summary>
+        /// <param name="maxBytes">
+        /// Above this the format is skipped (<paramref name="data"/> stays null) rather than copied:
+        /// a flip must not carry a half-gigabyte scan through memory twice to preserve it.
+        /// </param>
+        public static bool TryGetBytes(uint format, out byte[]? data, int maxBytes = int.MaxValue)
+        {
+            data = null;
+            if (!OpenWithRetry())
+                return false;
+            try
+            {
+                IntPtr handle = GetClipboardData(format);
+                if (handle == IntPtr.Zero)
+                    return true; // the format is simply not on the clipboard
+
+                IntPtr ptr = GlobalLock(handle);
+                if (ptr == IntPtr.Zero)
+                    return true; // not a memory-backed format (a bitmap handle, say) - nothing to copy
+                try
+                {
+                    ulong size = GlobalSize(handle).ToUInt64();
+                    if (size == 0 || size > (ulong)maxBytes)
+                        return true;
+                    var bytes = new byte[size];
+                    Marshal.Copy(ptr, bytes, 0, bytes.Length);
+                    data = bytes;
+                }
+                finally { GlobalUnlock(handle); }
+                return true;
+            }
+            finally { CloseClipboard(); }
+        }
+
+        /// <summary>
+        /// Put raw bytes back on the clipboard under <paramref name="format"/>. Used only to restore
+        /// what <see cref="TryGetBytes"/> took, and only from <see cref="Restore"/>, which owns the
+        /// single open/empty/refill sequence.
+        /// </summary>
+        private static bool SetBytes(uint format, byte[] data)
+        {
+            IntPtr hMem = GlobalAlloc(GMEM_MOVEABLE, (UIntPtr)(uint)data.Length);
+            if (hMem == IntPtr.Zero)
+                return false;
+
+            IntPtr dst = GlobalLock(hMem);
+            if (dst == IntPtr.Zero)
+            {
+                GlobalFree(hMem);
+                return false;
+            }
+            try { Marshal.Copy(data, 0, dst, data.Length); }
+            finally { GlobalUnlock(hMem); }
+
+            if (SetClipboardData(format, hMem) == IntPtr.Zero)
+            {
+                GlobalFree(hMem); // ownership not transferred on failure
+                return false;
+            }
+            return true; // the system owns hMem now
+        }
+
+        /// <summary>
+        /// Replace the clipboard with several formats at once - one open, one <c>EmptyClipboard</c>,
+        /// then every payload. Restoring format by format would not work: each call empties the
+        /// clipboard again and would throw away the format restored just before it.
+        /// </summary>
+        public static bool Restore(IEnumerable<KeyValuePair<uint, byte[]>> payloads)
+        {
+            if (!OpenWithRetry())
+                return false;
+            try
+            {
+                if (!EmptyClipboard())
+                    return false;
+                bool all = true;
+                foreach (KeyValuePair<uint, byte[]> payload in payloads)
+                    if (payload.Value != null && payload.Value.Length > 0)
+                        all &= SetBytes(payload.Key, payload.Value);
+                return all;
             }
             finally { CloseClipboard(); }
         }

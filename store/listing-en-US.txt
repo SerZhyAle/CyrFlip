@@ -29,7 +29,7 @@ Every hotkey can be switched on or off independently, CyrFlip can yield them to 
 
 The interface is available in 13 languages, right-to-left ones included. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11.
 
-Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform actions you trigger. It does not log keystrokes, and it opens no network connection unless you enable the translator, which talks only to the Ollama server you point it at - your own computer by default. Open source: https://github.com/SerZhyAle/CyrFlip
+Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform actions you trigger. It does not log keystrokes, and it opens no network connection unless you enable the translator, which talks only to the Ollama server you point it at - your own computer by default. If something goes wrong, the settings window collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network, and clipboard history never goes into the archive. Open source: https://github.com/SerZhyAle/CyrFlip
 
 
 PRODUCT FEATURES (max 200 chars each)
@@ -43,14 +43,14 @@ PRODUCT FEATURES (max 200 chars each)
 • Install, reorder and remove Windows keyboard layouts without the Windows language pane
 • Per-language switch shortcuts that Windows handles itself, so they work when CyrFlip is closed
 • Optional encrypted clipboard history with search, pin, and Windows DPAPI protection
-• Optional Quick launch: your programs, scripts and yt-dlp downloads as one-click scenarios
-• Start a scenario from the tray, its own global hotkey, or the taskbar Jump List
-• Optional local translator: a selection is translated by hotkey in a window at the mouse pointer
-• Translation runs on Ollama on your own computer - installed separately, off until you enable it
 • Two keep-awake switches: no sleep and no screen blanking while you work
 • Interface in 13 languages, right-to-left included; follows your Windows language
 • Runs quietly in the tray, low memory, nothing extra to install
 • Open source - no telemetry and no data collection; the only network use is your own Ollama
+• Optional Quick launch: your programs, scripts and yt-dlp downloads as one-click scenarios
+• Start a scenario from the tray, its own global hotkey, or the taskbar Jump List
+• Optional local translator: a selection is translated by hotkey in a window at the mouse pointer
+• Translation runs on Ollama on your own computer - installed separately, off until you enable it
 
 
 WHAT'S NEW IN THIS VERSION

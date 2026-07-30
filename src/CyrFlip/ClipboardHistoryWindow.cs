@@ -40,6 +40,9 @@ namespace CyrFlip
         private readonly Action _openSearch;
         private bool _dragging;
         private Point _dragStart;
+        // Built once instead of per paint - and the strip repaints on every copy. They follow the
+        // window's own Font, so OnFontChanged drops them and the next paint rebuilds them.
+        private Font? _titleFont, _hotkeyFont, _bigFont, _smallFont, _buttonFont;
 
         public ClipboardHistoryWindow(ClipboardHistoryService service, AppConfig config, Action openSearch)
         {
@@ -55,11 +58,14 @@ namespace CyrFlip
             _service.Changed += (_, _) => { if (!IsDisposed) Invalidate(); };
             FormClosing += OnFormClosing;
             ResizeEnd += (_, _) => SaveBounds();
-            Move += (_, _) => { if (Visible) SaveBounds(); };
             Paint += OnPaint;
             MouseDown += OnMouseDown;
             MouseMove += OnMouseMove;
-            MouseUp += (_, _) => _dragging = false;
+            // The end of a drag is the one moment the position is worth persisting. There used to be a
+            // Move handler here, and Move fires dozens of times per drag - each one running the whole
+            // of AppConfig.Save(): forty-odd registry values plus a JSON serialization of both profile
+            // tables, on the UI thread, to record a window that had moved four pixels.
+            MouseUp += (_, _) => { if (_dragging) { _dragging = false; SaveBounds(); } };
             Resize += (_, _) => Invalidate();
         }
 
@@ -121,8 +127,9 @@ namespace CyrFlip
             e.Graphics.Clear(dark ? Color.FromArgb(55, 55, 55) : Color.White);
             using var headerBrush = new SolidBrush(header);
             e.Graphics.FillRectangle(headerBrush, new Rectangle(0, 0, ClientSize.Width, HeaderHeight));
-            using var title = new Font(Font.FontFamily, 9, FontStyle.Bold);
-            using var hotkeyFont = new Font(Font.FontFamily, 7);
+            EnsureFonts();
+            Font title = _titleFont!;
+            Font hotkeyFont = _hotkeyFont!;
             using var headerForeground = new SolidBrush(dark ? Color.LightSkyBlue : Color.MidnightBlue);
             using var hotkeyBrush = new SolidBrush(dark ? Color.Gray : Color.DimGray);
             // Read the language on every paint: the header follows a settings change with no restart.
@@ -157,9 +164,9 @@ namespace CyrFlip
             string normalized = entry.Text.Replace("\r", " ").Replace("\n", " ").Trim();
             string anchor = normalized.Length <= 15 ? normalized : normalized.Substring(0, 15);
             string rest = normalized.Length > 15 ? normalized.Substring(15) : "";
-            using var big = new Font(Font.FontFamily, 10, FontStyle.Bold);
-            using var small = new Font(Font.FontFamily, 7.5f);
-            using var buttons = new Font(Font.FontFamily, 15);
+            Font big = _bigFont!;      // built by OnPaint before any cell is drawn
+            Font small = _smallFont!;
+            Font buttons = _buttonFont!;
             using var anchorBrush = new SolidBrush(dark ? Color.White : Color.Black);
             using var restBrush = new SolidBrush(dark ? Color.Silver : Color.DimGray);
             using var timeBrush = new SolidBrush(Color.Gold);
@@ -251,15 +258,65 @@ namespace CyrFlip
             g.Restore(state);
         }
 
+        /// <summary>The five fonts the strip paints with, derived from the window's own <see cref="Control.Font"/>.</summary>
+        private void EnsureFonts()
+        {
+            if (_titleFont != null) return;
+            _titleFont = new Font(Font.FontFamily, 9, FontStyle.Bold);
+            _hotkeyFont = new Font(Font.FontFamily, 7);
+            _bigFont = new Font(Font.FontFamily, 10, FontStyle.Bold);
+            _smallFont = new Font(Font.FontFamily, 7.5f);
+            _buttonFont = new Font(Font.FontFamily, 15);
+        }
+
+        private void DisposeFonts()
+        {
+            _titleFont?.Dispose();
+            _hotkeyFont?.Dispose();
+            _bigFont?.Dispose();
+            _smallFont?.Dispose();
+            _buttonFont?.Dispose();
+            _titleFont = _hotkeyFont = _bigFont = _smallFont = _buttonFont = null;
+        }
+
+        protected override void OnFontChanged(EventArgs e)
+        {
+            base.OnFontChanged(e);
+            DisposeFonts();   // rebuilt on the next paint, from the new family
+            Invalidate();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) DisposeFonts();
+            base.Dispose(disposing);
+        }
+
+        private const int DarkThemeTtlMs = 2000;
+        private static bool _darkThemeKnown;
+        private static bool _darkTheme;
+        private static int _darkThemeReadAt;
+
+        /// <summary>
+        /// Windows' light/dark preference, re-read at most every <see cref="DarkThemeTtlMs"/>. It used
+        /// to open the registry key on <b>every repaint</b>, and the strip repaints on every copy;
+        /// two seconds is far under how long anyone takes to notice they switched themes.
+        /// </summary>
         private static bool IsDarkTheme()
         {
+            if (_darkThemeKnown && unchecked(Environment.TickCount - _darkThemeReadAt) < DarkThemeTtlMs)
+                return _darkTheme;
+
+            _darkThemeReadAt = Environment.TickCount;
+            _darkThemeKnown = true;
             try
             {
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
                 object? value = key?.GetValue("AppsUseLightTheme");
-                return value != null && Convert.ToInt32(value) == 0;
+                _darkTheme = value != null && Convert.ToInt32(value) == 0;
             }
-            catch { return false; }
+            catch { _darkTheme = false; }
+            return _darkTheme;
         }
     }
 }

@@ -21,7 +21,7 @@ Cada atajo se puede activar o desactivar por separado, CyrFlip puede cederlos a 
 
 La interfaz está disponible en 13 idiomas, incluidos los que se escriben de derecha a izquierda. Se ejecuta en la bandeja del sistema, usa poca memoria y no necesita nada más instalado en Windows 10/11.
 
-Privacidad: CyrFlip usa un hook de teclado y el portapapeles solo para detectar la distribución activa y realizar las acciones que tú inicias. No registra las pulsaciones y no abre ninguna conexión de red salvo que actives el traductor, que solo habla con el servidor Ollama que le indiques - tu propio ordenador de forma predeterminada. Código abierto: https://github.com/SerZhyAle/CyrFlip
+Privacidad: CyrFlip usa un hook de teclado y el portapapeles solo para detectar la distribución activa y realizar las acciones que tú inicias. No registra las pulsaciones y no abre ninguna conexión de red salvo que actives el traductor, que solo habla con el servidor Ollama que le indiques - tu propio ordenador de forma predeterminada. Si algo va mal, la ventana de ajustes reúne los registros de CyrFlip en un solo archivo comprimido y abre un mensaje al autor con ese adjunto. El mensaje lo envía usted - CyrFlip no transmite nada por la red y el historial del portapapeles nunca entra en el archivo. Código abierto: https://github.com/SerZhyAle/CyrFlip
 @@Feature1
 Marca de distribución junto al cursor de texto - funciona en navegadores y en el chat de VS Code
 @@Feature2

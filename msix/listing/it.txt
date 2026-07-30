@@ -21,7 +21,7 @@ Ogni scorciatoia si può attivare o disattivare singolarmente, CyrFlip può cede
 
 L'interfaccia è disponibile in 13 lingue, comprese quelle che si scrivono da destra a sinistra. Gira nell'area di notifica, usa poca memoria e non richiede nulla di aggiuntivo su Windows 10/11.
 
-Privacy: CyrFlip usa un hook della tastiera e gli appunti solo per rilevare il layout attivo ed eseguire le azioni che avvii tu. Non registra i tasti premuti e non apre alcuna connessione di rete a meno che tu non attivi il traduttore, che parla solo con il server Ollama che indichi - il tuo computer per impostazione predefinita. Codice aperto: https://github.com/SerZhyAle/CyrFlip
+Privacy: CyrFlip usa un hook della tastiera e gli appunti solo per rilevare il layout attivo ed eseguire le azioni che avvii tu. Non registra i tasti premuti e non apre alcuna connessione di rete a meno che tu non attivi il traduttore, che parla solo con il server Ollama che indichi - il tuo computer per impostazione predefinita. Se qualcosa va storto, la finestra delle impostazioni raccoglie i log di CyrFlip in un unico archivio e apre un messaggio all'autore con quell'allegato. Il messaggio lo invia lei - CyrFlip non trasmette nulla in rete e la cronologia degli appunti non finisce mai nell'archivio. Codice aperto: https://github.com/SerZhyAle/CyrFlip
 @@Feature1
 Contrassegno del layout accanto al cursore di testo - funziona nei browser e nella chat di VS Code
 @@Feature2

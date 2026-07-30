@@ -114,8 +114,12 @@ The identity is fixed once the app is reserved, so an update is just a new submi
    The version remap (`YY.(M*100+D).HHmm.0`) is monotonic, so the new package is automatically newer
    - no manual bump. Verify it exceeds the currently published version.
 2. Partner Center ▸ **Create new submission** ▸ replace the package ▸ refresh the listing(s) ▸ submit.
-3. **Localized listings** (e.g. Russian): *Store listings ▸ Manage additional languages* ▸ add the
-   locale ▸ paste its copy. CyrFlip keeps ready EN/RU/UK text in `msix/store-listings.md`. A listing
+3. **Localized listings**: all 13 live in `msix/store-listing-export.csv`, the source of truth, and go
+   in through *Store listings ▸ Import* (see `msix/README.md` for the export-then-merge cycle and the
+   import-folder trap). A language must exist on the submission first: *Manage additional languages* ▸
+   add the locale, or its CSV column is dropped without a word. Pasting by hand is the fallback only -
+   `msix/store-listings.md` and `store/listing-*.txt` hold EN/RU/UK for that case and are **generated**
+   from the CSV by `msix/render-listing-mirrors.ps1`, so never edit the copy in them. A listing
    language is independent of the package's `<Resource Language>` set, so an English-UI app can still
    have a Russian product page.
 

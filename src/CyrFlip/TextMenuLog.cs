@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Text;
 using static CyrFlip.WindowInterop;
 
@@ -16,26 +15,10 @@ namespace CyrFlip
     /// </summary>
     internal static class TextMenuLog
     {
-        private static readonly object Lock = new object();
-        private static readonly string FilePath = Path.Combine(
-            Environment.GetFolderPath(PackageInfo.IsPackaged
-                ? Environment.SpecialFolder.CommonApplicationData   // %ProgramData%
-                : Environment.SpecialFolder.LocalApplicationData),  // %LOCALAPPDATA%
-            "CyrFlip", "context-menu.log");
+        private static readonly string FilePath = DiagnosticLog.Path("context-menu.log");
 
         public static void Log(string message)
-        {
-            try
-            {
-                lock (Lock)
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-                    File.AppendAllText(FilePath,
-                        DateTime.Now.ToString("HH:mm:ss.fff") + " - " + message + Environment.NewLine);
-                }
-            }
-            catch { /* diagnostics must never affect the app */ }
-        }
+            => DiagnosticLog.Append(FilePath, DateTime.Now.ToString("HH:mm:ss.fff") + " - " + message);
 
         /// <summary>"0x1234 'Notepad' pid=42" - enough to tell the user's window from one of ours.</summary>
         public static string Describe(IntPtr hwnd)

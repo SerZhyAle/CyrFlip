@@ -1,6 +1,9 @@
-<!-- Render target. Source of truth for Store listing copy is msix/store-listing-export.csv
-     (Partner Center export-then-merge). This file and store/listing-*.txt render from it -
-     do not treat them as authoritative; update the CSV first. -->
+<!-- GENERATED copy blocks. Source of truth for Store listing copy is msix/store-listing-export.csv
+     (Partner Center export-then-merge). Edit the CSV, then run msix/render-listing-mirrors.ps1 -
+     it rewrites the blocks below and store/listing-*.txt from it. Never hand-edit the copy here:
+     the release preflight runs the same script with -Check and fails on drift.
+     The prose OUTSIDE the three locale sections (the notes above, the runFullTrust justification
+     and the submission notes below) is hand-written and is never touched by the renderer. -->
 
 # Microsoft Store listings (EN / RU / UK)
 
@@ -11,9 +14,10 @@ translations (what shoppers read on the product page), which are independent of 
 
 Field limits: Description ≤ 10,000 chars; each Product feature ≤ 200 chars; Short description ≤ 1,000.
 
-The Partner Center export currently carries only the **en-us** and **ru** columns, so the CSV is the
-source for those two; the **Ukrainian** copy below is maintained here and pasted into Partner Center by
-hand until a `uk` column appears in an export.
+The export carries **all 13 listing languages**, Ukrainian included, so nothing here has to be pasted
+by hand any more: *Store listings → Import* takes the CSV. The three sections below are the
+paste-by-hand fallback for the day the importer refuses a file, and the ten other languages live in
+the CSV and in [listing/](listing/) only.
 
 ---
 
@@ -38,13 +42,13 @@ Optional clipboard history is disabled by default. When enabled, it keeps recent
 
 Quick launch is a second optional module, also off until you enable it. It turns your programs, scripts and yt-dlp downloads into scenarios you can start from the tray submenu, from a global hotkey of their own, or from the taskbar Jump List - even while CyrFlip is not running, if you pin it. Scenarios from the standalone OneClickRunner tool, which this module absorbs, can be imported on the first run without touching the originals.
 
+A built-in translator is optional too, and off until you enable it. Select text anywhere in Windows, press its shortcut, and the translation appears in a small window next to the mouse pointer, filling in as the model writes. It runs on Ollama, a free program you install once on your own computer: CyrFlip does not bundle it, has no account and no key, and by default talks only to http://localhost:11434 - your own machine - so no text is sent to the developer or to any cloud service. Directions are an open-ended table, like the layout conversions: every row is a target language with its own global shortcut, and a row can also follow the interface language or the language of the layout active in the window you translate from. The result can be copied to the clipboard, where the optional history records it like any other copy, or pasted straight over the selection - both are off by default. The Translation tab opens the Ollama download page, starts the server, checks the connection and downloads a model: aya-expanse:8b (~4.7 GB) is the default and the best of those tested, with gemma2:9b (~5 GB) as the alternative. Every model under 4 GB failed the Russian and Ukrainian check, so gemma2:2b (~1.5 GB) is there only for a machine short on space, and it will make mistakes. Fair warning: the quality is the local model's, the first translation after a cold start takes a while as the model loads, Ollama and a model are a multi-gigabyte download you make once, and the memory the model uses belongs to the Ollama process, not to CyrFlip. Selections longer than 4000 characters are translated up to that point, and the window says so.
+
 Every hotkey can be switched on or off independently, CyrFlip can yield them to a focused Remote Desktop client so the copy running inside the remote session handles them instead, and two keep-awake switches stop Windows sleeping or blanking the screen while you work.
 
 The interface is available in 13 languages, right-to-left ones included. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11.
 
-A built-in translator is optional too, and off until you enable it. Select text anywhere in Windows, press its shortcut, and the translation appears in a small window next to the mouse pointer, filling in as the model writes. It runs on Ollama, a free program you install once on your own computer: CyrFlip does not bundle it, has no account and no key, and by default talks only to http://localhost:11434 - your own machine - so no text is sent to the developer or to any cloud service. Directions are an open-ended table, like the layout conversions: every row is a target language with its own global shortcut, and a row can also follow the interface language or the language of the layout active in the window you translate from. The result can be copied to the clipboard, where the optional history records it like any other copy, or pasted straight over the selection - both are off by default. The Translation tab opens the Ollama download page, starts the server, checks the connection and downloads a model: aya-expanse:8b (~4.7 GB) is the default and the best of those tested, with gemma2:9b (~5 GB) as the alternative. Every model under 4 GB failed the Russian and Ukrainian check, so gemma2:2b (~1.5 GB) is there only for a machine short on space, and it will make mistakes. Fair warning: the quality is the local model's, the first translation after a cold start takes a while as the model loads, Ollama and a model are a multi-gigabyte download you make once, and the memory the model uses belongs to the Ollama process, not to CyrFlip. Selections longer than 4000 characters are translated up to that point, and the window says so.
-
-Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform actions you trigger. It does not log keystrokes, and it opens no network connection unless you enable the translator, which talks only to the Ollama server you point it at - your own computer by default. Open source: https://github.com/SerZhyAle/CyrFlip
+Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform actions you trigger. It does not log keystrokes, and it opens no network connection unless you enable the translator, which talks only to the Ollama server you point it at - your own computer by default. If something goes wrong, the settings window collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network, and clipboard history never goes into the archive. Open source: https://github.com/SerZhyAle/CyrFlip
 ```
 
 **Product features (one per line)**
@@ -58,14 +62,14 @@ Separate hotkey fixes accidental CapsLock (swaps UPPER/lower case)
 Install, reorder and remove Windows keyboard layouts without the Windows language pane
 Per-language switch shortcuts that Windows handles itself, so they work when CyrFlip is closed
 Optional encrypted clipboard history with search, pin, and Windows DPAPI protection
-Optional Quick launch: your programs, scripts and yt-dlp downloads as one-click scenarios
-Start a scenario from the tray, its own global hotkey, or the taskbar Jump List
 Two keep-awake switches: no sleep and no screen blanking while you work
 Interface in 13 languages, right-to-left included; follows your Windows language
 Runs quietly in the tray, low memory, nothing extra to install
+Open source - no telemetry and no data collection; the only network use is your own Ollama
+Optional Quick launch: your programs, scripts and yt-dlp downloads as one-click scenarios
+Start a scenario from the tray, its own global hotkey, or the taskbar Jump List
 Optional local translator: a selection is translated by hotkey in a window at the mouse pointer
 Translation runs on Ollama on your own computer - installed separately, off until you enable it
-Open source - no telemetry and no data collection; the only network use is your own Ollama
 ```
 
 **What's new in this version**
@@ -106,13 +110,13 @@ CyrFlip — крошечная утилита Windows в системном тр
 
 «Быстрый запуск» — второй необязательный модуль, тоже выключенный, пока вы его не включите. Он превращает ваши программы, скрипты и загрузки yt-dlp в сценарии, которые запускаются из подменю в трее, по собственной глобальной комбинации или из Jump List панели задач — даже когда CyrFlip не запущен, если закрепить его на панели. Сценарии отдельной программы OneClickRunner, которую этот модуль вобрал в себя, можно перенести при первом включении, не трогая оригиналы.
 
+Встроенный переводчик — тоже необязательный модуль, выключенный, пока вы его не включите. Выделите текст в любом приложении Windows, нажмите свою комбинацию — и перевод появится в маленьком окне у курсора мыши, дописываясь по мере того, как его пишет модель. Работает он на Ollama — бесплатной программе, которую вы один раз ставите на свой компьютер: CyrFlip её в себе не несёт, не требует ни учётной записи, ни ключа и по умолчанию обращается только к http://localhost:11434 — то есть к вашей же машине, — поэтому текст не уходит ни разработчику, ни в облако. Направления перевода — открытая таблица, как и конвертации раскладок: в каждой строке язык перевода и своя глобальная комбинация, а строка может следовать за языком интерфейса или за языком раскладки, активной в том окне, откуда вы переводите. Результат можно класть в буфер обмена, где необязательная история запишет его как обычную копию, или сразу вставлять вместо выделения — по умолчанию выключено и то и другое. Вкладка «Перевод» открывает страницу загрузки Ollama, запускает сервер, проверяет связь и загружает модель: по умолчанию aya-expanse:8b (~4,7 ГБ) - лучший перевод из проверенных, рядом gemma2:9b (~5 ГБ). Все модели меньше 4 ГБ проверку на русском и украинском не прошли, поэтому gemma2:2b (~1,5 ГБ) остаётся только для машин, где мало места, и будет ошибаться. Честные оговорки: качество — это качество локальной модели, первый перевод после холодного старта идёт дольше, пока модель загружается, Ollama вместе с моделью — это многогигабайтная загрузка, которую вы делаете один раз, а память под модель занимает процесс Ollama, а не CyrFlip. Выделение длиннее 4000 знаков переводится до этой границы, и окно об этом сообщает.
+
 Каждую горячую клавишу можно включать и выключать независимо, можно уступать их активному клиенту удалённого рабочего стола, чтобы их обрабатывала копия CyrFlip внутри удалённого сеанса, а два переключателя не дают Windows заснуть или погасить экран, пока вы работаете.
 
 Интерфейс доступен на 13 языках, включая языки с письмом справа налево. Работает в системном трее, потребляет мало памяти и не требует ничего доустанавливать на Windows 10/11.
 
-Встроенный переводчик — тоже необязательный модуль, выключенный, пока вы его не включите. Выделите текст в любом приложении Windows, нажмите свою комбинацию — и перевод появится в маленьком окне у курсора мыши, дописываясь по мере того, как его пишет модель. Работает он на Ollama — бесплатной программе, которую вы один раз ставите на свой компьютер: CyrFlip её в себе не несёт, не требует ни учётной записи, ни ключа и по умолчанию обращается только к http://localhost:11434 — то есть к вашей же машине, — поэтому текст не уходит ни разработчику, ни в облако. Направления перевода — открытая таблица, как и конвертации раскладок: в каждой строке язык перевода и своя глобальная комбинация, а строка может следовать за языком интерфейса или за языком раскладки, активной в том окне, откуда вы переводите. Результат можно класть в буфер обмена, где необязательная история запишет его как обычную копию, или сразу вставлять вместо выделения — по умолчанию выключено и то и другое. Вкладка «Перевод» открывает страницу загрузки Ollama, запускает сервер, проверяет связь и загружает модель: по умолчанию aya-expanse:8b (~4,7 ГБ) - лучший перевод из проверенных, рядом gemma2:9b (~5 ГБ). Все модели меньше 4 ГБ проверку на русском и украинском не прошли, поэтому gemma2:2b (~1,5 ГБ) остаётся только для машин, где мало места, и будет ошибаться. Честные оговорки: качество — это качество локальной модели, первый перевод после холодного старта идёт дольше, пока модель загружается, Ollama вместе с моделью — это многогигабайтная загрузка, которую вы делаете один раз, а память под модель занимает процесс Ollama, а не CyrFlip. Выделение длиннее 4000 знаков переводится до этой границы, и окно об этом сообщает.
-
-Конфиденциальность: CyrFlip использует перехват клавиатуры и буфер обмена только для функций, которые запускаете вы. Не ведёт журнал нажатий и не открывает ни одного сетевого соединения, пока вы не включите перевод, — а тот обращается только к серверу Ollama, который вы указали, по умолчанию к вашему же компьютеру. Открытый исходный код: https://github.com/SerZhyAle/CyrFlip
+Конфиденциальность: CyrFlip использует перехват клавиатуры и буфер обмена только для функций, которые запускаете вы. Не ведёт журнал нажатий и не открывает ни одного сетевого соединения, пока вы не включите перевод, — а тот обращается только к серверу Ollama, который вы указали, по умолчанию к вашему же компьютеру. Если что-то пошло не так, окно настроек собирает логи CyrFlip в один архив и открывает письмо автору с этим вложением. Письмо отправляете вы сами - CyrFlip ничего не передаёт в сеть, а история буфера обмена в архив не попадает. Открытый исходный код: https://github.com/SerZhyAle/CyrFlip
 ```
 
 **Функции продукта (по одной в строке)**
@@ -126,12 +130,14 @@ CyrFlip — крошечная утилита Windows в системном тр
 Установка, порядок и удаление раскладок Windows без раздела языков Windows
 Прямые сочетания на язык обрабатывает сама Windows — работают и при закрытом CyrFlip
 Необязательная зашифрованная история буфера: поиск, закрепление, защита Windows DPAPI
-Необязательный «Быстрый запуск»: программы, скрипты и загрузки yt-dlp как сценарии в один клик
-Запуск сценария из трея, по своей глобальной комбинации или из Jump List панели задач
 Два переключателя: не давать компьютеру заснуть и не гасить экран, пока вы работаете
 Интерфейс на 13 языках, включая письмо справа налево; следует за языком Windows
 Тихо работает в трее, мало памяти, ничего доустанавливать не нужно
 Открытый код — без телеметрии и без сбора данных; в сеть ходит только перевод через ваш Ollama
+Необязательный «Быстрый запуск»: программы, скрипты и загрузки yt-dlp как сценарии в один клик
+Запуск сценария из трея, по своей глобальной комбинации или из Jump List панели задач
+Необязательный локальный перевод: выделенный текст переводится по горячей клавише в окне у курсора мыши
+Перевод работает на Ollama на вашем компьютере — ставится отдельно, по умолчанию выключен
 ```
 
 **Что нового в этой версии**
@@ -178,7 +184,7 @@ CyrFlip — це крихітна утиліта в системному тре�
 
 Інтерфейс доступний 13 мовами, зокрема з письмом справа наліво. Працює в системному треї, споживає мало пам'яті й не потребує нічого додатково встановлювати на Windows 10/11.
 
-Конфіденційність: CyrFlip використовує перехоплення клавіатури та буфер обміну лише для функцій, які запускаєте ви. Не веде журнал натискань і не відкриває жодного мережевого з'єднання, доки ви не ввімкнете переклад, — а той звертається лише до сервера Ollama, який ви вказали, типово до вашого ж комп'ютера. Відкритий вихідний код: https://github.com/SerZhyAle/CyrFlip
+Конфіденційність: CyrFlip використовує перехоплення клавіатури та буфер обміну лише для функцій, які запускаєте ви. Не веде журнал натискань і не відкриває жодного мережевого з'єднання, доки ви не ввімкнете переклад, — а той звертається лише до сервера Ollama, який ви вказали, типово до вашого ж комп'ютера. Якщо щось пішло не так, вікно налаштувань збирає логи CyrFlip в один архів і відкриває лист до автора з цим вкладенням. Лист надсилаєте ви самі - CyrFlip нічого не передає в мережу, а історія буфера обміну до архіву не потрапляє. Відкритий вихідний код: https://github.com/SerZhyAle/CyrFlip
 ```
 
 **Функції продукту (по одній у рядку)**

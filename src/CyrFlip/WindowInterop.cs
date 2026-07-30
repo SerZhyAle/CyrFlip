@@ -191,6 +191,13 @@ namespace CyrFlip
         // ---- Synthesized input for copy/paste (ClipboardHandler.cs) ----
         public const uint CF_UNICODETEXT = 13;
 
+        // The other two formats a flip has to hand back untouched (ClipboardHandler.BackupClipboard).
+        // CF_DIB covers images: Windows synthesizes CF_BITMAP and CF_DIBV5 from it, so restoring the
+        // DIB restores a picture every app can paste again. CF_HDROP is a copied file selection - a
+        // self-contained DROPFILES block, so a byte copy of it round-trips verbatim.
+        public const uint CF_DIB = 8;
+        public const uint CF_HDROP = 15;
+
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool AddClipboardFormatListener(IntPtr hwnd);

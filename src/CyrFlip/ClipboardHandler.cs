@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -57,14 +58,43 @@ namespace CyrFlip
             private static bool Down(int vk) => (GetAsyncKeyState(vk) & 0x8000) != 0;
         }
 
-        /// <summary>What the clipboard held before we borrowed it.</summary>
+        /// <summary>
+        /// What the clipboard held before we borrowed it - text, an image and a file selection.
+        ///
+        /// <para>It used to hold text alone, and everything else was simply destroyed: the copy half
+        /// of a flip ends in <c>EmptyClipboard</c>, so a user who had a screenshot or a set of files
+        /// on the clipboard and then fixed a word with a chord lost them for good, with nothing to
+        /// restore from. Those three formats are what people actually keep in a clipboard; the
+        /// companions of a rich copy (RTF, HTML) are still lost, and text is what carries the
+        /// meaning there.</para>
+        /// </summary>
         internal readonly struct ClipboardBackup
         {
             public readonly bool HadText;
             public readonly string? Text;
+            /// <summary>Device-independent bitmap (a screenshot, a copied picture), or null.</summary>
+            public readonly byte[]? Image;
+            /// <summary>A copied file selection (CF_HDROP), or null.</summary>
+            public readonly byte[]? Files;
 
-            public ClipboardBackup(bool hadText, string? text) { HadText = hadText; Text = text; }
+            public ClipboardBackup(bool hadText, string? text, byte[]? image = null, byte[]? files = null)
+            {
+                HadText = hadText;
+                Text = text;
+                Image = image;
+                Files = files;
+            }
+
+            /// <summary>True when there is anything at all worth handing back.</summary>
+            public bool HasContent => (HadText && Text != null) || Image != null || Files != null;
         }
+
+        /// <summary>
+        /// Cap on a backed-up image. Beyond it the picture is left to its fate rather than copied
+        /// through memory twice on every flip - the old behaviour for every non-text format, now the
+        /// exception rather than the rule.
+        /// </summary>
+        internal const int MaxBackupImageBytes = 64 * 1024 * 1024;
 
         /// <summary>
         /// Convert a selection by physical key position between the two layouts of a table row - the
@@ -171,19 +201,54 @@ namespace CyrFlip
             }
         }
 
-        /// <summary>What the clipboard holds right now, so it can be handed back afterwards.</summary>
+        /// <summary>
+        /// What the clipboard holds right now, so it can be handed back afterwards. Each format is
+        /// read only when it is actually present, so the ordinary case - a flip over plain text -
+        /// costs exactly what it always did.
+        /// </summary>
         internal static ClipboardBackup BackupClipboard()
         {
             bool hadText = IsClipboardFormatAvailable(CF_UNICODETEXT);
             string? text = hadText && Win32Clipboard.TryGetText(out string current) ? current : null;
-            return new ClipboardBackup(hadText, text);
+
+            byte[]? image = null;
+            if (IsClipboardFormatAvailable(CF_DIB))
+                Win32Clipboard.TryGetBytes(CF_DIB, out image, MaxBackupImageBytes);
+
+            byte[]? files = null;
+            if (IsClipboardFormatAvailable(CF_HDROP))
+                Win32Clipboard.TryGetBytes(CF_HDROP, out files);
+
+            return new ClipboardBackup(hadText, text, image, files);
         }
 
-        /// <summary>Put back what the clipboard held; only text is restored, as before.</summary>
+        /// <summary>
+        /// Put back what the clipboard held - all of it, in one open/empty/refill pass. Restoring
+        /// the formats one at a time would not work: every write empties the clipboard first and
+        /// would drop whatever the previous write had just restored.
+        /// </summary>
         internal static void RestoreClipboard(ClipboardBackup backup)
         {
+            if (!backup.HasContent) return;
+
+            // The common case by far - text only - keeps its original single-call path.
+            if (backup.Image == null && backup.Files == null)
+            {
+                if (backup.HadText && backup.Text != null)
+                    Win32Clipboard.TrySetText(backup.Text);
+                return;
+            }
+
+            var payloads = new List<KeyValuePair<uint, byte[]>>(3);
             if (backup.HadText && backup.Text != null)
-                Win32Clipboard.TrySetText(backup.Text);
+                payloads.Add(new KeyValuePair<uint, byte[]>(CF_UNICODETEXT,
+                    System.Text.Encoding.Unicode.GetBytes(backup.Text + "\0")));
+            if (backup.Image != null)
+                payloads.Add(new KeyValuePair<uint, byte[]>(CF_DIB, backup.Image));
+            if (backup.Files != null)
+                payloads.Add(new KeyValuePair<uint, byte[]>(CF_HDROP, backup.Files));
+
+            Win32Clipboard.Restore(payloads);
         }
 
         /// <summary>

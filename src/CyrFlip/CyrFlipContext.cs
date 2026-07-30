@@ -29,6 +29,10 @@ namespace CyrFlip
         private readonly NotifyIcon _tray;
         // WinForms timer on purpose: the tick runs on the UI thread, where the tray balloon lives.
         private readonly System.Windows.Forms.Timer _trayClickTimer = new System.Windows.Forms.Timer();
+        // The hook watchdog - see OnHookWatchdogTick. A WinForms timer for a second reason here: a
+        // hook may only be removed by the thread that installed it, and this ticks on that thread.
+        private readonly System.Windows.Forms.Timer _hookWatchdog = new System.Windows.Forms.Timer();
+        private int _hookReinstallFailures;
         private readonly ToolStripMenuItem _autostartItem;
         private readonly ToolStripMenuItem _cursorItem;
         private readonly ToolStripMenuItem _caretItem;
@@ -264,11 +268,17 @@ namespace CyrFlip
             UpdateTrayTexts();
 
             _indicator.LayoutChanged += OnLayoutChanged;
-            _hook.CaseHotkeyPressed += OnCaseHotkeyPressed;
-            _hook.ClipboardHistoryHotkeyPressed += (_, _) => _clipboardHistoryWindow.ToggleVisible();
-            _hook.LayoutConversionHotkeyPressed += OnLayoutConversionHotkeyPressed;
-            _hook.LauncherHotkeyPressed += OnLauncherHotkeyPressed;
-            _hook.TranslateHotkeyPressed += OnTranslateHotkeyPressed;
+            // Every hook event is handed to the UI thread and nothing is done inside the callback -
+            // which runs while the whole machine's keyboard waits on us, under the ~300 ms
+            // LowLevelHooksTimeout after which Windows silently drops the hook. What used to run in
+            // there: file I/O (the translator's log), showing a window with AttachThreadInput (the
+            // history), and spinning up a thread (the flips). The callback still decides whether to
+            // swallow the key before it returns - only the work moves.
+            _hook.CaseHotkeyPressed += (_, _) => _ui?.Post(_ => OnCaseHotkeyPressed(null, EventArgs.Empty), null);
+            _hook.ClipboardHistoryHotkeyPressed += (_, _) => _ui?.Post(_ => _clipboardHistoryWindow.ToggleVisible(), null);
+            _hook.LayoutConversionHotkeyPressed += id => _ui?.Post(_ => OnLayoutConversionHotkeyPressed(id), null);
+            _hook.LauncherHotkeyPressed += OnLauncherHotkeyPressed; // already posts, and re-checks the switch there
+            _hook.TranslateHotkeyPressed += id => _ui?.Post(_ => OnTranslateHotkeyPressed(id), null);
             _hook.CancelKeyPressed += (_, _) => _ui?.Post(_ => CancelTranslationFromEscape(), null);
             // Mouse chord → own context menu. The probe starts on the press so the 80-150 ms the user
             // spends holding the button pays for it; the menu itself is only ever shown from the UI
@@ -285,11 +295,6 @@ namespace CyrFlip
             _mouseHook.ForeignButtonDown += (x, y) => _ui?.Post(_ => CloseTextMenuIfOutside(x, y), null);
             _textMenu.Closed += (_, _) => _mouseHook.UpdateForeignClickWatch(false);
             _clipboardHistory.ItemTooLarge += (_, _) => _tray.ShowBalloonTip(2000, "CyrFlip", T("Фрагмент слишком велик для истории (>128 КБ)."), ToolTipIcon.Info);
-            _hook.Install(_caseHotkey, _clipboardHistoryHotkey,
-                _config.DeferToRemoteDesktop, _config.EnableHotkeys,
-                _config.EnableCaseHotkey, _config.EnableHistoryHotkey);
-            _hook.UpdateConversionProfiles(_config.LayoutConversionProfiles);
-            BindTranslationHotkeys();
             _caretOverlay.Start();
             _indicator.Start();
 
@@ -301,6 +306,18 @@ namespace CyrFlip
             // Captured after the overlay/indicator created control handles, so this is the
             // WinForms sync context - lets the background flip thread post tray feedback to the UI.
             _ui = SynchronizationContext.Current;
+
+            // Only now, for the same reason the mouse hook and the IPC listener wait: every hook
+            // event is posted to _ui, so a chord pressed while it was still null would be swallowed
+            // and then dropped - the key eaten, nothing done.
+            _hook.Install(_caseHotkey, _clipboardHistoryHotkey,
+                _config.DeferToRemoteDesktop, _config.EnableHotkeys,
+                _config.EnableCaseHotkey, _config.EnableHistoryHotkey);
+            _hook.UpdateConversionProfiles(_config.LayoutConversionProfiles);
+            BindTranslationHotkeys();
+            _hookWatchdog.Interval = HookWatchdogIntervalMs;
+            _hookWatchdog.Tick += (_, _) => OnHookWatchdogTick();
+            _hookWatchdog.Start();
 
             // Launcher surfaces (tray submenu + Jump List + hook chords) and the command listener.
             // Started after _ui is captured: the IPC thread posts every command to the UI thread.
@@ -390,6 +407,42 @@ namespace CyrFlip
                 IsBackground = true,
             };
             thread.Start();
+        }
+
+        /// <summary>How often both low-level hooks are re-armed. See <see cref="OnHookWatchdogTick"/>.</summary>
+        private const int HookWatchdogIntervalMs = 60 * 1000;
+
+        /// <summary>Consecutive failures before the user is told; a single one is not worth a balloon.</summary>
+        private const int HookFailuresBeforeWarning = 3;
+
+        /// <summary>
+        /// Re-arm the low-level hooks. Windows removes a hook whose thread overran
+        /// <c>LowLevelHooksTimeout</c> (~300 ms) and reports that to nobody - the app keeps running
+        /// with every chord dead, which is exactly the "hotkeys stopped working after a while"
+        /// failure. There is no way to query whether we are still hooked, so the hook is simply put
+        /// back every minute: two API calls, microseconds, against a failure that otherwise lasts
+        /// until the user restarts CyrFlip.
+        ///
+        /// <para>A failure to re-arm is real (the hook is gone), but a single one is not worth
+        /// interrupting anybody - it is retried on the next tick, and only a run of them earns one
+        /// balloon. The counter resets on success, so the warning cannot repeat every minute.</para>
+        /// </summary>
+        private void OnHookWatchdogTick()
+        {
+            bool ok = _hook.Reinstall();
+            ok &= _mouseHook.Reinstall();
+
+            if (ok)
+            {
+                _hookReinstallFailures = 0;
+                return;
+            }
+
+            _hookReinstallFailures++;
+            if (_hookReinstallFailures != HookFailuresBeforeWarning) return;
+            _tray.ShowBalloonTip(4000, "CyrFlip",
+                T("Windows не отдаёт перехват клавиатуры — горячие клавиши могут не работать. Помогает перезапуск CyrFlip."),
+                ToolTipIcon.Warning);
         }
 
         private void ShowFlipResult(ClipboardHandler.FlipResult result)
@@ -1645,6 +1698,8 @@ namespace CyrFlip
                 _translateWindow?.Dispose();
                 _trayClickTimer.Stop();
                 _trayClickTimer.Dispose();
+                _hookWatchdog.Stop();
+                _hookWatchdog.Dispose();
                 _mouseHook.Dispose();
                 _textMenu.Dispose();
                 _hook.Dispose();

@@ -21,7 +21,7 @@ Chaque raccourci s'active ou se désactive séparément, CyrFlip peut les céder
 
 L'interface est disponible en 13 langues, y compris celles qui s'écrivent de droite à gauche. Elle tourne dans la zone de notification, consomme peu de mémoire et ne demande rien de plus à installer sous Windows 10/11.
 
-Confidentialité : CyrFlip n'utilise le hook clavier et le presse-papiers que pour détecter la disposition active et exécuter les actions que vous déclenchez. Il n'enregistre pas les frappes et n'ouvre aucune connexion réseau tant que vous n'activez pas le traducteur, qui ne parle qu'au serveur Ollama que vous lui indiquez - votre propre ordinateur par défaut. Code ouvert : https://github.com/SerZhyAle/CyrFlip
+Confidentialité : CyrFlip n'utilise le hook clavier et le presse-papiers que pour détecter la disposition active et exécuter les actions que vous déclenchez. Il n'enregistre pas les frappes et n'ouvre aucune connexion réseau tant que vous n'activez pas le traducteur, qui ne parle qu'au serveur Ollama que vous lui indiquez - votre propre ordinateur par défaut. Si quelque chose ne va pas, la fenêtre des paramètres rassemble les journaux de CyrFlip dans une archive et ouvre un message à l'auteur avec cette pièce jointe. C'est vous qui l'envoyez - CyrFlip ne transmet rien sur le réseau et l'historique du presse-papiers n'y figure jamais. Code ouvert : https://github.com/SerZhyAle/CyrFlip
 @@Feature1
 Repère de disposition près du curseur de texte - fonctionne dans les navigateurs et le chat VS Code
 @@Feature2

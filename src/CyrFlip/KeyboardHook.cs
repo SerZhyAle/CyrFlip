@@ -76,6 +76,34 @@ namespace CyrFlip
                 throw new InvalidOperationException("Failed to install keyboard hook: " + Marshal.GetLastWin32Error());
         }
 
+        /// <summary>True once <see cref="Install"/> has put the hook in place.</summary>
+        public bool Installed => _hook != IntPtr.Zero;
+
+        /// <summary>
+        /// Take the hook down and put it straight back up. <b>Windows can drop a low-level hook
+        /// without telling anybody:</b> the callback runs on the thread that installed it - the tray
+        /// UI thread - and if that thread does not answer within <c>LowLevelHooksTimeout</c>
+        /// (~300 ms by default) the hook is silently removed. Nothing is raised, nothing fails, and
+        /// every chord in the app is simply dead until the next restart. That is the "my hotkeys
+        /// stopped working after a while" report, and there is no API to ask whether we are still
+        /// hooked - so the only defence is to re-arm periodically.
+        ///
+        /// <para>Must be called from the thread that owns the hook (a hook can only be removed by
+        /// its own thread), which is why <see cref="CyrFlipContext"/> drives it from a WinForms
+        /// timer. Returns false only when the fresh <c>SetWindowsHookEx</c> failed, and then the
+        /// hook really is gone - the caller decides how loudly to say so.</para>
+        /// </summary>
+        public bool Reinstall()
+        {
+            // Not installed: nothing to keep alive. (_proc is non-null whenever _hook is, since
+            // Install sets both - the check is what keeps that fact provable rather than assumed.)
+            if (_hook == IntPtr.Zero || _proc == null) return true;
+
+            UnhookWindowsHookEx(_hook);
+            _hook = SetWindowsHookEx(WH_KEYBOARD_LL, _proc, GetModuleHandle(null), 0);
+            return _hook != IntPtr.Zero;
+        }
+
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
             // A low-level hook proc must never throw - an exception here can drop the hook.

@@ -25,9 +25,11 @@ Description: >-
   taskbar Jump List. A built-in translator, optional as well, sends a selection to Ollama - a free
   program you install separately on your own computer - and shows the translation in a small
   window at the mouse pointer; it stays off until you enable it and by default talks only to
-  localhost, so no text leaves your machine. Extras: an optional DPAPI-encrypted clipboard history
-  with search, two keep-awake switches, and an interface available in 13 languages. Ships as a
-  single portable exe with no installer and no runtime dependencies.
+  localhost, so no text leaves your machine. Extras: an optional context menu of CyrFlip's own,
+  opened over a selection by Ctrl and a right click; an optional DPAPI-encrypted clipboard history
+  with search; two keep-awake switches; an interface available in 13 languages; and a Send logs to
+  the author button that packs CyrFlip's own logs into one archive for a report you send yourself.
+  Ships as a single portable exe with no installer and no runtime dependencies.
 ReleaseNotes: |-
   This release is about the translator, and about the places where the text had fallen behind the app.
   - Translation is no longer limited to the thirteen interface languages: the picker now offers every language Windows knows. CyrFlip promises nothing about which of them your model can handle - it says so plainly and links to the model's own description, because coverage belongs to the model, not to us. We dispatch the text; the model translates it.

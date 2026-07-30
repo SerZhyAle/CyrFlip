@@ -59,6 +59,27 @@ namespace CyrFlip
 
         public bool Installed => _hook != IntPtr.Zero;
 
+        /// <summary>
+        /// Re-arm the hook, for the same reason as <see cref="KeyboardHook.Reinstall"/>: Windows
+        /// drops a low-level hook that overruns <c>LowLevelHooksTimeout</c> and says nothing, after
+        /// which the context menu never opens again.
+        ///
+        /// <para><b>Skipped while the chord is held down.</b> <see cref="_swallowUp"/> is what makes
+        /// the button-up get swallowed together with the down; re-arming between the two would be
+        /// harmless for the flag itself (it is a field, not hook state), but the fresh hook sits at
+        /// the head of the chain and there is no reason to disturb an interaction in flight - the
+        /// next tick is 60 seconds away and the user will have released the button by then.</para>
+        /// </summary>
+        public bool Reinstall()
+        {
+            // _proc is non-null whenever _hook is (Install sets both); the check keeps that provable.
+            if (_hook == IntPtr.Zero || _proc == null || _swallowUp) return true;
+
+            UnhookWindowsHookEx(_hook);
+            _hook = SetWindowsHookEx(WH_MOUSE_LL, _proc, GetModuleHandle(null), 0);
+            return _hook != IntPtr.Zero;
+        }
+
         /// <summary>Change the chord without reinstalling (the callback reads the field each time).</summary>
         public void UpdateChord(MouseChord chord) => _chord = chord;
 

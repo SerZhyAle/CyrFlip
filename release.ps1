@@ -115,6 +115,16 @@ dotnet test CyrFlip.sln -c Release --no-build --nologo
 if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
 Write-Host 'Local build + tests green.' -ForegroundColor Green
 
+# --- Listing copy: the mirrors must still be what the CSV renders -----------
+# xUnit cannot see this one: store-listings.md and store/listing-*.txt repeat the listing copy for
+# the paste-by-hand path, and a mirror a release behind is exactly what gets pasted into the live
+# listing on the day the CSV importer refuses a file. Free, local, and read-only.
+Step 'Store listing mirrors'
+& (Join-Path $RepoRoot 'msix\render-listing-mirrors.ps1') -Check
+if ($LASTEXITCODE -ne 0) {
+    throw 'Store listing mirrors drifted from msix/store-listing-export.csv. Run msix\render-listing-mirrors.ps1, review the diff, commit.'
+}
+
 # Put back what we stopped: a preflight is run repeatedly, and it should not leave the user's tray
 # app closed behind it. The fresh build is what starts, which is also a free smoke test.
 if ($running.Count -gt 0) {
@@ -156,21 +166,31 @@ Step "РЕЛИЗ checklist for $Tag  (see RELEASE.md for detail)"
 
 [ ] 2. Site/docs (auto-deploys from /docs on the push above) - verify GitHub Pages updated:
         bump any version/changelog text in docs/ if the release changes user-facing behaviour.
-        The "what's new" copy lives in four places and they must agree:
-        msix/store-listing-export.csv (ReleaseNotes row) -> store/listing-*.txt,
-        msix/store-listings.md, winget/*.locale.*.yaml (ReleaseNotes).
+        The "what's new" copy lives in two sources that must agree - msix/store-listing-export.csv
+        (ReleaseNotes row, all 13 languages) and winget/*.locale.*.yaml (ReleaseNotes) - plus the
+        GitHub Release body. store/listing-*.txt and msix/store-listings.md are GENERATED from the
+        CSV: edit the CSV, then run msix\render-listing-mirrors.ps1 (the preflight checks it).
 
-[ ] 3. winget (SerZhyAle.CyrFlip):
-        wingetcreate update SerZhyAle.CyrFlip --version $Version --urls <ZIP_URL> --submit
+[ ] 3. winget (SerZhyAle.CyrFlip) - NOT "wingetcreate update": it rebuilds from the manifest already
+        published in winget-pkgs and only bumps version/URL, so this repo's Description /
+        ShortDescription / Tags / ReleaseNotes never reach the store. Build from the templates:
+          copy winget\*.yaml to a scratch dir, replace __VERSION__ / __URL__ / __SHA256__,
+          point ReleaseNotesUrl at /releases/tag/$Tag, then
+          winget validate --manifest <dir>   # yaml-only copy: winget\ itself trips over README.md
+          winget install  --manifest <dir>   # required by the PR checklist
+          wingetcreate submit --prtitle "SerZhyAle.CyrFlip version $Version" --no-open ``
+            --token (gh auth token) <dir>
+        Then FILL IN THE PR BODY by hand (gh pr edit <n> --repo microsoft/winget-pkgs --body-file):
+        wingetcreate submits Microsoft's template untouched - empty description, every box unticked.
 
 [ ] 4. Microsoft Store (MSIX):  .\msix\build-msix.ps1 ``
           -IdentityName "SZA.CyrFlip" ``
           -Publisher "CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD" ``
           -PublisherDisplayName "SZA"
         Then Partner Center -> CyrFlip -> Create new submission -> replace .msix -> Store listings
-        -> Import from msix/store-listing-export.csv (the source of truth; store-listings.md and
-        store/listing-*.txt render from it, and the CSV carries only en-us + ru, so the Ukrainian
-        listing is still pasted by hand from msix/store-listings.md) -> Submit. (Store ID 9NB4W41NGQJ4)
+        -> Import from msix/store-listing-export.csv (the source of truth, all 13 languages; use
+        build-store-listing-csv.ps1 -ImportFolder when screenshots go with the copy) -> Submit.
+        (Store ID 9NB4W41NGQJ4)
 
 [ ] 5. VS Code extension (only if vscode-extension/ changed):
         bump version in vscode-extension/package.json, then in that folder:
