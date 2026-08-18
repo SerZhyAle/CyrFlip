@@ -151,7 +151,7 @@ It runs in the **system tray** (the icon also shows the layout; right-click menu
 
 **On the mouse cursor (important):** `SetSystemCursor` is **global** - it changes every app's I-beam until restored. The default cursors are reloaded (`SystemParametersInfo(SPI_SETCURSORS)`) on `Dispose`, `Application.ApplicationExit`, `AppDomain.ProcessExit`, and `UnhandledException` (see `LayoutCursor.ForceRestore`). The one unavoidable gap is a hard `TerminateProcess` (kill). Only `OCR_IBEAM` is replaced (not the arrow). The *displayed* I-beam only repaints on `WM_SETCURSOR` (mouse move), so after a layout change `LayoutCursor` sends a zero-delta `SendInput` mouse move (`ForceCursorRefresh`) to repaint it in place.
 
-**On the caret overlay:** the caret position comes from four sources, tried in order - (1) `GetGUIThreadInfo.rcCaret` (classic Win32 edit fields); (2) **COM UIA `IUIAutomationTextPattern2.GetCaretRange`** (`UiaCaretCom`) for **WinUI/UWP/WPF/modern-Notepad**; (3) **IAccessible2 `IAccessibleText.caretOffset`/`characterExtents`** (`Ia2Caret`) - the screen-reader caret API, and **the only source that locates the caret in Chromium/Electron** inputs (the VS Code chat box, browsers); (4) managed `TextPattern.GetSelection` as a last resort. Tracking runs on a **background MTA thread** so the cross-process calls never block the UI; the overlay window is touched only via `BeginInvoke`. It hides only where no source yields a caret (e.g. console windows). The tray menu's **"Diagnose caret position…"** dumps, for the focused element, what each source returns (log under the same MSIX-aware folder as `layout.txt`) - the way to debug "no marker here".
+**On the caret overlay:** the caret position comes from four sources, tried in order - (1) `GetGUIThreadInfo.rcCaret` (classic Win32 edit fields); (2) **COM UIA `IUIAutomationTextPattern2.GetCaretRange`** (`UiaCaretCom`) for **WinUI/UWP/WPF/modern-Notepad**; (3) **IAccessible2 `IAccessibleText.caretOffset`/`characterExtents`** (`Ia2Caret`) - the screen-reader caret API, and **the only source that locates the caret in Chromium/Electron** inputs (the VS Code chat box, browsers); (4) managed `TextPattern.GetSelection` as a last resort. Tracking runs on a **background MTA thread** so the cross-process calls never block the UI; the overlay window is touched only via `BeginInvoke`. It hides only where no source yields a caret (e.g. console windows). The tray menu's **"Diagnose caret position..."** dumps, for the focused element, what each source returns (log under the same MSIX-aware folder as `layout.txt`) - the way to debug "no marker here".
 
 > **Verified empirically (2026-06-21):** the VS Code chat input (`'Message input'`, ControlType.Edit, FrameworkId=Chrome) exposes **no Win32 caret, no `TextPattern2`, and a `GetSelection` that returns no caret rect** - so only the IAccessible2 path (3) places the marker there. It tracks live as you type (confirmed caret offset/x moving). Plain Chromium browsers behave the same; WinUI/native apps use paths 1-2.
 
@@ -217,7 +217,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
 - **CaretOverlay.cs** *(headline)* - a borderless, topmost, click-through (`WS_EX_TRANSPARENT`), no-activate (`WS_EX_NOACTIVATE` + `ShowWithoutActivation`) `Form` with a rounded window region, showing the EN/RU/UK marker **diagonally below-right of the text caret** (so it never covers the current line). Supports two rendering modes: **text label** (EN/RU/UK letters, default) and **dot mode** (a small solid circle in the layout's colour - set via `SetDotMode(bool)`). `SetLayout(code, capsOn)` carries the CapsLock state; when on, the badge gets the 1px frame (text mode) or a dark ring (dot mode). A background MTA thread finds the caret via `GetGUIThreadInfo` (every ~90 ms) then a **throttled (~120 ms) cross-process fallback** that tries, in order, COM `GetCaretRange` (`UiaCaretCom`, WinUI/UWP/WPF), IAccessible2 (`Ia2Caret`, Chromium/Electron - VS Code chat & browsers), then managed `TextPattern.GetSelection`; it positions the form via `BeginInvoke`. Shows/hides with WinForms `Show()`/`Hide()` (relies on `ShowWithoutActivation` so it never steals focus). Passes an empty string to `SetLayout` to hide. The Monaco/VS Code *editor* caret is best handled by the companion extension; the *chat* box and browsers are handled by the IAccessible2 path.
 - **UiaCaretCom.cs** - hand-rolled COM interop to call `IUIAutomationTextPattern2.GetCaretRange` (absent from managed UIA). `GetFocusedElementSmart` = `GetFocusedElement` with a `GetFocusedElementBuildCache` fallback. See the "COM vtable gotchas" note above - the interface slot order is load-bearing.
 - **Ia2Caret.cs** - hand-rolled IAccessible2 interop (`oleacc.AccessibleObjectFromWindow` → drill `accFocus` → `QueryService(IAccessible2 → IAccessibleText)` → `caretOffset`/`characterExtents`). The caret source that works in Chromium/Electron where every UIA path fails.
-- **CaretDiagnostics.cs** - the tray "Diagnose caret position…" capture: 14 snapshots over ~7 s of every caret source for the focused element, written to `caret-diagnostics.txt` in the MSIX-aware folder. Run it while a problem input is focused to see exactly which source (if any) locates the caret.
+- **CaretDiagnostics.cs** - the tray "Diagnose caret position..." capture: 14 snapshots over ~7 s of every caret source for the focused element, written to `caret-diagnostics.txt` in the MSIX-aware folder. Run it while a problem input is focused to see exactly which source (if any) locates the caret.
 - **SupportBundle.cs / MailSender.cs / SupportBundleDialog.cs** - the About tab's **"Отправить логи автору.."**:
   pack the diagnostic logs into one ZIP and hand it to the user's own mail client. Three things here are
   decisions, not implementation details. **`clipboard-history.log` is never collected** - the file list is an
@@ -549,7 +549,7 @@ the skills that apply them are in every session without a path to follow:
 ```
 
 Load a skill rather than the whole canon: `sza:release`, `sza:store-publish`, `sza:feature-to-site`,
-`sza:spec-to-audit`, `sza:adopt-canon`. CyrFlip is **Overlay A - Windows desktop, no-installer variant**,
+`sza:spec-to-audit`, `sza:adopt-canon`, `sza:agent-cost`, `sza:caveman`. CyrFlip is **Overlay A - Windows desktop, no-installer variant**,
 plus a **companion editor extension** on the VS Code Marketplace. The per-project record with full
 evidence is `rules/contrib/cyrflip.md` in that repo; the adoption stamp is `.sza-canon.json` here. This
 project **references** the canon (does not mirror it); only the CyrFlip-specific deltas below stay local.
@@ -557,11 +557,20 @@ project **references** the canon (does not mirror it); only the CyrFlip-specific
 The canon moved out of the hub repo on 2026-07-27; the old `..\Unified_Rules` local path is dead - a path
 no CI job and no second machine could reach.
 
+**Two canon mechanisms nothing here re-implements:**
+- **Enforcement hooks.** The plugin ships and registers its own guard family, so this repo registers
+  **none**: `.claude/settings.json` carries permissions only, and there is no `hooks/` folder here. Never
+  hand-wire a guard the plugin already ships - it would then run twice, and the canon's inventory gate
+  cannot see a machine-local registration to tell you so.
+- **The release package plan** (RELEASE_AND_DISTRIBUTION section 8) is **skipped**: CyrFlip has no ticket
+  store to project from - `PLAN/` is a flat set of spec files moved into `PLAN/done/` by hand, with no
+  status field and no single write path to hook a reconcile into.
+
 **Overlay facts (this repo):**
 - **Version shape** - dotted `YY.M.D.HHmm` (e.g. `26.7.22.1712`), stamped at build time by the csproj
   (`src/CyrFlip/CyrFlip.csproj`). The `v*` git tag is authoritative for release-asset names; `release.yml`
   re-pins the embedded exe version to the tag (`-p:Version=<tag>`) so the in-file stamp matches the ZIP name.
-  The **VS Code extension runs its own semver clock** (`vscode-extension/package.json`, `0.1.1`), decoupled
+  The **VS Code extension runs its own semver clock** (`vscode-extension/package.json`, `0.1.4`), decoupled
   from the app date tag.
 - **Channels (4 publish ops + a site).** GitHub Release (`CyrFlip-<ver>-windows-x64.zip` + `.sha256`, body
   auto from `generate_release_notes`); **winget** `SerZhyAle.CyrFlip` (`winget/*.yaml`, `InstallerType: zip`
@@ -584,8 +593,14 @@ no CI job and no second machine could reach.
   the anchor commit - and carries on; `-RequireClean` brings the old refusal back. `build.ps1 -Commit`
   with nothing to commit likewise reports and finishes instead of failing.
 - Levers wired: `[skip ci]` on build commits; `paths-ignore` on `ci.yml` (`**.md`, `docs/**`, `PLAN/**`,
-  `winget/**`, `assets/**`, `vscode-extension/**`); `if:` skip of `release:`-prefixed commits; the tag
-  triggers only `release.yml` (branch-only CI); `concurrency cancel-in-progress` true on CI / false on release.
+  `winget/**`, `assets/**`, `vscode-extension/**`, `.github/ISSUE_TEMPLATE/**`); `if:` skip of
+  `release:`-prefixed commits; the tag triggers only `release.yml` (branch-only CI);
+  `concurrency cancel-in-progress` true on CI / false on release.
+- **The preflight is fail-fast, and that is the whole of its verdict contract**: every gate `throw`s, so
+  there is no path on which a green tail line is printed over a gate that failed inside. What it does
+  **not** do is distinguish "found a defect" from "could not verify" by exit code - both leave as 1. The
+  one could-not-verify path that continues is the unreachable-origin branch (`release.ps1:91-93`), which
+  warns in yellow and skips only the remote tag/behind checks.
 - **Tag-format gate** - `release.ps1` validates `^\d{2}\.\d{1,2}\.\d{1,2}\.\d{4}$` + `ParseExact` before
   tagging, so a mistyped `-Version` fails before any push.
 - Releases ship **unsigned** (CI Authenticode step is opt-in via `SIGNING_CERT_*` secrets, which are unset;
@@ -606,6 +621,13 @@ no CI job and no second machine could reach.
   changed - deliberately no `ext-vscode-v*` tag/workflow.
 
 **Local specifics (kept):**
+- **Menu strings keep the Win32 trailing `...`** - `Настройки...`, `Импорт из OneClickRunner...`,
+  `Diagnose caret position...`: roughly 200 strings across the 13 languages where the ellipsis is the
+  platform's "this opens a dialog" signal rather than prose. The house style's `..` governs prose, and
+  the docs quote those strings verbatim, which is why the compliance gate warns on four documentation
+  lines - each of them is the gate's own "a quoted real UI string is legitimate" case. Changing them
+  would be a user-visible UI decision in 13 languages, not a typography fix.
+  <!-- canon-ok: a platform UI convention this repo follows, not a restatement of the house style -->
 - Single-instance via a **path-independent named mutex** (`Local\CyrFlipSingleInstance`), so debug/release/
   renamed copies don't each install a hook.
 - Code style is **wired in the csproj**: `<Nullable>enable</Nullable>` + a fixed `<WarningsAsErrors>` list
