@@ -143,8 +143,9 @@
         <li>Left <strong>CapsLock</strong> on by accident and got <code>hELLO wORLD</code>?
           <strong>Select it</strong> and press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F11</kbd> -
           CyrFlip swaps UPPER ↔ lower case in place. It has its own configurable hotkey, and an
-          optional <strong>Flip CapsLock after the flip</strong> toggle turns CapsLock off afterwards
-          so you can keep typing normally.</li>
+          optional <strong>Synchronize CapsLock after case correction</strong> toggle sets the CapsLock
+          key to match the corrected text - off when it ends in a small letter, on when it ends in a
+          capital - so you can keep typing exactly as it now reads.</li>
       </ol>
       <p class="note">When <strong>CapsLock is on</strong>, a thin frame appears around the
       <code>EN</code>/<code>RU</code>/<code>UK</code> marker on the mouse cursor, the text caret and the
@@ -174,7 +175,7 @@
         <tr><td>Clipboard</td><td>History on/off, pause capture, whether the manager window opens at startup, its transparency, full-history search, and clearing everything.</td></tr>
         <tr><td>Translation</td><td>The optional local translator - see the section below.</td></tr>
         <tr><td>Quick launch</td><td>The optional scenario launcher - see the section below.</td></tr>
-        <tr><td>About &amp; Advanced</td><td>Links, the <strong>caret-position diagnostics</strong> report, and <strong>Send logs to the author..</strong> - it packs CyrFlip's own logs into one archive and opens a message that you send yourself.</td></tr>
+        <tr><td>About &amp; Advanced</td><td>The <strong>build version</strong> (the same <code>YY.M.D.HHmm</code> stamp the release ZIP carries, so you can tell at a glance whether a fix is in your copy; a Store build says so too), links, the <strong>caret-position diagnostics</strong> report, and <strong>Send logs to the author..</strong> - it packs CyrFlip's own logs into one archive and opens a message that you send yourself.</td></tr>
       </table>
       <p class="note">A Windows-language change usually takes effect immediately, but Windows occasionally only
       settles it after signing out and back in. The Microsoft Store build runs in a container, so Windows may
@@ -284,6 +285,42 @@
       does not speak are machine-made and not proofread - corrections are very welcome on GitHub.</p>
     </section>
 
+    <section id="layout-colours">
+      <h2>What the marker's colour means</h2>
+      <p>The <strong>two letters name the language</strong>: US and Dvorak both read <code>EN</code>, because a badge a few pixels wide has no room for "US-International". The <strong>colour names the layout</strong> - each of the 25 keyboard layouts of the 13 curated languages has its own shade of its language's colour, so Russian is always red but Russian Typewriter is a different red. In the compact <strong>dot style</strong> that colour is the whole marker.</p>
+      <p>Any other layout - a Polish keyboard, a Japanese IME - keeps its language's letters (<code>PL</code>, <code>JA</code>, <code>TR</code>) and gets one neutral colour: there is no honest way to hand out distinct, recognisable colours for the ~218 layouts Windows ships.</p>
+      <table>
+        <tr><th>Language</th><th>Marker</th><th>Keyboard layout</th><th>Colour</th></tr>
+        <tr><td><strong>English</strong></td><td><code>EN</code></td><td>US <code>00000409</code></td><td><span class="swatch" style="background:#4DA3FF"></span> <code>#4DA3FF</code></td></tr>
+        <tr><td></td><td><code>EN</code></td><td>US-International <code>00020409</code></td><td><span class="swatch" style="background:#0A58FF"></span> <code>#0A58FF</code></td></tr>
+        <tr><td></td><td><code>EN</code></td><td>US-Dvorak <code>00010409</code></td><td><span class="swatch" style="background:#C2E3F4"></span> <code>#C2E3F4</code></td></tr>
+        <tr><td><strong>Chinese</strong></td><td><code>ZH</code></td><td>Chinese (Simplified) - US keyboard <code>00000804</code></td><td><span class="swatch" style="background:#F3B33D"></span> <code>#F3B33D</code></td></tr>
+        <tr><td></td><td><code>ZH</code></td><td>Chinese (Traditional) - US keyboard <code>00000404</code></td><td><span class="swatch" style="background:#FAEAA7"></span> <code>#FAEAA7</code></td></tr>
+        <tr><td><strong>Hindi</strong></td><td><code>HI</code></td><td>Devanagari - INSCRIPT <code>00000439</code></td><td><span class="swatch" style="background:#E68742"></span> <code>#E68742</code></td></tr>
+        <tr><td></td><td><code>HI</code></td><td>Hindi Traditional <code>00010439</code></td><td><span class="swatch" style="background:#F0B88F"></span> <code>#F0B88F</code></td></tr>
+        <tr><td><strong>Spanish</strong></td><td><code>ES</code></td><td>Spanish <code>0000040A</code></td><td><span class="swatch" style="background:#F06E9C"></span> <code>#F06E9C</code></td></tr>
+        <tr><td></td><td><code>ES</code></td><td>Latin American <code>0000080A</code></td><td><span class="swatch" style="background:#E92D8F"></span> <code>#E92D8F</code></td></tr>
+        <tr><td><strong>French</strong></td><td><code>FR</code></td><td>French <code>0000040C</code></td><td><span class="swatch" style="background:#8D7CF2"></span> <code>#8D7CF2</code></td></tr>
+        <tr><td></td><td><code>FR</code></td><td>Canadian French <code>00001009</code></td><td><span class="swatch" style="background:#633BEC"></span> <code>#633BEC</code></td></tr>
+        <tr><td><strong>Arabic</strong></td><td><code>AR</code></td><td>Arabic (101) <code>00000401</code></td><td><span class="swatch" style="background:#35C6B4"></span> <code>#35C6B4</code></td></tr>
+        <tr><td></td><td><code>AR</code></td><td>Arabic (102) AZERTY <code>00020401</code></td><td><span class="swatch" style="background:#8BE0C7"></span> <code>#8BE0C7</code></td></tr>
+        <tr><td><strong>Bengali</strong></td><td><code>BN</code></td><td>Bangla - INSCRIPT <code>00000445</code></td><td><span class="swatch" style="background:#C67CDA"></span> <code>#C67CDA</code></td></tr>
+        <tr><td><strong>Portuguese</strong></td><td><code>PT</code></td><td>Portuguese (Brazil ABNT) <code>00000416</code></td><td><span class="swatch" style="background:#46B978"></span> <code>#46B978</code></td></tr>
+        <tr><td></td><td><code>PT</code></td><td>Portuguese <code>00000816</code></td><td><span class="swatch" style="background:#96C0A1"></span> <code>#96C0A1</code></td></tr>
+        <tr><td><strong>Russian</strong></td><td><code>RU</code></td><td>Russian <code>00000419</code></td><td><span class="swatch" style="background:#FF5A5A"></span> <code>#FF5A5A</code></td></tr>
+        <tr><td></td><td><code>RU</code></td><td>Russian (Typewriter) <code>00010419</code></td><td><span class="swatch" style="background:#FF1313"></span> <code>#FF1313</code></td></tr>
+        <tr><td><strong>Urdu</strong></td><td><code>UR</code></td><td>Urdu <code>00000420</code></td><td><span class="swatch" style="background:#E5A3C7"></span> <code>#E5A3C7</code></td></tr>
+        <tr><td><strong>German</strong></td><td><code>DE</code></td><td>German <code>00000407</code></td><td><span class="swatch" style="background:#D8D14A"></span> <code>#D8D14A</code></td></tr>
+        <tr><td></td><td><code>DE</code></td><td>German (IBM) <code>00010407</code></td><td><span class="swatch" style="background:#CED4A5"></span> <code>#CED4A5</code></td></tr>
+        <tr><td><strong>Italian</strong></td><td><code>IT</code></td><td>Italian <code>00000410</code></td><td><span class="swatch" style="background:#7FB2E5"></span> <code>#7FB2E5</code></td></tr>
+        <tr><td></td><td><code>IT</code></td><td>Italian (142) <code>00010410</code></td><td><span class="swatch" style="background:#6587B7"></span> <code>#6587B7</code></td></tr>
+        <tr><td><strong>Ukrainian</strong></td><td><code>UK</code></td><td>Ukrainian <code>00000422</code></td><td><span class="swatch" style="background:#5AD86A"></span> <code>#5AD86A</code></td></tr>
+        <tr><td></td><td><code>UK</code></td><td>Ukrainian (Enhanced) <code>00020422</code></td><td><span class="swatch" style="background:#3FD039"></span> <code>#3FD039</code></td></tr>
+        <tr><td><strong>anything else</strong></td><td><code>PL</code>, <code>JA</code>, <code>TR</code> ..</td><td>any other Windows layout</td><td><span class="swatch" style="background:#9AA6B2"></span> <code>#9AA6B2</code></td></tr>
+      </table>
+      <p class="note">The marker beside the caret and on the mouse pointer is drawn <strong>translucent</strong>, so the text under it stays readable; the tray icon and the I-beam itself stay solid. The same colours are used by the VS Code extension, so a layout looks the same in the editor as it does everywhere else.</p>
+    </section>
+
     <section>
       <h2>Where the layout shows up</h2>
       <table>
@@ -296,7 +333,13 @@
       </table>
       <p class="note">Inside VS Code, <strong>webviews and widgets</strong> - the integrated terminal, search
       boxes, chat panels, the Command Palette - can't host editor decorations, so the caret marker can't appear
-      there. The status-bar indicator and the app's mouse-cursor marker still show the layout.</p>
+      there. The status-bar indicator, the app's mouse-cursor marker and the app's own caret marker - which
+      does work in those panels - still show the layout.</p>
+      <p class="note">You never get both markers at once: while you are working in the editor the extension
+      draws the marker and the app hides its own. The extension says so through a file beside
+      <code>layout.txt</code>, and that claim lasts 5 seconds after the last keystroke or click in the editor -
+      which is why the app's marker comes back in the chat panel, the terminal and the search boxes. With the
+      app running and no extension installed, nothing changes.</p>
     </section>
 
     <section>

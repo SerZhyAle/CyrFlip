@@ -77,6 +77,7 @@ namespace CyrFlip
         private Icon? _trayIcon;
         private int _busy; // 0 = idle, 1 = a clipboard op (flip or case-flip) is in progress
         private string _currentLayout = "";
+        private string _currentKlid = "";
         private bool _capsOn;
 
         public CyrFlipContext(AppConfig config, bool openSettingsOnStart = false)
@@ -149,7 +150,7 @@ namespace CyrFlip
             };
             _langSwitchItem.CheckedChanged += OnLangSwitchToggle;
 
-            _capsAfterItem = new ToolStripMenuItem("Flip CapsLock after the flip")
+            _capsAfterItem = new ToolStripMenuItem("Synchronize CapsLock after the case flip")
             {
                 CheckOnClick = true,
                 Checked = _config.FlipCapsLockAfter,
@@ -331,23 +332,24 @@ namespace CyrFlip
                 _ui?.Post(_ => ShowSettings(), null);
         }
 
-        private void OnLayoutChanged(string code, bool capsOn)
+        private void OnLayoutChanged(string code, string klid, bool capsOn)
         {
             _currentLayout = code;
+            _currentKlid = klid;
             _capsOn = capsOn;
 
             // Cursor indicator (global I-beam replacement). A 1px frame flags CapsLock.
             if (_config.EnableCursorChange)
-                _layoutCursor.Apply(code, capsOn);
+                _layoutCursor.Apply(code, klid, capsOn);
             else
                 _layoutCursor.Restore();
 
             // Caret overlay (text label or dot near the blinking caret).
-            _caretOverlay.SetLayout(_config.EnableCaretOverlay ? code : "", capsOn);
-            LayoutPublisher.Publish(code);
+            _caretOverlay.SetLayout(_config.EnableCaretOverlay ? code : "", klid, capsOn);
+            LayoutPublisher.Publish(code, klid);
 
             UpdateTrayTooltip();
-            Icon icon = CursorIndicator.RenderIcon(code, capsOn);
+            Icon icon = CursorIndicator.RenderIcon(code, klid, capsOn);
             _tray.Icon = icon;
             _trayIcon?.Dispose();
             _trayIcon = icon;
@@ -362,7 +364,7 @@ namespace CyrFlip
         {
             LayoutConversionProfile? profile = _config.LayoutConversionProfiles.Find(p => p.Id == id && p.Enabled);
             if (profile == null) return;
-            RunClipboardOp(() => _clipboard.ConvertLayout(profile, _config.EnableLanguageSwitch),
+            RunClipboardOp(() => _clipboard.ConvertLayout(profile, _config.EnableLanguageSwitch, _config.ConvertSymbols),
                 ClipboardHandler.FlipResult.Flipped, _config.IncrementFlipCount);
         }
 
@@ -1363,7 +1365,7 @@ namespace CyrFlip
             _config.EnableCursorChange = _cursorItem.Checked;
             if (_cursorItem.Checked)
             {
-                if (_currentLayout.Length > 0) _layoutCursor.Apply(_currentLayout, _capsOn);
+                if (_currentLayout.Length > 0) _layoutCursor.Apply(_currentLayout, _currentKlid, _capsOn);
             }
             else
             {
@@ -1376,7 +1378,7 @@ namespace CyrFlip
         {
             _config.EnableCaretOverlay = _caretItem.Checked;
             _dotModeItem.Enabled = _caretItem.Checked;
-            _caretOverlay.SetLayout(_caretItem.Checked && _currentLayout.Length > 0 ? _currentLayout : "", _capsOn);
+            _caretOverlay.SetLayout(_caretItem.Checked && _currentLayout.Length > 0 ? _currentLayout : "", _currentKlid, _capsOn);
             _config.Save();
         }
 

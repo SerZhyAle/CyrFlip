@@ -10,11 +10,22 @@ import * as path from 'path';
 import * as palette from './layout-colors.json';
 
 const COLORS: Record<string, string> = palette.curated;
+const LAYOUT_COLORS: Record<string, string> = palette.layouts;
+const OTHER: string = palette.other;
+const OPACITY: number = palette.markerOpacity;
+
+// How long after the last editor activity this extension still claims the caret (see writeSignal).
+const EDITOR_ACTIVITY_TTL_MS = 5000;
+// The signal file is rewritten no more often than this while that claim holds.
+const SIGNAL_WRITE_INTERVAL_MS = 500;
 
 // 4-direction black outline so the bright code stays legible on any background.
 const OUTLINE = '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000';
 
 let currentCode = '';
+let currentKlid = '';
+let lastEditorActivity = 0;
+let lastSignalWrite = 0;
 let pollTimer: NodeJS.Timeout | undefined;
 let statusItem: vscode.StatusBarItem | undefined;
 const decoCache = new Map<string, vscode.TextEditorDecorationType>();
@@ -57,49 +68,18 @@ function layoutFilePath(): string {
 }
 
 /**
- * Any layout outside the curated set gets a deterministic bright colour derived from its code, so
- * a Polish or Turkish keyboard reads as its own colour instead of a shared grey. This must produce
- * byte-identical output to LayoutStyle.BrightFromCode in the app - the constants and a handful of
- * expected results live in layout-colors.json, and the app side is pinned to those samples by
- * LayoutColorsTests. There is no test runner in this extension: if you touch this function, check
- * it against `fallbackSamples` by hand.
+ * The layout's own shade when the app told us which layout is active, else the language's colour,
+ * else the one neutral colour for everything outside the thirteen curated languages. Mirrors
+ * LayoutStyle.ColorForLayout in the app; both tables come from layout-colors.json, and a C# test
+ * fails the build if this file's copy drifts from the app's.
  */
-function brightFromCode(code: string): string {
-  let hash = palette.fallback.hashSeed;
-  for (const ch of code) {
-    // Math.imul keeps the 32-bit signed wrap-around that C# `int` arithmetic has; plain `*`
-    // would drift into float territory for long codes and diverge from the app.
-    hash = Math.imul(hash, palette.fallback.hashMultiplier) + ch.charCodeAt(0) | 0;
-  }
-  const hue = ((hash % 360) + 360) % 360;
-  return hslToHex(hue, palette.fallback.saturation, palette.fallback.lightness);
+function colorFor(code: string, klid: string): string {
+  return LAYOUT_COLORS[klid] ?? COLORS[code] ?? OTHER;
 }
 
-function hslToHex(h: number, s: number, l: number): string {
-  const hn = h / 360;
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const channel = (t: number): number => {
-    if (t < 0) { t += 1; }
-    if (t > 1) { t -= 1; }
-    if (t < 1 / 6) { return p + (q - p) * 6 * t; }
-    if (t < 1 / 2) { return q; }
-    if (t < 2 / 3) { return p + (q - p) * (2 / 3 - t) * 6; }
-    return p;
-  };
-  const byte = (v: number): string => {
-    const clamped = Math.max(0, Math.min(255, Math.round(v * 255)));
-    return clamped.toString(16).toUpperCase().padStart(2, '0');
-  };
-  return `#${byte(channel(hn + 1 / 3))}${byte(channel(hn))}${byte(channel(hn - 1 / 3))}`;
-}
-
-function colorFor(code: string): string {
-  return COLORS[code] ?? brightFromCode(code);
-}
-
-function decorationFor(code: string): vscode.TextEditorDecorationType {
-  const cached = decoCache.get(code);
+function decorationFor(code: string, klid: string): vscode.TextEditorDecorationType {
+  const key = `${code}|${klid}`;
+  const cached = decoCache.get(key);
   if (cached) {
     return cached;
   }
@@ -110,17 +90,17 @@ function decorationFor(code: string): vscode.TextEditorDecorationType {
   const css =
     'none; position: absolute; transform: translate(3px, 1em); font-size: 0.82em; ' +
     `font-weight: bold; text-shadow: ${OUTLINE}; pointer-events: none; ` +
-    'white-space: nowrap; z-index: 1;';
+    `opacity: ${OPACITY}; white-space: nowrap; z-index: 1;`;
 
   const deco = vscode.window.createTextEditorDecorationType({
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
     after: {
       contentText: code,
-      color: colorFor(code),
+      color: colorFor(code, klid),
       textDecoration: css,
     },
   });
-  decoCache.set(code, deco);
+  decoCache.set(key, deco);
   return deco;
 }
 
@@ -149,7 +129,7 @@ function render(): void {
     return;
   }
   const caret = activeEditor.selection.active;
-  activeEditor.setDecorations(decorationFor(currentCode), [new vscode.Range(caret, caret)]);
+  activeEditor.setDecorations(decorationFor(currentCode, currentKlid), [new vscode.Range(caret, caret)]);
 }
 
 function updateStatus(): void {
@@ -158,10 +138,72 @@ function updateStatus(): void {
   }
   if (config<boolean>('showStatusBar', true) && currentCode) {
     statusItem.text = `$(keyboard) ${currentCode}`;
-    statusItem.color = colorFor(currentCode);
+    statusItem.color = colorFor(currentCode, currentKlid);
     statusItem.show();
   } else {
     statusItem.hide();
+  }
+}
+
+/**
+ * The active layout's KLID, which the app publishes to layout-klid.txt beside layout.txt. It is a
+ * separate file rather than a second line of layout.txt because this extension ships on its own
+ * clock: an already-installed copy reads the first four characters of layout.txt as the code, so
+ * anything appended there would break it. An absent file simply means an older CyrFlip - the marker
+ * then uses the language colour, exactly as before.
+ */
+function readKlid(): string {
+  try {
+    const file = path.join(path.dirname(layoutFilePath()), 'layout-klid.txt');
+    return fs.readFileSync(file, 'utf8').trim().toUpperCase().slice(0, 8);
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Tell the desktop app "the editor caret is mine right now", so it hides its own overlay and the user
+ * does not see two markers stacked at the same caret.
+ *
+ * The claim is deliberately time-limited. VS Code's API cannot say whether the focus is in the editor
+ * or in the chat/terminal - `activeTextEditor` keeps pointing at the last editor either way - so the
+ * only honest signal is recent editor *activity*: a keystroke, a selection change, an editor switch.
+ * Five seconds after the last one the file goes stale and the app's overlay comes back, which is what
+ * should happen once the user has moved to the chat box (where this extension cannot draw at all).
+ *
+ * Written beside layout.txt, in the folder the app already publishes to, and by mtime alone - the
+ * contents are only there to make the file readable by a human debugging it.
+ */
+function writeSignal(): void {
+  const now = Date.now();
+  if (!vscode.window.state.focused || !vscode.window.activeTextEditor || !currentCode) {
+    return;
+  }
+  if (now - lastEditorActivity > EDITOR_ACTIVITY_TTL_MS || now - lastSignalWrite < SIGNAL_WRITE_INTERVAL_MS) {
+    return;
+  }
+  lastSignalWrite = now;
+  try {
+    fs.writeFileSync(signalFilePath(), `${currentCode} ${new Date(now).toISOString()}\n`, 'utf8');
+  } catch {
+    // Best-effort: a signal we cannot write only means the app keeps drawing its own marker.
+  }
+}
+
+function signalFilePath(): string {
+  return path.join(path.dirname(layoutFilePath()), 'editor-caret.txt');
+}
+
+function noteEditorActivity(): void {
+  lastEditorActivity = Date.now();
+  writeSignal();
+}
+
+function clearSignal(): void {
+  try {
+    fs.unlinkSync(signalFilePath());
+  } catch {
+    // absent already, or not ours to delete
   }
 }
 
@@ -172,8 +214,10 @@ function readLayout(): void {
   } catch {
     code = ''; // file missing (CyrFlip not running) → no marker
   }
-  if (code !== currentCode) {
+  const klid = code ? readKlid() : '';
+  if (code !== currentCode || klid !== currentKlid) {
     currentCode = code;
+    currentKlid = klid;
     render();
     updateStatus();
   }
@@ -184,7 +228,7 @@ function restartPoll(): void {
     clearInterval(pollTimer);
   }
   const interval = Math.max(50, config<number>('pollIntervalMs', 200));
-  pollTimer = setInterval(readLayout, interval);
+  pollTimer = setInterval(() => { readLayout(); writeSignal(); }, interval);
 }
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -193,8 +237,10 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(statusItem);
 
   context.subscriptions.push(
-    vscode.window.onDidChangeTextEditorSelection(() => render()),
-    vscode.window.onDidChangeActiveTextEditor(() => render()),
+    vscode.window.onDidChangeTextEditorSelection(() => { noteEditorActivity(); render(); }),
+    vscode.window.onDidChangeActiveTextEditor(() => { noteEditorActivity(); render(); }),
+    vscode.workspace.onDidChangeTextDocument(() => noteEditorActivity()),
+    vscode.window.onDidChangeWindowState((s) => { if (!s.focused) { clearSignal(); } }),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('cyrflip')) {
         restartPoll();
@@ -215,6 +261,7 @@ export function activate(context: vscode.ExtensionContext): void {
         deco.dispose();
       }
       decoCache.clear();
+      clearSignal();
     },
   });
 }
@@ -227,4 +274,7 @@ export function deactivate(): void {
     deco.dispose();
   }
   decoCache.clear();
+  // Leaving a fresh signal behind would hide the app's overlay in a VS Code window that is no longer
+  // drawing a marker of its own.
+  clearSignal();
 }

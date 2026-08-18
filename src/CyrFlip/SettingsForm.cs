@@ -24,6 +24,7 @@ namespace CyrFlip
         private readonly CheckBox _caseEnabled = Check("Исправить CapsLock");
         private readonly CheckBox _historyEnabled = Check("Менеджер буфера");
         private readonly CheckBox _deferRdp = Check("Уступать хоткеи удалённому рабочему столу (mstsc/msrdc)");
+        private readonly CheckBox _convertSymbols = Check("Конвертировать знаки препинания вместе с текстом");
         // ---- Text context menu (CyrFlip's own menu over the selection) ----
         private readonly CheckBox _contextMenuEnabled = Check("Своё контекстное меню над выделенным текстом");
         private readonly ComboBox _contextMenuChord = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 260 };
@@ -43,6 +44,8 @@ namespace CyrFlip
         private readonly Label _opacityValue = new Label { AutoSize = true };
         private readonly Label _caseHotkeyValue = new Label { AutoSize = true };
         private readonly Label _historyHotkeyValue = new Label { AutoSize = true };
+        /// <summary>The About tab's version line - see <see cref="VersionLine"/> for what it says.</summary>
+        private readonly Label _version = new Label { AutoSize = true, Margin = new Padding(3, 14, 3, 0) };
         // The Windows-languages tab. Every list here is rebuilt from the registry on each Reload, so it
         // stays truthful even when the user edits layouts or hotkeys in the Windows dialog meanwhile.
         private readonly FlowLayoutPanel _layoutRows = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 2, 3, 2) };
@@ -232,6 +235,14 @@ namespace CyrFlip
             _caseEnabled.CheckedChanged += (_, _) => Changed(_setCaseEnabled, _caseEnabled.Checked);
             _historyEnabled.CheckedChanged += (_, _) => Changed(_setHistoryEnabled, _historyEnabled.Checked);
             _deferRdp.CheckedChanged += (_, _) => Changed(_setDeferRdp, _deferRdp.Checked);
+            // Nothing to rebind or reinstall - the conversion reads the value when a chord fires, so
+            // writing it and saving is the whole of it.
+            _convertSymbols.CheckedChanged += (_, _) =>
+            {
+                if (_loading) return;
+                _config.ConvertSymbols = _convertSymbols.Checked;
+                _config.Save();
+            };
             // Same shape as the translator tab: write the value, say "something changed", let the
             // context save the config and install or drop the mouse hook.
             _contextMenuEnabled.CheckedChanged += (_, _) =>
@@ -284,10 +295,12 @@ namespace CyrFlip
             _opacity.Value = Math.Max(_opacity.Minimum, Math.Min(_opacity.Maximum, _config.ClipboardHistoryOpacity));
             _opacityValue.Text = _opacity.Value + "%";
             _caseHotkeyValue.Text = _config.CaseHotkey; _historyHotkeyValue.Text = _config.ClipboardHistoryHotkey;
+            _version.Text = VersionLine();
             _pause.Enabled = _history.Checked; _historyStartup.Enabled = _history.Checked; _opacity.Enabled = _history.Checked;
             _enableHotkeys.Checked = _config.EnableHotkeys;
             _caseEnabled.Checked = _config.EnableCaseHotkey; _historyEnabled.Checked = _config.EnableHistoryHotkey;
             _deferRdp.Checked = _config.DeferToRemoteDesktop;
+            _convertSymbols.Checked = _config.ConvertSymbols;
             // The per-hotkey switches only matter while the master switch is on.
             _caseEnabled.Enabled = _historyEnabled.Enabled = _enableHotkeys.Checked;
             // The context menu is a mouse chord, so it is deliberately NOT gated by the keyboard
@@ -339,6 +352,7 @@ namespace CyrFlip
             foreach (KeyValuePair<Control, string> pair in _russianTexts)
                 pair.Key.Text = Translate(pair.Value);
             _caseHotkeyValue.Text = _config.CaseHotkey; _historyHotkeyValue.Text = _config.ClipboardHistoryHotkey;
+            _version.Text = VersionLine();
             AlignHotkeyCaptions();
             AdjustTabStrip();
             // Built in the current language, so these must run after the translation pass above.
@@ -606,6 +620,7 @@ namespace CyrFlip
             var panel = ContentPanel(page);
             panel.Controls.Add(_conversionRows);
             panel.Controls.Add(Button("Добавить конвертацию...", AddConversionProfile));
+            panel.Controls.Add(Setting(_convertSymbols, "Клавиша, которая в обеих раскладках даёт знак, а не букву, не говорит о том, в какой раскладке её нажали: за «/» на русской клавише стоит точка, а «/» с цифрового блока вообще одинаков везде и в скопированном тексте неотличим от обычного. Пока флажок стоит, такие знаки конвертируются вместе с текстом - так CyrFlip вёл себя всегда. Снимите его, если чаще набираете их намеренно: тогда «/ghbdtn» сохранит свой слеш вместо того, чтобы начаться с точки. Знаки, на клавише которых в другой раскладке стоит буква (запятая, скобки), конвертируются в любом случае."));
             panel.Controls.Add(new Label { Text = "Работают только установленные в Windows раскладки — добавьте нужные на вкладке «Языки Windows». Одну комбинацию нельзя отдать двум действиям CyrFlip.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(3, 8, 3, 4) });
             return page;
         }
@@ -1924,10 +1939,30 @@ namespace CyrFlip
             row.Controls.Add(_uiLanguage);
             return row;
         }
+        /// <summary>
+        /// The version line on the About tab: the stamped build version, and - only for a Store
+        /// build - which package this is. That distinction is not decoration: a packaged CyrFlip
+        /// cannot write the autostart entry itself and never downloads the Ollama installer, so it
+        /// is the first thing worth knowing when someone reports that either did nothing.
+        ///
+        /// <para>The version is the same <c>YY.M.D.HHmm</c> stamp the release ZIP carries, so a user
+        /// can tell at a glance whether they are on the build a fix went into.</para>
+        /// </summary>
+        private string VersionLine()
+        {
+            string line = string.Format(Translate("Версия {0}"), SupportBundle.AppVersion());
+            return PackageInfo.IsPackaged ? line + " (Microsoft Store)" : line;
+        }
+
         private TabPage AboutPage()
         {
             var page = Page("О программе и дополнительно", "CyrFlip — лёгкая утилита для Windows: показывает код текущей раскладки у текстового курсора и каретки, исправляет текст, набранный в неверной раскладке, и хранит необязательную локальную историю буфера.\n\nПриложение не передаёт историю буфера в сеть. Если история включена, записи защищены Windows DPAPI и читаются только той же учётной записью Windows.");
             var panel = ContentPanel(page);
+            // Filled by ApplyLanguage, not here: it carries the version number, so a text set at
+            // build time would be captured by RememberRussianTexts as if it were a Russian caption
+            // and then "translated" on every language change. Starting empty keeps it out of that map.
+            _version.Font = BoldFont;
+            panel.Controls.Add(_version);
             panel.Controls.Add(new Label { Text = "Разработчик: SerZhyAle", AutoSize = true, Font = BoldFont, Margin = new Padding(3, 14, 3, 4) });
             panel.Controls.Add(Link("Сайт программы: serzhyale.github.io/CyrFlip", "https://serzhyale.github.io/CyrFlip/"));
             panel.Controls.Add(Link("GitHub: github.com/SerZhyAle/CyrFlip", "https://github.com/SerZhyAle/CyrFlip"));

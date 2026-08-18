@@ -36,5 +36,32 @@ namespace CyrFlip
             }
             return sb.ToString();
         }
+
+        /// <summary>
+        /// The CapsLock state the corrected text asks for: <c>true</c> when it ends in an upper-case
+        /// letter (the user is typing in capitals and should carry on doing so), <c>false</c> when it
+        /// ends in a lower-case one, and <c>null</c> when there is no cased letter to judge by - a
+        /// selection of digits or punctuation says nothing about CapsLock, so it is left alone.
+        ///
+        /// <para>This is the case-flip counterpart of switching the input layout after a conversion,
+        /// and it is deliberately an <b>absolute</b> answer rather than "toggle it": a blind toggle
+        /// is only right while CapsLock still holds the state that produced the wrong text, so
+        /// correcting the same text twice, or after the user has already pressed CapsLock by hand,
+        /// left the key exactly backwards.</para>
+        ///
+        /// <para>The <b>last</b> cased letter decides because that is where typing continues.</para>
+        /// </summary>
+        public static bool? DesiredCapsLock(string? text)
+        {
+            if (string.IsNullOrEmpty(text)) return null;
+
+            for (int i = text!.Length - 1; i >= 0; i--)
+            {
+                char c = text[i];
+                if (char.IsUpper(c)) return true;
+                if (char.IsLower(c)) return false;
+            }
+            return null;
+        }
     }
 }

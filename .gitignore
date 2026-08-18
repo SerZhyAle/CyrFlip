@@ -57,3 +57,7 @@ msix/listingData-*.csv
 # generic agents/skills/rules pack from a different project, swept in by an accidental
 # stage-everything in commit 72f30b9 ("1"). Nothing here references it, so a clone does not need it.
 universal_agent_pack.zip
+
+# Local editor tweaks (colour customizations and the like) - personal to one machine, not
+# repository configuration; nothing in the build reads them.
+.vscode/

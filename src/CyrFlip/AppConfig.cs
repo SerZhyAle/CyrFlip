@@ -61,6 +61,15 @@ namespace CyrFlip
         public bool EnableLanguageSwitch { get; set; } = false;
         public bool FlipCapsLockAfter { get; set; } = false;
         /// <summary>
+        /// Convert a key that is punctuation in <b>both</b> layouts ("/" against ".", "@" against "«").
+        /// Such a key carries no evidence of which layout the user meant, so it is the one part of the
+        /// conversion that is a preference rather than a fact - default <b>on</b>, which is how every
+        /// release before this switch behaved. Off, "/ghbdtn" becomes "/привет" instead of ".привет",
+        /// which is what a user who types slashes, paths or numpad symbols on purpose wants. A key whose
+        /// other side is a <i>letter</i> ("," → "б", "[" → "х") is never ambiguous and ignores this.
+        /// </summary>
+        public bool ConvertSymbols { get; set; } = true;
+        /// <summary>
         /// The two keep-awake switches (see <see cref="KeepAwake"/>). Persisted since 2026-07-28, on the
         /// user's second call: a switch that silently forgets itself on every launch reads as broken.
         /// The original spec (§5) kept them in memory only, to guarantee a forgotten switch can never
@@ -214,6 +223,7 @@ namespace CyrFlip
                     cfg.EnableCaretOverlay = GetBool(key, "EnableCaretOverlay", cfg.EnableCaretOverlay);
                     cfg.CaretDotMode = GetBool(key, "CaretDotMode", cfg.CaretDotMode);
                     cfg.EnableLanguageSwitch = GetBool(key, "EnableLanguageSwitch", cfg.EnableLanguageSwitch);
+                    cfg.ConvertSymbols = GetBool(key, "ConvertSymbols", cfg.ConvertSymbols);
                     cfg.FlipCapsLockAfter = GetBool(key, "FlipCapsLockAfter", cfg.FlipCapsLockAfter);
                     cfg.KeepSystemAwake = GetBool(key, "KeepSystemAwake", cfg.KeepSystemAwake);
                     cfg.KeepScreenOn = GetBool(key, "KeepScreenOn", cfg.KeepScreenOn);
@@ -298,6 +308,7 @@ namespace CyrFlip
                 key.SetValue("EnableCaretOverlay", EnableCaretOverlay ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("CaretDotMode", CaretDotMode ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableLanguageSwitch", EnableLanguageSwitch ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ConvertSymbols", ConvertSymbols ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("FlipCapsLockAfter", FlipCapsLockAfter ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("KeepSystemAwake", KeepSystemAwake ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("KeepScreenOn", KeepScreenOn ? 1 : 0, RegistryValueKind.DWord);

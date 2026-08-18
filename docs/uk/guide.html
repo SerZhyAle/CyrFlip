@@ -106,7 +106,7 @@
         <tr><td>Буфер обміну</td><td>Увімкнення історії, пауза захоплення, чи показувати вікно менеджера під час запуску, його прозорість, пошук по всій історії та повне очищення.</td></tr>
         <tr><td>Переклад</td><td>Вимикач перекладу виділеного тексту (типово вимкнений), адреса сервера Ollama та модель, кнопки «Встановити Ollama», «Запустити Ollama», «Перевірити зв'язок» і «Завантажити модель», таблиця напрямків перекладу — кожен рядок зі своїм сполученням — і що робити з результатом: покласти в буфер обміну чи одразу вставити замість виділення.</td></tr>
         <tr><td>Швидкий запуск</td><td>Необов'язковий лаунчер сценаріїв — див. розділ нижче.</td></tr>
-        <tr><td>Про програму</td><td>Посилання, звіт <strong>діагностики положення каретки</strong> та <strong>Надіслати логи автору..</strong> - збирає логи CyrFlip в один архів і відкриває лист, який надсилаєте ви самі.</td></tr>
+        <tr><td>Про програму</td><td><strong>Версія збірки</strong> (той самий штамп <code>YY.M.D.HHmm</code>, що й у релізного ZIP, - одразу видно, чи ввійшло виправлення до вашої копії; збірка з Microsoft Store повідомляє про це окремо), посилання, звіт <strong>діагностики положення каретки</strong> та <strong>Надіслати логи автору..</strong> - збирає логи CyrFlip в один архів і відкриває лист, який надсилаєте ви самі.</td></tr>
       </table>
       <p class="note">Зміна в «Мовах Windows» зазвичай діє одразу, але іноді Windows остаточно приймає її лише
       після виходу та повторного входу. Версія з Microsoft Store працює в контейнері, тому Windows може
@@ -265,12 +265,50 @@
         <li>Випадково лишили <strong>CapsLock</strong> і отримали <code>ПРИВІТ</code> замість «Привіт»?
           <strong>Виділіть</strong> і натисніть <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F11</kbd> -
           CyrFlip поміняє ВЕЛИКІ ↔ малі літери на місці. Ця функція має власну налаштовувану гарячу
-          клавішу, а необов'язковий перемикач <strong>Flip CapsLock after the flip</strong> ще й
-          вимкне CapsLock, щоб ви друкували далі як зазвичай.</li>
+          клавішу, а необов'язковий перемикач <strong>Синхронізувати CapsLock після виправлення
+          регістру</strong> ще й приведе саму клавішу у відповідність до виправленого тексту -
+          вимкне, якщо текст закінчується малою літерою, і ввімкне, якщо великою, - щоб ви друкували
+          далі саме так, як тепер написано.</li>
       </ol>
       <p class="note">Коли <strong>CapsLock увімкнено</strong>, навколо маркера
       <code>EN</code>/<code>RU</code>/<code>UK</code> з'являється тонка рамка - на курсорі миші, біля каретки
       та на значку в треї, щоб стан CapsLock було видно прямо там, де ви друкуєте.</p>
+    </section>
+
+    <section id="layout-colours">
+      <h2>Що означає колір маркера</h2>
+      <p><strong>Літери називають мову</strong>: US і Dvorak однаково читаються як <code>EN</code>, бо у значку завширшки кілька пікселів немає місця для «US-International». <strong>Колір називає розкладку</strong>: кожна з 25 розкладок 13 курованих мов має власний відтінок кольору своєї мови, тож російська завжди червона, але «Російська друкарська» - інший червоний. У компактному режимі <strong>крапки</strong> цей колір і є весь маркер.</p>
+      <p>Будь-яка інша розкладка - польська клавіатура, японський IME - зберігає літери своєї мови (<code>PL</code>, <code>JA</code>, <code>TR</code>) і отримує один нейтральний колір: роздати розрізнювані впізнавані кольори всім ~218 розкладкам Windows чесно неможливо.</p>
+      <table>
+        <tr><th>Мова</th><th>Маркер</th><th>Розкладка клавіатури</th><th>Колір</th></tr>
+        <tr><td><strong>Англійська</strong></td><td><code>EN</code></td><td>US <code>00000409</code></td><td><span class="swatch" style="background:#4DA3FF"></span> <code>#4DA3FF</code></td></tr>
+        <tr><td></td><td><code>EN</code></td><td>US-International <code>00020409</code></td><td><span class="swatch" style="background:#0A58FF"></span> <code>#0A58FF</code></td></tr>
+        <tr><td></td><td><code>EN</code></td><td>US-Dvorak <code>00010409</code></td><td><span class="swatch" style="background:#C2E3F4"></span> <code>#C2E3F4</code></td></tr>
+        <tr><td><strong>Китайська</strong></td><td><code>ZH</code></td><td>Chinese (Simplified) - US keyboard <code>00000804</code></td><td><span class="swatch" style="background:#F3B33D"></span> <code>#F3B33D</code></td></tr>
+        <tr><td></td><td><code>ZH</code></td><td>Chinese (Traditional) - US keyboard <code>00000404</code></td><td><span class="swatch" style="background:#FAEAA7"></span> <code>#FAEAA7</code></td></tr>
+        <tr><td><strong>Гінді</strong></td><td><code>HI</code></td><td>Devanagari - INSCRIPT <code>00000439</code></td><td><span class="swatch" style="background:#E68742"></span> <code>#E68742</code></td></tr>
+        <tr><td></td><td><code>HI</code></td><td>Hindi Traditional <code>00010439</code></td><td><span class="swatch" style="background:#F0B88F"></span> <code>#F0B88F</code></td></tr>
+        <tr><td><strong>Іспанська</strong></td><td><code>ES</code></td><td>Spanish <code>0000040A</code></td><td><span class="swatch" style="background:#F06E9C"></span> <code>#F06E9C</code></td></tr>
+        <tr><td></td><td><code>ES</code></td><td>Latin American <code>0000080A</code></td><td><span class="swatch" style="background:#E92D8F"></span> <code>#E92D8F</code></td></tr>
+        <tr><td><strong>Французька</strong></td><td><code>FR</code></td><td>French <code>0000040C</code></td><td><span class="swatch" style="background:#8D7CF2"></span> <code>#8D7CF2</code></td></tr>
+        <tr><td></td><td><code>FR</code></td><td>Canadian French <code>00001009</code></td><td><span class="swatch" style="background:#633BEC"></span> <code>#633BEC</code></td></tr>
+        <tr><td><strong>Арабська</strong></td><td><code>AR</code></td><td>Arabic (101) <code>00000401</code></td><td><span class="swatch" style="background:#35C6B4"></span> <code>#35C6B4</code></td></tr>
+        <tr><td></td><td><code>AR</code></td><td>Arabic (102) AZERTY <code>00020401</code></td><td><span class="swatch" style="background:#8BE0C7"></span> <code>#8BE0C7</code></td></tr>
+        <tr><td><strong>Бенгальська</strong></td><td><code>BN</code></td><td>Bangla - INSCRIPT <code>00000445</code></td><td><span class="swatch" style="background:#C67CDA"></span> <code>#C67CDA</code></td></tr>
+        <tr><td><strong>Португальська</strong></td><td><code>PT</code></td><td>Portuguese (Brazil ABNT) <code>00000416</code></td><td><span class="swatch" style="background:#46B978"></span> <code>#46B978</code></td></tr>
+        <tr><td></td><td><code>PT</code></td><td>Portuguese <code>00000816</code></td><td><span class="swatch" style="background:#96C0A1"></span> <code>#96C0A1</code></td></tr>
+        <tr><td><strong>Російська</strong></td><td><code>RU</code></td><td>Russian <code>00000419</code></td><td><span class="swatch" style="background:#FF5A5A"></span> <code>#FF5A5A</code></td></tr>
+        <tr><td></td><td><code>RU</code></td><td>Russian (Typewriter) <code>00010419</code></td><td><span class="swatch" style="background:#FF1313"></span> <code>#FF1313</code></td></tr>
+        <tr><td><strong>Урду</strong></td><td><code>UR</code></td><td>Urdu <code>00000420</code></td><td><span class="swatch" style="background:#E5A3C7"></span> <code>#E5A3C7</code></td></tr>
+        <tr><td><strong>Німецька</strong></td><td><code>DE</code></td><td>German <code>00000407</code></td><td><span class="swatch" style="background:#D8D14A"></span> <code>#D8D14A</code></td></tr>
+        <tr><td></td><td><code>DE</code></td><td>German (IBM) <code>00010407</code></td><td><span class="swatch" style="background:#CED4A5"></span> <code>#CED4A5</code></td></tr>
+        <tr><td><strong>Італійська</strong></td><td><code>IT</code></td><td>Italian <code>00000410</code></td><td><span class="swatch" style="background:#7FB2E5"></span> <code>#7FB2E5</code></td></tr>
+        <tr><td></td><td><code>IT</code></td><td>Italian (142) <code>00010410</code></td><td><span class="swatch" style="background:#6587B7"></span> <code>#6587B7</code></td></tr>
+        <tr><td><strong>Українська</strong></td><td><code>UK</code></td><td>Ukrainian <code>00000422</code></td><td><span class="swatch" style="background:#5AD86A"></span> <code>#5AD86A</code></td></tr>
+        <tr><td></td><td><code>UK</code></td><td>Ukrainian (Enhanced) <code>00020422</code></td><td><span class="swatch" style="background:#3FD039"></span> <code>#3FD039</code></td></tr>
+        <tr><td><strong>усе інше</strong></td><td><code>PL</code>, <code>JA</code>, <code>TR</code> ..</td><td>будь-яка інша розкладка Windows</td><td><span class="swatch" style="background:#9AA6B2"></span> <code>#9AA6B2</code></td></tr>
+      </table>
+      <p class="note">Маркер поруч із кареткою та біля курсора миші малюється <strong>напівпрозорим</strong>, тож текст під ним лишається читабельним; значок у треї та сам курсор I-beam лишаються непрозорими. Ті самі кольори використовує розширення для VS Code, тож розкладка виглядає в редакторі так само, як і всюди.</p>
     </section>
 
     <section>
@@ -285,7 +323,12 @@
       </table>
       <p class="note">Усередині VS Code <strong>webview-панелі та віджети</strong> - вбудований термінал, поля
       пошуку, панелі чату, палітра команд - не можуть містити декорації редактора, тому маркер біля каретки там
-      не з'являється. Розкладку все одно показують індикатор у рядку стану та маркер на курсорі миші.</p>
+      не з'являється. Розкладку все одно показують індикатор у рядку стану та маркер на курсорі миші -
+      а також власний маркер застосунку біля каретки, який у цих панелях якраз працює.</p>
+      <p class="note">Двох маркерів одночасно не буває: доки ви працюєте в редакторі, маркер малює розширення,
+      а застосунок прибирає свій. Розширення повідомляє про це файлом поруч із <code>layout.txt</code>, і ознака
+      живе 5 секунд після останнього введення чи клацання в редакторі - тому в чаті, терміналі та полях пошуку
+      маркер застосунку повертається. Якщо застосунок запущено без розширення, нічого не змінюється.</p>
     </section>
 
     <section>

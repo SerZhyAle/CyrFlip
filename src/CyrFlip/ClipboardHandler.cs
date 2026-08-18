@@ -10,8 +10,8 @@ namespace CyrFlip
     /// <summary>
     /// Runs a clipboard transform (a layout conversion <see cref="ConvertLayout"/> or a case flip
     /// <see cref="FlipCase"/>): grab the active selection (synthesized Ctrl+C), apply the transform,
-    /// and paste the result back (synthesized Ctrl+V); optionally switch the input layout or toggle
-    /// CapsLock afterwards. (spec §2.2)
+    /// and paste the result back (synthesized Ctrl+V); optionally switch the input layout or set
+    /// CapsLock to match the result afterwards. (spec §2.2)
     ///
     /// The two halves are also available on their own - <see cref="TryCaptureSelection"/> and
     /// <see cref="ReplaceSelection"/> - because the translator needs seconds of network time between
@@ -106,27 +106,30 @@ namespace CyrFlip
         /// When true, after a successful conversion also switch the target window's input language to
         /// the layout the text now reads in, so the user can keep typing in it.
         /// </param>
-        public FlipResult ConvertLayout(LayoutConversionProfile profile, bool switchLayoutAfter = false)
+        public FlipResult ConvertLayout(LayoutConversionProfile profile, bool switchLayoutAfter = false, bool convertSymbols = true)
         {
             if (profile == null || !profile.IsUsable) return FlipResult.Failed;
 
             bool reverse = KeyboardLayoutConverter.IsActiveLayout(GetForegroundWindow(), profile.TargetKlid);
             string from = reverse ? profile.TargetKlid : profile.SourceKlid;
             string to = reverse ? profile.SourceKlid : profile.TargetKlid;
-            return Run(text => KeyboardLayoutConverter.Convert(text, from, to),
-                toggleCapsAfter: false, targetKlid: switchLayoutAfter ? to : null);
+            return Run(text => KeyboardLayoutConverter.Convert(text, from, to, convertSymbols),
+                syncCapsAfter: false, targetKlid: switchLayoutAfter ? to : null);
         }
 
         /// <summary>
         /// Invert the case of the selection (UPPER ↔ lower) via <see cref="CaseFlipEngine"/> -
         /// the "I left CapsLock on" fix. Never switches the input language afterwards.
         /// </summary>
-        /// <param name="toggleCapsAfter">
-        /// When true, after a successful case flip also toggle the physical CapsLock key, so
-        /// continued typing matches the corrected text (the analogue of switchLayoutAfter).
+        /// <param name="syncCapsAfter">
+        /// When true, after a successful case flip also bring the physical CapsLock key into line
+        /// with the corrected text - on when it ends in a capital, off when it ends in a small
+        /// letter (<see cref="CaseFlipEngine.DesiredCapsLock"/>) - so continued typing matches what
+        /// is now on screen. The exact analogue of switchLayoutAfter, which likewise sets the layout
+        /// the text now reads in rather than merely changing it.
         /// </param>
-        public FlipResult FlipCase(bool toggleCapsAfter = false)
-            => Run(CaseFlipEngine.Flip, toggleCapsAfter: toggleCapsAfter);
+        public FlipResult FlipCase(bool syncCapsAfter = false)
+            => Run(CaseFlipEngine.Flip, syncCapsAfter: syncCapsAfter);
 
         /// <summary>
         /// Cut / Copy / Paste from the text context menu, <b>through the very pipeline the flips
@@ -175,11 +178,13 @@ namespace CyrFlip
         }
 
         /// <param name="transform">The text transform to apply to the captured selection.</param>
-        /// <param name="toggleCapsAfter">When true, toggle CapsLock after a successful replace.</param>
+        /// <param name="syncCapsAfter">
+        /// When true, set CapsLock to match the replaced text after a successful replace.
+        /// </param>
         /// <param name="targetKlid">
         /// When set, the layout to switch the target window to after a successful replace.
         /// </param>
-        private FlipResult Run(Func<string, string> transform, bool toggleCapsAfter, string? targetKlid = null)
+        private FlipResult Run(Func<string, string> transform, bool syncCapsAfter, string? targetKlid = null)
         {
             ClipboardBackup backup = BackupClipboard();
             try
@@ -193,7 +198,10 @@ namespace CyrFlip
                 if (converted == selected)
                     return FlipResult.NoChange;
 
-                return ReplaceSelection(converted, foreground, held, toggleCapsAfter, targetKlid);
+                // The desired CapsLock state is read off the text we are about to paste, not off the
+                // key's current state - see CaseFlipEngine.DesiredCapsLock.
+                bool? capsAfter = syncCapsAfter ? CaseFlipEngine.DesiredCapsLock(converted) : null;
+                return ReplaceSelection(converted, foreground, held, capsAfter, targetKlid);
             }
             finally
             {
@@ -291,7 +299,7 @@ namespace CyrFlip
         /// <paramref name="foreground"/>, provided it is still the focused window.
         /// </summary>
         internal FlipResult ReplaceSelection(string text, IntPtr foreground,
-            HeldModifiers held = default, bool toggleCapsAfter = false, string? targetKlid = null)
+            HeldModifiers held = default, bool? capsAfter = null, string? targetKlid = null)
         {
             // spec §5.3 - focus moved elsewhere mid-flip → don't paste into the wrong window.
             if (GetForegroundWindow() != foreground)
@@ -311,9 +319,10 @@ namespace CyrFlip
             if (targetKlid != null && targetKlid.Length > 0)
                 LayoutSwitcher.SwitchTo(foreground, targetKlid);
 
-            // Optionally toggle CapsLock (the case-flip counterpart of the layout switch).
-            if (toggleCapsAfter)
-                ToggleCapsLock();
+            // Optionally bring CapsLock into line with the pasted text (the case-flip counterpart
+            // of the layout switch above - both set a state, neither merely changes one).
+            if (capsAfter.HasValue)
+                SetCapsLock(capsAfter.Value);
 
             return FlipResult.Flipped;
         }
@@ -358,9 +367,18 @@ namespace CyrFlip
                 (VK_V, true), (Hotkey.VK_CONTROL, true));
         }
 
-        /// <summary>Toggle the CapsLock key (a synthesized down+up flips its lock state).</summary>
-        private static void ToggleCapsLock()
-            => Send((VK_CAPITAL, false), (VK_CAPITAL, true));
+        /// <summary>
+        /// Put CapsLock into <paramref name="on"/>. There is no API that sets the lock state
+        /// directly - a synthesized down+up only flips it - so the current state is read first and
+        /// nothing is sent when it already matches. That check is what makes the call idempotent:
+        /// correcting the same text twice, or correcting it after the user has already pressed
+        /// CapsLock by hand, must not leave the key backwards.
+        /// </summary>
+        private static void SetCapsLock(bool on)
+        {
+            if (CursorIndicator.IsCapsLockOn() == on) return;
+            Send((VK_CAPITAL, false), (VK_CAPITAL, true));
+        }
 
         private static void Send(params (int vk, bool up)[] keys)
         {

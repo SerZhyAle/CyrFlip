@@ -9,10 +9,15 @@ namespace CyrFlip
     /// Russian ЙЦУКЕН layout (see the spec, §5.1) and all punctuation keys.
     ///
     /// Letters (Latin/Cyrillic) are flipped per-character, so mixed-script
-    /// text (e.g. ЙЦУRTY → QWEКЕН) is handled correctly. Non-letter symbols
-    /// that are shared between layouts (like " ; : ? / .) are ambiguous, so
-    /// they use the dominant script direction of the text.
-    /// Case is preserved; unmapped characters pass through unchanged.
+    /// text (e.g. ЙЦУRTY → QWEКЕН) is handled correctly. A non-letter whose
+    /// key carries a *letter* in the other layout ("," → "б", "[" → "х") is
+    /// always converted - nobody types a comma where "б" belongs. A key that
+    /// is punctuation on <b>both</b> sides ("/" → ".", "@" → "\"") carries no
+    /// such evidence, so converting it is the caller's choice
+    /// (<c>convertSymbols</c>, default true = the historic behaviour).
+    /// Which direction an ambiguous key takes comes from the dominant script
+    /// of the text. Case is preserved; unmapped characters pass through
+    /// unchanged.
     /// </summary>
     public static class TransliterationEngine
     {
@@ -79,7 +84,13 @@ namespace CyrFlip
         /// Transliterate <paramref name="input"/>. Letters flip per-character;
         /// ambiguous non-letter symbols use the dominant script direction.
         /// </summary>
-        public static string Transliterate(string? input)
+        /// <param name="convertSymbols">
+        /// Whether a key that is punctuation in <b>both</b> layouts ("/" against ".") is converted.
+        /// Default true - the behaviour of every release before the switch existed. False leaves such
+        /// a key alone, so "/ghbdtn" comes back as "/привет". Punctuation whose other side is a letter
+        /// ("," → "б") is not ambiguous and is converted either way.
+        /// </param>
+        public static string Transliterate(string? input, bool convertSymbols = true)
         {
             if (string.IsNullOrEmpty(input))
                 return input ?? string.Empty;
@@ -101,11 +112,17 @@ namespace CyrFlip
                 else
                 {
                     // Punctuation/symbols can appear in both layouts with different
-                    // meanings; use dominant direction for context.
-                    if (cyrillicDominant)
-                        sb.Append(RuToEn.TryGetValue(c, out char en) ? en : c);
-                    else
-                        sb.Append(EnToRu.TryGetValue(c, out char ru) ? ru : c);
+                    // meanings; use dominant direction for context - and only when the
+                    // key carries a *letter* on the other side. A symbol that stays a
+                    // symbol either way says nothing about which layout the user meant:
+                    // "/" is "." on the Russian key, and a slash in front of a word is
+                    // far more often deliberate (a command, a path, a date) than a
+                    // mistyped full stop. Punctuation that becomes a letter is the
+                    // opposite - nobody types "," where "б" belongs.
+                    char mapped = cyrillicDominant
+                        ? (RuToEn.TryGetValue(c, out char en) ? en : c)
+                        : (EnToRu.TryGetValue(c, out char ru) ? ru : c);
+                    sb.Append(convertSymbols || char.IsLetter(mapped) ? mapped : c);
                 }
             }
             return sb.ToString();

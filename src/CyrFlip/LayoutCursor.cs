@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Runtime.InteropServices;
 using static CyrFlip.WindowInterop;
@@ -21,6 +22,7 @@ namespace CyrFlip
     {
         private readonly int _scale;
         private string _current = "";
+        private string _currentKlid = "";
         private bool _currentCaps;
         private bool _applied;
 
@@ -31,15 +33,17 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// Replace the system I-beam with a caret marked with <paramref name="code"/>. When
-        /// <paramref name="capsOn"/> is true, a 1px frame around the marker flags CapsLock.
+        /// Replace the system I-beam with a caret marked with <paramref name="code"/>, coloured for the
+        /// <paramref name="klid"/> layout. When <paramref name="capsOn"/> is true, a 1px frame around
+        /// the marker flags CapsLock.
         /// </summary>
-        public void Apply(string code, bool capsOn = false)
+        public void Apply(string code, string? klid = null, bool capsOn = false)
         {
-            if (code == _current && capsOn == _currentCaps && _applied)
+            klid ??= "";
+            if (code == _current && klid == _currentKlid && capsOn == _currentCaps && _applied)
                 return;
 
-            IntPtr hcur = BuildCursor(code, capsOn);
+            IntPtr hcur = BuildCursor(code, klid, capsOn);
             if (hcur == IntPtr.Zero)
                 return;
 
@@ -48,6 +52,7 @@ namespace CyrFlip
             {
                 _applied = true;
                 _current = code;
+                _currentKlid = klid;
                 _currentCaps = capsOn;
                 ForceCursorRefresh();
             }
@@ -88,9 +93,9 @@ namespace CyrFlip
 
         // -------------------------------------------------------------------- rendering
 
-        private IntPtr BuildCursor(string code, bool capsOn)
+        private IntPtr BuildCursor(string code, string klid, bool capsOn)
         {
-            using Bitmap bmp = RenderCaret(code, _scale, capsOn, out int hotX, out int hotY);
+            using Bitmap bmp = RenderCaret(code, klid, _scale, capsOn, out int hotX, out int hotY);
 
             // GetHicon preserves alpha; rebuild it as a *cursor* (fIcon = false) with a hotspot.
             IntPtr hicon = bmp.GetHicon();
@@ -117,7 +122,10 @@ namespace CyrFlip
             }
         }
 
-        private static Bitmap RenderCaret(string code, int scale, bool capsOn, out int hotX, out int hotY)
+        /// <summary>The cursor bitmap: an opaque I-beam with the translucent layout badge beside it.
+        /// Internal so a test can read the pixels back - "is the badge see-through" is not something a
+        /// build can answer, and it is the whole point of the marker not hiding the text under it.</summary>
+        internal static Bitmap RenderCaret(string code, string klid, int scale, bool capsOn, out int hotX, out int hotY)
         {
             float beamH = scale;
             float barW = Math.Max(2f, beamH * 0.10f);
@@ -158,17 +166,33 @@ namespace CyrFlip
                 DrawBeam(g, beamCx, beamTop, beamH, barW + 2f, serifW + 2f, serifH + 2f, Color.FromArgb(230, Color.White));
                 DrawBeam(g, beamCx, beamTop, beamH, barW, serifW, serifH, Color.Black);
 
-                // Marker pill + text.
+                // Marker pill + text, composed on their own layer and then blended in at
+                // LayoutStyle.MarkerOpacity. The badge is the part that covers the user's text, so it is
+                // the part that is translucent; the I-beam above stays fully opaque, because a mouse
+                // pointer you can see through is a worse cursor, not a subtler one.
                 var pill = new RectangleF(pillX, beamTop + (beamH - markerH) / 2f - beamH * 0.06f, pillW, markerH + beamH * 0.12f);
-                using (var pillPath = Rounded(pill, beamH * 0.22f))
-                using (var pillBg = new SolidBrush(Color.FromArgb(235, ColorTranslator.FromHtml("#11161f"))))
+                using (var badge = new Bitmap(width, height))
                 {
-                    g.FillPath(pillBg, pillPath);
-                }
-                LayoutStyle.DrawCode(g, code, font, pill);
+                    using (var bg = Graphics.FromImage(badge))
+                    {
+                        bg.SmoothingMode = SmoothingMode.AntiAlias;
+                        bg.TextRenderingHint = TextRenderingHint.AntiAlias;
+                        using (var pillPath = Rounded(pill, beamH * 0.22f))
+                        using (var pillBg = new SolidBrush(Color.FromArgb(235, ColorTranslator.FromHtml("#11161f"))))
+                        {
+                            bg.FillPath(pillBg, pillPath);
+                        }
+                        LayoutStyle.DrawCode(bg, code, font, pill, klid);
 
-                if (capsOn)
-                    LayoutStyle.DrawCapsFrame(g, pill, beamH * 0.22f, code);
+                        if (capsOn)
+                            LayoutStyle.DrawCapsFrame(bg, pill, beamH * 0.22f, code, klid);
+                    }
+
+                    using var attributes = new ImageAttributes();
+                    attributes.SetColorMatrix(new ColorMatrix { Matrix33 = LayoutStyle.MarkerOpacity });
+                    g.DrawImage(badge, new Rectangle(0, 0, width, height),
+                        0, 0, width, height, GraphicsUnit.Pixel, attributes);
+                }
             }
 
             // Hotspot sits on the I-beam (where the text caret would be).

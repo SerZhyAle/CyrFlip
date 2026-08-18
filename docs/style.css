@@ -97,6 +97,12 @@ html[data-theme="light"] .btn:not(.primary):not(.accent) { background: rgba(16, 
 .wrap th { background: color-mix(in srgb, var(--acc) 10%, transparent); font-family: var(--font-heading); font-weight: 600; color: var(--text); }
 .wrap td:first-child { font-weight: 600; color: var(--text); }
 
+/* Colour sample in the layout-colour table. The ring keeps a pale shade visible on the light theme. */
+.wrap .swatch {
+  display: inline-block; width: 13px; height: 13px; border-radius: 50%;
+  vertical-align: -2px; margin-right: .25rem; border: 1px solid color-mix(in srgb, var(--text) 35%, transparent);
+}
+
 .wrap footer {
   margin-top: 2rem; text-align: center; color: var(--muted); font-size: .9rem;
   border-top: 1px solid var(--border); padding-top: 1.2rem;

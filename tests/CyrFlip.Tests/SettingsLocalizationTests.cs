@@ -19,6 +19,7 @@ namespace CyrFlip.Tests
     ///      non-Cyrillic language is an untranslated static label (OS-provided layout/language names
     ///      are excluded, and the "ЙЦУКЕН" layout name is allowed everywhere).
     /// </summary>
+    [Collection(SharedGdiCollection.Name)]   // builds the real window - see SharedGdiCollection
     public class SettingsLocalizationTests
     {
         private static readonly Regex Cyrillic = new Regex("[Ѐ-ӿ]");
@@ -128,6 +129,9 @@ namespace CyrFlip.Tests
             "Создать письмо", "Открыть папку с архивом", "Не удалось собрать архив с логами:",
             "Ваша почтовая программа не принимает вложение из ссылки. Письмо открыто, а архив выделен в проводнике — перетащите его в письмо перед отправкой.",
             "Не удалось открыть почтовую программу. Отправьте архив вручную на адрес:",
+            // The About tab's version line: filled in by ApplyLanguage rather than built as a
+            // static caption, so the control-tree walk sees it already translated.
+            "Версия {0}",
         };
 
         [Fact]

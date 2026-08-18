@@ -2,6 +2,20 @@
 
 All notable changes to the **CyrFlip - keyboard layout at the caret** extension are documented here.
 
+## [0.1.4] - 2026-08-19
+
+- **No more double marker at the editor caret.** The desktop app can locate the Monaco caret through
+  IAccessible2 and was drawing its own overlay next to this extension's marker. The extension now
+  publishes `editor-caret.txt` beside `layout.txt` while it is drawing, and the app hides its overlay
+  while that file is fresh. The claim lapses five seconds after the last editor activity, so the app's
+  marker still appears in the chat box, the terminal and the search fields - places this extension
+  cannot draw at all.
+- **The marker is translucent** (60%), matching the app; the value comes from the shared
+  `layout-colors.json` rather than being restated here.
+- **The colour now names the keyboard layout, not only the language.** Each of the 25 layouts of the 13
+  curated languages has its own shade of its language's colour (read from `layout-klid.txt`, published
+  by the app); everything outside those languages shares one neutral colour instead of a per-code hash.
+
 ## [0.1.3] - 2026-07-28
 
 - **The marker is now coloured for every language, not just three.** Version 0.1.2 fixed the wording

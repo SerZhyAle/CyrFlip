@@ -19,11 +19,16 @@ namespace CyrFlip
     /// </summary>
     internal sealed class CursorIndicator : IDisposable
     {
-        /// <summary>Raised when the layout code or the CapsLock state changes (code, capsOn).</summary>
-        public event Action<string, bool>? LayoutChanged;
+        /// <summary>
+        /// Raised when the layout or the CapsLock state changes (code, klid, capsOn). The KLID rides
+        /// along because the two letters name a language while the colour names the layout - see
+        /// <see cref="LayoutStyle.Layouts"/>.
+        /// </summary>
+        public event Action<string, string, bool>? LayoutChanged;
 
         private readonly Timer _timer = new Timer { Interval = 150 };
         private string _last = "";
+        private string _lastKlid = "";
         private bool _lastCaps;
         private IntPtr _lastActive;
 
@@ -54,13 +59,14 @@ namespace CyrFlip
             IntPtr foreground = GetForegroundWindow();
             if (IsUserWindow(foreground)) _lastActive = foreground;
 
-            string code = DetectLayout();
+            string code = DetectLayout(out string klid);
             bool caps = IsCapsLockOn();
-            if (code != _last || caps != _lastCaps)
+            if (code != _last || klid != _lastKlid || caps != _lastCaps)
             {
                 _last = code;
+                _lastKlid = klid;
                 _lastCaps = caps;
-                LayoutChanged?.Invoke(code, caps);
+                LayoutChanged?.Invoke(code, klid, caps);
             }
         }
 
@@ -106,26 +112,32 @@ namespace CyrFlip
         /// the decode answers EN, RU and UK for those very ids anyway - just a leftover from when three
         /// languages were the whole product.</para>
         ///
-        /// <para><b>This is a language, not a layout:</b> US and Dvorak both read EN, and the standard
-        /// Russian layout and Russian Typewriter both read RU. That is a deliberate decision, not an
-        /// oversight - the marker is a few pixels wide and gains nothing from a variant number. The
-        /// exact KLID of every installed layout is on the "Языки Windows" tab, and conversion profiles
-        /// bind to it.</para>
+        /// <para><b>The two letters are a language, not a layout:</b> US and Dvorak both read EN, and the
+        /// standard Russian layout and Russian Typewriter both read RU. That stays true - the marker is a
+        /// few pixels wide and gains nothing from a variant number. What tells those two apart is the
+        /// <paramref name="klid"/> this also returns: it picks the layout's own shade of the language's
+        /// colour (<see cref="LayoutStyle.Layouts"/>), which in the overlay's dot mode is the entire
+        /// marker.</para>
         /// </summary>
-        public static string DetectLayout()
+        public static string DetectLayout() => DetectLayout(out _);
+
+        /// <summary>As <see cref="DetectLayout()"/>, also reporting the active layout's KLID ("" if unknown).</summary>
+        public static string DetectLayout(out string klid)
         {
             IntPtr hwnd = GetForegroundWindow();
             uint threadId = GetWindowThreadProcessId(hwnd, out _);
             IntPtr hkl = GetKeyboardLayout(threadId);
             int langId = (int)((long)hkl & 0xFFFF);
+            klid = LayoutIdentity.KlidForHkl(hkl);
             return WorldLayouts.CodeForLangId(langId);
         }
 
         /// <summary>
-        /// Render a tray icon showing the layout <paramref name="code"/>. When
-        /// <paramref name="capsOn"/> is true, a 1px layout-colour frame marks CapsLock as on.
+        /// Render a tray icon showing the layout <paramref name="code"/> in the colour of the
+        /// <paramref name="klid"/> layout. When <paramref name="capsOn"/> is true, a 1px layout-colour
+        /// frame marks CapsLock as on.
         /// </summary>
-        public static Icon RenderIcon(string code, bool capsOn = false)
+        public static Icon RenderIcon(string code, string? klid = null, bool capsOn = false)
         {
             using var bmp = new Bitmap(32, 32, PixelFormat.Format32bppArgb);
             using (var g = Graphics.FromImage(bmp))
@@ -144,11 +156,13 @@ namespace CyrFlip
                     g.FillPath(bg, path);
                 }
 
-                using var font = new Font("Segoe UI", code.Length >= 2 ? 14f : 16f, FontStyle.Bold, GraphicsUnit.Pixel);
-                LayoutStyle.DrawCode(g, code, font, tile);
+                // The size is the badge's to decide (DrawCode fits the letters to it); the font carries
+                // only the family, the weight and the glyphs' own proportions.
+                using var font = new Font("Segoe UI", 16f, FontStyle.Bold, GraphicsUnit.Pixel);
+                LayoutStyle.DrawCode(g, code, font, tile, klid);
 
                 if (capsOn)
-                    LayoutStyle.DrawCapsFrame(g, tile, 7f, code);
+                    LayoutStyle.DrawCapsFrame(g, tile, 7f, code, klid);
             }
 
             return IconFromBitmap(bmp);

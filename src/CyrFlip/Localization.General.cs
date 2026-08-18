@@ -288,6 +288,14 @@ namespace CyrFlip
                 ur: "‏CyrFlip ونڈوز کے لیے ایک ہلکی افادیت ہے: یہ ٹیکسٹ کرسر اور کیریٹ کے پاس فعال لے آؤٹ دکھاتی ہے، غلط لے آؤٹ میں لکھا متن درست کرتی ہے، اور اختیاری مقامی کلپ بورڈ تاریخ رکھتی ہے۔\n\nایپ کلپ بورڈ کی تاریخ کبھی نیٹ ورک پر نہیں بھیجتی۔ تاریخ آن ہونے پر اندراجات Windows DPAPI سے محفوظ ہوتے ہیں اور صرف اسی Windows اکاؤنٹ سے پڑھے جا سکتے ہیں۔",
                 zh: "CyrFlip 是一款轻量的 Windows 工具：它在文本光标和插入点旁显示当前键盘布局，修正用错误布局输入的文本，并可选地保存本地剪贴板历史。\n\n本程序绝不会通过网络发送剪贴板历史。启用历史后，条目由 Windows DPAPI 保护，只有同一个 Windows 账户才能读取。");
 
+            // The About tab's version line. The number itself is the YY.M.D.HHmm build stamp and is
+            // substituted in, so only the word around it is translated.
+            Add("Версия {0}",
+                en: "Version {0}", uk: "Версія {0}", de: "Version {0}",
+                it: "Versione {0}", es: "Versión {0}", fr: "Version {0}",
+                pt: "Versão {0}", ar: "الإصدار {0}", hi: "संस्करण {0}",
+                bn: "সংস্করণ {0}", ur: "ورژن {0}", zh: "版本 {0}");
+
             Add("Разработчик: SerZhyAle",
                 en: "Developer: SerZhyAle", uk: "Розробник: SerZhyAle", de: "Entwickler: SerZhyAle",
                 it: "Sviluppatore: SerZhyAle", es: "Desarrollador: SerZhyAle", fr: "Développeur : SerZhyAle",

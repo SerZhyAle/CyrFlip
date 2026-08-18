@@ -32,6 +32,7 @@ namespace CyrFlip
         private Thread? _thread;
         private volatile bool _running;
         private volatile string _code = "";
+        private volatile string _klid = "";
         private volatile bool _caps;
 
         // UIA caret lookups are cross-process and expensive, so throttle them and reuse the last
@@ -54,15 +55,21 @@ namespace CyrFlip
             _thread.Start();
         }
 
-        /// <summary>Set the layout code and CapsLock state shown by the overlay (called on change).</summary>
-        public void SetLayout(string code, bool capsOn = false)
+        /// <summary>Set the layout code, its KLID (which picks the colour) and the CapsLock state
+        /// shown by the overlay (called on change).</summary>
+        public void SetLayout(string code, string? klid = null, bool capsOn = false)
         {
             _code = code ?? "";
+            _klid = klid ?? "";
             _caps = capsOn;
         }
 
         /// <summary>Switch between text label (the layout code) and colored dot rendering.</summary>
         public void SetDotMode(bool dot) => _form.SetDotMode(dot);
+
+        /// <summary>How opaque the badge window is - read by the test that pins the marker's
+        /// translucency, since the window itself is private to this class.</summary>
+        internal double WindowOpacity => _form.Opacity;
 
         private void Loop()
         {
@@ -77,17 +84,18 @@ namespace CyrFlip
         private void Tick()
         {
             string code = _code;
+            string klid = _klid;
             bool caps = _caps;
             if (code.Length == 0)
             {
-                Post(false, 0, 0, code, caps);
+                Post(false, 0, 0, code, klid, caps);
                 return;
             }
 
             if (TryGetCaret(out int x, out int y))
-                Post(true, x, y, code, caps);
+                Post(true, x, y, code, klid, caps);
             else
-                Post(false, 0, 0, code, caps);
+                Post(false, 0, 0, code, klid, caps);
         }
 
         // What was last handed to the UI thread. The tracker ticks eleven times a second for the
@@ -98,19 +106,21 @@ namespace CyrFlip
         private bool _postedShow;
         private int _postedX, _postedY;
         private string _postedCode = "";
+        private string _postedKlid = "";
         private bool _postedCaps;
 
-        private void Post(bool show, int x, int y, string code, bool caps)
+        private void Post(bool show, int x, int y, string code, string klid, bool caps)
         {
             if (!_form.IsHandleCreated)
                 return;
             if (show == _postedShow && x == _postedX && y == _postedY
-                && code == _postedCode && caps == _postedCaps)
+                && code == _postedCode && klid == _postedKlid && caps == _postedCaps)
                 return;
             _postedShow = show;
             _postedX = x;
             _postedY = y;
             _postedCode = code;
+            _postedKlid = klid;
             _postedCaps = caps;
             try
             {
@@ -118,7 +128,7 @@ namespace CyrFlip
                 {
                     if (show)
                     {
-                        _form.SetCode(code, caps);
+                        _form.SetCode(code, klid, caps);
                         _form.ShowAt(x, y);
                     }
                     else
@@ -132,7 +142,10 @@ namespace CyrFlip
 
         private bool TryGetCaret(out int x, out int y)
         {
-            if (IsOwnForegroundWindow())
+            // Our own windows have a real caret already, and a VS Code editor has the companion
+            // extension's marker at Monaco's caret - drawing over either is how the user ends up
+            // looking at two markers a few pixels apart.
+            if (IsOwnForegroundWindow() || EditorCaretSignal.ShouldYield())
             {
                 _haveUia = false;
                 x = 0; y = 0;
@@ -277,6 +290,7 @@ namespace CyrFlip
             private readonly int _h;
             private readonly Font _font;
             private string _code = "";
+            private string _klid = "";
             private bool _dotMode;
             private bool _caps;
 
@@ -292,6 +306,11 @@ namespace CyrFlip
                 StartPosition = FormStartPosition.Manual;
                 BackColor = ColorTranslator.FromHtml("#11161f");
                 DoubleBuffered = true;
+                // The badge sits on top of the user's text for as long as they are typing, so it is
+                // translucent rather than solid: the character it lands next to stays readable through
+                // it. Form.Opacity is a layered window, which the click-through/no-activate styles
+                // below are happy to live with.
+                Opacity = LayoutStyle.MarkerOpacity;
                 ResizeToContent();
             }
 
@@ -308,12 +327,13 @@ namespace CyrFlip
                 }
             }
 
-            public void SetCode(string code, bool caps)
+            public void SetCode(string code, string klid, bool caps)
             {
-                if (code == _code && caps == _caps)
+                if (code == _code && klid == _klid && caps == _caps)
                     return;
                 bool sizeAffectingChange = code != _code;
                 _code = code;
+                _klid = klid;
                 _caps = caps;
                 if (sizeAffectingChange)
                     ResizeToContent();
@@ -387,8 +407,10 @@ namespace CyrFlip
 
                 if (_dotMode)
                 {
-                    // Fill the entire (clipped-to-ellipse) window with the layout color.
-                    g.Clear(_code.Length > 0 ? LayoutStyle.ColorFor(_code) : LayoutStyle.ColorFor("EN"));
+                    // Fill the entire (clipped-to-ellipse) window with the layout color. Here the colour
+                    // is the whole marker - there are no letters to fall back on - which is why every
+                    // one of the 25 curated layouts has its own shade.
+                    g.Clear(_code.Length > 0 ? LayoutStyle.ColorForLayout(_klid, _code) : LayoutStyle.ColorFor("EN"));
 
                     // CapsLock: a 1px contrasting ring just inside the dot.
                     if (_caps)
@@ -397,11 +419,11 @@ namespace CyrFlip
                 }
                 else
                 {
-                    LayoutStyle.DrawCode(g, _code, _font, new RectangleF(0, 0, Width, Height));
+                    LayoutStyle.DrawCode(g, _code, _font, new RectangleF(0, 0, Width, Height), _klid);
 
                     // CapsLock: a 1px layout-colour frame around the badge.
                     if (_caps)
-                        LayoutStyle.DrawCapsFrame(g, new RectangleF(0, 0, Width, Height), Math.Max(3, _h / 4), _code);
+                        LayoutStyle.DrawCapsFrame(g, new RectangleF(0, 0, Width, Height), Math.Max(3, _h / 4), _code, _klid);
                 }
             }
 

@@ -11,6 +11,7 @@ re-hitting the same traps every time. This folder is that script, kept.
 | `Test-TrayMouse.ps1` | End-to-end: single tray click switches the last active window's layout; double click opens Settings |
 | `Test-KeepAwake.ps1` | End-to-end: the saved keep-awake state becomes a real Windows power request (`powercfg /requests`) and stops being one when saved off |
 | `Test-SupportBundle.ps1` | The "Send logs to the author" archive: contents, truncation markers, retention. `-NoUi` builds the bundle itself (reflection into the built exe, real log folder and registry) so the disk half runs unattended; without it, you press the button and it checks what appeared. Either way the compose window is yours to look at |
+| `Test-CapsSync.ps1` | "Synchronize CapsLock after case correction": the key must end up matching the corrected text, not merely change. `-InteropOnly` runs the unattended half - that `GetKeyState` is honest on a queue-less thread, which is where CyrFlip reads it; the rest stages three scenes and asks you to press the chord (one of them is the case a blind toggle got backwards) |
 | `Test-LongRun.ps1` | Hours-long watch of a live instance: GDI/USER handle counts (a leak there is invisible in the memory column), private bytes and threads, sampled to CSV while a throwaway window's layout is switched to drive the icon/cursor/overlay rendering. Fails on handle growth; private bytes are reported but never judged, since the clipboard history is unbounded by design |
 | `Save-SettingsShots.ps1` | PNG of every settings tab - for layout/localization eyeballing |
 
@@ -24,6 +25,8 @@ dotnet build CyrFlip.sln -c Release
 .\tools\uitest\Test-TrayMouse.ps1 -StartApp -Fresh      # exit code 0 = pass
 .\tools\uitest\Test-KeepAwake.ps1                       # three UAC prompts (powercfg needs admin)
 .\tools\uitest\Save-SettingsShots.ps1 -StartApp         # -> artifacts\uitest\settings-tab*.png
+.\tools\uitest\Test-CapsSync.ps1 -InteropOnly           # unattended: the off-thread reading only
+.\tools\uitest\Test-CapsSync.ps1                        # then press the case chord three times
 .\tools\uitest\Test-SupportBundle.ps1 -NoUi             # unattended: disk half only
 .\tools\uitest\Test-SupportBundle.ps1                   # then press the About-tab button yourself
 .\tools\uitest\Test-LongRun.ps1 -DurationMinutes 60     # watches a *running* instance; ends by

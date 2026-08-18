@@ -261,37 +261,37 @@ Privacidad: CyrFlip usa un hook de teclado y el portapapeles solo para detectar 
 
 رازداری: ‏CyrFlip کی بورڈ ہک اور کلپ بورڈ صرف فعال لے آؤٹ پہچاننے اور آپ کے شروع کیے ہوئے کام انجام دینے کے لیے استعمال کرتی ہے۔ یہ کلیدوں کا اندراج نہیں رکھتی، اور جب تک آپ مترجم چالو نہ کریں کوئی نیٹ ورک رابطہ نہیں کھولتی؛ مترجم بھی صرف اُسی ‏Ollama سرور سے بات کرتا ہے جو آپ بتائیں - بطورِ طے شدہ آپ ہی کا کمپیوٹر۔ اگر کچھ غلط ہو جائے تو ترتیبات کی ونڈو CyrFlip کے لاگز کو ایک آرکائیو میں جمع کرتی ہے اور اسے منسلک کر کے مصنف کے لیے پیغام کھولتی ہے۔ پیغام آپ خود بھیجتے ہیں - CyrFlip نیٹ ورک پر کچھ نہیں بھیجتا، اور کلپ بورڈ کی تاریخ آرکائیو میں کبھی شامل نہیں ہوتی۔ اوپن سورس: https://github.com/SerZhyAle/CyrFlip
 "
-ReleaseNotes,3,Text,,"Translation is no longer limited to the thirteen interface languages. The picker now offers every language Windows knows, and CyrFlip makes no promise about which of them your model can actually handle - it says so plainly and links to the model's own description, because coverage belongs to the model, not to us. We dispatch the text; the model translates it.
+ReleaseNotes,3,Text,,"The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
 
-The default model changed to aya-expanse:8b. That was decided by measurement, not by size: the previous default put Chinese characters into a Russian translation and answered Ukrainian with nonsense, and every model under 4 GB failed the same way. The new one is a larger one-time download, and English, Russian and Ukrainian are now genuinely correct.
+Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
 
-The two keep-awake switches are remembered between launches. Leave one on and it keeps the machine awake after a restart too - CyrFlip will not watch your battery for you, and the setting says so.
+No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
 
-The VS Code companion extension now draws the layout marker in the app's own colours for every language, instead of colouring three and leaving the rest grey.
+Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
 
-The privacy policy is now published in all 13 interface languages, not only English.
+Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
 
-Several settings still described the marker as EN/RU/UK. It has shown the code of any installed layout for a long time; the text now matches what the app does.","Перевод больше не ограничен тринадцатью языками интерфейса. В списке теперь все языки, которые знает Windows, и CyrFlip не обещает, какие из них потянет ваша модель: он честно об этом пишет и даёт ссылку на её описание, потому что охват языков - свойство модели, а не наше. Мы отправляем текст, переводит модель.
+Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.","Цвет маркера теперь называет раскладку, а не только язык: у каждой из 25 раскладок 13 отобранных языков свой оттенок цвета её языка - русский всегда красный, но «Русская (машинопись)» уже другой красный, - а все остальные раскладки Windows получили один нейтральный цвет. В стиле «точка» этот цвет и есть весь маркер.
 
-Модель по умолчанию заменена на aya-expanse:8b. Решено замером, а не размером: прежняя вставляла китайские иероглифы в русский перевод и отвечала бессмыслицей на украинском, и точно так же провалились все модели меньше 4 ГБ. Новая - более крупная разовая загрузка, зато английский, русский и украинский теперь действительно корректны.
+Рядом с кареткой и на указателе мыши маркер стал полупрозрачным, так что текст под ним остаётся читаемым, а его буквы вписаны в значок с одним пикселем поля. Текстовый курсор и значок в трее остаются непрозрачными.
 
-Два переключателя - «не давать засыпать» и «не блокировать экран» - запоминаются между запусками. Забытый включённым не даст компьютеру уснуть и после перезапуска: следить за вашей батареей CyrFlip не станет, и подсказка так и говорит.
+Двойного маркера в VS Code больше нет: пока рисует расширение, CyrFlip прячет свой. В панели чата, в терминале и в полях поиска, где расширение рисовать не может, маркер возвращается.
 
-Расширение для VS Code рисует маркер раскладки цветами самого приложения для всех языков, а не для трёх, оставляя остальные серыми.
+Смешанный текст исправляется одним нажатием: направление выбирается теперь для каждого символа, поэтому «ghbdtnпривет» превращается в «приветghbdtn», а не удваивает первую половину.
 
-Политика приватности теперь опубликована на всех 13 языках интерфейса, а не только на английском.
+Знаки препинания теперь ваш выбор. Клавиша, дающая знак в обеих раскладках, не говорит о том, в какой из них её нажали, поэтому «Конвертировать знаки препинания вместе с текстом» можно выключить: тогда «/ghbdtn» сохранит свой слеш вместо того, чтобы начаться с точки.
 
-Несколько настроек всё ещё описывали маркер как EN/RU/UK. Он давно показывает код любой установленной раскладки - текст приведён в соответствие с тем, что программа делает на самом деле.",,,,,,,,,,"Переклад більше не обмежений тринадцятьма мовами інтерфейсу. У списку тепер усі мови, які знає Windows, і CyrFlip не обіцяє, які з них потягне ваша модель: він чесно про це пише й дає посилання на її опис, бо охоплення мов - властивість моделі, а не наша. Ми надсилаємо текст, перекладає модель.
+Синхронизация CapsLock после исправления регистра задаёт состояние клавиши, а не переключает его, поэтому повторное исправление того же текста больше не оставляет её в обратном положении. А на вкладке «О программе» показана версия сборки.",,,,,,,,,,"Колір маркера тепер називає розкладку, а не лише мову: кожна з 25 розкладок 13 відібраних мов має власний відтінок кольору своєї мови - російська завжди червона, але «Російська (друкарська машинка)» вже інший червоний, - а всі інші розкладки Windows дістали один нейтральний колір. У стилі «крапка» цей колір і є весь маркер.
 
-Модель за замовчуванням змінено на aya-expanse:8b. Вирішено виміром, а не розміром: попередня вставляла китайські ієрогліфи в російський переклад і відповідала нісенітницею українською, і так само провалилися всі моделі, менші за 4 ГБ. Нова - більше одноразове завантаження, зате англійська, російська та українська тепер справді коректні.
+Поруч із кареткою та на вказівнику миші маркер став напівпрозорим, тож текст під ним лишається читабельним, а його літери вписані у значок з одним пікселем поля. Текстовий курсор і піктограма в треї лишаються непрозорими.
 
-Два перемикачі - «не давати засинати» та «не блокувати екран» - запам'ятовуються між запусками. Забутий увімкненим не дасть комп'ютеру заснути й після перезапуску: стежити за вашою батареєю CyrFlip не буде, і підказка так і каже.
+Подвійного маркера у VS Code більше немає: поки малює розширення, CyrFlip ховає свій. У панелі чату, в терміналі та в полях пошуку, де розширення малювати не може, маркер повертається.
 
-Розширення для VS Code малює маркер розкладки кольорами самого застосунку для всіх мов, а не для трьох, лишаючи решту сірими.
+Змішаний текст виправляється одним натисканням: напрям обирається тепер для кожного символу, тому «ghbdtnпривет» перетворюється на «приветghbdtn», а не подвоює першу половину.
 
-Політику приватності тепер опубліковано всіма 13 мовами інтерфейсу, а не лише англійською.
+Розділові знаки тепер ваш вибір. Клавіша, що дає знак в обох розкладках, не каже, в якій із них її натиснули, тому «Перетворювати розділові знаки разом із текстом» можна вимкнути: тоді «/ghbdtn» збереже свій слеш замість того, щоб початися з крапки.
 
-Кілька налаштувань усе ще описували маркер як EN/RU/UK. Він давно показує код будь-якої встановленої розкладки - текст приведено у відповідність до того, що програма робить насправді.",
+Синхронізація CapsLock після виправлення регістру задає стан клавіші, а не перемикає його, тож повторне виправлення того самого тексту більше не лишає її у зворотному положенні. А на вкладці «Про програму» показано версію збірки.",
 Title,4,Text,,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip
 ShortTitle,5,Text,,,,,,,,,,,,,,
 SortTitle,6,Text,,,,,,,,,,,,,,

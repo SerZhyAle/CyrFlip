@@ -15,17 +15,32 @@ namespace CyrFlip
         private const string UsKlid = "00000409";
         private const string RussianKlid = "00000419";
 
-        public static string Convert(string input, string sourceKlid, string targetKlid)
+        /// <param name="convertSymbols">
+        /// Whether a key that is punctuation in <b>both</b> layouts is converted - see
+        /// <see cref="AppConfig.ConvertSymbols"/>. Default true, which is how every release before the
+        /// switch behaved. Passed on to the <see cref="TransliterationEngine"/> fallback too, so the
+        /// setting means the same thing on a machine that never installed the Russian keyboard.
+        /// </param>
+        public static string Convert(string input, string sourceKlid, string targetKlid, bool convertSymbols = true)
         {
             if (string.IsNullOrEmpty(input)) return input ?? "";
 
             IntPtr source = ResolveInstalled(sourceKlid);
             IntPtr target = ResolveInstalled(targetKlid);
             if (source == IntPtr.Zero || target == IntPtr.Zero || source == target)
-                return IsBuiltInPair(sourceKlid, targetKlid) ? TransliterationEngine.Transliterate(input) : input;
+                return IsBuiltInPair(sourceKlid, targetKlid) ? TransliterationEngine.Transliterate(input, convertSymbols) : input;
 
             var output = new StringBuilder(input.Length);
-            foreach (char c in input) output.Append(ConvertChar(c, source, target));
+            foreach (char c in input)
+            {
+                // Per-character direction, so one press fixes mixed text. The pair's own direction is
+                // tried first; a character the source layout cannot even produce (Cyrillic under a US
+                // source) was typed the other way round, so it is converted back. "ghbdtnпривет"
+                // becomes "приветghbdtn" instead of doubling the first half.
+                if (TryConvertChar(c, source, target, convertSymbols, out char forward)) output.Append(forward);
+                else if (TryConvertChar(c, target, source, convertSymbols, out char backward)) output.Append(backward);
+                else output.Append(c);
+            }
             return output.ToString();
         }
 
@@ -90,10 +105,18 @@ namespace CyrFlip
             return trimmed;
         }
 
-        private static char ConvertChar(char character, IntPtr source, IntPtr target)
+        /// <summary>
+        /// Convert one character from <paramref name="source"/> to <paramref name="target"/>, or answer
+        /// false when this direction has nothing to say about it - the source layout cannot produce the
+        /// character at all, or the key maps to nothing readable in the target. The caller then tries
+        /// the opposite direction, which is what makes the conversion per-character bidirectional.
+        /// </summary>
+        private static bool TryConvertChar(char character, IntPtr source, IntPtr target, bool convertSymbols, out char converted)
         {
+            converted = character;
+
             short encoded = VkKeyScanEx(character, source);
-            if (encoded == -1) return character; // IME/composed/dead-key output is not one physical key.
+            if (encoded == -1) return false; // IME/composed/dead-key output is not one physical key.
 
             byte vk = (byte)(encoded & 0xff);
             byte modifiers = (byte)((encoded >> 8) & 0xff);
@@ -103,9 +126,9 @@ namespace CyrFlip
             // turned into its scan code *in the source layout* and read back as the target layout's
             // VK. For QWERTY ↔ ЙЦУКЕН both steps are identities, so the classic flip is unaffected.
             uint scan = MapVirtualKeyEx(vk, MAPVK_VK_TO_VSC, source);
-            if (scan == 0) return character;
+            if (scan == 0) return false;
             uint targetVk = MapVirtualKeyEx(scan, MAPVK_VSC_TO_VK, target);
-            if (targetVk == 0) return character;
+            if (targetVk == 0) return false;
 
             byte[] state = new byte[256];
             if ((modifiers & 1) != 0) state[Hotkey.VK_SHIFT] = 0x80;
@@ -119,7 +142,19 @@ namespace CyrFlip
             // the user's next real keystroke would come out composed. Flush it before returning.
             // Preserving the original character is safer than emitting a half-composed one.
             if (count < 0) FlushDeadKey(target);
-            return count == 1 ? chars[0] : character;
+            if (count != 1) return false;
+
+            // A key that is punctuation on both sides says nothing about which layout the user meant:
+            // "/" is "." on the Russian key, and a slash in front of a word is often one the user typed
+            // on purpose - a command, a path, or the numpad divide, which produces the very same
+            // character and cannot be told apart once the text is on the clipboard. Whether to convert
+            // those is therefore the user's call. Punctuation that becomes a *letter* never is: "," is
+            // "б" and "[" is "х", which nobody types by accident inside a Russian word.
+            char produced = chars[0];
+            if (!convertSymbols && !char.IsLetter(character) && !char.IsLetter(produced)) return false;
+
+            converted = produced;
+            return true;
         }
 
         /// <summary>Clear a latched dead key by pressing Space against the layout until it composes.</summary>

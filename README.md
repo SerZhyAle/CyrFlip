@@ -12,7 +12,7 @@ CyrFlip is a tiny Windows tray tool with a few modest jobs:
 
 1. **A live layout indicator where you type (the main feature).** The marker follows both the I-beam and blinking caret. The curated set covers EN, ZH, HI, ES, FR, AR, BN, PT, RU, UR, DE, IT and UK, while any Windows layout still gets its own live two-letter code.
 2. **A table of layout conversions.** Keep the familiar EN ⇄ RU flip or add as many "from layout ⇄ to layout" rows as you like, each with its own global hotkey. Conversion follows **physical key positions** (so AZERTY and QWERTZ are handled correctly), works **in both directions** - if the pair's second layout is already active, the same chord converts back - and switches to the matching layout afterwards.
-3. **Fix CapsLock.** A second hotkey (**Ctrl+Shift+F11**) inverts the case of the selection, optionally flipping the physical CapsLock key with it.
+3. **Fix CapsLock.** A second hotkey (**Ctrl+Shift+F11**) inverts the case of the selection, optionally setting the physical CapsLock key to match the corrected text.
 4. **A settings window that also replaces the Windows language pane.** Install, reorder and remove keyboard layouts, pick the whole-cycle switch chord, and assign per-language switch shortcuts that **Windows** handles (so they keep working when CyrFlip is closed). Nothing is downloaded - the layouts already ship with Windows.
 5. **An opt-in quick-launch module (the absorbed [OneClickRunner](https://github.com/SerZhyAle/OneClickRunner)).** Your programs, scripts and yt-dlp downloads as scenarios, launched from the tray, the settings table, an optional per-scenario global hotkey, or the taskbar **Jump List**. Off by default - until you enable it, CyrFlip behaves exactly as before.
 6. **An opt-in translator that runs on your own computer.** Select text anywhere in Windows, press a chord, and the translation appears in a small window next to the mouse pointer, filling in as the model writes it. It runs on [Ollama](https://ollama.com), a free program you install once yourself - no account, no key, and no text sent to the developer or to a cloud service. Off by default.
@@ -29,7 +29,8 @@ for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and c
 
 ## How it works
 
-1. CyrFlip watches the active keyboard layout and shows its two-letter code in three places: next to the blinking **text caret**, on the system **I-beam** mouse cursor (optional), and on the **tray icon**. When CapsLock is on, all three get a thin coloured frame.
+1. CyrFlip watches the active keyboard layout and shows its two-letter code in three places: next to the blinking **text caret**, on the system **I-beam** mouse cursor (optional), and on the **tray icon**. Beside the caret and on the mouse pointer the marker is **translucent**, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border around them. When CapsLock is on, all three get a thin coloured frame.
+   The **letters name the language** - US and Dvorak both read `EN` - and the **colour names the layout**: each of the 25 keyboard layouts of the 13 curated languages has its own shade of its language's colour, so Russian is always red but Russian Typewriter is a different red. That is what the compact **dot style** shows, where the colour is the whole marker. Any other layout keeps its language's letters (`PL`, `JA`, `TR`) and one neutral colour. [The full table is in the guide.](https://serzhyale.github.io/CyrFlip/guide.html#layout-colours)
 2. A global low-level keyboard hook listens for the hotkeys; on trigger, the selection is copied, transformed, and pasted back. Two fixed chords - the **case fix** (**Ctrl+Shift+F11**) and the **clipboard manager** (**Ctrl+Shift+F10**) - plus every row of your conversion table, which starts life with **EN ⇄ RU on Ctrl+Shift+F12**.
 3. **Clipboard history** is opt-in. It keeps Unicode text in a compact topmost strip; choose an item with the mouse, pin or delete it, search the whole history, or toggle the strip with **Ctrl+Shift+F10**. The encrypted local history is protected with Windows DPAPI and can be paused or cleared.
 
@@ -49,7 +50,7 @@ for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and c
   - **Windows languages** - install / reorder / remove Windows keyboard layouts, choose the cycle chord (Alt+Shift, Ctrl+Shift, `` ` `` or off), and assign direct per-language shortcuts that Windows itself handles. Both sections take a one-time backup of your pre-CyrFlip state with a one-click restore.
   - **Quick launch** - the scenario launcher (see below).
   - **Translation** - the local translator (see below): the Ollama address and model, the buttons that install, start and check it, the table of translation directions, and what to do with the result.
-  - **Clipboard** and **About & Advanced** - history options, its transparency and search, plus the caret-position diagnostics and **Send logs to the author..** (see below).
+  - **Clipboard** and **About & Advanced** - history options, its transparency and search, the **build version** (the same `YY.M.D.HHmm` stamp the release ZIP carries, so you can tell at a glance whether a fix is in your copy), plus the caret-position diagnostics and **Send logs to the author..** (see below).
 
 CyrFlip is a normal desktop app, not a Windows service: a global keyboard hook and the layout indicator must run in your interactive session, so "autostart" is a per-user startup entry rather than a service.
 
@@ -129,7 +130,7 @@ All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and ar
 | Caret overlay | on | Shows the layout marker next to the blinking text caret |
 | Caret dot style | off | Coloured dot instead of the layout letters in the overlay |
 | Change the layout after converting text | off | After a conversion, also switches the active window to the layout the text now reads in, so you can keep typing straight away |
-| Synchronize CapsLock after the case fix | off | After a case fix, also toggles the physical CapsLock key so the next keystrokes match |
+| Synchronize CapsLock after the case fix | off | After a case fix, also sets the physical CapsLock key to match the corrected text - off when it ends in a small letter, on when it ends in a capital - so the next keystrokes match |
 | Interface language | OS language | 13 languages; falls back to English when Windows runs in a language CyrFlip has no translation for |
 | Keep awake / keep the screen on | off | Stop Windows sleeping or blanking the screen on idle. Both are remembered: leave one on and it keeps the machine awake after a restart too - CyrFlip will not watch your battery for you |
 | Clipboard history | off | Encrypted local text history; toggle it from the tray or Settings |

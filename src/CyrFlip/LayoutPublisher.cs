@@ -16,19 +16,31 @@ namespace CyrFlip
     /// </summary>
     internal static class LayoutPublisher
     {
-        private static readonly string FilePath = Path.Combine(
+        private static readonly string Folder = Path.Combine(
             Environment.GetFolderPath(PackageInfo.IsPackaged
                 ? Environment.SpecialFolder.CommonApplicationData   // %ProgramData%
                 : Environment.SpecialFolder.LocalApplicationData),  // %LOCALAPPDATA%
-            "CyrFlip", "layout.txt");
+            "CyrFlip");
 
-        public static void Publish(string code)
+        private static readonly string FilePath = Path.Combine(Folder, "layout.txt");
+
+        /// <summary>
+        /// The active layout's KLID, published <b>beside</b> layout.txt rather than inside it. The
+        /// extension reads the first four characters of layout.txt as the code, so appending anything
+        /// to that file would break every already-installed copy of it - and the extension is published
+        /// on its own clock, so old copies are the normal case, not the edge one. A second file is
+        /// additive: an extension that does not know about it behaves exactly as before, and one that
+        /// does gets the layout's own shade of the language colour.
+        /// </summary>
+        private static readonly string KlidPath = Path.Combine(Folder, "layout-klid.txt");
+
+        public static void Publish(string code, string? klid = null)
         {
             try
             {
-                string dir = Path.GetDirectoryName(FilePath)!;
-                Directory.CreateDirectory(dir);
+                Directory.CreateDirectory(Folder);
                 File.WriteAllText(FilePath, code);
+                File.WriteAllText(KlidPath, klid ?? "");
             }
             catch
             {

@@ -31,13 +31,14 @@ Description: >-
   the author button that packs CyrFlip's own logs into one archive for a report you send yourself.
   Ships as a single portable exe with no installer and no runtime dependencies.
 ReleaseNotes: |-
-  This release is about the translator, and about the places where the text had fallen behind the app.
-  - Translation is no longer limited to the thirteen interface languages: the picker now offers every language Windows knows. CyrFlip promises nothing about which of them your model can handle - it says so plainly and links to the model's own description, because coverage belongs to the model, not to us. We dispatch the text; the model translates it.
-  - The default model changed to aya-expanse:8b. That was decided by measurement, not by size: the previous default put Chinese characters into a Russian translation and answered Ukrainian with nonsense, and every model under 4 GB failed the same way. It is a larger one-time download, and English, Russian and Ukrainian are now genuinely correct.
-  - The two keep-awake switches are remembered between launches. Leave one on and it keeps the machine awake after a restart too - CyrFlip will not watch your battery for you, and the setting says so.
-  - The VS Code companion extension draws the layout marker in the app's own colours for every language, instead of colouring three and leaving the rest grey.
-  - The privacy policy is now published in all 13 interface languages, not only English.
-  - Several settings still described the marker as EN/RU/UK. It has shown the code of any installed layout for a long time; the text now matches what the app does.
+  This release is about the marker - what its colour means, how it looks, and where it appears - plus two switches for the conversion.
+  - The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour instead of a hue picked at random. In the compact dot style that colour is the whole marker.
+  - Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam itself and the tray icon stay solid.
+  - No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+  - Mixed text is fixed in one press - the direction is now decided for each character, so "ghbdtnпривет" comes back as "приветghbdtn" instead of doubling the first half.
+  - Punctuation is now your choice: a key that gives a symbol in both layouts says nothing about which layout you meant, so "Convert punctuation along with the text" can be switched off, and "/ghbdtn" then keeps its slash instead of starting with a full stop. It stays on by default, the way CyrFlip has always behaved.
+  - Synchronizing CapsLock after the case fix sets the key instead of toggling it - on when the corrected text ends in a capital, off when it ends in a small letter, untouched when nothing in it has case - so correcting the same text twice no longer leaves the key backwards.
+  - The About tab shows the build version, the same YY.M.D.HHmm stamp the release ZIP carries.
 ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
 PrivacyUrl: https://serzhyale.github.io/CyrFlip/privacy.html
 Moniker: cyrflip

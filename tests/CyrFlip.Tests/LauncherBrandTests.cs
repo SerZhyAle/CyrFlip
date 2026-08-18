@@ -11,6 +11,7 @@ namespace CyrFlip.Tests
     /// carry the mark (settings page header, taskbar button) simply lose it. Hence a test that the
     /// resource is actually reachable and decodes at the sizes the app asks for.
     /// </summary>
+    [Collection(SharedGdiCollection.Name)]   // shares LauncherBrand's cache - see SharedGdiCollection
     public class LauncherBrandTests
     {
         [Theory]

@@ -13,11 +13,16 @@
     "It lives under vscode-extension/src/ rather than assets/ because vsce packages only what is inside",
     "the extension root; a file one directory up would simply be missing from the published .vsix.",
     "",
-    "Anything not listed in 'curated' gets a deterministic bright colour derived from its code, so a",
-    "layout outside the curated set still reads as its own colour instead of a shared grey. Both",
-    "implementations must produce identical output; 'fallbackSamples' pins a few of them, and the C#",
-    "side is checked against those samples by LayoutColorsTests. The TypeScript side has no test",
-    "runner of its own - if you touch colorFor() in extension.ts, verify it against these samples."
+    "Two levels and one exit. 'curated' is the colour of a language - what the marker's two letters",
+    "name. 'layouts' is the colour of one keyboard layout, keyed by KLID: US and Dvorak both read 'EN',",
+    "so the shade is the only thing that separates them (and in the overlay's dot mode it is the whole",
+    "marker). Every shade stays inside its language's hue, so the colour still answers 'which language'",
+    "first. Anything else - a Polish keyboard, a Japanese IME - is 'other': one neutral colour, because",
+    "there is no honest way to hand out distinct recognisable colours for the ~218 layouts Windows",
+    "ships. The letters still name the language there (PL, JA, TR).",
+    "",
+    "The app publishes the active KLID to layout-klid.txt beside layout.txt; when that file is absent",
+    "(an older CyrFlip), fall back to the language colour in 'curated'."
   ],
   "curated": {
     "EN": "#4DA3FF",
@@ -34,19 +39,34 @@
     "DE": "#D8D14A",
     "IT": "#7FB2E5"
   },
-  "fallback": {
-    "_algorithm": "hash = 17; for each char: hash = hash * 31 + charCode (32-bit signed wrap). hue = ((hash % 360) + 360) % 360. Then HSL(hue, saturation, lightness) -> RGB.",
-    "hashSeed": 17,
-    "hashMultiplier": 31,
-    "saturation": 0.85,
-    "lightness": 0.66
+  "layouts": {
+    "00000409": "#4DA3FF",
+    "00020409": "#0A58FF",
+    "00010409": "#C2E3F4",
+    "00000804": "#F3B33D",
+    "00000404": "#FAEAA7",
+    "00000439": "#E68742",
+    "00010439": "#F0B88F",
+    "0000040A": "#F06E9C",
+    "0000080A": "#E92D8F",
+    "0000040C": "#8D7CF2",
+    "00001009": "#633BEC",
+    "00000401": "#35C6B4",
+    "00020401": "#8BE0C7",
+    "00000445": "#C67CDA",
+    "00000416": "#46B978",
+    "00000816": "#96C0A1",
+    "00000419": "#FF5A5A",
+    "00010419": "#FF1313",
+    "00000420": "#E5A3C7",
+    "00000407": "#D8D14A",
+    "00010407": "#CED4A5",
+    "00000410": "#7FB2E5",
+    "00010410": "#6587B7",
+    "00000422": "#5AD86A",
+    "00020422": "#3FD039"
   },
-  "fallbackSamples": {
-    "PL": "#5FF2E1",
-    "JA": "#F25F9A",
-    "TR": "#F25FEB",
-    "KO": "#F2925F",
-    "CS": "#5FF288",
-    "VI": "#F25F68"
-  }
+  "other": "#9AA6B2",
+  "_markerOpacityComment": "How opaque the marker is drawn over the user's text, in and out of the editor. Mirrors LayoutStyle.MarkerOpacity; LayoutColorsTests fails the build if the two disagree.",
+  "markerOpacity": 0.6
 }

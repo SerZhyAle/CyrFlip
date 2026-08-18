@@ -2,7 +2,7 @@
   "name": "cyrflip-vscode",
   "displayName": "CyrFlip - keyboard layout at the caret",
   "description": "Shows the active keyboard layout right at the text caret, using the layout detected by the CyrFlip app.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "publisher": "SerZhyAle",
   "license": "MIT",
   "icon": "icon.png",

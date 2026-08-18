@@ -75,6 +75,8 @@ public static class CyrFlipUi {
     [DllImport("user32.dll")] public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool attach);
     [DllImport("user32.dll")] public static extern bool BringWindowToTop(IntPtr h);
     [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, IntPtr extra);
+    [DllImport("user32.dll")] public static extern short GetKeyState(int vk);
+    [DllImport("user32.dll")] public static extern uint GetClipboardSequenceNumber();
     [DllImport("kernel32.dll")] public static extern uint GetCurrentThreadId();
     [DllImport("oleacc.dll")] public static extern int AccessibleObjectFromWindow(IntPtr hwnd, uint objId, ref Guid iid, out IntPtr ppv);
     [DllImport("user32.dll")] public static extern uint GetGuiResources(IntPtr process, uint flags);
@@ -91,6 +93,20 @@ public static class CyrFlipUi {
         if (h == IntPtr.Zero) return "";
         try { return GetGuiResources(h, 0) + " " + GetGuiResources(h, 1); }   // 0 = GDI, 1 = USER
         finally { CloseHandle(h); }
+    }
+
+    // CyrFlip decides whether to send a CapsLock keystroke by reading the key's current lock state
+    // from its clipboard worker - a thread that has no message queue and never pumps one. GetKeyState
+    // is documented as answering per-thread, so this asks the question from exactly such a thread.
+    // It matters because a lock state cannot be set directly, only toggled: a reading that came back
+    // stale would leave the key inverted rather than merely unchanged.
+    public static bool CapsLockOffThread() {
+        bool result = false;
+        var t = new System.Threading.Thread(delegate() { result = (GetKeyState(0x14) & 1) != 0; });
+        t.IsBackground = true;
+        t.Start();
+        t.Join();
+        return result;
     }
 
     // Ask a window's input thread to switch layout, the same way CyrFlip's own LayoutSwitcher does.
@@ -523,6 +539,52 @@ function Switch-WindowLayout {
     $next
 }
 
+function Get-CapsLockState {
+    <#
+    .SYNOPSIS
+    Is CapsLock locked on right now? Read from this thread (-OffThread reads it from a fresh thread
+    with no message queue, the way CyrFlip's clipboard worker does).
+    #>
+    [CmdletBinding()]
+    param([switch]$OffThread)
+    Initialize-UiTestNative
+    if ($OffThread) { return [CyrFlipUi]::CapsLockOffThread() }
+    ([CyrFlipUi]::GetKeyState(0x14) -band 1) -ne 0
+}
+
+function Set-CapsLockState {
+    <#
+    .SYNOPSIS
+    Put CapsLock into a given state, by toggling it only when it differs - there is no API that sets
+    a lock state directly, which is the whole reason CyrFlip has to read it before deciding.
+    .DESCRIPTION
+    The keystroke is injected, so CyrFlip's hook ignores it (LLKHF_INJECTED) - this moves the lock
+    state without ever looking like a user pressing a chord.
+    #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][bool]$On, [int]$TimeoutMs = 1500)
+    Initialize-UiTestNative
+    if ((Get-CapsLockState) -eq $On) { return $true }
+    [CyrFlipUi]::keybd_event(0x14, 0, 0, [IntPtr]::Zero)
+    [CyrFlipUi]::keybd_event(0x14, 0, 2, [IntPtr]::Zero)
+    $deadline = (Get-Date).AddMilliseconds($TimeoutMs)
+    while ((Get-Date) -lt $deadline) {
+        if ((Get-CapsLockState) -eq $On) { return $true }
+        Start-Sleep -Milliseconds 40
+    }
+    $false
+}
+
+function Get-ClipboardSequence {
+    <#
+    .SYNOPSIS
+    Windows' clipboard sequence number - it rises on every write, so it says "a clipboard operation
+    happened" without reading (or disturbing) what is on the clipboard.
+    #>
+    Initialize-UiTestNative
+    [CyrFlipUi]::GetClipboardSequenceNumber()
+}
+
 function Get-ForegroundWindowInfo {
     Initialize-UiTestNative
     $h = [CyrFlipUi]::GetForegroundWindow()
@@ -632,4 +694,5 @@ function Save-WindowShot {
 Export-ModuleMember -Function Enable-UiTestDpi, Get-CyrFlipExe, Start-CyrFlipApp, Stop-CyrFlipApp,
     Get-TrayIcons, Get-TrayIcon, Invoke-MouseClick, Invoke-TrayClick, Start-TargetWindow, Get-WindowLayout,
     Set-WindowForeground, Get-InstalledLayouts, Get-ForegroundWindowInfo, Get-AppWindows,
-    Wait-AppWindow, Find-AppWindow, Save-WindowShot, Get-AppResourceUsage, Switch-WindowLayout
+    Wait-AppWindow, Find-AppWindow, Save-WindowShot, Get-AppResourceUsage, Switch-WindowLayout,
+    Get-CapsLockState, Set-CapsLockState, Get-ClipboardSequence

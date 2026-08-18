@@ -29,6 +29,49 @@ namespace CyrFlip.Tests
             Assert.Equal(expected, TransliterationEngine.Transliterate(input));
         }
 
+        /// <summary>
+        /// The symbol swap is opt-out, and the default is the behaviour every release shipped before
+        /// the switch existed: an ambiguous key is converted like everything else.
+        /// </summary>
+        [Theory]
+        [InlineData("/ghbdtn", ".привет")]
+        [InlineData("@ghbdtn", "\"привет")]
+        public void ConvertsAmbiguousPunctuationByDefault(string input, string expected)
+        {
+            Assert.Equal(expected, TransliterationEngine.Transliterate(input));
+            Assert.Equal(expected, TransliterationEngine.Transliterate(input, convertSymbols: true));
+        }
+
+        /// <summary>
+        /// With the swap off, a key that is punctuation in *both* layouts is left alone: it carries no
+        /// evidence of which layout the user meant, and the slash in front of a word is often one they
+        /// typed on purpose - not least from the numpad, which produces the very same character. A key
+        /// whose other side is a *letter* is the opposite case and is still converted either way, which
+        /// is what keeps "," → "б" and "[" → "х" working.
+        /// </summary>
+        [Theory]
+        [InlineData("/ghbdtn", "/привет")]      // the slash survives, the word is fixed
+        [InlineData("@ghbdtn", "@привет")]
+        [InlineData("ghbdtn?", "привет?")]
+        [InlineData("ghbdtn,", "приветб")]      // "," is the "б" key - still converted
+        [InlineData("[ghbdtn]", "хприветъ")]    // brackets are "х"/"ъ" - still converted
+        public void LeavesAKeyThatIsPunctuationInBothLayoutsAloneWhenTheSwapIsOff(string input, string expected)
+        {
+            Assert.Equal(expected, TransliterationEngine.Transliterate(input, convertSymbols: false));
+        }
+
+        /// <summary>
+        /// Mixed text is fixed in one press: each letter goes the way its own script says, so the
+        /// Latin half becomes Cyrillic and the Cyrillic half becomes Latin in the same pass.
+        /// </summary>
+        [Theory]
+        [InlineData("ghbdtnпривет", "приветghbdtn")]
+        [InlineData("приветghbdtn", "ghbdtnпривет")]
+        public void FlipsBothHalvesOfMixedText(string input, string expected)
+        {
+            Assert.Equal(expected, TransliterationEngine.Transliterate(input));
+        }
+
         [Fact]
         public void PreservesCase()
         {
