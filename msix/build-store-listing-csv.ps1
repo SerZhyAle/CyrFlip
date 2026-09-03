@@ -55,6 +55,13 @@ param(
     # the ten languages that arrived with text alone are still shown as Incomplete.
     [switch] $ImportFolder,
 
+    # Stage a screenshot only for a language that has none at all. Without it every re-import adds
+    # our settings shot again, in the next free slot, beside the copy the previous import already
+    # uploaded - a live listing then shows the same picture twice. Use it whenever the export was
+    # taken after a successful import; the plain -ImportFolder is for the first one, or for a
+    # language deliberately getting a second shot.
+    [switch] $ScreenshotOnlyMissing,
+
     # Fill nothing, correct only OverrideLogosForWin10, and write to store-listing-fix-logo-flag.csv.
     # The smallest possible import: it cannot disturb copy that was entered by hand since the last
     # export, which a full fill would happily overwrite.
@@ -177,9 +184,10 @@ if ($ImportFolder) {
     foreach ($code in $langs) {
         $png = Join-Path $shotDir "settings-$code.png"
         if (-not (Test-Path $png)) { Write-Warning "No screenshot for '$code' - that listing stays Incomplete."; continue }
-        Copy-Item $png $stageDir
         $slot = 1..10 | Where-Object { ($rows | Where-Object Field -eq "DesktopScreenshot$_").$code -eq '' } | Select-Object -First 1
         if (-not $slot) { continue }
+        if ($ScreenshotOnlyMissing -and $slot -ne 1) { continue }   # already carries a screenshot
+        Copy-Item $png $stageDir
         ($rows | Where-Object Field -eq "DesktopScreenshot$slot").$code = "$stageName/settings-$code.png"
         $staged += [pscustomobject]@{ Language = $code; Slot = "DesktopScreenshot$slot"; File = "settings-$code.png" }
     }

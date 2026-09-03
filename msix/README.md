@@ -13,9 +13,9 @@ Store-distributed build is also the most effective answer to the Avast/AVG `IDP.
 | --- | --- |
 | [AppxManifest.xml](AppxManifest.xml) | Package manifest (full-trust app, `runFullTrust`, `startupTask`). Has `__PLACEHOLDERS__`. |
 | [build-msix.ps1](build-msix.ps1) | Builds Release, stages payload, generates logo PNGs, fills the manifest, packs the `.msix`. |
-| [store-listing-export.csv](store-listing-export.csv) | **The source of truth for every word of the listing**, in all 13 languages: Partner Center's bulk export/import format (Description, ReleaseNotes, Product features, Search terms). Edit here, then re-import via *Store listings → Import* in Partner Center - keeps the listing content under version control instead of only living in the Partner Center UI. Screenshot/logo asset rows are Partner-Center-hosted URLs, left as-is. |
+| [store-listing-export.csv](store-listing-export.csv) | **The source of truth for every word of the listing**, in all 14 listing languages (the app's 13 plus `pt`): Partner Center's bulk export/import format (Description, ReleaseNotes, Product features, Search terms). Edit here, then re-import via *Store listings → Import* in Partner Center - keeps the listing content under version control instead of only living in the Partner Center UI. Screenshot/logo asset rows are Partner-Center-hosted URLs, left as-is. |
 | [store-listing-import-13-languages.csv](store-listing-import-13-languages.csv) | **Generated** - the export above with every empty cell filled, ready for *Store listings → Import*. Do not hand-edit; run `build-store-listing-csv.ps1`. |
-| [build-store-listing-csv.ps1](build-store-listing-csv.ps1) | Fills the gaps in the export from `listing/`. It **only writes empty cells** and never reorders columns, so asset URLs and anything Partner Center already holds survive untouched. `-FillNothing` proves the writer is lossless: the output must come back byte-identical to the export. |
+| [build-store-listing-csv.ps1](build-store-listing-csv.ps1) | Fills the gaps in the export from `listing/`. It **only writes empty cells** and never reorders columns, so asset URLs and anything Partner Center already holds survive untouched. `-FillNothing` proves the writer is lossless: the output must come back byte-identical to the export. `-ScreenshotOnlyMissing` stages a screenshot only where the language has none - the flag every import after the first needs. |
 | [listing/](listing/) | One `@@Field / value` text file per language, written when the export did not yet carry those 11 languages. Plain text on purpose: this is prose to be proofread, not code. Keep it in step with the CSV - the merge above only fills **empty** cells, so a change made here alone never reaches the Store. |
 | [render-listing-mirrors.ps1](render-listing-mirrors.ps1) | Rewrites the two human-readable mirrors - `store-listings.md` and `store/listing-*.txt` - from the export. `-Check` renders in memory and exits 1 on drift (the release preflight runs it). Both mirrors were a release behind in three languages before this existed. |
 
@@ -92,13 +92,26 @@ For an existing app you only create a new submission - the identity above is unc
 4. **Store listings** - the listing copy is imported, not typed:
    1. **Manage additional languages** → add every language you intend to ship (the app's own 13:
       English, Russian, Ukrainian, German, Italian, Spanish, French, Portuguese (Brazil), Chinese
-      Simplified, Hindi, Bengali, Arabic, Urdu → `en-us ru uk de it es fr pt-br zh-hans hi bn ar ur`).
+      Simplified, Hindi, Bengali, Arabic, Urdu → `en-us ru uk de it es fr pt-br zh-hans hi bn ar ur`),
+      plus **`pt`** - Portuguese (Portugal), added on 2026-08-19. It is served by the same
+      `msix/listing/pt.txt` as `pt-br`, i.e. by Brazilian copy, which reads fine in Portugal but is
+      not adapted to it; a separate European file would need its own column mapping in
+      `build-store-listing-csv.ps1`.
    2. **Export**, and drop the downloaded file over `msix/store-listing-export.csv`. Do this
       **every time**: the export carries the current submission's listing ids in its asset URLs, and
       the languages present on it are exactly the columns an import will accept.
-   3. `.\msix\build-store-listing-csv.ps1 -ImportFolder` - fills the empty cells from
-      `msix/listing/` and stages `msix/store-listing-import/`: the CSV beside the screenshots, each
-      language's `DesktopScreenshot` pointing at its own file by relative path.
+
+      > **The export is the *published* copy, which is not always the newest one.** Text written
+      > here after the last successful import - a rewritten description, the next release's "What's
+      > new" - is *older* in the file you just downloaded, and the merge below only fills **empty**
+      > cells, so it will not put it back. Diff the incoming export against the one in git and carry
+      > those cells over by hand before running anything.
+   3. `.\msix\build-store-listing-csv.ps1 -ImportFolder -ScreenshotOnlyMissing` - fills the empty
+      cells from `msix/listing/` and stages `msix/store-listing-import/`: the CSV beside the
+      screenshots, each language's `DesktopScreenshot` pointing at its own file by relative path.
+      **`-ScreenshotOnlyMissing` is right for every import after the first**: without it each run
+      stages our settings shot again, in the next free slot, beside the copy the previous import
+      already uploaded - and the live listing then shows the same picture twice.
    4. **Import listings → Import folder** and pick `msix/store-listing-import`.
 
    > **An import is all-or-nothing.** If any cell is rejected, Partner Center saves *none* of the
