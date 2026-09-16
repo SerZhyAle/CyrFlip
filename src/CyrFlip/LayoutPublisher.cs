@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 
 namespace CyrFlip
 {
@@ -36,16 +37,21 @@ namespace CyrFlip
 
         public static void Publish(string code, string? klid = null)
         {
-            try
+            string safeCode = code ?? "";
+            string safeKlid = klid ?? "";
+            ThreadPool.QueueUserWorkItem(_ =>
             {
-                Directory.CreateDirectory(Folder);
-                File.WriteAllText(FilePath, code);
-                File.WriteAllText(KlidPath, klid ?? "");
-            }
-            catch
-            {
-                // Best-effort - never let publishing affect the app.
-            }
+                try
+                {
+                    Directory.CreateDirectory(Folder);
+                    File.WriteAllText(FilePath, safeCode);
+                    File.WriteAllText(KlidPath, safeKlid);
+                }
+                catch
+                {
+                    // Best-effort - never let publishing affect the app.
+                }
+            });
         }
     }
 }

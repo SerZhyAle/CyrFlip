@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
 using static CyrFlip.WindowInterop;
@@ -19,6 +20,7 @@ namespace CyrFlip
         // <see cref="ClipboardHistoryOrder"/> for why that class exists at all.
         private readonly ClipboardHistoryOrder _order = new ClipboardHistoryOrder();
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
+        private readonly SynchronizationContext? _ui;
         private readonly string _path;
         private bool _enabled;
         private bool _paused;
@@ -38,6 +40,7 @@ namespace CyrFlip
         {
             _enabled = enabled;
             _paused = paused;
+            _ui = SynchronizationContext.Current;
             string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CyrFlip");
             Directory.CreateDirectory(dir);
             _path = Path.Combine(dir, "clipboard-history.log");
@@ -66,21 +69,24 @@ namespace CyrFlip
         public void TogglePin(ClipboardHistoryEntry entry)
         {
             _order.Update(entry, entry.CreatedAt, !entry.IsPinned);
-            Append(entry.IsPinned ? "pin" : "unpin", entry);
+            ThreadPool.QueueUserWorkItem(_ => Append(entry.IsPinned ? "pin" : "unpin", entry));
             RaiseChanged();
         }
 
         public void Delete(ClipboardHistoryEntry entry)
         {
             _order.Remove(entry);
-            Append("delete", entry);
+            ThreadPool.QueueUserWorkItem(_ => Append("delete", entry));
             RaiseChanged();
         }
 
         public void Clear()
         {
             _order.Clear();
-            try { if (File.Exists(_path)) File.Delete(_path); } catch { }
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try { if (File.Exists(_path)) File.Delete(_path); } catch { }
+            });
             RaiseChanged();
         }
 
@@ -92,7 +98,21 @@ namespace CyrFlip
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == WmClipboardUpdate) Capture();
+            if (m.Msg == WmClipboardUpdate)
+            {
+                if (_enabled && !_paused && DateTime.UtcNow >= _suppressUntilUtc)
+                {
+                    if (_suppressNext)
+                    {
+                        _suppressNext = false;
+                    }
+                    else
+                    {
+                        IntPtr hwnd = GetForegroundWindow();
+                        ThreadPool.QueueUserWorkItem(_ => CaptureAsync(hwnd));
+                    }
+                }
+            }
             base.WndProc(ref m);
         }
 
@@ -100,35 +120,66 @@ namespace CyrFlip
         {
             if (!_enabled || _paused || DateTime.UtcNow < _suppressUntilUtc) return;
             if (_suppressNext) { _suppressNext = false; return; }
-            if (!Win32Clipboard.TryGetText(out string text) || text.Length == 0) return;
-            if (Encoding.Unicode.GetByteCount(text) > MaxTextBytes) { ItemTooLarge?.Invoke(this, EventArgs.Empty); return; }
-            string uuid = Hash(text);
-            // Identical text is one entry, however long ago it was first copied - the same rule the
-            // log replay in Load has always applied, now also applied live and in O(1).
+            IntPtr hwnd = GetForegroundWindow();
+            ThreadPool.QueueUserWorkItem(_ => CaptureAsync(hwnd));
+        }
+
+        private void CaptureAsync(IntPtr hwnd)
+        {
+            try
+            {
+                if (!Win32Clipboard.TryGetText(out string text) || text.Length == 0) return;
+                if (Encoding.Unicode.GetByteCount(text) > MaxTextBytes)
+                {
+                    if (_ui != null)
+                        _ui.Post(_ => ItemTooLarge?.Invoke(this, EventArgs.Empty), null);
+                    else
+                        ItemTooLarge?.Invoke(this, EventArgs.Empty);
+                    return;
+                }
+
+                string uuid = Hash(text);
+                ReadSource(hwnd, out string sourceApp, out string sourceTitle);
+
+                if (_ui != null)
+                    _ui.Post(_ => ProcessCaptureResult(uuid, text, sourceApp, sourceTitle), null);
+                else
+                    ProcessCaptureResult(uuid, text, sourceApp, sourceTitle);
+            }
+            catch { /* history must never affect the clipboard or crash */ }
+        }
+
+        private void ProcessCaptureResult(string uuid, string text, string sourceApp, string sourceTitle)
+        {
             ClipboardHistoryEntry? existing = _order.Find(uuid);
             if (existing != null)
             {
                 _order.Update(existing, DateTime.UtcNow, existing.IsPinned);
-                Append("touch", existing);
+                ThreadPool.QueueUserWorkItem(_ => Append("touch", existing));
             }
             else
             {
-                ReadSource(out string sourceApp, out string sourceTitle);
-                existing = new ClipboardHistoryEntry { Uuid = uuid, Text = text, CreatedAt = DateTime.UtcNow, SourceApp = sourceApp, SourceTitle = sourceTitle };
+                existing = new ClipboardHistoryEntry
+                {
+                    Uuid = uuid,
+                    Text = text,
+                    CreatedAt = DateTime.UtcNow,
+                    SourceApp = sourceApp,
+                    SourceTitle = sourceTitle
+                };
                 _order.Add(existing);
-                Append("add", existing);
+                ThreadPool.QueueUserWorkItem(_ => Append("add", existing));
             }
             _order.SetCurrent(existing);
             RaiseChanged();
         }
 
         /// <summary>The window owning the clipboard when it changed is, in practice, the app the text came from.</summary>
-        private static void ReadSource(out string app, out string title)
+        private static void ReadSource(IntPtr hwnd, out string app, out string title)
         {
             app = ""; title = "";
             try
             {
-                IntPtr hwnd = GetForegroundWindow();
                 if (hwnd == IntPtr.Zero) return;
                 var caption = new StringBuilder(256);
                 if (GetWindowText(hwnd, caption, caption.Capacity) > 0) title = caption.ToString();

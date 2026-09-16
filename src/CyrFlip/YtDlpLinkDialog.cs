@@ -67,7 +67,10 @@ namespace CyrFlip
             Controls.Add(grid);
 
             AcceptButton = _ok; CancelButton = cancel;
-            Shown += (_, _) => _link.Focus();
+            // Opened from the Jump List/hotkey/IPC, this process often holds no foreground rights -
+            // without this the dialog sits behind the user's window instead of appearing (same fix
+            // as ShowSettings/ClipboardHistoryWindow via ForegroundActivator).
+            Shown += (_, _) => { ForegroundActivator.Activate(this); _link.Focus(); };
         }
 
         private Button Command(string text, DialogResult result) => new Button

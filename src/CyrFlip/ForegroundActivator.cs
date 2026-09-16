@@ -16,10 +16,7 @@ namespace CyrFlip
     ///
     /// The way around it is to share the foreground thread's input queue for the duration of the call
     /// (<c>AttachThreadInput</c>), which makes the two threads count as one for that rule. The attach
-    /// is skipped when the foreground window is unknown or already ours, and is always undone.
-    ///
-    /// Opening the same window from the tray needs none of this - a tray click hands the process
-    /// foreground rights - but going through here costs nothing there and keeps one path.
+    /// is skipped when the foreground window is unknown, hung, or already ours, and is always undone.
     /// </summary>
     internal static class ForegroundActivator
     {
@@ -44,7 +41,13 @@ namespace CyrFlip
             uint ours = GetCurrentThreadId();
             uint theirs = foreground == IntPtr.Zero ? 0 : GetWindowThreadProcessId(foreground, out _);
 
-            bool attached = theirs != 0 && theirs != ours && AttachThreadInput(theirs, ours, true);
+            // Guard against hung target processes: only attach thread input if the foreground window
+            // responds to WM_NULL within 50 ms. If it is hung or unresponsive, skip AttachThreadInput
+            // to prevent CyrFlip's UI thread from deadlocking.
+            bool responsive = theirs != 0 && theirs != ours
+                && SendMessageTimeout(foreground, 0, IntPtr.Zero, IntPtr.Zero, SMTO_ABORTIFHUNG, 50, out _) != IntPtr.Zero;
+
+            bool attached = responsive && AttachThreadInput(theirs, ours, true);
             try
             {
                 BringWindowToTop(target);
