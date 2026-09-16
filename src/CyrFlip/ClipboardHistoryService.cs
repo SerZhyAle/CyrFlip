@@ -202,18 +202,23 @@ namespace CyrFlip
             catch { /* source metadata is best-effort; never let it affect the clipboard */ }
         }
 
+        private readonly object _appendLock = new object();
+
         private void Append(string action, ClipboardHistoryEntry entry)
         {
             try
             {
-                var record = new HistoryRecord { Action = action, Uuid = entry.Uuid, CreatedAt = entry.CreatedAt.Ticks, IsPinned = entry.IsPinned };
-                if (action == "add")
+                lock (_appendLock)
                 {
-                    record.Payload = Convert.ToBase64String(ProtectedData.Protect(Encoding.UTF8.GetBytes(entry.Text), null, DataProtectionScope.CurrentUser));
-                    record.SourceApp = entry.SourceApp;
-                    record.SourceTitle = entry.SourceTitle;
+                    var record = new HistoryRecord { Action = action, Uuid = entry.Uuid, CreatedAt = entry.CreatedAt.Ticks, IsPinned = entry.IsPinned };
+                    if (action == "add")
+                    {
+                        record.Payload = Convert.ToBase64String(ProtectedData.Protect(Encoding.UTF8.GetBytes(entry.Text), null, DataProtectionScope.CurrentUser));
+                        record.SourceApp = entry.SourceApp;
+                        record.SourceTitle = entry.SourceTitle;
+                    }
+                    File.AppendAllText(_path, _json.Serialize(record) + Environment.NewLine, Encoding.UTF8);
                 }
-                File.AppendAllText(_path, _json.Serialize(record) + Environment.NewLine, Encoding.UTF8);
             }
             catch { /* history must never affect the clipboard */ }
         }
