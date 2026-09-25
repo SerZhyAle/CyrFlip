@@ -2,6 +2,13 @@
 
 All notable changes to the **CyrFlip - keyboard layout at the caret** extension are documented here.
 
+## [Unreleased]
+
+- **README brought up to date:** both layout-file locations (`%LOCALAPPDATA%` and, for a Store
+  install, `%ProgramData%`, newest wins), any layout rather than EN/RU/UK, the colour table, the 60%
+  opacity and the `editor-caret.txt` claim. The `cyrflip.layoutFile` setting's description names both
+  locations. The app now removes `layout.txt` when it exits, so the marker disappears with it.
+
 ## [0.1.4] - 2026-08-19
 
 - **No more double marker at the editor caret.** The desktop app can locate the Monaco caret through

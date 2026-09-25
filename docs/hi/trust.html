@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip - Windows या एंटीवायरस चेतावनी क्यों दे सकता है</title>
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/hi/trust.html">
+  <meta name="description" content="CyrFlip के बारे में Windows SmartScreen या एंटीवायरस की चेतावनी का क्या अर्थ है, वह क्यों दिखती है, ठीक-ठीक क्या क्लिक करें, और CyrFlip क्या कभी नहीं करता।" />
+  <meta property="og:title" content="CyrFlip - Windows या एंटीवायरस चेतावनी क्यों दे सकता है" />
+  <meta property="og:description" content="CyrFlip के बारे में Windows SmartScreen या एंटीवायरस की चेतावनी का क्या अर्थ है, वह क्यों दिखती है, ठीक-ठीक क्या क्लिक करें, और CyrFlip क्या कभी नहीं करता।" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <meta property="og:url" content="https://serzhyale.github.io/CyrFlip/hi/trust.html" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0a0f0a" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+</head>
+<body>
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+  <header class="site-header">
+    <div class="container">
+      <span class="brand"><img class="brand-icon" src="../assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
+      <button class="theme-btn" id="themeBtn" aria-label="थीम बदलें">◐</button>
+      <div class="cta">
+        <a class="btn btn-ghost btn-sm" href="./">← मुख्य पृष्ठ</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </div>
+  </header>
+  <div class="wrap">
+    <section>
+      <h1>Windows या एंटीवायरस CyrFlip के बारे में चेतावनी क्यों दे सकता है</h1>
+      <p class="note">अंतिम अद्यतन: 24 सितंबर 2026 · <a href="../trust.html">English (मूल)</a></p>
+
+      <p>यह पृष्ठ उस क्षण के लिए है जब Windows या आपके एंटीवायरस ने अभी-अभी CyrFlip को रोका हो। यह
+      बताता है कि चेतावनी क्या है, वह क्यों दिखती है, ठीक-ठीक क्या क्लिक करना है, और CyrFlip क्या कभी नहीं
+      करता - इसी क्रम में, ताकि आप स्वयं निर्णय ले सकें।</p>
+
+      <h2 id="what">चेतावनी क्या है</h2>
+      <p class="note">Windows की विंडो के पाठ यहाँ अंग्रेज़ी में उद्धृत हैं, कोष्ठक में अनुवाद के साथ;
+      हिंदी इंटरफ़ेस वाले Windows में आपको Windows का अपना हिंदी पाठ दिखेगा।</p>
+
+      <h3>"Windows protected your PC" (Windows ने आपके PC की सुरक्षा की)</h3>
+      <p>यह <strong>Microsoft Defender SmartScreen</strong> है। नीली विंडो कहती है: <em>"Microsoft
+      Defender SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at
+      risk."</em> (Microsoft Defender SmartScreen ने एक अपरिचित ऐप को शुरू होने से रोका। इस ऐप को चलाने से
+      आपका PC जोखिम में पड़ सकता है।) <strong>More info</strong> (अधिक जानकारी) क्लिक करने के बाद वह
+      <em>App: CyrFlip.exe</em> (ऐप) और <em>Publisher: Unknown publisher</em> (प्रकाशक: अज्ञात प्रकाशक)
+      दिखाती है, साथ में बटन <strong>Run anyway</strong> (फिर भी चलाएँ) और <strong>Don't run</strong>
+      (न चलाएँ)।</p>
+
+      <h3>कोई एंटीवायरस CyrFlip.exe को क्वारंटीन या ब्लॉक करता है</h3>
+      <p>अब तक दर्ज मामला <strong>Avast / AVG</strong> का है, जो इसे <code>IDP.Generic</code> (Behavior
+      Shield) नाम देता है। दूसरे एंटीवायरस उत्पाद इसी तरह की पहचान के लिए दूसरे नाम उपयोग कर सकते
+      हैं।</p>
+
+      <p>यह कहाँ मिलती है: <strong>GitHub ZIP</strong> और <strong>winget</strong> पैकेज (winget वही ZIP
+      स्थापित करता है) ये चेतावनियाँ दिखा सकते हैं। <strong>Microsoft Store</strong> संस्करण Microsoft
+      द्वारा हस्ताक्षरित है और SmartScreen चेतावनी नहीं दिखाता।</p>
+
+      <h2 id="why">यह क्यों दिखती है</h2>
+      <p>CyrFlip निःशुल्क, मुक्त स्रोत है और एक स्वतंत्र डेवलपर द्वारा बनाया गया है। ZIP <strong>कोड-हस्ताक्षरित
+      नहीं</strong> है: कोड-हस्ताक्षर प्रमाणपत्र पर हर साल पैसा लगता है, और उसे न ख़रीदना एक सोचा-समझा चुनाव
+      था। SmartScreen किसी फ़ाइल पर उसकी प्रतिष्ठा के आधार पर भरोसा करता है - कितने लोगों ने ठीक वही
+      फ़ाइल चलाई है - इसलिए नया, बिना हस्ताक्षर वाला बिल्ड बिना किसी प्रतिष्ठा के शुरू होता है, और जैसे-जैसे
+      बिल्ड अधिक डाउनलोड होता है, चेतावनी कम होती जाती है।</p>
+      <p>एक दूसरा कारण भी है, जिसे हस्ताक्षर नहीं हटाता। अपना काम करने के लिए लेआउट संकेतक ठीक वही करता
+      है जिस पर एंटीवायरस के व्यवहार-आधारित अनुमान नज़र रखते हैं: वह एक वैश्विक कीबोर्ड हुक स्थापित
+      करता है (और, संदर्भ मेनू चालू हो तो, एक माउस हुक), <kbd>Ctrl</kbd>+<kbd>C</kbd> और
+      <kbd>Ctrl</kbd>+<kbd>V</kbd> का अनुकरण करता है, क्लिपबोर्ड पढ़ता है, और सिस्टम का टेक्स्ट कर्सर बदल
+      सकता है। प्रोग्राम को सीधे किसी अस्थायी फ़ोल्डर से चलाना (ZIP के भीतर से, या <code>%TEMP%</code> से)
+      प्रतिष्ठा का एक और चिह्न जोड़ देता है।</p>
+      <p>चेतावनी एक अनजानी फ़ाइल पर अपना काम कर रही है। नीचे दिए तथ्य आपको फ़ाइल को स्वयं परखने देते
+      हैं।</p>
+
+      <h2 id="click">ठीक-ठीक क्या क्लिक करें</h2>
+      <ol>
+        <li><strong>पहले ZIP को किसी स्थायी फ़ोल्डर में खोलें</strong>, उदाहरण के लिए
+        <code>%LOCALAPPDATA%\Programs\CyrFlip\</code>, और <code>CyrFlip.exe</code> को वहीं से चलाएँ - संग्रह के
+        भीतर से नहीं।</li>
+        <li><strong>SmartScreen:</strong> <strong>More info</strong> (अधिक जानकारी) क्लिक करें, जाँचें कि
+        ऐप <code>CyrFlip.exe</code> है, फिर <strong>Run anyway</strong> (फिर भी चलाएँ) क्लिक करें। Windows
+        उस फ़ाइल के लिए यह याद रखता है।</li>
+        <li><strong>एंटीवायरस क्वारंटीन:</strong> फ़ाइल को क्वारंटीन से बहाल करें, और केवल <strong>उसी एक
+        फ़ोल्डर</strong> के लिए अपवाद जोड़ें। फिर अपने एंटीवायरस विक्रेता को ग़लत पहचान (false positive) की
+        सूचना दें (Avast और AVG दोनों की वेबसाइट पर इसके लिए फ़ॉर्म है) - इससे हर दूसरे उपयोगकर्ता को मदद
+        मिलती है।</li>
+        <li><strong>वैकल्पिक जाँच:</strong> फ़ाइल के SHA-256 की तुलना
+        <a href="https://github.com/SerZhyAle/CyrFlip/releases/latest">रिलीज़ पृष्ठ</a> पर ZIP के बगल में प्रकाशित <code>.sha256</code> फ़ाइल से करें
+        (PowerShell में <code>Get-FileHash CyrFlip.exe</code>), या फ़ाइल को
+        <a href="https://www.virustotal.com/">VirusTotal</a> पर अपलोड करें।</li>
+        <li><strong>या चेतावनी से पूरी तरह बचें:</strong> CyrFlip को
+        <a href="https://apps.microsoft.com/detail/9NB4W41NGQJ4">Microsoft Store</a> से स्थापित करें, जो Microsoft द्वारा हस्ताक्षरित है।</li>
+      </ol>
+      <p>यहाँ कुछ भी आपसे पूरे कंप्यूटर के लिए कोई सुरक्षा बंद करने को नहीं कहता - एक फ़ाइल, एक फ़ोल्डर,
+      और आप दोनों को पलट सकते हैं।</p>
+
+      <h2 id="never">CyrFlip क्या कभी नहीं करता</h2>
+      <ul class="features">
+        <li><strong>अपने लिए कभी व्यवस्थापक अधिकार नहीं माँगता।</strong> यह आपके सामान्य उपयोगकर्ता
+        अधिकारों से चलता है।</li>
+        <li><strong>आपके कीस्ट्रोक कभी रिकॉर्ड, संग्रहीत या प्रेषित नहीं करता।</strong> कीबोर्ड हुक केवल
+        CyrFlip की अपनी शॉर्टकट पहचानता है।</li>
+        <li><strong>कभी कुछ कहीं नहीं भेजता</strong> - न टेलीमेट्री, न खाते, न अपने सर्वर। एकमात्र अपवाद
+        वैकल्पिक अनुवादक है (डिफ़ॉल्ट रूप से बंद): वह चयनित पाठ आपके सेट किए Ollama पते पर भेजता है,
+        डिफ़ॉल्ट रूप से आपके ही कंप्यूटर का एक प्रोग्राम।</li>
+        <li><strong>कभी कोई सेवा या ड्राइवर स्थापित नहीं करता।</strong></li>
+        <li><strong>आपकी उपयोगकर्ता प्रोफ़ाइल के बाहर कभी नहीं लिखता</strong>, सिवाय Microsoft Store संस्करण
+        में <code>%ProgramData%\CyrFlip</code> के अंतर्गत छोटी लेआउट फ़ाइल के।</li>
+        <li><strong>Windows के साथ कभी शुरू नहीं होता</strong>, जब तक आप वह विकल्प न चुनें।</li>
+      </ul>
+
+      <h3>व्यवस्थापक संकेत जो आपको फिर भी दिख सकते हैं</h3>
+      <ul>
+        <li>कोई त्वरित-प्रारंभ परिदृश्य जिसे आपने <em>व्यवस्थापक के रूप में चलाएँ</em> चिह्नित किया: यह
+        संकेत <strong>आपके</strong> प्रोग्राम के लिए है, CyrFlip के लिए नहीं। इसे रोकने के लिए परिदृश्य में
+        वह विकल्प हटा दें।</li>
+        <li>पोर्टेबल संस्करण में <em>Ollama स्थापित करें</em>: CyrFlip Ollama का आधिकारिक इंस्टॉलर डाउनलोड
+        करके चलाता है; जो भी संकेत दिखे, वह Ollama के इंस्टॉलर का अपना है।</li>
+      </ul>
+
+      <h3>यह क्या बदलता है, और उसे कैसे पलटें</h3>
+      <ul>
+        <li><strong>Windows के साथ प्रारंभ</strong> - CyrFlip की सेटिंग्स में वह विकल्प हटा दें।</li>
+        <li><strong>टेक्स्ट कर्सर</strong> (डिफ़ॉल्ट रूप से बंद) - CyrFlip बाहर निकलते समय मानक कर्सर बहाल कर
+        देता है।</li>
+        <li><strong>Windows की इनपुट सेटिंग्स</strong> (कीबोर्ड लेआउट, बदलने की शॉर्टकट), केवल तब जब आप उन्हें
+        <em>Windows की भाषाएँ</em> टैब पर बदलें - उस टैब का बहाली बटन आपकी पिछली स्थिति लौटा देता है।</li>
+        <li><strong>इसकी अपनी सेटिंग्स और डेटा</strong> - रजिस्ट्री कुंजी <code>HKCU\Software\CyrFlip</code>
+        और फ़ोल्डर <code>%LOCALAPPDATA%\CyrFlip</code> तथा <code>%APPDATA%\CyrFlip</code>। CyrFlip से बाहर
+        निकलने के बाद इन्हें मिटा दें, और उसका कुछ भी शेष नहीं रहता।</li>
+      </ul>
+      <p>यही तथ्य, अधिक विस्तार से, <a href="privacy.html">गोपनीयता नीति</a> में हैं।</p>
+
+      <p class="note">यदि कभी CyrFlip के बिल्ड हस्ताक्षरित होने लगें, तो यह पृष्ठ बना रहेगा और बताएगा कि किस
+      संस्करण से।</p>
+
+      <p>प्रश्न या किसी नई चेतावनी की सूचना: <a href="mailto:sza@ukr.net">sza@ukr.net</a>।</p>
+    </section>
+
+    <footer>
+      <p>MIT लाइसेंस · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">स्रोत GitHub पर</a><br />
+      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
+    </footer>
+  </div>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn');
+    var themeColor=document.querySelector('meta[name="theme-color"]');
+    function applyThemeMeta(){
+      var dark=doc.getAttribute('data-theme')!=='light';
+      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
+      themeBtn.setAttribute('aria-label',dark?'हल्की थीम':'गहरी थीम');
+    }
+    themeBtn.addEventListener('click',function(){
+      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
+      doc.setAttribute('data-theme',next);
+      try{localStorage.setItem('sza-theme',next);}catch(e){}
+      applyThemeMeta();
+    });
+    applyThemeMeta();
+  })();
+  </script>
+</body>
+</html>

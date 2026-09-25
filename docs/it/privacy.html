@@ -37,7 +37,7 @@
   <div class="wrap">
     <section>
       <h1>Informativa sulla privacy</h1>
-      <p class="note">Ultimo aggiornamento: 30 luglio 2026 · <a href="../privacy.html">English (originale)</a></p>
+      <p class="note">Ultimo aggiornamento: 24 settembre 2026 · <a href="../privacy.html">English (originale)</a></p>
 
       <p><strong>CyrFlip non raccoglie, non conserva, non registra e non trasmette alcun dato
       personale.</strong> L'app gira interamente sul tuo dispositivo. Non ha server propri, né
@@ -53,16 +53,36 @@
 
       <h2>A cosa accede l'app, e perché</h2>
       <ul class="features">
-        <li><strong>Tastiera.</strong> CyrFlip installa un hook di tastiera globale per due soli scopi:
-        riconoscere la propria scorciatoia (per impostazione predefinita
-        <kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>F12</kbd>) e leggere il codice del layout di tastiera
-        attivo (qualsiasi layout installato in Windows) per mostrare l'indicatore a schermo. Oltre a
-        quella, osserva le combinazioni che assegni alla correzione delle maiuscole, alla gestione degli
-        appunti, a ogni riga della tabella di conversione dei layout, a ogni riga della tabella di
-        traduzione e a ogni scenario di avvio rapido. Mentre una traduzione viene scritta, sorveglia
-        anche <kbd>Esc</kbd>, perché quel tasto possa annullarla: il tasto raggiunge comunque
-        l'applicazione in cui stai lavorando.
+        <li><strong>Tastiera.</strong> CyrFlip installa un hook di tastiera globale per un solo scopo:
+        riconoscere le proprie scorciatoie, come la combinazione di conversione del layout (per impostazione
+        predefinita <kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>F12</kbd>). Il layout di tastiera che l'indicatore
+        mostra (qualsiasi layout installato in Windows) non viene letto tramite l'hook: CyrFlip chiede a
+        Windows il layout della finestra che ha il fuoco. Oltre a quella combinazione, osserva quelle che
+        assegni alla correzione delle maiuscole, alla gestione degli appunti, a ogni riga della tabella di
+        conversione dei layout, a ogni riga della tabella di traduzione e a ogni scenario di avvio rapido.
+        Mentre una traduzione viene scritta, sorveglia anche <kbd>Esc</kbd>, perché quel tasto possa
+        annullarla: il tasto raggiunge comunque l'applicazione in cui stai lavorando.
         <strong>Non registra, non conserva e non trasmette i tuoi tasti premuti.</strong> Non è un keylogger.</li>
+
+        <li><strong>Mouse.</strong> Solo se hai attivato il <em>menu contestuale</em> di CyrFlip (è
+        <strong>disattivato per impostazione predefinita</strong>), CyrFlip installa un hook del mouse
+        globale per riconoscere l'unica combinazione del mouse che apre quel menu (per impostazione
+        predefinita <kbd>Ctrl</kbd> + clic destro). Lascia passare intatti tutti gli altri clic e movimenti e
+        non registra, non conserva e non invia nulla. Con il menu contestuale disattivato, non esiste alcun
+        hook del mouse.</li>
+
+        <li><strong>Cursore di testo.</strong> L'opzione che mostra il layout sul puntatore del mouse
+        (<strong>disattivata per impostazione predefinita</strong>) sostituisce il cursore di selezione del
+        testo di Windows (il cursore a I) in tutti i programmi finché CyrFlip è in esecuzione. CyrFlip
+        ripristina il cursore standard quando si chiude, anche quando si chiude a causa di un errore; solo se
+        il processo viene terminato forzatamente la sostituzione resta fino alla disconnessione
+        dall'account.</li>
+
+        <li><strong>Avvio con Windows.</strong> CyrFlip si avvia con Windows solo se selezioni
+        quell'opzione. La versione portatile scrive allora una voce in
+        <code>HKCU\Software\Microsoft\Windows\CurrentVersion\Run</code> nel tuo profilo utente, e
+        deselezionare l'opzione la rimuove; la versione del Microsoft Store usa invece un'attività di avvio
+        di Windows, che puoi attivare o disattivare anche in <em>Impostazioni &gt; App &gt; Avvio</em>.</li>
 
         <li><strong>Appunti.</strong> Quando premi la scorciatoia, CyrFlip legge temporaneamente il
         testo selezionato (tramite una copia simulata), lo converte tra i layout, incolla il risultato e
@@ -121,15 +141,22 @@
         due lettere come <code>EN</code>, <code>ZH</code>, <code>RU</code> o <code>AR</code> - in un
         piccolo file locale (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, o
         <code>%ProgramData%\CyrFlip\layout.txt</code> nella versione del Microsoft Store) perché
-        l'estensione facoltativa per VS&nbsp;Code possa mostrare l'indicatore al cursore dell'editor. Non
-        contiene dati personali e non lascia mai il dispositivo.</li>
+        l'estensione facoltativa per VS&nbsp;Code possa mostrare l'indicatore al cursore dell'editor.
+        Accanto, <code>layout-klid.txt</code> contiene l'identificativo di quel layout di tastiera (otto
+        cifre esadecimali, ad esempio <code>00000409</code>), perché l'estensione possa usare lo stesso
+        colore. L'estensione, se la installi, scrive <code>editor-caret.txt</code> nella stessa cartella
+        mentre disegna l'indicatore; contiene solo il codice del layout e un orario. CyrFlip rimuove i suoi
+        due file quando si chiude. Nella versione del Microsoft Store quella cartella si trova in
+        <code>%ProgramData%</code>, che gli altri account dello stesso PC possono leggere - non contiene
+        altro che questi valori. Nessuno di questi file contiene dati personali né lascia mai il
+        dispositivo.</li>
 
         <li><strong>Configurazione e cronologia.</strong> Le impostazioni stanno in
         <code>HKCU\Software\CyrFlip</code>, compresa la tabella di conversione dei layout e i backup una
         tantum delle impostazioni di input di Windows descritti sopra. Se attivata, la cronologia degli
         appunti è salvata in locale nella cartella dati dell'applicazione in forma protetta da DPAPI. Un
         vecchio <code>config.json</code> può essere letto una sola volta durante la migrazione. Niente di
-        tutto ciò lascia il tuo dispositivo.</li>
+        tutto ciò lascia il tuo dispositivo. Quando le note rapide sono attive, vengono conservate nella stessa cartella in un file protetto da DPAPI - il titolo come il testo - e quel file non fa mai parte dell'archivio dei log descritto sotto.</li>
 
         <li><strong>Scenari di avvio rapido.</strong> Ogni scenario che crei è salvato come file XML a sé
         in <code>%APPDATA%\CyrFlip\Scenarios</code> e contiene esattamente ciò che hai inserito: il nome,
@@ -152,6 +179,10 @@
         apertamente e vi permette di aprire l'archivio prima che esista un messaggio. Nulla viene inviato
         finché non premete Invia nel vostro programma di posta: CyrFlip non ha un canale di invio proprio.</li>
       </ul>
+
+      <p>Se Windows o il tuo antivirus ti ha avvisato su CyrFlip durante il download o al primo avvio,
+      consulta <a href="trust.html">Perché Windows o un antivirus possono mostrare un avviso su CyrFlip</a> -
+      il suo elenco di ciò che CyrFlip non fa mai dice la stessa cosa di questa pagina.</p>
 
       <h2>Condivisione dei dati</h2>
       <p>Nessuna. CyrFlip non condivide dati con lo sviluppatore né con terze parti. L'unica cosa che

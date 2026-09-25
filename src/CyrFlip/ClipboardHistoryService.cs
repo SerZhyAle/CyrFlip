@@ -4,13 +4,17 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Web.Script.Serialization;
 using System.Windows.Forms;
 using static CyrFlip.WindowInterop;
 
 namespace CyrFlip
 {
-    /// <summary>Captures Unicode clipboard text and stores an encrypted append-only per-user log.</summary>
+    /// <summary>
+    /// Captures Unicode clipboard text and keeps it in an encrypted append-only per-user log
+    /// (<see cref="ClipboardHistoryJournal"/>). Which updates are recorded is decided by
+    /// <see cref="ClipboardHistoryGate"/> (CyrFlip's own clipboard traffic) and
+    /// <see cref="ClipboardPrivacy"/> (copies another application marked "do not record").
+    /// </summary>
     internal sealed class ClipboardHistoryService : NativeWindow, IDisposable
     {
         private const int WmClipboardUpdate = 0x031D;
@@ -19,16 +23,19 @@ namespace CyrFlip
         // history is unbounded by design, so nothing may cost O(history) per copy - see
         // <see cref="ClipboardHistoryOrder"/> for why that class exists at all.
         private readonly ClipboardHistoryOrder _order = new ClipboardHistoryOrder();
-        private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
+        private readonly ClipboardHistoryGate _gate = new ClipboardHistoryGate();
+        private readonly ClipboardHistoryJournal _journal;
         private readonly SynchronizationContext? _ui;
-        private readonly string _path;
         private bool _enabled;
         private bool _paused;
-        private bool _suppressNext;
-        private DateTime _suppressUntilUtc;
+        private bool _disposed;
+        private int _skippedMarked;
+        private int _summaryLogged;
 
         public event EventHandler? Changed;
         public event EventHandler? ItemTooLarge;
+        /// <summary>A <see cref="Clear"/> could not delete the file - another program holds it. Raised on the UI thread.</summary>
+        public event EventHandler? ClearFailed;
 
         /// <summary>
         /// Pinned first, then newest first. Already in that order - <see cref="ClipboardHistoryOrder"/>
@@ -36,31 +43,48 @@ namespace CyrFlip
         /// </summary>
         public IReadOnlyList<ClipboardHistoryEntry> Entries => _order.Entries;
 
+        /// <summary>Journal lines that could not be read at startup; each cost only itself (spec S0005 CH-2).</summary>
+        public int SkippedRecords { get; }
+
         public ClipboardHistoryService(bool enabled, bool paused)
+            : this(enabled, paused, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CyrFlip"))
+        {
+        }
+
+        /// <summary>A history over <paramref name="dir"/> - the seam that keeps tests off the user's real history.</summary>
+        internal ClipboardHistoryService(bool enabled, bool paused, string dir, IQuickNotesCipher? cipher = null)
         {
             _enabled = enabled;
             _paused = paused;
             _ui = SynchronizationContext.Current;
-            string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CyrFlip");
             Directory.CreateDirectory(dir);
-            _path = Path.Combine(dir, "clipboard-history.log");
-            Load();
+            _journal = new ClipboardHistoryJournal(Path.Combine(dir, "clipboard-history.log"), cipher ?? QuickNotesCipher.Dpapi);
+            SkippedRecords = _journal.Load(_order);
+            if (SkippedRecords > 0)
+                ClipboardHistoryLog.Log("history: " + SkippedRecords + " unreadable records skipped on load");
             CreateHandle(new CreateParams { Caption = "CyrFlip Clipboard History Listener" });
             AddClipboardFormatListener(Handle);
         }
 
         public void SetEnabled(bool value) { _enabled = value; if (value) Capture(); }
         public void SetPaused(bool value) { _paused = value; }
-        /// <summary>Ignore CyrFlip's temporary copy/paste clipboard traffic.</summary>
-        public void SuppressFor(TimeSpan duration) => _suppressUntilUtc = DateTime.UtcNow.Add(duration);
+
+        /// <summary>
+        /// A CyrFlip operation starts borrowing the clipboard: nothing it does is a copy the user made.
+        /// Call on the worker's first line and pair with <see cref="SuppressEnd"/> in its <c>finally</c>.
+        /// </summary>
+        public void SuppressBegin() => _gate.Begin();
+
+        /// <summary>The operation handed the clipboard back; every update up to this point was its own.</summary>
+        public void SuppressEnd() => _gate.End(GetClipboardSequenceNumber());
 
         public bool Restore(ClipboardHistoryEntry entry)
         {
-            _suppressNext = true;
-            bool written = Win32Clipboard.TrySetText(entry.Text);
-            // A failed write means our own clipboard traffic never happened, so the flag has to come
-            // back down: left standing it swallowed the user's *next real copy*, silently and for good.
-            if (!written) { _suppressNext = false; return false; }
+            // A failed write means our own clipboard traffic never happened, so nothing is expected.
+            if (!Win32Clipboard.TrySetText(entry.Text)) return false;
+            // Exactly this update is ours - by number, so a later real copy can never be taken for it,
+            // however long the history stays paused (spec S0005 CH-6).
+            _gate.ExpectOwnWrite(GetClipboardSequenceNumber());
             _order.SetCurrent(entry);
             RaiseChanged();
             return true;
@@ -69,23 +93,25 @@ namespace CyrFlip
         public void TogglePin(ClipboardHistoryEntry entry)
         {
             _order.Update(entry, entry.CreatedAt, !entry.IsPinned);
-            ThreadPool.QueueUserWorkItem(_ => Append(entry.IsPinned ? "pin" : "unpin", entry));
+            _journal.Append(ClipboardHistoryJournal.Record.Of(entry.IsPinned ? "pin" : "unpin", entry));
             RaiseChanged();
         }
 
         public void Delete(ClipboardHistoryEntry entry)
         {
             _order.Remove(entry);
-            ThreadPool.QueueUserWorkItem(_ => Append("delete", entry));
+            _journal.Append(ClipboardHistoryJournal.Record.Of("delete", entry));
             RaiseChanged();
         }
 
         public void Clear()
         {
             _order.Clear();
-            ThreadPool.QueueUserWorkItem(_ =>
+            _journal.Clear(deleted =>
             {
-                try { if (File.Exists(_path)) File.Delete(_path); } catch { }
+                if (deleted) return;
+                if (_ui != null) _ui.Post(_ => ClearFailed?.Invoke(this, EventArgs.Empty), null);
+                else ClearFailed?.Invoke(this, EventArgs.Empty);
             });
             RaiseChanged();
         }
@@ -98,28 +124,13 @@ namespace CyrFlip
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == WmClipboardUpdate)
-            {
-                if (_enabled && !_paused && DateTime.UtcNow >= _suppressUntilUtc)
-                {
-                    if (_suppressNext)
-                    {
-                        _suppressNext = false;
-                    }
-                    else
-                    {
-                        IntPtr hwnd = GetForegroundWindow();
-                        ThreadPool.QueueUserWorkItem(_ => CaptureAsync(hwnd));
-                    }
-                }
-            }
+            if (m.Msg == WmClipboardUpdate) Capture();
             base.WndProc(ref m);
         }
 
         private void Capture()
         {
-            if (!_enabled || _paused || DateTime.UtcNow < _suppressUntilUtc) return;
-            if (_suppressNext) { _suppressNext = false; return; }
+            if (!_enabled || _paused || !_gate.ShouldCapture(GetClipboardSequenceNumber())) return;
             IntPtr hwnd = GetForegroundWindow();
             ThreadPool.QueueUserWorkItem(_ => CaptureAsync(hwnd));
         }
@@ -128,7 +139,15 @@ namespace CyrFlip
         {
             try
             {
-                if (!Win32Clipboard.TryGetText(out string text) || text.Length == 0) return;
+                if (!Win32Clipboard.TryReadForHistory(out string text, out ClipboardPrivacyMarkers markers, out uint sequence)) return;
+                // The clipboard may have moved on since the message: judge what was actually read.
+                if (!_gate.ShouldCapture(sequence)) return;
+                if (ClipboardPrivacy.ShouldSkip(markers))
+                {
+                    Interlocked.Increment(ref _skippedMarked);
+                    return;
+                }
+                if (text.Length == 0) return;
                 if (Encoding.Unicode.GetByteCount(text) > MaxTextBytes)
                 {
                     if (_ui != null)
@@ -142,20 +161,23 @@ namespace CyrFlip
                 ReadSource(hwnd, out string sourceApp, out string sourceTitle);
 
                 if (_ui != null)
-                    _ui.Post(_ => ProcessCaptureResult(uuid, text, sourceApp, sourceTitle), null);
+                    _ui.Post(_ => ProcessCaptureResult(sequence, uuid, text, sourceApp, sourceTitle), null);
                 else
-                    ProcessCaptureResult(uuid, text, sourceApp, sourceTitle);
+                    ProcessCaptureResult(sequence, uuid, text, sourceApp, sourceTitle);
             }
             catch { /* history must never affect the clipboard or crash */ }
         }
 
-        private void ProcessCaptureResult(string uuid, string text, string sourceApp, string sourceTitle)
+        private void ProcessCaptureResult(uint sequence, string uuid, string text, string sourceApp, string sourceTitle)
         {
+            // A flip may have begun while this capture sat on the pool, and the user may have flipped a
+            // switch meanwhile: both are re-checked on the thread that owns the list.
+            if (_disposed || !_enabled || _paused || !_gate.ShouldCapture(sequence)) return;
             ClipboardHistoryEntry? existing = _order.Find(uuid);
             if (existing != null)
             {
                 _order.Update(existing, DateTime.UtcNow, existing.IsPinned);
-                ThreadPool.QueueUserWorkItem(_ => Append("touch", existing));
+                _journal.Append(ClipboardHistoryJournal.Record.Of("touch", existing));
             }
             else
             {
@@ -168,7 +190,7 @@ namespace CyrFlip
                     SourceTitle = sourceTitle
                 };
                 _order.Add(existing);
-                ThreadPool.QueueUserWorkItem(_ => Append("add", existing));
+                _journal.Append(ClipboardHistoryJournal.Record.Of("add", existing));
             }
             _order.SetCurrent(existing);
             RaiseChanged();
@@ -202,49 +224,23 @@ namespace CyrFlip
             catch { /* source metadata is best-effort; never let it affect the clipboard */ }
         }
 
-        private readonly object _appendLock = new object();
-
-        private void Append(string action, ClipboardHistoryEntry entry)
+        /// <summary>
+        /// Waits up to <paramref name="timeout"/> for the queued journal records to land; true when
+        /// none is left. At sign-out the process is terminated right after <c>WM_ENDSESSION</c>, so a
+        /// record still in the queue would otherwise be abandoned.
+        /// </summary>
+        public bool WaitForPendingWrites(TimeSpan timeout)
         {
-            try
-            {
-                lock (_appendLock)
-                {
-                    var record = new HistoryRecord { Action = action, Uuid = entry.Uuid, CreatedAt = entry.CreatedAt.Ticks, IsPinned = entry.IsPinned };
-                    if (action == "add")
-                    {
-                        record.Payload = Convert.ToBase64String(ProtectedData.Protect(Encoding.UTF8.GetBytes(entry.Text), null, DataProtectionScope.CurrentUser));
-                        record.SourceApp = entry.SourceApp;
-                        record.SourceTitle = entry.SourceTitle;
-                    }
-                    File.AppendAllText(_path, _json.Serialize(record) + Environment.NewLine, Encoding.UTF8);
-                }
-            }
-            catch { /* history must never affect the clipboard */ }
+            LogSessionSummary();
+            return _journal.Drain(timeout);
         }
 
-        private void Load()
+        /// <summary>Once per session: how many privacy-marked copies were not recorded. A count, nothing else.</summary>
+        private void LogSessionSummary()
         {
-            if (!File.Exists(_path)) return;
-            try
-            {
-                foreach (string line in File.ReadLines(_path))
-                {
-                    HistoryRecord? r = _json.Deserialize<HistoryRecord>(line);
-                    if (r == null || string.IsNullOrEmpty(r.Uuid)) continue;
-                    ClipboardHistoryEntry? e = _order.Find(r.Uuid);
-                    if (r.Action == "delete") { if (e != null) _order.Remove(e); continue; }
-                    if (r.Action == "add")
-                    {
-                        if (e != null || string.IsNullOrEmpty(r.Payload)) continue;
-                        string text = Encoding.UTF8.GetString(ProtectedData.Unprotect(Convert.FromBase64String(r.Payload), null, DataProtectionScope.CurrentUser));
-                        _order.Add(new ClipboardHistoryEntry { Uuid = r.Uuid, Text = text, CreatedAt = new DateTime(r.CreatedAt, DateTimeKind.Utc), IsPinned = r.IsPinned, SourceApp = r.SourceApp ?? "", SourceTitle = r.SourceTitle ?? "" });
-                    }
-                    // touch / pin / unpin all carry the same two fields, so one call covers them.
-                    else if (e != null) _order.Update(e, new DateTime(r.CreatedAt, DateTimeKind.Utc), r.IsPinned);
-                }
-            }
-            catch { _order.Clear(); }
+            int skipped = Volatile.Read(ref _skippedMarked);
+            if (skipped == 0 || Interlocked.Exchange(ref _summaryLogged, 1) != 0) return;
+            ClipboardHistoryLog.Log("history: skipped " + skipped + " marked entries");
         }
 
         private static string Hash(string text)
@@ -255,10 +251,12 @@ namespace CyrFlip
 
         public void Dispose()
         {
+            if (_disposed) return;
+            _disposed = true;
             if (Handle != IntPtr.Zero) RemoveClipboardFormatListener(Handle);
             DestroyHandle();
+            LogSessionSummary();
+            _journal.Dispose(); // drains what is queued, up to ClipboardHistoryJournal.DisposeDrain
         }
-
-        private sealed class HistoryRecord { public string Action { get; set; } = ""; public string Uuid { get; set; } = ""; public long CreatedAt { get; set; } public bool IsPinned { get; set; } public string? Payload { get; set; } public string? SourceApp { get; set; } public string? SourceTitle { get; set; } }
     }
 }

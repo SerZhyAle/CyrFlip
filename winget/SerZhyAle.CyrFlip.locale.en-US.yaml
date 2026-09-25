@@ -41,6 +41,7 @@ ReleaseNotes: |-
   - The About tab shows the build version, the same YY.M.D.HHmm stamp the release ZIP carries.
 ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
 PrivacyUrl: https://serzhyale.github.io/CyrFlip/privacy.html
+InstallationNotes: "This build is not code-signed, so Windows SmartScreen or an antivirus may warn when CyrFlip first starts. What the warning means and what to click: https://serzhyale.github.io/CyrFlip/trust.html"
 Moniker: cyrflip
 Tags:
   - keyboard

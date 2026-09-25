@@ -72,7 +72,12 @@ namespace CyrFlip
 
         /// <summary>
         /// Parse one scenario XML; null when unreadable. The legacy magic path is surfaced as the
-        /// yt-dlp type so the editor reflects reality (the execution path handles the sentinel too).
+        /// yt-dlp type so the editor reflects reality (the execution path handles the sentinel too) -
+        /// <c>SCENARIO-FILE</c> rule 4, normalized in our own store only.
+        ///
+        /// <para>An unknown element is ignored (rule 2), which is the format's only forward tolerance -
+        /// it carries no version. An unknown <c>Type</c> value is not: it fails the whole file, which is
+        /// counted and named rather than silent, and is ticket C2 of the conformance backlog.</para>
         /// </summary>
         public static LauncherScenario? TryRead(string file, out Exception? error)
         {

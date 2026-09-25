@@ -10,6 +10,10 @@ namespace CyrFlip
     /// caret overlay, tray icon): a per-layout bright colour drawn with a black outline so
     /// the letters stay legible on any background.
     ///
+    /// This file is the source of truth for <c>LAYOUT-PALETTE</c> (rules 1 to 6): the three-rung ladder,
+    /// the shade inside the language's hue, the one neutral colour for everything uncurated, the
+    /// legibility constraints, and the 0.6 opacity of a badge drawn over the user's own text.
+    ///
     /// The palette has two levels and one exit. <see cref="Curated"/> gives each of the thirteen curated
     /// languages its own colour (what the two letters name); <see cref="Layouts"/> gives each of their 25
     /// keyboard layouts a shade inside that language's hue (what the two letters cannot name, since US

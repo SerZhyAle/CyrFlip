@@ -1,3 +1,7 @@
+// This extension is the consuming half of LAYOUT-SIGNAL (it reads the layout, rules 1, 3, 5, 6, 7) and
+// the claiming half of its rules 9 and 10 (editor-caret.txt), and it draws with LAYOUT-PALETTE rule 1's
+// ladder from the copy of the table it packages. Contracts are cited by id and rule number; the shared
+// catalog's location is named once, in the repository's CLAUDE.md.
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as os from 'os';

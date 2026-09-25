@@ -40,7 +40,9 @@ namespace CyrFlip
         private LowLevelMouseProc? _proc;
         private IntPtr _hook = IntPtr.Zero;
         private MouseChord _chord = MouseChord.Default;
-        private bool _swallowUp;
+        private readonly SwallowUpGate _swallowUp = new SwallowUpGate();
+        // "Should be installed", for the same reason as KeyboardHook._wanted (ticket S0004, KC-3).
+        private bool _wanted;
         private bool _watchForeignClicks;
 
         /// <summary>Install the hook. Called only while the feature is on - see the class remarks.</summary>
@@ -55,6 +57,7 @@ namespace CyrFlip
             _hook = SetWindowsHookEx(WH_MOUSE_LL, _proc, GetModuleHandle(null), 0);
             if (_hook == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to install mouse hook: " + Marshal.GetLastWin32Error());
+            _wanted = true;
         }
 
         public bool Installed => _hook != IntPtr.Zero;
@@ -62,22 +65,28 @@ namespace CyrFlip
         /// <summary>
         /// Re-arm the hook, for the same reason as <see cref="KeyboardHook.Reinstall"/>: Windows
         /// drops a low-level hook that overruns <c>LowLevelHooksTimeout</c> and says nothing, after
-        /// which the context menu never opens again.
+        /// which the context menu never opens again. Same rules too: the new hook goes in before the
+        /// old one comes out, and a failure keeps the old handle and says so every time.
         ///
-        /// <para><b>Skipped while the chord is held down.</b> <see cref="_swallowUp"/> is what makes
+        /// <para><b>Skipped while the chord is held down.</b> The swallow-up flag is what makes
         /// the button-up get swallowed together with the down; re-arming between the two would be
         /// harmless for the flag itself (it is a field, not hook state), but the fresh hook sits at
-        /// the head of the chain and there is no reason to disturb an interaction in flight - the
-        /// next tick is 60 seconds away and the user will have released the button by then.</para>
+        /// the head of the chain and there is no reason to disturb an interaction in flight. A flag
+        /// older than <see cref="SwallowUpGate.ExpiryMs"/> is not an interaction in flight but an up
+        /// that never arrived (KC-7), and is cleared here instead.</para>
         /// </summary>
         public bool Reinstall()
         {
-            // _proc is non-null whenever _hook is (Install sets both); the check keeps that provable.
-            if (_hook == IntPtr.Zero || _proc == null || _swallowUp) return true;
+            if (!_wanted || _proc == null) return true;
+            uint now = unchecked((uint)Environment.TickCount);
+            if (_swallowUp.IsArmed(now)) return true;
+            _swallowUp.Clear();
 
-            UnhookWindowsHookEx(_hook);
-            _hook = SetWindowsHookEx(WH_MOUSE_LL, _proc, GetModuleHandle(null), 0);
-            return _hook != IntPtr.Zero;
+            IntPtr fresh = SetWindowsHookEx(WH_MOUSE_LL, _proc, GetModuleHandle(null), 0);
+            if (fresh == IntPtr.Zero) return false;
+            if (_hook != IntPtr.Zero) UnhookWindowsHookEx(_hook);
+            _hook = fresh;
+            return true;
         }
 
         /// <summary>Change the chord without reinstalling (the callback reads the field each time).</summary>
@@ -87,7 +96,7 @@ namespace CyrFlip
         public void UpdateForeignClickWatch(bool watch)
         {
             _watchForeignClicks = watch;
-            if (!watch) _swallowUp = false;
+            if (!watch) _swallowUp.Clear();
         }
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
@@ -125,17 +134,15 @@ namespace CyrFlip
                 int downMsg = right ? WM_RBUTTONDOWN : WM_MBUTTONDOWN;
                 int dblMsg = right ? WM_RBUTTONDBLCLK : WM_MBUTTONDBLCLK;
                 int upMsg = right ? WM_RBUTTONUP : WM_MBUTTONUP;
-
                 if ((msg == downMsg || msg == dblMsg) && ModifiersMatch())
                 {
-                    _swallowUp = true;
+                    _swallowUp.Arm(data.time);
                     ChordPressed?.Invoke(data.pt.X, data.pt.Y);
                     return (IntPtr)1; // swallow, so the app under the pointer shows no menu of its own
                 }
 
-                if (msg == upMsg && _swallowUp)
+                if (msg == upMsg && _swallowUp.TakeUp(data.time))
                 {
-                    _swallowUp = false;
                     ChordReleased?.Invoke(data.pt.X, data.pt.Y);
                     return (IntPtr)1;
                 }
@@ -149,22 +156,62 @@ namespace CyrFlip
             return CallNextHookEx(_hook, nCode, wParam, lParam);
         }
 
-        private bool ModifiersMatch() => _chord.Matches(
-            Down(Hotkey.VK_CONTROL), Down(Hotkey.VK_SHIFT), Down(Hotkey.VK_MENU),
-            Down(Hotkey.VK_LWIN) || Down(Hotkey.VK_RWIN));
-
-        private static bool Down(int vk) => (GetAsyncKeyState(vk) & 0x8000) != 0;
+        // The keyboard hook's physical table, not GetAsyncKeyState: after a flip our own injected
+        // key-ups make the system report a held Ctrl as released (ticket S0004, KC-1).
+        private bool ModifiersMatch()
+        {
+            SideModifiers held = PhysicalModifiers.Shared.Snapshot();
+            return _chord.Matches((held & SideModifiers.Ctrl) != 0, (held & SideModifiers.Shift) != 0,
+                (held & SideModifiers.Alt) != 0, (held & SideModifiers.Win) != 0);
+        }
 
         public void Dispose()
         {
+            _wanted = false;
             if (_hook != IntPtr.Zero)
             {
                 UnhookWindowsHookEx(_hook);
                 _hook = IntPtr.Zero;
             }
             _proc = null;
-            _swallowUp = false;
+            _swallowUp.Clear();
             _watchForeignClicks = false;
         }
+    }
+
+    /// <summary>
+    /// "Swallow the next button-up" - the flag that keeps the application under the pointer from
+    /// opening its own menu after ours (see <see cref="MouseHook"/>, rule 4), with an expiry
+    /// (ticket S0004, KC-7). When the button is released over an elevated window, UIPI hides the up
+    /// from the hook; without the expiry the flag stayed set, the next ordinary right click anywhere
+    /// was swallowed and opened CyrFlip's menu, and the watchdog skipped its re-arm until then.
+    /// Times are the hook's millisecond tick (<c>MSLLHOOKSTRUCT.time</c>), compared with wrap-around.
+    /// </summary>
+    internal sealed class SwallowUpGate
+    {
+        /// <summary>No real press-and-hold of a context-menu chord lasts this long.</summary>
+        public const uint ExpiryMs = 3000;
+
+        private volatile bool _armed;
+        private uint _armedAt;
+
+        public void Arm(uint time)
+        {
+            _armedAt = time;
+            _armed = true;
+        }
+
+        /// <summary>A button-up arrived: true = it is the chord's, swallow it. Disarms either way.</summary>
+        public bool TakeUp(uint time)
+        {
+            if (!_armed) return false;
+            _armed = false;
+            return unchecked(time - _armedAt) < ExpiryMs;
+        }
+
+        /// <summary>True while a chord is (still plausibly) held down.</summary>
+        public bool IsArmed(uint now) => _armed && unchecked(now - _armedAt) < ExpiryMs;
+
+        public void Clear() => _armed = false;
     }
 }

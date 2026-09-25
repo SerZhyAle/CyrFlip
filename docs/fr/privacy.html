@@ -37,7 +37,7 @@
   <div class="wrap">
     <section>
       <h1>Politique de confidentialité</h1>
-      <p class="note">Dernière mise à jour : 30 juillet 2026 · <a href="../privacy.html">English (original)</a></p>
+      <p class="note">Dernière mise à jour : 24 septembre 2026 · <a href="../privacy.html">English (original)</a></p>
 
       <p><strong>CyrFlip ne collecte, ne stocke, ne journalise ni ne transmet aucune donnée
       personnelle.</strong> L'application fonctionne entièrement sur votre propre appareil. Elle n'a
@@ -55,18 +55,38 @@
 
       <h2>Ce à quoi l'application accède, et pourquoi</h2>
       <ul class="features">
-        <li><strong>Clavier.</strong> CyrFlip installe un hook clavier global à deux fins seulement :
-        détecter son raccourci d'activation (par défaut
-        <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>F12</kbd>) et lire le code de la disposition de clavier
-        active (n'importe quelle disposition installée dans Windows) afin d'afficher l'indicateur à
-        l'écran. Au-delà de ce raccourci, il surveille les combinaisons que vous attribuez à la
-        correction de casse, au gestionnaire de presse-papiers, à chaque ligne de votre tableau de
-        conversion de dispositions, à chaque ligne de votre tableau de traduction et à tout scénario de
-        lancement rapide auquel vous donnez un raccourci. Pendant l'écriture d'une traduction, il
-        surveille en plus <kbd>Échap</kbd>, pour que cette touche puisse l'annuler - la touche parvient
-        de toute façon à l'application dans laquelle vous travaillez.
+        <li><strong>Clavier.</strong> CyrFlip installe un hook clavier global dans un seul but :
+        reconnaître ses propres raccourcis, comme la combinaison de conversion de disposition (par défaut
+        <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>F12</kbd>). La disposition de clavier qu'affiche l'indicateur
+        (n'importe quelle disposition installée dans Windows) n'est pas lue par ce hook : CyrFlip demande à
+        Windows la disposition de la fenêtre qui a le focus. Au-delà de cette combinaison, il surveille les
+        combinaisons que vous attribuez à la correction de casse, au gestionnaire de presse-papiers, à chaque
+        ligne de votre tableau de conversion de dispositions, à chaque ligne de votre tableau de traduction et
+        à tout scénario de lancement rapide auquel vous donnez un raccourci. Pendant l'écriture d'une
+        traduction, il surveille en plus <kbd>Échap</kbd>, pour que cette touche puisse l'annuler - la touche
+        parvient de toute façon à l'application dans laquelle vous travaillez.
         <strong>Il n'enregistre, ne journalise, ne stocke ni ne transmet vos frappes.</strong> Ce n'est
         pas un enregistreur de frappe.</li>
+
+        <li><strong>Souris.</strong> Uniquement si vous avez activé le <em>menu contextuel</em> propre à
+        CyrFlip (il est <strong>désactivé par défaut</strong>), CyrFlip installe un hook souris global afin de
+        reconnaître la seule combinaison de souris qui ouvre ce menu (par défaut <kbd>Ctrl</kbd> + clic
+        droit). Il laisse passer sans y toucher tous les autres clics et mouvements, et n'enregistre, ne
+        conserve ni n'envoie rien. Lorsque le menu contextuel est désactivé, aucun hook souris n'existe.</li>
+
+        <li><strong>Curseur de texte.</strong> L'option qui affiche la disposition sur le pointeur de la
+        souris (<strong>désactivée par défaut</strong>) remplace le curseur de sélection de texte de Windows
+        (le curseur en I) dans tous les programmes tant que CyrFlip tourne. CyrFlip remet le curseur standard
+        en place lorsqu'il se ferme, y compris lorsqu'il se ferme à cause d'une erreur ; ce n'est que si le
+        processus est tué brutalement que le remplacement reste en place jusqu'à la fermeture de votre
+        session.</li>
+
+        <li><strong>Démarrage avec Windows.</strong> CyrFlip ne démarre avec Windows que si vous cochez
+        cette option. La version portable écrit alors une entrée dans
+        <code>HKCU\Software\Microsoft\Windows\CurrentVersion\Run</code>, dans votre propre profil
+        utilisateur, et décocher l'option la supprime ; la version du Microsoft Store utilise à la place une
+        tâche de démarrage de Windows, que vous pouvez aussi activer ou désactiver dans
+        <em>Paramètres &gt; Applications &gt; Démarrage</em>.</li>
 
         <li><strong>Presse-papiers.</strong> Lorsque vous appuyez sur le raccourci, CyrFlip lit
         brièvement le texte sélectionné (via une copie simulée), le convertit d'une disposition à
@@ -131,14 +151,21 @@
         <code>AR</code> - dans un petit fichier local (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>,
         ou <code>%ProgramData%\CyrFlip\layout.txt</code> dans la version du Microsoft Store), afin que
         l'extension VS&nbsp;Code optionnelle puisse afficher le marqueur au niveau du curseur de
-        l'éditeur. Il ne contient aucune donnée personnelle et ne quitte jamais votre appareil.</li>
+        l'éditeur. À côté, <code>layout-klid.txt</code> contient l'identifiant de cette disposition de
+        clavier (huit chiffres hexadécimaux, par exemple <code>00000409</code>), afin que l'extension puisse
+        utiliser la même couleur. L'extension, si vous l'installez, écrit <code>editor-caret.txt</code> dans
+        le même dossier pendant qu'elle dessine le marqueur ; il ne contient que le code de disposition et
+        une heure. CyrFlip supprime ses deux fichiers lorsqu'il se ferme. Dans la version du Microsoft Store,
+        ce dossier se trouve sous <code>%ProgramData%</code>, que les autres comptes du même PC peuvent lire
+        - il ne contient rien d'autre que ces valeurs. Aucun de ces fichiers ne contient de données
+        personnelles ni ne quitte votre appareil.</li>
 
         <li><strong>Configuration et historique.</strong> Les réglages sont stockés dans
         <code>HKCU\Software\CyrFlip</code> - y compris votre tableau de conversion et les sauvegardes
         uniques des paramètres de saisie de Windows décrites plus haut. Si l'historique du
         presse-papiers est activé, il est conservé localement dans le dossier de données de
         l'application, protégé par DPAPI. Un ancien <code>config.json</code> peut être lu une seule
-        fois lors de la migration. Rien de tout cela ne quitte votre appareil.</li>
+        fois lors de la migration. Rien de tout cela ne quitte votre appareil. Lorsque les notes rapides sont activées, elles sont conservées dans le même dossier dans un fichier protégé par DPAPI - le titre comme le texte - et ce fichier ne fait jamais partie de l'archive de journaux décrite ci-dessous.</li>
 
         <li><strong>Scénarios de lancement rapide.</strong> Chaque scénario que vous créez est
         enregistré dans son propre fichier XML sous <code>%APPDATA%\CyrFlip\Scenarios</code> et
@@ -165,6 +192,11 @@
         vous n'appuyez pas sur Envoyer dans votre propre logiciel de messagerie : CyrFlip n'a aucun canal
         d'envoi propre.</li>
       </ul>
+
+      <p>Si Windows ou votre antivirus vous a averti au sujet de CyrFlip lors du téléchargement ou du
+      premier démarrage, consultez <a href="trust.html">Pourquoi Windows ou un antivirus peut afficher un
+      avertissement pour CyrFlip</a> - sa liste de ce que CyrFlip ne fait jamais dit la même chose que
+      cette page.</p>
 
       <h2>Partage de données</h2>
       <p>Aucun. CyrFlip ne partage aucune donnée avec le développeur ni avec des tiers. La seule chose

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Web.Script.Serialization;
 using Microsoft.Win32;
@@ -33,6 +34,15 @@ namespace CyrFlip
         /// Changing this only affects a fresh install - an existing user keeps the model they saved.</para>
         /// </summary>
         public const string DefaultTranslateModel = "aya-expanse:8b";
+        /// <summary>
+        /// The chord that opens a new quick note. Not another Ctrl+Shift+F-key: the quick notes are
+        /// reached far more often than any of the F-key chords and from inside an editor.
+        /// <para>Not Ctrl+Alt+N any more (ticket S0004, KC-5): Ctrl+Alt is how Windows spells AltGr,
+        /// and AltGr+N types "ń" on Polish (Programmers). Not Ctrl+Shift+N either - Chromium's
+        /// incognito window and Explorer's new folder. A stored Ctrl+Alt+N is left alone: the hook
+        /// no longer reads AltGr as Ctrl+Alt, so it has stopped eating the character.</para>
+        /// </summary>
+        public const string DefaultQuickNotesHotkey = "Ctrl+Shift+Alt+N";
         private const string UsKlid = "00000409";
         private const string RussianKlid = "00000419";
 
@@ -179,9 +189,35 @@ namespace CyrFlip
         public int TranslateWindowHeight { get; set; } = DefaultTranslateWindowHeight;
         /// <summary>Opacity percentage for the result window (30..100).</summary>
         public int TranslateWindowOpacity { get; set; } = 100;
+        /// <summary>
+        /// The local quick notes (spec §5.3). Off by default and explained on the first enable: the
+        /// notes are a place people put tokens and internal code, so the feature says what it does
+        /// with them before it starts holding any.
+        /// </summary>
+        public bool EnableQuickNotes { get; set; } = false;
+        /// <summary>One-time marker: the privacy notice was shown when the feature was first enabled.</summary>
+        public bool QuickNotesNoticeShown { get; set; } = false;
+        public string QuickNotesHotkey { get; set; } = DefaultQuickNotesHotkey;
+        public bool EnableQuickNotesHotkey { get; set; } = true;
+        /// <summary>
+        /// Off by default, which is the opposite of what a notepad usually does - and deliberate:
+        /// the body is as often code as prose, and a wrapped line of code is a line you have to
+        /// mentally un-wrap before you can read it (spec §3.4).
+        /// </summary>
+        public bool QuickNotesWordWrap { get; set; } = false;
+        public int QuickNotesX { get; set; } = int.MinValue;
+        public int QuickNotesY { get; set; } = int.MinValue;
+        // 0 = never sized by the user, so the window opens at its own measured minimum - the size
+        // at which every caption fits in that language at that display scaling. A pair of constants
+        // here could only ever be right for one of the 13 languages and one scaling.
+        public int QuickNotesWidth { get; set; }
+        public int QuickNotesHeight { get; set; }
+        /// <summary>The note the window was last left on, so it reopens where the user was.</summary>
+        public string QuickNotesSelected { get; set; } = "";
         public int FlipCount { get; set; } = 0;
         public int CaseFlipCount { get; set; } = 0;
         public int TranslateCount { get; set; } = 0;
+        public int QuickNoteCount { get; set; } = 0;
 
         /// <summary>
         /// UI language default for a fresh install (no saved value): follow the OS UI language when
@@ -192,13 +228,55 @@ namespace CyrFlip
 
         public static AppConfig Load()
         {
-            var cfg = new AppConfig();
+            AppConfig cfg;
             // True when the conversion table had to be created rather than read - a fresh install or a
-            // config written before the table existed. Persisted below, once the registry key is closed.
-            bool seeded = false;
+            // config written before the table existed - or when a stored table had to be repaired.
+            // Persisted below, once the registry key is closed.
+            bool mustSave;
             try
             {
                 using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RegPath);
+                cfg = LoadFrom(key == null ? null : new RegistryConfigKey(key), out mustSave);
+            }
+            catch
+            {
+                cfg = new AppConfig();
+                mustSave = false;
+            }
+
+            // Outside the try/using: the seeded row has to reach the registry (so the next launch reads
+            // it instead of seeding again), and the superseded values are dropped in the same pass.
+            if (mustSave)
+            {
+                cfg.Save();
+                DropLegacyFlipValues();
+            }
+            return cfg;
+        }
+
+        /// <summary>
+        /// Registry values that were present but could not be read - wrong kind, unparsable number,
+        /// malformed JSON. Each one fell back to its default <b>alone</b> (ticket S0007, CF-1): one bad
+        /// value used to abort the whole load and leave every later field at its default, after which
+        /// the next save wiped the conversion table and the one-time Windows snapshots for good.
+        /// </summary>
+        public IReadOnlyCollection<string> UnreadableValues => _unreadable;
+        private readonly HashSet<string> _unreadable = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Tables and backups that were unreadable, with the serialized fallback they were loaded as.
+        /// <see cref="SaveTo"/> leaves the raw registry value alone for as long as the in-memory value
+        /// still serializes to that fallback - i.e. until the user actually edits that table.
+        /// </summary>
+        private readonly Dictionary<string, string> _preserveRaw = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>The whole read, against a registry seam (null = no key yet, i.e. a first run).</summary>
+        internal static AppConfig LoadFrom(IConfigKey? key, out bool mustSave)
+        {
+            var cfg = new AppConfig();
+            bool seeded = false;
+            bool repaired = false;
+            {
                 if (key == null)
                 {
                     cfg.LayoutConversionProfiles.Add(FlipRow(cfg.MigrateFromJson(), true));
@@ -206,82 +284,93 @@ namespace CyrFlip
                 }
                 else
                 {
-                    cfg.CaseHotkey = key.GetValue("CaseHotkey") as string ?? cfg.CaseHotkey;
-                    cfg.ClipboardHistoryHotkey = key.GetValue("ClipboardHistoryHotkey") as string ?? cfg.ClipboardHistoryHotkey;
-                    cfg.UiLanguage = key.GetValue("UiLanguage") as string ?? cfg.UiLanguage;
-                    cfg.SettingsTab = Math.Max(0, GetInt(key, "SettingsTab", cfg.SettingsTab));
-                    cfg.EnableClipboardHistory = GetBool(key, "EnableClipboardHistory", cfg.EnableClipboardHistory);
-                    cfg.PauseClipboardHistory = GetBool(key, "PauseClipboardHistory", cfg.PauseClipboardHistory);
-                    cfg.ShowClipboardHistoryOnStartup = GetBool(key, "ShowClipboardHistoryOnStartup", cfg.ShowClipboardHistoryOnStartup);
-                    cfg.ClipboardHistoryX = GetInt(key, "ClipboardHistoryX", cfg.ClipboardHistoryX);
-                    cfg.ClipboardHistoryY = GetInt(key, "ClipboardHistoryY", cfg.ClipboardHistoryY);
-                    cfg.ClipboardHistoryWidth = GetInt(key, "ClipboardHistoryWidth", cfg.ClipboardHistoryWidth);
-                    cfg.ClipboardHistoryHeight = GetInt(key, "ClipboardHistoryHeight", cfg.ClipboardHistoryHeight);
-                    cfg.ClipboardHistoryOpacity = Math.Max(30, Math.Min(100, GetInt(key, "ClipboardHistoryOpacity", cfg.ClipboardHistoryOpacity)));
-                    cfg.CursorSize = GetInt(key, "CursorSize", cfg.CursorSize);
-                    cfg.EnableCursorChange = GetBool(key, "EnableCursorChange", cfg.EnableCursorChange);
-                    cfg.EnableCaretOverlay = GetBool(key, "EnableCaretOverlay", cfg.EnableCaretOverlay);
-                    cfg.CaretDotMode = GetBool(key, "CaretDotMode", cfg.CaretDotMode);
-                    cfg.EnableLanguageSwitch = GetBool(key, "EnableLanguageSwitch", cfg.EnableLanguageSwitch);
-                    cfg.ConvertSymbols = GetBool(key, "ConvertSymbols", cfg.ConvertSymbols);
-                    cfg.FlipCapsLockAfter = GetBool(key, "FlipCapsLockAfter", cfg.FlipCapsLockAfter);
-                    cfg.KeepSystemAwake = GetBool(key, "KeepSystemAwake", cfg.KeepSystemAwake);
-                    cfg.KeepScreenOn = GetBool(key, "KeepScreenOn", cfg.KeepScreenOn);
-                    cfg.EnableHotkeys = GetBool(key, "EnableHotkeys", cfg.EnableHotkeys);
-                    cfg.EnableCaseHotkey = GetBool(key, "EnableCaseHotkey", cfg.EnableCaseHotkey);
-                    cfg.EnableHistoryHotkey = GetBool(key, "EnableHistoryHotkey", cfg.EnableHistoryHotkey);
-                    cfg.DeferToRemoteDesktop = GetBool(key, "DeferToRemoteDesktop", cfg.DeferToRemoteDesktop);
-                    cfg.EnableContextMenu = GetBool(key, "EnableContextMenu", cfg.EnableContextMenu);
+                    cfg.CaseHotkey = cfg.ReadString(key, "CaseHotkey", cfg.CaseHotkey);
+                    cfg.ClipboardHistoryHotkey = cfg.ReadString(key, "ClipboardHistoryHotkey", cfg.ClipboardHistoryHotkey);
+                    cfg.UiLanguage = cfg.ReadString(key, "UiLanguage", cfg.UiLanguage);
+                    cfg.SettingsTab = Math.Max(0, cfg.ReadInt(key, "SettingsTab", cfg.SettingsTab));
+                    cfg.EnableClipboardHistory = cfg.ReadBool(key, "EnableClipboardHistory", cfg.EnableClipboardHistory);
+                    cfg.PauseClipboardHistory = cfg.ReadBool(key, "PauseClipboardHistory", cfg.PauseClipboardHistory);
+                    cfg.ShowClipboardHistoryOnStartup = cfg.ReadBool(key, "ShowClipboardHistoryOnStartup", cfg.ShowClipboardHistoryOnStartup);
+                    cfg.ClipboardHistoryX = cfg.ReadInt(key, "ClipboardHistoryX", cfg.ClipboardHistoryX);
+                    cfg.ClipboardHistoryY = cfg.ReadInt(key, "ClipboardHistoryY", cfg.ClipboardHistoryY);
+                    cfg.ClipboardHistoryWidth = cfg.ReadInt(key, "ClipboardHistoryWidth", cfg.ClipboardHistoryWidth);
+                    cfg.ClipboardHistoryHeight = cfg.ReadInt(key, "ClipboardHistoryHeight", cfg.ClipboardHistoryHeight);
+                    cfg.ClipboardHistoryOpacity = Math.Max(30, Math.Min(100, cfg.ReadInt(key, "ClipboardHistoryOpacity", cfg.ClipboardHistoryOpacity)));
+                    // Every number is clamped to what its UI (or its consumer) can take (CF-1): a cursor
+                    // of 0 px cannot be drawn, and a timeout past ~24.8 days overflows Timer.Interval.
+                    cfg.CursorSize = Math.Max(12, Math.Min(128, cfg.ReadInt(key, "CursorSize", cfg.CursorSize)));
+                    cfg.EnableCursorChange = cfg.ReadBool(key, "EnableCursorChange", cfg.EnableCursorChange);
+                    cfg.EnableCaretOverlay = cfg.ReadBool(key, "EnableCaretOverlay", cfg.EnableCaretOverlay);
+                    cfg.CaretDotMode = cfg.ReadBool(key, "CaretDotMode", cfg.CaretDotMode);
+                    cfg.EnableLanguageSwitch = cfg.ReadBool(key, "EnableLanguageSwitch", cfg.EnableLanguageSwitch);
+                    cfg.ConvertSymbols = cfg.ReadBool(key, "ConvertSymbols", cfg.ConvertSymbols);
+                    cfg.FlipCapsLockAfter = cfg.ReadBool(key, "FlipCapsLockAfter", cfg.FlipCapsLockAfter);
+                    cfg.KeepSystemAwake = cfg.ReadBool(key, "KeepSystemAwake", cfg.KeepSystemAwake);
+                    cfg.KeepScreenOn = cfg.ReadBool(key, "KeepScreenOn", cfg.KeepScreenOn);
+                    cfg.EnableHotkeys = cfg.ReadBool(key, "EnableHotkeys", cfg.EnableHotkeys);
+                    cfg.EnableCaseHotkey = cfg.ReadBool(key, "EnableCaseHotkey", cfg.EnableCaseHotkey);
+                    cfg.EnableHistoryHotkey = cfg.ReadBool(key, "EnableHistoryHotkey", cfg.EnableHistoryHotkey);
+                    cfg.DeferToRemoteDesktop = cfg.ReadBool(key, "DeferToRemoteDesktop", cfg.DeferToRemoteDesktop);
+                    cfg.EnableContextMenu = cfg.ReadBool(key, "EnableContextMenu", cfg.EnableContextMenu);
                     // Parse, not the raw string: a hand-edited or corrupt token must land on the
                     // default rather than on something that swallows every context menu in Windows.
-                    cfg.ContextMenuChord = MouseChord.Parse(key.GetValue("ContextMenuChord") as string).Token;
-                    cfg.LanguageHotkeysBackup = key.GetValue("LanguageHotkeysBackup") as string ?? cfg.LanguageHotkeysBackup;
-                    cfg.InputLayoutsBackup = key.GetValue("InputLayoutsBackup") as string ?? cfg.InputLayoutsBackup;
-                    cfg.EnableScenarioLauncher = GetBool(key, "EnableScenarioLauncher", cfg.EnableScenarioLauncher);
-                    cfg.LauncherFirstEnableDone = GetBool(key, "LauncherFirstEnableDone", cfg.LauncherFirstEnableDone);
+                    cfg.ContextMenuChord = MouseChord.Parse(cfg.ReadString(key, "ContextMenuChord", "")).Token;
+                    // The one-time Windows snapshots cannot be taken again: an unreadable one is kept
+                    // on disk untouched rather than replaced by "" on the next save.
+                    cfg.LanguageHotkeysBackup = cfg.ReadString(key, "LanguageHotkeysBackup", cfg.LanguageHotkeysBackup, preserve: true);
+                    cfg.InputLayoutsBackup = cfg.ReadString(key, "InputLayoutsBackup", cfg.InputLayoutsBackup, preserve: true);
+                    cfg.EnableScenarioLauncher = cfg.ReadBool(key, "EnableScenarioLauncher", cfg.EnableScenarioLauncher);
+                    cfg.LauncherFirstEnableDone = cfg.ReadBool(key, "LauncherFirstEnableDone", cfg.LauncherFirstEnableDone);
 
-                    cfg.EnableTranslate = GetBool(key, "EnableTranslate", cfg.EnableTranslate);
-                    cfg.TranslateSeeded = GetBool(key, "TranslateSeeded", cfg.TranslateSeeded);
-                    cfg.TranslateProfiles = ReadTranslationProfiles(key.GetValue("TranslateProfiles") as string);
-                    cfg.TranslateSourceLang = key.GetValue("TranslateSourceLang") as string ?? cfg.TranslateSourceLang;
-                    cfg.TranslateTargetLang = key.GetValue("TranslateTargetLang") as string ?? cfg.TranslateTargetLang;
-                    cfg.TranslateEndpoint = key.GetValue("TranslateEndpoint") as string ?? cfg.TranslateEndpoint;
-                    cfg.TranslateModel = key.GetValue("TranslateModel") as string ?? cfg.TranslateModel;
-                    cfg.TranslateTimeoutSeconds = Math.Max(5, GetInt(key, "TranslateTimeoutSeconds", cfg.TranslateTimeoutSeconds));
+                    cfg.EnableTranslate = cfg.ReadBool(key, "EnableTranslate", cfg.EnableTranslate);
+                    cfg.TranslateSeeded = cfg.ReadBool(key, "TranslateSeeded", cfg.TranslateSeeded);
+                    cfg.TranslateProfiles = cfg.ReadTable<TranslationProfile>(key, "TranslateProfiles", SanitizeTranslationProfiles, ref repaired);
+                    cfg.TranslateSourceLang = cfg.ReadString(key, "TranslateSourceLang", cfg.TranslateSourceLang);
+                    cfg.TranslateTargetLang = cfg.ReadString(key, "TranslateTargetLang", cfg.TranslateTargetLang);
+                    cfg.TranslateEndpoint = cfg.ReadString(key, "TranslateEndpoint", cfg.TranslateEndpoint);
+                    cfg.TranslateModel = cfg.ReadString(key, "TranslateModel", cfg.TranslateModel);
+                    // The ranges the translator tab's spin boxes offer.
+                    cfg.TranslateTimeoutSeconds = Math.Max(5, Math.Min(600, cfg.ReadInt(key, "TranslateTimeoutSeconds", cfg.TranslateTimeoutSeconds)));
                     // -1 (forever) is a legitimate value, so the floor is -1 and not 0.
-                    cfg.TranslateKeepAliveMinutes = Math.Max(-1, GetInt(key, "TranslateKeepAliveMinutes", cfg.TranslateKeepAliveMinutes));
-                    cfg.TranslateAutoStartServer = GetBool(key, "TranslateAutoStartServer", cfg.TranslateAutoStartServer);
-                    cfg.TranslateCopyResult = GetBool(key, "TranslateCopyResult", cfg.TranslateCopyResult);
-                    cfg.TranslatePasteResult = GetBool(key, "TranslatePasteResult", cfg.TranslatePasteResult);
-                    cfg.TranslateShowSource = GetBool(key, "TranslateShowSource", cfg.TranslateShowSource);
-                    cfg.TranslateWindowTimeout = Math.Max(0, GetInt(key, "TranslateWindowTimeout", cfg.TranslateWindowTimeout));
-                    cfg.TranslateWindowWidth = GetInt(key, "TranslateWindowWidth", cfg.TranslateWindowWidth);
-                    cfg.TranslateWindowHeight = GetInt(key, "TranslateWindowHeight", cfg.TranslateWindowHeight);
-                    cfg.TranslateWindowOpacity = Math.Max(30, Math.Min(100, GetInt(key, "TranslateWindowOpacity", cfg.TranslateWindowOpacity)));
+                    cfg.TranslateKeepAliveMinutes = Math.Max(-1, Math.Min(120, cfg.ReadInt(key, "TranslateKeepAliveMinutes", cfg.TranslateKeepAliveMinutes)));
+                    cfg.TranslateAutoStartServer = cfg.ReadBool(key, "TranslateAutoStartServer", cfg.TranslateAutoStartServer);
+                    cfg.TranslateCopyResult = cfg.ReadBool(key, "TranslateCopyResult", cfg.TranslateCopyResult);
+                    cfg.TranslatePasteResult = cfg.ReadBool(key, "TranslatePasteResult", cfg.TranslatePasteResult);
+                    cfg.TranslateShowSource = cfg.ReadBool(key, "TranslateShowSource", cfg.TranslateShowSource);
+                    cfg.TranslateWindowTimeout = Math.Max(0, Math.Min(600, cfg.ReadInt(key, "TranslateWindowTimeout", cfg.TranslateWindowTimeout)));
+                    cfg.TranslateWindowWidth = cfg.ReadInt(key, "TranslateWindowWidth", cfg.TranslateWindowWidth);
+                    cfg.TranslateWindowHeight = cfg.ReadInt(key, "TranslateWindowHeight", cfg.TranslateWindowHeight);
+                    cfg.TranslateWindowOpacity = Math.Max(30, Math.Min(100, cfg.ReadInt(key, "TranslateWindowOpacity", cfg.TranslateWindowOpacity)));
 
-                    string? profiles = key.GetValue("LayoutConversionProfiles") as string;
-                    string? legacyHotkey = key.GetValue("Hotkey") as string;
-                    bool legacyPresent = legacyHotkey != null || key.GetValue("EnableFlipHotkey") != null;
-                    cfg.LayoutConversionProfiles = ReadProfiles(profiles);
-                    seeded = NeedsFlipRow(profiles, legacyPresent, cfg.LayoutConversionProfiles.Count);
+                    bool profilesPresent = Has(key, "LayoutConversionProfiles");
+                    string? legacyHotkey = cfg.ReadOptionalString(key, "Hotkey", null);
+                    bool legacyPresent = Has(key, "Hotkey") || Has(key, "EnableFlipHotkey");
+                    cfg.LayoutConversionProfiles = cfg.ReadTable<LayoutConversionProfile>(key, "LayoutConversionProfiles", SanitizeConversionProfiles, ref repaired);
+                    // A table that is there but unreadable is never "missing": seeding would save over it.
+                    seeded = !cfg._unreadable.Contains("LayoutConversionProfiles")
+                        && NeedsFlipRow(profilesPresent ? "" : null, legacyPresent, cfg.LayoutConversionProfiles.Count);
                     if (seeded)
                         cfg.LayoutConversionProfiles.Insert(0,
-                            FlipRow(legacyHotkey, GetBool(key, "EnableFlipHotkey", true)));
+                            FlipRow(legacyHotkey, cfg.ReadBool(key, "EnableFlipHotkey", true)));
 
-                    cfg.FlipCount = GetInt(key, "FlipCount", cfg.FlipCount);
-                    cfg.CaseFlipCount = GetInt(key, "CaseFlipCount", cfg.CaseFlipCount);
-                    cfg.TranslateCount = GetInt(key, "TranslateCount", cfg.TranslateCount);
+                    cfg.EnableQuickNotes = cfg.ReadBool(key, "EnableQuickNotes", cfg.EnableQuickNotes);
+                    cfg.QuickNotesNoticeShown = cfg.ReadBool(key, "QuickNotesNoticeShown", cfg.QuickNotesNoticeShown);
+                    cfg.QuickNotesHotkey = cfg.ReadString(key, "QuickNotesHotkey", cfg.QuickNotesHotkey);
+                    cfg.EnableQuickNotesHotkey = cfg.ReadBool(key, "EnableQuickNotesHotkey", cfg.EnableQuickNotesHotkey);
+                    cfg.QuickNotesWordWrap = cfg.ReadBool(key, "QuickNotesWordWrap", cfg.QuickNotesWordWrap);
+                    cfg.QuickNotesX = cfg.ReadInt(key, "QuickNotesX", cfg.QuickNotesX);
+                    cfg.QuickNotesY = cfg.ReadInt(key, "QuickNotesY", cfg.QuickNotesY);
+                    cfg.QuickNotesWidth = cfg.ReadInt(key, "QuickNotesWidth", cfg.QuickNotesWidth);
+                    cfg.QuickNotesHeight = cfg.ReadInt(key, "QuickNotesHeight", cfg.QuickNotesHeight);
+                    cfg.QuickNotesSelected = cfg.ReadString(key, "QuickNotesSelected", cfg.QuickNotesSelected);
+
+                    cfg.FlipCount = cfg.ReadInt(key, "FlipCount", cfg.FlipCount);
+                    cfg.CaseFlipCount = cfg.ReadInt(key, "CaseFlipCount", cfg.CaseFlipCount);
+                    cfg.TranslateCount = cfg.ReadInt(key, "TranslateCount", cfg.TranslateCount);
+                    cfg.QuickNoteCount = cfg.ReadInt(key, "QuickNoteCount", cfg.QuickNoteCount);
                 }
             }
-            catch { /* keep defaults */ }
-
-            // Outside the try/using: the seeded row has to reach the registry (so the next launch reads
-            // it instead of seeding again), and the superseded values are dropped in the same pass.
-            if (seeded)
-            {
-                cfg.Save();
-                DropLegacyFlipValues();
-            }
+            mustSave = seeded || repaired;
             return cfg;
         }
 
@@ -290,7 +379,14 @@ namespace CyrFlip
             try
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
-                if (key == null) return;
+                if (key != null) SaveTo(new RegistryConfigKey(key));
+            }
+            catch { /* best effort */ }
+        }
+
+        internal void SaveTo(IConfigKey key)
+        {
+            {
                 key.SetValue("CaseHotkey", CaseHotkey, RegistryValueKind.String);
                 key.SetValue("ClipboardHistoryHotkey", ClipboardHistoryHotkey, RegistryValueKind.String);
                 key.SetValue("UiLanguage", UiLanguage, RegistryValueKind.String);
@@ -318,8 +414,8 @@ namespace CyrFlip
                 key.SetValue("DeferToRemoteDesktop", DeferToRemoteDesktop ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableContextMenu", EnableContextMenu ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ContextMenuChord", ContextMenuChord, RegistryValueKind.String);
-                key.SetValue("LanguageHotkeysBackup", LanguageHotkeysBackup, RegistryValueKind.String);
-                key.SetValue("InputLayoutsBackup", InputLayoutsBackup, RegistryValueKind.String);
+                WritePreserved(key, "LanguageHotkeysBackup", LanguageHotkeysBackup);
+                WritePreserved(key, "InputLayoutsBackup", InputLayoutsBackup);
                 key.SetValue("EnableScenarioLauncher", EnableScenarioLauncher ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("LauncherFirstEnableDone", LauncherFirstEnableDone ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableTranslate", EnableTranslate ? 1 : 0, RegistryValueKind.DWord);
@@ -338,13 +434,23 @@ namespace CyrFlip
                 key.SetValue("TranslateWindowWidth", TranslateWindowWidth, RegistryValueKind.DWord);
                 key.SetValue("TranslateWindowHeight", TranslateWindowHeight, RegistryValueKind.DWord);
                 key.SetValue("TranslateWindowOpacity", TranslateWindowOpacity, RegistryValueKind.DWord);
-                key.SetValue("LayoutConversionProfiles", new JavaScriptSerializer().Serialize(LayoutConversionProfiles), RegistryValueKind.String);
-                key.SetValue("TranslateProfiles", new JavaScriptSerializer().Serialize(TranslateProfiles), RegistryValueKind.String);
+                WritePreserved(key, "LayoutConversionProfiles", new JavaScriptSerializer().Serialize(LayoutConversionProfiles));
+                WritePreserved(key, "TranslateProfiles", new JavaScriptSerializer().Serialize(TranslateProfiles));
+                key.SetValue("EnableQuickNotes", EnableQuickNotes ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesNoticeShown", QuickNotesNoticeShown ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesHotkey", QuickNotesHotkey, RegistryValueKind.String);
+                key.SetValue("EnableQuickNotesHotkey", EnableQuickNotesHotkey ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesWordWrap", QuickNotesWordWrap ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesX", QuickNotesX, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesY", QuickNotesY, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesWidth", QuickNotesWidth, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesHeight", QuickNotesHeight, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesSelected", QuickNotesSelected, RegistryValueKind.String);
                 key.SetValue("FlipCount", FlipCount, RegistryValueKind.DWord);
                 key.SetValue("CaseFlipCount", CaseFlipCount, RegistryValueKind.DWord);
                 key.SetValue("TranslateCount", TranslateCount, RegistryValueKind.DWord);
+                key.SetValue("QuickNoteCount", QuickNoteCount, RegistryValueKind.DWord);
             }
-            catch { /* best effort */ }
         }
 
         /// <summary>
@@ -395,6 +501,52 @@ namespace CyrFlip
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 key?.SetValue("TranslateCount", TranslateCount, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
+        /// <summary>Increment the quick-notes counter and persist only that value (cheap write).</summary>
+        public void IncrementQuickNoteCount()
+        {
+            QuickNoteCount++;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("QuickNoteCount", QuickNoteCount, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Remember the window geometry and which note was open, without rewriting forty registry
+        /// values - the window saves this on every move and resize, and a full <see cref="Save"/>
+        /// there would serialize both profile tables on each drag.
+        /// </summary>
+        public void SaveQuickNotesWindow()
+        {
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                if (key == null) return;
+                key.SetValue("QuickNotesX", QuickNotesX, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesY", QuickNotesY, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesWidth", QuickNotesWidth, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesHeight", QuickNotesHeight, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesSelected", QuickNotesSelected, RegistryValueKind.String);
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Remember which note is open - that one value alone. The window calls it whenever the
+        /// selection changes, not only when the window is moved (ticket S0006, QN-9).
+        /// </summary>
+        public void SaveQuickNotesSelected()
+        {
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("QuickNotesSelected", QuickNotesSelected, RegistryValueKind.String);
             }
             catch { }
         }
@@ -508,30 +660,143 @@ namespace CyrFlip
             return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
         }
 
-        private static bool GetBool(RegistryKey key, string name, bool def)
+        private static bool Has(IConfigKey key, string name)
         {
-            var val = key.GetValue(name);
-            return val == null ? def : Convert.ToInt32(val) != 0;
+            try { return key.GetValue(name) != null; }
+            catch { return true; } // there, but unreadable - never "absent"
         }
 
-        private static int GetInt(RegistryKey key, string name, int def)
+        private object? Raw(IConfigKey key, string name)
         {
-            var val = key.GetValue(name);
-            return val == null ? def : Convert.ToInt32(val);
+            try { return key.GetValue(name); }
+            catch { _unreadable.Add(name); return null; }
         }
 
-        private static List<LayoutConversionProfile> ReadProfiles(string? json)
+        /// <summary>
+        /// One number, read on its own: a DWORD, a QWORD that fits, or a string that parses. Anything
+        /// else (REG_BINARY, REG_MULTI_SZ, <c>""</c>, <c>"true"</c>) is that value's default and is
+        /// recorded in <see cref="UnreadableValues"/> - it no longer costs the rest of the config.
+        /// </summary>
+        internal int ReadInt(IConfigKey key, string name, int def)
         {
-            if (string.IsNullOrEmpty(json)) return new List<LayoutConversionProfile>();
-            try
+            object? val = Raw(key, name);
+            if (val == null) return def;
+            if (val is int i) return i;
+            if (val is long l && l >= int.MinValue && l <= int.MaxValue) return (int)l;
+            if (val is string s && int.TryParse(s.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed)) return parsed;
+            _unreadable.Add(name);
+            return def;
+        }
+
+        internal bool ReadBool(IConfigKey key, string name, bool def)
+        {
+            object? val = Raw(key, name);
+            if (val is string s && bool.TryParse(s.Trim(), out bool flag)) return flag;
+            if (val == null) return def;
+            const int unset = int.MinValue;
+            int number = ReadInt(key, name, unset);
+            return number == unset ? def : number != 0;
+        }
+
+        /// <summary>
+        /// One string. With <paramref name="preserve"/>, a value that is there but is not a string is
+        /// also left on disk untouched by <see cref="SaveTo"/> until the in-memory value changes.
+        /// </summary>
+        internal string ReadString(IConfigKey key, string name, string def, bool preserve = false)
+            => ReadOptionalString(key, name, def, preserve) ?? def;
+
+        internal string? ReadOptionalString(IConfigKey key, string name, string? def, bool preserve = false)
+        {
+            object? val = Raw(key, name);
+            if (val is string s) return s;
+            if (val != null)
             {
-                var profiles = new JavaScriptSerializer().Deserialize<List<LayoutConversionProfile>>(json);
-                if (profiles == null) return new List<LayoutConversionProfile>();
-                foreach (LayoutConversionProfile profile in profiles)
-                    if (string.IsNullOrEmpty(profile.Id)) profile.Id = Guid.NewGuid().ToString("N");
-                return profiles;
+                _unreadable.Add(name);
+                if (preserve) _preserveRaw[name] = def ?? "";
             }
-            catch { return new List<LayoutConversionProfile>(); }
+            return def;
+        }
+
+        /// <summary>
+        /// One JSON table. Absent is an empty table; present but unreadable (not a string, malformed
+        /// JSON) is an empty table <b>that is not saved over</b> until the user edits it. Rows are
+        /// sanitized (<paramref name="sanitize"/>); a repair sets <paramref name="repaired"/> so the
+        /// repaired form is written back.
+        /// </summary>
+        internal List<T> ReadTable<T>(IConfigKey key, string name, Func<List<T>?, bool> sanitize, ref bool repaired) where T : class
+        {
+            object? val = Raw(key, name);
+            if (val == null && !_unreadable.Contains(name)) return new List<T>();
+            List<T>? rows = null;
+            if (val is string json)
+            {
+                if (json.Length == 0) return new List<T>();
+                try { rows = new JavaScriptSerializer().Deserialize<List<T>>(json); }
+                catch { rows = null; }
+            }
+            if (rows == null)
+            {
+                _unreadable.Add(name);
+                _preserveRaw[name] = new JavaScriptSerializer().Serialize(new List<T>());
+                return new List<T>();
+            }
+            if (sanitize(rows)) repaired = true;
+            return rows;
+        }
+
+        /// <summary>A table or backup that was unreadable is written only once it differs from its fallback.</summary>
+        private void WritePreserved(IConfigKey key, string name, string value)
+        {
+            if (_preserveRaw.TryGetValue(name, out string? fallback))
+            {
+                if (value == fallback) return;
+                _preserveRaw.Remove(name);
+                _unreadable.Remove(name);
+            }
+            key.SetValue(name, value, RegistryValueKind.String);
+        }
+
+        /// <summary>
+        /// Makes a deserialized conversion table safe to use (ticket S0007, CF-2): a <c>null</c> row is
+        /// dropped, a <c>null</c> string becomes <c>""</c> (a hand-edited <c>"Hotkey": null</c> used to
+        /// crash every start), and a missing or duplicate id is regenerated - with a duplicate id the
+        /// chord of the second row ran the first row. Returns true when anything changed.
+        /// </summary>
+        internal static bool SanitizeConversionProfiles(List<LayoutConversionProfile>? rows)
+        {
+            if (rows == null) return false;
+            bool changed = rows.RemoveAll(r => r == null) > 0;
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            foreach (LayoutConversionProfile row in rows)
+            {
+                if (row.SourceKlid == null) { row.SourceKlid = ""; changed = true; }
+                if (row.TargetKlid == null) { row.TargetKlid = ""; changed = true; }
+                if (row.Hotkey == null) { row.Hotkey = ""; changed = true; }
+                if (string.IsNullOrEmpty(row.Id) || !ids.Add(row.Id)) { row.Id = NewId(ids); changed = true; }
+            }
+            return changed;
+        }
+
+        /// <summary>The translation table's counterpart of <see cref="SanitizeConversionProfiles"/>.</summary>
+        internal static bool SanitizeTranslationProfiles(List<TranslationProfile>? rows)
+        {
+            if (rows == null) return false;
+            bool changed = rows.RemoveAll(r => r == null) > 0;
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            foreach (TranslationProfile row in rows)
+            {
+                if (row.TargetLang == null) { row.TargetLang = ""; changed = true; }
+                if (row.Hotkey == null) { row.Hotkey = ""; changed = true; }
+                if (string.IsNullOrEmpty(row.Id) || !ids.Add(row.Id)) { row.Id = NewId(ids); changed = true; }
+            }
+            return changed;
+        }
+
+        private static string NewId(HashSet<string> taken)
+        {
+            string id = Guid.NewGuid().ToString("N");
+            taken.Add(id);
+            return id;
         }
 
         /// <summary>
@@ -546,11 +811,28 @@ namespace CyrFlip
             {
                 var profiles = new JavaScriptSerializer().Deserialize<List<TranslationProfile>>(json);
                 if (profiles == null) return new List<TranslationProfile>();
-                foreach (TranslationProfile profile in profiles)
-                    if (string.IsNullOrEmpty(profile.Id)) profile.Id = Guid.NewGuid().ToString("N");
+                SanitizeTranslationProfiles(profiles);
                 return profiles;
             }
             catch { return new List<TranslationProfile>(); }
         }
+    }
+
+    /// <summary>
+    /// The registry key <see cref="AppConfig"/> reads and writes, as a seam: the real
+    /// <see cref="RegistryConfigKey"/> in the app, an in-memory one in <c>AppConfigLoadTests</c>.
+    /// </summary>
+    internal interface IConfigKey
+    {
+        object? GetValue(string name);
+        void SetValue(string name, object value, RegistryValueKind kind);
+    }
+
+    internal sealed class RegistryConfigKey : IConfigKey
+    {
+        private readonly RegistryKey _key;
+        public RegistryConfigKey(RegistryKey key) { _key = key; }
+        public object? GetValue(string name) => _key.GetValue(name);
+        public void SetValue(string name, object value, RegistryValueKind kind) => _key.SetValue(name, value, kind);
     }
 }

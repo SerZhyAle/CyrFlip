@@ -19,6 +19,9 @@
 # Web / docs.
 *.html     text eol=crlf
 *.css      text eol=crlf
+# The vendored PAGE-STYLE kit is a byte copy of the catalog reference and is served as such: no EOL
+# conversion, or GitHub Pages serves a CRLF copy that differs from the reference (a later line wins).
+docs/assets/sza-kit.css -text
 *.md       text eol=crlf
 *.txt      text eol=crlf
 

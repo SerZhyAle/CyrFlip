@@ -21,6 +21,8 @@ namespace CyrFlip
         public event EventHandler? CaseHotkeyPressed;
         /// <summary>Raised when the clipboard-history window should be shown or hidden.</summary>
         public event EventHandler? ClipboardHistoryHotkeyPressed;
+        /// <summary>Raised when a new quick note should be opened, ready to type into.</summary>
+        public event EventHandler? QuickNotesHotkeyPressed;
         /// <summary>Raised with the id of a user-configured layout conversion profile.</summary>
         public event Action<string>? LayoutConversionHotkeyPressed;
         /// <summary>Raised with the id of a launcher scenario whose per-scenario chord matched.</summary>
@@ -34,17 +36,38 @@ namespace CyrFlip
         /// still reaches the window the user is typing in.
         /// </summary>
         public event EventHandler? CancelKeyPressed;
+        /// <summary>
+        /// Raised, before the chord's own event, whenever a chord fires and its trigger is swallowed,
+        /// with the modifiers held at that moment. The subscriber taps the mask key (on the UI thread,
+        /// never in here): Windows never saw the trigger, so to it the user pressed and released the
+        /// modifiers with nothing in between - which Ctrl+Shift or Alt+Shift turns into a layout
+        /// switch and a lone Alt into the menu bar (ticket S0004, KC-4).
+        /// </summary>
+        public event Action<SideModifiers>? ChordFired;
 
         private LowLevelKeyboardProc? _proc;
         private IntPtr _hook = IntPtr.Zero;
+        // "Should be installed" - set by Install, cleared by Dispose. Never inferred from _hook: a
+        // re-arm that failed leaves _hook describing a hook that may be dead, and the old
+        // "_hook == 0 means nothing to keep alive" rule is exactly how one failure lost the keyboard
+        // hook for good (KC-3).
+        private bool _wanted;
+        // The two Win32 calls behind a seam, so the re-arm rules are tested without a desktop.
+        private readonly Func<LowLevelKeyboardProc, IntPtr> _setHook;
+        private readonly Func<IntPtr, bool> _unhook;
+        private readonly ChordMatcher _matcher;
         private Hotkey _caseHotkey = Hotkey.CaseDefault;
         private Hotkey _clipboardHistoryHotkey = new Hotkey(true, true, false, false, 0x79, "F10");
+        private Hotkey _quickNotesHotkey = Hotkey.Parse(AppConfig.DefaultQuickNotesHotkey);
         private bool _deferInRemoteClient;
         private bool _enabled = true;
         // Per-hotkey switches for the two fixed chords, so e.g. a machine can keep only the
         // clipboard-history hotkey. Conversion rows carry their own switch inside the profile.
         private bool _caseEnabled = true;
         private bool _historyEnabled = true;
+        // Off unless the quick notes are switched on at all - the same discipline the tables use:
+        // a feature nobody enabled costs the callback one field read and nothing else.
+        private bool _quickNotesEnabled;
         private ConversionBinding[] _conversionProfiles = new ConversionBinding[0];
         // Launcher scenario chords. Same discipline as the conversion table: an immutable snapshot
         // array swapped atomically, empty whenever the launcher is off, so the callback never pays
@@ -57,23 +80,43 @@ namespace CyrFlip
         private bool _watchCancelKey;
         private const int VK_ESCAPE = 0x1B;
 
-        public void Install(Hotkey caseHotkey, Hotkey clipboardHistoryHotkey,
-            bool deferInRemoteClient, bool enabled, bool caseEnabled, bool historyEnabled)
+
+        public KeyboardHook()
+            : this(proc => SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(null), 0),
+                   UnhookWindowsHookEx, PhysicalModifiers.Shared)
+        {
+        }
+
+        /// <summary>Test seam: the hook calls and the modifier table come from the caller.</summary>
+        internal KeyboardHook(Func<LowLevelKeyboardProc, IntPtr> setHook, Func<IntPtr, bool> unhook,
+            PhysicalModifiers modifiers)
+        {
+            _setHook = setHook;
+            _unhook = unhook;
+            _matcher = new ChordMatcher(modifiers);
+        }
+
+        public void Install(Hotkey caseHotkey, Hotkey clipboardHistoryHotkey, Hotkey quickNotesHotkey,
+            bool deferInRemoteClient, bool enabled, bool caseEnabled, bool historyEnabled, bool quickNotesEnabled)
         {
             _caseHotkey = caseHotkey;
             _clipboardHistoryHotkey = clipboardHistoryHotkey;
+            _quickNotesHotkey = quickNotesHotkey;
             _deferInRemoteClient = deferInRemoteClient;
             _enabled = enabled;
             _caseEnabled = caseEnabled;
             _historyEnabled = historyEnabled;
+            _quickNotesEnabled = quickNotesEnabled;
             if (_hook != IntPtr.Zero)
                 return;
 
             // Keep a reference to the delegate for the lifetime of the hook (else it's GC'd).
             _proc = HookCallback;
-            _hook = SetWindowsHookEx(WH_KEYBOARD_LL, _proc, GetModuleHandle(null), 0);
+            _hook = _setHook(_proc);
             if (_hook == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to install keyboard hook: " + Marshal.GetLastWin32Error());
+            _wanted = true;
+            RefreshModifiers();
         }
 
         /// <summary>True once <see cref="Install"/> has put the hook in place.</summary>
@@ -90,18 +133,40 @@ namespace CyrFlip
         ///
         /// <para>Must be called from the thread that owns the hook (a hook can only be removed by
         /// its own thread), which is why <see cref="CyrFlipContext"/> drives it from a WinForms
-        /// timer. Returns false only when the fresh <c>SetWindowsHookEx</c> failed, and then the
-        /// hook really is gone - the caller decides how loudly to say so.</para>
+        /// timer.</para>
+        ///
+        /// <para><b>The new hook goes in before the old one comes out</b>, and only a successful
+        /// install removes the old one (KC-3). A failed <c>SetWindowsHookEx</c> keeps the old handle
+        /// - it may well still be alive - and returns false, every time, so the caller's failure
+        /// counter climbs and the next tick tries again. The two hooks never both run for one event:
+        /// hook callbacks are dispatched through this thread's message loop, which is busy running
+        /// this method.</para>
         /// </summary>
-        public bool Reinstall()
+        /// <param name="refreshModifiers">
+        /// Re-read the physical modifier table from the system. The caller passes false while a
+        /// clipboard operation is synthesizing keys - the system state is false for exactly that long.
+        /// </param>
+        public bool Reinstall(bool refreshModifiers = true)
         {
-            // Not installed: nothing to keep alive. (_proc is non-null whenever _hook is, since
-            // Install sets both - the check is what keeps that fact provable rather than assumed.)
-            if (_hook == IntPtr.Zero || _proc == null) return true;
+            if (!_wanted || _proc == null) return true;
 
-            UnhookWindowsHookEx(_hook);
-            _hook = SetWindowsHookEx(WH_KEYBOARD_LL, _proc, GetModuleHandle(null), 0);
-            return _hook != IntPtr.Zero;
+            IntPtr fresh = _setHook(_proc);
+            if (fresh == IntPtr.Zero) return false;
+
+            if (_hook != IntPtr.Zero) _unhook(_hook);
+            _hook = fresh;
+            if (refreshModifiers) RefreshModifiers();
+            return true;
+        }
+
+        /// <summary>
+        /// Re-read which modifiers are held (install, re-arm, session unlock): a key pressed or
+        /// released while the hook was not listening would otherwise stay wrong in the table.
+        /// </summary>
+        public void RefreshModifiers()
+        {
+            _matcher.Modifiers.Refresh(vk => (GetAsyncKeyState(vk) & 0x8000) != 0);
+            _matcher.Reset();
         }
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
@@ -109,61 +174,14 @@ namespace CyrFlip
             // A low-level hook proc must never throw - an exception here can drop the hook.
             try
             {
-                if (nCode >= 0 && (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN))
+                if (nCode >= 0)
                 {
-                    var data = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
-
-                    // Ignore our own synthesized input - never treat it as a hotkey.
-                    // Also pass everything through when hotkey listening is switched off in settings.
-                    if (_enabled && (data.flags & LLKHF_INJECTED) == 0)
+                    int message = (int)wParam;
+                    bool down = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
+                    if (down || message == WM_KEYUP || message == WM_SYSKEYUP)
                     {
-                        // Escape while a translation is running: tell the subscriber and pass the key
-                        // on regardless - it belongs to whatever the user is actually typing in.
-                        if (_watchCancelKey && data.vkCode == VK_ESCAPE)
-                            CancelKeyPressed?.Invoke(this, EventArgs.Empty);
-
-                        // Each hotkey is matched only when its own switch is on (so a machine can, say,
-                        // keep just the clipboard-history hotkey and let the others pass through).
-                        bool caseMatch = _caseEnabled && Matches(_caseHotkey, data.vkCode);
-                        bool historyMatch = _historyEnabled && Matches(_clipboardHistoryHotkey, data.vkCode);
-                        LayoutConversionProfile? conversion = FindConversion(data.vkCode);
-                        Guid? launcher = FindLauncher(data.vkCode);
-                        TranslationProfile? translation = FindTranslation(data.vkCode);
-
-                        // When a remote-desktop client is focused and deferral is on, don't touch the
-                        // key: let it travel to the remote session, whose CyrFlip will handle it.
-                        // Otherwise the local instance would swallow the trigger and inject a Ctrl+C
-                        // that leaks into the remote as Ctrl+Shift+C. (Checked only on a real chord so
-                        // the extra process lookup never runs on ordinary keystrokes.)
-                        if ((caseMatch || historyMatch || conversion != null || launcher != null || translation != null)
-                            && _deferInRemoteClient && RemoteDesktop.IsClientForeground())
-                            return CallNextHookEx(_hook, nCode, wParam, lParam);
-
-                        if (caseMatch)
-                        {
-                            CaseHotkeyPressed?.Invoke(this, EventArgs.Empty);
-                            return (IntPtr)1; // swallow the trigger key so the app under focus never sees it
-                        }
-                        if (historyMatch)
-                        {
-                            ClipboardHistoryHotkeyPressed?.Invoke(this, EventArgs.Empty);
-                            return (IntPtr)1;
-                        }
-                        if (conversion != null)
-                        {
-                            LayoutConversionHotkeyPressed?.Invoke(conversion.Id);
-                            return (IntPtr)1;
-                        }
-                        if (launcher != null)
-                        {
-                            LauncherHotkeyPressed?.Invoke(launcher.Value);
-                            return (IntPtr)1;
-                        }
-                        if (translation != null)
-                        {
-                            TranslateHotkeyPressed?.Invoke(translation.Id);
-                            return (IntPtr)1;
-                        }
+                        var data = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
+                        if (Decide(data, down)) return (IntPtr)1;
                     }
                 }
             }
@@ -172,16 +190,60 @@ namespace CyrFlip
             return CallNextHookEx(_hook, nCode, wParam, lParam);
         }
 
-        private static bool Matches(Hotkey hotkey, uint vkCode)
+        /// <summary>
+        /// The whole per-event decision: true = swallow. Everything but the matching itself is in
+        /// <see cref="ChordMatcher"/>; this part only knows which chords are bound and whom to tell.
+        /// </summary>
+        internal bool Decide(KBDLLHOOKSTRUCT data, bool down)
         {
-            if ((int)vkCode != hotkey.Vk)
+            switch (_matcher.Observe(data.vkCode, data.scanCode, data.flags, down, data.time, data.dwExtraInfo))
+            {
+                case ChordMatcher.Verdict.Swallow: return true;
+                case ChordMatcher.Verdict.Pass: return false;
+            }
+
+            // Escape while a translation is running: tell the subscriber and pass the key on
+            // regardless - it belongs to whatever the user is actually typing in. Ahead of the master
+            // switch (KC-8): a translation started from the tray or the context menu promises
+            // "Esc - cancel" with the hotkeys off too, and this branch never swallows anything.
+            if (_watchCancelKey && data.vkCode == VK_ESCAPE)
+                CancelKeyPressed?.Invoke(this, EventArgs.Empty);
+
+            // Pass everything through when hotkey listening is switched off in settings.
+            if (!_enabled) return false;
+
+            uint vk = data.vkCode;
+            // Each hotkey is matched only when its own switch is on (so a machine can, say,
+            // keep just the clipboard-history hotkey and let the others pass through).
+            bool caseMatch = _caseEnabled && _matcher.Matches(_caseHotkey, vk);
+            bool historyMatch = _historyEnabled && _matcher.Matches(_clipboardHistoryHotkey, vk);
+            bool notesMatch = _quickNotesEnabled && _matcher.Matches(_quickNotesHotkey, vk);
+            LayoutConversionProfile? conversion = FindConversion(vk);
+            Guid? launcher = FindLauncher(vk);
+            TranslationProfile? translation = FindTranslation(vk);
+
+            if (!caseMatch && !historyMatch && !notesMatch && conversion == null && launcher == null && translation == null)
                 return false;
 
-            // Require exactly the configured modifiers - no more, no less.
-            return Down(Hotkey.VK_CONTROL) == hotkey.Ctrl
-                && Down(Hotkey.VK_SHIFT) == hotkey.Shift
-                && Down(Hotkey.VK_MENU) == hotkey.Alt
-                && (Down(Hotkey.VK_LWIN) || Down(Hotkey.VK_RWIN)) == hotkey.Win;
+            // When a remote-desktop client is focused and deferral is on, don't touch the key: let
+            // it travel to the remote session, whose CyrFlip will handle it. Otherwise the local
+            // instance would swallow the trigger and inject a Ctrl+C that leaks into the remote as
+            // Ctrl+Shift+C. (Checked only on a real chord so the extra process lookup never runs on
+            // ordinary keystrokes.)
+            if (_deferInRemoteClient && RemoteDesktop.IsClientForeground())
+                return false;
+
+            // From here the key is swallowed, and with it its repeats and its release.
+            _matcher.Fired(vk, data.time);
+            ChordFired?.Invoke(_matcher.Modifiers.Held);
+
+            if (caseMatch) CaseHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (historyMatch) ClipboardHistoryHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (notesMatch) QuickNotesHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (conversion != null) LayoutConversionHotkeyPressed?.Invoke(conversion.Id);
+            else if (launcher != null) LauncherHotkeyPressed?.Invoke(launcher.Value);
+            else TranslateHotkeyPressed?.Invoke(translation!.Id);
+            return true;
         }
 
         private LayoutConversionProfile? FindConversion(uint vkCode)
@@ -192,7 +254,7 @@ namespace CyrFlip
             {
                 LayoutConversionProfile profile = binding.Profile;
                 if (!profile.Enabled || !profile.IsUsable) continue;
-                if (Matches(binding.Hotkey, vkCode)) return profile;
+                if (_matcher.Matches(binding.Hotkey, vkCode)) return profile;
             }
             return null;
         }
@@ -202,7 +264,7 @@ namespace CyrFlip
             // Same snapshot discipline as FindConversion: the array is replaced atomically and its
             // entries are immutable, so the hook never observes a half-edited scenario list.
             foreach (LauncherBinding binding in _launcherHotkeys)
-                if (Matches(binding.Hotkey, vkCode))
+                if (_matcher.Matches(binding.Hotkey, vkCode))
                     return binding.Id;
             return null;
         }
@@ -214,12 +276,11 @@ namespace CyrFlip
             {
                 TranslationProfile profile = binding.Profile;
                 if (!profile.Enabled || !profile.IsUsable) continue;
-                if (Matches(binding.Hotkey, vkCode)) return profile;
+                if (_matcher.Matches(binding.Hotkey, vkCode)) return profile;
             }
             return null;
         }
 
-        private static bool Down(int vk) => (GetAsyncKeyState(vk) & 0x8000) != 0;
 
         /// <summary>
         /// Change the matched case-flip hotkey without reinstalling the hook. Safe to call from any
@@ -227,6 +288,7 @@ namespace CyrFlip
         /// </summary>
         public void UpdateCaseHotkey(Hotkey hotkey) => _caseHotkey = hotkey;
         public void UpdateClipboardHistoryHotkey(Hotkey hotkey) => _clipboardHistoryHotkey = hotkey;
+        public void UpdateQuickNotesHotkey(Hotkey hotkey) => _quickNotesHotkey = hotkey;
 
         /// <summary>Toggle yielding the hotkeys to the remote session when an RDP client is focused.</summary>
         public void UpdateDeferInRemoteClient(bool defer) => _deferInRemoteClient = defer;
@@ -237,6 +299,8 @@ namespace CyrFlip
         /// <summary>Per-hotkey switches (thread-safe field writes, read on each callback).</summary>
         public void UpdateCaseEnabled(bool enabled) => _caseEnabled = enabled;
         public void UpdateHistoryEnabled(bool enabled) => _historyEnabled = enabled;
+        /// <summary>False whenever the quick notes are off <b>or</b> their own chord switch is.</summary>
+        public void UpdateQuickNotesEnabled(bool enabled) => _quickNotesEnabled = enabled;
 
         /// <summary>Watch for Escape (see <see cref="CancelKeyPressed"/>) - on only while translating.</summary>
         public void UpdateCancelKeyWatch(bool watch) => _watchCancelKey = watch;
@@ -312,9 +376,10 @@ namespace CyrFlip
 
         public void Dispose()
         {
+            _wanted = false;
             if (_hook != IntPtr.Zero)
             {
-                UnhookWindowsHookEx(_hook);
+                _unhook(_hook);
                 _hook = IntPtr.Zero;
             }
             _proc = null;

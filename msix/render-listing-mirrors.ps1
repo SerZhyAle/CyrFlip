@@ -1,4 +1,4 @@
-<#
+﻿<#
     Renders the two human-readable mirrors of the Store listing copy from the one source of truth.
 
       source of truth   msix/store-listing-export.csv   what Partner Center exports and imports

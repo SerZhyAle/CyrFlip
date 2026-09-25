@@ -2,7 +2,7 @@
     Builds an MSIX package for CyrFlip (Microsoft Store / sideload).
 
     What it does:
-      1. Builds Release (unless -NoBuild) and locates CyrFlip.exe.
+      1. Takes CyrFlip.exe from the released ZIP, or from an explicitly pre-built output (-NoBuild).
       2. Derives a Store-legal 4-part version (revision forced to 0) from the exe's YY.M.D.HHmm stamp.
       3. Stages the exe + config.json, generates the required logo PNGs from assets/icon-256.png.
       4. Fills the AppxManifest.xml placeholders (Identity Name / Publisher / version).
@@ -18,10 +18,11 @@
 
     Examples:
       # Store-ready package (fill these from Partner Center):
-      .\build-msix.ps1 -IdentityName "1234SerZhyAle.CyrFlip" -Publisher "CN=ABCD1234-.." -PublisherDisplayName "SerZhyAle"
+      .\build-msix.ps1 -ReleaseZip ..\CyrFlip-26.6.11.1700-windows-x64.zip -Version 26.6.11.1700 `
+          -IdentityName "1234SerZhyAle.CyrFlip" -Publisher "CN=ABCD1234-.." -PublisherDisplayName "SerZhyAle"
 
-      # Local sideload test (self-signed):
-      .\build-msix.ps1 -SelfSign
+      # Local sideload test of a deliberately pre-built tagged payload (self-signed):
+      .\build-msix.ps1 -NoBuild -Version 26.6.11.1700 -SelfSign
 #>
 [CmdletBinding()]
 param(
@@ -29,6 +30,8 @@ param(
     [string] $Publisher           = 'CN=SerZhyAle',
     [string] $PublisherDisplayName= 'SerZhyAle',
     [string] $Configuration       = 'Release',
+    [string] $ReleaseZip,
+    [string] $Version,
     [switch] $NoBuild,
     [switch] $SelfSign
 )
@@ -42,6 +45,7 @@ $IconPng   = Join-Path $RepoRoot 'assets\icon-256.png'
 $Stage     = Join-Path $MsixDir 'stage'
 $Dist      = Join-Path $MsixDir 'dist'
 $Manifest  = Join-Path $MsixDir 'AppxManifest.xml'
+$ExtractedRelease = $null
 
 function Find-SdkTool([string] $name) {
     $tool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\$name" -ErrorAction SilentlyContinue |
@@ -50,19 +54,36 @@ function Find-SdkTool([string] $name) {
     return $tool.FullName
 }
 
-# --- 1. Build ---------------------------------------------------------------
-if (-not $NoBuild) {
-    Write-Host 'Building Release..' -ForegroundColor Cyan
-    dotnet build $Csproj -c $Configuration --nologo
-    if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
+# --- 1. Select the released payload ----------------------------------------
+if (-not $Version -or $Version -notmatch '^\d{2}\.(?:[1-9]|1[0-2])\.(?:[1-9]|[12]\d|3[01])\.\d{4}$') {
+    throw 'Pass -Version YY.M.D.HHmm from the release tag.'
 }
-$Exe = Join-Path $OutDir 'CyrFlip.exe'
-if (-not (Test-Path $Exe)) { throw "CyrFlip.exe not found at $Exe (build first, or drop -NoBuild)." }
+if ($ReleaseZip -and $NoBuild) { throw 'Use either -ReleaseZip or -NoBuild, not both.' }
+if ($ReleaseZip) {
+    if (-not (Test-Path $ReleaseZip)) { throw "Release ZIP not found: $ReleaseZip" }
+    $ExtractedRelease = Join-Path ([IO.Path]::GetTempPath()) ('CyrFlip-msix-' + [Guid]::NewGuid().ToString('N'))
+    Expand-Archive -Path $ReleaseZip -DestinationPath $ExtractedRelease -Force
+    $Exe = @(Get-ChildItem $ExtractedRelease -Recurse -File -Filter 'CyrFlip.exe')
+    if ($Exe.Count -ne 1) { throw "Release ZIP must contain exactly one CyrFlip.exe (found $($Exe.Count))." }
+    $Exe = $Exe[0].FullName
+    $PayloadFolder = Split-Path $Exe -Parent
+}
+elseif ($NoBuild) {
+    $Exe = Join-Path $OutDir 'CyrFlip.exe'
+    if (-not (Test-Path $Exe)) { throw "CyrFlip.exe not found at $Exe (build the tagged preflight first)." }
+    $PayloadFolder = $OutDir
+}
+else {
+    throw 'Refusing to build an unverified working tree for the Store. Pass -ReleaseZip, or -NoBuild with the tagged preflight output.'
+}
 
 # --- 2. Store-legal version (revision must be 0) ----------------------------
 # Exe is stamped YY.M.D.HHmm. Map to Major.Minor.Build.0 within the 0..65535 per-part limit:
 #   Major = YY, Minor = M*100+D, Build = HHmm, Revision = 0  (monotonic over time, unique per minute).
 $fileVer = (Get-Item $Exe).VersionInfo.FileVersion
+if ([version]$fileVer -ne [version]$Version) {
+    throw "Payload FileVersion '$fileVer' does not match release tag version '$Version'."
+}
 $p = $fileVer.Split('.')
 if ($p.Count -lt 4) { throw "Unexpected exe version '$fileVer' (want YY.M.D.HHmm)." }
 $yy = [int]$p[0]; $m = [int]$p[1]; $d = [int]$p[2]; $hhmm = [int]$p[3]
@@ -73,8 +94,12 @@ Write-Host "Exe version $fileVer  ->  MSIX version $MsixVersion" -ForegroundColo
 if (Test-Path $Stage) { Remove-Item $Stage -Recurse -Force }
 New-Item -ItemType Directory -Path (Join-Path $Stage 'Assets') -Force | Out-Null
 Copy-Item $Exe $Stage -Force
-$cfg = Join-Path $OutDir 'config.json'
+$cfg = Join-Path $PayloadFolder 'config.json'
 if (Test-Path $cfg) { Copy-Item $cfg $Stage -Force }
+if ($ExtractedRelease) {
+    try { Remove-Item $ExtractedRelease -Recurse -Force -ErrorAction Stop } catch { Write-Warning "Could not remove temporary release extraction: $ExtractedRelease" }
+    $ExtractedRelease = $null
+}
 
 # Generate the logo PNGs from the 256px master.
 if (-not (Test-Path $IconPng)) { throw "Icon master not found: $IconPng" }

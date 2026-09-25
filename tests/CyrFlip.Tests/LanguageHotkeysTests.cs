@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CyrFlip;
 using Xunit;
@@ -135,6 +136,78 @@ namespace CyrFlip.Tests
         {
             // 0xBE is the '.' key: a chord Windows can store but our key table doesn't name.
             Assert.Equal("0xBE", Hotkey.NameForVk(0xBE));
+        }
+
+        // ---- WL-4: a stored alternate-layout HKL matches its live layout on x64 ----
+
+        [Fact]
+        public void AStoredAlternateLayoutMatchesTheLiveHandle()
+        {
+            // What GetKeyboardLayoutList hands out for US-International on x64: sign-extended.
+            IntPtr live = unchecked((IntPtr)(long)(int)0xF0010409);
+
+            IntPtr stored = LanguageHotkeys.HklFromStored(0xF0010409);
+
+            Assert.Equal(live, stored);
+            Assert.True(LanguageHotkeys.HklEquals(stored, live));
+            // The comparison also forgives a zero-extended handle, which is what the old decode made.
+            Assert.True(LanguageHotkeys.HklEquals(new IntPtr(0xF0010409L), live));
+            Assert.False(LanguageHotkeys.HklEquals(LanguageHotkeys.HklFromStored(0x04090409), live));
+        }
+
+        [Fact]
+        public void AnImeHandleSurvivesTheRoundTrip()
+        {
+            IntPtr live = unchecked((IntPtr)(long)(int)0xE0010411);
+            Assert.True(LanguageHotkeys.HklEquals(LanguageHotkeys.HklFromStored(0xE0010411), live));
+        }
+
+        // ---- WL-6: the switch-chord change leaves the layout chord alone ----
+
+        [Theory]
+        [InlineData("2", "1", null)]   // Language = Left Alt+Shift, layouts stay on Ctrl+Shift
+        [InlineData("1", "1", "3")]    // both on one chord: the layout chord gives way
+        [InlineData("2", "3", null)]   // language cycle off: the layout cycle keeps working
+        [InlineData("3", "3", null)]
+        [InlineData(null, "2", null)]  // no layout value at all: none is invented
+        public void TheLayoutChordChangesOnlyWhenItWouldCollide(string? layout, string code, string? expected)
+        {
+            Assert.Equal(expected, LanguageHotkeys.LayoutHotkeyAfter(layout, code));
+        }
+
+        // ---- WL-3: the snapshot carries the switch chords, and the old shape still reads ----
+
+        [Fact]
+        public void AFormatOneBackupStillReadsAndLeavesTheSwitchChordsAlone()
+        {
+            string json = "[{\"id\":256,\"mod\":49154,\"vk\":49,\"hkl\":67699721}]";
+
+            Assert.True(LanguageHotkeys.TryParseBackup(json, out var rows, out var toggle));
+
+            Assert.Single(rows);
+            Assert.Null(toggle);
+        }
+
+        [Fact]
+        public void AFormatTwoBackupCarriesTheSwitchChords()
+        {
+            string json = "{\"format\":2,\"rows\":[{\"id\":256,\"mod\":49154,\"vk\":49,\"hkl\":67699721}],"
+                + "\"toggle\":{\"Hotkey\":\"1\",\"Language Hotkey\":\"1\",\"Layout Hotkey\":\"2\"}}";
+
+            Assert.True(LanguageHotkeys.TryParseBackup(json, out var rows, out var toggle));
+
+            Assert.Single(rows);
+            Assert.NotNull(toggle);
+            Assert.Equal("2", toggle!["Layout Hotkey"]);
+        }
+
+        [Fact]
+        public void AnEmptyFormatTwoBackupIsStillABackup()
+        {
+            Assert.True(LanguageHotkeys.TryParseBackup("{\"format\":2,\"rows\":[],\"toggle\":{}}", out var rows, out var toggle));
+            Assert.Empty(rows);
+            Assert.NotNull(toggle);
+            Assert.False(LanguageHotkeys.TryParseBackup("not json", out _, out _));
         }
     }
 }

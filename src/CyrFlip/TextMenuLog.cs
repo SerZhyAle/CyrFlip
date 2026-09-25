@@ -15,10 +15,8 @@ namespace CyrFlip
     /// </summary>
     internal static class TextMenuLog
     {
-        private static readonly string FilePath = DiagnosticLog.Path("context-menu.log");
-
         public static void Log(string message)
-            => DiagnosticLog.Append(FilePath, DateTime.Now.ToString("HH:mm:ss.fff") + " - " + message);
+            => DiagnosticLog.Append(DiagnosticLog.Path("context-menu.log"), DateTime.Now.ToString("HH:mm:ss.fff") + " - " + message);
 
         /// <summary>"0x1234 'Notepad' pid=42" - enough to tell the user's window from one of ours.</summary>
         public static string Describe(IntPtr hwnd)

@@ -174,6 +174,48 @@ namespace CyrFlip
                 bn: "উৎস ও লক্ষ্য লেআউট আলাদা হতে হবে।",
                 ur: "ماخذ اور ہدف لے آؤٹ مختلف ہونے چاہئیں۔",
                 zh: "源布局和目标布局必须不同。");
+
+            Add("Сначала задайте комбинацию клавиш.",
+                en: "Set a hotkey first.",
+                uk: "Спершу задайте сполучення клавіш.",
+                de: "Legen Sie zuerst ein Tastenkürzel fest.",
+                it: "Imposta prima una scorciatoia da tastiera.",
+                es: "Primero asigne un atajo de teclado.",
+                fr: "Définissez d’abord un raccourci clavier.",
+                pt: "Defina primeiro um atalho de teclado.",
+                ar: "عيّن اختصار لوحة المفاتيح أولاً.",
+                hi: "पहले कीबोर्ड शॉर्टकट सेट करें।",
+                bn: "প্রথমে একটি কীবোর্ড শর্টকাট সেট করুন।",
+                ur: "پہلے کی بورڈ شارٹ کٹ مقرر کریں۔",
+                zh: "请先设置快捷键。");
+
+            Add("Комбинация «{0}» не распознана.",
+                en: "The hotkey \"{0}\" was not recognized.",
+                uk: "Сполучення «{0}» не розпізнано.",
+                de: "Das Tastenkürzel „{0}“ wurde nicht erkannt.",
+                it: "La scorciatoia \"{0}\" non è stata riconosciuta.",
+                es: "No se reconoció el atajo «{0}».",
+                fr: "Le raccourci « {0} » n’a pas été reconnu.",
+                pt: "O atalho \"{0}\" não foi reconhecido.",
+                ar: "لم يتم التعرف على الاختصار \"{0}\".",
+                hi: "शॉर्टकट \"{0}\" पहचाना नहीं गया।",
+                bn: "শর্টকাট \"{0}\" চেনা যায়নি।",
+                ur: "شارٹ کٹ \"{0}\" پہچانا نہیں گیا۔",
+                zh: "无法识别快捷键“{0}”。");
+
+            Add("Часть настроек CyrFlip не удалось прочитать - они оставлены как есть.",
+                en: "Some CyrFlip settings could not be read and were left as they are.",
+                uk: "Частину налаштувань CyrFlip не вдалося прочитати - їх залишено як є.",
+                de: "Einige CyrFlip-Einstellungen konnten nicht gelesen werden und bleiben unverändert.",
+                it: "Alcune impostazioni di CyrFlip non sono leggibili e sono state lasciate come sono.",
+                es: "Algunos ajustes de CyrFlip no se pudieron leer y se dejaron como estaban.",
+                fr: "Certains réglages de CyrFlip n’ont pas pu être lus et ont été laissés tels quels.",
+                pt: "Algumas configurações do CyrFlip não puderam ser lidas e foram mantidas como estão.",
+                ar: "تعذّرت قراءة بعض إعدادات CyrFlip وتُركت كما هي.",
+                hi: "CyrFlip की कुछ सेटिंग्स पढ़ी नहीं जा सकीं और जैसी थीं वैसी छोड़ दी गईं।",
+                bn: "CyrFlip-এর কিছু সেটিং পড়া যায়নি, সেগুলো যেমন ছিল তেমনই রাখা হয়েছে।",
+                ur: "CyrFlip کی کچھ ترتیبات پڑھی نہ جا سکیں اور انہیں جوں کا توں چھوڑ دیا گیا۔",
+                zh: "部分 CyrFlip 设置无法读取，已保持原样。");
         }
     }
 }

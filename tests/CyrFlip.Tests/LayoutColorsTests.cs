@@ -145,6 +145,67 @@ namespace CyrFlip.Tests
                 }
         }
 
+        /// <summary>The primary keyboard of each curated language - the layout whose shade is the
+        /// language's own colour (LAYOUT-PALETTE rule 4).</summary>
+        private static readonly Dictionary<string, string> PrimaryLayout = new Dictionary<string, string>
+        {
+            { "EN", "00000409" }, { "ZH", "00000804" }, { "HI", "00000439" }, { "ES", "0000040A" },
+            { "FR", "0000040C" }, { "AR", "00000401" }, { "BN", "00000445" }, { "PT", "00000416" },
+            { "RU", "00000419" }, { "UR", "00000420" }, { "DE", "00000407" }, { "IT", "00000410" },
+            { "UK", "00000422" },
+        };
+
+        /// <summary>
+        /// A language's colour is its primary layout's shade. That identity is what lets the distance and
+        /// brightness tests, which walk the layout table, speak for the language table too - without it a
+        /// curated colour could drift next to another and nothing would notice.
+        /// </summary>
+        [Fact]
+        public void EachLanguageColourIsItsPrimaryLayoutsShade()
+        {
+            Assert.Equal(LayoutStyle.Curated.Count, PrimaryLayout.Count);
+            foreach (KeyValuePair<string, Color> entry in LayoutStyle.Curated)
+            {
+                Assert.True(PrimaryLayout.TryGetValue(entry.Key, out string? klid), entry.Key + " has no primary layout here");
+                Assert.Equal(Hex(LayoutStyle.Layouts[klid!]), Hex(entry.Value));
+            }
+        }
+
+        /// <summary>
+        /// Every shade stays near its language's hue (LAYOUT-PALETTE rule 2), so the colour still answers
+        /// "which language" first. Measured in HSB (<see cref="Color.GetHue"/>); the widest drift today is
+        /// 11 degrees, and 12 is the bound the contract states.
+        /// </summary>
+        [Fact]
+        public void EveryShadeStaysNearItsLanguageHue()
+        {
+            foreach (KeyValuePair<string, Color> entry in LayoutStyle.Layouts)
+            {
+                string code = WorldLayouts.CodeForKlid(entry.Key);
+                Assert.True(LayoutStyle.Curated.TryGetValue(code, out Color language), entry.Key + " maps to uncurated " + code);
+                double drift = Math.Abs(entry.Value.GetHue() - language.GetHue());
+                drift = Math.Min(drift, 360 - drift);
+                Assert.True(drift <= 12, entry.Key + " " + Hex(entry.Value) + " is " + Math.Round(drift) + " degrees off " + code + "'s hue");
+            }
+        }
+
+        /// <summary>
+        /// The copy's shape is part of the contract (rule 6): the three tables, the opacity, and comment
+        /// keys that start with an underscore - nothing else, and every key upper case, because the
+        /// extension looks codes and KLIDs up exactly as the app writes them.
+        /// </summary>
+        [Fact]
+        public void ThePaletteCopyHasOnlyKnownSections()
+        {
+            var known = new HashSet<string> { "curated", "layouts", "other", "markerOpacity" };
+            foreach (string key in Palette().Keys)
+                Assert.True(known.Contains(key) || key.StartsWith("_", StringComparison.Ordinal), "unknown section \"" + key + "\"");
+
+            foreach (string section in new[] { "curated", "layouts" })
+                foreach (string key in Section(section).Keys)
+                    Assert.Equal(key.ToUpperInvariant(), key);
+        }
+
         /// <summary>The marker is drawn over arbitrary application backgrounds, so no shade may be dark.</summary>
         [Fact]
         public void EveryLayoutColourIsBright()

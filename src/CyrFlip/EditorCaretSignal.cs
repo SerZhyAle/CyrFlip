@@ -10,6 +10,10 @@ namespace CyrFlip
     /// <summary>
     /// "The editor is drawing the marker - stay out of the way."
     ///
+    /// <para>This is <c>LAYOUT-SIGNAL</c> rules 9 to 12, the app's half: the claim is a file and its
+    /// mtime, its contents are never parsed, freshness is three of the claimant's write intervals, and
+    /// both halves - fresh file and editor foreground - have to hold.</para>
+    ///
     /// <para>Inside a VS Code editor two markers used to appear at one caret: the companion extension
     /// draws its own at Monaco's caret (the only way to be exact there), and IAccessible2 hands the app
     /// that same caret, so <see cref="CaretOverlay"/> drew a second one a few pixels away.</para>
@@ -35,11 +39,10 @@ namespace CyrFlip
         /// <summary>The caret tracker ticks every ~90 ms; the file is not stat-ed more often than this.</summary>
         private const int PollMs = 300;
 
-        private static readonly string FilePath = Path.Combine(
-            Environment.GetFolderPath(PackageInfo.IsPackaged
-                ? Environment.SpecialFolder.CommonApplicationData
-                : Environment.SpecialFolder.LocalApplicationData),
-            "CyrFlip", "editor-caret.txt");
+        internal const string ClaimFileName = "editor-caret.txt";
+
+        /// <summary>Read from the folder the layout is written to - one decision, rule 1.</summary>
+        internal static readonly string FilePath = Path.Combine(LayoutPublisher.Folder, ClaimFileName);
 
         private static readonly Stopwatch Clock = Stopwatch.StartNew();
         private static long _checkedMs = -PollMs;

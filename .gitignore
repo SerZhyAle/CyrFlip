@@ -25,6 +25,7 @@ stage/
 
 # Local scratch
 temp/
+scratch/
 # UI-test output (tools/uitest screenshots) - throwaway by design
 artifacts/
 # Samples written by tools/uitest/Test-LongRun.ps1 next to the script - one file per run, and the
@@ -50,8 +51,9 @@ msix/listingData-*.csv
 *.jks
 *.keystore
 .env
-*token*
-*secret*
+*.token
+*.secret
+.secrets/
 
 # Stray agent-kit export - not produced by this repo and not read by it. It is an export of a
 # generic agents/skills/rules pack from a different project, swept in by an accidental
@@ -61,3 +63,6 @@ universal_agent_pack.zip
 # Local editor tweaks (colour customizations and the like) - personal to one machine, not
 # repository configuration; nothing in the build reads them.
 .vscode/
+
+# Planning documents (specs, contract sync audits, the production plan) - local only, never published.
+PLAN/

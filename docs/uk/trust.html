@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip - чому Windows або антивірус можуть попереджати</title>
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/uk/trust.html">
+  <meta name="description" content="Що означає попередження Windows SmartScreen або антивірусу про CyrFlip, чому воно з'являється, що саме натиснути і чого CyrFlip ніколи не робить." />
+  <meta property="og:title" content="CyrFlip - чому Windows або антивірус можуть попереджати" />
+  <meta property="og:description" content="Що означає попередження SmartScreen або антивірусу про CyrFlip, чому воно з'являється, що натиснути і чого CyrFlip ніколи не робить." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <meta property="og:url" content="https://serzhyale.github.io/CyrFlip/uk/trust.html" />
+  <meta name="theme-color" content="#0a0f0a" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+</head>
+<body>
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+  <header class="site-header">
+    <div class="container">
+      <span class="brand"><img class="brand-icon" src="../assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
+      <button class="theme-btn" id="themeBtn" aria-label="Перемкнути тему">◐</button>
+      <div class="cta">
+        <a class="btn btn-ghost btn-sm" href="../">← На головну</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </div>
+  </header>
+  <div class="wrap">
+    <section>
+      <h1>Чому Windows або антивірус можуть попереджати про CyrFlip</h1>
+      <p class="note">Оновлено: 24 вересня 2026 · <a href="../trust.html">English (оригінал)</a></p>
+
+      <p>Ця сторінка - для тієї хвилини, коли Windows або антивірус щойно зупинили CyrFlip. Вона пояснює, що
+      це за попередження, чому воно з'являється, що саме натиснути і чого CyrFlip ніколи не робить - саме в
+      такому порядку, щоб ви могли вирішити самі.</p>
+
+      <h2 id="what">Що це за попередження</h2>
+
+      <h3>"Windows protected your PC" (Windows захистила ваш комп'ютер)</h3>
+      <p>Це <strong>Microsoft Defender SmartScreen</strong>. Синє вікно повідомляє: <em>"Microsoft Defender
+      SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at
+      risk."</em> (SmartScreen запобіг запуску нерозпізнаного застосунку; його запуск може наразити
+      комп'ютер на ризик). Після натискання <strong>"More info"</strong> (докладніше) вікно показує
+      <em>"App: CyrFlip.exe"</em> і <em>"Publisher: Unknown publisher"</em> (застосунок; видавець: невідомий
+      видавець), а також кнопки <strong>"Run anyway"</strong> (усе одно запустити) і <strong>"Don't
+      run"</strong> (не запускати). В українській Windows ці написи перекладено; тут наведено англійський
+      оригінал.</p>
+
+      <h3>Антивірус поміщає CyrFlip.exe у карантин або блокує його</h3>
+      <p>Поки що відомий випадок з <strong>Avast / AVG</strong>, які називають це <code>IDP.Generic</code>
+      (Behavior Shield). Інші антивіруси можуть називати таке саме спрацювання інакше.</p>
+
+      <p>Де це трапляється: попередження можуть з'являтися для <strong>ZIP з GitHub</strong> і для пакета
+      <strong>winget</strong> (winget встановлює той самий ZIP). Версія з <strong>Microsoft Store</strong>
+      підписана Microsoft і попередження SmartScreen не викликає.</p>
+
+      <h2 id="why">Чому воно з'являється</h2>
+      <p>CyrFlip - безкоштовна програма з відкритим кодом, її робить один незалежний розробник. ZIP <strong>не
+      підписаний сертифікатом підпису коду</strong>: такий сертифікат коштує грошей щороку, і відмова від
+      нього була свідомим рішенням. SmartScreen довіряє файлу за його репутацією - за тим, скільки людей
+      запускали саме цей файл, - тож нова непідписана збірка починає з нуля, а попередження зникає в міру
+      того, як збірку завантажують дедалі більше.</p>
+      <p>Є й друга причина, яку підпис не усунув би. Щоб виконувати свою роботу, індикатор розкладки робить
+      саме те, за чим стежать поведінкові евристики антивірусів: встановлює глобальний клавіатурний хук (а
+      при увімкненому контекстному меню - ще й хук миші), синтезує <kbd>Ctrl</kbd>+<kbd>C</kbd> і
+      <kbd>Ctrl</kbd>+<kbd>V</kbd>, читає буфер обміну і може замінювати системний текстовий курсор. Запуск
+      програми просто з тимчасової теки (зсередини ZIP або з <code>%TEMP%</code>) додає ще один прапорець
+      репутації.</p>
+      <p>Попередження виконує свою роботу щодо файлу, якого воно не знає. Факти нижче дають змогу оцінити
+      файл самостійно.</p>
+
+      <h2 id="click">Що саме натиснути</h2>
+      <ol>
+        <li><strong>Спершу розпакуйте ZIP у постійну теку</strong>, наприклад
+        <code>%LOCALAPPDATA%\Programs\CyrFlip\</code>, і запускайте <code>CyrFlip.exe</code> звідти, а не
+        зсередини архіву.</li>
+        <li><strong>SmartScreen:</strong> натисніть <strong>"More info"</strong> (докладніше), переконайтеся,
+        що застосунок - <code>CyrFlip.exe</code>, потім натисніть <strong>"Run anyway"</strong> (усе одно
+        запустити). Windows запам'ятає це для цього файлу.</li>
+        <li><strong>Карантин антивірусу:</strong> відновіть файл із карантину й додайте виняток лише для
+        <strong>цієї однієї теки</strong>. Потім повідомте про хибне спрацювання виробника антивірусу (в Avast
+        і AVG на сайтах є форма для хибних спрацювань) - це допоможе всім іншим користувачам.</li>
+        <li><strong>Необов'язкова перевірка:</strong> порівняйте SHA-256 файлу з файлом <code>.sha256</code>,
+        опублікованим поруч із ZIP на
+        <a href="https://github.com/SerZhyAle/CyrFlip/releases/latest">сторінці релізу</a>
+        (<code>Get-FileHash CyrFlip.exe</code> у PowerShell), або завантажте файл на
+        <a href="https://www.virustotal.com/">VirusTotal</a>.</li>
+        <li><strong>Або обійдіться без попередження взагалі:</strong> встановіть CyrFlip із
+        <a href="https://apps.microsoft.com/detail/9NB4W41NGQJ4">Microsoft Store</a> - ця версія підписана
+        Microsoft.</li>
+      </ol>
+      <p>Ніщо тут не пропонує вимикати захист для всього комп'ютера - один файл, одна тека, і будь-що з цього
+      можна скасувати.</p>
+
+      <h2 id="never">Чого CyrFlip ніколи не робить</h2>
+      <ul class="features">
+        <li><strong>Ніколи не запитує прав адміністратора для себе.</strong> Він працює зі звичайними правами
+        вашого облікового запису.</li>
+        <li><strong>Ніколи не записує, не зберігає і не надсилає ваші натискання клавіш.</strong>
+        Клавіатурний хук лише розпізнає власні сполучення CyrFlip.</li>
+        <li><strong>Ніколи нічого нікуди не надсилає</strong> - ні телеметрії, ні облікових записів, ні
+        власних серверів. Єдиний виняток - необов'язковий перекладач (типово вимкнений): він надсилає
+        виділений текст на вказану вами адресу Ollama, типово це програма на вашому власному комп'ютері.</li>
+        <li><strong>Ніколи не встановлює службу чи драйвер.</strong></li>
+        <li><strong>Ніколи не пише за межі вашого профілю</strong>, окрім маленького файлу розкладки в
+        <code>%ProgramData%\CyrFlip</code> у версії з Microsoft Store.</li>
+        <li><strong>Ніколи не запускається разом із Windows</strong>, якщо ви не позначили цю опцію.</li>
+      </ul>
+
+      <h3>Запити прав адміністратора, які ви все ж можете побачити</h3>
+      <ul>
+        <li>Сценарій швидкого запуску, позначений <em>запускати від імені адміністратора</em>: запит
+        стосується <strong>вашої</strong> програми, а не CyrFlip. Зніміть цю опцію в сценарії, і запиту не
+        буде.</li>
+        <li><em>Встановити Ollama</em> у переносній версії: CyrFlip завантажує офіційний інсталятор Ollama і
+        запускає його; будь-який запит, який той показує, - це запит самого інсталятора Ollama.</li>
+      </ul>
+
+      <h3>Що він змінює і як це скасувати</h3>
+      <ul>
+        <li><strong>Запуск разом із Windows</strong> - зніміть позначку в налаштуваннях CyrFlip.</li>
+        <li><strong>Текстовий курсор</strong> (типово вимкнений) - CyrFlip повертає стандартний курсор під час
+        виходу.</li>
+        <li><strong>Мовні налаштування Windows</strong> (розкладки клавіатури, сполучення перемикання) - лише
+        коли ви змінюєте їх на вкладці <em>«Мови Windows»</em>; кнопка відновлення на цій вкладці повертає
+        той стан, який у вас був.</li>
+        <li><strong>Власні налаштування й дані</strong> - ключ реєстру <code>HKCU\Software\CyrFlip</code> і
+        теки <code>%LOCALAPPDATA%\CyrFlip</code> та <code>%APPDATA%\CyrFlip</code>. Видаліть їх після виходу
+        з CyrFlip, і від нього нічого не залишиться.</li>
+      </ul>
+      <p>Ті самі факти, докладніше, - у <a href="privacy.html">політиці конфіденційності</a>.</p>
+
+      <p class="note">Якщо збірки CyrFlip колись стануть підписаними, ця сторінка залишиться і скаже, з якої
+      версії.</p>
+
+      <p>Питання або нове попередження, про яке варто повідомити: <a href="mailto:sza@ukr.net">sza@ukr.net</a>.</p>
+    </section>
+
+    <footer>
+      <p>Ліцензія MIT · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">Код на GitHub</a><br />
+      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
+    </footer>
+  </div>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn');
+    var themeColor=document.querySelector('meta[name="theme-color"]');
+    function applyThemeMeta(){
+      var dark=doc.getAttribute('data-theme')!=='light';
+      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
+      themeBtn.setAttribute('aria-label',dark?'Світла тема':'Темна тема');
+    }
+    themeBtn.addEventListener('click',function(){
+      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
+      doc.setAttribute('data-theme',next);
+      try{localStorage.setItem('sza-theme',next);}catch(e){}
+      applyThemeMeta();
+    });
+    applyThemeMeta();
+  })();
+  </script>
+</body>
+</html>

@@ -23,7 +23,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/privacy.html",
     "description": "CyrFlip does not collect, store, log, or transmit any personal data. It runs entirely on your own device.",
     "inLanguage": "en",
-    "dateModified": "2026-07-30",
+    "dateModified": "2026-09-24",
     "about": { "@type": "SoftwareApplication", "name": "CyrFlip", "operatingSystem": "Windows 10, Windows 11" },
     "publisher": { "@type": "Person", "name": "SerZhyAle", "url": "https://github.com/SerZhyAle" }
   }
@@ -62,7 +62,7 @@
   <div class="wrap">
     <section>
       <h1>Privacy Policy</h1>
-      <p class="note">Last updated: 30 July 2026</p>
+      <p class="note">Last updated: 24 September 2026</p>
 
       <p><strong>CyrFlip does not collect, store, log, or transmit any personal data.</strong> It runs
       entirely on your own device. It has no servers of its own, no telemetry, analytics, advertising,
@@ -77,16 +77,34 @@
 
       <h2>What the app accesses, and why</h2>
       <ul class="features">
-        <li><strong>Keyboard.</strong> CyrFlip installs a global keyboard hook for two purposes only:
-        to detect its activation hotkey (default <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>) and to
-        read the currently active keyboard layout code (any layout installed in Windows, including the 13 curated
-        EN, ZH, HI, ES, FR, AR, BN, PT, RU, UR, DE, IT and UK ones) so it can show the on-screen indicator.
-        Besides that hotkey it also watches the chords you assign to the case fix, the clipboard manager, each
+        <li><strong>Keyboard.</strong> CyrFlip installs a global keyboard hook for one purpose only: to
+        recognise its own shortcuts, such as the layout-conversion chord (default
+        <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd>). The keyboard layout the indicator shows (any layout
+        installed in Windows, including the 13 curated EN, ZH, HI, ES, FR, AR, BN, PT, RU, UR, DE, IT and UK
+        ones) is not read through the hook - CyrFlip asks Windows for the layout of the focused window.
+        Besides that chord it also watches the chords you assign to the case fix, the clipboard manager, each
         row of your layout-conversion table, each row of your translation table, and any quick-launch scenario
         you give a shortcut to. While a translation is being written it additionally watches for <kbd>Esc</kbd>,
         so that key can cancel it - the key is passed on to the app you are in either way.
         <strong>It does not record, log, store, or transmit your keystrokes.</strong>
         It is not a keylogger.</li>
+
+        <li><strong>Mouse.</strong> Only while you have switched on CyrFlip's own <em>context menu</em> (it is
+        <strong>off by default</strong>), CyrFlip installs a global mouse hook so it can recognise the one
+        mouse chord that opens that menu (default <kbd>Ctrl</kbd> + right click). It passes every other click
+        and movement on untouched and records, stores and sends nothing. With the context menu off, no mouse
+        hook exists at all.</li>
+
+        <li><strong>Text cursor.</strong> The option that shows the layout on the mouse pointer (<strong>off by
+        default</strong>) replaces the Windows text-selection cursor (the I-beam) for every program while CyrFlip
+        runs. CyrFlip puts the standard cursor back when it exits, and also when it closes because of an error;
+        only if the process is killed outright does the replacement stay until you sign out.</li>
+
+        <li><strong>Start with Windows.</strong> CyrFlip starts with Windows only if you tick that option. The
+        portable version then writes one entry to
+        <code>HKCU\Software\Microsoft\Windows\CurrentVersion\Run</code> in your own user profile, and unticking
+        the option removes it; the Microsoft Store version uses a Windows startup task instead, which you can
+        also switch in <em>Settings &gt; Apps &gt; Startup</em>.</li>
 
         <li><strong>Clipboard.</strong> When you press the hotkey to transliterate a selection, CyrFlip
         temporarily reads the selected text (via a synthesized copy), converts it between layouts, and
@@ -140,13 +158,19 @@
         as <code>EN</code>, <code>ZH</code>, <code>RU</code>, or <code>AR</code> - to a small local file
         (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, or <code>%ProgramData%\CyrFlip\layout.txt</code> in
         the Microsoft Store version) so the optional companion VS&nbsp;Code extension can display the marker
-        at the editor caret. This file contains no personal data and never leaves your device.</li>
+        at the editor caret. Beside it, <code>layout-klid.txt</code> holds the identifier of that keyboard
+        layout (eight hexadecimal digits, such as <code>00000409</code>), so the extension can use the same
+        colour. The extension, if you install it, writes <code>editor-caret.txt</code> into the same folder
+        while it draws the marker; it holds only the layout code and a time. CyrFlip removes its two files
+        when it exits. In the Microsoft Store version that folder is under <code>%ProgramData%</code>, which
+        other accounts on the same PC can read - it holds nothing but these values. None of these files
+        contains personal data or ever leaves your device.</li>
 
         <li><strong>Configuration and history.</strong> Settings are stored in
         <code>HKCU\Software\CyrFlip</code> - including your layout-conversion table and the one-time backups of
         the Windows input settings described above. When enabled, clipboard history is stored locally in the
         CyrFlip application-data folder in DPAPI-protected form. A legacy <code>config.json</code> may be
-        read once during migration. None of these data leave your device.</li>
+        read once during migration. None of these data leave your device. When enabled, quick notes are stored in the same folder in a DPAPI-protected file - the title as well as the body - and that file is never part of the log archive described below.</li>
 
         <li><strong>Quick-launch scenarios.</strong> Each scenario you create is stored as its own XML file in
         <code>%APPDATA%\CyrFlip\Scenarios</code>, holding exactly what you entered: the name, the program or
@@ -167,6 +191,10 @@
         you open the archive before any message exists. Nothing is sent until you press Send in your own
         mail program - CyrFlip has no sending channel of its own.</li>
       </ul>
+
+      <p>If Windows or your antivirus warned you about CyrFlip when you downloaded or first started it, see
+      <a href="trust.html">Why Windows or an antivirus may warn about CyrFlip</a> - its list of what CyrFlip
+      never does says the same as this page.</p>
 
       <h2>Data sharing</h2>
       <p>None. CyrFlip does not share any data with the developer or any third party. The one thing it ever

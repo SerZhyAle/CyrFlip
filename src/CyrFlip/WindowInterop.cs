@@ -18,6 +18,9 @@ namespace CyrFlip
 
         // KBDLLHOOKSTRUCT.flags bit: event was injected by SendInput/keybd_event.
         public const uint LLKHF_INJECTED = 0x10;
+        // KBDLLHOOKSTRUCT.flags bit: the key carries the E0 prefix (right Ctrl/Alt, the Win keys, the
+        // navigation cluster). Also how a generic injected VK_CONTROL/VK_MENU names its side.
+        public const uint LLKHF_EXTENDED = 0x01;
 
         [DllImport("user32.dll")]
         public static extern short GetAsyncKeyState(int vKey);
@@ -92,9 +95,28 @@ namespace CyrFlip
         public const uint EM_GETSEL = 0x00B0;
         public const uint SMTO_ABORTIFHUNG = 0x0002;
 
+        // WM_GETTEXT / WM_GETTEXTLENGTH are among the handful of messages USER32 marshals across
+        // process boundaries itself, so the buffer below may be ours even though the edit control
+        // belongs to another application. That is what lets the probe read the selected text out of
+        // a classic control without synthesizing Ctrl+C.
+        public const uint WM_GETTEXT = 0x000D;
+        public const uint WM_GETTEXTLENGTH = 0x000E;
+
+        [DllImport("user32.dll", EntryPoint = "SendMessageTimeoutW", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern IntPtr SendMessageTimeoutText(IntPtr hWnd, uint Msg, IntPtr wParam,
+            System.Text.StringBuilder lParam, uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
+
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam,
             uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
+
+        /// <summary>
+        /// A message whose lParam is a string we send. Used for <c>EM_SETCUEBANNER</c>, the
+        /// placeholder text a Win32 edit control has understood since Vista and which net48's
+        /// <c>TextBox</c> does not expose (<c>PlaceholderText</c> is .NET Core and later).
+        /// </summary>
+        [DllImport("user32.dll", EntryPoint = "SendMessageW", CharSet = CharSet.Unicode)]
+        public static extern IntPtr SendMessageString(IntPtr hWnd, uint Msg, IntPtr wParam, string lParam);
 
         // ---- Active window + layout (CursorIndicator.cs / ClipboardHandler.cs) ----
         [DllImport("user32.dll")]
@@ -129,6 +151,12 @@ namespace CyrFlip
 
         [DllImport("oleacc.dll")]
         public static extern int AccessibleObjectFromWindow(IntPtr hwnd, uint id, ref Guid riid, out IntPtr ppvObject);
+
+        // The accessible element under a screen point - how the selection probe asks about the text
+        // the user actually right-clicked on, rather than about whatever happens to hold the focus.
+        [DllImport("oleacc.dll")]
+        public static extern int AccessibleObjectFromPoint(POINT ptScreen, out IntPtr ppacc,
+            [MarshalAs(UnmanagedType.Struct)] out object pvarChild);
 
         // ---- Window identity (CaretDiagnostics.cs) ----
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
@@ -217,6 +245,10 @@ namespace CyrFlip
 
         public const uint INPUT_KEYBOARD = 1;
         public const uint KEYEVENTF_KEYUP = 0x0002;
+        public const uint KEYEVENTF_EXTENDEDKEY = 0x0001;
+
+        [DllImport("user32.dll")]
+        public static extern uint MapVirtualKey(uint uCode, uint uMapType);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct INPUT

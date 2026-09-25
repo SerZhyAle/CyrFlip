@@ -85,6 +85,50 @@ namespace CyrFlip
         internal static bool IsEnabledState(object? state) =>
             state is int value && (value == StateEnabled || value == StateEnabledByPolicy);
 
+        /// <summary>
+        /// Startup's "keep the Run entry pointing at the exe that is actually running". Writes only
+        /// when the stored command differs - rewriting a Run value on every launch is a persistence
+        /// pattern some AV products score - and never throws: this runs on every start, and a Run key
+        /// that policy or endpoint protection denies must not turn into a crash on every start.
+        /// </summary>
+        public static void SyncToThisExe()
+        {
+            if (ManagedByWindows) return;
+            SyncRunValue(
+                () =>
+                {
+                    using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RunKey, writable: false);
+                    return key?.GetValue(ValueName);
+                },
+                command =>
+                {
+                    using RegistryKey key = Registry.CurrentUser.CreateSubKey(RunKey);
+                    key.SetValue(ValueName, command, RegistryValueKind.String);
+                },
+                ExeCommand);
+        }
+
+        /// <summary>
+        /// The testable core of <see cref="SyncToThisExe"/>: true when it wrote. Only an existing entry
+        /// is refreshed (autostart off stays off), an equal one is left alone, and any failure is
+        /// swallowed.
+        /// </summary>
+        internal static bool SyncRunValue(Func<object?> read, Action<string> write, string command)
+        {
+            try
+            {
+                object? stored = read();
+                if (stored == null) return false; // autostart is off - nothing to keep in sync
+                if (stored is string s && string.Equals(s, command, StringComparison.OrdinalIgnoreCase)) return false;
+                write(command);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static void Set(bool enabled)
         {
             if (ManagedByWindows)

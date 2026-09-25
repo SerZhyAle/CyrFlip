@@ -31,6 +31,8 @@ namespace CyrFlip
 
         private static readonly object Lock = new object();
 
+        private static string? _overrideFolder;
+
         /// <summary>Files already considered for rotation in this process (see the class remarks).</summary>
         private static readonly HashSet<string> Rotated = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -39,11 +41,36 @@ namespace CyrFlip
         /// <c>%ProgramData%\CyrFlip</c> when packaged (a write to %LOCALAPPDATA% is virtualized into
         /// the package container, where no outside reader would find it).
         /// </summary>
-        public static string Path(string fileName) => System.IO.Path.Combine(
+        internal static string ProductionFolder => System.IO.Path.Combine(
             Environment.GetFolderPath(PackageInfo.IsPackaged
                 ? Environment.SpecialFolder.CommonApplicationData   // %ProgramData%
                 : Environment.SpecialFolder.LocalApplicationData),  // %LOCALAPPDATA%
-            "CyrFlip", fileName);
+            "CyrFlip");
+
+        /// <summary>
+        /// Test-only destination for diagnostics. It may be assigned once, before the tests which
+        /// exercise logging run; production never assigns it and always uses <see cref="ProductionFolder"/>.
+        /// </summary>
+        internal static string? OverrideFolder
+        {
+            get { lock (Lock) return _overrideFolder; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("A log override folder is required.", nameof(value));
+                lock (Lock)
+                {
+                    if (_overrideFolder != null && !string.Equals(_overrideFolder, value, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("DiagnosticLog.OverrideFolder can only be assigned once.");
+                    _overrideFolder = value;
+                }
+            }
+        }
+
+        public static string Path(string fileName)
+        {
+            lock (Lock)
+                return System.IO.Path.Combine(_overrideFolder ?? ProductionFolder, fileName);
+        }
 
         /// <summary>
         /// Append one line, rotating the file first if this is the session's first write to it.

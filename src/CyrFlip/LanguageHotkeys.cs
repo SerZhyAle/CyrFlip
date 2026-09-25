@@ -102,7 +102,7 @@ namespace CyrFlip
                         Id = id,
                         Modifiers = ReadDword(key, "Key Modifiers"),
                         VirtualKey = vk,
-                        TargetHkl = new IntPtr(ReadDword(key, "Target IME")),
+                        TargetHkl = HklFromStored(ReadDword(key, "Target IME")),
                     });
                 }
             }
@@ -114,7 +114,18 @@ namespace CyrFlip
 
         /// <summary>The assignment pointing at <paramref name="hkl"/>, or null if that layout has none.</summary>
         public static Entry? FindFor(IntPtr hkl)
-            => ReadAll().Find(e => e.TargetHkl == hkl);
+            => ReadAll().Find(e => HklEquals(e.TargetHkl, hkl));
+
+        /// <summary>
+        /// The HKL a stored 32-bit <c>Target IME</c> stands for, <b>sign</b>-extended the way
+        /// <c>GetKeyboardLayoutList</c> hands HKLs out on x64. <c>new IntPtr(uint)</c> picks the
+        /// <c>long</c> overload and zero-extends, so <c>F0010409</c> never matched its own live layout
+        /// (ticket S0007, WL-4).
+        /// </summary>
+        internal static IntPtr HklFromStored(uint stored) => new IntPtr(unchecked((int)stored));
+
+        /// <summary>Two HKLs are the same layout when their low 32 bits agree - the only bits Windows stores.</summary>
+        internal static bool HklEquals(IntPtr a, IntPtr b) => unchecked((uint)(long)a == (uint)(long)b);
 
         /// <summary>Input layouts installed in this session, in Windows' own order, without duplicates.</summary>
         public static IntPtr[] InstalledLayouts()
@@ -155,7 +166,7 @@ namespace CyrFlip
             foreach (Entry e in entries)
             {
                 used.Add(e.Id);
-                if (e.TargetHkl == hkl) { existing = e.Id; continue; }
+                if (HklEquals(e.TargetHkl, hkl)) { existing = e.Id; continue; }
                 if (SameChord(e.Modifiers, e.VirtualKey, modifiers, vk))
                 {
                     conflictingLanguage = LanguageName(e.TargetHkl);
@@ -205,8 +216,31 @@ namespace CyrFlip
 
         // ---- Backup / restore ----
 
-        /// <summary>Snapshot of the whole direct-switch range as JSON, for "put it back as it was".</summary>
+        /// <summary>The three parallel values Windows keeps the switch chords in.</summary>
+        private static readonly string[] ToggleValues = { "Hotkey", "Language Hotkey", "Layout Hotkey" };
+
+        /// <summary>
+        /// Snapshot of the whole direct-switch range <b>and</b> the switch chords under
+        /// <c>Keyboard Layout\Toggle</c>, as JSON, for "put it back as it was". Format 2 is an object
+        /// (<c>{"format":2,"rows":[..],"toggle":{..}}</c>); format 1, written before ticket S0007
+        /// (WL-3), was the bare row array and is still read by <see cref="RestoreAll"/>.
+        /// </summary>
         public static string BackupAll()
+        {
+            var toggle = new Dictionary<string, object>();
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(TogglePath);
+                if (key != null)
+                    foreach (string name in ToggleValues)
+                        if (key.GetValue(name) is string value) toggle[name] = value;
+            }
+            catch { }
+            var snap = new Dictionary<string, object> { ["format"] = 2, ["rows"] = BackupRows(), ["toggle"] = toggle };
+            try { return new JavaScriptSerializer().Serialize(snap); } catch { return ""; }
+        }
+
+        private static List<Dictionary<string, object>> BackupRows()
         {
             var rows = new List<Dictionary<string, object>>();
             foreach (Entry e in ReadAll())
@@ -219,7 +253,33 @@ namespace CyrFlip
                     ["hkl"] = unchecked((uint)(long)e.TargetHkl),
                 });
             }
-            try { return new JavaScriptSerializer().Serialize(rows); } catch { return ""; }
+            return rows;
+        }
+
+        /// <summary>
+        /// Reads either snapshot shape: the rows, and the captured switch chords (null for format 1,
+        /// which never captured them - restoring such a backup leaves the switch chords alone).
+        /// </summary>
+        internal static bool TryParseBackup(string json, out List<Dictionary<string, object>> rows, out Dictionary<string, object>? toggle)
+        {
+            rows = new List<Dictionary<string, object>>();
+            toggle = null;
+            object? parsed;
+            try { parsed = new JavaScriptSerializer().DeserializeObject(json); }
+            catch { return false; }
+
+            System.Collections.IEnumerable? list = parsed as object[];
+            if (parsed is Dictionary<string, object> snap)
+            {
+                snap.TryGetValue("rows", out object? r);
+                list = r as object[];
+                toggle = snap.TryGetValue("toggle", out object? t) && t is Dictionary<string, object> map
+                    ? map : new Dictionary<string, object>();
+            }
+            if (list == null) return false;
+            foreach (object item in list)
+                if (item is Dictionary<string, object> row) rows.Add(row);
+            return true;
         }
 
         /// <summary>
@@ -229,11 +289,24 @@ namespace CyrFlip
         public static void RestoreAll(string json)
         {
             if (string.IsNullOrWhiteSpace(json)) return;
+            if (!TryParseBackup(json, out List<Dictionary<string, object>> rows, out Dictionary<string, object>? toggle)) return;
 
-            List<Dictionary<string, object>>? rows;
-            try { rows = new JavaScriptSerializer().Deserialize<List<Dictionary<string, object>>>(json); }
-            catch { return; }
-            if (rows == null) return;
+            if (toggle != null)
+            {
+                try
+                {
+                    using RegistryKey? key = Registry.CurrentUser.CreateSubKey(TogglePath);
+                    if (key != null)
+                        foreach (string name in ToggleValues)
+                        {
+                            if (toggle.TryGetValue(name, out object? value) && value is string text)
+                                key.SetValue(name, text, RegistryValueKind.String);
+                            else
+                                key.DeleteValue(name, throwOnMissingValue: false);
+                        }
+                }
+                catch { }
+            }
 
             foreach (Entry e in ReadAll()) Remove(e.Id);
 
@@ -321,9 +394,11 @@ namespace CyrFlip
         public static readonly string[] ToggleCodes = { "1", "2", "4", "3" };
 
         /// <summary>
-        /// Set the whole-cycle switch hotkey. Windows keeps this choice as three parallel string values
-        /// (<c>Hotkey</c>, <c>Language Hotkey</c>, <c>Layout Hotkey</c>); all three are written so the
-        /// legacy dialog and the modern settings agree. Re-read by the OS via <see cref="ApplyToWindows"/>.
+        /// Set the whole-cycle switch hotkey. Windows keeps the language choice in two parallel string
+        /// values (<c>Hotkey</c>, <c>Language Hotkey</c>), both written so the legacy dialog and the
+        /// modern settings agree. The third, <c>Layout Hotkey</c>, is the separate "switch keyboard
+        /// layout within a language" chord and is left alone (see <see cref="LayoutHotkeyAfter"/>).
+        /// Re-read by the OS via <see cref="ApplyToWindows"/>.
         /// </summary>
         public static void SetToggle(string code)
         {
@@ -333,12 +408,21 @@ namespace CyrFlip
                 if (key == null) return;
                 key.SetValue("Hotkey", code, RegistryValueKind.String);
                 key.SetValue("Language Hotkey", code, RegistryValueKind.String);
-                // The layout-level cycle stays off unless the language cycle is off too, mirroring the
-                // Windows dialog, where "Switch keyboard layout" defaults to the same chord family.
-                key.SetValue("Layout Hotkey", code == "3" ? "3" : code, RegistryValueKind.String);
+                string? layout = LayoutHotkeyAfter(key.GetValue("Layout Hotkey") as string, code);
+                if (layout != null) key.SetValue("Layout Hotkey", layout, RegistryValueKind.String);
             }
             catch { }
         }
+
+        /// <summary>
+        /// What <c>Layout Hotkey</c> has to become when the language chord is set to <paramref name="code"/>:
+        /// null (leave it) unless both would now share one chord, in which case the layout chord is
+        /// switched off ("3") - one chord cannot do two things. The old code wrote the language code
+        /// into it as well, which killed Ctrl+Shift's within-language switch and, on "off", both
+        /// (ticket S0007, WL-6).
+        /// </summary>
+        internal static string? LayoutHotkeyAfter(string? currentLayout, string code)
+            => code != "3" && currentLayout == code ? "3" : null;
 
         // ---- Pure helpers (unit-tested) ----
 

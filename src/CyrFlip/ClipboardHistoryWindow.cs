@@ -93,7 +93,7 @@ namespace CyrFlip
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
-        private void OnFormClosing(object? sender, FormClosingEventArgs e) { e.Cancel = true; Hide(); }
+        private void OnFormClosing(object? sender, FormClosingEventArgs e) { if (CloseToHide.Intercept(e)) Hide(); }
 
         protected override void WndProc(ref Message m)
         {
@@ -161,7 +161,9 @@ namespace CyrFlip
                 using var currentPen = new Pen(dark ? Color.LightSkyBlue : Color.RoyalBlue, 2);
                 g.DrawRectangle(currentPen, r.X + 1, r.Y + 1, r.Width - 3, r.Height - 3);
             }
-            string normalized = entry.Text.Replace("\r", " ").Replace("\n", " ").Trim();
+            // The cached preview, never the full text: this runs per visible cell on every copy and
+            // every resize step, on the thread both low-level hooks share (S0005 CH-4).
+            string normalized = entry.Preview;
             string anchor = normalized.Length <= 15 ? normalized : normalized.Substring(0, 15);
             string rest = normalized.Length > 15 ? normalized.Substring(15) : "";
             Font big = _bigFont!;      // built by OnPaint before any cell is drawn

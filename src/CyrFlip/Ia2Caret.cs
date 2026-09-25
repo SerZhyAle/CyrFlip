@@ -71,33 +71,87 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// Whether the focused element holds a text selection - the IAccessible2 source of
+        /// One IAccessible2 answer about a selection: whether the element could be asked at all,
+        /// whether it holds a selection, and - when it would hand it over - the selected text itself.
+        /// </summary>
+        internal readonly struct Ia2Selection
+        {
+            /// <summary>False when the element exposes no IA2 text, i.e. "cannot tell".</summary>
+            public readonly bool Known;
+            public readonly bool HasSelection;
+            /// <summary>The selected text when the provider returned it, else null.</summary>
+            public readonly string? Text;
+
+            private Ia2Selection(bool known, bool has, string? text)
+            {
+                Known = known; HasSelection = has; Text = text;
+            }
+
+            public static readonly Ia2Selection Unknown = new Ia2Selection(false, false, null);
+            public static readonly Ia2Selection Nothing = new Ia2Selection(true, false, null);
+            public static Ia2Selection Selected(string? text) => new Ia2Selection(true, true, text);
+        }
+
+        /// <summary>
+        /// Longest selection this source reads. Kept in step with <c>SelectionProbe.MaxTextChars</c>,
+        /// which is what the menu's "characters selected" count is measured against.
+        /// </summary>
+        private const int MaxSelectionChars = 65536;
+
+        /// <summary>
+        /// The selection of the <b>focused</b> element - the IAccessible2 source of
         /// <see cref="SelectionProbe"/>, and the only one that answers inside Chromium/Electron.
-        /// Returns null when this element exposes no IA2 text at all (i.e. "cannot tell", never
-        /// "nothing selected").
         /// </summary>
         [HandleProcessCorruptedStateExceptions, SecurityCritical]
-        public static bool? TryGetHasSelection()
+        public static Ia2Selection ReadFocusedSelection() => ReadSelection(FocusedAccessible);
+
+        /// <summary>
+        /// The selection of the element <b>under the pointer</b>. The menu opens where the user
+        /// right-clicked, which in a read-only surface (a page, a chat transcript, a log view) is
+        /// routinely not the element holding the keyboard focus.
+        /// </summary>
+        [HandleProcessCorruptedStateExceptions, SecurityCritical]
+        public static Ia2Selection ReadSelectionAt(int x, int y) => ReadSelection(() => AccessibleAtPoint(x, y));
+
+        [HandleProcessCorruptedStateExceptions, SecurityCritical]
+        private static Ia2Selection ReadSelection(Func<object?> element)
         {
             object? acc = null;
             IAccessibleText? text = null;
             try
             {
-                acc = FocusedAccessible();
-                if (acc == null) return null;
+                acc = element();
+                if (acc == null) return Ia2Selection.Unknown;
 
                 text = QueryText(acc);
-                if (text == null) return null;
+                if (text == null) return Ia2Selection.Unknown;
 
-                if (text.get_nSelections(out int count) != 0) return null;
-                if (count <= 0) return false;
+                if (text.get_nSelections(out int count) != 0) return Ia2Selection.Unknown;
+                if (count <= 0) return Ia2Selection.Nothing;
 
                 // A provider can report a selection that is in fact the collapsed caret.
-                if (text.get_selection(0, out int start, out int end) != 0) return null;
-                return start != end;
+                if (text.get_selection(0, out int start, out int end) != 0) return Ia2Selection.Unknown;
+                if (start == end) return Ia2Selection.Nothing;
+                if (start > end) { int swap = start; start = end; end = swap; }
+                if (end - start > MaxSelectionChars) end = start + MaxSelectionChars;
+
+                string? selected = null;
+                try { if (text.get_text(start, end, out string value) == 0) selected = value; }
+                catch { /* the state is the answer; the text is a bonus */ }
+                return Ia2Selection.Selected(selected);
             }
-            catch { return null; }
+            catch { return Ia2Selection.Unknown; }
             finally { Release(text); Release(acc); }
+        }
+
+        /// <summary>The deepest accessible element under a screen point (oleacc's own hit test).</summary>
+        private static object? AccessibleAtPoint(int x, int y)
+        {
+            if (AccessibleObjectFromPoint(new POINT { X = x, Y = y }, out IntPtr pAcc, out object child) != 0
+                || pAcc == IntPtr.Zero)
+                return null;
+            Release(child); // the child id variant can carry a COM object we have no use for
+            return Wrap(pAcc);
         }
 
         /// <summary>Human-readable IA2 caret result, for the caret diagnostics.</summary>
@@ -230,6 +284,7 @@ namespace CyrFlip
             [PreserveSig] int get_nSelections(out int nSelections);                      // 5
             [PreserveSig] int _get_offsetAtPoint(int x, int y, uint coordType, out int offset); // 6
             [PreserveSig] int get_selection(int selectionIndex, out int startOffset, out int endOffset); // 7
+            [PreserveSig] int get_text(int startOffset, int endOffset, [MarshalAs(UnmanagedType.BStr)] out string text); // 8
         }
     }
 }

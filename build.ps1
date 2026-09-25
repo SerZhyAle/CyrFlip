@@ -40,15 +40,24 @@ $Destinations = @(
 )
 
 # A running .NET Framework exe may keep the previous build output locked. Local builds are the
-# fast test loop, so stop the single-instance tray app first and start the fresh output afterwards.
+# fast test loop, so ask the single-instance tray app to exit first and start the deployed copy afterwards.
 # CyrFlip deliberately has a unique process name, therefore this also covers a copy launched from
 # one of the local sync folders.
 $running = @(Get-Process -Name 'CyrFlip' -ErrorAction SilentlyContinue)
 if ($running.Count -gt 0) {
     Write-Host 'Stopping running CyrFlip..' -ForegroundColor Cyan
-    $running | Stop-Process -Force
+    foreach ($process in $running) {
+        try {
+            if ($process.Path) { & $process.Path /exit | Out-Null }
+        }
+        catch { }
+    }
     foreach ($process in $running) {
         try { $process.WaitForExit(5000) | Out-Null } catch { }
+        if (Get-Process -Id $process.Id -ErrorAction SilentlyContinue) {
+            Write-Host "CyrFlip pid $($process.Id) did not exit in 5 seconds; forcing it." -ForegroundColor Yellow
+            try { Stop-Process -Id $process.Id -Force -ErrorAction Stop } catch { }
+        }
     }
 }
 
@@ -79,6 +88,7 @@ if ($env:CYRFLIP_SIGN_PFX -and (Test-Path $env:CYRFLIP_SIGN_PFX)) {
         /d 'CyrFlip' /du 'https://github.com/SerZhyAle/CyrFlip' $ExePath
     if ($LASTEXITCODE -ne 0) { throw "signtool failed (exit $LASTEXITCODE)." }
     & $signtool.FullName verify /pa $ExePath | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "signtool verify failed (exit $LASTEXITCODE)." }
     Write-Host 'Signed.' -ForegroundColor Green
 } else {
     Write-Host 'Skipping code signing (set CYRFLIP_SIGN_PFX + CYRFLIP_SIGN_PASSWORD to enable).' -ForegroundColor DarkGray
@@ -101,8 +111,9 @@ foreach ($Destination in $Destinations) {
 }
 
 if (-not $NoRun) {
-    Write-Host "Starting fresh build: $ExePath" -ForegroundColor Cyan
-    Start-Process -FilePath $ExePath -WorkingDirectory $OutDir
+    $DeployedExe = Join-Path $Destinations[0] $ExeName
+    Write-Host "Starting deployed CyrFlip: $DeployedExe" -ForegroundColor Cyan
+    Start-Process -FilePath $DeployedExe -WorkingDirectory (Split-Path $DeployedExe -Parent)
 }
 
 # Optional commit of the сборка. Always carries [skip ci] so the push to main does not

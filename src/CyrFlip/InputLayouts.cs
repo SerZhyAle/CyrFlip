@@ -19,9 +19,11 @@ namespace CyrFlip
     /// <c>GetKeyboardLayoutList</c> reads) and the modern, authoritative
     /// <c>HKCU\Control Panel\International\User Profile</c> (a <c>Languages</c> BCP-47 list plus a
     /// <c>&lt;langid&gt;:&lt;klid&gt; = 1</c> value per keyboard). The modern store re-syncs the legacy
-    /// one on sign-in, so writing only Preload would be undone on reboot. We therefore rebuild <b>both</b>
-    /// from one canonical ordered KLID list on every change (<see cref="Persist"/>), and drive the live
-    /// session with the documented <c>LoadKeyboardLayout</c>/<c>UnloadKeyboardLayout</c> APIs.</para>
+    /// one on sign-in, so writing only Preload would be undone on reboot. We therefore bring <b>both</b>
+    /// in line with one canonical ordered KLID list on every change (<see cref="Persist"/>) - the legacy
+    /// store rebuilt, the modern one edited as a diff that never touches an IME/TIP value or a
+    /// language CyrFlip did not empty itself - and drive the live session with the documented
+    /// <c>LoadKeyboardLayout</c>/<c>UnloadKeyboardLayout</c> APIs.</para>
     ///
     /// <para><b>Reversibility.</b> <see cref="BackupAll"/> captures both stores verbatim before the first
     /// edit; <see cref="RestoreAll"/> puts them back byte-for-byte. As with the language hotkeys, a change
@@ -159,7 +161,7 @@ namespace CyrFlip
             klid = klid.ToLowerInvariant();
             List<string> klids = EffectiveKlids();
             if (!klids.Contains(klid)) klids.Add(klid);
-            Persist(klids);
+            Persist(klids, added: klid);
 
             IntPtr hkl = LoadKeyboardLayout(klid, KLF_ACTIVATE | KLF_SUBSTITUTE_OK);
             return hkl != IntPtr.Zero;
@@ -178,26 +180,27 @@ namespace CyrFlip
             Persist(klids);
 
             // A layout can't be unloaded while it's the active one, so make sure something else is active.
-            foreach (IntPtr hkl in InstalledLayoutsLive())
+            foreach (IntPtr hkl in HklsToUnload(InstalledLayoutsLive(), klid, LayoutIdentity.KlidForHkl))
             {
-                if (KlidFromHkl(hkl) == klid)
-                {
-                    ActivateAnyOther(hkl);
-                    UnloadKeyboardLayout(hkl);
-                    break;
-                }
+                ActivateAnyOther(hkl);
+                UnloadKeyboardLayout(hkl);
             }
             return true;
         }
 
-        /// <summary>Move <paramref name="klid"/> to the front so Windows uses it as the default layout.</summary>
+        /// <summary>
+        /// Make <paramref name="klid"/> the default input method. The legacy list puts it first; the
+        /// modern store records it as <c>InputMethodOverride</c>, which is what Windows' own "default
+        /// input method" setting writes - never by reordering <c>Languages</c>, the user's preferred
+        /// language list for apps and web sites (ticket S0007, WL-2).
+        /// </summary>
         public static void MakeDefault(string klid)
         {
             klid = klid.ToLowerInvariant();
             List<string> klids = EffectiveKlids();
             if (!klids.Remove(klid)) return;
             klids.Insert(0, klid);
-            Persist(klids);
+            Persist(klids, makeDefault: klid);
         }
 
         /// <summary>Shift <paramref name="klid"/> one place up (-1) or down (+1) in the list.</summary>
@@ -213,11 +216,14 @@ namespace CyrFlip
             Persist(klids);
         }
 
-        /// <summary>Rewrites both the legacy and the modern store from one canonical ordered KLID list.</summary>
-        public static void Persist(List<string> klids)
+        /// <summary>
+        /// Rewrites the legacy store from one canonical ordered KLID list and brings the modern store in
+        /// line with it <b>without touching anything it does not model</b> (see <see cref="ApplyLayouts"/>).
+        /// </summary>
+        public static void Persist(List<string> klids, string? added = null, string? makeDefault = null)
         {
             WriteLegacy(klids);
-            WriteModern(klids);
+            WriteModern(klids, added, makeDefault);
         }
 
         private static void WriteLegacy(List<string> klids)
@@ -243,46 +249,220 @@ namespace CyrFlip
             catch { }
         }
 
-        private static void WriteModern(List<string> klids)
+        private static void WriteModern(List<string> klids, string? added, string? makeDefault)
         {
             try
             {
-                var byLang = GroupByLanguageTag(klids); // preserves first-seen order
                 using RegistryKey? profile = Registry.CurrentUser.CreateSubKey(ProfilePath);
                 if (profile == null) return;
-
-                // Drop language subkeys we no longer have any layout for.
-                var wanted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var kv in byLang) wanted.Add(kv.Key);
-                foreach (string existing in profile.GetSubKeyNames())
-                    if (!wanted.Contains(existing))
-                        profile.DeleteSubKeyTree(existing, throwOnMissingSubKey: false);
-
-                var tags = new List<string>();
-                foreach (KeyValuePair<string, List<string>> lang in byLang)
-                {
-                    tags.Add(lang.Key);
-                    using RegistryKey? langKey = profile.CreateSubKey(lang.Key);
-                    if (langKey == null) continue;
-
-                    // Rewrite the langid:klid set; keep CachedLanguageName - Windows regenerates it if absent.
-                    foreach (string name in langKey.GetValueNames())
-                        if (name.Contains(":")) langKey.DeleteValue(name, throwOnMissingValue: false);
-                    foreach (string klid in lang.Value)
-                        langKey.SetValue(LangIdOf(klid).ToString("X4", CultureInfo.InvariantCulture) + ":" + klid, 1, RegistryValueKind.DWord);
-                }
-                profile.SetValue("Languages", tags.ToArray(), RegistryValueKind.MultiString);
+                ProfileModel before = ReadProfileModel(profile);
+                ProfileModel after = before.Clone();
+                ApplyLayouts(after, klids, added, makeDefault, Bcp47ForLangId);
+                WriteProfileDiff(profile, before, after);
             }
             catch { }
         }
 
+        /// <summary>
+        /// The part of <c>HKCU\Control Panel\International\User Profile</c> the layout edits reason
+        /// about: the <c>Languages</c> list, the value <b>names</b> of each language subkey in registry
+        /// order, and <c>InputMethodOverride</c>. Value data is never carried through the model - a
+        /// value CyrFlip does not own is simply never written, which is what keeps it intact.
+        /// </summary>
+        internal sealed class ProfileModel
+        {
+            public List<string> Languages { get; set; } = new List<string>();
+            public Dictionary<string, List<string>> Subkeys { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            public string? InputMethodOverride { get; set; }
+
+            public ProfileModel Clone()
+            {
+                var copy = new ProfileModel { Languages = new List<string>(Languages), InputMethodOverride = InputMethodOverride };
+                foreach (KeyValuePair<string, List<string>> pair in Subkeys) copy.Subkeys[pair.Key] = new List<string>(pair.Value);
+                return copy;
+            }
+        }
+
+        /// <summary>A plain keyboard-layout value, <c>0419:00000419</c> - the only kind CyrFlip ever deletes.</summary>
+        internal static bool IsLayoutValue(string name)
+        {
+            if (name.Length != 13 || name[4] != ':') return false;
+            for (int i = 0; i < name.Length; i++)
+                if (i != 4 && !Uri.IsHexDigit(name[i])) return false;
+            return true;
+        }
+
+        /// <summary>A text input processor (IME/TIP), <c>0804:{CLSID}{PROFILE}</c> - never touched.</summary>
+        internal static bool IsTipValue(string name) => name.Length > 5 && name[4] == ':' && name[5] == '{';
+
+        /// <summary>
+        /// Brings the modern profile in line with an ordered KLID list. <b>Only plain layout values are
+        /// ever removed</b>: a TIP (Microsoft Pinyin, the Japanese and Korean IMEs, every third-party
+        /// input method) is outside what CyrFlip models and survives every edit (ticket S0007, WL-1).
+        /// A keyboard stays under the language it already lives in (Russian with a US keyboard keeps
+        /// <c>0419:00000409</c> under <c>ru</c>); a new one goes under its own language; a language
+        /// subkey is dropped only when this pass removed its last layout and it holds no TIP; and the
+        /// order of <c>Languages</c> is kept, with new tags appended (WL-2).
+        /// </summary>
+        internal static void ApplyLayouts(ProfileModel model, IList<string> klids, string? added, string? makeDefault, Func<ushort, string> tagFor)
+        {
+            var wanted = new List<string>();
+            foreach (string k in klids)
+            {
+                string lower = k.ToLowerInvariant();
+                if (!wanted.Contains(lower)) wanted.Add(lower);
+            }
+            added = added?.ToLowerInvariant();
+
+            var placed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var emptied = new List<string>();
+            foreach (KeyValuePair<string, List<string>> sub in model.Subkeys)
+            {
+                bool hadLayout = false;
+                sub.Value.RemoveAll(name =>
+                {
+                    if (!IsLayoutValue(name)) return false;
+                    hadLayout = true;
+                    string klid = name.Substring(5).ToLowerInvariant();
+                    if (wanted.Contains(klid)) { placed.Add(klid); return false; }
+                    return true;
+                });
+                if (hadLayout && !sub.Value.Exists(IsLayoutValue) && !sub.Value.Exists(IsTipValue))
+                    emptied.Add(sub.Key);
+            }
+            foreach (string tag in emptied)
+            {
+                model.Subkeys.Remove(tag);
+                model.Languages.RemoveAll(t => string.Equals(t, tag, StringComparison.OrdinalIgnoreCase));
+            }
+
+            foreach (string klid in wanted)
+            {
+                if (placed.Contains(klid)) continue;
+                string prefix = LangIdOf(klid).ToString("X4", CultureInfo.InvariantCulture) + ":";
+                string tag = tagFor(LangIdOf(klid));
+                model.Subkeys.TryGetValue(tag, out List<string>? values);
+                // A language whose input method is a TIP shows up in Preload as its primary KLID
+                // (Pinyin as 00000804). That entry *is* the TIP; writing 0804:00000804 beside it would
+                // install a keyboard the user never asked for. Only an explicit add writes it.
+                if (klid != added && values != null && IsPrimaryKlid(klid)
+                    && values.Exists(v => IsTipValue(v) && v.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+                if (values == null) { values = new List<string>(); model.Subkeys[tag] = values; }
+                values.Add(prefix + klid);
+                if (!model.Languages.Exists(t => string.Equals(t, tag, StringComparison.OrdinalIgnoreCase)))
+                    model.Languages.Add(tag);
+            }
+
+            // Within a language the layout values follow the list order; everything else keeps its place.
+            foreach (List<string> values in model.Subkeys.Values)
+            {
+                List<string> layouts = values.FindAll(IsLayoutValue);
+                if (layouts.Count < 2) continue;
+                var sorted = new List<string>(layouts);
+                sorted.Sort((a, b) =>
+                {
+                    int ia = wanted.IndexOf(a.Substring(5).ToLowerInvariant()), ib = wanted.IndexOf(b.Substring(5).ToLowerInvariant());
+                    return ia != ib ? ia.CompareTo(ib) : layouts.IndexOf(a).CompareTo(layouts.IndexOf(b));
+                });
+                int n = 0;
+                for (int i = 0; i < values.Count; i++)
+                    if (IsLayoutValue(values[i])) values[i] = sorted[n++];
+            }
+
+            if (makeDefault != null)
+                model.InputMethodOverride = OverrideFor(model, makeDefault.ToLowerInvariant());
+        }
+
+        /// <summary>
+        /// The <c>InputMethodOverride</c> spelling of a KLID: the value it is stored under (so a US
+        /// keyboard under Russian stays <c>0419:00000409</c>), or the TIP a primary KLID stands for.
+        /// </summary>
+        private static string OverrideFor(ProfileModel model, string klid)
+        {
+            foreach (List<string> values in model.Subkeys.Values)
+            {
+                string? layout = values.Find(v => IsLayoutValue(v) && v.Substring(5).Equals(klid, StringComparison.OrdinalIgnoreCase));
+                if (layout != null) return layout;
+            }
+            string prefix = LangIdOf(klid).ToString("X4", CultureInfo.InvariantCulture) + ":";
+            if (IsPrimaryKlid(klid))
+                foreach (List<string> values in model.Subkeys.Values)
+                {
+                    string? tip = values.Find(v => IsTipValue(v) && v.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+                    if (tip != null) return tip;
+                }
+            return prefix + klid;
+        }
+
+        private static bool IsPrimaryKlid(string klid)
+            => klid.Length == 8 && klid.StartsWith("0000", StringComparison.Ordinal);
+
+        private static ProfileModel ReadProfileModel(RegistryKey profile)
+        {
+            var model = new ProfileModel();
+            if (profile.GetValue("Languages") is string[] langs) model.Languages.AddRange(langs);
+            model.InputMethodOverride = profile.GetValue("InputMethodOverride") as string;
+            foreach (string tag in profile.GetSubKeyNames())
+            {
+                using RegistryKey? langKey = profile.OpenSubKey(tag);
+                if (langKey != null) model.Subkeys[tag] = new List<string>(langKey.GetValueNames());
+            }
+            return model;
+        }
+
+        /// <summary>
+        /// Writes only the difference between two models: dropped language subkeys, the layout values of
+        /// a language whose layout set or order changed, and <c>Languages</c> / <c>InputMethodOverride</c>
+        /// when they changed. A value that is not a plain layout is never deleted or rewritten.
+        /// </summary>
+        private static void WriteProfileDiff(RegistryKey profile, ProfileModel before, ProfileModel after)
+        {
+            foreach (string tag in before.Subkeys.Keys)
+                if (!after.Subkeys.ContainsKey(tag))
+                    profile.DeleteSubKeyTree(tag, throwOnMissingSubKey: false);
+
+            foreach (KeyValuePair<string, List<string>> sub in after.Subkeys)
+            {
+                before.Subkeys.TryGetValue(sub.Key, out List<string>? old);
+                List<string> oldLayouts = old?.FindAll(IsLayoutValue) ?? new List<string>();
+                List<string> newLayouts = sub.Value.FindAll(IsLayoutValue);
+                if (old != null && SameSequence(oldLayouts, newLayouts)) continue;
+
+                using RegistryKey? langKey = profile.CreateSubKey(sub.Key);
+                if (langKey == null) continue;
+                foreach (string name in oldLayouts) langKey.DeleteValue(name, throwOnMissingValue: false);
+                foreach (string name in newLayouts) langKey.SetValue(name, 1, RegistryValueKind.DWord);
+            }
+
+            if (!SameSequence(before.Languages, after.Languages))
+                profile.SetValue("Languages", after.Languages.ToArray(), RegistryValueKind.MultiString);
+            if (after.InputMethodOverride != null && after.InputMethodOverride != before.InputMethodOverride)
+                profile.SetValue("InputMethodOverride", after.InputMethodOverride, RegistryValueKind.String);
+        }
+
+        private static bool SameSequence(List<string> a, List<string> b)
+        {
+            if (a.Count != b.Count) return false;
+            for (int i = 0; i < a.Count; i++)
+                if (!string.Equals(a[i], b[i], StringComparison.OrdinalIgnoreCase)) return false;
+            return true;
+        }
+
         // ---- Backup / restore ----
 
-        /// <summary>JSON snapshot of Preload, Substitutes and the whole User Profile subtree.</summary>
+        /// <summary>
+        /// JSON snapshot of Preload, Substitutes and the whole User Profile subtree - every value of the
+        /// profile root and of each language subkey, each with its registry kind (format 2, ticket
+        /// S0007 WL-5). Format 1 (no <c>format</c> field) captured only <c>Languages</c> and
+        /// <c>WindowsOverride</c> at the root and untyped subkey values; <see cref="RestoreAll"/> still
+        /// reads it, because a one-time backup taken by an older release is the only one that user has.
+        /// </summary>
         public static string BackupAll()
         {
             var snap = new Dictionary<string, object>
             {
+                ["format"] = 2,
                 ["preload"] = DumpValues(Registry.CurrentUser, PreloadPath),
                 ["substitutes"] = DumpValues(Registry.CurrentUser, SubstitutesPath),
                 ["profile"] = DumpProfile(),
@@ -290,7 +470,13 @@ namespace CyrFlip
             try { return new JavaScriptSerializer().Serialize(snap); } catch { return ""; }
         }
 
-        /// <summary>Restore a <see cref="BackupAll"/> snapshot exactly, replacing the current state.</summary>
+        /// <summary>
+        /// Restore a <see cref="BackupAll"/> snapshot: Preload and Substitutes exactly, the language
+        /// subkeys of the profile exactly, the profile root values that were captured with their own
+        /// kinds - the root itself is never deleted, so values the snapshot did not capture
+        /// (<c>HttpAcceptLanguageOptOut</c>, the text-prediction switches..) stay. Then the live session
+        /// is brought in line with the restored list.
+        /// </summary>
         public static void RestoreAll(string json)
         {
             if (string.IsNullOrWhiteSpace(json)) return;
@@ -311,9 +497,38 @@ namespace CyrFlip
                     RestoreValues(key, snap, "substitutes", RegistryValueKind.String);
                 }
 
-                Registry.CurrentUser.DeleteSubKeyTree(ProfilePath, throwOnMissingSubKey: false);
                 using (RegistryKey? profile = Registry.CurrentUser.CreateSubKey(ProfilePath))
-                    RestoreProfile(profile, snap);
+                    if (profile != null)
+                    {
+                        foreach (string tag in profile.GetSubKeyNames())
+                            profile.DeleteSubKeyTree(tag, throwOnMissingSubKey: false);
+                        RestoreProfile(profile, snap);
+                    }
+            }
+            catch { }
+            SyncLiveSession();
+        }
+
+        /// <summary>
+        /// Load every layout the legacy list now names and unload the live ones it no longer does, so a
+        /// restore shows at once rather than after the next sign-in. IME handles are left alone.
+        /// </summary>
+        private static void SyncLiveSession()
+        {
+            try
+            {
+                List<string> klids = EffectiveKlids();
+                foreach (string klid in klids) LoadKeyboardLayout(klid, KLF_SUBSTITUTE_OK);
+                foreach (IntPtr hkl in InstalledLayoutsLive())
+                {
+                    if ((unchecked((uint)(long)hkl) >> 28) == 0xE) continue;
+                    string klid = LayoutIdentity.KlidForHkl(hkl).ToLowerInvariant();
+                    if (klid.Length == 8 && !klids.Contains(klid))
+                    {
+                        ActivateAnyOther(hkl);
+                        UnloadKeyboardLayout(hkl);
+                    }
+                }
             }
             catch { }
         }
@@ -472,17 +687,23 @@ namespace CyrFlip
             catch { return new IntPtr[0]; }
         }
 
-        /// <summary>Best-effort KLID for a live HKL: the standard "0000"+langid, matched against the list.</summary>
-        private static string KlidFromHkl(IntPtr hkl)
+        /// <summary>
+        /// The live handles that belong to <paramref name="klid"/>, decoded through
+        /// <see cref="LayoutIdentity"/> - the tested HKL → KLID decode - so removing standard Russian
+        /// never unloads Russian Typewriter (ticket S0007, WL-7). An IME handle (<c>0xE0xx</c>) has no
+        /// KLID of its own and is never unloaded on behalf of a keyboard.
+        /// </summary>
+        internal static List<IntPtr> HklsToUnload(IEnumerable<IntPtr> live, string klid, Func<IntPtr, string> klidOf)
         {
-            ushort lang = (ushort)((long)hkl & 0xFFFF);
-            string basic = lang.ToString("x8", CultureInfo.InvariantCulture);
-            foreach (string klid in EffectiveKlids())
-                if (klid == basic && LangIdOf(klid) == lang) return klid;
-            // Fall back to the first effective KLID of this language (single-keyboard languages are exact).
-            foreach (string klid in EffectiveKlids())
-                if (LangIdOf(klid) == lang) return klid;
-            return basic;
+            var result = new List<IntPtr>();
+            foreach (IntPtr hkl in live)
+            {
+                uint value = unchecked((uint)(long)hkl);
+                if ((value >> 28) == 0xE) continue;
+                if (string.Equals(klidOf(hkl), klid, StringComparison.OrdinalIgnoreCase) && !result.Contains(hkl))
+                    result.Add(hkl);
+            }
+            return result;
         }
 
         private static void ActivateAnyOther(IntPtr current)
@@ -515,23 +736,70 @@ namespace CyrFlip
                 using RegistryKey? profile = Registry.CurrentUser.OpenSubKey(ProfilePath);
                 if (profile == null) return profileDump;
 
-                if (profile.GetValue("Languages") is string[] langs) profileDump["Languages"] = langs;
-                if (profile.GetValue("WindowsOverride") is string ov) profileDump["WindowsOverride"] = ov;
-
-                var subs = new Dictionary<string, Dictionary<string, object>>();
+                profileDump["root"] = DumpTyped(profile);
+                var subs = new Dictionary<string, object>();
                 foreach (string tag in profile.GetSubKeyNames())
                 {
                     using RegistryKey? langKey = profile.OpenSubKey(tag);
-                    if (langKey == null) continue;
-                    var values = new Dictionary<string, object>();
-                    foreach (string name in langKey.GetValueNames())
-                        values[name] = langKey.GetValue(name) ?? "";
-                    subs[tag] = values;
+                    if (langKey != null) subs[tag] = DumpTyped(langKey);
                 }
                 profileDump["subkeys"] = subs;
             }
             catch { }
             return profileDump;
+        }
+
+        private static Dictionary<string, object> DumpTyped(RegistryKey key)
+        {
+            var values = new Dictionary<string, object>();
+            foreach (string name in key.GetValueNames())
+            {
+                object? value = key.GetValue(name, null, RegistryValueOptions.DoNotExpandEnvironmentNames);
+                if (value != null) values[name] = EncodeValue(value, key.GetValueKind(name));
+            }
+            return values;
+        }
+
+        /// <summary>One registry value as JSON-safe data that remembers its kind: <c>{"k": kind, "v": value}</c>.</summary>
+        internal static Dictionary<string, object> EncodeValue(object value, RegistryValueKind kind)
+        {
+            object encoded;
+            switch (kind)
+            {
+                case RegistryValueKind.DWord: encoded = unchecked((uint)Convert.ToInt32(value, CultureInfo.InvariantCulture)); break;
+                case RegistryValueKind.QWord: encoded = Convert.ToInt64(value, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture); break;
+                case RegistryValueKind.MultiString: encoded = value as string[] ?? new string[0]; break;
+                case RegistryValueKind.String:
+                case RegistryValueKind.ExpandString: encoded = value.ToString() ?? ""; break;
+                default:
+                    kind = RegistryValueKind.Binary;
+                    encoded = Convert.ToBase64String(value as byte[] ?? new byte[0]);
+                    break;
+            }
+            return new Dictionary<string, object> { ["k"] = kind.ToString(), ["v"] = encoded };
+        }
+
+        /// <summary>The inverse of <see cref="EncodeValue"/>; false for anything that is not its shape.</summary>
+        internal static bool TryDecodeValue(object? raw, out object value, out RegistryValueKind kind)
+        {
+            value = ""; kind = RegistryValueKind.String;
+            if (!(raw is Dictionary<string, object> map) || !map.TryGetValue("k", out object? k) || !map.TryGetValue("v", out object? v)
+                || !Enum.TryParse(k as string, out kind))
+                return false;
+            try
+            {
+                switch (kind)
+                {
+                    case RegistryValueKind.DWord: value = unchecked((int)Convert.ToUInt32(v, CultureInfo.InvariantCulture)); return true;
+                    case RegistryValueKind.QWord: value = long.Parse(v?.ToString() ?? "", CultureInfo.InvariantCulture); return true;
+                    case RegistryValueKind.MultiString: value = ToStringArray(v); return true;
+                    case RegistryValueKind.String:
+                    case RegistryValueKind.ExpandString: value = v?.ToString() ?? ""; return true;
+                    case RegistryValueKind.Binary: value = Convert.FromBase64String(v?.ToString() ?? ""); return true;
+                    default: return false;
+                }
+            }
+            catch { return false; }
         }
 
         private static void RestoreValues(RegistryKey? key, Dictionary<string, object> snap, string field, RegistryValueKind kind)
@@ -545,6 +813,23 @@ namespace CyrFlip
         {
             if (profile == null || !(snap.TryGetValue("profile", out object? raw) && raw is Dictionary<string, object> p)) return;
 
+            if (snap.ContainsKey("format"))
+            {
+                RestoreTyped(profile, p.TryGetValue("root", out object? root) ? root : null);
+                // InputMethodOverride is the one root value CyrFlip itself writes; absent from the
+                // snapshot means it was absent before CyrFlip's first edit.
+                if (!(root is Dictionary<string, object> captured && captured.ContainsKey("InputMethodOverride")))
+                    profile.DeleteValue("InputMethodOverride", throwOnMissingValue: false);
+                if (p.TryGetValue("subkeys", out object? typedSubs) && typedSubs is Dictionary<string, object> tags)
+                    foreach (KeyValuePair<string, object> lang in tags)
+                    {
+                        using RegistryKey? langKey = profile.CreateSubKey(lang.Key);
+                        RestoreTyped(langKey, lang.Value);
+                    }
+                return;
+            }
+
+            // Format 1 - written by releases before S0007.
             if (p.TryGetValue("Languages", out object? langs)) profile.SetValue("Languages", ToStringArray(langs), RegistryValueKind.MultiString);
             if (p.TryGetValue("WindowsOverride", out object? ov) && ov != null) profile.SetValue("WindowsOverride", ov.ToString(), RegistryValueKind.String);
 
@@ -564,6 +849,14 @@ namespace CyrFlip
                     }
                 }
             }
+        }
+
+        private static void RestoreTyped(RegistryKey? key, object? values)
+        {
+            if (key == null || !(values is Dictionary<string, object> map)) return;
+            foreach (KeyValuePair<string, object> pair in map)
+                if (TryDecodeValue(pair.Value, out object value, out RegistryValueKind kind))
+                    key.SetValue(pair.Key, value, kind);
         }
 
         private static string[] ToStringArray(object? value)

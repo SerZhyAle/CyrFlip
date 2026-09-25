@@ -39,6 +39,7 @@ ReleaseNotes: |-
   - На вкладці «Про програму» показано версію збірки - той самий штамп YY.M.D.HHmm, який несе архів релізу.
 ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
 PrivacyUrl: https://serzhyale.github.io/CyrFlip/uk/privacy.html
+InstallationNotes: "Ця збірка не підписана, тому Windows SmartScreen або антивірус можуть попередити під час першого запуску CyrFlip. Що це означає і що натиснути: https://serzhyale.github.io/CyrFlip/uk/trust.html"
 Tags:
   - клавіатура
   - розкладка

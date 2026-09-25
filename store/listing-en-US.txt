@@ -29,7 +29,7 @@ Every hotkey can be switched on or off independently, CyrFlip can yield them to 
 
 The interface is available in 13 languages, right-to-left ones included. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11.
 
-Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform actions you trigger. It does not log keystrokes, and it opens no network connection unless you enable the translator, which talks only to the Ollama server you point it at - your own computer by default. If something goes wrong, the settings window collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network, and clipboard history never goes into the archive. Open source: https://github.com/SerZhyAle/CyrFlip
+Privacy: CyrFlip uses a keyboard hook only to recognise its own shortcuts, the clipboard only for the actions you trigger, and - only while you have its optional context menu switched on - a mouse hook for the one chord that opens that menu. It does not log keystrokes, and it opens no network connection unless you enable the translator, which talks only to the Ollama server you point it at - your own computer by default. If something goes wrong, the settings window collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network, and clipboard history never goes into the archive. Open source: https://github.com/SerZhyAle/CyrFlip
 
 
 PRODUCT FEATURES (max 200 chars each)

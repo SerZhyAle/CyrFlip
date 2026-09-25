@@ -4,31 +4,52 @@ on:
   push:
     branches: [main]
     # Path filtering: doc/plan/asset-only changes must not burn a full (×2-cost)
-    # Windows build. Code lives under src/ and tests/ — everything else is ignored.
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'PLAN/**'
-      - 'winget/**'
-      - 'assets/**'
-      - 'vscode-extension/**'
-      - '.github/ISSUE_TEMPLATE/**'
+    # Windows build. Code lives under src/ and tests/ — everything else is excluded, with one
+    # deliberate exception: the test suite reads three files of the VS Code extension
+    # (LayoutColorsTests the palette copy, ExtensionContractConstantsTests the signal timings), so a
+    # change to exactly those files runs the tests that guard them (CHECK-PLACEMENT rule 2). The site
+    # pages TrustPageTests reads are NOT re-included: those tests run in build.ps1 and the release
+    # preflight, which is where a docs-only change is checked. `paths` with `!` patterns replaces
+    # `paths-ignore` because only `paths` can re-include; a later pattern overrides an earlier one.
+    paths:
+      - '**'
+      - '!**.md'
+      - '!docs/**'
+      - '!PLAN/**'
+      - '!winget/**'
+      - '!assets/**'
+      - 'assets/cyrflip.ico'
+      - 'assets/oneclickrunner-source/app.ico'
+      - '!vscode-extension/**'
+      - 'vscode-extension/src/layout-colors.json'
+      - 'vscode-extension/src/extension.ts'
+      - 'vscode-extension/package.json'
+      - '!.github/ISSUE_TEMPLATE/**'
   pull_request:
     branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'PLAN/**'
-      - 'winget/**'
-      - 'assets/**'
-      - 'vscode-extension/**'
-      - '.github/ISSUE_TEMPLATE/**'
+    paths:
+      - '**'
+      - '!**.md'
+      - '!docs/**'
+      - '!PLAN/**'
+      - '!winget/**'
+      - '!assets/**'
+      - 'assets/cyrflip.ico'
+      - 'assets/oneclickrunner-source/app.ico'
+      - '!vscode-extension/**'
+      - 'vscode-extension/src/layout-colors.json'
+      - 'vscode-extension/src/extension.ts'
+      - 'vscode-extension/package.json'
+      - '!.github/ISSUE_TEMPLATE/**'
 
 # A new push to the same ref cancels the previous still-running CI run, so a burst
 # of commits costs one active run instead of N parallel Windows runs.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build-test:
@@ -41,9 +62,11 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 15            # guard against a hung job (a normal run is < 5 min)
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: '8.0.x'
 
@@ -52,7 +75,7 @@ jobs:
       # directly (setup-dotnet's cache:true needs a packages.lock.json, which this repo
       # doesn't have). The restore-keys line lets a partially-stale cache still hit.
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
@@ -66,3 +89,6 @@ jobs:
 
       - name: Test
         run: dotnet test CyrFlip.sln -c Release --no-build --verbosity normal
+
+      - name: Build IconGen
+        run: dotnet build tools/IconGen --configuration Release

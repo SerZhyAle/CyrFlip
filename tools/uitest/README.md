@@ -11,9 +11,14 @@ re-hitting the same traps every time. This folder is that script, kept.
 | `Test-TrayMouse.ps1` | End-to-end: single tray click switches the last active window's layout; double click opens Settings |
 | `Test-KeepAwake.ps1` | End-to-end: the saved keep-awake state becomes a real Windows power request (`powercfg /requests`) and stops being one when saved off |
 | `Test-SupportBundle.ps1` | The "Send logs to the author" archive: contents, truncation markers, retention. `-NoUi` builds the bundle itself (reflection into the built exe, real log folder and registry) so the disk half runs unattended; without it, you press the button and it checks what appeared. Either way the compose window is yours to look at |
+| `Test-SessionEnd.ps1` | Sign-out with CyrFlip running: `-Before` (app running) records the state, you edit a note and sign out, `-After` (signed back in, app not started) checks that `layout.txt`/`layout-klid.txt` were retracted and the quick-notes journal was written by the session end. Whether Windows stopped on "CyrFlip is preventing you from signing out" is yours to watch. Run with autostart off |
 | `Test-CapsSync.ps1` | "Synchronize CapsLock after case correction": the key must end up matching the corrected text, not merely change. `-InteropOnly` runs the unattended half - that `GetKeyState` is honest on a queue-less thread, which is where CyrFlip reads it; the rest stages three scenes and asks you to press the chord (one of them is the case a blind toggle got backwards) |
+| `Test-HooksAndChords.ps1` | The keyboard hook and chord fixes (ticket S0004): what a real application does with the keys CyrFlip injects - no DevTools on LCtrl+RShift+F12, no "Save As" on a double tap, no stuck modifier, no layout switch on Ctrl+Shift+F11, AltGr still typing. `-InteropOnly` runs the unattended half (every side-specific modifier resolves to its own scan code); the rest walks you through twelve scenes, since CyrFlip never fires on injected keys and only physical ones prove anything |
 | `Test-LongRun.ps1` | Hours-long watch of a live instance: GDI/USER handle counts (a leak there is invisible in the memory column), private bytes and threads, sampled to CSV while a throwaway window's layout is switched to drive the icon/cursor/overlay rendering. Fails on handle growth; private bytes are reported but never judged, since the clipboard history is unbounded by design |
 | `Save-SettingsShots.ps1` | PNG of every settings tab - for layout/localization eyeballing |
+| `Audit-SettingsWindow.ps1` | The settings window built **in its own process** (reflection into the built exe, off-screen, no mouse, no focus) per UI language: a PNG of every page and every screenful of it, plus a report of clipped captions, combo boxes and column headers, ellipsized or undrawn page names (checked in pixels), glyph buttons without an accessible name, text contrast and how much of each page is used. Runs while you work |
+| `Test-SettingsDpiMove.ps1` | Moves the **live** settings window onto each monitor, captures it there, puts it back to the pixel - the "dragged to my other screen" check, which a window built in another process cannot reproduce |
+| `Get-SettingsUiaReport.ps1` | What UI Automation (Narrator, and any scripted check) sees in the live settings window: control types, names, unnamed interactive elements, whether the pages are exposed. Read-only; `-Open` opens the window over the launcher pipe and closes it again |
 
 Nothing here is wired into `dotnet test`, `build.ps1` or CI: these drive the real desktop (they
 move the mouse and steal focus), so they are run deliberately, on a machine somebody is watching.
@@ -25,10 +30,17 @@ dotnet build CyrFlip.sln -c Release
 .\tools\uitest\Test-TrayMouse.ps1 -StartApp -Fresh      # exit code 0 = pass
 .\tools\uitest\Test-KeepAwake.ps1                       # three UAC prompts (powercfg needs admin)
 .\tools\uitest\Save-SettingsShots.ps1 -StartApp         # -> artifacts\uitest\settings-tab*.png
+.\tools\uitest\Audit-SettingsWindow.ps1 -AllLanguages -RealConfig -AllModules   # -> artifacts\uitest\settings\report.txt
+.\tools\uitest\Test-SettingsDpiMove.ps1 -Open           # needs monitors with different scale factors
+.\tools\uitest\Get-SettingsUiaReport.ps1 -Open -All
 .\tools\uitest\Test-CapsSync.ps1 -InteropOnly           # unattended: the off-thread reading only
 .\tools\uitest\Test-CapsSync.ps1                        # then press the case chord three times
+.\tools\uitest\Test-HooksAndChords.ps1 -InteropOnly     # unattended: side-specific scan codes
+.\tools\uitest\Test-HooksAndChords.ps1                  # then twelve scenes with physical keys
 .\tools\uitest\Test-SupportBundle.ps1 -NoUi             # unattended: disk half only
 .\tools\uitest\Test-SupportBundle.ps1                   # then press the About-tab button yourself
+.\tools\uitest\Test-SessionEnd.ps1 -Before              # then edit a note and sign out;
+.\tools\uitest\Test-SessionEnd.ps1 -After               # after sign-in, before starting CyrFlip
 .\tools\uitest\Test-LongRun.ps1 -DurationMinutes 60     # watches a *running* instance; ends by
                                                         # asking you to press the history chord
 ```

@@ -11,6 +11,7 @@ namespace CyrFlip.Tests
     /// a live named-pipe round trip on a test-private pipe name, and the pure Jump List task
     /// mapping (order, arguments, the trailing Manage/Exit pair).
     /// </summary>
+    [Collection(DiagnosticLogCollection.Name)]
     public class LauncherIpcAndJumpListTests
     {
         // ---- Command parsing ----
@@ -138,7 +139,10 @@ namespace CyrFlip.Tests
                 (Guid.NewGuid(), "not a chord"), // must stay inert, not become Ctrl+Shift+F12
                 (Guid.NewGuid(), ""),
             });
-            hook.UpdateLauncherHotkeys(new (Guid, string)[0]); // launcher off - empty snapshot
+            var field = typeof(KeyboardHook).GetField("_launcherHotkeys",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+            var bindings = (Array)field.GetValue(hook)!;
+            Assert.Single(bindings);
         }
     }
 }

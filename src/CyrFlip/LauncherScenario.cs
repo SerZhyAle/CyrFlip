@@ -14,8 +14,10 @@ namespace CyrFlip
     }
 
     /// <summary>
-    /// One launcher scenario - a program/script to run or a yt-dlp download. Serialized one file per
-    /// scenario, and the XML shape is deliberately identical to OneClickRunner's <c>AppItem</c>
+    /// One launcher scenario - a program/script to run or a yt-dlp download. The shape is
+    /// <c>SCENARIO-FILE</c>: rule 2 fixes the root element and by-name matching, rule 3 the fields and
+    /// what each absent one means, rule 4 the legacy sentinel, rule 6 this product's one extension.
+    /// Serialized one file per scenario, and the XML shape is deliberately identical to OneClickRunner's <c>AppItem</c>
     /// (same root element, same field names), so the two apps read each other's files. The class is
     /// <b>public</b> only because <see cref="XmlSerializer"/> refuses internal types on .NET Framework.
     ///

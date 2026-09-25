@@ -12,11 +12,15 @@ on:
 permissions:
   contents: write
 
+env:
+  # This is the single source of truth for both tag-triggered and manually dispatched releases.
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
 # Serialise per-tag so a push + a manual dispatch of the same tag can't run twice.
 # cancel-in-progress is FALSE on purpose: releases for different tags must NOT cancel
 # each other, and a half-finished release should never be aborted by a later one.
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -24,25 +28,29 @@ jobs:
     # Must be Windows: Authenticode signing uses signtool.exe from the Windows SDK.
     runs-on: windows-latest
     timeout-minutes: 25            # sign + package take longer than CI — give extra headroom
-    # Mapped at job level so they're visible to step `if:` conditions (step-level env is not).
-    # Leave the secrets unset and signing is skipped; the unsigned exe still ships.
+    # Expose only a boolean outside the signing step. The certificate and password must never be
+    # available to checkout, cache, MSBuild, test code, or a third-party release action.
     env:
-      SIGN_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
-      SIGN_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
+      SIGNING_ENABLED: ${{ secrets.SIGNING_CERT_BASE64 != '' }}
     defaults:
       run:
         shell: pwsh
     steps:
-      - uses: actions/checkout@v7
+      # A manual dispatch names the tag to release; check that tag out, not the branch head.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+          persist-credentials: false
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: '8.0.x'
 
       # Same NuGet cache key as CI — the two workflows share one cache, so a release
       # right after a green CI run restores packages instead of re-downloading them.
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
@@ -50,10 +58,23 @@ jobs:
 
       - name: Resolve version from tag
         id: ver
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $tag = if ($env:GITHUB_REF -like 'refs/tags/*') { $env:GITHUB_REF -replace '^refs/tags/','' } else { '${{ inputs.tag }}' }
+          $tag = $env:RELEASE_TAG
           $version = $tag -replace '^v',''
+          # Same tag-shape gate as release.ps1: a mistyped dispatch input fails here, before a build.
+          # No leading zero in month/day: the SDK normalizes '09' to '9', so the tag would never match the exe.
+          if ($version -notmatch '^\d{2}\.(?:[1-9]|1[0-2])\.(?:[1-9]|[12]\d|3[01])\.\d{4}$') { throw "Tag '$tag' is not vYY.M.D.HHmm." }
+          $tagCommit = (git rev-parse "refs/tags/$tag^{commit}").Trim()
+          $commit = (git rev-parse HEAD).Trim()
+          if ($tagCommit -ne $commit) { throw "Checked-out commit $commit does not match tag $tag ($tagCommit)." }
+          git fetch --no-tags "https://x-access-token:$env:GITHUB_TOKEN@github.com/$env:GITHUB_REPOSITORY.git" main:refs/remotes/origin/main
+          if ($LASTEXITCODE -ne 0) { throw "Could not fetch origin/main (exit $LASTEXITCODE)." }
+          git merge-base --is-ancestor $tagCommit origin/main
+          if ($LASTEXITCODE -ne 0) { throw "Tag $tag commit $tagCommit is not reachable from origin/main." }
           "tag=$tag"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "commit=$commit"   | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           Write-Host "Tag=$tag  Version=$version"
 
@@ -62,6 +83,18 @@ jobs:
       # YY.M.D.HHmm, which drifts from the tag minute.
       - name: Build (Release)
         run: dotnet build CyrFlip.sln -c Release -p:Version=${{ steps.ver.outputs.version }}
+
+      # BUILD-EVIDENCE rule 2: the artefact carries the version of the build that produced it.
+      # FileVersion must equal the tag, and the SDK-embedded revision in ProductVersion must be the
+      # commit this run checked out - that catches a stale exe and a mislabeled one alike.
+      - name: Verify exe version
+        run: |
+          $vi = (Get-Item src/CyrFlip/bin/Release/net48/CyrFlip.exe).VersionInfo
+          $want = '${{ steps.ver.outputs.version }}'; $commit = '${{ steps.ver.outputs.commit }}'
+          Write-Host "exe FileVersion=$($vi.FileVersion) ProductVersion=$($vi.ProductVersion)"
+          # Compared as [version], not as strings: the SDK normalizes HHmm '0152' to '152' in FileVersion.
+          if ([version]$vi.FileVersion -ne [version]$want) { throw "exe FileVersion '$($vi.FileVersion)' is not the tag version '$want'." }
+          if ($vi.ProductVersion -ne "$want+$commit") { throw "exe ProductVersion '$($vi.ProductVersion)' is not '$want+$commit'." }
 
       # CI already runs the full suite on every push/PR to main before a tag is cut, so
       # this is a safety re-test of the exact tagged commit. Keep it — a release is rare
@@ -73,7 +106,10 @@ jobs:
       # Runs only when a signing certificate is configured (secrets SIGNING_CERT_BASE64 +
       # SIGNING_CERT_PASSWORD). Without them the step is skipped and the release ships unsigned.
       - name: Sign CyrFlip.exe (Authenticode)
-        if: env.SIGN_CERT_BASE64 != ''
+        if: env.SIGNING_ENABLED == 'true'
+        env:
+          SIGN_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
+          SIGN_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
         run: |
           $exe = "src/CyrFlip/bin/Release/net48/CyrFlip.exe"
           if (-not (Test-Path $exe)) { throw "CyrFlip.exe not found at $exe" }
@@ -134,6 +170,15 @@ jobs:
 
           Compress-Archive -Path "$stage/*" -DestinationPath $zip -Force
 
+          # The same version check on the exe that actually ships - the one inside the ZIP.
+          $probe = Join-Path $env:RUNNER_TEMP 'zip-probe'
+          Expand-Archive -Path $zip -DestinationPath $probe -Force
+          $vi = (Get-Item (Join-Path $probe 'CyrFlip.exe')).VersionInfo
+          if ([version]$vi.FileVersion -ne [version]$version -or $vi.ProductVersion -ne "$version+${{ steps.ver.outputs.commit }}") {
+            throw "exe inside the ZIP is $($vi.FileVersion) / $($vi.ProductVersion), expected $version+${{ steps.ver.outputs.commit }}."
+          }
+          Remove-Item $probe -Recurse -Force
+
           $hash = (Get-FileHash -Algorithm SHA256 $zip).Hash
           "$hash  $name" | Out-File -FilePath "$zip.sha256" -Encoding ascii
 
@@ -143,7 +188,9 @@ jobs:
           Write-Host "SHA256:  $hash  (use this to update winget/ manifests)"
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           name: CyrFlip ${{ steps.ver.outputs.version }}

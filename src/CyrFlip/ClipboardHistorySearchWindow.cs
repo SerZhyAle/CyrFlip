@@ -1,23 +1,40 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CyrFlip
 {
-    /// <summary>Modeless full-history search window. It stays open while new items arrive.</summary>
+    /// <summary>
+    /// Modeless full-history search window. It stays open while new items arrive.
+    ///
+    /// <para>Nothing here may cost O(history) on the UI thread, which is also the thread both
+    /// low-level hooks run on (spec S0005 CH-4): keystrokes and history changes are coalesced by one
+    /// 150 ms debounce, the match runs over a snapshot on a background task that the next keystroke
+    /// cancels, and the list is a <see cref="ListView.VirtualMode"/> view over the result array - rows
+    /// are built only for what is on screen, from the entry's short <see cref="ClipboardHistoryEntry.Preview"/>.
+    /// Matching itself still reads the full text.</para>
+    /// </summary>
     internal sealed class ClipboardHistorySearchWindow : Form
     {
+        private const int DebounceMs = 150;
+
         private readonly ClipboardHistoryService _service;
         private readonly TextBox _query = new TextBox { Dock = DockStyle.Fill };
         private readonly Label _hint = new Label { AutoSize = true, ForeColor = SystemColors.GrayText, Padding = new Padding(0, 6, 0, 0) };
-        private readonly ListView _results = new ListView { Dock = DockStyle.Fill, FullRowSelect = true, HideSelection = false, MultiSelect = false, View = View.Details };
+        private readonly ListView _results = new ListView { Dock = DockStyle.Fill, FullRowSelect = true, HideSelection = false, MultiSelect = false, View = View.Details, VirtualMode = true };
         private readonly Button _restore = new Button { AutoSize = true };
+        private readonly System.Windows.Forms.Timer _debounce = new System.Windows.Forms.Timer { Interval = DebounceMs };
         private readonly string _language;
         // This window is built fresh on every search, and a Form disposes neither the font nor the icon
         // it was handed - only the small copy it derives from the icon itself. Both are ours to free.
         private readonly Font? _ownFont;
         private readonly System.Drawing.Icon? _ownIcon;
+        private ClipboardHistoryEntry[] _matches = new ClipboardHistoryEntry[0];
+        private CancellationTokenSource? _search;
 
         public ClipboardHistorySearchWindow(ClipboardHistoryService service, string language)
         {
@@ -54,12 +71,14 @@ namespace CyrFlip
             Controls.Add(bottom);
 
             close.Click += (_, _) => Close();
-            _query.TextChanged += (_, _) => RefreshResults();
-            _results.SelectedIndexChanged += (_, _) => _restore.Enabled = _results.SelectedItems.Count == 1;
+            _query.TextChanged += (_, _) => ScheduleRefresh();
+            _debounce.Tick += (_, _) => { _debounce.Stop(); RefreshResults(); };
+            _results.RetrieveVirtualItem += OnRetrieveVirtualItem;
+            _results.SelectedIndexChanged += (_, _) => _restore.Enabled = _results.SelectedIndices.Count == 1;
             _results.DoubleClick += (_, _) => RestoreSelected();
             _restore.Click += (_, _) => RestoreSelected();
             _service.Changed += OnHistoryChanged;
-            FormClosed += (_, _) => _service.Changed -= OnHistoryChanged;
+            FormClosed += (_, _) => { _service.Changed -= OnHistoryChanged; _debounce.Stop(); _search?.Cancel(); };
             Shown += (_, _) => { _query.Focus(); RefreshResults(); };
             RefreshResults();
         }
@@ -69,48 +88,104 @@ namespace CyrFlip
             base.Dispose(disposing); // the control tree first: it is still drawing with our font
             if (disposing)
             {
+                _search?.Cancel();
+                _debounce.Dispose();
                 _ownFont?.Dispose();
                 _ownIcon?.Dispose();
             }
         }
 
+        /// <summary>A burst of copies or keystrokes becomes one search, <see cref="DebounceMs"/> after the last.</summary>
         private void OnHistoryChanged(object? sender, EventArgs e)
         {
-            if (!IsDisposed && IsHandleCreated) BeginInvoke((Action)RefreshResults);
+            if (IsDisposed) return;
+            if (InvokeRequired) { if (IsHandleCreated) BeginInvoke((Action)ScheduleRefresh); }
+            else ScheduleRefresh();
+        }
+
+        private void ScheduleRefresh()
+        {
+            if (IsDisposed) return;
+            _debounce.Stop();
+            _debounce.Start();
         }
 
         private void RefreshResults()
         {
+            _search?.Cancel();
+            _search = null;
             string query = _query.Text;
-            _results.BeginUpdate();
-            _results.Items.Clear();
             if (!ClipboardHistorySearch.IsReady(query))
             {
-                _hint.Text = Localize("Введите минимум 3 символа для поиска по части текста.");
+                ShowMatches(new ClipboardHistoryEntry[0], Localize("Введите минимум 3 символа для поиска по части текста."));
+                return;
             }
-            else
+
+            // A snapshot of references: the live list belongs to the UI thread.
+            ClipboardHistoryEntry[] snapshot = _service.Entries.ToArray();
+            var search = new CancellationTokenSource();
+            _search = search;
+            CancellationToken token = search.Token;
+            Task.Run(() => Filter(snapshot, query, token), token).ContinueWith(task =>
             {
-                var matches = _service.Entries.Where(item => ClipboardHistorySearch.Matches(item, query)).ToList();
-                _hint.Text = matches.Count == 0
-                    ? Localize("Совпадений не найдено.")
-                    : string.Format(Localize("Найдено: {0}"), matches.Count);
-                foreach (ClipboardHistoryEntry entry in matches)
+                if (task.Status != TaskStatus.RanToCompletion || token.IsCancellationRequested) return;
+                ClipboardHistoryEntry[] matches = task.Result;
+                try
                 {
-                    string preview = entry.Text.Replace("\r", " ").Replace("\n", " ").Trim();
-                    var row = new ListViewItem(preview) { Tag = entry, ToolTipText = entry.SourceTitle.Length > 0 ? entry.SourceTitle : entry.Text };
-                    row.SubItems.Add(entry.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm"));
-                    row.SubItems.Add(entry.SourceApp);
-                    _results.Items.Add(row);
+                    if (IsDisposed || !IsHandleCreated) return;
+                    BeginInvoke((Action)(() =>
+                    {
+                        if (IsDisposed || !ReferenceEquals(_search, search)) return;
+                        ShowMatches(matches, matches.Length == 0
+                            ? Localize("Совпадений не найдено.")
+                            : string.Format(Localize("Найдено: {0}"), matches.Length));
+                    }));
                 }
+                catch (InvalidOperationException) { /* the window went away in between */ }
+            }, TaskScheduler.Default);
+        }
+
+        internal static ClipboardHistoryEntry[] Filter(IReadOnlyList<ClipboardHistoryEntry> entries, string query, CancellationToken token)
+        {
+            var matches = new List<ClipboardHistoryEntry>();
+            for (int i = 0; i < entries.Count; i++)
+            {
+                if ((i & 63) == 0) token.ThrowIfCancellationRequested();
+                if (ClipboardHistorySearch.Matches(entries[i], query)) matches.Add(entries[i]);
             }
-            _results.EndUpdate();
+            return matches.ToArray();
+        }
+
+        private void ShowMatches(ClipboardHistoryEntry[] matches, string hint)
+        {
+            _results.SelectedIndices.Clear();
+            _matches = matches;
+            _results.VirtualListSize = matches.Length;
+            _results.Invalidate();
+            _hint.Text = hint;
             _restore.Enabled = false;
+        }
+
+        private void OnRetrieveVirtualItem(object? sender, RetrieveVirtualItemEventArgs e)
+        {
+            if (e.ItemIndex < 0 || e.ItemIndex >= _matches.Length)
+            {
+                e.Item = new ListViewItem(new[] { "", "", "" });
+                return;
+            }
+            ClipboardHistoryEntry entry = _matches[e.ItemIndex];
+            var row = new ListViewItem(entry.Preview) { Tag = entry, ToolTipText = entry.SourceTitle.Length > 0 ? entry.SourceTitle : entry.Preview };
+            row.SubItems.Add(entry.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm"));
+            row.SubItems.Add(entry.SourceApp);
+            e.Item = row;
         }
 
         private void RestoreSelected()
         {
-            if (_results.SelectedItems.Count != 1 || !(_results.SelectedItems[0].Tag is ClipboardHistoryEntry entry)) return;
-            if (_service.Restore(entry)) Close();
+            if (_results.SelectedIndices.Count != 1) return;
+            int index = _results.SelectedIndices[0];
+            if (index < 0 || index >= _matches.Length) return;
+            if (_service.Restore(_matches[index])) Close();
         }
 
         protected override void OnResize(EventArgs e)

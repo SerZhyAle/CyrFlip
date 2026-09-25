@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Runtime.InteropServices;
+using System.Threading;
 using static CyrFlip.WindowInterop;
 
 namespace CyrFlip
@@ -50,6 +51,7 @@ namespace CyrFlip
             // SetSystemCursor copies the cursor contents then destroys the handle we pass.
             if (SetSystemCursor(hcur, OCR_IBEAM))
             {
+                Interlocked.Exchange(ref s_replaced, 1);
                 _applied = true;
                 _current = code;
                 _currentKlid = klid;
@@ -87,9 +89,27 @@ namespace CyrFlip
             }
         }
 
-        /// <summary>Reload default system cursors unconditionally (crash/exit safety net).</summary>
+        /// <summary>
+        /// Reload the default system cursors (crash/exit safety net) - but only when this process has
+        /// replaced one since the last reload. <c>SPI_SETCURSORS</c> reloads the whole scheme, undoing
+        /// cursors other tools set with <c>SetSystemCursor</c>, and broadcasts <c>WM_SETTINGCHANGE</c> to
+        /// every window; with the cursor change off (the default) CyrFlip never replaced anything and
+        /// has nothing to undo. Idempotent and safe from any thread.
+        /// </summary>
         public static void ForceRestore()
-            => SystemParametersInfo(SPI_SETCURSORS, 0, IntPtr.Zero, SPIF_SENDCHANGE);
+        {
+            if (Interlocked.Exchange(ref s_replaced, 0) == 0) return;
+            ReloadCursors();
+        }
+
+        /// <summary>1 while the system I-beam is ours; set by a successful <c>SetSystemCursor</c>.</summary>
+        private static int s_replaced;
+
+        /// <summary>The <c>SPI_SETCURSORS</c> call - a seam so the "never replaced, never reloaded" rule is testable.</summary>
+        internal static Action ReloadCursors = () => SystemParametersInfo(SPI_SETCURSORS, 0, IntPtr.Zero, SPIF_SENDCHANGE);
+
+        /// <summary>Test seam: marks the I-beam as replaced without touching the system cursor.</summary>
+        internal static void MarkReplacedForTest() => Interlocked.Exchange(ref s_replaced, 1);
 
         // -------------------------------------------------------------------- rendering
 

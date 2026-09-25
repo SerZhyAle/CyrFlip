@@ -44,7 +44,7 @@
         "cyrflip.layoutFile": {
           "type": "string",
           "default": "",
-          "description": "Path to the layout file written by the CyrFlip app. Empty = %LOCALAPPDATA%\\CyrFlip\\layout.txt."
+          "description": "Path to the layout file written by the CyrFlip app. Empty = the newest of %LOCALAPPDATA%\\CyrFlip\\layout.txt and %ProgramData%\\CyrFlip\\layout.txt (Microsoft Store install)."
         },
         "cyrflip.showStatusBar": {
           "type": "boolean",

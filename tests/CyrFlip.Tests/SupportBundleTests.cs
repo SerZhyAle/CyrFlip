@@ -34,19 +34,30 @@ namespace CyrFlip.Tests
             try { Directory.Delete(_root, true); } catch { }
         }
 
+        /// <summary>
+        /// The two files holding the user's own text - everything they ever copied, and everything
+        /// they deliberately kept - are absent from the archive, and so is their content. This is the
+        /// test the whole class exists for; it names both files rather than one so that adding a
+        /// second store of user text could never quietly re-open the first hole.
+        /// </summary>
         [Fact]
-        public void ClipboardHistoryIsNeverCollected()
+        public void ClipboardHistoryAndQuickNotesAreNeverCollected()
         {
             Write("launcher.log", "launch attempt\n");
-            Write(SupportBundle.Excluded, "SECRET-CLIPBOARD-PAYLOAD\n");
+            foreach (string excluded in SupportBundle.ExcludedFiles)
+                Write(excluded, "SECRET-PAYLOAD-" + excluded + "\n");
 
             SupportBundle.Result result = Create();
 
             Assert.Contains("launcher.log", Names(result));
-            Assert.DoesNotContain(SupportBundle.Excluded, Names(result));
-            // Not only absent from the listing - absent from the file, and its content nowhere in it.
-            Assert.DoesNotContain(SupportBundle.Excluded, EntryNames(result.ArchivePath));
-            Assert.DoesNotContain("SECRET-CLIPBOARD-PAYLOAD", RawArchiveText(result.ArchivePath));
+            Assert.Equal(2, SupportBundle.ExcludedFiles.Length);
+            foreach (string excluded in SupportBundle.ExcludedFiles)
+            {
+                Assert.DoesNotContain(excluded, Names(result));
+                // Not only absent from the listing - absent from the file, and its content nowhere in it.
+                Assert.DoesNotContain(excluded, EntryNames(result.ArchivePath));
+                Assert.DoesNotContain("SECRET-PAYLOAD-" + excluded, RawArchiveText(result.ArchivePath));
+            }
         }
 
         [Fact]

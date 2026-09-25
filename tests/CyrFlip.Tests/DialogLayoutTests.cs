@@ -24,6 +24,17 @@ namespace CyrFlip.Tests
             new InputLayouts.Installed { Klid = "00000419", LangId = 0x0419, LanguageName = "русский (Россия)", DisplayName = "Russian" },
         };
 
+        private static readonly List<InputLayouts.Available> Available = new List<InputLayouts.Available>
+        {
+            new InputLayouts.Available { Klid = "00000422", LangId = 0x0422, LanguageName = "українська (Україна)", DisplayName = "Ukrainian (Enhanced)" },
+        };
+
+        /// <summary>A conversion row pointing at a Polish layout that has since been uninstalled.</summary>
+        private static readonly LayoutConversionProfile StaleRow = new LayoutConversionProfile
+        {
+            SourceKlid = "00000415", TargetKlid = "00000419", Hotkey = "Ctrl+Shift+F8",
+        };
+
         /// <summary>A collected bundle with one truncated and one dropped file - every row shape at once.</summary>
         private static readonly SupportBundle.Result Bundle = new SupportBundle.Result
         {
@@ -48,6 +59,15 @@ namespace CyrFlip.Tests
                 {
                     using (var dialog = new HotkeyDialog("Ctrl+Shift+F12", "T", language))
                         inspected += Check(dialog, language, "HotkeyDialog", problems);
+                    // The widest chord the capture can produce, drawn 1.4x bold (ticket S0007, DL-5).
+                    using (var dialog = new HotkeyDialog(HotkeyDialog.LongestChord, "T", language))
+                        inspected += Check(dialog, language, "HotkeyDialog(longest)", problems);
+                    // The add-layout picker, off pixel geometry since S0007 DL-3.
+                    using (var dialog = new LayoutPickerDialog(new string[0], language, Available))
+                        inspected += Check(dialog, language, "LayoutPickerDialog", problems);
+                    // A row whose layout is no longer installed keeps it, marked (DL-4).
+                    using (var dialog = new LayoutConversionDialog(Layouts, StaleRow, language))
+                        inspected += Check(dialog, language, "LayoutConversionDialog(stale)", problems);
                     using (var dialog = new LayoutConversionDialog(Layouts, null, language))
                         inspected += Check(dialog, language, "LayoutConversionDialog", problems);
                     // The launcher dialogs, once per scenario type: the inactive type's section is
@@ -131,6 +151,29 @@ namespace CyrFlip.Tests
             }
             foreach (Control child in control.Controls) inspected += WalkCombos(child, language, name, problems);
             return inspected;
+        }
+
+        /// <summary>
+        /// Ticket S0007 DL-4: editing only the chord of a row whose source layout is gone must not
+        /// quietly turn the row into "&lt;first installed layout&gt; ⇄ ..".
+        /// </summary>
+        [Fact]
+        public void AnUninstalledLayoutStaysSelectedInTheRowEditor()
+        {
+            var problems = new List<string>();
+            string? source = null, target = null;
+            OnUiThread(() =>
+            {
+                using var dialog = new LayoutConversionDialog(Layouts, StaleRow, "English");
+                FieldInfo field(string name) => typeof(LayoutConversionDialog).GetField(name, BindingFlags.NonPublic | BindingFlags.Instance)!;
+                source = ((ComboBox)field("_source").GetValue(dialog)!).SelectedItem?.ToString();
+                target = ((ComboBox)field("_target").GetValue(dialog)!).SelectedItem?.ToString();
+            }, problems);
+
+            Assert.Empty(problems);
+            Assert.Contains("00000415", source);
+            Assert.Contains("(not installed)", source);
+            Assert.Contains("00000419", target);
         }
 
         /// <summary>

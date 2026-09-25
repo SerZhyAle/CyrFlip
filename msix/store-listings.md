@@ -48,7 +48,7 @@ Every hotkey can be switched on or off independently, CyrFlip can yield them to 
 
 The interface is available in 13 languages, right-to-left ones included. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11.
 
-Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform actions you trigger. It does not log keystrokes, and it opens no network connection unless you enable the translator, which talks only to the Ollama server you point it at - your own computer by default. If something goes wrong, the settings window collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network, and clipboard history never goes into the archive. Open source: https://github.com/SerZhyAle/CyrFlip
+Privacy: CyrFlip uses a keyboard hook only to recognise its own shortcuts, the clipboard only for the actions you trigger, and - only while you have its optional context menu switched on - a mouse hook for the one chord that opens that menu. It does not log keystrokes, and it opens no network connection unless you enable the translator, which talks only to the Ollama server you point it at - your own computer by default. If something goes wrong, the settings window collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network, and clipboard history never goes into the archive. Open source: https://github.com/SerZhyAle/CyrFlip
 ```
 
 **Product features (one per line)**
@@ -116,7 +116,7 @@ CyrFlip — крошечная утилита Windows в системном тр
 
 Интерфейс доступен на 13 языках, включая языки с письмом справа налево. Работает в системном трее, потребляет мало памяти и не требует ничего доустанавливать на Windows 10/11.
 
-Конфиденциальность: CyrFlip использует перехват клавиатуры и буфер обмена только для функций, которые запускаете вы. Не ведёт журнал нажатий и не открывает ни одного сетевого соединения, пока вы не включите перевод, — а тот обращается только к серверу Ollama, который вы указали, по умолчанию к вашему же компьютеру. Если что-то пошло не так, окно настроек собирает логи CyrFlip в один архив и открывает письмо автору с этим вложением. Письмо отправляете вы сами - CyrFlip ничего не передаёт в сеть, а история буфера обмена в архив не попадает. Открытый исходный код: https://github.com/SerZhyAle/CyrFlip
+Конфиденциальность: CyrFlip использует перехват клавиатуры только для распознавания своих сочетаний клавиш, буфер обмена - только для действий, которые запускаете вы, а перехват мыши - лишь пока включено необязательное контекстное меню и только для той единственной комбинации, которая его открывает. Не ведёт журнал нажатий и не открывает ни одного сетевого соединения, пока вы не включите перевод, — а тот обращается только к серверу Ollama, который вы указали, по умолчанию к вашему же компьютеру. Если что-то пошло не так, окно настроек собирает логи CyrFlip в один архив и открывает письмо автору с этим вложением. Письмо отправляете вы сами - CyrFlip ничего не передаёт в сеть, а история буфера обмена в архив не попадает. Открытый исходный код: https://github.com/SerZhyAle/CyrFlip
 ```
 
 **Функции продукта (по одной в строке)**
@@ -184,7 +184,7 @@ CyrFlip — це крихітна утиліта в системному тре�
 
 Інтерфейс доступний 13 мовами, зокрема з письмом справа наліво. Працює в системному треї, споживає мало пам'яті й не потребує нічого додатково встановлювати на Windows 10/11.
 
-Конфіденційність: CyrFlip використовує перехоплення клавіатури та буфер обміну лише для функцій, які запускаєте ви. Не веде журнал натискань і не відкриває жодного мережевого з'єднання, доки ви не ввімкнете переклад, — а той звертається лише до сервера Ollama, який ви вказали, типово до вашого ж комп'ютера. Якщо щось пішло не так, вікно налаштувань збирає логи CyrFlip в один архів і відкриває лист до автора з цим вкладенням. Лист надсилаєте ви самі - CyrFlip нічого не передає в мережу, а історія буфера обміну до архіву не потрапляє. Відкритий вихідний код: https://github.com/SerZhyAle/CyrFlip
+Конфіденційність: CyrFlip використовує перехоплення клавіатури лише для розпізнавання власних сполучень клавіш, буфер обміну - лише для дій, які запускаєте ви, а перехоплення миші - тільки поки ввімкнене необов'язкове контекстне меню і лише для тієї єдиної комбінації, яка його відкриває. Не веде журнал натискань і не відкриває жодного мережевого з'єднання, доки ви не ввімкнете переклад, — а той звертається лише до сервера Ollama, який ви вказали, типово до вашого ж комп'ютера. Якщо щось пішло не так, вікно налаштувань збирає логи CyrFlip в один архів і відкриває лист до автора з цим вкладенням. Лист надсилаєте ви самі - CyrFlip нічого не передає в мережу, а історія буфера обміну до архіву не потрапляє. Відкритий вихідний код: https://github.com/SerZhyAle/CyrFlip
 ```
 
 **Функції продукту (по одній у рядку)**

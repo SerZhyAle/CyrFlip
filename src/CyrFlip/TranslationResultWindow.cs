@@ -109,7 +109,7 @@ namespace CyrFlip
             _autoClose.Tick += (_, _) => { _autoClose.Stop(); Dismiss(); };
             _watchForeground.Tick += (_, _) => WatchForeground();
             ResizeEnd += (_, _) => SaveBounds();
-            FormClosing += (_, e) => { e.Cancel = true; Dismiss(); };
+            FormClosing += (_, e) => { if (CloseToHide.Intercept(e)) Dismiss(); };
             VisibleChanged += (_, _) => { if (!Visible) { _autoClose.Stop(); _watchForeground.Stop(); } };
 
             ApplyScript();

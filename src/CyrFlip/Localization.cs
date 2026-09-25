@@ -46,6 +46,7 @@ namespace CyrFlip
             AddLauncherStrings();
             AddTranslateStrings();
             AddContextMenuStrings();
+            AddQuickNotesStrings();
             AddSupportStrings();
         }
 

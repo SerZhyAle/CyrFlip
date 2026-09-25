@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip - 为什么 Windows 或杀毒软件可能发出警告</title>
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/zh/trust.html">
+  <meta name="description" content="关于 CyrFlip 的 Windows SmartScreen 或杀毒软件警告意味着什么、为什么会出现、具体该点击什么，以及 CyrFlip 从不做的事。" />
+  <meta property="og:title" content="CyrFlip - 为什么 Windows 或杀毒软件可能发出警告" />
+  <meta property="og:description" content="关于 CyrFlip 的 Windows SmartScreen 或杀毒软件警告意味着什么、为什么会出现、具体该点击什么，以及 CyrFlip 从不做的事。" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <meta property="og:url" content="https://serzhyale.github.io/CyrFlip/zh/trust.html" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0a0f0a" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+</head>
+<body>
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+  <header class="site-header">
+    <div class="container">
+      <span class="brand"><img class="brand-icon" src="../assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
+      <button class="theme-btn" id="themeBtn" aria-label="切换主题">◐</button>
+      <div class="cta">
+        <a class="btn btn-ghost btn-sm" href="./">← 首页</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </div>
+  </header>
+  <div class="wrap">
+    <section>
+      <h1>为什么 Windows 或杀毒软件可能对 CyrFlip 发出警告</h1>
+      <p class="note">最后更新：2026 年 9 月 24 日 · <a href="../trust.html">English（原文）</a></p>
+
+      <p>本页针对的是 Windows 或你的杀毒软件刚刚拦下 CyrFlip 的那一刻。它依次说明：这是什么警告、为什么会出现、
+      具体该点击什么，以及 CyrFlip 从不做什么 - 按这个顺序，方便你自己做决定。</p>
+
+      <h2 id="what">这是什么警告</h2>
+
+      <h3>“Windows 已保护你的电脑”</h3>
+      <p>这是 <strong>Microsoft Defender SmartScreen</strong>。蓝色窗口写着：<em>"Microsoft Defender
+      SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at
+      risk."</em>（译文：Microsoft Defender SmartScreen 阻止了一个无法识别的应用启动，运行此应用可能会给你的电脑带来风险。）
+      点击<strong>更多信息</strong>后，它会显示 <em>App: CyrFlip.exe</em> 和 <em>Publisher: Unknown
+      publisher</em>（译文：发布者未知），并提供<strong>仍要运行</strong>和<strong>不运行</strong>两个按钮。</p>
+
+      <h3>杀毒软件隔离或阻止了 CyrFlip.exe</h3>
+      <p>目前报告过的情况是 <strong>Avast / AVG</strong>，它将其命名为 <code>IDP.Generic</code>（Behavior Shield）。
+      其他杀毒软件可能会用别的名称来称呼同一类检测。</p>
+
+      <p>会在哪里遇到：<strong>GitHub 上的 ZIP</strong> 和 <strong>winget</strong> 软件包（winget 安装的正是同一个 ZIP）
+      可能会出现这些警告。<strong>Microsoft Store</strong> 版本由 Microsoft 签名，不会出现 SmartScreen 警告。</p>
+
+      <h2 id="why">为什么会出现</h2>
+      <p>CyrFlip 免费、开源，由一位独立开发者制作。ZIP 包<strong>没有代码签名</strong>：代码签名证书每年都要花钱，
+      不购买是有意的选择。SmartScreen 根据文件的信誉来决定是否信任它 - 也就是有多少人运行过这个完全相同的文件 -
+      因此一个新的、未签名的版本起初毫无信誉，随着下载的人越来越多，警告会逐渐消失。</p>
+      <p>还有第二个原因，签名也无法消除。为了完成本职工作，布局指示器所做的恰恰是杀毒软件行为启发式规则所盯着的事：
+      它安装全局键盘钩子（上下文菜单开启时还有鼠标钩子），模拟 <kbd>Ctrl</kbd>+<kbd>C</kbd> 和
+      <kbd>Ctrl</kbd>+<kbd>V</kbd>，读取剪贴板，并且可以替换系统的文本光标。直接从临时文件夹（ZIP 内部，或
+      <code>%TEMP%</code>）运行程序，又会多一个信誉方面的疑点。</p>
+      <p>警告只是在面对一个它不认识的文件时尽职而已。下面的事实可以让你自己判断这个文件。</p>
+
+      <h2 id="click">具体该点击什么</h2>
+      <ol>
+        <li><strong>先把 ZIP 解压到一个固定的文件夹</strong>，例如 <code>%LOCALAPPDATA%\Programs\CyrFlip\</code>，
+        然后从那里启动 <code>CyrFlip.exe</code> - 不要在压缩包内部直接运行。</li>
+        <li><strong>SmartScreen：</strong>点击<strong>更多信息</strong>，确认应用是 <code>CyrFlip.exe</code>，
+        然后点击<strong>仍要运行</strong>。Windows 会针对这个文件记住你的选择。</li>
+        <li><strong>杀毒软件隔离：</strong>从隔离区恢复该文件，并<strong>只为那一个文件夹</strong>添加例外。
+        然后向你的杀毒软件厂商报告误报（Avast 和 AVG 的网站上都有误报提交表单），这会帮助其他所有用户。</li>
+        <li><strong>可选的核对：</strong>将文件的 SHA-256 与
+        <a href="https://github.com/SerZhyAle/CyrFlip/releases/latest">发布页面</a>上 ZIP 旁边公布的
+        <code>.sha256</code> 文件进行比对（在 PowerShell 中运行 <code>Get-FileHash CyrFlip.exe</code>），
+        或者把文件上传到 <a href="https://www.virustotal.com/">VirusTotal</a>。</li>
+        <li><strong>或者干脆避开警告：</strong>从
+        <a href="https://apps.microsoft.com/detail/9NB4W41NGQJ4">Microsoft Store</a> 安装 CyrFlip，
+        那里的版本由 Microsoft 签名。</li>
+      </ol>
+      <p>这里没有任何一步要求你为整台电脑关闭某项保护 - 只涉及一个文件、一个文件夹，而且两者都可以撤销。</p>
+
+      <h2 id="never">CyrFlip 从不做的事</h2>
+      <ul class="features">
+        <li><strong>从不为自己请求管理员权限。</strong>它以你的普通用户权限运行。</li>
+        <li><strong>从不记录、保存或发送你的按键。</strong>键盘钩子只用于识别 CyrFlip 自己的快捷键。</li>
+        <li><strong>从不向任何地方发送任何内容</strong> - 没有遥测，没有账户，也没有自己的服务器。
+        唯一的例外是可选的翻译功能（默认关闭）：它会把选中的文本发送到你设置的 Ollama 地址，默认是你自己电脑上的一个程序。</li>
+        <li><strong>从不安装服务或驱动程序。</strong></li>
+        <li><strong>从不在你的用户配置文件之外写入</strong>，唯一的例外是 Microsoft Store 版本中
+        <code>%ProgramData%\CyrFlip</code> 下的那个小布局文件。</li>
+        <li><strong>从不随 Windows 启动</strong>，除非你勾选了该选项。</li>
+      </ul>
+
+      <h3>你仍可能看到的管理员提示</h3>
+      <ul>
+        <li>你标记为<em>以管理员身份运行</em>的快速启动方案：该提示针对的是<strong>你的</strong>程序，而不是 CyrFlip。
+        在方案中取消勾选该选项，提示就不会再出现。</li>
+        <li>便携版中的<em>安装 Ollama</em>：CyrFlip 会下载 Ollama 的官方安装程序并启动它；
+        出现的任何提示都来自 Ollama 安装程序本身。</li>
+      </ul>
+
+      <h3>它会更改什么，以及如何撤销</h3>
+      <ul>
+        <li><strong>随 Windows 启动</strong> - 在 CyrFlip 的设置中取消勾选该选项。</li>
+        <li><strong>文本光标</strong>（默认关闭）- CyrFlip 退出时会恢复标准光标。</li>
+        <li><strong>Windows 输入设置</strong>（键盘布局、切换快捷键），仅当你在<em>Windows 语言</em>选项卡中更改它们时 -
+        该选项卡的恢复按钮会还原你原来的状态。</li>
+        <li><strong>它自己的设置和数据</strong> - 注册表项 <code>HKCU\Software\CyrFlip</code> 以及文件夹
+        <code>%LOCALAPPDATA%\CyrFlip</code> 和 <code>%APPDATA%\CyrFlip</code>。退出 CyrFlip 后删除它们，
+        就不会留下任何痕迹。</li>
+      </ul>
+      <p>同样的事实在<a href="privacy.html">隐私政策</a>中有更详细的说明。</p>
+
+      <p class="note">如果有一天 CyrFlip 的版本开始签名，本页面会保留，并注明从哪个版本开始。</p>
+
+      <p>有疑问或要报告新的警告：<a href="mailto:sza@ukr.net">sza@ukr.net</a>。</p>
+    </section>
+
+    <footer>
+      <p>MIT 许可证 · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">GitHub 上的源代码</a><br />
+      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
+    </footer>
+  </div>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn');
+    var themeColor=document.querySelector('meta[name="theme-color"]');
+    function applyThemeMeta(){
+      var dark=doc.getAttribute('data-theme')!=='light';
+      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
+      themeBtn.setAttribute('aria-label',dark?'浅色主题':'深色主题');
+    }
+    themeBtn.addEventListener('click',function(){
+      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
+      doc.setAttribute('data-theme',next);
+      try{localStorage.setItem('sza-theme',next);}catch(e){}
+      applyThemeMeta();
+    });
+    applyThemeMeta();
+  })();
+  </script>
+</body>
+</html>

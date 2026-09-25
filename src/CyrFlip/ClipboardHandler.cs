@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using static CyrFlip.WindowInterop;
 
@@ -36,27 +34,6 @@ namespace CyrFlip
 
         /// <summary>Outcome of the copy half on its own.</summary>
         public enum CaptureResult { Captured, NoSelection, Cancelled }
-
-        /// <summary>
-        /// The modifier keys the user was physically holding when the chord fired. Recorded before
-        /// we synthesize anything, because our own key-ups make <c>GetAsyncKeyState</c> report them
-        /// released from that moment on.
-        /// </summary>
-        internal readonly struct HeldModifiers
-        {
-            public readonly bool Ctrl, Shift, Alt, Win;
-
-            private HeldModifiers(bool ctrl, bool shift, bool alt, bool win)
-            {
-                Ctrl = ctrl; Shift = shift; Alt = alt; Win = win;
-            }
-
-            public static HeldModifiers Capture() => new HeldModifiers(
-                Down(Hotkey.VK_CONTROL), Down(Hotkey.VK_SHIFT), Down(Hotkey.VK_MENU),
-                Down(Hotkey.VK_LWIN) || Down(Hotkey.VK_RWIN));
-
-            private static bool Down(int vk) => (GetAsyncKeyState(vk) & 0x8000) != 0;
-        }
 
         /// <summary>
         /// What the clipboard held before we borrowed it - text, an image and a file selection.
@@ -154,27 +131,33 @@ namespace CyrFlip
             if (command == EditCommand.Paste)
             {
                 IntPtr foreground = GetForegroundWindow();
-                HeldModifiers pasteHeld = HeldModifiers.Capture();
                 Thread.Sleep(30);
-                SendPaste();
+                SideModifiers pasteReleased = SendCtrlChord(VK_V);
                 Thread.Sleep(140); // let the target app consume the paste
-                if (GetForegroundWindow() != foreground) return FlipResult.Cancelled;
-                RestorePhysicalModifiers(pasteHeld);
+                RestorePhysicalModifiers(pasteReleased);
+                return GetForegroundWindow() != foreground ? FlipResult.Cancelled : FlipResult.Flipped;
+            }
+
+            SideModifiers released = SideModifiers.None;
+            try
+            {
+                CaptureResult captured = CaptureSelection(out _, out _, out released);
+                if (captured == CaptureResult.Cancelled) return FlipResult.Cancelled;
+                if (captured == CaptureResult.NoSelection) return FlipResult.NoSelection;
+
+                // The Delete goes before the held modifiers come back: a Shift pressed again first
+                // would turn it into Shift+Delete - "delete permanently" in Explorer.
+                if (command == EditCommand.Cut)
+                {
+                    KeyInjection.Send(new KeyStroke(VK_DELETE, false), new KeyStroke(VK_DELETE, true));
+                    Thread.Sleep(60);
+                }
                 return FlipResult.Flipped;
             }
-
-            CaptureResult captured = TryCaptureSelection(out _, out _, out HeldModifiers held);
-            if (captured == CaptureResult.Cancelled) return FlipResult.Cancelled;
-            if (captured == CaptureResult.NoSelection) return FlipResult.NoSelection;
-
-            if (command == EditCommand.Cut)
+            finally
             {
-                Send((VK_DELETE, false), (VK_DELETE, true));
-                Thread.Sleep(60);
+                RestorePhysicalModifiers(released);
             }
-
-            RestorePhysicalModifiers(held);
-            return FlipResult.Flipped;
         }
 
         /// <param name="transform">The text transform to apply to the captured selection.</param>
@@ -189,8 +172,7 @@ namespace CyrFlip
             ClipboardBackup backup = BackupClipboard();
             try
             {
-                CaptureResult captured = TryCaptureSelection(out string selected, out IntPtr foreground,
-                    out HeldModifiers held);
+                CaptureResult captured = TryCaptureSelection(out string selected, out IntPtr foreground);
                 if (captured == CaptureResult.Cancelled) return FlipResult.Cancelled;
                 if (captured == CaptureResult.NoSelection) return FlipResult.NoSelection; // spec §5.3 - nothing selected → no-op
 
@@ -201,7 +183,7 @@ namespace CyrFlip
                 // The desired CapsLock state is read off the text we are about to paste, not off the
                 // key's current state - see CaseFlipEngine.DesiredCapsLock.
                 bool? capsAfter = syncCapsAfter ? CaseFlipEngine.DesiredCapsLock(converted) : null;
-                return ReplaceSelection(converted, foreground, held, capsAfter, targetKlid);
+                return ReplaceSelection(converted, foreground, capsAfter, targetKlid);
             }
             finally
             {
@@ -262,18 +244,32 @@ namespace CyrFlip
         /// <summary>
         /// The copy half: synthesize a clean Ctrl+C and wait for the selection to reach the
         /// clipboard. The caller owns the backup so a long-running transform (the translator) can
-        /// hand the clipboard back immediately and take it again later.
+        /// hand the clipboard back immediately and take it again later. The modifiers the user is
+        /// still holding are pressed again before it returns.
         /// </summary>
-        internal CaptureResult TryCaptureSelection(out string selection, out IntPtr foreground,
-            out HeldModifiers held)
+        internal CaptureResult TryCaptureSelection(out string selection, out IntPtr foreground)
+        {
+            SideModifiers released = SideModifiers.None;
+            try
+            {
+                return CaptureSelection(out selection, out foreground, out released);
+            }
+            finally
+            {
+                RestorePhysicalModifiers(released);
+            }
+        }
+
+        /// <summary>The copy half without the restore - the caller presses <paramref name="released"/> again.</summary>
+        private static CaptureResult CaptureSelection(out string selection, out IntPtr foreground,
+            out SideModifiers released)
         {
             selection = "";
             foreground = GetForegroundWindow();
-            held = HeldModifiers.Capture();
             uint initialSeq = GetClipboardSequenceNumber();
 
             Thread.Sleep(20);
-            SendCopy();
+            released = SendCtrlChord(VK_C);
 
             // Wait for the copy to populate the clipboard (selection may be empty).
             for (int i = 0; i < 12; i++)
@@ -299,7 +295,7 @@ namespace CyrFlip
         /// <paramref name="foreground"/>, provided it is still the focused window.
         /// </summary>
         internal FlipResult ReplaceSelection(string text, IntPtr foreground,
-            HeldModifiers held = default, bool? capsAfter = null, string? targetKlid = null)
+            bool? capsAfter = null, string? targetKlid = null)
         {
             // spec §5.3 - focus moved elsewhere mid-flip → don't paste into the wrong window.
             if (GetForegroundWindow() != foreground)
@@ -309,11 +305,11 @@ namespace CyrFlip
                 return FlipResult.Failed;
 
             Thread.Sleep(30);
-            SendPaste();
+            SideModifiers released = SendCtrlChord(VK_V);
             Thread.Sleep(140); // let the target app consume the paste before we restore
 
-            // Restore physical modifier keys that the user is still physically holding.
-            RestorePhysicalModifiers(held);
+            // Press again the modifier keys the user is still physically holding.
+            RestorePhysicalModifiers(released);
 
             // Optionally flip the keyboard layout too, so continued typing matches the result.
             if (targetKlid != null && targetKlid.Length > 0)
@@ -327,44 +323,30 @@ namespace CyrFlip
             return FlipResult.Flipped;
         }
 
-        private static void RestorePhysicalModifiers(HeldModifiers held)
-        {
-            var restore = new System.Collections.Generic.List<(int vk, bool up)>();
-            if (held.Ctrl && (GetAsyncKeyState(Hotkey.VK_CONTROL) & 0x8000) != 0)
-                restore.Add((Hotkey.VK_CONTROL, false));
-            if (held.Shift && (GetAsyncKeyState(Hotkey.VK_SHIFT) & 0x8000) != 0)
-                restore.Add((Hotkey.VK_SHIFT, false));
-            if (held.Alt && (GetAsyncKeyState(Hotkey.VK_MENU) & 0x8000) != 0)
-                restore.Add((Hotkey.VK_MENU, false));
-            if (held.Win && ((GetAsyncKeyState(Hotkey.VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(Hotkey.VK_RWIN) & 0x8000) != 0))
-                restore.Add((Hotkey.VK_LWIN, false));
-
-            if (restore.Count > 0)
-                Send(restore.ToArray());
-        }
-
         // ---- synthesized input ----------------------------------------------------------
 
-        // NOTE: the hotkey is held down while we synthesize input, so we first release the
-        // modifiers that would corrupt a plain Ctrl+C / Ctrl+V (Shift/Alt/Win) and drive Ctrl
-        // ourselves. This intentionally leaves the OS modifier state briefly out of sync with the
-        // keys the user is physically holding - don't "simplify" the explicit up/downs away.
-        private static void SendCopy()
+        // NOTE: the chord is usually still held while we synthesize input, so the modifiers that
+        // would corrupt a plain Ctrl+C / Ctrl+V (Shift/Alt/Win) are released first and pressed again
+        // afterwards. Which keys are held comes from the hook's physical table, never from
+        // GetAsyncKeyState - our own key-ups falsify that one (ticket S0004, KC-1). The plans are in
+        // KeyInjection, where they are unit-tested; don't "simplify" the explicit up/downs away.
+
+        /// <summary>Send a clean Ctrl+<paramref name="vk"/>; returns the modifier keys it released.</summary>
+        private static SideModifiers SendCtrlChord(int vk)
         {
-            // Release any held modifiers that would corrupt Ctrl+C, then send a clean Ctrl+C.
-            Send(
-                (Hotkey.VK_SHIFT, true), (Hotkey.VK_MENU, true),
-                (Hotkey.VK_LWIN, true), (Hotkey.VK_RWIN, true),
-                (Hotkey.VK_CONTROL, false), (VK_C, false),
-                (VK_C, true), (Hotkey.VK_CONTROL, true));
+            List<KeyStroke> plan = KeyInjection.CtrlChord(PhysicalModifiers.Shared.Snapshot(), vk, out SideModifiers released);
+            KeyInjection.Send(plan);
+            return released;
         }
 
-        private static void SendPaste()
+        /// <summary>
+        /// Press again, side for side, the keys a plan released that the user is <b>still physically</b>
+        /// holding - a key let go in the meantime stays up, or it would be stuck down.
+        /// </summary>
+        private static void RestorePhysicalModifiers(SideModifiers released)
         {
-            Send(
-                (Hotkey.VK_SHIFT, true), (Hotkey.VK_MENU, true),
-                (Hotkey.VK_CONTROL, false), (VK_V, false),
-                (VK_V, true), (Hotkey.VK_CONTROL, true));
+            if (released == SideModifiers.None) return;
+            KeyInjection.Send(KeyInjection.Restore(released, PhysicalModifiers.Shared.Snapshot()));
         }
 
         /// <summary>
@@ -377,25 +359,7 @@ namespace CyrFlip
         private static void SetCapsLock(bool on)
         {
             if (CursorIndicator.IsCapsLockOn() == on) return;
-            Send((VK_CAPITAL, false), (VK_CAPITAL, true));
-        }
-
-        private static void Send(params (int vk, bool up)[] keys)
-        {
-            INPUT[] inputs = keys.Select(k => new INPUT
-            {
-                type = INPUT_KEYBOARD,
-                u = new InputUnion
-                {
-                    ki = new KEYBDINPUT
-                    {
-                        wVk = (ushort)k.vk,
-                        dwFlags = k.up ? KEYEVENTF_KEYUP : 0u,
-                    },
-                },
-            }).ToArray();
-
-            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
+            KeyInjection.Send(new KeyStroke(VK_CAPITAL, false), new KeyStroke(VK_CAPITAL, true));
         }
     }
 }

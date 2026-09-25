@@ -223,5 +223,45 @@ namespace CyrFlip.Tests
             // enabled the launcher leaves no trace).
             Assert.False(Directory.Exists(_folder));
         }
+
+        [Fact]
+        public void AnElementFromANewerWriterIsIgnoredRatherThanFatal()
+        {
+            // SCENARIO-FILE rule 2: elements are matched by name and an unknown one is ignored. This
+            // is the forward tolerance the format has instead of a version field - a future writer
+            // adds an element, and everything shipped keeps reading the file it understands.
+            Directory.CreateDirectory(_folder);
+            File.WriteAllText(Path.Combine(_folder, "newer.xml"),
+                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<AppItem>\n  <Id>7f2c1a48-0b3e-4d5a-9c6b-1e8f4a2d7b30</Id>\n" +
+                "  <Name>From a newer writer</Name>\n  <Path>calc.exe</Path>\n" +
+                "  <RunAsAdmin>true</RunAsAdmin>\n" +
+                "  <ElevationReason>because the contract says nothing about this</ElevationReason>\n" +
+                "</AppItem>");
+
+            LauncherScenario read = Assert.Single(NewStore().All);
+            Assert.Equal("From a newer writer", read.Name);
+            Assert.True(read.RunAsAdmin);
+        }
+
+        [Fact]
+        public void AnUnknownTypeValueIsSkippedAndCountedRatherThanDegradedToTheDefault()
+        {
+            // SCENARIO-FILE section 5 item 3, and the documented gap against VERSIONING section 4
+            // rule 4: the compatibility law wants an unknown enum value to degrade to the documented
+            // default (Executable). It does not - the file fails to deserialize and is skipped like
+            // any corrupt one. That is clean and it is counted, but it costs the user the whole
+            // scenario, and this test is what pins the behaviour while the contract decides.
+            Directory.CreateDirectory(_folder);
+            File.WriteAllText(Path.Combine(_folder, "futuretype.xml"),
+                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<AppItem>\n  <Id>1d9e6c74-5b2a-4f38-8e7d-3c0a5b9f1e26</Id>\n" +
+                "  <Name>Some future kind</Name>\n  <Path>calc.exe</Path>\n" +
+                "  <Type>SomethingNobodyHasShippedYet</Type>\n</AppItem>");
+
+            var store = NewStore();
+            Assert.Empty(store.All);
+            Assert.Equal("futuretype.xml", Assert.Single(store.LoadErrors));
+        }
     }
 }

@@ -70,6 +70,12 @@ namespace CyrFlip
         private readonly Label _launcherLoadErrors = new Label { AutoSize = true, ForeColor = Color.FromArgb(150, 60, 0), Margin = new Padding(3, 2, 3, 2), Visible = false };
         private readonly LauncherIconCache _launcherIcons = new LauncherIconCache();
         private readonly ImageList _launcherImages = new ImageList { ImageSize = new Size(16, 16), ColorDepth = ColorDepth.Depth32Bit };
+        private readonly List<Bitmap> _launcherBitmaps = new List<Bitmap>();
+        /// <summary>
+        /// <see cref="SystemFonts.MessageBoxFont"/> builds a new <see cref="Font"/> on every read, and
+        /// <see cref="ApplyScript"/> runs on every refresh - one font per process instead (ST-5).
+        /// </summary>
+        private static readonly Font MessageBoxFont = SystemFonts.MessageBoxFont;
         private readonly List<Button> _launcherButtons = new List<Button>();
         private Button? _launcherImportOcr;
         // ---- Translator tab (local Ollama) ----
@@ -94,6 +100,15 @@ namespace CyrFlip
         // closing (or the app exiting) stops it instead of leaving the tab wedged on "busy".
         private CancellationTokenSource? _translateWork;
         private bool _translateBusy;
+        // ---- Quick notes tab ----
+        private readonly Action _setQuickNotesHotkey, _openQuickNotes, _clearQuickNotes;
+        private readonly Func<string, bool, string> _exportQuickNotes;
+        private readonly CheckBox _quickNotesEnabled = Check("Включить быстрые заметки");
+        private readonly CheckBox _quickNotesHotkeyEnabled = Check("Быстрые заметки");
+        private readonly CheckBox _quickNotesWrap = Check("Переносить длинные строки в редакторе");
+        private readonly CheckBox _quickNotesExportMeta = Check("Добавлять даты при экспорте");
+        private readonly Label _quickNotesHotkeyValue = new Label { AutoSize = true };
+        private readonly List<Control> _quickNotesControls = new List<Control>();
         private readonly Dictionary<Control, string> _russianTexts = new Dictionary<Control, string>();
         // Everything below is a GDI resource this window owns and therefore has to free: WinForms
         // disposes neither a font handed to a control, nor an ImageList merely assigned to one, nor the
@@ -136,17 +151,28 @@ namespace CyrFlip
         /// </summary>
         public event EventHandler? TextMenuChanged;
 
+        /// <summary>
+        /// Raised after anything on the quick-notes tab changes. One event for the whole tab, like
+        /// the translator's: the context saves the config, rebinds the chord, shows or hides the
+        /// tray entry and - on the very first enable - says where the notes are kept.
+        /// </summary>
+        public event EventHandler? QuickNotesChanged;
+
         public SettingsForm(AppConfig config,
             Action<bool> setAutostart, Action<bool> setCursor, Action<bool> setCaret, Action<bool> setDot, Action<bool> setLanguage, Action<bool> setCaps,
             Action<bool> setHistory, Action<bool> setPause, Action<bool> setHistoryStartup, Action<int> setOpacity, Action<string> setUiLanguage,
             Action setCaseHotkey, Action setHistoryHotkey, Action openHistorySearch, Action clearHistory, Action diagnoseCaret,
             Action<bool> setHotkeysEnabled, Action<bool> setCaseEnabled, Action<bool> setHistoryEnabled, Action<bool> setDeferRdp,
             Action<bool> setKeepAwake, Action<bool> setKeepScreen,
-            LauncherScenarioStore launcherStore, Action<bool> setLauncherEnabled)
+            LauncherScenarioStore launcherStore, Action<bool> setLauncherEnabled,
+            Action setQuickNotesHotkey, Action openQuickNotes, Action clearQuickNotes,
+            Func<string, bool, string> exportQuickNotes)
         {
             _config = config;
             _launcherStore = launcherStore;
             _setLauncherEnabled = setLauncherEnabled;
+            _setQuickNotesHotkey = setQuickNotesHotkey; _openQuickNotes = openQuickNotes;
+            _clearQuickNotes = clearQuickNotes; _exportQuickNotes = exportQuickNotes;
             _setAutostart = setAutostart; _setCursor = setCursor; _setCaret = setCaret; _setDot = setDot; _setLanguage = setLanguage; _setCaps = setCaps;
             _setHistory = setHistory; _setPause = setPause; _setHistoryStartup = setHistoryStartup; _setOpacity = setOpacity;
             _setUiLanguage = setUiLanguage;
@@ -157,7 +183,7 @@ namespace CyrFlip
             Text = "Настройки CyrFlip"; StartPosition = FormStartPosition.CenterScreen; Size = DefaultWindowSize();
             MinimumSize = new Size(900, 620); ShowInTaskbar = true;
             try { Icon = _ownIcon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
-            FormClosing += (_, e) => { e.Cancel = true; Hide(); };
+            FormClosing += (_, e) => { if (CloseToHide.Intercept(e)) Hide(); };
 
             // Vertical tab strip on the left: the captions are long in most of the 13 languages and a
             // horizontal strip either clipped them or wrapped into a second row that moved on click.
@@ -197,6 +223,7 @@ namespace CyrFlip
             tabs.TabPages.Add(WithIcon(ConversionsPage(), 7));
             tabs.TabPages.Add(WithIcon(LanguagesPage(), 6));
             tabs.TabPages.Add(WithIcon(ClipboardPage(), 3));
+            tabs.TabPages.Add(WithIcon(QuickNotesPage(), 10));
             tabs.TabPages.Add(WithIcon(TranslatePage(), 9));
             tabs.TabPages.Add(WithIcon(LauncherPage(), 8));
             tabs.TabPages.Add(WithIcon(AboutPage(), 5));
@@ -258,6 +285,15 @@ namespace CyrFlip
             _uiLanguage.SelectedIndexChanged += (_, _) => { if (!_loading && _uiLanguage.SelectedItem is string language) { _setUiLanguage(language); ApplyLanguage(); } };
             _opacity.ValueChanged += (_, _) => { if (!_loading) { _opacityValue.Text = _opacity.Value + "%"; _setOpacity(_opacity.Value); } };
 
+            // The quick-notes tab, same shape as the translator's: write the value, say "something
+            // changed", let the context save and rebind.
+            _quickNotesEnabled.CheckedChanged += (_, _) =>
+                QuickNotesSettingChanged(() => _config.EnableQuickNotes = _quickNotesEnabled.Checked, reload: true);
+            _quickNotesHotkeyEnabled.CheckedChanged += (_, _) =>
+                QuickNotesSettingChanged(() => _config.EnableQuickNotesHotkey = _quickNotesHotkeyEnabled.Checked);
+            _quickNotesWrap.CheckedChanged += (_, _) =>
+                QuickNotesSettingChanged(() => _config.QuickNotesWordWrap = _quickNotesWrap.Checked);
+
             // The translator tab talks to the context through one event, so every handler here just
             // writes the value and says "something changed"; the context saves and rebinds.
             _translateEnabled.CheckedChanged += (_, _) => TranslateChanged(() => _config.EnableTranslate = _translateEnabled.Checked, reload: true);
@@ -286,8 +322,10 @@ namespace CyrFlip
             // config is only what it was restored from (and is written back to) on the next toggle.
             _keepAwake.Checked = KeepAwake.KeepSystemAwake;
             _keepScreen.Checked = KeepAwake.KeepScreenOn;
-            _uiLanguage.SelectedItem = _config.UiLanguage;
-            if (_uiLanguage.SelectedIndex < 0) _uiLanguage.SelectedIndex = 0;
+            // The name the UI actually falls back to, not the raw value: a stored language outside the
+            // 13 used to leave the picker on its first entry (Russian) while the UI spoke English
+            // (ticket S0007, CF-3).
+            _uiLanguage.SelectedItem = Localization.Names[Localization.IndexOf(_config.UiLanguage)];
             _cursor.Checked = _config.EnableCursorChange; _caret.Checked = _config.EnableCaretOverlay; _dot.Checked = _config.CaretDotMode;
             _language.Checked = _config.EnableLanguageSwitch; _caps.Checked = _config.FlipCapsLockAfter;
             _history.Checked = _config.EnableClipboardHistory; _pause.Checked = _config.PauseClipboardHistory;
@@ -308,6 +346,7 @@ namespace CyrFlip
             _contextMenuEnabled.Checked = _config.EnableContextMenu;
             _contextMenuChord.Enabled = _config.EnableContextMenu;
             _launcherEnabled.Checked = _config.EnableScenarioLauncher;
+            ReloadQuickNotesState();
             ReloadTranslateState();
             _loading = false;
             ApplyLanguage();
@@ -333,6 +372,9 @@ namespace CyrFlip
             // capture translated text as if it were the Russian original.
             if (ReferenceEquals(root, _languageRows) || ReferenceEquals(root, _layoutRows)
                 || ReferenceEquals(root, _conversionRows) || ReferenceEquals(root, _translationRows)) return;
+            // A value label, not a caption: its "100%" registered here was put back on top of the
+            // slider's real value by every re-translation (ticket S0007, ST-4).
+            if (ReferenceEquals(root, _opacityValue)) return;
 
             // ComboBox.Text is its selected value, not a UI caption. Translating it would reset
             // the language selector back to the first Russian value on every UI refresh. Same for
@@ -352,6 +394,8 @@ namespace CyrFlip
             foreach (KeyValuePair<Control, string> pair in _russianTexts)
                 pair.Key.Text = Translate(pair.Value);
             _caseHotkeyValue.Text = _config.CaseHotkey; _historyHotkeyValue.Text = _config.ClipboardHistoryHotkey;
+            _quickNotesHotkeyValue.Text = _config.QuickNotesHotkey;
+            _opacityValue.Text = _opacity.Value + "%";
             _version.Text = VersionLine();
             AlignHotkeyCaptions();
             AdjustTabStrip();
@@ -533,7 +577,7 @@ namespace CyrFlip
             RightToLeft = rtl ? RightToLeft.Yes : RightToLeft.No;
             RightToLeftLayout = rtl;
             string? family = Localization.FontFamily(_config.UiLanguage);
-            string wanted = family ?? SystemFonts.MessageBoxFont.FontFamily.Name;
+            string wanted = family ?? MessageBoxFont.FontFamily.Name;
             if (Font.FontFamily.Name == wanted) return;
             try
             {
@@ -542,7 +586,7 @@ namespace CyrFlip
                 // the incoming one - a control drawing with a disposed font throws on the next paint.
                 Font? previousOwn = _ownFont;
                 Font? previousBold = _boldFont;
-                Font = _ownFont = new Font(wanted, SystemFonts.MessageBoxFont.SizeInPoints);
+                Font = _ownFont = new Font(wanted, MessageBoxFont.SizeInPoints);
                 _boldFont = null;       // BoldFont re-derives itself from the new font on first use
                 RefreshBoldFonts(this);
                 previousBold?.Dispose();
@@ -725,7 +769,21 @@ namespace CyrFlip
         {
             var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 1, 3, 1) };
             var enabled = new CheckBox { Text = "", Checked = profile.Enabled, AutoSize = true, Margin = new Padding(3, 6, 2, 2) };
-            enabled.CheckedChanged += (_, _) => { if (_loading) return; profile.Enabled = enabled.Checked; ConversionProfilesChanged?.Invoke(this, EventArgs.Empty); };
+            enabled.CheckedChanged += (_, _) =>
+            {
+                if (_loading) return;
+                // Switching a row back on is checked like assigning it (ticket S0004, KC-6).
+                if (enabled.Checked && Hotkey.TryParse(profile.Hotkey, out Hotkey chord)
+                    && !ChordIsFree(chord, ChordKind.Conversion, profile.Id, askAboutWindows: false))
+                {
+                    _loading = true;
+                    enabled.Checked = false;
+                    _loading = false;
+                    return;
+                }
+                profile.Enabled = enabled.Checked;
+                ConversionProfilesChanged?.Invoke(this, EventArgs.Empty);
+            };
             row.Controls.Add(enabled);
             // "⇄", not "→": the pair converts in whichever direction the active layout implies.
             Label pair = ColumnLabel(LayoutName(profile.SourceKlid) + " ⇄ " + LayoutName(profile.TargetKlid), _pairColumn);
@@ -767,8 +825,8 @@ namespace CyrFlip
             using var dialog = new LayoutConversionDialog(layouts, existing, _config.UiLanguage);
             if (dialog.ShowDialog(this) != DialogResult.OK || dialog.Profile == null) return;
             LayoutConversionProfile profile = dialog.Profile;
-            string? conflict = ClashingCyrFlipAction(Hotkey.Parse(profile.Hotkey), existing?.Id);
-            if (conflict != null) { Warn(string.Format(Translate("Комбинация {0} уже занята действием «{1}" + "»."), profile.Hotkey, conflict)); return; }
+            if (!Hotkey.TryParse(profile.Hotkey, out Hotkey chord)
+                || !ChordIsFree(chord, ChordKind.Conversion, existing?.Id ?? profile.Id)) return;
             if (existing == null) _config.LayoutConversionProfiles.Add(profile);
             else
             {
@@ -787,14 +845,14 @@ namespace CyrFlip
             nameLabel.Font = layout.IsDefault ? BoldFont : Font;
             row.Controls.Add(nameLabel);
 
-            var up = Button("↑", () => { InputLayouts.Move(layout.Klid, -1); LanguageHotkeys.ApplyToWindows(); ReloadLayoutRows(); });
+            var up = Button("↑", () => MoveLayout(layout.Klid, -1));
             up.Width = 32; up.Height = RowHeight; up.AutoSize = false; up.Margin = new Padding(3, 4, 3, 4); up.Enabled = index > 0;
-            var down = Button("↓", () => { InputLayouts.Move(layout.Klid, +1); LanguageHotkeys.ApplyToWindows(); ReloadLayoutRows(); });
+            var down = Button("↓", () => MoveLayout(layout.Klid, +1));
             down.Width = 32; down.Height = RowHeight; down.AutoSize = false; down.Margin = new Padding(3, 4, 3, 4); down.Enabled = index < total - 1;
             row.Controls.Add(up);
             row.Controls.Add(down);
 
-            var makeDefault = Button(Translate("По умолчанию"), () => { InputLayouts.MakeDefault(layout.Klid); LanguageHotkeys.ApplyToWindows(); ReloadLayoutRows(); });
+            var makeDefault = Button(Translate("По умолчанию"), () => MakeDefaultLayout(layout.Klid));
             makeDefault.Enabled = !layout.IsDefault;
             row.Controls.Add(makeDefault);
 
@@ -806,17 +864,31 @@ namespace CyrFlip
             return row;
         }
 
+        private void MoveLayout(string klid, int delta)
+        {
+            EnsureSystemBackups();
+            InputLayouts.Move(klid, delta);
+            LanguageHotkeys.ApplyToWindows();
+            ReloadLayoutRows();
+        }
+
+        private void MakeDefaultLayout(string klid)
+        {
+            EnsureSystemBackups();
+            InputLayouts.MakeDefault(klid);
+            LanguageHotkeys.ApplyToWindows();
+            ReloadLayoutRows();
+        }
+
         private void OnAddLayout()
         {
             var installedKlids = new List<string>();
             foreach (InputLayouts.Installed i in InputLayouts.ListInstalled()) installedKlids.Add(i.Klid);
 
-            using var picker = new LayoutPickerDialog(installedKlids,
-                Translate("Добавить раскладку"), Translate("Введите язык или название раскладки для фильтра"),
-                Translate("Добавить"), Translate("Отмена"));
+            using var picker = new LayoutPickerDialog(installedKlids, _config.UiLanguage);
             if (picker.ShowDialog(this) != DialogResult.OK || picker.SelectedKlid == null) return;
 
-            BackupLayoutsOnce();
+            EnsureSystemBackups();
             InputLayouts.Add(picker.SelectedKlid);
             LanguageHotkeys.ApplyToWindows();
             Reload();
@@ -830,7 +902,7 @@ namespace CyrFlip
             var available = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (InputLayouts.Available layout in InputLayouts.ListAvailable()) available.Add(layout.Klid);
             int added = 0;
-            BackupLayoutsOnce();
+            EnsureSystemBackups();
             foreach (WorldLayouts.Recommended language in WorldLayouts.Popular)
             {
                 string klid = language.Klids[0];
@@ -844,7 +916,7 @@ namespace CyrFlip
         {
             if (MessageBox.Show(this, string.Format(Translate("Удалить раскладку «{0}» из Windows?"), layout.LanguageName + " — " + layout.DisplayName), "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
                 return;
-            BackupLayoutsOnce();
+            EnsureSystemBackups();
             if (!InputLayouts.Remove(layout.Klid))
             {
                 Warn(Translate("Windows должна оставить хотя бы одну раскладку — эту удалить нельзя."));
@@ -858,6 +930,7 @@ namespace CyrFlip
         private void OnToggleChanged()
         {
             if (_loading || !(_toggleCombo.SelectedItem is ToggleItem item)) return;
+            EnsureSystemBackups();
             LanguageHotkeys.SetToggle(item.Code);
             LanguageHotkeys.ApplyToWindows();
         }
@@ -884,14 +957,26 @@ namespace CyrFlip
             public override string ToString() => Label;
         }
 
-        /// <summary>Capture the pre-CyrFlip layout state once, before this feature's first write lands.</summary>
-        private void BackupLayoutsOnce()
+        /// <summary>
+        /// Capture the pre-CyrFlip state of both Windows stores this tab writes - the keyboard layouts
+        /// and the language hotkeys with the switch chords - once, before the first write of either
+        /// lands. Called at the top of <b>every</b> handler that writes Windows state (ticket S0007,
+        /// WL-3; <c>SettingsBackupInventoryTests</c> holds every handler to it).
+        /// </summary>
+        private void EnsureSystemBackups()
         {
+            bool changed = false;
             if (_config.InputLayoutsBackup.Length == 0)
             {
                 _config.InputLayoutsBackup = InputLayouts.BackupAll();
-                _config.Save();
+                changed = true;
             }
+            if (_config.LanguageHotkeysBackup.Length == 0)
+            {
+                _config.LanguageHotkeysBackup = LanguageHotkeys.BackupAll();
+                changed = true;
+            }
+            if (changed) _config.Save();
         }
 
         private void NotifyLayoutChangeOnce()
@@ -908,7 +993,9 @@ namespace CyrFlip
             if (MessageBox.Show(this, Translate("Вернуть раскладки Windows в исходное состояние?"), "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
                 return;
             InputLayouts.RestoreAll(_config.InputLayoutsBackup);
+            LanguageHotkeys.ApplyToWindows();
             Reload();
+            NotifyLayoutChangeOnce();
         }
 
         /// <summary>Rebuilds the per-layout rows from the registry. Cheap enough to run on every refresh.</summary>
@@ -924,13 +1011,14 @@ namespace CyrFlip
             List<LanguageHotkeys.Entry> entries = LanguageHotkeys.ReadAll();
             var installed = new List<IntPtr>(LanguageHotkeys.InstalledLayouts());
 
+            MeasureLanguageHotkeyColumn(entries);
             foreach (IntPtr hkl in installed)
-                _languageRows.Controls.Add(LanguageHotkeyRow(hkl, entries.Find(e => e.TargetHkl == hkl)));
+                _languageRows.Controls.Add(LanguageHotkeyRow(hkl, entries.Find(e => LanguageHotkeys.HklEquals(e.TargetHkl, hkl))));
 
             // Assignments pointing at a layout that is no longer installed. Windows ships some of
             // these out of the box, so they are surfaced for removal rather than deleted for the user.
             foreach (LanguageHotkeys.Entry entry in entries)
-                if (!installed.Contains(entry.TargetHkl))
+                if (!installed.Exists(hkl => LanguageHotkeys.HklEquals(hkl, entry.TargetHkl)))
                     _languageRows.Controls.Add(OrphanHotkeyRow(entry));
 
             _languageRows.ResumeLayout();
@@ -943,18 +1031,13 @@ namespace CyrFlip
             string layout = LanguageHotkeys.LayoutName(hkl);
             row.Controls.Add(ColumnLabel(LanguageHotkeys.LanguageName(hkl) + (layout.Length > 0 ? " — " + layout : ""), Column(290)));
 
-            Label valueLabel = ColumnLabel(entry != null ? entry.Display : Translate("Не назначено"), Column(165), ellipsis: false);
+            Label valueLabel = ColumnLabel(entry != null ? entry.Display : Translate("Не назначено"), _languageChordColumn, ellipsis: false);
             valueLabel.Font = entry != null ? BoldFont : Font;
             valueLabel.ForeColor = entry != null ? ForeColor : SystemColors.GrayText;
             row.Controls.Add(valueLabel);
             row.Controls.Add(Button(Translate("Задать..."), () => AssignLanguageHotkey(hkl)));
 
-            Button clear = Button(Translate("Очистить"), () =>
-            {
-                LanguageHotkeys.Clear(hkl);
-                LanguageHotkeys.ApplyToWindows();
-                ReloadLanguageRows();
-            });
+            Button clear = Button(Translate("Очистить"), () => ClearLanguageHotkey(hkl));
             clear.Enabled = entry != null;
             row.Controls.Add(clear);
 
@@ -969,13 +1052,35 @@ namespace CyrFlip
             Label orphanLabel = ColumnLabel(string.Format(Translate("{0} → раскладка {1} (не установлена)"), entry.Display, LanguageHotkeys.HklText(entry.TargetHkl)), Column(455));
             orphanLabel.ForeColor = SystemColors.GrayText;
             row.Controls.Add(orphanLabel);
-            row.Controls.Add(Button(Translate("Удалить"), () =>
-            {
-                LanguageHotkeys.Remove(entry.Id);
-                LanguageHotkeys.ApplyToWindows();
-                ReloadLanguageRows();
-            }));
+            row.Controls.Add(Button(Translate("Удалить"), () => RemoveOrphanHotkey(entry.Id)));
             return row;
+        }
+
+        // The chord column of the language-hotkey rows, measured on every refresh like the conversion
+        // table's (see MeasureConversionColumns): a fixed 165 px clipped "Ctrl+Shift+Alt+F12" at 125 %.
+        private int _languageChordColumn;
+
+        private void MeasureLanguageHotkeyColumn(List<LanguageHotkeys.Entry> entries)
+        {
+            _languageChordColumn = Math.Max(Column(165), TextWidth(Translate("Не назначено"), Font));
+            foreach (LanguageHotkeys.Entry entry in entries)
+                _languageChordColumn = Math.Max(_languageChordColumn, TextWidth(entry.Display, BoldFont));
+        }
+
+        private void ClearLanguageHotkey(IntPtr hkl)
+        {
+            EnsureSystemBackups();
+            LanguageHotkeys.Clear(hkl);
+            LanguageHotkeys.ApplyToWindows();
+            ReloadLanguageRows();
+        }
+
+        private void RemoveOrphanHotkey(int id)
+        {
+            EnsureSystemBackups();
+            LanguageHotkeys.Remove(id);
+            LanguageHotkeys.ApplyToWindows();
+            ReloadLanguageRows();
         }
 
         private void AssignLanguageHotkey(IntPtr hkl)
@@ -984,10 +1089,15 @@ namespace CyrFlip
             using var dialog = new HotkeyDialog(current?.Display ?? "", Translate("Сочетание для переключения на язык"), _config.UiLanguage);
             if (dialog.ShowDialog(this) != DialogResult.OK || dialog.CapturedHotkey == null) return;
 
-            var chord = Hotkey.Parse(dialog.CapturedHotkey);
+            // TryParse, never Parse: a chord it cannot read must not become Ctrl+Shift+F12 in
+            // Windows' own hotkey store (ticket S0004, KC-2).
+            if (!Hotkey.TryParse(dialog.CapturedHotkey, out Hotkey chord)) return;
 
-            // CyrFlip's own hook swallows its chords, so Windows would never see one assigned here.
-            string? taken = ClashingCyrFlipAction(chord);
+            // CyrFlip's own hook swallows its chords, so Windows would never see one assigned here -
+            // including a chord whose action is switched off right now: switching it on must not
+            // silently take the chord away from Windows (KC-6).
+            ChordOwner? owner = Chords().CyrFlipOwnerOf(chord, ChordKind.WindowsLanguage);
+            string? taken = owner == null ? null : OwnerLabel(owner);
             if (taken != null)
             {
                 Warn(string.Format(Translate("Комбинация {0} уже занята горячей клавишей CyrFlip «{1}» — Windows её не получит."), chord.Display, taken));
@@ -995,11 +1105,7 @@ namespace CyrFlip
             }
 
             // Capture the pre-CyrFlip state once, before the first write of this feature ever lands.
-            if (_config.LanguageHotkeysBackup.Length == 0)
-            {
-                _config.LanguageHotkeysBackup = LanguageHotkeys.BackupAll();
-                _config.Save();
-            }
+            EnsureSystemBackups();
 
             LanguageHotkeys.AssignStatus status = LanguageHotkeys.Assign(hkl, chord, out string conflict);
             switch (status)
@@ -1033,32 +1139,24 @@ namespace CyrFlip
                 return;
             LanguageHotkeys.RestoreAll(_config.LanguageHotkeysBackup);
             ReloadLanguageRows();
+            ReloadToggleCombo();
         }
 
-        /// <summary>The CyrFlip action that would eat this chord before Windows saw it, or null.</summary>
-        private string? ClashingCyrFlipAction(Hotkey chord, string? ignoreConversionId = null, Guid? ignoreScenarioId = null,
-            string? ignoreTranslationId = null)
-        {
-            if (!_config.EnableHotkeys) return null; // hook passes every key through
-            if (_config.EnableCaseHotkey && chord.SameChord(Hotkey.Parse(_config.CaseHotkey))) return Translate("Исправить CapsLock");
-            if (_config.EnableHistoryHotkey && chord.SameChord(Hotkey.Parse(_config.ClipboardHistoryHotkey))) return Translate("Менеджер буфера");
-            foreach (LayoutConversionProfile profile in _config.LayoutConversionProfiles)
-                if (profile.Id != ignoreConversionId && profile.Enabled && profile.IsUsable && chord.SameChord(Hotkey.Parse(profile.Hotkey)))
-                    return LayoutName(profile.SourceKlid) + " ⇄ " + LayoutName(profile.TargetKlid);
-            // Launcher scenario chords are live only while the launcher is on; while off they are inert.
-            if (_config.EnableScenarioLauncher)
-                foreach (LauncherScenario scenario in _launcherStore.All)
-                    if (scenario.Id != ignoreScenarioId && scenario.Hotkey.Length > 0
-                        && Hotkey.TryParse(scenario.Hotkey, out Hotkey bound) && chord.SameChord(bound))
-                        return scenario.Name;
-            // Translation chords are live only while the translator is on; while off they are inert.
-            if (_config.EnableTranslate)
-                foreach (TranslationProfile profile in _config.TranslateProfiles)
-                    if (profile.Id != ignoreTranslationId && profile.Enabled && profile.IsUsable
-                        && Hotkey.TryParse(profile.Hotkey, out Hotkey chordBound) && chord.SameChord(chordBound))
-                        return Translate("Перевод") + ": " + TranslationLanguages.Label(profile.TargetLang, _config.UiLanguage);
-            return null;
-        }
+        /// <summary>
+        /// Every chord and its owner, read fresh - the settings window edits the config, the launcher
+        /// store and Windows' hotkey records, so a cached copy would go stale (ticket S0004, KC-6).
+        /// </summary>
+        private ChordRegistry Chords() => ChordRegistry.Build(_config, _launcherStore.All, LanguageHotkeys.ReadAll());
+
+        private string OwnerLabel(ChordOwner owner) => ChordRegistry.Label(owner, _config.UiLanguage, LayoutName);
+
+        /// <summary>
+        /// May <paramref name="chord"/> go to this action? Refuses when another CyrFlip action owns
+        /// it - switched on or not, and whatever the master switch says - and asks when a Windows
+        /// language hotkey does.
+        /// </summary>
+        private bool ChordIsFree(Hotkey chord, ChordKind kind, string? id, bool askAboutWindows = true)
+            => ChordGuard.IsFree(this, Chords(), chord, kind, id, _config.UiLanguage, LayoutName, askAboutWindows);
 
         private void Warn(string message)
             => MessageBox.Show(this, message, "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1082,6 +1180,103 @@ namespace CyrFlip
             panel.Controls.Add(Setting(Button("Поиск по истории", _openHistorySearch), "Открывает отдельное окно поиска по фрагменту текста. Для поиска нужно ввести не менее трёх символов."));
             panel.Controls.Add(Setting(Button("Очистить всю историю", () => { if (MessageBox.Show(Translate("Удалить всю сохранённую историю буфера?"), "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes) _clearHistory(); }), "Удаляет все записи из памяти и зашифрованного локального файла. Это действие нельзя отменить."));
             return page;
+        }
+
+        // ---- Quick notes tab ----
+
+        /// <summary>
+        /// The quick-notes tab (spec §8.1): the opt-in switch, the chord, how the editor behaves,
+        /// and the two actions that leave the encrypted journal - the export and the wipe. Like
+        /// every other page here it builds no I/O of its own: the localization tests construct this
+        /// window thirteen times, and a page that read a journal to draw itself would read it
+        /// thirteen times too.
+        /// </summary>
+        private TabPage QuickNotesPage()
+        {
+            var page = Page("Быстрые заметки",
+                "Маленький локальный блокнот: по хоткею открыть, бросить фрагмент кода или мысль, закрыть. Текст хранится как есть — без разметки, подсветки и автоформатирования, — поэтому его можно вставить обратно в код без единого изменения.",
+                Setting(_quickNotesEnabled, "Пока выключено, CyrFlip не читает и не создаёт файл заметок, в трее нет пункта заметок и комбинация не назначена. Уже сохранённые заметки остаются на диске."));
+            var panel = ContentPanel(page);
+
+            panel.Controls.Add(SectionHeader("Как открывать"));
+            panel.Controls.Add(Track(HotkeyRow(_quickNotesHotkeyEnabled, _quickNotesHotkeyValue, _setQuickNotesHotkey,
+                "Сразу создаёт новую заметку и ставит курсор в поле текста — записать мысль можно, ничего больше не нажимая. Одну комбинацию нельзя отдать двум действиям CyrFlip.")));
+            panel.Controls.Add(Track(Setting(Button("Открыть заметки", _openQuickNotes),
+                "То же, что пункт «Быстрые заметки» в меню трея: открывает список без создания новой заметки.")));
+
+            panel.Controls.Add(SectionHeader("Редактор"));
+            panel.Controls.Add(Track(Setting(_quickNotesWrap,
+                "По умолчанию выключено: тело заметки чаще код, чем проза, а перенесённую строку кода приходится мысленно собирать обратно. Включите, если пишете здесь текст.")));
+
+            panel.Controls.Add(SectionHeader("Экспорт и хранение"));
+            panel.Controls.Add(Track(Setting(_quickNotesExportMeta,
+                "По умолчанию в экспорт идут только имя и текст: так фрагмент кода вставляется обратно без правок. С флажком к каждой заметке добавляется дата создания.")));
+            panel.Controls.Add(Track(Setting(Button("Экспортировать все заметки в Markdown...", ExportQuickNotes),
+                "Один файл со всеми заметками по порядку. Экспортированный файл уже не защищён DPAPI — его прочитает любой, у кого есть доступ к папке.")));
+            panel.Controls.Add(Track(Setting(Button("Удалить все быстрые заметки", ClearQuickNotes),
+                "Удаляет все заметки, журнал и его резервную копию. Отменить это нельзя.")));
+            panel.Controls.Add(new Label
+            {
+                Text = "Заметки лежат только на этом компьютере и шифруются Windows DPAPI для вашей учётной записи. CyrFlip не отправляет их в сеть, не индексирует их поиском Windows и не превращает записи истории буфера в заметки — для этого есть отдельная команда. Это не хранилище секретов: не сохраняйте здесь пароли, боевые токены и приватные ключи.",
+                AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText,
+                Margin = new Padding(3, 10, 3, 4),
+            });
+            return page;
+        }
+
+        /// <summary>Remember a control so the master switch can grey the whole group (see Reload).</summary>
+        private Control Track(Control control) { _quickNotesControls.Add(control); return control; }
+
+        private void ExportQuickNotes()
+        {
+            using var dialog = new SaveFileDialog
+            {
+                Title = Translate("Экспорт всех заметок"),
+                Filter = "Markdown (*.md)|*.md",
+                FileName = "cyrflip-notes.md",
+            };
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+            try
+            {
+                string path = _exportQuickNotes(dialog.FileName, _quickNotesExportMeta.Checked);
+                if (path.Length == 0) return;
+                MessageBox.Show(this,
+                    string.Format(Translate("Заметки сохранены: {0}"), path) + "\n\n"
+                    + Translate("Этот файл не защищён DPAPI — его прочитает любой, у кого есть доступ к папке."),
+                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                Warn(string.Format(Translate("Не удалось сохранить файл: {0}"), ex.Message));
+            }
+        }
+
+        private void ClearQuickNotes()
+        {
+            if (MessageBox.Show(this,
+                    Translate("Удалить все быстрые заметки, журнал и резервную копию? Отменить это нельзя."),
+                    "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                return;
+            _clearQuickNotes();
+        }
+
+        /// <summary>Apply one quick-notes setting and tell the context; mirrors <see cref="TranslateChanged"/>.</summary>
+        private void QuickNotesSettingChanged(Action apply, bool reload = false)
+        {
+            if (_loading) return;
+            apply();
+            QuickNotesChanged?.Invoke(this, EventArgs.Empty);
+            if (reload) Reload();
+        }
+
+        /// <summary>Mirror the quick-notes settings into the tab and gate the group behind its switch.</summary>
+        private void ReloadQuickNotesState()
+        {
+            _quickNotesEnabled.Checked = _config.EnableQuickNotes;
+            _quickNotesHotkeyEnabled.Checked = _config.EnableQuickNotesHotkey;
+            _quickNotesWrap.Checked = _config.QuickNotesWordWrap;
+            _quickNotesHotkeyValue.Text = _config.QuickNotesHotkey;
+            foreach (Control control in _quickNotesControls) control.Enabled = _config.EnableQuickNotes;
         }
 
         // ---- Translator tab (local Ollama) ----
@@ -1271,12 +1466,10 @@ namespace CyrFlip
                 if (_loading) return;
                 // Switching a row back on can collide with a chord that was assigned while this row
                 // slept - the editing paths check, so the enabling path has to check too.
-                if (enabled.Checked && profile.IsUsable)
+                if (enabled.Checked && profile.IsUsable && Hotkey.TryParse(profile.Hotkey, out Hotkey chord))
                 {
-                    string? conflict = ClashingCyrFlipAction(Hotkey.Parse(profile.Hotkey), ignoreTranslationId: profile.Id);
-                    if (conflict != null)
+                    if (!ChordIsFree(chord, ChordKind.Translation, profile.Id, askAboutWindows: false))
                     {
-                        Warn(string.Format(Translate("Комбинация {0} уже занята действием «{1}" + "»."), profile.Hotkey, conflict));
                         _loading = true;
                         enabled.Checked = false;
                         _loading = false;
@@ -1315,12 +1508,8 @@ namespace CyrFlip
             // would report the seeded EN ⇄ RU row as a conflict with a row that has no chord at all.
             if (profile.Hotkey.Length > 0)
             {
-                string? conflict = ClashingCyrFlipAction(Hotkey.Parse(profile.Hotkey), ignoreTranslationId: existing?.Id);
-                if (conflict != null)
-                {
-                    Warn(string.Format(Translate("Комбинация {0} уже занята действием «{1}" + "»."), profile.Hotkey, conflict));
-                    return;
-                }
+                if (!Hotkey.TryParse(profile.Hotkey, out Hotkey chord)
+                    || !ChordIsFree(chord, ChordKind.Translation, existing?.Id ?? profile.Id)) return;
             }
             if (existing == null) _config.TranslateProfiles.Add(profile);
             else
@@ -1654,7 +1843,12 @@ namespace CyrFlip
             _launcherList.BeginUpdate();
             _launcherList.Items.Clear();
             _launcherList.Columns.Clear();
+            // Images.Add(key, icon) keeps a clone of the icon that Clear() only forgets, so every
+            // refresh leaked one handle per scenario (ST-5). The list now holds bitmaps we own and
+            // release once the list has let go of them.
             _launcherImages.Images.Clear();
+            foreach (Bitmap bitmap in _launcherBitmaps) bitmap.Dispose();
+            _launcherBitmaps.Clear();
 
             _launcherList.Columns.Add(Translate("Имя"), Column(190));
             _launcherList.Columns.Add(Translate("Путь"), Column(250));
@@ -1681,7 +1875,9 @@ namespace CyrFlip
                 if (icon != null)
                 {
                     string key = scenario.Id.ToString("N");
-                    _launcherImages.Images.Add(key, icon);
+                    Bitmap bitmap = icon.ToBitmap();
+                    _launcherBitmaps.Add(bitmap);
+                    _launcherImages.Images.Add(key, bitmap);
                     item.ImageKey = key;
                 }
                 _launcherList.Items.Add(item);
@@ -1727,7 +1923,8 @@ namespace CyrFlip
         private bool StripClashingHotkey(LauncherScenario scenario)
         {
             if (scenario.Hotkey.Length == 0) return false;
-            if (ClashingCyrFlipAction(Hotkey.Parse(scenario.Hotkey), ignoreScenarioId: scenario.Id) == null) return false;
+            if (Hotkey.TryParse(scenario.Hotkey, out Hotkey chord)
+                && Chords().CyrFlipOwnerOf(chord, ChordKind.Launcher, scenario.Id.ToString()) == null) return false;
             scenario.Hotkey = "";
             _launcherStore.Update(scenario);
             return true;
@@ -1737,11 +1934,9 @@ namespace CyrFlip
         private bool LauncherHotkeyIsFree(LauncherScenario scenario)
         {
             if (scenario.Hotkey.Length == 0) return true;
-            var chord = Hotkey.Parse(scenario.Hotkey);
-            string? conflict = ClashingCyrFlipAction(chord, ignoreScenarioId: scenario.Id);
-            if (conflict == null) return true;
-            Warn(string.Format(Translate("Комбинация {0} уже занята действием «{1}»."), scenario.Hotkey, conflict));
-            return false;
+            // The dialog stores only a chord that parses; anything else is "no chord".
+            if (!Hotkey.TryParse(scenario.Hotkey, out Hotkey chord)) return true;
+            return ChordIsFree(chord, ChordKind.Launcher, scenario.Id.ToString());
         }
 
         private void LauncherAdd()
@@ -1901,6 +2096,7 @@ namespace CyrFlip
             images.Images.Add("conversions", TabIcon(7));
             images.Images.Add("launcher", TabIcon(8));
             images.Images.Add("translate", TabIcon(9));
+            images.Images.Add("notes", TabIcon(10));
             return images;
         }
         private static Bitmap TabIcon(int kind)
@@ -1928,7 +2124,14 @@ namespace CyrFlip
                     g.DrawRectangle(pen, 2, 3, 9, 7); g.DrawLine(pen, 4, 10, 6, 13); g.DrawLine(pen, 6, 13, 7, 10);
                     g.DrawRectangle(pen, 8, 8, 8, 7); g.FillRectangle(brush, 10, 11, 4, 1);
                     break;
-                default: g.DrawEllipse(pen, 2, 2, 14, 14); using (var f = new Font(SystemFonts.MessageBoxFont.FontFamily, 10, FontStyle.Bold)) g.DrawString("i", f, brush, 7, 2); break;
+                // A sheet with a turned-down corner and two lines of writing: the quick notes.
+                case 10:
+                    g.DrawLine(pen, 3, 2, 11, 2); g.DrawLine(pen, 3, 2, 3, 16); g.DrawLine(pen, 3, 16, 15, 16);
+                    g.DrawLine(pen, 15, 16, 15, 6); g.DrawLine(pen, 11, 2, 15, 6); g.DrawLine(pen, 11, 2, 11, 6);
+                    g.DrawLine(pen, 11, 6, 15, 6);
+                    g.FillRectangle(brush, 6, 9, 6, 1); g.FillRectangle(brush, 6, 12, 5, 1);
+                    break;
+                default: g.DrawEllipse(pen, 2, 2, 14, 14); using (var f = new Font(MessageBoxFont.FontFamily, 10, FontStyle.Bold)) g.DrawString("i", f, brush, 7, 2); break;
             }
             return image;
         }
@@ -2095,6 +2298,7 @@ namespace CyrFlip
             {
                 _launcherIcons.Dispose();
                 _launcherImages.Dispose();
+                foreach (Bitmap bitmap in _launcherBitmaps) bitmap.Dispose();
                 _tabIcons?.Dispose();   // assigned to the TabControl, which never owned it
                 _boldFont?.Dispose();
                 _ownFont?.Dispose();

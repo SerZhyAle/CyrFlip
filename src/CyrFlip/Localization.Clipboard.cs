@@ -269,6 +269,34 @@ namespace CyrFlip
                 ur: "یہ ٹکڑا تاریخ کے لیے بہت بڑا ہے (>128 کلوبائٹ)۔",
                 zh: "该片段太大，无法存入历史（超过 128 KB）。");
 
+            Add("Не прочитано записей истории буфера: {0}. Остальная история на месте.",
+                en: "Unreadable clipboard history records: {0}. The rest of the history is there.",
+                uk: "Не прочитано записів історії буфера: {0}. Решта історії на місці.",
+                de: "Unlesbare Einträge im Zwischenablage-Verlauf: {0}. Der übrige Verlauf ist da.",
+                it: "Record della cronologia appunti illeggibili: {0}. Il resto della cronologia c'è.",
+                es: "Registros ilegibles del historial del portapapeles: {0}. El resto del historial está.",
+                fr: "Enregistrements illisibles de l'historique du presse-papiers : {0}. Le reste de l'historique est là.",
+                pt: "Registros ilegíveis do histórico da área de transferência: {0}. O restante do histórico está lá.",
+                ar: "سجلات غير مقروءة في سجل الحافظة: {0}. بقية السجل موجودة.",
+                hi: "क्लिपबोर्ड इतिहास के अपठनीय रिकॉर्ड: {0}. बाकी इतिहास सुरक्षित है।",
+                bn: "ক্লিপবোর্ড ইতিহাসের পড়া যায়নি এমন রেকর্ড: {0}। বাকি ইতিহাস ঠিক আছে।",
+                ur: "کلپ بورڈ کی تاریخ کے ناقابلِ مطالعہ ریکارڈ: {0}۔ باقی تاریخ موجود ہے۔",
+                zh: "无法读取的剪贴板历史记录：{0} 条。其余历史都在。");
+
+            Add("Файл истории буфера занят другой программой, и он не удалён. Повторите очистку.",
+                en: "The clipboard history file is in use by another program and was not deleted. Try clearing again.",
+                uk: "Файл історії буфера зайнятий іншою програмою, і його не видалено. Повторіть очищення.",
+                de: "Die Verlaufsdatei der Zwischenablage wird von einem anderen Programm verwendet und wurde nicht gelöscht. Leeren Sie sie erneut.",
+                it: "Il file della cronologia degli appunti è in uso da un altro programma e non è stato eliminato. Riprova a cancellare.",
+                es: "El archivo del historial del portapapeles está en uso por otro programa y no se eliminó. Vuelve a borrarlo.",
+                fr: "Le fichier de l'historique du presse-papiers est utilisé par un autre programme et n'a pas été supprimé. Réessayez de l'effacer.",
+                pt: "O arquivo do histórico da área de transferência está em uso por outro programa e não foi excluído. Tente limpar de novo.",
+                ar: "ملف سجل الحافظة قيد الاستخدام من برنامج آخر ولم يُحذف. أعد محاولة المسح.",
+                hi: "क्लिपबोर्ड इतिहास फ़ाइल किसी दूसरे प्रोग्राम के उपयोग में है और हटाई नहीं गई। फिर से साफ़ करें।",
+                bn: "ক্লিপবোর্ড ইতিহাসের ফাইলটি অন্য একটি প্রোগ্রাম ব্যবহার করছে, তাই মোছা হয়নি। আবার মুছে দেখুন।",
+                ur: "کلپ بورڈ کی تاریخ کی فائل کسی دوسرے پروگرام کے استعمال میں ہے اور حذف نہیں ہوئی۔ دوبارہ صاف کریں۔",
+                zh: "剪贴板历史文件正被其他程序占用，未能删除。请再清除一次。");
+
             Add("Не удалось изменить автозапуск Windows:",
                 en: "Couldn't update Windows startup:", uk: "Не вдалося змінити автозапуск Windows:",
                 de: "Der Windows-Autostart konnte nicht geändert werden:",

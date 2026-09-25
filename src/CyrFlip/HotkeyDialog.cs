@@ -17,11 +17,20 @@ namespace CyrFlip
     {
         private readonly Label _hintLabel;
         private readonly Label _previewLabel;
+        // Says why a chord was refused (HotkeyRules); empty and collapsed otherwise.
+        private readonly Label _reasonLabel;
+        private readonly TableLayoutPanel _layout;
+        private readonly string _uiLanguage;
         private readonly Button _okButton;
         private readonly Button _cancelButton;
         // WinForms never disposes a font that was assigned to a control, so the one we build here is
         // ours to release - otherwise every trip through the dialog leaves a GDI font behind.
         private readonly Font _previewFont;
+        // The script font for hi/bn/zh, assigned to the form - equally ours to release (ST-5).
+        private readonly Font? _ownFont;
+
+        /// <summary>The widest chord the capture can produce (three modifiers and the longest key name).</summary>
+        internal const string LongestChord = "Ctrl+Shift+Alt+Backspace";
 
         private bool _ctrl, _shift, _alt;
         private string _keyName = "";
@@ -33,6 +42,7 @@ namespace CyrFlip
         public HotkeyDialog(string currentHotkey, string title = "Set hotkey", string uiLanguage = "English")
         {
             Text = title;
+            _uiLanguage = uiLanguage;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -45,7 +55,7 @@ namespace CyrFlip
             string? family = Localization.FontFamily(uiLanguage);
             if (family != null)
             {
-                try { Font = new Font(family, Font.SizeInPoints); }
+                try { Font = _ownFont = new Font(family, Font.SizeInPoints); }
                 catch { /* the font is missing on this machine - keep the default */ }
             }
 
@@ -66,11 +76,22 @@ namespace CyrFlip
                 AutoSize = false,
                 Dock = DockStyle.Fill,
                 Height = previewFont.Height + 12,
-                MinimumSize = new Size(TextWidth("Ctrl+Shift+Backspace"), 0),
+                // Measured with the font it is drawn in (1.4x bold), and for the longest chord the
+                // capture can produce - a regular-font measure clipped it (ticket S0007, DL-5).
+                MinimumSize = new Size(TextRenderer.MeasureText(LongestChord, previewFont).Width + 16, 0),
                 Font = previewFont,
                 TextAlign = ContentAlignment.MiddleCenter,
                 BorderStyle = BorderStyle.FixedSingle,
                 BackColor = SystemColors.Window,
+            };
+
+            _reasonLabel = new Label
+            {
+                Text = "",
+                AutoSize = true,
+                MaximumSize = new Size(TextWidth(new string('W', 34)), 0),
+                ForeColor = Color.Firebrick,
+                Margin = new Padding(3, 6, 3, 0),
             };
 
             _okButton = Command("OK", DialogResult.OK);
@@ -87,14 +108,14 @@ namespace CyrFlip
             buttons.Controls.Add(_cancelButton);
             buttons.Controls.Add(_okButton);
 
-            var layout = new TableLayoutPanel
+            var layout = _layout = new TableLayoutPanel
             {
                 ColumnCount = 1, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Dock = DockStyle.Fill, Padding = new Padding(12),
             };
             layout.Controls.Add(_hintLabel, 0, 0);
             layout.Controls.Add(_previewLabel, 0, 1);
-            layout.Controls.Add(buttons, 0, 2);
+            layout.Controls.Add(buttons, 0, 3);
 
             AcceptButton = _okButton;
             CancelButton = _cancelButton;
@@ -104,7 +125,25 @@ namespace CyrFlip
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing); // frees the control tree, but not the font we handed the label
-            if (disposing) _previewFont.Dispose();
+            if (disposing)
+            {
+                _previewFont.Dispose();
+                _ownFont?.Dispose();
+                if (_reasonLabel.Parent == null) _reasonLabel.Dispose(); // outside the tree while silent
+            }
+        }
+
+        /// <summary>
+        /// The refusal line joins the layout only while it has something to say - out of the
+        /// control tree, not merely hidden, so the layout guard (DialogLayoutTests) measures only
+        /// what is actually laid out.
+        /// </summary>
+        private void ShowReason(string reason)
+        {
+            _reasonLabel.Text = reason;
+            bool shown = _reasonLabel.Parent != null;
+            if (reason.Length > 0 && !shown) _layout.Controls.Add(_reasonLabel, 0, 2);
+            else if (reason.Length == 0 && shown) _layout.Controls.Remove(_reasonLabel);
         }
 
         private Button Command(string text, DialogResult result) => new Button
@@ -143,13 +182,29 @@ namespace CyrFlip
             if (!TryGetKeyName(e.KeyCode, out string keyName))
                 return;
 
+            // TryParse is the round trip every setter makes; a name it did not know once turned a
+            // captured Ctrl+Shift+PageUp into Ctrl+Shift+F12 (ticket S0004, KC-2). The key-name
+            // round-trip test keeps this branch unreachable.
+            string display = BuildDisplay(e.Control, e.Shift, e.Alt, keyName);
+            if (!Hotkey.TryParse(display, out Hotkey chord))
+                return;
+            _previewLabel.Text = display;
+
+            // A chord that would eat typing is shown, explained and not accepted (KC-5).
+            string reason = HotkeyRules.Describe(HotkeyRules.Check(chord), _uiLanguage);
+            ShowReason(reason);
+            if (reason.Length > 0)
+            {
+                _captured = false;
+                _okButton.Enabled = false;
+                return;
+            }
+
             _ctrl = e.Control;
             _shift = e.Shift;
             _alt = e.Alt;
             _keyName = keyName;
             _captured = true;
-
-            _previewLabel.Text = BuildDisplay(_ctrl, _shift, _alt, _keyName);
             _okButton.Enabled = true;
         }
 
@@ -189,7 +244,8 @@ namespace CyrFlip
             || key == Keys.ShiftKey || key == Keys.LShiftKey || key == Keys.RShiftKey
             || key == Keys.Menu || key == Keys.LMenu || key == Keys.RMenu;
 
-        private static bool TryGetKeyName(Keys key, out string name)
+        /// <summary>The key names the dialog emits; every one must parse back (HotkeyRoundTripTests).</summary>
+        internal static bool TryGetKeyName(Keys key, out string name)
         {
             if (key >= Keys.F1 && key <= Keys.F24)
             {

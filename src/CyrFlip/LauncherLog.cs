@@ -11,9 +11,7 @@ namespace CyrFlip
     /// </summary>
     internal static class LauncherLog
     {
-        private static readonly string FilePath = DiagnosticLog.Path("launcher.log");
-
         public static void Log(string message)
-            => DiagnosticLog.Append(FilePath, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
+            => DiagnosticLog.Append(DiagnosticLog.Path("launcher.log"), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
     }
 }

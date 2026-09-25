@@ -14,13 +14,13 @@
     preflight over uncommitted files was pure friction. The preflight says how many files are
     uncommitted and carries on. Pass -RequireClean to get the old refuse-if-dirty behaviour.
 
-      .\release.ps1 -Push           # After a green preflight: create the "release: vX" commit + tag and
+      .\release.ps1 -Push           # After a green preflight: create the "release: vX" anchor + tag and
                                     #   push them. The tag triggers release.yml (the PAID GitHub build that
-                                    #   produces the signed ZIP + GitHub Release). Then follow the checklist.
+                                    #   produces the ZIP + GitHub Release). Then follow the checklist.
 
       .\release.ps1 -Version 26.6.27.1600 -Push   # pin an explicit version instead of "now"
 
-    Why a dedicated empty "release:" commit: the tag must point at a commit WITHOUT [skip ci]
+    Why a dedicated "release:" anchor: the tag must point at a commit WITHOUT [skip ci]
     (local сборки carry [skip ci]); the "release:" prefix makes ci.yml skip the branch push so we
     are not billed twice (CI on the branch + release.yml on the tag).
 #>
@@ -62,8 +62,9 @@ if ($dirty.Count -gt 0) {
 if (-not $Version) { $Version = (Get-Date).ToString('yy.M.d.HHmm') }
 # Guard: a mistyped -Version must fail BEFORE tagging/pushing. The tag shape is
 # YY.M.D.HHmm (dotted, M/D not zero-padded); reject anything else and reject a
-# value that is not a real date (e.g. 26.13.40.9999).
-if ($Version -notmatch '^\d{2}\.\d{1,2}\.\d{1,2}\.\d{4}$') {
+# value that is not a real date (e.g. 26.13.40.9999). A zero-padded month/day (26.09.05.1200)
+# is refused too: the SDK normalizes it, so the exe's FileVersion would never read back as the tag.
+if ($Version -notmatch '^\d{2}\.(?:[1-9]|1[0-2])\.(?:[1-9]|[12]\d|3[01])\.\d{4}$') {
     throw "Version '$Version' is not the YY.M.D.HHmm shape (e.g. 26.7.22.1712)."
 }
 try { [datetime]::ParseExact($Version, 'yy.M.d.HHmm', [Globalization.CultureInfo]::InvariantCulture) | Out-Null }
@@ -92,46 +93,88 @@ else {
     Write-Host 'Could not reach origin - the remote tag/sync check was skipped.' -ForegroundColor Yellow
 }
 
+# Store and package feeds only move forward. The local tag set includes the tags fetched above,
+# so refuse a hand-typed version (or the DST fall-back hour) that would not be an upgrade.
+$highestVersion = $null
+foreach ($existingTag in @(git tag --list 'v*')) {
+    if ($existingTag -notmatch '^v(\d{2}\.(?:[1-9]|1[0-2])\.(?:[1-9]|[12]\d|3[01])\.\d{4})$') { continue }
+    try {
+        $candidate = [version]$Matches[1]
+        if ($highestVersion -eq $null -or $candidate -gt $highestVersion) { $highestVersion = $candidate }
+    }
+    catch { }
+}
+if ($highestVersion -ne $null -and [version]$Version -le $highestVersion) {
+    throw "Version '$Version' is not newer than the highest release tag version '$highestVersion'."
+}
+
 Write-Host "Release version: $Version  (tag $Tag)" -ForegroundColor Green
 
 # --- Local build + test (fail BEFORE spending GitHub minutes) ---------------
 Step 'Local build + test'
-# A running tray app keeps bin\Release\net48\CyrFlip.exe locked, and the build then dies with
-# MSB3027 after ten retries - i.e. the preflight failed for a reason that has nothing to do with
-# the release. Stop it first, exactly as build.ps1 does; the process name is unique to CyrFlip, so
-# this also catches a copy started from one of the local sync folders.
+# Build and test a detached worktree of HEAD. A dirty index or working tree is expressly allowed
+# above, but neither can be evidence for the tree that the tag and GitHub will actually ship.
 $running = @(Get-Process -Name 'CyrFlip' -ErrorAction SilentlyContinue)
-if ($running.Count -gt 0) {
-    Write-Host 'Stopping running CyrFlip (it locks the build output)..' -ForegroundColor Cyan
-    $running | Stop-Process -Force
+$restartPath = $null
+$preflightRoot = Join-Path ([IO.Path]::GetTempPath()) ("CyrFlip-release-" + [Guid]::NewGuid().ToString('N'))
+$worktreeAdded = $false
+try {
+    if ($running.Count -gt 0) {
+        Write-Host 'Requesting that running CyrFlip exits..' -ForegroundColor Cyan
+        foreach ($process in $running) {
+            try {
+                if (-not $restartPath -and $process.Path) { $restartPath = $process.Path }
+                if ($process.Path) { & $process.Path /exit | Out-Null }
+            }
+            catch { }
+        }
+    }
     foreach ($process in $running) {
         try { $process.WaitForExit(5000) | Out-Null } catch { }
+        if (Get-Process -Id $process.Id -ErrorAction SilentlyContinue) {
+            Write-Host "CyrFlip pid $($process.Id) did not exit in 5 seconds; forcing it." -ForegroundColor Yellow
+            try { Stop-Process -Id $process.Id -Force -ErrorAction Stop } catch { }
+        }
     }
+
+    git worktree add --detach $preflightRoot HEAD
+    if ($LASTEXITCODE -ne 0) { throw "Could not create detached preflight worktree (exit $LASTEXITCODE)." }
+    $worktreeAdded = $true
+    Push-Location $preflightRoot
+    try {
+        dotnet build CyrFlip.sln -c Release -p:Version=$Version --nologo
+        if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
+        # The same FileVersion gate release.yml applies after the tag - run here, so a mismatch
+        # fails before the tag exists. The SDK normalizes HHmm's leading zero in FileVersion.
+        $exeInfo = (Get-Item (Join-Path $preflightRoot 'src\CyrFlip\bin\Release\net48\CyrFlip.exe')).VersionInfo
+        if ([version]$exeInfo.FileVersion -ne [version]$Version) {
+            throw "exe FileVersion '$($exeInfo.FileVersion)' does not read back as '$Version'."
+        }
+        dotnet test CyrFlip.sln -c Release --no-build --nologo
+        if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
+        Write-Host 'Detached-HEAD build + tests green.' -ForegroundColor Green
+
+        # xUnit cannot see this one: store-listings.md and store/listing-*.txt repeat the listing copy
+        # for the paste-by-hand path, and a mirror a release behind is exactly what gets pasted live.
+        Step 'Store listing mirrors'
+        & (Join-Path $preflightRoot 'msix\render-listing-mirrors.ps1') -Check
+        if ($LASTEXITCODE -ne 0) {
+            throw 'Store listing mirrors drifted from msix/store-listing-export.csv. Run msix\render-listing-mirrors.ps1, review the diff, commit.'
+        }
+    }
+    finally { Pop-Location }
 }
+finally {
+    if ($worktreeAdded) {
+        git worktree remove --force $preflightRoot
+        if ($LASTEXITCODE -ne 0) { Write-Warning "Could not remove temporary preflight worktree: $preflightRoot" }
+    }
 
-dotnet build CyrFlip.sln -c Release -p:Version=$Version --nologo
-if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
-dotnet test CyrFlip.sln -c Release --no-build --nologo
-if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
-Write-Host 'Local build + tests green.' -ForegroundColor Green
-
-# --- Listing copy: the mirrors must still be what the CSV renders -----------
-# xUnit cannot see this one: store-listings.md and store/listing-*.txt repeat the listing copy for
-# the paste-by-hand path, and a mirror a release behind is exactly what gets pasted into the live
-# listing on the day the CSV importer refuses a file. Free, local, and read-only.
-Step 'Store listing mirrors'
-& (Join-Path $RepoRoot 'msix\render-listing-mirrors.ps1') -Check
-if ($LASTEXITCODE -ne 0) {
-    throw 'Store listing mirrors drifted from msix/store-listing-export.csv. Run msix\render-listing-mirrors.ps1, review the diff, commit.'
-}
-
-# Put back what we stopped: a preflight is run repeatedly, and it should not leave the user's tray
-# app closed behind it. The fresh build is what starts, which is also a free smoke test.
-if ($running.Count -gt 0) {
-    $exe = Join-Path $RepoRoot 'src\CyrFlip\bin\Release\net48\CyrFlip.exe'
-    if (Test-Path $exe) {
-        Write-Host 'Restarting CyrFlip..' -ForegroundColor Cyan
-        Start-Process $exe | Out-Null
+    # A preflight should not leave the user's tray app closed. Restart the deployed copy that was
+    # actually running, never bin\Release (which would overwrite the autostart target and lock builds).
+    if ($restartPath -and (Test-Path $restartPath)) {
+        Write-Host "Restarting CyrFlip: $restartPath" -ForegroundColor Cyan
+        Start-Process $restartPath | Out-Null
     }
 }
 
@@ -142,17 +185,24 @@ if (-not $Push) {
 }
 else {
     Step "Tag + push $Tag (triggers paid GitHub release build)"
-    # Empty, non-[skip ci] anchor commit; the "release:" prefix makes ci.yml skip the branch push.
-    git commit --allow-empty -m "release: $Tag"
-    if ($LASTEXITCODE -ne 0) { throw "release commit failed (exit $LASTEXITCODE)." }
+    # The anchor gets precisely HEAD's tree, regardless of what the user staged. `git commit` would
+    # consume the index; commit-tree does not. Move the current branch only after the object exists.
+    $previousHead = (git rev-parse HEAD).Trim()
+    $anchor = (git commit-tree 'HEAD^{tree}' -p HEAD -m "release: $Tag").Trim()
+    if ($LASTEXITCODE -ne 0 -or -not $anchor) { throw "release anchor creation failed (exit $LASTEXITCODE)." }
+    git update-ref HEAD $anchor $previousHead
+    if ($LASTEXITCODE -ne 0) { throw "Could not advance the branch to the release anchor (exit $LASTEXITCODE)." }
     git tag $Tag
-    # The anchor commit already exists at this point; say so, or the next run trips over it.
-    if ($LASTEXITCODE -ne 0) { throw "git tag failed (exit $LASTEXITCODE). The empty 'release: $Tag' commit was made - drop it with 'git reset --hard HEAD~1' before retrying." }
+    if ($LASTEXITCODE -ne 0) {
+        $tagExit = $LASTEXITCODE
+        git update-ref HEAD $previousHead $anchor
+        throw "git tag failed (exit $tagExit). The release anchor was removed; your working tree and index were left untouched."
+    }
     git push origin $branch
     if ($LASTEXITCODE -ne 0) { throw "git push (branch) failed (exit $LASTEXITCODE)." }
     git push origin $Tag
     if ($LASTEXITCODE -ne 0) { throw "git push (tag) failed (exit $LASTEXITCODE)." }
-    Write-Host "Pushed $Tag - release.yml is now building the signed ZIP + GitHub Release." -ForegroundColor Green
+    Write-Host "Pushed $Tag - release.yml is now building the ZIP + GitHub Release." -ForegroundColor Green
     if (Get-Command gh -ErrorAction SilentlyContinue) {
         Write-Host 'Watch:  gh run watch   (or: gh run list --workflow=Release)' -ForegroundColor DarkGray
     }
@@ -183,7 +233,7 @@ Step "РЕЛИЗ checklist for $Tag  (see RELEASE.md for detail)"
         Then FILL IN THE PR BODY by hand (gh pr edit <n> --repo microsoft/winget-pkgs --body-file):
         wingetcreate submits Microsoft's template untouched - empty description, every box unticked.
 
-[ ] 4. Microsoft Store (MSIX):  .\msix\build-msix.ps1 ``
+[ ] 4. Microsoft Store (MSIX):  .\msix\build-msix.ps1 -ReleaseZip <downloaded-release-ZIP> -Version $Version ``
           -IdentityName "SZA.CyrFlip" ``
           -Publisher "CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD" ``
           -PublisherDisplayName "SZA"

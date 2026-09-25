@@ -62,6 +62,76 @@ namespace CyrFlip
             finally { CloseClipboard(); }
         }
 
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern uint RegisterClipboardFormat(string lpszFormat);
+
+        // Registered once per process; RegisterClipboardFormat returns the same id for the same name.
+        private static readonly uint ExcludeFromMonitorFormat = RegisterClipboardFormat(ClipboardPrivacy.ExcludeFromMonitorFormat);
+        private static readonly uint ViewerIgnoreFormat = RegisterClipboardFormat(ClipboardPrivacy.ViewerIgnoreFormat);
+        private static readonly uint CanIncludeInHistoryFormat = RegisterClipboardFormat(ClipboardPrivacy.CanIncludeInHistoryFormat);
+        private static readonly uint CanUploadToCloudFormat = RegisterClipboardFormat(ClipboardPrivacy.CanUploadToCloudFormat);
+
+        /// <summary>
+        /// The history's read: the privacy markers, the sequence number and - only when no marker asks
+        /// otherwise - the text, all inside <b>one</b> open, so the markers and the text describe the
+        /// same clipboard content. A marked secret is never even copied into this process.
+        /// </summary>
+        public static bool TryReadForHistory(out string text, out ClipboardPrivacyMarkers markers, out uint sequence)
+        {
+            text = string.Empty;
+            markers = default;
+            sequence = 0;
+            if (!OpenWithRetry())
+                return false;
+            try
+            {
+                // Nobody can change the clipboard while we hold it open, so this number is the content's.
+                sequence = GetClipboardSequenceNumber();
+                markers.ExcludeFromMonitor = ExcludeFromMonitorFormat != 0 && IsClipboardFormatAvailable(ExcludeFromMonitorFormat);
+                markers.ViewerIgnore = ViewerIgnoreFormat != 0 && IsClipboardFormatAvailable(ViewerIgnoreFormat);
+                markers.CanIncludeInHistory = ReadDword(CanIncludeInHistoryFormat);
+                markers.CanUploadToCloud = ReadDword(CanUploadToCloudFormat);
+                if (ClipboardPrivacy.ShouldSkip(markers))
+                    return true;
+                text = ReadOpenText() ?? string.Empty;
+                return true;
+            }
+            finally { CloseClipboard(); }
+        }
+
+        /// <summary>A DWORD-valued format on the already open clipboard; null when absent or unreadable.</summary>
+        private static uint? ReadDword(uint format)
+        {
+            if (format == 0 || !IsClipboardFormatAvailable(format)) return null;
+            IntPtr handle = GetClipboardData(format);
+            if (handle == IntPtr.Zero) return null;
+            if (GlobalSize(handle).ToUInt64() < sizeof(uint)) return null;
+            IntPtr ptr = GlobalLock(handle);
+            if (ptr == IntPtr.Zero) return null;
+            try { return unchecked((uint)Marshal.ReadInt32(ptr)); }
+            finally { GlobalUnlock(handle); }
+        }
+
+        /// <summary>CF_UNICODETEXT from the already open clipboard; empty when absent, null when unreadable.</summary>
+        private static string? ReadOpenText()
+        {
+            IntPtr handle = GetClipboardData(CF_UNICODETEXT);
+            if (handle == IntPtr.Zero)
+                return string.Empty;
+            IntPtr ptr = GlobalLock(handle);
+            if (ptr == IntPtr.Zero)
+                return null;
+            try
+            {
+                int maxChars = (int)(GlobalSize(handle).ToUInt64() / sizeof(char));
+                if (maxChars <= 0)
+                    return string.Empty;
+                string raw = Marshal.PtrToStringUni(ptr, maxChars) ?? string.Empty;
+                int nul = raw.IndexOf('\0');
+                return nul >= 0 ? raw.Substring(0, nul) : raw;
+            }
+            finally { GlobalUnlock(handle); }
+        }
+
         /// <summary>Replace clipboard contents with <paramref name="text"/> (empty clears it).</summary>
         public static bool TrySetText(string text)
         {

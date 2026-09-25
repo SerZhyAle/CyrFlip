@@ -7,9 +7,11 @@ namespace CyrFlip
     /// <summary>
     /// One-way, non-destructive import of OneClickRunner's scenarios
     /// (<c>%APPDATA%\OneClickRunner\Scenarios\*.xml</c>) into the CyrFlip store. The source is only
-    /// ever read - never renamed, rewritten or deleted (tech plan §6.3), so a parallel OneClickRunner
-    /// install keeps working. Original Guids survive unless they collide with an existing CyrFlip
-    /// scenario, in which case a fresh Guid is assigned and counted for the summary (spec §5.3).
+    /// ever read - never renamed, rewritten or deleted (tech plan §6.3, <c>SCENARIO-FILE</c> rule 7), so
+    /// a parallel OneClickRunner install keeps working. Original Guids survive unless they collide with
+    /// an existing CyrFlip scenario, in which case a fresh Guid is assigned and counted for the summary
+    /// (spec §5.3, <c>SCENARIO-FILE</c> rule 8 - a migration preserves identity where a plain import
+    /// replaces it).
     /// </summary>
     internal static class LauncherMigration
     {

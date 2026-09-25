@@ -117,6 +117,12 @@ namespace CyrFlip.Tests
                 "the badge came out opaque (alpha " + badgeAlpha + ")");
         }
 
+        /// <summary>LAYOUT-PALETTE rule 5 fixes the number. Every other opacity test compares with the
+        /// constant, so only this one notices the constant itself moving.</summary>
+        [Fact]
+        public void TheMarkerOpacityIsTheContractsValue()
+            => Assert.Equal(0.6f, LayoutStyle.MarkerOpacity);
+
         [Fact]
         public void TheCaretOverlayWindowIsTranslucentToo()
         {

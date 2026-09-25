@@ -37,7 +37,7 @@
   <div class="wrap">
     <section>
       <h1>Política de privacidad</h1>
-      <p class="note">Última actualización: 30 de julio de 2026 · <a href="../privacy.html">English (original)</a></p>
+      <p class="note">Última actualización: 24 de septiembre de 2026 · <a href="../privacy.html">English (original)</a></p>
 
       <p><strong>CyrFlip no recopila, almacena, registra ni transmite ningún dato personal.</strong>
       Funciona por completo en tu propio dispositivo. No tiene servidores propios, ni telemetría, ni
@@ -53,17 +53,36 @@
 
       <h2>A qué accede la aplicación, y por qué</h2>
       <ul class="features">
-        <li><strong>Teclado.</strong> CyrFlip instala un enganche global de teclado con dos únicos
-        fines: detectar su atajo de activación (por omisión
-        <kbd>Ctrl</kbd>+<kbd>Mayús</kbd>+<kbd>F12</kbd>) y leer el código de la distribución de teclado
-        activa (cualquier distribución instalada en Windows) para mostrar el indicador en pantalla.
-        Además de ese atajo, vigila las combinaciones que asignes a la corrección de mayúsculas, al
+        <li><strong>Teclado.</strong> CyrFlip instala un enganche global de teclado con un único fin:
+        reconocer sus propios atajos, como el de conversión de distribución (por omisión
+        <kbd>Ctrl</kbd>+<kbd>Mayús</kbd>+<kbd>F12</kbd>). La distribución de teclado que muestra el
+        indicador (cualquier distribución instalada en Windows, incluidas las 13 seleccionadas EN, ZH, HI,
+        ES, FR, AR, BN, PT, RU, UR, DE, IT y UK) no se lee a través del enganche: CyrFlip pide a Windows la
+        distribución de la ventana que tiene el foco. Además de ese atajo, vigila las combinaciones que asignes a la corrección de mayúsculas, al
         gestor del portapapeles, a cada fila de tu tabla de conversión de distribuciones, a cada fila
         de tu tabla de traducción y a cualquier escenario de inicio rápido al que des un atajo.
         Mientras se escribe una traducción vigila también <kbd>Esc</kbd>, para que esa tecla pueda
         cancelarla; la tecla llega igualmente a la aplicación en la que estás.
         <strong>No graba, registra, almacena ni transmite tus pulsaciones.</strong> No es un
         registrador de teclas.</li>
+
+        <li><strong>Ratón.</strong> Solo mientras tengas activado el <em>menú contextual</em> propio de CyrFlip
+        (está <strong>desactivado por omisión</strong>), CyrFlip instala un enganche global de ratón para
+        reconocer la única combinación de ratón que abre ese menú (por omisión <kbd>Ctrl</kbd> + clic
+        derecho). Deja pasar sin tocarlos todos los demás clics y movimientos, y no graba, guarda ni envía
+        nada. Con el menú contextual desactivado, no existe ningún enganche de ratón.</li>
+
+        <li><strong>Cursor de texto.</strong> La opción que muestra la distribución en el puntero del ratón
+        (<strong>desactivada por omisión</strong>) sustituye, mientras CyrFlip está en marcha, el cursor de
+        selección de texto de Windows (la I) en todos los programas. CyrFlip restaura el cursor estándar al
+        salir, y también cuando se cierra por un error; solo si el proceso se termina a la fuerza, la
+        sustitución se mantiene hasta que cierres la sesión.</li>
+
+        <li><strong>Iniciar con Windows.</strong> CyrFlip se inicia con Windows solo si marcas esa opción. La
+        versión portable escribe entonces una entrada en
+        <code>HKCU\Software\Microsoft\Windows\CurrentVersion\Run</code> de tu propio perfil de usuario, y
+        desmarcar la opción la elimina; la versión de Microsoft Store usa en su lugar una tarea de inicio de
+        Windows, que también puedes cambiar en <em>Configuración &gt; Aplicaciones &gt; Inicio</em>.</li>
 
         <li><strong>Portapapeles.</strong> Cuando pulsas el atajo, CyrFlip lee brevemente el texto
         seleccionado (mediante una copia simulada), lo convierte entre distribuciones, pega el
@@ -124,15 +143,21 @@
         actual - un valor de dos letras como <code>EN</code>, <code>ZH</code>, <code>RU</code> o
         <code>AR</code> - en un pequeño archivo local (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>,
         o <code>%ProgramData%\CyrFlip\layout.txt</code> en la versión de Microsoft Store), para que la
-        extensión opcional de VS&nbsp;Code pueda mostrar el marcador junto al cursor del editor. No
-        contiene datos personales y nunca sale de tu dispositivo.</li>
+        extensión opcional de VS&nbsp;Code pueda mostrar el marcador junto al cursor del editor. A su lado,
+        <code>layout-klid.txt</code> guarda el identificador de esa distribución de teclado (ocho dígitos
+        hexadecimales, como <code>00000409</code>), para que la extensión pueda usar el mismo color. La
+        extensión, si la instalas, escribe <code>editor-caret.txt</code> en la misma carpeta mientras dibuja
+        el marcador; solo contiene el código de la distribución y una hora. CyrFlip elimina sus dos archivos
+        al salir. En la versión de Microsoft Store esa carpeta está en <code>%ProgramData%</code>, que otras
+        cuentas del mismo PC pueden leer; no contiene nada más que estos valores. Ninguno de estos archivos
+        contiene datos personales ni sale nunca de tu dispositivo.</li>
 
         <li><strong>Configuración e historial.</strong> Los ajustes se guardan en
         <code>HKCU\Software\CyrFlip</code>, incluidas tu tabla de conversión y las copias únicas de los
         ajustes de entrada de Windows descritas arriba. Si el historial del portapapeles está activado,
         se guarda localmente en la carpeta de datos de la aplicación, protegido con DPAPI. Un
         <code>config.json</code> antiguo puede leerse una sola vez durante la migración. Nada de esto
-        sale de tu dispositivo.</li>
+        sale de tu dispositivo. Cuando las notas rápidas están activadas, se guardan en la misma carpeta en un archivo protegido por DPAPI - tanto el título como el texto -, y ese archivo nunca forma parte del archivo de registros descrito más abajo.</li>
 
         <li><strong>Escenarios de inicio rápido.</strong> Cada escenario que creas se guarda como su
         propio archivo XML en <code>%APPDATA%\CyrFlip\Scenarios</code> y contiene exactamente lo que
@@ -157,6 +182,10 @@
         de que exista ningún mensaje. No se envía nada hasta que usted pulsa Enviar en su propio programa
         de correo: CyrFlip no tiene ningún canal de envío propio.</li>
       </ul>
+
+      <p>Si Windows o tu antivirus te avisó sobre CyrFlip al descargarlo o al iniciarlo por primera vez,
+      consulta <a href="trust.html">Por qué Windows o un antivirus pueden avisar sobre CyrFlip</a>: su lista de
+      lo que CyrFlip nunca hace dice lo mismo que esta página.</p>
 
       <h2>Cesión de datos</h2>
       <p>Ninguna. CyrFlip no cede ningún dato al desarrollador ni a terceros. Lo único que llega a

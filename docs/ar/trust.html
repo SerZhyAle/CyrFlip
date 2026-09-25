@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip - لماذا قد يحذّر Windows أو برنامج مكافحة الفيروسات</title>
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/ar/trust.html">
+  <meta name="description" content="ما معنى تحذير Windows SmartScreen أو برنامج مكافحة الفيروسات بشأن CyrFlip، ولماذا يظهر، وعلى ماذا تنقر بالضبط، وما الذي لا يفعله CyrFlip أبدًا." />
+  <meta property="og:title" content="CyrFlip - لماذا قد يحذّر Windows أو برنامج مكافحة الفيروسات" />
+  <meta property="og:description" content="ما معنى تحذير Windows SmartScreen أو برنامج مكافحة الفيروسات بشأن CyrFlip، ولماذا يظهر، وعلى ماذا تنقر بالضبط، وما الذي لا يفعله CyrFlip أبدًا." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <meta property="og:url" content="https://serzhyale.github.io/CyrFlip/ar/trust.html" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0a0f0a" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+</head>
+<body>
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+  <header class="site-header">
+    <div class="container">
+      <span class="brand"><img class="brand-icon" src="../assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
+      <button class="theme-btn" id="themeBtn" aria-label="تبديل السمة">◐</button>
+      <div class="cta">
+        <a class="btn btn-ghost btn-sm" href="./">→ الصفحة الرئيسية</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </div>
+  </header>
+  <div class="wrap">
+    <section>
+      <h1>لماذا قد يحذّر Windows أو برنامج مكافحة الفيروسات من CyrFlip</h1>
+      <p class="note">آخر تحديث: 24 سبتمبر 2026 · <a href="../trust.html">English (الأصل)</a></p>
+
+      <p>هذه الصفحة للحظة التي تلي مباشرةً إيقاف Windows أو برنامج مكافحة الفيروسات لـCyrFlip. وهي تشرح
+      ما هو التحذير، ولماذا يظهر، وعلى ماذا تنقر بالضبط، وما الذي لا يفعله CyrFlip أبدًا - بهذا الترتيب،
+      لتقرّر بنفسك.</p>
+
+      <h2 id="what">ما هو التحذير</h2>
+      <p class="note">نصوص نوافذ Windows مقتبسة هنا بصيغتها الإنجليزية، مع ترجمة بين قوسين؛ وفي Windows
+      بواجهة عربية ستظهر بصياغة Windows العربية الخاصة.</p>
+
+      <h3><span dir="ltr">"Windows protected your PC"</span> (حمى Windows حاسوبك)</h3>
+      <p>هذا هو <strong>Microsoft Defender SmartScreen</strong>. تقول النافذة الزرقاء: <em dir="ltr">"Microsoft
+      Defender SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at
+      risk."</em> (منع Microsoft Defender SmartScreen تطبيقًا غير معروف من البدء. وقد يعرّض تشغيل هذا
+      التطبيق حاسوبك للخطر.) وبعد النقر على <strong dir="ltr">More info</strong> (مزيد من المعلومات) تعرض
+      <em dir="ltr">App: CyrFlip.exe</em> (التطبيق) و<em dir="ltr">Publisher: Unknown publisher</em> (الناشر:
+      ناشر غير معروف)، مع الزرّين <strong dir="ltr">Run anyway</strong> (التشغيل على أي حال) و<strong
+      dir="ltr">Don't run</strong> (عدم التشغيل).</p>
+
+      <h3>برنامج مكافحة فيروسات يعزل CyrFlip.exe أو يحظره</h3>
+      <p>الحالة التي أُبلغ عنها حتى الآن هي <strong>Avast / AVG</strong>، الذي يسمّيه <code dir="ltr">IDP.Generic</code>
+      (Behavior Shield). وقد تستخدم منتجات مكافحة فيروسات أخرى أسماء أخرى للنوع نفسه من الاكتشاف.</p>
+
+      <p>أين تصادفه: قد يُظهر <strong>ملف ZIP من GitHub</strong> وحزمة <strong>winget</strong> (التي تثبّت
+      ملف ZIP نفسه) هذه التحذيرات. أما نسخة <strong>Microsoft Store</strong> فموقَّعة من Microsoft ولا يظهر
+      معها تحذير SmartScreen.</p>
+
+      <h2 id="why">لماذا يظهر</h2>
+      <p>CyrFlip مجاني ومفتوح المصدر ومن صنع مطوِّر مستقل واحد. ملف ZIP <strong>غير موقَّع رقميًا</strong>:
+      فشهادة توقيع الشيفرة تكلّف مالًا كل عام، وعدم شرائها كان خيارًا مقصودًا. ويثق SmartScreen بالملف بحسب
+      سمعته - أي كم شخصًا شغّل ذلك الملف بعينه - لذا يبدأ الإصدار الجديد غير الموقَّع بلا سمعة، ويخفت
+      التحذير كلما زاد تنزيل الإصدار.</p>
+      <p>وثمة سبب ثانٍ لا يزيله التوقيع. فلكي يؤدي مؤشر التخطيط عمله، يفعل تمامًا ما تراقبه أساليب الكشف
+      السلوكي في برامج مكافحة الفيروسات: يثبّت خطّافًا عامًا للوحة المفاتيح (وخطّافًا للفأرة حين تكون قائمة
+      السياق مفعَّلة)، ويصطنع <kbd dir="ltr">Ctrl</kbd>+<kbd dir="ltr">C</kbd> و<kbd dir="ltr">Ctrl</kbd>+<kbd dir="ltr">V</kbd>، ويقرأ الحافظة،
+      ويمكنه استبدال مؤشر النص في النظام. كما أن تشغيل البرنامج مباشرةً من مجلد مؤقت (من داخل ملف ZIP، أو
+      من <code dir="ltr">%TEMP%</code>) يضيف علامة سمعة أخرى.</p>
+      <p>التحذير يؤدي عمله مع ملف لا يعرفه. والحقائق أدناه تتيح لك أن تحكم على الملف بنفسك.</p>
+
+      <h2 id="click">على ماذا تنقر بالضبط</h2>
+      <ol>
+        <li><strong>فُكّ ضغط ملف ZIP إلى مجلد دائم أولًا</strong>، مثل
+        <code dir="ltr">%LOCALAPPDATA%\Programs\CyrFlip\</code>، وشغّل <code dir="ltr">CyrFlip.exe</code> من هناك - لا من داخل
+        الأرشيف.</li>
+        <li><strong>SmartScreen:</strong> انقر <strong dir="ltr">More info</strong> (مزيد من المعلومات)،
+        وتحقّق من أن التطبيق هو <code dir="ltr">CyrFlip.exe</code>، ثم انقر <strong dir="ltr">Run anyway</strong>
+        (التشغيل على أي حال). ويتذكّر Windows ذلك لهذا الملف.</li>
+        <li><strong>عزل برنامج مكافحة الفيروسات:</strong> استعِد الملف من العزل، وأضف استثناءً <strong>لذلك
+        المجلد وحده</strong> فقط. ثم أبلِغ مورّد برنامج مكافحة الفيروسات عن الإنذار الكاذب (لدى Avast وAVG
+        كليهما نموذج للإبلاغ عن الإنذارات الكاذبة على موقعيهما)، وهذا يساعد كل مستخدم آخر.</li>
+        <li><strong>تحقّق اختياري:</strong> قارِن قيمة SHA-256 للملف بملف <code dir="ltr">.sha256</code> المنشور بجوار
+        ملف ZIP في <a href="https://github.com/SerZhyAle/CyrFlip/releases/latest">صفحة الإصدار</a> (<code dir="ltr">Get-FileHash CyrFlip.exe</code> في PowerShell)،
+        أو ارفع الملف إلى <a href="https://www.virustotal.com/">VirusTotal</a>.</li>
+        <li><strong>أو تجنّب التحذير كليًا:</strong> ثبّت CyrFlip من
+        <a href="https://apps.microsoft.com/detail/9NB4W41NGQJ4">Microsoft Store</a>، وهو موقَّع من Microsoft.</li>
+      </ol>
+      <p>لا شيء هنا يطلب منك إيقاف أي حماية لحاسوبك بأكمله - ملف واحد، ومجلد واحد، ويمكنك التراجع عن
+      أيٍّ منهما.</p>
+
+      <h2 id="never">ما الذي لا يفعله CyrFlip أبدًا</h2>
+      <ul class="features">
+        <li><strong>لا يطلب أبدًا صلاحيات المسؤول لنفسه.</strong> يعمل بصلاحيات المستخدم العادية
+        لديك.</li>
+        <li><strong>لا يسجّل ضغطات مفاتيحك ولا يخزّنها ولا يرسلها أبدًا.</strong> خطّاف لوحة المفاتيح
+        يتعرّف فقط على اختصارات CyrFlip الخاصة.</li>
+        <li><strong>لا يرسل أي شيء إلى أي مكان</strong> - لا قياس عن بُعد، ولا حسابات، ولا خوادم خاصة به.
+        والاستثناء الوحيد هو المترجم الاختياري (المعطّل افتراضيًا): فهو يرسل النص المحدَّد إلى عنوان Ollama
+        الذي تضبطه، وهو افتراضيًا برنامج على حاسوبك أنت.</li>
+        <li><strong>لا يثبّت أبدًا خدمة أو برنامج تشغيل.</strong></li>
+        <li><strong>لا يكتب أبدًا خارج ملف المستخدم الخاص بك</strong>، باستثناء ملف التخطيط الصغير تحت
+        <code dir="ltr">%ProgramData%\CyrFlip</code> في نسخة Microsoft Store.</li>
+        <li><strong>لا يبدأ أبدًا مع Windows</strong> ما لم تحدّد ذلك الخيار.</li>
+      </ul>
+
+      <h3>مطالبات المسؤول التي قد تظل تراها</h3>
+      <ul>
+        <li>سيناريو تشغيل سريع وسمتَه بـ<em>التشغيل كمسؤول</em>: المطالبة تخصّ <strong>برنامجك
+        أنت</strong>، لا CyrFlip. ألغِ تحديد الخيار في السيناريو لإيقافها.</li>
+        <li><em>تثبيت Ollama</em> في النسخة المحمولة: يُنزّل CyrFlip المثبِّت الرسمي لـOllama ويشغّله؛ وأي
+        مطالبة تظهر هي من مثبِّت Ollama نفسه.</li>
+      </ul>
+
+      <h3>ما الذي يغيّره، وكيف تتراجع عنه</h3>
+      <ul>
+        <li><strong>التشغيل مع Windows</strong> - ألغِ تحديد الخيار في إعدادات CyrFlip.</li>
+        <li><strong>مؤشر النص</strong> (معطّل افتراضيًا) - يعيد CyrFlip المؤشر القياسي عند خروجه.</li>
+        <li><strong>إعدادات الإدخال في Windows</strong> (تخطيطات لوحة المفاتيح، واختصارات التبديل)، فقط حين
+        تغيّرها في علامة التبويب <em>لغات Windows</em> - وزر الاستعادة في تلك العلامة يعيد الحالة التي كانت
+        لديك.</li>
+        <li><strong>إعداداته وبياناته الخاصة</strong> - مفتاح السجل <code dir="ltr">HKCU\Software\CyrFlip</code>
+        والمجلدان <code dir="ltr">%LOCALAPPDATA%\CyrFlip</code> و<code dir="ltr">%APPDATA%\CyrFlip</code>. احذفها بعد الخروج من
+        CyrFlip فلا يبقى منه شيء.</li>
+      </ul>
+      <p>الحقائق نفسها، بتفصيل أكبر، موجودة في <a href="privacy.html">سياسة الخصوصية</a>.</p>
+
+      <p class="note">إن أصبحت إصدارات CyrFlip موقَّعة يومًا ما، فستبقى هذه الصفحة وتذكر بدءًا من أي
+      إصدار.</p>
+
+      <p>للأسئلة أو للإبلاغ عن تحذير جديد: <a href="mailto:sza@ukr.net">sza@ukr.net</a>.</p>
+    </section>
+
+    <footer>
+      <p>رخصة MIT · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">الشيفرة المصدرية على GitHub</a><br />
+      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
+    </footer>
+  </div>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn');
+    var themeColor=document.querySelector('meta[name="theme-color"]');
+    function applyThemeMeta(){
+      var dark=doc.getAttribute('data-theme')!=='light';
+      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
+      themeBtn.setAttribute('aria-label',dark?'سمة فاتحة':'سمة داكنة');
+    }
+    themeBtn.addEventListener('click',function(){
+      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
+      doc.setAttribute('data-theme',next);
+      try{localStorage.setItem('sza-theme',next);}catch(e){}
+      applyThemeMeta();
+    });
+    applyThemeMeta();
+  })();
+  </script>
+</body>
+</html>

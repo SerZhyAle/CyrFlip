@@ -9,6 +9,10 @@ namespace CyrFlip
     /// it - chiefly the companion VS Code extension, which can place the marker exactly at the
     /// editor caret (something the external UIA overlay can't do reliably in Monaco/Electron).
     ///
+    /// This is the producing half of <c>LAYOUT-SIGNAL</c> (rules 1, 2, 3, 5 and 6): the two locations, one
+    /// fact per file, the ASCII payload, one writer whose last write is the latest state, and the files
+    /// removed on a clean exit so that their absence means "not running".
+    ///
     /// Unpackaged: %LOCALAPPDATA%\CyrFlip\layout.txt.
     /// MSIX (Store): %ProgramData%\CyrFlip\layout.txt - because under MSIX a write to
     /// %LOCALAPPDATA% is virtualized into the package container, where the (unpackaged) VS Code
@@ -17,41 +21,154 @@ namespace CyrFlip
     /// </summary>
     internal static class LayoutPublisher
     {
-        private static readonly string Folder = Path.Combine(
-            Environment.GetFolderPath(PackageInfo.IsPackaged
-                ? Environment.SpecialFolder.CommonApplicationData   // %ProgramData%
-                : Environment.SpecialFolder.LocalApplicationData),  // %LOCALAPPDATA%
-            "CyrFlip");
-
-        private static readonly string FilePath = Path.Combine(Folder, "layout.txt");
+        internal const string CodeFileName = "layout.txt";
 
         /// <summary>
-        /// The active layout's KLID, published <b>beside</b> layout.txt rather than inside it. The
+        /// The active layout's KLID, published <b>beside</b> layout.txt rather than inside it - the whole
+        /// of <c>LAYOUT-SIGNAL</c> rule 2, in one line of code. The
         /// extension reads the first four characters of layout.txt as the code, so appending anything
         /// to that file would break every already-installed copy of it - and the extension is published
         /// on its own clock, so old copies are the normal case, not the edge one. A second file is
         /// additive: an extension that does not know about it behaves exactly as before, and one that
         /// does gets the layout's own shade of the language colour.
         /// </summary>
-        private static readonly string KlidPath = Path.Combine(Folder, "layout-klid.txt");
+        internal const string KlidFileName = "layout-klid.txt";
 
-        public static void Publish(string code, string? klid = null)
+        /// <summary>
+        /// The one decision of where the channel lives (rule 1), shared with <see cref="EditorCaretSignal"/>
+        /// so the claim is always read from the folder the code is written to.
+        /// </summary>
+        internal static readonly string Folder = FolderFor(PackageInfo.IsPackaged, Environment.GetFolderPath);
+
+        private static readonly Channel Default = new Channel(Folder);
+
+        internal static string FolderFor(bool packaged, Func<Environment.SpecialFolder, string> resolve)
+            => Path.Combine(
+                resolve(packaged
+                    ? Environment.SpecialFolder.CommonApplicationData   // %ProgramData%
+                    : Environment.SpecialFolder.LocalApplicationData),  // %LOCALAPPDATA%
+                "CyrFlip");
+
+        /// <summary>Returns at once - the caller is the UI thread; the write happens on a worker.</summary>
+        public static void Publish(string code, string? klid = null) => Default.Publish(code, klid);
+
+        /// <summary>
+        /// Deletes both files on a clean exit (rule 6). Called only by the primary instance's context -
+        /// never from <c>Program</c>, where the <c>/launcher-run</c> forwarding process and the one-shot
+        /// launch would delete the live instance's files. Idempotent; later publishes are ignored.
+        /// </summary>
+        public static void Retract() => Default.Retract();
+
+        /// <summary>The synchronous write, the body of every publish. Swallows every failure.</summary>
+        internal static void WriteNow(string folder, string code, string klid)
         {
-            string safeCode = code ?? "";
-            string safeKlid = klid ?? "";
-            ThreadPool.QueueUserWorkItem(_ =>
+            try
+            {
+                Directory.CreateDirectory(folder);
+                File.WriteAllText(Path.Combine(folder, CodeFileName), code);
+                File.WriteAllText(Path.Combine(folder, KlidFileName), klid);
+            }
+            catch
+            {
+                // Best-effort - never let publishing affect the app.
+            }
+        }
+
+        /// <summary>
+        /// One folder's writer. A single drain worker writes whatever is pending until nothing newer is,
+        /// so two publishes can never race each other and leave an older value - or a code and a KLID from
+        /// two different states - on disk (rule 5). The producer writes only on change, so a stale value
+        /// would not heal on the next poll the way the rule assumes.
+        /// </summary>
+        internal sealed class Channel
+        {
+            private readonly string _folder;
+            private readonly object _gate = new object();
+            private string? _pendingCode;
+            private string _pendingKlid = "";
+            private bool _draining;
+            private bool _retracted;
+
+            internal Channel(string folder) => _folder = folder;
+
+            internal void Publish(string code, string? klid)
+            {
+                lock (_gate)
+                {
+                    if (_retracted)
+                        return;
+                    _pendingCode = code ?? "";
+                    _pendingKlid = klid ?? "";
+                    if (_draining)
+                        return; // the running worker picks the newest value up before it stops
+                    _draining = true;
+                }
+                ThreadPool.QueueUserWorkItem(_ => Drain());
+            }
+
+            private void Drain()
+            {
+                while (true)
+                {
+                    string code, klid;
+                    lock (_gate)
+                    {
+                        if (_pendingCode == null || _retracted)
+                        {
+                            _draining = false;
+                            Monitor.PulseAll(_gate);
+                            return;
+                        }
+                        code = _pendingCode;
+                        klid = _pendingKlid;
+                        _pendingCode = null;
+                    }
+                    WriteNow(_folder, code, klid); // outside the lock: a publish never waits on the disk
+                }
+            }
+
+            /// <summary>Waits until no write is pending or running; false on timeout.</summary>
+            internal bool Flush(TimeSpan timeout)
+            {
+                DateTime deadline = DateTime.UtcNow + timeout;
+                lock (_gate)
+                {
+                    while (_draining)
+                    {
+                        TimeSpan left = deadline - DateTime.UtcNow;
+                        if (left <= TimeSpan.Zero || !Monitor.Wait(_gate, left))
+                            return !_draining;
+                    }
+                    return true;
+                }
+            }
+
+            internal void Retract()
+            {
+                lock (_gate)
+                {
+                    _retracted = true;
+                    _pendingCode = null;
+                }
+                // A write already in flight would otherwise recreate the files after the delete.
+                Flush(TimeSpan.FromMilliseconds(250));
+                TryDelete(Path.Combine(_folder, CodeFileName));
+                TryDelete(Path.Combine(_folder, KlidFileName));
+                // editor-caret.txt is the extension's claim, never ours to delete (VERSIONING section 4
+                // rule 5: absence is not authority to destroy).
+            }
+
+            private static void TryDelete(string path)
             {
                 try
                 {
-                    Directory.CreateDirectory(Folder);
-                    File.WriteAllText(FilePath, safeCode);
-                    File.WriteAllText(KlidPath, safeKlid);
+                    File.Delete(path);
                 }
                 catch
                 {
-                    // Best-effort - never let publishing affect the app.
+                    // Best-effort, like every other write of this channel.
                 }
-            });
+            }
         }
     }
 }

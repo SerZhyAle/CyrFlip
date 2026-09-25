@@ -65,10 +65,12 @@ namespace CyrFlip.Tests
             Action<string> s = _ => { };
             var launcherStore = new LauncherScenarioStore(System.IO.Path.Combine(
                 System.IO.Path.GetTempPath(), "CyrFlipTests", Guid.NewGuid().ToString("N")));
+            Func<string, bool, string> export = (_, _) => "";
             object form = Activator.CreateInstance(type, new object[]
             {
                 config, b, b, b, b, b, b, b, b, b, i, s, noop, noop, noop, noop, noop, b, b, b, b, b, b,
                 launcherStore, b,
+                noop, noop, noop, export,
             })!;
             try
             {

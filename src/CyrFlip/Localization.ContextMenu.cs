@@ -12,6 +12,41 @@ namespace CyrFlip
                 es: "Cortar", fr: "Couper", pt: "Recortar",
                 ar: "قص", hi: "काटें", bn: "কাটুন", ur: "کاٹیں", zh: "剪切");
 
+            // The launch item names its target, so the caption is a format string like every other.
+            // The two report lines above the commands. They are captions, not commands - see
+            // TextContextMenu.StatsGroup.
+            Add("Выделено строк: {0}",
+                en: "Lines selected: {0}", uk: "Виділено рядків: {0}", de: "Markierte Zeilen: {0}",
+                it: "Righe selezionate: {0}", es: "Líneas seleccionadas: {0}",
+                fr: "Lignes sélectionnées : {0}", pt: "Linhas selecionadas: {0}",
+                ar: "الأسطر المحددة: {0}", hi: "चयनित पंक्तियाँ: {0}", bn: "নির্বাচিত লাইন: {0}",
+                ur: "منتخب سطریں: {0}", zh: "已选行数：{0}");
+
+            Add("символов: {0}",
+                en: "characters: {0}", uk: "символів: {0}", de: "Zeichen: {0}",
+                it: "caratteri: {0}", es: "caracteres: {0}", fr: "caractères : {0}",
+                pt: "caracteres: {0}", ar: "الأحرف: {0}", hi: "अक्षर: {0}", bn: "অক্ষর: {0}",
+                ur: "حروف: {0}", zh: "字符数：{0}");
+
+            Add("Запустить «{0}»",
+                en: "Open “{0}”", uk: "Запустити «{0}»", de: "„{0}“ öffnen", it: "Apri «{0}»",
+                es: "Abrir «{0}»", fr: "Ouvrir « {0} »", pt: "Abrir «{0}»",
+                ar: "فتح «{0}»", hi: "«{0}» खोलें", bn: "«{0}» খুলুন", ur: "«{0}» کھولیں", zh: "打开「{0}」");
+
+            Add("Запустить программу из выделенного текста?\n\n{0}\n\nCyrFlip не проверяет, что это за файл.",
+                en: "Run a program from the selected text?\n\n{0}\n\nCyrFlip does not check what this file is.",
+                uk: "Запустити програму з виділеного тексту?\n\n{0}\n\nCyrFlip не перевіряє, що це за файл.",
+                de: "Ein Programm aus dem markierten Text starten?\n\n{0}\n\nCyrFlip prüft nicht, was diese Datei ist.",
+                it: "Avviare un programma dal testo selezionato?\n\n{0}\n\nCyrFlip non verifica che cosa sia questo file.",
+                es: "¿Ejecutar un programa desde el texto seleccionado?\n\n{0}\n\nCyrFlip no comprueba qué es este archivo.",
+                fr: "Lancer un programme depuis le texte sélectionné ?\n\n{0}\n\nCyrFlip ne vérifie pas ce qu'est ce fichier.",
+                pt: "Executar um programa a partir do texto selecionado?\n\n{0}\n\nO CyrFlip não verifica o que é este arquivo.",
+                ar: "هل تريد تشغيل برنامج من النص المحدد؟\n\n{0}\n\nلا يتحقق CyrFlip من ماهية هذا الملف.",
+                hi: "चयनित पाठ से कोई प्रोग्राम चलाएँ?\n\n{0}\n\nCyrFlip यह जाँच नहीं करता कि यह फ़ाइल क्या है।",
+                bn: "নির্বাচিত লেখা থেকে প্রোগ্রাম চালাবেন?\n\n{0}\n\nএই ফাইলটি কী, CyrFlip তা যাচাই করে না।",
+                ur: "منتخب متن سے پروگرام چلائیں؟\n\n{0}\n\nCyrFlip یہ جانچ نہیں کرتا کہ یہ فائل کیا ہے۔",
+                zh: "从选中的文本运行程序？\n\n{0}\n\nCyrFlip 不会检查这个文件是什么。");
+
             Add("Перевести на {0}",
                 en: "Translate into {0}", uk: "Перекласти на {0}", de: "Übersetzen nach {0}",
                 it: "Traduci in {0}", es: "Traducir al {0}", fr: "Traduire en {0}",

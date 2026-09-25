@@ -28,7 +28,7 @@ Manager). Именно оно определяет текущую расклад
 ```
 ┌──────────────────────────┐        writes        ┌──────────────────────────┐
 │  CyrFlip.exe (tray app)   │  ───────────────────▶ │  %LOCALAPPDATA%\CyrFlip\ │
-│  detects EN / RU / UK     │   current layout code │       layout.txt         │
+│  detects any layout       │   current layout code │       layout.txt         │
 └──────────────────────────┘                       └─────────────┬────────────┘
                                                                   │ watches
                                                                   ▼
@@ -40,12 +40,31 @@ Manager). Именно оно определяет текущую расклад
 ```
 
 - The **CyrFlip app** detects the keyboard layout and writes the current code to
-  `%LOCALAPPDATA%\CyrFlip\layout.txt`.
+  `%LOCALAPPDATA%\CyrFlip\layout.txt` - or, when CyrFlip was installed from the Microsoft Store, to
+  `%ProgramData%\CyrFlip\layout.txt`. The extension checks both and reads whichever was written most
+  recently. Beside it, `layout-klid.txt` names the exact keyboard layout, so the marker gets that
+  layout's own shade. When the app exits it removes both files, and the marker disappears.
 - This extension watches that file and renders a small coloured marker (with a black outline)
   diagonally below-right of the caret, so it never shifts or covers your text. It also shows the
   layout in the status bar.
 
 Everywhere **outside** the editor, CyrFlip's own tray icon and mouse-cursor marker keep working.
+
+### Colours
+
+The colour comes from the same table the app uses: each of the **13 curated languages** has its own
+colour, each of their **25 keyboard layouts** its own shade of that colour (Russian is always red,
+Russian Typewriter a different red), and every other layout shares **one neutral colour**. The marker
+is drawn **60% opaque**, like the app's, so the text under it stays readable. The full table is in the
+[CyrFlip guide](https://serzhyale.github.io/CyrFlip/guide.html#layout-colours).
+
+### No double marker
+
+The app can find the editor caret too, and used to draw its own marker a few pixels from this one.
+While this extension is drawing, it keeps a small file, `editor-caret.txt`, fresh beside `layout.txt`,
+and the app hides its own marker for as long as that file is recent. The claim lapses about five
+seconds after your last editor activity, so the app's marker comes back in the chat panel, the terminal
+and search boxes, where this extension cannot draw.
 
 ## Usage
 
@@ -53,10 +72,11 @@ Everywhere **outside** the editor, CyrFlip's own tray icon and mouse-cursor mark
    appears in the notification area and shows the active layout.
 2. **Install this extension** and reload VS Code (`Developer: Reload Window`). It activates on
    startup.
-3. **Click into a code editor and type.** Switch your keyboard layout - the coloured `EN`/`RU`/`UK`
-   marker follows your caret, and the status bar shows `⌨ EN/RU/UK`.
+3. **Click into a code editor and type.** Switch your keyboard layout - the coloured marker (`EN`,
+   `RU`, `DE`, `ZH` or whatever layout is active) follows your caret, and the status bar shows it
+   too (`⌨ EN`).
 
-If nothing appears: confirm the app is running and that `%LOCALAPPDATA%\CyrFlip\layout.txt` exists
+If nothing appears: confirm the app is running and that `%LOCALAPPDATA%\CyrFlip\layout.txt` (for a Store install, `%ProgramData%\CyrFlip\layout.txt`) exists
 and updates when you switch layout. The status-bar indicator is the quickest way to confirm the
 extension is reading the file.
 
@@ -71,7 +91,7 @@ host editor decorations, so the marker can't appear there. In those spots, rely 
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `cyrflip.layoutFile` | `""` | Override the layout file path. Empty = `%LOCALAPPDATA%\CyrFlip\layout.txt`. |
+| `cyrflip.layoutFile` | `""` | Override the layout file path. Empty = the newest of `%LOCALAPPDATA%\CyrFlip\layout.txt` and `%ProgramData%\CyrFlip\layout.txt`. |
 | `cyrflip.showStatusBar` | `true` | Also show the layout in the status bar. |
 | `cyrflip.pollIntervalMs` | `200` | How often (ms) to check the layout file. |
 

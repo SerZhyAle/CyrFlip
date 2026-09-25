@@ -125,6 +125,8 @@ namespace CyrFlip
                 case 0x2D: return "Insert";
                 case 0x24: return "Home";
                 case 0x23: return "End";
+                case 0x21: return "PageUp";
+                case 0x22: return "PageDown";
             }
             return "0x" + vk.ToString("X2", CultureInfo.InvariantCulture);
         }
@@ -169,6 +171,10 @@ namespace CyrFlip
                 case "INSERT": case "INS": vk = 0x2D; canonical = "Insert"; return true;
                 case "HOME": vk = 0x24; canonical = "Home"; return true;
                 case "END": vk = 0x23; canonical = "End"; return true;
+                // HotkeyDialog has always offered these two; before the parser knew them, a captured
+                // Ctrl+Shift+PageUp silently came back as the Ctrl+Shift+F12 default.
+                case "PAGEUP": case "PGUP": vk = 0x21; canonical = "PageUp"; return true;
+                case "PAGEDOWN": case "PGDN": vk = 0x22; canonical = "PageDown"; return true;
             }
 
             vk = 0;

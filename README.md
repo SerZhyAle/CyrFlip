@@ -17,15 +17,15 @@ CyrFlip is a tiny Windows tray tool with a few modest jobs:
 5. **An opt-in quick-launch module (the absorbed [OneClickRunner](https://github.com/SerZhyAle/OneClickRunner)).** Your programs, scripts and yt-dlp downloads as scenarios, launched from the tray, the settings table, an optional per-scenario global hotkey, or the taskbar **Jump List**. Off by default - until you enable it, CyrFlip behaves exactly as before.
 6. **An opt-in translator that runs on your own computer.** Select text anywhere in Windows, press a chord, and the translation appears in a small window next to the mouse pointer, filling in as the model writes it. It runs on [Ollama](https://ollama.com), a free program you install once yourself - no account, no key, and no text sent to the developer or to a cloud service. Off by default.
 7. **An opt-in context menu of CyrFlip's own.** Hold **Ctrl** and right-click a selection: Copy/Cut/Paste, your layout conversions, the case fix, your translation rows, Quick launch and the clipboard history, all at the pointer. The menu never takes the focus, so the selection survives it. Off by default - and while it is off, the mouse hook is not installed at all.
-8. **Extras that fit a tray tool:** an opt-in encrypted clipboard history with search, two keep-awake switches, and a UI available in **13 languages**.
+8. **Opt-in quick notes.** Press **Ctrl+Shift+Alt+N**, type or paste, close. The text is kept exactly as it is - no Markdown, no highlighting, no auto-formatting - so a fragment of code pastes back into the editor without a single change, and search looks inside the body, because most notes never get a name. Stored only on your machine, encrypted with Windows DPAPI. Off by default.
+9. **Extras that fit a tray tool:** an opt-in encrypted clipboard history with search, two keep-awake switches, and a UI available in **13 languages**.
 
 ![CyrFlip's layout-aware text cursor showing EN, RU, ZH and AR](assets/cursor-preview.png)
 
 ## Status
 
 Early development - which here means "it works, but we reserve the right to be humble about it." See
-[PLAN/done/KeyboardTransliterator_Specification_v1.0.md](PLAN/done/KeyboardTransliterator_Specification_v1.0.md)
-for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and conventions.
+[CLAUDE.md](CLAUDE.md) for the architecture and conventions.
 
 ## How it works
 
@@ -41,14 +41,16 @@ for the full specification and [CLAUDE.md](CLAUDE.md) for the architecture and c
 - **Run it** - launch `CyrFlip.exe`. It sits quietly in the notification area (system tray) and its icon shows the active keyboard layout.
 - **Convert text** - select the `ghbdtn` you meant as «привет», press **Ctrl+Shift+F12**, and it's replaced in place. Works in any app (Notepad, Word, browsers, ..). That chord is simply the EN ⇄ RU row the conversion table starts with; add rows for any other pair of installed layouts, each with its own chord.
 - **Fix CapsLock** - select the `hELLO` you meant as `Hello` and press **Ctrl+Shift+F11**.
-- **Tray menu** (right-click the icon) keeps the frequent switches: show/hide history, clipboard history on/off, pause capture, the three indicator toggles, the two keep-awake switches, the **Quick launch** submenu and **Translate clipboard** (each shown only while its module is enabled), **Settings…** and **Exit**. Double-clicking the icon opens Settings.
-- **Settings** (nine tabs, every change applied at once, no restart):
+- **Keep a fragment** - press **Ctrl+Shift+Alt+N**, paste the code or type the thought, close the window. It is saved without a name if you don't give it one, and found later by any part of its text.
+- **Tray menu** (right-click the icon) keeps the frequent switches: show/hide history, clipboard history on/off, pause capture, the three indicator toggles, the two keep-awake switches, the **Quick launch** submenu, **Translate clipboard** and **Quick notes** (each shown only while its module is enabled), **Settings…** and **Exit**. Double-clicking the icon opens Settings.
+- **Settings** (ten tabs, every change applied at once, no restart):
   - **General** - start with Windows, keep the computer awake, keep the screen on (both remembered across restarts), and the interface language (13 to choose from).
   - **Indicators** - the I-beam cursor marker (off by default), the caret marker (on by default), the compact dot style, "change the layout after converting text", and "synchronize CapsLock after the case fix".
   - **Hotkeys** - the master switch plus a separate on/off and chord for the case fix and the clipboard manager, the option to yield the chords to a focused remote-desktop client, and the **context menu** switch with the mouse chord that opens it.
   - **Layout conversions** - one table holding **every** chord that converts text between layouts, EN ⇄ RU included. Each row is a pair of installed layouts plus its own combination and on/off switch, and each works in both directions.
   - **Windows languages** - install / reorder / remove Windows keyboard layouts, choose the cycle chord (Alt+Shift, Ctrl+Shift, `` ` `` or off), and assign direct per-language shortcuts that Windows itself handles. Both sections take a one-time backup of your pre-CyrFlip state with a one-click restore.
   - **Quick launch** - the scenario launcher (see below).
+  - **Quick notes** - the local notepad (see below): the switch, its chord, whether the editor wraps long lines, the export of every note to one Markdown file, and the button that destroys the lot.
   - **Translation** - the local translator (see below): the Ollama address and model, the buttons that install, start and check it, the table of translation directions, and what to do with the result.
   - **Clipboard** and **About & Advanced** - history options, its transparency and search, the **build version** (the same `YY.M.D.HHmm` stamp the release ZIP carries, so you can tell at a glance whether a fix is in your copy), plus the caret-position diagnostics and **Send logs to the author..** (see below).
 
@@ -78,13 +80,26 @@ An optional module that translates the selected text with a language model runni
 - **One-press helpers** on the settings tab: install Ollama, start it, check the connection, and download a model. The recommended ones are `aya-expanse:8b` (~4.7 GB, the default - the best translation of those tested) and `gemma2:9b` (~5 GB). Models under 4 GB failed the Russian and Ukrainian check outright, so `gemma2:2b` (~1.5 GB) is there only for a machine short on space, and it will make mistakes. The model is held in memory by the **Ollama** process, not by CyrFlip, which stays inside its 50 MB budget. In the Microsoft Store build the install button only opens ollama.com - a Store app must not download and run an installer.
 - **Worth knowing:** the quality is the local model's; the first translation after a cold start takes a while, because the model has to load; Ollama and a model are a multi-gigabyte download you make once; and of a long selection the first 4000 characters are translated, which the window tells you.
 
+## Quick notes
+
+A small local notepad for the thing you want to keep right now and find again later. **Off by default**; enable it on Settings → **Quick notes**. While it is off CyrFlip neither reads nor creates the notes file, there is no tray entry and no chord is bound.
+
+- **One gesture:** **Ctrl+Shift+Alt+N** opens the window with a new note and the caret already in the body. You can also open the list from the tray, or save a selection straight from CyrFlip's own context menu.
+- **The text stays text.** No Markdown rendering, no syntax colouring, no smart quotes, no tab expansion - the point is that a fragment of code can be pasted back where it came from without a single change. The editor is monospace and does **not** wrap long lines by default, which is a setting.
+- **A name is optional.** Most notes never get one; the list shows the first non-empty line instead, and that caption is derived on the way to the screen rather than stored, so changing the first line later spoils nothing.
+- **Search is the index.** It looks in the name, the body and every checklist item at once, from the first character typed, and the results keep the standard order rather than an invisible relevance score.
+- **Newest first, by creation.** Editing an old note never moves it: the creation date is assigned once and never changes, and the modification date is metadata.
+- **Checklists** are the second kind of note: one level of tickable items you can add, rename, reorder and delete. A note can be converted between the two kinds, and CyrFlip says so first when the conversion would lose the tick marks or the exact line endings.
+- **Stored locally and encrypted.** An append-only journal in the same folder as the other CyrFlip data, each record protected by Windows DPAPI for your account - title included, not just the body. Nothing goes to the network, nothing is indexed by Windows Search, and the clipboard history is never turned into notes by itself. It is **not** a secret store: don't keep passwords, production tokens or private keys there.
+- **Getting text out:** copy, export one note as `.txt` or `.md`, export every note into a single Markdown file, or **Copy for Google Keep** - the text goes to the clipboard and CyrFlip offers to open Keep, where you paste it. That is the honest limit: Google's Keep API is a Workspace-administrator interface, not something a personal account can use, so CyrFlip does not pretend to synchronize.
+
 ## VS Code extension
 
 Inside VS Code the external marker can't track the caret precisely (Monaco draws its own caret).
 The companion extension reads the layout CyrFlip publishes and renders the marker **exactly at the
 editor caret**.
 
-**How they link up:** CyrFlip writes the current layout code to `%LOCALAPPDATA%\CyrFlip\layout.txt`
+**How they link up:** CyrFlip writes the current layout code to `%LOCALAPPDATA%\CyrFlip\layout.txt` (`%ProgramData%\CyrFlip\layout.txt` for a Microsoft Store install; the extension reads the newer of the two, and the app removes the file when it exits)
 (see [LayoutPublisher.cs](src/CyrFlip/LayoutPublisher.cs)); the extension watches that file and draws
 the two-letter marker of **any** layout at the caret, plus a status-bar indicator. **CyrFlip must be running** for the
 marker to appear.
@@ -138,6 +153,7 @@ All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and ar
 | Quick launch | off | The scenario launcher: tray submenu, per-scenario hotkeys and taskbar Jump List tasks. Scenarios live in `%APPDATA%\CyrFlip\Scenarios` (one XML each) and survive the switch being turned off |
 | Translation | off | The local translator. Holds the table of directions with their own chords (the first row gets `Ctrl+Shift+F9`), the Ollama address (`http://localhost:11434` by default) and model (`aya-expanse:8b`), and whether the result is copied to the clipboard or pasted over the selection (both off). A row can target any language Windows knows; what the model actually handles is a question for the model, and the editor links to its page. Ollama itself is installed separately |
 | Context menu | off | CyrFlip's own menu over the selection, opened by a mouse chord (`Ctrl+RightClick` by default; the right button always needs a modifier, or every context menu in Windows would be swallowed). While off, no mouse hook is installed |
+| Quick notes | off | The local notepad: its chord (`Ctrl+Shift+Alt+N`), whether the editor wraps long lines (off), and the window's size and position. The notes themselves live in `quick-notes.log` beside the other CyrFlip data, one DPAPI-encrypted record per operation; the file is never created while the feature is off, and never collected by "Send logs to the author" |
 
 Settings → **Windows languages** writes **Windows'** own settings rather than CyrFlip's: the installed keyboard layouts (`HKCU\Keyboard Layout\Preload` plus the modern user-profile store), the cycle chord and the per-language switch shortcuts (`HKCU\Control Panel\Input Method\Hot Keys`). Each of the two sections snapshots your pre-CyrFlip state once and can restore it.
 
@@ -171,21 +187,14 @@ configuration report into one ZIP under `reports`, next to the layout file, and 
 An issue on [GitHub](https://github.com/SerZhyAle/CyrFlip/issues) works just as well - attach the same
 archive there if the problem is not obvious from the description.
 
-## Antivirus false positives
+## Windows or antivirus warnings
 
-Some antivirus engines - notably **Avast / AVG**, which report it as `IDP.Generic` ("Behavior Shield") - may flag `CyrFlip.exe` as suspicious. This is a **heuristic false positive**, not malware, and it's **normal for every keyboard-layout indicator** (Punto Switcher and similar tools trip the same heuristics). In fairness to the antivirus, CyrFlip does look guilty on paper: by design, a layout indicator + transliterator does exactly what a behavioural keylogger heuristic watches for - it installs a global keyboard hook (`WH_KEYBOARD_LL`), synthesizes keystrokes (`SendInput`), reads/writes the clipboard, and swaps the system I-beam cursor. Same toolkit, very different intentions.
+Windows SmartScreen ("Windows protected your PC") or an antivirus may stop `CyrFlip.exe` from the ZIP. The full answer - what the warning is, why it appears, exactly what to click, and what CyrFlip never does - is on **[Why Windows or an antivirus may warn](https://serzhyale.github.io/CyrFlip/trust.html)**. In short:
 
-CyrFlip is open source - you can read exactly what it does in [src/CyrFlip/](src/CyrFlip/) - and **static scanners agree it's clean: a build scores 0/71 on [VirusTotal](https://www.virustotal.com/gui/file/faa7534b168147a00854227c0787fbe0847d47ae82a70ab13327159b5b026dbc/detection)** (Avast and AVG included). The local flag is purely *behavioural* (Avast's runtime Behavior Shield) and reputational (unsigned exe, run from a temp folder) - things VirusTotal's static engines don't replicate.
-
-What actually reduces the flags (in order of impact):
-
-- **Don't run it from a temporary folder.** Launching the exe straight out of an archive or from `%TEMP%` (e.g. a `Temp\Rar$..` extraction path) is itself a strong reputation red flag. **Unpack the ZIP to a permanent location** such as `%LOCALAPPDATA%\Programs\CyrFlip\` and run it from there - this alone clears many behaviour-based detections.
-- **Code signing.** Releases are currently published **unsigned** (the release pipeline has an Authenticode step, but no signing certificate is configured; the Microsoft Store build is re-signed by the Store). A valid code signature is the single biggest factor in lowering heuristic flags - installing from the Microsoft Store or winget therefore trips fewer of them.
-- **Report the false positive** so the vendor whitelists the file (usually corrected within a few days): [Avast false-positive form](https://www.avast.com/false-positive-file-form.php) · [AVG false-positive form](https://www.avg.com/en-ww/report-false-positive). As the app's author you can also enrol in the [Avast/AVG Whitelisting Program](https://businesshelp.avast.com/Content/Products/General_Help/Whitelisting/WhitelistingProgram.htm) so future builds stay cleared.
-- **Verify the binary yourself.** Check its SHA256 against the `.sha256` published alongside each release, and scan your own download on [VirusTotal](https://www.virustotal.com/) - or see the [report for a recent build](https://www.virustotal.com/gui/file/faa7534b168147a00854227c0787fbe0847d47ae82a70ab13327159b5b026dbc/detection) (0/71).
-
-**По-русски:** срабатывание `IDP.Generic` у Avast/AVG - это **ложная эвристика**, а не вирус, и это **норма для любого индикатора раскладки** (Punto Switcher ловится так же): приложение по своей природе использует глобальный хук клавиатуры, инъекцию нажатий и буфер обмена. Статические сканеры это подтверждают - файл показывает **0/71 на [VirusTotal](https://www.virustotal.com/gui/file/faa7534b168147a00854227c0787fbe0847d47ae82a70ab13327159b5b026dbc/detection)** (Avast и AVG в том числе); локальный флаг - чисто **поведенческий** (Behavior Shield) и репутационный (неподписан, запуск из временной папки). Что помогает: **не запускать из временной папки** (распакуйте архив в постоянный каталог, например `%LOCALAPPDATA%\Programs\CyrFlip\`), пользоваться подписанными релизами и отправить файл в белый список через формы Avast/AVG выше.
-
+- **It is unsigned, and that was a choice.** A code-signing certificate costs money every year; CyrFlip is free and made by one developer, so the GitHub ZIP is not signed. **winget installs that same unsigned ZIP.** Only the **Microsoft Store** build is signed (by Microsoft) and does not meet SmartScreen. SmartScreen reputation grows with downloads, so the warning fades for a build over time.
+- **Behaviour heuristics are a second reason, and signing would not cure them.** Some engines - notably **Avast / AVG**, as `IDP.Generic` (Behavior Shield) - flag it because a layout indicator does exactly what they watch for: a global keyboard hook (`WH_KEYBOARD_LL`), synthesized keystrokes (`SendInput`), clipboard access, a system I-beam cursor swap. CyrFlip is open source - read what it does in [src/CyrFlip/](src/CyrFlip/). Static scanners agreed on an earlier build - [0/71 on VirusTotal](https://www.virustotal.com/gui/file/faa7534b168147a00854227c0787fbe0847d47ae82a70ab13327159b5b026dbc/detection) - but that report covers that one file only; scan your own download to check the build you have.
+- **Unpack the ZIP to a permanent folder** such as `%LOCALAPPDATA%\Programs\CyrFlip\` and run it from there, never from inside the archive or `%TEMP%` - a temporary extraction path is itself a reputation flag.
+- **Report a false positive** so the vendor clears the file: [Avast form](https://www.avast.com/false-positive-file-form.php) · [AVG form](https://www.avg.com/en-ww/report-false-positive). Check the SHA-256 against the `.sha256` published beside each release.
 ## Related project
 
 - [Universal Agent Kit](https://serzhyale.github.io/universal-agent-kit/) - a companion toolkit by the same author.

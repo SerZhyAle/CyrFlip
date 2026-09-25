@@ -34,18 +34,15 @@ namespace CyrFlip
             if (oneShotRun != null)
             {
                 // One-shot-and-exit (spec §7.2 / OneClickRunner parity): run the scenario without
-                // constructing the hook, tray or indicator. Release the mutex first - a yt-dlp link
+                // constructing the hook, tray or indicator. Give the mutex up first - a yt-dlp link
                 // prompt can sit open for minutes and must never block a real CyrFlip launch.
+                // Releasing ownership is not enough: `createdNew` asks whether the named object
+                // exists, not whether anyone owns it, so the handle has to be closed as well.
                 single.ReleaseMutex();
+                single.Dispose();
                 RunScenarioOneShot(oneShotRun.Value);
                 return;
             }
-
-            // Keep the autostart path in sync with whichever exe is actually running.
-            // If the user enabled "Start with Windows" from a different build location,
-            // silently update the registry entry to this exe's path on every launch.
-            if (Autostart.IsEnabled)
-                Autostart.Set(true);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -55,6 +52,11 @@ namespace CyrFlip
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             Application.ThreadException += (_, e) => Fatal(e.Exception);
             AppDomain.CurrentDomain.UnhandledException += (_, e) => Fatal(e.ExceptionObject as Exception);
+
+            // Keep the autostart entry pointing at whichever exe is actually running (the user may
+            // have enabled "Start with Windows" from another build location). After the handlers,
+            // and never throwing: a Run key the policy denies must not stop CyrFlip from starting.
+            Autostart.SyncToThisExe();
 
             try
             {
@@ -120,6 +122,10 @@ namespace CyrFlip
         private static void Fatal(Exception? ex)
         {
             LayoutCursor.ForceRestore(); // never leave the system cursor replaced
+            // Nor the layout files: the VS Code extension would keep drawing the last layout until
+            // CyrFlip ran again (LAYOUT-SIGNAL rule 6). Only the primary instance gets here - the
+            // forwarding and one-shot paths return before these handlers are installed.
+            LayoutPublisher.Retract();
             try
             {
                 MessageBox.Show(

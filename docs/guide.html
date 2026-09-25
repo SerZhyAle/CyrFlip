@@ -60,7 +60,7 @@
       <button class="theme-btn" id="themeBtn" aria-label="Switch theme">◐</button>
       <div class="cta">
         <a class="btn btn-ghost btn-sm" href="./">← Overview</a>
-        <a class="btn btn-primary btn-sm" href="https://github.com/SerZhyAle/CyrFlip/releases">Download</a>
+        <a class="btn btn-primary btn-sm" href="https://github.com/SerZhyAle/CyrFlip/releases/latest">Download</a>
       </div>
     </div>
   </header>
@@ -92,8 +92,8 @@
           <pre><code>winget install SerZhyAle.CyrFlip</code></pre>
         </li>
         <li><strong>Portable ZIP</strong> - download from the
-          <a href="https://github.com/SerZhyAle/CyrFlip/releases">Releases page</a>, extract anywhere, and run
-          <code>CyrFlip.exe</code>. Nothing to install; it runs on stock Windows 10/11.</li>
+          <a href="https://github.com/SerZhyAle/CyrFlip/releases/latest">Releases page</a>, extract it to a permanent folder, for example <code>%LOCALAPPDATA%\Programs\CyrFlip</code>, and run
+          <code>CyrFlip.exe</code>. Nothing to install; it runs on stock Windows 10/11. The ZIP is not code-signed, so Windows or an antivirus may warn - <a href="trust.html">what the warning means and what to click</a>.</li>
       </ul>
       <p>On launch, CyrFlip sits in the <strong>system tray</strong> (no window). The tray icon shows the active
       layout. Right-click it to show the clipboard-history strip, enable or pause history,
@@ -173,6 +173,7 @@
         <tr><td>Layout conversions</td><td>One table holding <strong>every</strong> chord that converts text between layouts. EN ⇄ RU on <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> is created on the first run and can be edited or deleted like any other row; add as many pairs as you like, each with its own chord and switch.</td></tr>
         <tr><td>Windows languages</td><td>Windows' own input settings, without opening the Windows pane: install / reorder / remove keyboard layouts (nothing is downloaded - the layouts ship with Windows), the cycle chord (Alt+Shift, Ctrl+Shift, <code>`</code> or off), and <strong>direct per-language shortcuts</strong> that Windows handles itself, so they keep working when CyrFlip is closed - and, unlike the built-in Windows dialog, they are not limited to Ctrl+Shift+digit. Both sections snapshot your pre-CyrFlip state once and can restore it.</td></tr>
         <tr><td>Clipboard</td><td>History on/off, pause capture, whether the manager window opens at startup, its transparency, full-history search, and clearing everything.</td></tr>
+        <tr><td>Quick notes</td><td>The optional local notepad - see the section below.</td></tr>
         <tr><td>Translation</td><td>The optional local translator - see the section below.</td></tr>
         <tr><td>Quick launch</td><td>The optional scenario launcher - see the section below.</td></tr>
         <tr><td>About &amp; Advanced</td><td>The <strong>build version</strong> (the same <code>YY.M.D.HHmm</code> stamp the release ZIP carries, so you can tell at a glance whether a fix is in your copy; a Store build says so too), links, the <strong>caret-position diagnostics</strong> report, and <strong>Send logs to the author..</strong> - it packs CyrFlip's own logs into one archive and opens a message that you send yourself.</td></tr>
@@ -278,6 +279,46 @@
     </section>
 
     <section>
+      <h2>Quick notes (optional)</h2>
+      <p>A small local notepad for the thing you want to keep right now and find again later. Press
+      <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd>, type or paste, close the window. It is
+      <strong>off by default</strong>; while it is off CyrFlip neither reads nor creates the notes file, there is
+      no tray entry and no chord is bound.</p>
+      <ul>
+        <li><strong>The text stays text.</strong> No Markdown rendering, no syntax colouring, no smart quotes, no
+        tab expansion. The whole point is that a fragment of code can be pasted back where it came from without a
+        single change, so the editor is monospace and does not wrap long lines - that last part is a setting.</li>
+        <li><strong>A name is optional.</strong> Most notes never get one. The list then shows the first non-empty
+        line instead, and that caption is worked out on the way to the screen rather than stored - so changing the
+        first line later spoils nothing.</li>
+        <li><strong>Search is how you get back.</strong> It looks in the name, the body and every checklist item at
+        once, from the first character you type, and the results keep the normal order instead of an invisible
+        relevance score.</li>
+        <li><strong>Newest first, by creation date.</strong> Editing an old note never moves it: the creation date
+        is assigned once and never changes, while the modification date is only shown as information.</li>
+        <li><strong>Checklists</strong> are the second kind of note - one level of tickable items you can add,
+        rename, reorder and delete. A note can be switched between the two kinds, and CyrFlip says so first when
+        the switch would cost you the tick marks or the exact line endings.</li>
+        <li><strong>Three ways in:</strong> the chord, the <strong>Quick notes</strong> entry in the tray menu, and
+        <strong>Save the selection to quick notes</strong> in CyrFlip's own context menu. The last one takes the
+        selection the same way a conversion does and deliberately keeps that copy out of the clipboard history -
+        it is scaffolding, not something you copied.</li>
+        <li><strong>Getting text out:</strong> copy, export one note as <code>.txt</code> or <code>.md</code>,
+        export every note into a single Markdown file, or <strong>Copy for Google Keep</strong> - the text goes to
+        the clipboard and CyrFlip offers to open Keep, where you paste it.</li>
+      </ul>
+      <p class="note">The notes are stored only on your computer, in an append-only file where every record is
+      encrypted with Windows DPAPI for your account - the title as well as the body. Nothing goes to the network,
+      nothing is indexed by Windows Search, the clipboard history is never turned into notes by itself, and the
+      file is never collected by <strong>Send logs to the author..</strong>. It is still not a secret store: don't
+      keep passwords, production tokens or private keys there. An exported file is no longer encrypted, which the
+      export says out loud.</p>
+      <p class="note">Google Keep is a manual transfer through the clipboard, and that is the honest limit rather
+      than a shortcut: Google's Keep API is an interface for Workspace administrators, not something a personal
+      account can use, so CyrFlip does not pretend to synchronize.</p>
+    </section>
+
+    <section>
       <h2>Interface languages</h2>
       <p>The interface is available in <strong>English, Русский, Українська, Deutsch, Italiano, Español, Français,
       Português, العربية, हिन्दी, বাংলা, اردو and 中文</strong>. A fresh install follows the Windows display language
@@ -348,7 +389,7 @@
         <li><strong>No marker in VS Code.</strong> Confirm the app is running, then check that the layout file
           exists and its contents change when you switch layout. The file path depends on how you installed the app:
           portable/winget → <code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>;
-          Microsoft Store → <code>%ProgramData%\CyrFlip\layout.txt</code>.
+          Microsoft Store → <code>%ProgramData%\CyrFlip\layout.txt</code>. The app removes the file when it exits, so a missing file means CyrFlip is not running.
           The status-bar indicator is the quickest way to tell the extension is reading the file. Try
           <em>Developer: Reload Window</em>.</li>
         <li><strong>Marker sits at the edge of an input (not in VS Code).</strong> In Monaco-based editors the app's

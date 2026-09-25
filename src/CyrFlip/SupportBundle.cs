@@ -17,7 +17,7 @@ namespace CyrFlip
     ///
     /// Two rules are load-bearing:
     ///
-    /// 1. <b><see cref="Excluded"/> (clipboard-history.log) never goes in.</b> It is literally
+    /// 1. <b><see cref="ExcludedFiles"/> (clipboard-history.log, quick-notes.log) never go in.</b> They are literally
     ///    everything the user ever copied - passwords, messages, card numbers. It is DPAPI-protected
     ///    and unreadable off this account anyway, but that is not the reason: it is not our data.
     ///    The file list is therefore an explicit whitelist (<see cref="LogFiles"/>), never a
@@ -55,11 +55,20 @@ namespace CyrFlip
         /// </summary>
         public static readonly string[] LogFiles =
         {
-            "launcher.log", "context-menu.log", "translate.log", "caret-diagnostics.txt", "layout.txt",
+            "launcher.log", "context-menu.log", "translate.log", "quick-notes-diagnostics.log",
+            "clipboard-history-diagnostics.log", "caret-diagnostics.txt", "layout.txt",
         };
 
-        /// <summary>The one file that is never collected. See the class remarks.</summary>
-        public const string Excluded = "clipboard-history.log";
+        /// <summary>
+        /// The files that are never collected, whatever else is. Both hold the user's own text:
+        /// <c>clipboard-history.log</c> is everything they ever copied, <c>quick-notes.log</c> is
+        /// everything they deliberately kept. The two <i>diagnostics</i> files are in the whitelist
+        /// above and hold no user text - only counts (records that failed to replay, marked copies skipped).
+        /// </summary>
+        public static readonly string[] ExcludedFiles =
+        {
+            "clipboard-history.log", "quick-notes.log",
+        };
 
         /// <summary>One file inside the archive, as the pre-send dialog lists it.</summary>
         internal sealed class Entry

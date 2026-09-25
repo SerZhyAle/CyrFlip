@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CyrFlip - Por que o Windows ou um antivírus pode exibir um aviso</title>
+  <link rel="canonical" href="https://serzhyale.github.io/CyrFlip/pt/trust.html">
+  <meta name="description" content="O que significa o aviso do Windows SmartScreen ou do antivírus sobre o CyrFlip, por que ele aparece, exatamente onde clicar e o que o CyrFlip nunca faz." />
+  <meta property="og:title" content="CyrFlip - Por que o Windows ou um antivírus pode exibir um aviso" />
+  <meta property="og:description" content="O que significa o aviso do Windows SmartScreen ou do antivírus sobre o CyrFlip, por que ele aparece, exatamente onde clicar e o que o CyrFlip nunca faz." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/SerZhyAle/CyrFlip/main/assets/social-preview.png" />
+  <meta property="og:url" content="https://serzhyale.github.io/CyrFlip/pt/trust.html" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0a0f0a" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <script>
+  (function(){try{
+    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    document.documentElement.setAttribute('data-theme',t);
+  }catch(e){}})();
+  </script>
+</head>
+<body>
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+  <header class="site-header">
+    <div class="container">
+      <span class="brand"><img class="brand-icon" src="../assets/favicon.png" alt="" width="24" height="24" />CyrFlip<span class="dot">.</span></span>
+      <button class="theme-btn" id="themeBtn" aria-label="Alternar tema">◐</button>
+      <div class="cta">
+        <a class="btn btn-ghost btn-sm" href="./">← Início</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/SerZhyAle/CyrFlip">GitHub</a>
+      </div>
+    </div>
+  </header>
+  <div class="wrap">
+    <section>
+      <h1>Por que o Windows ou um antivírus pode avisar sobre o CyrFlip</h1>
+      <p class="note">Última atualização: 24 de setembro de 2026 · <a href="../trust.html">English (original)</a></p>
+
+      <p>Esta página é para o momento logo depois de o Windows ou o seu antivírus ter barrado o CyrFlip.
+      Ela diz o que é o aviso, por que ele aparece, exatamente onde clicar e o que o CyrFlip nunca faz -
+      nessa ordem, para que você decida por conta própria.</p>
+
+      <h2 id="what">O que é o aviso</h2>
+
+      <h3>«O Windows protegeu o computador»</h3>
+      <p>É o <strong>Microsoft Defender SmartScreen</strong>. A janela azul diz: <em>"Microsoft Defender
+      SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at
+      risk."</em> (tradução: o Microsoft Defender SmartScreen impediu a inicialização de um aplicativo não
+      reconhecido; executar esse aplicativo pode colocar o seu computador em risco). Depois de clicar em
+      <strong>Mais informações</strong>, ela mostra <em>App: CyrFlip.exe</em> e <em>Publisher: Unknown
+      publisher</em> (tradução: editor desconhecido), com os botões <strong>Executar assim mesmo</strong> e
+      <strong>Não executar</strong>.</p>
+
+      <h3>Um antivírus coloca o CyrFlip.exe em quarentena ou o bloqueia</h3>
+      <p>O caso relatado até agora é o do <strong>Avast / AVG</strong>, que o chama de
+      <code>IDP.Generic</code> (Behavior Shield). Outros antivírus podem usar outros nomes para o mesmo
+      tipo de detecção.</p>
+
+      <p>Onde você o encontra: o <strong>ZIP do GitHub</strong> e o pacote do <strong>winget</strong> (o
+      winget instala esse mesmo ZIP) podem exibir esses avisos. A versão da <strong>Microsoft
+      Store</strong> é assinada pela Microsoft e não exibe o aviso do SmartScreen.</p>
+
+      <h2 id="why">Por que ele aparece</h2>
+      <p>O CyrFlip é gratuito, de código aberto e feito por um único desenvolvedor independente. O ZIP
+      <strong>não tem assinatura de código</strong>: um certificado de assinatura de código custa dinheiro
+      todo ano, e não comprar um foi uma escolha. O SmartScreen confia em um arquivo pela sua reputação -
+      quantas pessoas executaram exatamente aquele arquivo - então uma versão nova e sem assinatura começa
+      sem reputação nenhuma, e o aviso vai sumindo à medida que ela é baixada.</p>
+      <p>Há um segundo motivo, que a assinatura não eliminaria. Para fazer o seu trabalho, um indicador de
+      layout faz exatamente o que as heurísticas de comportamento dos antivírus vigiam: instala um gancho
+      global de teclado (e, quando o menu de contexto está ligado, um gancho de mouse), simula
+      <kbd>Ctrl</kbd>+<kbd>C</kbd> e <kbd>Ctrl</kbd>+<kbd>V</kbd>, lê a área de transferência e pode
+      substituir o cursor de texto do sistema. Executar o programa diretamente de uma pasta temporária (de
+      dentro do ZIP, ou de <code>%TEMP%</code>) acrescenta mais um sinal de reputação.</p>
+      <p>O aviso está fazendo o seu trabalho diante de um arquivo que ele não conhece. Os fatos abaixo
+      permitem que você mesmo avalie o arquivo.</p>
+
+      <h2 id="click">Exatamente onde clicar</h2>
+      <ol>
+        <li><strong>Primeiro extraia o ZIP para uma pasta permanente</strong>, por exemplo
+        <code>%LOCALAPPDATA%\Programs\CyrFlip\</code>, e inicie o <code>CyrFlip.exe</code> a partir dela -
+        não de dentro do arquivo compactado.</li>
+        <li><strong>SmartScreen:</strong> clique em <strong>Mais informações</strong>, confira se o
+        aplicativo é o <code>CyrFlip.exe</code> e clique em <strong>Executar assim mesmo</strong>. O Windows
+        se lembra disso para esse arquivo.</li>
+        <li><strong>Quarentena do antivírus:</strong> restaure o arquivo da quarentena e adicione uma
+        exceção apenas para <strong>essa pasta</strong>. Depois, relate o falso positivo ao fabricante do seu
+        antivírus (o Avast e o AVG têm um formulário de falso positivo nos seus sites), o que ajuda todos os
+        outros usuários.</li>
+        <li><strong>Verificação opcional:</strong> compare o SHA-256 do arquivo com o arquivo
+        <code>.sha256</code> publicado ao lado do ZIP na
+        <a href="https://github.com/SerZhyAle/CyrFlip/releases/latest">página da versão</a>
+        (<code>Get-FileHash CyrFlip.exe</code> no PowerShell), ou envie o arquivo ao
+        <a href="https://www.virustotal.com/">VirusTotal</a>.</li>
+        <li><strong>Ou evite o aviso por completo:</strong> instale o CyrFlip pela
+        <a href="https://apps.microsoft.com/detail/9NB4W41NGQJ4">Microsoft Store</a>, onde ele é assinado
+        pela Microsoft.</li>
+      </ol>
+      <p>Nada aqui pede que você desligue uma proteção para o computador inteiro - um arquivo, uma pasta, e
+      você pode desfazer qualquer um dos dois.</p>
+
+      <h2 id="never">O que o CyrFlip nunca faz</h2>
+      <ul class="features">
+        <li><strong>Nunca pede direitos de administrador para si mesmo.</strong> Ele roda com os seus
+        direitos normais de usuário.</li>
+        <li><strong>Nunca grava, armazena nem envia as suas teclas.</strong> O gancho de teclado apenas
+        reconhece os atalhos do próprio CyrFlip.</li>
+        <li><strong>Nunca envia nada a lugar nenhum</strong> - sem telemetria, sem contas, sem servidores
+        próprios. A única exceção é o tradutor opcional (desligado por padrão): ele envia o texto selecionado
+        para o endereço do Ollama que você definir, por padrão um programa no seu próprio computador.</li>
+        <li><strong>Nunca instala um serviço nem um driver.</strong></li>
+        <li><strong>Nunca grava fora do seu perfil de usuário</strong>, exceto o pequeno arquivo de layout
+        em <code>%ProgramData%\CyrFlip</code> na versão da Microsoft Store.</li>
+        <li><strong>Nunca inicia com o Windows</strong>, a menos que você marque essa opção.</li>
+      </ul>
+
+      <h3>Pedidos de administrador que você ainda pode ver</h3>
+      <ul>
+        <li>Um cenário de início rápido que você marcou como <em>executar como administrador</em>: o pedido
+        é para o <strong>seu</strong> programa, não para o CyrFlip. Desmarque a opção no cenário para que
+        ele pare.</li>
+        <li><em>Instalar o Ollama</em> na versão portátil: o CyrFlip baixa o instalador oficial do Ollama e
+        o inicia; qualquer pedido que apareça é do próprio instalador do Ollama.</li>
+      </ul>
+
+      <h3>O que ele altera, e como desfazer</h3>
+      <ul>
+        <li><strong>Iniciar com o Windows</strong> - desmarque a opção nas configurações do CyrFlip.</li>
+        <li><strong>O cursor de texto</strong> (desligado por padrão) - o CyrFlip restaura o cursor padrão
+        ao ser encerrado.</li>
+        <li><strong>As configurações de entrada do Windows</strong> (layouts de teclado, atalhos de troca),
+        apenas quando você as altera na aba <em>Idiomas do Windows</em> - o botão de restauração dessa aba
+        traz de volta o estado que você tinha.</li>
+        <li><strong>As configurações e os dados do próprio CyrFlip</strong> - a chave de registro
+        <code>HKCU\Software\CyrFlip</code> e as pastas <code>%LOCALAPPDATA%\CyrFlip</code> e
+        <code>%APPDATA%\CyrFlip</code>. Apague-as depois de encerrar o CyrFlip e nada dele restará.</li>
+      </ul>
+      <p>Os mesmos fatos, com mais detalhes, estão na <a href="privacy.html">política de
+      privacidade</a>.</p>
+
+      <p class="note">Se um dia as versões do CyrFlip passarem a ser assinadas, esta página continuará
+      aqui e dirá a partir de qual versão.</p>
+
+      <p>Dúvidas ou um novo aviso a relatar: <a href="mailto:sza@ukr.net">sza@ukr.net</a>.</p>
+    </section>
+
+    <footer>
+      <p>Licença MIT · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">Código no GitHub</a><br />
+      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
+    </footer>
+  </div>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn');
+    var themeColor=document.querySelector('meta[name="theme-color"]');
+    function applyThemeMeta(){
+      var dark=doc.getAttribute('data-theme')!=='light';
+      if(themeColor)themeColor.setAttribute('content',dark?'#0a0f0a':'#eef3ea');
+      themeBtn.setAttribute('aria-label',dark?'Tema claro':'Tema escuro');
+    }
+    themeBtn.addEventListener('click',function(){
+      var next=doc.getAttribute('data-theme')==='light'?'dark':'light';
+      doc.setAttribute('data-theme',next);
+      try{localStorage.setItem('sza-theme',next);}catch(e){}
+      applyThemeMeta();
+    });
+    applyThemeMeta();
+  })();
+  </script>
+</body>
+</html>

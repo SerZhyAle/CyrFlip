@@ -216,6 +216,78 @@ namespace CyrFlip
                 fr: "un autre raccourci de CyrFlip", pt: "outro atalho do CyrFlip",
                 ar: "اختصار آخر في CyrFlip", hi: "CyrFlip का कोई अन्य शॉर्टकट",
                 bn: "CyrFlip-এর অন্য একটি শর্টকাট", ur: "CyrFlip کا کوئی اور شارٹ کٹ", zh: "CyrFlip 的另一个快捷键");
+
+            // ---- Chords the capture dialog refuses (HotkeyRules, ticket S0004 KC-5) ----
+            Add("Shift без Ctrl и Alt годится только для F1-F24: с другой клавишей такая комбинация мешала бы печатать и выделять текст.",
+                en: "Shift without Ctrl or Alt only works with F1-F24: with any other key the combination would get in the way of typing and selecting text.",
+                uk: "Shift без Ctrl і Alt годиться лише для F1-F24: з іншою клавішею така комбінація заважала б друкувати й виділяти текст.",
+                de: "Shift ohne Strg oder Alt geht nur mit F1-F24: Mit jeder anderen Taste würde die Kombination beim Tippen und Markieren stören.",
+                it: "Shift senza Ctrl o Alt funziona solo con F1-F24: con qualsiasi altro tasto la combinazione intralcerebbe la digitazione e la selezione del testo.",
+                es: "Shift sin Ctrl ni Alt solo sirve con F1-F24: con cualquier otra tecla la combinación estorbaría al escribir y al seleccionar texto.",
+                fr: "Maj sans Ctrl ni Alt ne fonctionne qu'avec F1-F24 : avec une autre touche, la combinaison gênerait la saisie et la sélection du texte.",
+                pt: "Shift sem Ctrl ou Alt só funciona com F1-F24: com qualquer outra tecla a combinação atrapalharia a digitação e a seleção de texto.",
+                ar: "لا يصلح Shift بدون Ctrl أو Alt إلا مع F1-F24: مع أي مفتاح آخر ستعيق هذه التركيبة الكتابة وتحديد النص.",
+                hi: "Ctrl या Alt के बिना Shift केवल F1-F24 के साथ चलता है: किसी और कुंजी के साथ यह संयोजन टाइपिंग और टेक्स्ट चुनने में बाधा डालेगा।",
+                bn: "Ctrl বা Alt ছাড়া Shift শুধু F1-F24-এর সঙ্গে চলে: অন্য কোনো কী-এর সঙ্গে এই সংমিশ্রণ টাইপ করা ও টেক্সট নির্বাচনে বাধা দেবে।",
+                ur: "Ctrl یا Alt کے بغیر Shift صرف F1-F24 کے ساتھ چلتا ہے: کسی اور کلید کے ساتھ یہ مجموعہ ٹائپنگ اور متن منتخب کرنے میں رکاوٹ بنے گا۔",
+                zh: "不带 Ctrl 或 Alt 的 Shift 只能与 F1-F24 搭配：与其他键组合会妨碍输入和选择文本。");
+
+            Add("Это стандартная команда правки (копировать, вставить, отменить..) - её занимать нельзя.",
+                en: "This is a standard editing command (copy, paste, undo..) - it can't be taken.",
+                uk: "Це стандартна команда редагування (копіювати, вставити, скасувати..) - її займати не можна.",
+                de: "Das ist ein Standard-Bearbeitungsbefehl (Kopieren, Einfügen, Rückgängig..) - er kann nicht belegt werden.",
+                it: "È un comando di modifica standard (copia, incolla, annulla..) - non può essere usato.",
+                es: "Es un comando de edición estándar (copiar, pegar, deshacer..) - no se puede ocupar.",
+                fr: "C'est une commande d'édition standard (copier, coller, annuler..) - elle ne peut pas être prise.",
+                pt: "É um comando de edição padrão (copiar, colar, desfazer..) - não pode ser usado.",
+                ar: "هذا أمر تحرير قياسي (نسخ، لصق، تراجع..) - لا يمكن استخدامه.",
+                hi: "यह एक मानक संपादन कमांड है (कॉपी, पेस्ट, पूर्ववत..) - इसे नहीं लिया जा सकता।",
+                bn: "এটি একটি সাধারণ সম্পাদনা কমান্ড (কপি, পেস্ট, আনডু..) - এটি নেওয়া যাবে না।",
+                ur: "یہ ترمیم کی ایک معیاری کمانڈ ہے (کاپی، پیسٹ، واپس..) - اسے نہیں لیا جا سکتا۔",
+                zh: "这是标准编辑命令（复制、粘贴、撤销..）- 不能占用。");
+
+            Add("На раскладке «{1}» эта комбинация печатает «{0}» - CyrFlip перехватывал бы этот символ.",
+                en: "On the «{1}» layout this combination types «{0}» - CyrFlip would swallow that character.",
+                uk: "На розкладці «{1}» ця комбінація друкує «{0}» - CyrFlip перехоплював би цей символ.",
+                de: "Auf dem Layout «{1}» tippt diese Kombination «{0}» - CyrFlip würde dieses Zeichen abfangen.",
+                it: "Nel layout «{1}» questa combinazione digita «{0}» - CyrFlip intercetterebbe quel carattere.",
+                es: "En la distribución «{1}» esta combinación escribe «{0}» - CyrFlip interceptaría ese carácter.",
+                fr: "Sur la disposition «{1}», cette combinaison tape «{0}» - CyrFlip intercepterait ce caractère.",
+                pt: "No layout «{1}» esta combinação digita «{0}» - o CyrFlip interceptaria esse caractere.",
+                ar: "في تخطيط «{1}» تكتب هذه التركيبة «{0}» - وسيعترض CyrFlip هذا الحرف.",
+                hi: "«{1}» लेआउट पर यह संयोजन «{0}» टाइप करता है - CyrFlip यह अक्षर रोक लेगा।",
+                bn: "«{1}» লেআউটে এই সংমিশ্রণ «{0}» টাইপ করে - CyrFlip অক্ষরটি আটকে দেবে।",
+                ur: "«{1}» لے آؤٹ پر یہ مجموعہ «{0}» ٹائپ کرتا ہے - CyrFlip یہ حرف روک لے گا۔",
+                zh: "在「{1}」布局中，这个组合键会输入「{0}」- CyrFlip 会拦截这个字符。");
+
+            // ---- One owner per chord (ChordRegistry, ticket S0004 KC-6) ----
+            Add("Комбинация {0} назначена в Windows для переключения на язык «{1}». Если её займёт CyrFlip, Windows её больше не получит. Всё равно назначить?",
+                en: "{0} is assigned in Windows to switch to «{1}». If CyrFlip takes it, Windows will no longer receive it. Assign it anyway?",
+                uk: "Комбінацію {0} призначено у Windows для перемикання на мову «{1}». Якщо її займе CyrFlip, Windows її більше не отримає. Однаково призначити?",
+                de: "{0} ist in Windows dem Wechsel zu «{1}» zugewiesen. Übernimmt CyrFlip sie, erhält Windows sie nicht mehr. Trotzdem zuweisen?",
+                it: "{0} è assegnata in Windows al passaggio a «{1}». Se la prende CyrFlip, Windows non la riceverà più. Assegnarla comunque?",
+                es: "{0} está asignada en Windows para cambiar a «{1}». Si la ocupa CyrFlip, Windows dejará de recibirla. ¿Asignarla de todos modos?",
+                fr: "{0} est attribuée dans Windows au passage à «{1}». Si CyrFlip la prend, Windows ne la recevra plus. L'attribuer quand même ?",
+                pt: "{0} está atribuída no Windows para mudar para «{1}». Se o CyrFlip a usar, o Windows deixará de recebê-la. Atribuir mesmo assim?",
+                ar: "التركيبة {0} مخصصة في Windows للتبديل إلى «{1}». إذا أخذها CyrFlip فلن يستقبلها Windows بعد الآن. هل تريد تعيينها على أي حال؟",
+                hi: "{0} Windows में «{1}» पर स्विच करने के लिए निर्धारित है। अगर CyrFlip इसे ले लेता है तो Windows को यह नहीं मिलेगा। फिर भी निर्धारित करें?",
+                bn: "{0} Windows-এ «{1}»-এ যাওয়ার জন্য নির্ধারিত। CyrFlip এটি নিলে Windows আর এটি পাবে না। তবুও নির্ধারণ করবেন?",
+                ur: "{0} Windows میں «{1}» پر جانے کے لیے مقرر ہے۔ اگر CyrFlip اسے لے لے تو Windows کو یہ مزید نہیں ملے گا۔ پھر بھی مقرر کریں؟",
+                zh: "{0} 在 Windows 中已分配为切换到「{1}」。如果被 CyrFlip 占用，Windows 将不再收到它。仍然分配吗？");
+
+            Add("Комбинация {0} назначена сразу двум действиям: «{1}» и «{2}». Сработает только одно - смените одну из них.",
+                en: "{0} is assigned to two actions at once: «{1}» and «{2}». Only one of them will run - change one of the combinations.",
+                uk: "Комбінацію {0} призначено одразу двом діям: «{1}» і «{2}». Спрацює лише одна - змініть одну з комбінацій.",
+                de: "{0} ist zwei Aktionen zugleich zugewiesen: «{1}» und «{2}». Nur eine davon wird ausgeführt - ändern Sie eine der Kombinationen.",
+                it: "{0} è assegnata a due azioni insieme: «{1}» e «{2}». Ne verrà eseguita solo una - cambia una delle combinazioni.",
+                es: "{0} está asignada a dos acciones a la vez: «{1}» y «{2}». Solo se ejecutará una - cambia una de las combinaciones.",
+                fr: "{0} est attribuée à deux actions à la fois : «{1}» et «{2}». Une seule sera exécutée - modifiez l'une des combinaisons.",
+                pt: "{0} está atribuída a duas ações ao mesmo tempo: «{1}» e «{2}». Só uma será executada - altere uma das combinações.",
+                ar: "التركيبة {0} مخصصة لإجراءين معًا: «{1}» و«{2}». سيُنفَّذ واحد فقط - غيّر إحدى التركيبتين.",
+                hi: "{0} एक साथ दो कार्यों को सौंपा गया है: «{1}» और «{2}»। केवल एक चलेगा - किसी एक संयोजन को बदलें।",
+                bn: "{0} একসঙ্গে দুটি কাজে নির্ধারিত: «{1}» ও «{2}»। শুধু একটি চলবে - একটি সংমিশ্রণ বদলান।",
+                ur: "{0} ایک ساتھ دو کاموں کو دیا گیا ہے: «{1}» اور «{2}»۔ صرف ایک چلے گا - کسی ایک مجموعے کو بدلیں۔",
+                zh: "{0} 同时分配给了两个操作：「{1}」和「{2}」。只有一个会生效 - 请更改其中一个组合键。");
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using System.Text;
@@ -49,6 +50,13 @@ namespace CyrFlip
         private readonly ToolStripMenuItem _showHistoryItem;
         private readonly ToolStripMenuItem _settingsItem;
         private readonly ToolStripMenuItem _exitItem;
+        // ---- Quick notes (local, DPAPI, opt-in) ----
+        private Hotkey _quickNotesHotkey;
+        // Created only once the feature is on: the store replays a journal and the window builds a
+        // control tree, and a user who never switched this on should pay for neither.
+        private QuickNotesService? _quickNotes;
+        private QuickNotesWindow? _quickNotesWindow;
+        private readonly ToolStripMenuItem _quickNotesItem;
         private readonly SettingsForm _settings;
         // ---- Scenario launcher (absorbed OneClickRunner) ----
         private readonly LauncherScenarioStore _launcherStore;
@@ -67,6 +75,20 @@ namespace CyrFlip
         private readonly ToolStripMenuItem _translateClipboardItem;
         private TranslationResultWindow? _translateWindow;
         private CancellationTokenSource? _translateCts;
+        private bool _disposed;
+        private readonly SessionEndWatcher _sessionEnd = new SessionEndWatcher();
+
+        /// <summary>
+        /// Everything the session end has to put on disk, in <see cref="OnSessionEnding"/>. Windows
+        /// allows about 5 s before it shows "this app is preventing shutdown"; this stays well inside it.
+        /// </summary>
+        private static readonly TimeSpan SessionEndBudget = TimeSpan.FromSeconds(3);
+
+        /// <summary>Journal compaction is only started while at most this much of the budget is spent.</summary>
+        private static readonly TimeSpan SessionEndCompactionCutoff = TimeSpan.FromSeconds(1);
+
+        /// <summary>The cap on waiting for queued clipboard-history writes.</summary>
+        private static readonly TimeSpan SessionEndHistoryDrain = TimeSpan.FromSeconds(1);
         private string _translateSource = "";
         private string _translateCode = "";
         // The expected source language of the pair rows; null for every auto-detecting row.
@@ -76,6 +98,10 @@ namespace CyrFlip
         private readonly SynchronizationContext? _ui;
         private Icon? _trayIcon;
         private int _busy; // 0 = idle, 1 = a clipboard op (flip or case-flip) is in progress
+        // Last seen state of the two switches that bring chords to life from a settings-tab event, so
+        // the chord-ownership check runs on the transition to on and not on every change of the tab.
+        private bool _translateWasOn;
+        private bool _quickNotesChordWasLive;
         private string _currentLayout = "";
         private string _currentKlid = "";
         private bool _capsOn;
@@ -89,6 +115,9 @@ namespace CyrFlip
             _clipboardHistoryHotkey = Hotkey.Parse(_config.ClipboardHistoryHotkey);
             if (_clipboardHistoryHotkey.SameChord(_caseHotkey))
                 _clipboardHistoryHotkey = new Hotkey(true, true, false, false, 0x79, "F10");
+            _quickNotesHotkey = Hotkey.Parse(_config.QuickNotesHotkey);
+            _translateWasOn = _config.EnableTranslate;
+            _quickNotesChordWasLive = QuickNotesChordLive;
             _clipboardHistory = new ClipboardHistoryService(_config.EnableClipboardHistory, _config.PauseClipboardHistory);
             _clipboardHistoryWindow = new ClipboardHistoryWindow(_clipboardHistory, _config, ShowHistorySearch);
             _layoutCursor = new LayoutCursor(_config.CursorSize);
@@ -101,10 +130,13 @@ namespace CyrFlip
             KeepAwake.Restore(_config.KeepSystemAwake, _config.KeepScreenOn);
 
             // SetSystemCursor is global and the keep-awake request changes the system idle policy -
-            // guarantee both are restored even if the app is killed or throws.
-            AppDomain.CurrentDomain.ProcessExit += (_, _) => { LayoutCursor.ForceRestore(); KeepAwake.Reset(); };
-            AppDomain.CurrentDomain.UnhandledException += (_, _) => { LayoutCursor.ForceRestore(); KeepAwake.Reset(); };
-            Application.ApplicationExit += (_, _) => { LayoutCursor.ForceRestore(); KeepAwake.Reset(); };
+            // guarantee both are restored even if the app is killed or throws. A clean exit also takes
+            // the layout files away, so their absence tells the VS Code extension nothing is running
+            // (LAYOUT-SIGNAL rule 6). Only here, in the primary instance: the forwarding and one-shot
+            // paths in Program never construct this context, and must not delete a live instance's files.
+            AppDomain.CurrentDomain.ProcessExit += (_, _) => { LayoutCursor.ForceRestore(); KeepAwake.Reset(); LayoutPublisher.Retract(); };
+            AppDomain.CurrentDomain.UnhandledException += (_, _) => { LayoutCursor.ForceRestore(); KeepAwake.Reset(); LayoutPublisher.Retract(); };
+            Application.ApplicationExit += (_, _) => { LayoutCursor.ForceRestore(); KeepAwake.Reset(); LayoutPublisher.Retract(); };
 
             // ---- Autostart ----
             if (Autostart.ManagedByWindows)
@@ -175,6 +207,12 @@ namespace CyrFlip
             {
                 Visible = _config.EnableTranslate,
             };
+            // Same discipline as the launcher submenu and the translate entry: present but invisible
+            // while the feature is off, so a user who never enables it sees the menu they always had.
+            _quickNotesItem = new ToolStripMenuItem(null, null, (_, _) => ShowQuickNotes(startNew: false))
+            {
+                Visible = _config.EnableQuickNotes,
+            };
             _settingsItem = new ToolStripMenuItem(null, null, (_, _) => ShowSettings());
             _exitItem = new ToolStripMenuItem(null, null, (_, _) => ExitThread());
 
@@ -195,6 +233,7 @@ namespace CyrFlip
             // item is invisible and the ordinary menu is exactly as long as before the feature.
             menu.Items.Add(_launcherMenu);
             menu.Items.Add(_translateClipboardItem);
+            menu.Items.Add(_quickNotesItem);
             menu.Items.Add(_settingsItem);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(_exitItem);
@@ -232,8 +271,10 @@ namespace CyrFlip
                 () => _clipboardHistory.Clear(), () => OnDiagnoseCaret(null, EventArgs.Empty),
                 SetHotkeysEnabled, SetCaseHotkeyEnabled, SetHistoryHotkeyEnabled, SetDeferToRemoteDesktop,
                 value => _keepAwakeItem.Checked = value, value => _keepScreenItem.Checked = value,
-                _launcherStore, SetLauncherEnabled);
+                _launcherStore, SetLauncherEnabled,
+                OnSetQuickNotesHotkey, () => ShowQuickNotes(startNew: false), ClearQuickNotes, ExportQuickNotes);
             _settings.ConversionProfilesChanged += (_, _) => OnConversionProfilesChanged();
+            _settings.QuickNotesChanged += (_, _) => OnQuickNotesChanged();
             _settings.LauncherScenariosChanged += (_, _) => RefreshLauncherSurfaces();
             _settings.TranslationChanged += (_, _) => OnTranslationChanged();
             _settings.TextMenuChanged += (_, _) => OnContextMenuChanged();
@@ -275,8 +316,13 @@ namespace CyrFlip
             // there: file I/O (the translator's log), showing a window with AttachThreadInput (the
             // history), and spinning up a thread (the flips). The callback still decides whether to
             // swallow the key before it returns - only the work moves.
+            // First, so it is posted ahead of the chord's own action: tap the mask key while the
+            // modifiers are still down, or Windows reads their release as a bare Ctrl+Shift / Alt
+            // gesture (layout switch, menu bar) - it never saw the trigger (ticket S0004, KC-4).
+            _hook.ChordFired += held => _ui?.Post(_ => KeyInjection.SendMask(held), null);
             _hook.CaseHotkeyPressed += (_, _) => _ui?.Post(_ => OnCaseHotkeyPressed(null, EventArgs.Empty), null);
             _hook.ClipboardHistoryHotkeyPressed += (_, _) => _ui?.Post(_ => _clipboardHistoryWindow.ToggleVisible(), null);
+            _hook.QuickNotesHotkeyPressed += (_, _) => _ui?.Post(_ => ShowQuickNotes(startNew: true), null);
             _hook.LayoutConversionHotkeyPressed += id => _ui?.Post(_ => OnLayoutConversionHotkeyPressed(id), null);
             _hook.LauncherHotkeyPressed += OnLauncherHotkeyPressed; // already posts, and re-checks the switch there
             _hook.TranslateHotkeyPressed += id => _ui?.Post(_ => OnTranslateHotkeyPressed(id), null);
@@ -284,18 +330,32 @@ namespace CyrFlip
             // Mouse chord → own context menu. The probe starts on the press so the 80-150 ms the user
             // spends holding the button pays for it; the menu itself is only ever shown from the UI
             // thread, never from inside the hook callback.
-            _mouseHook.ChordPressed += (_, _) =>
+            _mouseHook.ChordPressed += (x, y) =>
             {
                 // Remember the window the menu is being opened over. Every action of this menu
                 // synthesizes input, and synthesized input follows the foreground window - so the
                 // one thing we must not lose is which window that was before the menu appeared.
                 _textMenuTarget = WindowInterop.GetForegroundWindow();
-                _selectionProbe = SelectionProbe.Start();
+                // The pointer position is half the question: in read-only text the selection is
+                // under the pointer while the focus is elsewhere entirely (see SelectionProbe).
+                _selectionProbe = SelectionProbe.Start(x, y);
             };
             _mouseHook.ChordReleased += (x, y) => _ui?.Post(_ => ShowTextContextMenu(x, y), null);
             _mouseHook.ForeignButtonDown += (x, y) => _ui?.Post(_ => CloseTextMenuIfOutside(x, y), null);
             _textMenu.Closed += (_, _) => _mouseHook.UpdateForeignClickWatch(false);
             _clipboardHistory.ItemTooLarge += (_, _) => _tray.ShowBalloonTip(2000, "CyrFlip", T("Фрагмент слишком велик для истории (>128 КБ)."), ToolTipIcon.Info);
+            _clipboardHistory.ClearFailed += (_, _) => _tray.ShowBalloonTip(3000, "CyrFlip",
+                T("Файл истории буфера занят другой программой, и он не удалён. Повторите очистку."), ToolTipIcon.Warning);
+            // Once per session, like the quick notes: a damaged line now costs only itself (S0005 CH-2).
+            if (_config.EnableClipboardHistory && _clipboardHistory.SkippedRecords > 0)
+                _tray.ShowBalloonTip(4000, "CyrFlip",
+                    string.Format(T("Не прочитано записей истории буфера: {0}. Остальная история на месте."),
+                        _clipboardHistory.SkippedRecords), ToolTipIcon.Warning);
+            // Once per start while any stored value is unreadable (S0007 CF-1): each fell back to its
+            // own default, and the tables and snapshots among them stay untouched on disk.
+            if (_config.UnreadableValues.Count > 0)
+                _tray.ShowBalloonTip(4000, "CyrFlip",
+                    T("Часть настроек CyrFlip не удалось прочитать - они оставлены как есть."), ToolTipIcon.Warning);
             _caretOverlay.Start();
             _indicator.Start();
 
@@ -311,13 +371,15 @@ namespace CyrFlip
             // Only now, for the same reason the mouse hook and the IPC listener wait: every hook
             // event is posted to _ui, so a chord pressed while it was still null would be swallowed
             // and then dropped - the key eaten, nothing done.
-            _hook.Install(_caseHotkey, _clipboardHistoryHotkey,
+            _hook.Install(_caseHotkey, _clipboardHistoryHotkey, _quickNotesHotkey,
                 _config.DeferToRemoteDesktop, _config.EnableHotkeys,
-                _config.EnableCaseHotkey, _config.EnableHistoryHotkey);
+                _config.EnableCaseHotkey, _config.EnableHistoryHotkey, QuickNotesChordLive);
             _hook.UpdateConversionProfiles(_config.LayoutConversionProfiles);
             BindTranslationHotkeys();
             _hookWatchdog.Interval = HookWatchdogIntervalMs;
             _hookWatchdog.Tick += (_, _) => OnHookWatchdogTick();
+            // Keys pressed or released on the lock screen never reached the hook.
+            Microsoft.Win32.SystemEvents.SessionSwitch += OnSessionSwitch;
             _hookWatchdog.Start();
 
             // Launcher surfaces (tray submenu + Jump List + hook chords) and the command listener.
@@ -327,6 +389,10 @@ namespace CyrFlip
             RefreshContextMenuBinding();
             _launcherIpc = new LauncherIpc(cmd => _ui?.Post(_ => OnLauncherIpcCommand(cmd), null));
             _launcherIpc.Start();
+
+            // Sign-out / shutdown: the one exit on which neither Dispose nor ApplicationExit runs.
+            _sessionEnd.QueryEnding += (_, _) => FlushQuickNotes();
+            _sessionEnd.Ending += (_, _) => OnSessionEnding();
 
             if (openSettingsOnStart)
                 _ui?.Post(_ => ShowSettings(), null);
@@ -390,11 +456,12 @@ namespace CyrFlip
         {
             if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
                 return;
-            if (suppressHistory)
-                _clipboardHistory.SuppressFor(TimeSpan.FromSeconds(2));
 
-            var thread = new Thread(() =>
+            StartClipboardWorker(() =>
             {
+                // Bracketed by the operation, not by the clock: the history skips everything up to the
+                // clipboard's state after the restore, however long the flip took (S0005 CH-5).
+                if (suppressHistory) _clipboardHistory.SuppressBegin();
                 try
                 {
                     ClipboardHandler.FlipResult result = op();
@@ -403,12 +470,29 @@ namespace CyrFlip
                     _ui?.Post(_ => ShowFlipResult(result), null);
                 }
                 catch { /* never let a clipboard op take the app down */ }
-                finally { Interlocked.Exchange(ref _busy, 0); }
-            })
-            {
-                IsBackground = true,
-            };
-            thread.Start();
+                finally
+                {
+                    if (suppressHistory) _clipboardHistory.SuppressEnd();
+                    Interlocked.Exchange(ref _busy, 0);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Starts <paramref name="body"/> on a background worker for a caller that already holds
+        /// <see cref="_busy"/>. The worker's own <c>finally</c> releases the guard - and never runs if
+        /// the thread never starts, so a <c>Thread.Start</c> that throws (out of memory, thread quota)
+        /// used to leave every flip, case flip, capture and translation dead until a restart, silently.
+        /// The release lives here, once, so the pattern cannot drift between call sites.
+        /// </summary>
+        private void StartClipboardWorker(ThreadStart body) => StartClipboardWorker(ref _busy, body);
+
+        /// <summary>The testable core of <see cref="StartClipboardWorker(ThreadStart)"/>; <paramref name="start"/> is the seam.</summary>
+        internal static void StartClipboardWorker(ref int busy, ThreadStart body, Action<Thread>? start = null)
+        {
+            var thread = new Thread(body) { IsBackground = true };
+            try { (start ?? (t => t.Start()))(thread); }
+            catch { Interlocked.Exchange(ref busy, 0); throw; }
         }
 
         /// <summary>How often both low-level hooks are re-armed. See <see cref="OnHookWatchdogTick"/>.</summary>
@@ -429,9 +513,19 @@ namespace CyrFlip
         /// interrupting anybody - it is retried on the next tick, and only a run of them earns one
         /// balloon. The counter resets on success, so the warning cannot repeat every minute.</para>
         /// </summary>
+        private void OnSessionSwitch(object sender, Microsoft.Win32.SessionSwitchEventArgs e)
+        {
+            // Raised on a SystemEvents thread; the table and the fired-trigger state belong to the
+            // hook's (UI) thread.
+            if (e.Reason == Microsoft.Win32.SessionSwitchReason.SessionUnlock)
+                _ui?.Post(_ => _hook.RefreshModifiers(), null);
+        }
+
         private void OnHookWatchdogTick()
         {
-            bool ok = _hook.Reinstall();
+            // The system's modifier state is false while a clipboard operation is synthesizing keys,
+            // so the physical table is only re-read from it while none is (ticket S0004, KC-1).
+            bool ok = _hook.Reinstall(refreshModifiers: Volatile.Read(ref _busy) == 0);
             ok &= _mouseHook.Reinstall();
 
             if (ok)
@@ -510,23 +604,28 @@ namespace CyrFlip
             if (!_config.EnableContextMenu) return;
             if (_textMenu.Visible) _textMenu.Close();
 
-            SelectionState selection = _selectionProbe?.Collect() ?? SelectionState.Unknown;
+            SelectionSnapshot selection = _selectionProbe?.Collect() ?? SelectionSnapshot.Unknown;
             _selectionProbe = null;
 
             // Actions that synthesize input go through DeferOnTarget: they must land in the window the
             // menu was opened over. The two that merely open a window of ours use plain Defer.
             TextContextMenu.Rebuild(_textMenu, BuildTextMenuState(selection), T,
                 command => { TextMenuLog.Log("click: " + command); DeferOnTarget(() => RunEditCommand(command)); },
+                target => { TextMenuLog.Log("click: launch " + target.Kind); Defer(() => LaunchSelection(target)); },
                 id => { TextMenuLog.Log("click: conversion"); DeferOnTarget(() => OnLayoutConversionHotkeyPressed(id)); },
                 () => { TextMenuLog.Log("click: case flip"); DeferOnTarget(() => OnCaseHotkeyPressed(null, EventArgs.Empty)); },
                 id => { TextMenuLog.Log("click: translate"); DeferOnTarget(() => OnTranslateHotkeyPressed(id)); },
+                () => { TextMenuLog.Log("click: quick note"); DeferOnTarget(CaptureSelectionIntoQuickNote); },
                 _config.EnableScenarioLauncher ? (Action<ToolStripMenuItem>)FillLauncherSubmenu : null,
                 () => { TextMenuLog.Log("click: history"); Defer(() => _clipboardHistoryWindow.ToggleVisible()); },
                 () => { TextMenuLog.Log("click: settings"); Defer(ShowSettings); });
 
             if (_textMenu.Items.Count == 0) return;
+            // The selected text itself is deliberately absent from the log - only its shape.
             TextMenuLog.Log("menu shown at " + x + "," + y + " with " + _textMenu.Items.Count
-                + " items, selection=" + selection + ", target " + TextMenuLog.Describe(_textMenuTarget));
+                + " items, selection=" + selection.State
+                + (selection.Text == null ? ", text unavailable" : ", text " + selection.Text.Length + " chars")
+                + ", target " + TextMenuLog.Describe(_textMenuTarget));
 
             // A drop-down whose owner is not the foreground window never sees the click that should
             // dismiss it - so the mouse hook watches for one while the menu is up. SetForegroundWindow
@@ -569,16 +668,22 @@ namespace CyrFlip
         /// Everything the menu's shape depends on, read once per opening. Chords are shown only while
         /// they would actually fire, so the menu never advertises a hotkey the user has switched off.
         /// </summary>
-        private TextContextMenuState BuildTextMenuState(SelectionState selection)
+        private TextContextMenuState BuildTextMenuState(SelectionSnapshot selection)
         {
             bool chordsLive = _config.EnableHotkeys;
+            SelectionStats.Count(selection.Text, out int lines, out int chars);
             var state = new TextContextMenuState
             {
-                Selection = selection,
+                Selection = selection.State,
+                Launch = LaunchTargets.TryParse(selection.Text, out LaunchTarget? launch) ? launch : null,
+                SelectionLines = lines,
+                SelectionChars = chars,
+                SelectionTruncated = selection.Truncated,
                 ClipboardHasText = WindowInterop.IsClipboardFormatAvailable(WindowInterop.CF_UNICODETEXT),
                 CaseShortcut = chordsLive && _config.EnableCaseHotkey ? _caseHotkey.Display : "",
                 ShowLauncher = _config.EnableScenarioLauncher,
                 ShowHistory = _config.EnableClipboardHistory,
+                ShowQuickNotes = _config.EnableQuickNotes,
             };
 
             foreach (LayoutConversionProfile profile in _config.LayoutConversionProfiles)
@@ -657,6 +762,218 @@ namespace CyrFlip
                 ClipboardHandler.FlipResult.Flipped, () => { }, suppressHistory: false);
         }
 
+        /// <summary>
+        /// Open what the user selected - a link, a file, a folder. The target came out of an
+        /// untrusted window through <see cref="LaunchTargets"/>, which is why <b>anything that runs
+        /// code is confirmed first</b>, naming the full path: the menu caption is elided, and a
+        /// truncated path is exactly what a plausible-looking one relies on.
+        ///
+        /// It deliberately does not go through <see cref="RunClipboardOp"/>: nothing here touches the
+        /// clipboard or the selection, and making it wait on the flip guard would only mean a link
+        /// that refuses to open while a translation is running. Nor does it restore the foreground -
+        /// the shell brings the browser or the app up by itself.
+        /// </summary>
+        private void LaunchSelection(LaunchTarget target)
+        {
+            if (target.Kind == LaunchKind.Program
+                && MessageBox.Show(
+                    string.Format(T("Запустить программу из выделенного текста?\n\n{0}\n\nCyrFlip не проверяет, что это за файл."),
+                        target.Target),
+                    "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+            {
+                TextMenuLog.Log("launch declined by the user");
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(target.Target) { UseShellExecute = true });
+                // The target itself is not logged: it is the user's own text, exactly like the
+                // yt-dlp link the launcher keeps out of its log.
+                TextMenuLog.Log("launched a " + target.Kind + " target");
+            }
+            catch (Exception ex)
+            {
+                TextMenuLog.Log("launch failed: " + ex.Message);
+                _tray.ShowBalloonTip(3000, "CyrFlip",
+                    string.Format(T("Не удалось запустить «{0}»: {1}"), target.Display, ex.Message),
+                    ToolTipIcon.Warning);
+            }
+        }
+
+        // ---- Quick notes (spec: PLAN/QuickNotes_Spec_Idea_v0.1.md) ----
+
+        /// <summary>The chord is bound only while the feature and its own switch are both on.</summary>
+        private bool QuickNotesChordLive => _config.EnableQuickNotes && _config.EnableQuickNotesHotkey;
+
+        /// <summary>
+        /// The service and its window are built on first use, not at startup: the store replays an
+        /// encrypted journal and the window builds a control tree, and neither is anybody's business
+        /// while the feature is off. Returns null when it is. The replay runs on the pool (ticket
+        /// S0006, QN-2) - this is the thread the keyboard hook runs on - and the window opens at once
+        /// in a "loading" state until the notes arrive.
+        /// </summary>
+        private QuickNotesWindow? EnsureQuickNotes()
+        {
+            if (!_config.EnableQuickNotes) return null;
+            if (_quickNotes == null)
+            {
+                QuickNotesService service = _quickNotes = new QuickNotesService();
+                service.Created += (_, _) => _config.IncrementQuickNoteCount();
+                service.Loaded += (_, _) =>
+                {
+                    var lines = new List<string>();
+                    if (service.RecoveredFromBackup)
+                        lines.Add(T("Журнал быстрых заметок не найден - заметки восстановлены из резервной копии."));
+                    if (service.SkippedRecords > 0)
+                        lines.Add(string.Format(T("Не прочитано записей быстрых заметок: {0}. Остальные заметки на месте."),
+                            service.SkippedRecords));
+                    if (lines.Count > 0 && ReferenceEquals(service, _quickNotes))
+                        _tray.ShowBalloonTip(4000, "CyrFlip", string.Join("\n", lines), ToolTipIcon.Warning);
+                };
+                service.LoadAsync();
+            }
+            if (_quickNotesWindow == null || _quickNotesWindow.IsDisposed)
+                _quickNotesWindow = new QuickNotesWindow(_quickNotes, _config, ShowSettings);
+            return _quickNotesWindow;
+        }
+
+        private void ShowQuickNotes(bool startNew)
+        {
+            QuickNotesWindow? window = EnsureQuickNotes();
+            window?.ShowNotes(startNew);
+        }
+
+        /// <summary>
+        /// The context menu's "save the selection". Phase A of the translator's pipeline, for the
+        /// same reason: the selection is taken with the same synthesized Ctrl+C every flip uses, the
+        /// clipboard is handed straight back, and the history is suppressed for the duration - the
+        /// copy is scaffolding for a note the user asked for, not a copy the user made (spec §8.9).
+        /// </summary>
+        private void CaptureSelectionIntoQuickNote()
+        {
+            if (!_config.EnableQuickNotes) return;
+            if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
+            {
+                _tray.ShowBalloonTip(2000, "CyrFlip",
+                    T("Другая операция с буфером ещё не закончилась. Повторите через секунду."), ToolTipIcon.Info);
+                return;
+            }
+            StartClipboardWorker(() =>
+            {
+                _clipboardHistory.SuppressBegin();
+                ClipboardHandler.CaptureResult captured = ClipboardHandler.CaptureResult.NoSelection;
+                string text = "";
+                try
+                {
+                    ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard();
+                    try { captured = _clipboard.TryCaptureSelection(out text, out _); }
+                    finally { ClipboardHandler.RestoreClipboard(backup); }
+                }
+                catch { /* never let a clipboard op take the app down */ }
+                finally
+                {
+                    _clipboardHistory.SuppressEnd();
+                    Interlocked.Exchange(ref _busy, 0);
+                }
+
+                ClipboardHandler.CaptureResult result = captured;
+                string selection = text;
+                _ui?.Post(_ =>
+                {
+                    if (result != ClipboardHandler.CaptureResult.Captured || selection.Length == 0)
+                    {
+                        ShowFlipResult(ClipboardHandler.FlipResult.NoSelection);
+                        return;
+                    }
+                    // Still only a draft: the user confirms it by closing the window or pressing
+                    // Ctrl+S, which is also when the note gets its creation date (spec §3.1).
+                    EnsureQuickNotes()?.ShowWithText(selection);
+                }, null);
+            });
+        }
+
+        /// <summary>
+        /// Anything on the quick-notes tab changed. The first enable is where the feature explains
+        /// itself (spec §5.3) - once, so a user who switches it off and on again is not lectured.
+        /// </summary>
+        private void OnQuickNotesChanged()
+        {
+            if (_config.EnableQuickNotes && !_config.QuickNotesNoticeShown)
+            {
+                _config.QuickNotesNoticeShown = true;
+                MessageBox.Show(
+                    T("Заметки хранятся только на этом компьютере, в зашифрованном DPAPI файле вашей учётной записи Windows. CyrFlip не отправляет их в сеть и ничем их не индексирует.")
+                    + "\n\n"
+                    + T("Это не хранилище секретов: не сохраняйте здесь пароли, боевые токены и приватные ключи."),
+                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
+            // The chord going live (the module or its own switch turned on) is checked like assigning
+            // it, since a config written before the check may share it (ticket S0004, KC-6).
+            if (QuickNotesChordLive && !_quickNotesChordWasLive
+                && Hotkey.TryParse(_config.QuickNotesHotkey, out Hotkey notesChord)
+                && !ChordIsFree(notesChord, ChordKind.QuickNotes, askAboutWindows: false))
+            {
+                _config.EnableQuickNotesHotkey = false;
+                _ui?.Post(_ => _settings.Reload(), null);
+            }
+            _quickNotesChordWasLive = QuickNotesChordLive;
+
+            _config.Save();
+            _quickNotesHotkey = Hotkey.Parse(_config.QuickNotesHotkey);
+            _hook.UpdateQuickNotesHotkey(_quickNotesHotkey);
+            _hook.UpdateQuickNotesEnabled(QuickNotesChordLive);
+            _quickNotesItem.Visible = _config.EnableQuickNotes;
+
+            if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed)
+            {
+                _quickNotesWindow.ApplyWordWrap(_config.QuickNotesWordWrap);
+                // Switched off: the open note is written, then the window goes and with it the
+                // decrypted notes it was showing.
+                if (!_config.EnableQuickNotes)
+                {
+                    _quickNotesWindow.CommitCurrent();
+                    _quickNotesWindow.Dispose();
+                    _quickNotesWindow = null;
+                }
+            }
+            if (!_config.EnableQuickNotes)
+            {
+                _quickNotes?.Dispose();
+                _quickNotes = null;
+            }
+            UpdateTrayTooltip();
+        }
+
+        /// <summary>Settings' "delete every quick note" - the service owns the files.</summary>
+        private void ClearQuickNotes()
+        {
+            if (EnsureQuickNotes() == null) return;
+            // The service drops the open note through its Cleared event and the window forgets the
+            // remembered one; DeleteAll finishes a replay still in flight first.
+            _quickNotes?.DeleteAll();
+        }
+
+        /// <summary>Settings' "export everything as Markdown" - one file, in note order.</summary>
+        private string ExportQuickNotes(string path, bool metadata)
+        {
+            QuickNotesService? service = _quickNotes;
+            if (service == null && _config.EnableQuickNotes) { EnsureQuickNotes(); service = _quickNotes; }
+            if (service == null) return "";
+            service.EnsureLoaded();   // "everything" must not be whatever the replay has reached
+            var text = new StringBuilder();
+            bool first = true;
+            foreach (QuickNote note in service.Notes)
+            {
+                if (!first) text.Append("\n\n---\n\n");
+                text.Append(note.ToMarkdown(metadata));
+                first = false;
+            }
+            System.IO.File.WriteAllText(path, text.ToString(), Encoding.UTF8);
+            return path;
+        }
+
         // ---- Translator (local Ollama) ----
 
         /// <summary>
@@ -693,21 +1010,24 @@ namespace CyrFlip
                     T("Другая операция с буфером ещё не закончилась. Повторите через секунду."), ToolTipIcon.Info);
                 return;
             }
-            _clipboardHistory.SuppressFor(TimeSpan.FromSeconds(2));
-
-            var thread = new Thread(() =>
+            StartClipboardWorker(() =>
             {
+                _clipboardHistory.SuppressBegin();
                 ClipboardHandler.CaptureResult captured = ClipboardHandler.CaptureResult.NoSelection;
                 string text = "";
                 IntPtr target = IntPtr.Zero;
                 try
                 {
                     ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard();
-                    try { captured = _clipboard.TryCaptureSelection(out text, out target, out _); }
+                    try { captured = _clipboard.TryCaptureSelection(out text, out target); }
                     finally { ClipboardHandler.RestoreClipboard(backup); }
                 }
                 catch { /* never let a clipboard op take the app down */ }
-                finally { Interlocked.Exchange(ref _busy, 0); }
+                finally
+                {
+                    _clipboardHistory.SuppressEnd();
+                    Interlocked.Exchange(ref _busy, 0);
+                }
 
                 ClipboardHandler.CaptureResult result = captured;
                 string selection = text;
@@ -730,11 +1050,7 @@ namespace CyrFlip
                     }
                     BeginTranslate(selection, window, code, sourceCode);
                 }, null);
-            })
-            {
-                IsBackground = true,
-            };
-            thread.Start();
+            });
         }
 
         /// <summary>The tray entry: translate what is already on the clipboard, with no Ctrl+C at all.</summary>
@@ -897,9 +1213,11 @@ namespace CyrFlip
                 }
 
                 ClipboardHandler.FlipResult pasted = ClipboardHandler.FlipResult.Flipped;
+                // With "copy" on, the translation is a copy the user asked for and the history keeps
+                // it; without, the paste's backup/restore is scaffolding.
+                if (!copy) _clipboardHistory.SuppressBegin();
                 try
                 {
-                    _clipboardHistory.SuppressFor(copy ? TimeSpan.Zero : TimeSpan.FromSeconds(2));
                     if (copy) Win32Clipboard.TrySetText(text);
 
                     if (paste && target != IntPtr.Zero)
@@ -916,7 +1234,11 @@ namespace CyrFlip
                     }
                 }
                 catch { /* never let a clipboard op take the app down */ }
-                finally { Interlocked.Exchange(ref _busy, 0); }
+                finally
+                {
+                    if (!copy) _clipboardHistory.SuppressEnd();
+                    Interlocked.Exchange(ref _busy, 0);
+                }
 
                 // Only a real paste attempt can report a focus change; with no target there was none.
                 if (!paste || target == IntPtr.Zero || pasted == ClipboardHandler.FlipResult.Flipped) return;
@@ -1014,7 +1336,16 @@ namespace CyrFlip
         /// </summary>
         private void OnTranslationChanged()
         {
-            AppConfig.SeedTranslateRow(_config, chord => ClashingChordOwner(chord) == null);
+            // The starter row takes the default chord only when nobody - no CyrFlip action and no
+            // Windows language hotkey - owns it; otherwise it is created without one.
+            ChordRegistry? chords = null;
+            AppConfig.SeedTranslateRow(_config, chord =>
+            {
+                chords ??= Chords();
+                return chords.CyrFlipOwnerOf(chord, ChordKind.Translation) == null && chords.WindowsOwnerOf(chord) == null;
+            });
+            if (_config.EnableTranslate && !_translateWasOn) WarnDuplicateChords();
+            _translateWasOn = _config.EnableTranslate;
 
             _config.Save();
             BindTranslationHotkeys();
@@ -1028,71 +1359,34 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// Which CyrFlip action already owns this chord, or null. Used for the one decision the
-        /// context makes on its own (is the default translate chord free?); the settings window has
-        /// its own richer check for the tables (<c>SettingsForm.ClashingCyrFlipAction</c>).
+        /// Every chord and its owner, read fresh (ticket S0004, KC-6). The settings window asks the
+        /// very same registry, so the tray's setters and the tables cannot disagree about who owns
+        /// a chord - switched on or off, master switch on or off.
         /// </summary>
-        private string? ClashingChordOwner(Hotkey chord)
-        {
-            if (_config.EnableCaseHotkey && chord.SameChord(_caseHotkey)) return "case";
-            if (_config.EnableHistoryHotkey && chord.SameChord(_clipboardHistoryHotkey)) return "history";
-            if (ConversionUsing(chord) != null) return "conversion";
-            if (LauncherUsing(chord) != null) return "launcher";
-            if (TranslationUsing(chord) != null) return "translation";
-            return null;
-        }
+        private ChordRegistry Chords() => ChordRegistry.Build(_config, _launcherStore.All, LanguageHotkeys.ReadAll());
 
-        /// <summary>The translation row already bound to this chord, or null - the 5th party of the check.</summary>
-        private TranslationProfile? TranslationUsing(Hotkey chord)
-        {
-            if (!_config.EnableTranslate) return null;
-            foreach (TranslationProfile profile in _config.TranslateProfiles)
-                if (profile.Enabled && profile.IsUsable
-                    && Hotkey.TryParse(profile.Hotkey, out Hotkey bound) && chord.SameChord(bound))
-                    return profile;
-            return null;
-        }
+        /// <summary>Refuse a chord another CyrFlip action owns; ask about one Windows owns.</summary>
+        private bool ChordIsFree(Hotkey chord, ChordKind kind, bool askAboutWindows = true)
+            => ChordGuard.IsFree(null, Chords(), chord, kind, null, _config.UiLanguage, WorldLayouts.LabelForKlid, askAboutWindows);
+
+        /// <summary>A module or the master switch went on: say so if an old config shares a chord.</summary>
+        private void WarnDuplicateChords()
+            => ChordGuard.WarnDuplicates(null, Chords(), _config.UiLanguage, WorldLayouts.LabelForKlid);
 
         // ---- Tray menu handlers ----
+
+        // The three fixed chords. TryParse, never Parse: a captured name the parser did not know
+        // used to come back as the Ctrl+Shift+F12 default and be bound as that (ticket S0004, KC-2).
 
         private void OnSetCaseHotkey(object? sender, EventArgs e)
         {
             using var dlg = new HotkeyDialog(_caseHotkey.Display, HotkeyTitle("case"), _config.UiLanguage);
-            if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null)
-                return;
+            if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
+            if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.Case)) return;
 
-            var newHotkey = Hotkey.Parse(dlg.CapturedHotkey);
-            if (newHotkey.Vk == 0)
-                return; // parse produced no trigger key - shouldn't happen if dialog is correct
-
-            if (newHotkey.SameChord(_clipboardHistoryHotkey))
-            {
-                WarnHotkeyClash("other");
-                return;
-            }
-
-            if (ConversionUsing(newHotkey) != null)
-            {
-                WarnHotkeyClash("conversion");
-                return;
-            }
-
-            if (LauncherUsing(newHotkey) != null)
-            {
-                WarnHotkeyClash("launcher");
-                return;
-            }
-
-            if (TranslationUsing(newHotkey) != null)
-            {
-                WarnHotkeyClash("translation");
-                return;
-            }
-
-            _caseHotkey = newHotkey;
-            _config.CaseHotkey = dlg.CapturedHotkey;
+            _caseHotkey = next;
+            _config.CaseHotkey = next.Display;
             _config.Save();
-
             _hook.UpdateCaseHotkey(_caseHotkey);
             UpdateTrayTooltip();
             _settings.Reload();
@@ -1102,13 +1396,32 @@ namespace CyrFlip
         {
             using var dlg = new HotkeyDialog(_clipboardHistoryHotkey.Display, HotkeyTitle("history"), _config.UiLanguage);
             if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
-            Hotkey next = Hotkey.Parse(dlg.CapturedHotkey);
-            if (next.Vk == 0 || next.SameChord(_caseHotkey)) { WarnHotkeyClash("other"); return; }
-            if (ConversionUsing(next) != null) { WarnHotkeyClash("conversion"); return; }
-            if (LauncherUsing(next) != null) { WarnHotkeyClash("launcher"); return; }
-            if (TranslationUsing(next) != null) { WarnHotkeyClash("translation"); return; }
-            _clipboardHistoryHotkey = next; _config.ClipboardHistoryHotkey = dlg.CapturedHotkey; _config.Save(); _hook.UpdateClipboardHistoryHotkey(next);
+            if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.History)) return;
+
+            _clipboardHistoryHotkey = next;
+            _config.ClipboardHistoryHotkey = next.Display;
+            _config.Save();
+            _hook.UpdateClipboardHistoryHotkey(next);
             _clipboardHistoryWindow.RefreshHeader();
+            UpdateTrayTooltip();
+            _settings.Reload();
+        }
+
+        /// <summary>
+        /// The quick-notes chord, set from the settings tab. Checked against every other chord the
+        /// registry knows - one chord doing two things is not a compromise anybody wants, it is a
+        /// hotkey that appears to be broken half the time.
+        /// </summary>
+        private void OnSetQuickNotesHotkey()
+        {
+            using var dlg = new HotkeyDialog(_quickNotesHotkey.Display, T("Задать хоткей быстрых заметок"), _config.UiLanguage);
+            if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
+            if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.QuickNotes)) return;
+
+            _quickNotesHotkey = next;
+            _config.QuickNotesHotkey = next.Display;
+            _config.Save();
+            _hook.UpdateQuickNotesHotkey(next);
             UpdateTrayTooltip();
             _settings.Reload();
         }
@@ -1176,6 +1489,9 @@ namespace CyrFlip
             _keepAwakeItem.Text = T("Не давать компьютеру засыпать");
             _keepScreenItem.Text = T("Не блокировать экран (как при видео)");
             _translateClipboardItem.Text = T("Перевести буфер обмена");
+            _quickNotesItem.Text = T("Быстрые заметки");
+            if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed)
+                _quickNotesWindow.ApplyLanguage(_config.UiLanguage);
             _settingsItem.Text = T("Настройки...");
             _exitItem.Text = T("Выход");
             // Note: _autostartItem / _langSwitchItem / _capsAfterItem are state-holder items synced with
@@ -1206,6 +1522,8 @@ namespace CyrFlip
                     lines.Add(_caseHotkey.Display + " - " + T("регистр"));
                 if (_config.EnableHistoryHotkey)
                     lines.Add(_clipboardHistoryHotkey.Display + " - " + T("менеджер буфера"));
+                if (QuickNotesChordLive)
+                    lines.Add(_quickNotesHotkey.Display + " - " + T("быстрые заметки"));
                 foreach (LayoutConversionProfile profile in _config.LayoutConversionProfiles)
                     if (profile.Enabled && profile.IsUsable)
                         lines.Add(profile.Hotkey + " - " + WorldLayouts.CodeForKlid(profile.SourceKlid)
@@ -1335,31 +1653,6 @@ namespace CyrFlip
         private string HotkeyTitle(string which)
             => T(which == "history" ? "Задать хоткей истории буфера" : "Задать хоткей регистра");
 
-        /// <summary>
-        /// The conversion profile already bound to this chord, or null. The table of layout pairs is
-        /// open-ended, so every built-in hotkey has to be checked against it - the settings window
-        /// checks the other direction (see <c>SettingsForm.ClashingCyrFlipAction</c>).
-        /// </summary>
-        private LayoutConversionProfile? ConversionUsing(Hotkey chord)
-        {
-            foreach (LayoutConversionProfile profile in _config.LayoutConversionProfiles)
-                if (profile.Enabled && profile.IsUsable
-                    && Hotkey.TryParse(profile.Hotkey, out Hotkey bound) && chord.SameChord(bound))
-                    return profile;
-            return null;
-        }
-
-        private void WarnHotkeyClash(string which)
-        {
-            string other = which == "case" ? T("хоткеем регистра")
-                : which == "conversion" ? T("конвертацией раскладок")
-                : which == "launcher" ? T("сценарием быстрого запуска")
-                : which == "translation" ? T("переводом текста")
-                : T("другим хоткеем CyrFlip");
-            MessageBox.Show(string.Format(T("Эта комбинация уже занята {0}. Их нельзя объединять — выберите другую."), other),
-                "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
-
         private void OnCursorToggle(object? sender, EventArgs e)
         {
             _config.EnableCursorChange = _cursorItem.Checked;
@@ -1422,6 +1715,7 @@ namespace CyrFlip
 
         private void SetHotkeysEnabled(bool value)
         {
+            if (value && !_config.EnableHotkeys) WarnDuplicateChords();
             _config.EnableHotkeys = value;
             _hook.UpdateEnabled(value);
             _config.Save();
@@ -1435,8 +1729,11 @@ namespace CyrFlip
             _config.Save();
         }
 
+        // Switching a fixed chord back on is checked like assigning it (ticket S0004, KC-6); refused,
+        // the config stays off and the settings window's Reload puts the tick back.
         private void SetCaseHotkeyEnabled(bool value)
         {
+            if (value && !ChordIsFree(_caseHotkey, ChordKind.Case, askAboutWindows: false)) return;
             _config.EnableCaseHotkey = value;
             _hook.UpdateCaseEnabled(value);
             _config.Save();
@@ -1445,6 +1742,7 @@ namespace CyrFlip
 
         private void SetHistoryHotkeyEnabled(bool value)
         {
+            if (value && !ChordIsFree(_clipboardHistoryHotkey, ChordKind.History, askAboutWindows: false)) return;
             _config.EnableHistoryHotkey = value;
             _hook.UpdateHistoryEnabled(value);
             _config.Save();
@@ -1511,6 +1809,7 @@ namespace CyrFlip
         /// </summary>
         private void SetLauncherEnabled(bool value)
         {
+            if (value && !_config.EnableScenarioLauncher) WarnDuplicateChords();
             _config.EnableScenarioLauncher = value;
             if (value && !_config.LauncherFirstEnableDone)
             {
@@ -1666,16 +1965,6 @@ namespace CyrFlip
                     ToolTipIcon.Warning);
         }
 
-        /// <summary>The launcher scenario already bound to this chord, or null - the 4th party of the conflict check.</summary>
-        private LauncherScenario? LauncherUsing(Hotkey chord)
-        {
-            if (!_config.EnableScenarioLauncher) return null;
-            foreach (LauncherScenario scenario in _launcherStore.All)
-                if (scenario.Hotkey.Length > 0 && Hotkey.TryParse(scenario.Hotkey, out Hotkey bound) && chord.SameChord(bound))
-                    return scenario;
-            return null;
-        }
-
         private static Icon TryGetAppIcon()
         {
             try
@@ -1688,15 +1977,65 @@ namespace CyrFlip
             }
         }
 
+        /// <summary>
+        /// Writes the open note and whatever the debounce is still holding. Cheap, so it runs as soon
+        /// as Windows asks whether the session may end, and again once it does.
+        /// </summary>
+        private void FlushQuickNotes()
+        {
+            try
+            {
+                if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed)
+                    _quickNotesWindow.CommitCurrent();
+                _quickNotes?.Flush();
+            }
+            catch { /* the session is ending - nothing may throw out of here */ }
+        }
+
+        /// <summary>
+        /// <c>WM_ENDSESSION(TRUE)</c>: the process is about to be terminated, and this is the only
+        /// cleanup the sign-out path gets. Synchronous, in order, each step on its own - one that fails
+        /// must not cost the next - and inside <see cref="SessionEndBudget"/>.
+        /// </summary>
+        private void OnSessionEnding()
+        {
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+
+            // 1. Absence of layout.txt = CyrFlip not running (LAYOUT-SIGNAL rule 6). Without this, the
+            //    next sign-in without autostart left the VS Code extension drawing a stale marker.
+            try { LayoutPublisher.Retract(); } catch { }
+
+            // 2. The last note edit, then - only while the budget is still fresh - the compaction the
+            //    journal would have had on a clean exit. Skipped, it simply happens on a later exit.
+            FlushQuickNotes();
+            if (clock.Elapsed < SessionEndCompactionCutoff)
+                try { _quickNotes?.CompactIfNeeded(); } catch { }
+
+            // 3. Clipboard-history records still queued on the thread pool.
+            TimeSpan left = SessionEndBudget - clock.Elapsed;
+            if (left > TimeSpan.Zero)
+                try { _clipboardHistory.WaitForPendingWrites(left < SessionEndHistoryDrain ? left : SessionEndHistoryDrain); } catch { }
+
+            // 4. The system cursor - a no-op unless CyrFlip actually replaced it (LayoutCursor.ForceRestore).
+            try { LayoutCursor.ForceRestore(); } catch { }
+        }
+
         protected override void Dispose(bool disposing)
         {
+            // Runs twice on a normal exit: Program's `using`, and WinForms disposing the context when
+            // the message loop ends. The second pass used to Cancel() a source the first had already
+            // disposed, and the ObjectDisposedException turned a plain "Exit" into an error box.
+            if (_disposed) return;
+            _disposed = true;
             if (disposing)
             {
+                _sessionEnd.Dispose();
                 _launcherIpc.Dispose(); // stop the pipe listener before the UI it posts to goes away
                 _launcherTaskbar?.Dispose();
                 // Stop an in-flight translation before the window it streams into is torn down.
                 _translateCts?.Cancel();
                 _translateCts?.Dispose();
+                _translateCts = null;
                 _translateWindow?.Dispose();
                 _trayClickTimer.Stop();
                 _trayClickTimer.Dispose();
@@ -1704,14 +2043,23 @@ namespace CyrFlip
                 _hookWatchdog.Dispose();
                 _mouseHook.Dispose();
                 _textMenu.Dispose();
+                Microsoft.Win32.SystemEvents.SessionSwitch -= OnSessionSwitch;
                 _hook.Dispose();
                 _indicator.Dispose();
                 KeepAwake.Reset(); // restore Windows' normal sleep/screen idle timeouts
                 _layoutCursor.Dispose(); // restores the default system cursor
+                LayoutPublisher.Retract(); // absence of layout.txt = CyrFlip not running (LAYOUT-SIGNAL rule 6)
                 _caretOverlay.Dispose();
                 _clipboardHistoryWindow.Dispose();
                 _clipboardHistorySearchWindow?.Dispose();
                 _clipboardHistory.Dispose();
+                // The open note is written first: Dispose is not a close, so the window's own
+                // "save on the way out" never runs, and the last edit would be the debounce's to
+                // lose. Only then is the service torn down (it flushes and compacts).
+                if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed)
+                    _quickNotesWindow.CommitCurrent();
+                _quickNotesWindow?.Dispose();
+                _quickNotes?.Dispose();
                 _settings.Dispose();
                 _tray.Visible = false;
                 _tray.Dispose();

@@ -13,6 +13,8 @@ namespace CyrFlip
     internal sealed class TranslationDialog : Form
     {
         private readonly string _uiLanguage;
+        // The script font for hi/bn/zh; WinForms never disposes a font assigned to a control (ST-5).
+        private Font? _ownFont;
         private readonly ComboBox _target = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
         private readonly Label _hotkey = new Label { AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 8, 3, 3) };
         // One line, never wrapped: DialogLayoutTests measures a Label's unconstrained preferred size,
@@ -54,7 +56,7 @@ namespace CyrFlip
             _coverage.LinkClicked += (_, _) => OllamaManager.OpenModelPage(model);
 
             _hotkey.Text = string.IsNullOrEmpty(existing?.Hotkey) ? T("Не назначено") : existing!.Hotkey;
-            _hotkey.MinimumSize = new Size(TextWidth("Ctrl+Shift+Backspace"), 0); // the longest chord we can produce
+            _hotkey.MinimumSize = new Size(TextWidth(HotkeyDialog.LongestChord), 0); // the longest chord we can produce
 
             var set = new Button
             {
@@ -131,6 +133,9 @@ namespace CyrFlip
             bool unassigned = chord.Length == 0 || chord == T("Не назначено");
             if (!unassigned && !Hotkey.TryParse(chord, out _))
             {
+                // Every refused OK says why (ticket S0007, DL-4).
+                MessageBox.Show(this, string.Format(T("Комбинация «{0}» не распознана."), chord),
+                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 DialogResult = DialogResult.None;
                 return;
             }
@@ -153,7 +158,20 @@ namespace CyrFlip
                     _target.SelectedIndex = i;
                     return;
                 }
+            // A stored code the list does not offer is kept, not silently replaced by the first
+            // entry when only the chord is edited (ticket S0007, DL-4).
+            if (!string.IsNullOrEmpty(code))
+            {
+                _target.SelectedIndex = _target.Items.Add(new LanguageItem(code, _uiLanguage));
+                return;
+            }
             if (_target.Items.Count > 0) _target.SelectedIndex = 0;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing) _ownFont?.Dispose();
         }
 
         private int ComboWidth()
@@ -170,7 +188,7 @@ namespace CyrFlip
             if (Localization.IsRightToLeft(uiLanguage)) { RightToLeft = RightToLeft.Yes; RightToLeftLayout = true; }
             string? family = Localization.FontFamily(uiLanguage);
             if (family == null) return;
-            try { Font = new Font(family, Font.SizeInPoints); }
+            try { Font = _ownFont = new Font(family, Font.SizeInPoints); }
             catch { /* the font is missing on this machine - keep the default */ }
         }
 

@@ -37,7 +37,7 @@
   <div class="wrap">
     <section>
       <h1>Datenschutzerklärung</h1>
-      <p class="note">Stand: 30. Juli 2026 · <a href="../privacy.html">English (Original)</a></p>
+      <p class="note">Stand: 24. September 2026 · <a href="../privacy.html">English (Original)</a></p>
 
       <p><strong>CyrFlip erhebt, speichert, protokolliert und überträgt keinerlei personenbezogene
       Daten.</strong> Die App läuft vollständig auf Ihrem eigenen Gerät. Sie hat keine eigenen Server,
@@ -53,10 +53,12 @@
 
       <h2>Worauf die App zugreift und warum</h2>
       <ul class="features">
-        <li><strong>Tastatur.</strong> CyrFlip installiert einen globalen Tastaturhook für genau zwei
-        Zwecke: seine Tastenkombination zu erkennen (standardmäßig
-        <kbd>Strg</kbd>+<kbd>Umschalt</kbd>+<kbd>F12</kbd>) und den Code des aktiven Tastaturlayouts zu
-        lesen (jedes in Windows installierte Layout), um die Bildschirmanzeige darzustellen. Daneben
+        <li><strong>Tastatur.</strong> CyrFlip installiert einen globalen Tastaturhook für genau einen
+        Zweck: seine eigenen Tastenkombinationen zu erkennen, etwa die Kombination für die Layout-Umwandlung
+        (standardmäßig <kbd>Strg</kbd>+<kbd>Umschalt</kbd>+<kbd>F12</kbd>). Das Tastaturlayout, das die
+        Anzeige darstellt (jedes in Windows installierte Layout, einschließlich der 13 ausgewählten EN, ZH,
+        HI, ES, FR, AR, BN, PT, RU, UR, DE, IT und UK), wird nicht über den Hook gelesen - CyrFlip fragt
+        Windows nach dem Layout des Fensters, das den Fokus hat. Neben dieser Kombination
         beobachtet er die Kombinationen, die Sie der Groß-/Kleinschreibungskorrektur, der
         Zwischenablage-Verwaltung, jeder Zeile Ihrer Layout-Umwandlungstabelle, jeder Zeile Ihrer
         Übersetzungstabelle und jedem Schnellstart-Szenario zugewiesen haben. Während eine Übersetzung
@@ -64,6 +66,26 @@
         die Taste erreicht die Anwendung, in der Sie arbeiten, ohnehin.
         <strong>Ihre Tastenanschläge werden nicht aufgezeichnet, protokolliert, gespeichert oder
         übertragen.</strong> Es ist kein Keylogger.</li>
+
+        <li><strong>Maus.</strong> Nur solange Sie das eigene <em>Kontextmenü</em> von CyrFlip eingeschaltet
+        haben (es ist <strong>standardmäßig aus</strong>), installiert CyrFlip einen globalen Maushook, um die
+        eine Mauskombination zu erkennen, die dieses Menü öffnet (standardmäßig <kbd>Strg</kbd> +
+        Rechtsklick). Alle anderen Klicks und Bewegungen reicht er unverändert weiter und zeichnet nichts
+        auf, speichert nichts und sendet nichts. Ist das Kontextmenü aus, gibt es überhaupt keinen
+        Maushook.</li>
+
+        <li><strong>Textcursor.</strong> Die Option, die das Layout am Mauszeiger anzeigt (<strong>standardmäßig
+        aus</strong>), ersetzt, solange CyrFlip läuft, den Windows-Cursor für die Textauswahl (den I-Balken)
+        in allen Programmen. CyrFlip stellt den Standardcursor beim Beenden wieder her, auch wenn es wegen
+        eines Fehlers geschlossen wird; nur wenn der Prozess gewaltsam beendet wird, bleibt der Ersatz bis
+        zur Abmeldung bestehen.</li>
+
+        <li><strong>Mit Windows starten.</strong> CyrFlip startet nur dann mit Windows, wenn Sie diese Option
+        ankreuzen. Die portable Version schreibt dann einen Eintrag in
+        <code>HKCU\Software\Microsoft\Windows\CurrentVersion\Run</code> in Ihrem eigenen Benutzerprofil, und
+        das Entfernen des Häkchens löscht ihn wieder; die Microsoft-Store-Version verwendet stattdessen eine
+        Windows-Starttask, die Sie auch unter <em>Einstellungen &gt; Apps &gt; Autostart</em> schalten
+        können.</li>
 
         <li><strong>Zwischenablage.</strong> Wenn Sie die Tastenkombination drücken, liest CyrFlip die
         Auswahl kurzzeitig (über ein simuliertes Kopieren), wandelt sie zwischen Layouts um, fügt das
@@ -124,15 +146,21 @@
         zweibuchstabigen Wert wie <code>EN</code>, <code>ZH</code>, <code>RU</code> oder <code>AR</code> -
         in eine kleine lokale Datei (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, in der
         Microsoft-Store-Version <code>%ProgramData%\CyrFlip\layout.txt</code>), damit die optionale
-        VS&nbsp;Code-Erweiterung die Markierung an der Schreibmarke des Editors anzeigen kann. Sie
-        enthält keine personenbezogenen Daten und verlässt Ihr Gerät nie.</li>
+        VS&nbsp;Code-Erweiterung die Markierung an der Schreibmarke des Editors anzeigen kann. Daneben
+        enthält <code>layout-klid.txt</code> die Kennung dieses Tastaturlayouts (acht Hexadezimalziffern, etwa
+        <code>00000409</code>), damit die Erweiterung dieselbe Farbe verwenden kann. Die Erweiterung schreibt,
+        sofern Sie sie installiert haben, <code>editor-caret.txt</code> in denselben Ordner, solange sie die
+        Markierung zeichnet; darin stehen nur der Layout-Code und eine Uhrzeit. CyrFlip entfernt seine beiden
+        Dateien beim Beenden. In der Microsoft-Store-Version liegt dieser Ordner unter
+        <code>%ProgramData%</code>, den andere Konten auf demselben PC lesen können - er enthält nichts außer
+        diesen Werten. Keine dieser Dateien enthält personenbezogene Daten oder verlässt jemals Ihr Gerät.</li>
 
         <li><strong>Einstellungen und Verlauf.</strong> Die Einstellungen liegen in
         <code>HKCU\Software\CyrFlip</code> - einschließlich Ihrer Umwandlungstabelle und der oben
         beschriebenen einmaligen Sicherungen der Windows-Eingabeeinstellungen. Ist der
         Zwischenablageverlauf aktiviert, wird er lokal im Anwendungsdatenordner DPAPI-geschützt
         abgelegt. Eine alte <code>config.json</code> kann bei der Migration einmalig gelesen werden.
-        Nichts davon verlässt Ihr Gerät.</li>
+        Nichts davon verlässt Ihr Gerät. Sind die Schnellnotizen aktiviert, werden sie im selben Ordner in einer DPAPI-geschützten Datei gespeichert - der Titel ebenso wie der Text -, und diese Datei ist nie Teil des unten beschriebenen Log-Archivs.</li>
 
         <li><strong>Schnellstart-Szenarien.</strong> Jedes von Ihnen angelegte Szenario liegt als eigene
         XML-Datei in <code>%APPDATA%\CyrFlip\Scenarios</code> und enthält genau das, was Sie eingegeben
@@ -157,6 +185,10 @@
         existiert. Gesendet wird nichts, bis Sie in Ihrem eigenen Mailprogramm auf Senden drücken -
         CyrFlip hat keinen eigenen Sendeweg.</li>
       </ul>
+
+      <p>Wenn Windows oder Ihr Virenschutz Sie beim Herunterladen oder ersten Start vor CyrFlip gewarnt hat,
+      lesen Sie <a href="trust.html">Warum Windows oder ein Virenschutz vor CyrFlip warnen kann</a> - die Liste
+      dessen, was CyrFlip nie tut, sagt dort dasselbe wie diese Seite.</p>
 
       <h2>Weitergabe von Daten</h2>
       <p>Keine. CyrFlip gibt keine Daten an den Entwickler oder an Dritte weiter. Das Einzige, was

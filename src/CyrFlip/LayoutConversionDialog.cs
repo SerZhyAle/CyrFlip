@@ -23,6 +23,8 @@ namespace CyrFlip
         };
         private readonly ComboBox _target = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
         private readonly string _uiLanguage;
+        // The script font for hi/bn/zh; WinForms never disposes a font assigned to a control (ST-5).
+        private Font? _ownFont;
 
         public LayoutConversionProfile? Profile { get; private set; }
 
@@ -40,10 +42,13 @@ namespace CyrFlip
                 string label = layout.LanguageName + (layout.DisplayName.Length > 0 ? " — " + layout.DisplayName : "") + "  (" + layout.Klid + ")";
                 _source.Items.Add(new LayoutItem(layout.Klid, label)); _target.Items.Add(new LayoutItem(layout.Klid, label));
             }
+            // A row whose layout has since been uninstalled keeps it, marked, instead of silently
+            // turning into "<first layout> ⇄ .." when only the chord is edited (ticket S0007, DL-4).
+            AddMissing(existing?.SourceKlid); AddMissing(existing?.TargetKlid);
             _source.Width = _target.Width = ComboWidth();
             SelectKlid(_source, existing?.SourceKlid); SelectKlid(_target, existing?.TargetKlid);
             _hotkey.Text = existing?.Hotkey ?? T("Не назначено");
-            _hotkey.MinimumSize = new Size(TextWidth("Ctrl+Shift+Backspace"), 0); // the longest chord we can produce
+            _hotkey.MinimumSize = new Size(TextWidth(HotkeyDialog.LongestChord), 0); // the longest chord we can produce
 
             var set = new Button { Text = T("Задать..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(8, 3, 3, 3) };
             set.Click += (_, _) => SetHotkey();
@@ -77,13 +82,30 @@ namespace CyrFlip
 
         private string T(string ru) => Localization.Translate(_uiLanguage, ru);
 
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing) _ownFont?.Dispose();
+        }
+
+        /// <summary>A stored KLID no longer installed: appended to both lists as "PL (не установлена)".</summary>
+        private void AddMissing(string? klid)
+        {
+            if (string.IsNullOrEmpty(klid)) return;
+            foreach (object item in _source.Items)
+                if (((LayoutItem)item).Klid.Equals(klid, StringComparison.OrdinalIgnoreCase)) return;
+            string code = WorldLayouts.CodeForKlid(klid!);
+            string label = (code.Length > 0 ? code : klid) + " " + T("(не установлена)") + "  (" + klid + ")";
+            _source.Items.Add(new LayoutItem(klid!, label)); _target.Items.Add(new LayoutItem(klid!, label));
+        }
+
         /// <summary>Mirrors for Arabic/Urdu and picks a font that can draw the script - as the settings window does.</summary>
         private void ApplyScript(string uiLanguage)
         {
             if (Localization.IsRightToLeft(uiLanguage)) { RightToLeft = RightToLeft.Yes; RightToLeftLayout = true; }
             string? family = Localization.FontFamily(uiLanguage);
             if (family == null) return;
-            try { Font = new Font(family, Font.SizeInPoints); }
+            try { Font = _ownFont = new Font(family, Font.SizeInPoints); }
             catch { /* the font is missing on this machine - keep the default */ }
         }
 
@@ -120,8 +142,19 @@ namespace CyrFlip
 
         private void BuildProfile(LayoutConversionProfile? existing)
         {
-            if (!(_source.SelectedItem is LayoutItem source) || !(_target.SelectedItem is LayoutItem target)
-                || !Hotkey.TryParse(_hotkey.Text, out _)) { DialogResult = DialogResult.None; return; }
+            if (!(_source.SelectedItem is LayoutItem source) || !(_target.SelectedItem is LayoutItem target))
+            {
+                DialogResult = DialogResult.None;
+                return;
+            }
+            // Every refused OK says why; it used to do nothing, silently (DL-4).
+            if (!Hotkey.TryParse(_hotkey.Text, out _))
+            {
+                MessageBox.Show(this, T("Сначала задайте комбинацию клавиш."),
+                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                DialogResult = DialogResult.None;
+                return;
+            }
 
             // Converting a layout into itself would spend a clipboard round trip to change nothing.
             if (string.Equals(source.Klid, target.Klid, StringComparison.OrdinalIgnoreCase))

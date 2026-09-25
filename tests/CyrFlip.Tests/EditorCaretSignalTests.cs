@@ -29,6 +29,12 @@ namespace CyrFlip.Tests
 
         /// <summary>A file dated in the future (a clock change, a copy from another machine) would
         /// otherwise hide the overlay until the clocks agreed again.</summary>
+        /// <summary>LAYOUT-SIGNAL rule 11 fixes the number: three of the claimant's 500 ms write intervals.
+        /// The boundary tests above compare with the constant, so only this one notices it moving.</summary>
+        [Fact]
+        public void TheFreshnessWindowIsTheContractsValue()
+            => Assert.Equal(1500, EditorCaretSignal.FreshMs);
+
         [Fact]
         public void ASignalFromTheFutureIsRefused()
             => Assert.False(EditorCaretSignal.IsFresh(Now.AddSeconds(30), Now));
