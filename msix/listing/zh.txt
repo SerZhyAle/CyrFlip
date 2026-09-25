@@ -56,6 +56,8 @@ CyrFlip 是一款小巧的 Windows 托盘应用：它在你打字的地方直接
 可选的本地翻译器：按快捷键翻译所选文本，结果显示在鼠标指针旁
 @@Feature17
 翻译在你自己电脑的 Ollama 上运行 —— 单独安装，默认关闭
+@@Feature18
+浅色、深色或跟随 Windows：所有窗口、对话框和菜单都随主题切换，无需重启
 @@SearchTerm1
 键盘布局切换
 @@SearchTerm2

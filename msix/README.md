@@ -38,8 +38,13 @@ The **same `CyrFlip.exe`** ships packaged and unpackaged; it detects which at ru
    (`StartupTaskState`: 2 = Enabled, 4 = EnabledByPolicy), and re-read whenever the window is activated.
 2. **`layout.txt` for the VS Code extension.** Unpackaged writes `%LOCALAPPDATA%\CyrFlip\layout.txt`.
    Under MSIX `%LOCALAPPDATA%` is virtualized into the package container - invisible to the (unpackaged)
-   extension - so the packaged app writes **`%ProgramData%\CyrFlip\layout.txt`** instead. The extension
-   checks both locations.
+   extension by that name - so the packaged app writes the packages own per-user folder **by its real
+   path**, `%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip\`, which the extension
+   computes from the frozen family name. The same folder holds the logs, the log-bundle archives and the
+   quick-notes journal. Up to ticket S0016 all of that lived in the machine-wide `%ProgramData%\CyrFlip`,
+   shared by every account on the PC; the packaged app now only mirrors `layout.txt`/`layout-klid.txt`
+   there for older extensions (`LAYOUT-SIGNAL` 1.1 rule 1) and moves the users own old files out on its
+   first start (`DataFolderMigration`).
 
 The global keyboard hook, `SendInput`, `SetSystemCursor` and clipboard all keep working because the
 package declares the `runFullTrust` restricted capability.

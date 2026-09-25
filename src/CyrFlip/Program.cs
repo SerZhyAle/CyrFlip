@@ -92,6 +92,8 @@ namespace CyrFlip
                     LauncherLog.Log("One-shot: launcher disabled, ignoring /launcher-run");
                     return;
                 }
+                // The link prompt and the error box of this process follow the theme too (S0020).
+                ThemeManager.Initialize(ThemeModes.Parse(config.Theme));
 
                 var store = new LauncherScenarioStore();
                 LauncherScenario? scenario = store.Find(id);
@@ -99,8 +101,8 @@ namespace CyrFlip
                 if (scenario == null)
                 {
                     LauncherLog.Log("One-shot: scenario not found: " + id);
-                    MessageBox.Show(T("Сценарий не найден — обновите Jump List, открыв CyrFlip."),
-                        "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    ConfirmDialog.Show(config.UiLanguage, T("Сценарий не найден — обновите Jump List, открыв CyrFlip."),
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -110,8 +112,8 @@ namespace CyrFlip
                     return prompt.ShowDialog() == DialogResult.OK ? prompt.Link : null;
                 });
                 if (!result.Success && !result.Cancelled)
-                    MessageBox.Show(string.Format(T("Не удалось запустить «{0}»: {1}"), scenario.Name, result.ErrorMessage),
-                        "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ConfirmDialog.Show(config.UiLanguage, string.Format(T("Не удалось запустить «{0}»: {1}"), scenario.Name, result.ErrorMessage),
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
@@ -128,6 +130,8 @@ namespace CyrFlip
             LayoutPublisher.Retract();
             try
             {
+                // The system box, deliberately, and the one left in the app (ThemeSourceGateTests): the
+                // process is going down, and this is the dialog least likely to fail with it.
                 MessageBox.Show(
                     "CyrFlip hit an unexpected error and will close:\n\n" + (ex?.Message ?? "Unknown error"),
                     "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Error);

@@ -56,6 +56,8 @@ Inicie um cenário pela área de notificação, por atalho global ou pela Jump L
 Tradutor local opcional: a seleção é traduzida por atalho, ao lado do ponteiro do mouse
 @@Feature17
 A tradução roda no Ollama no seu computador - instalado à parte, desligado por padrão
+@@Feature18
+Claro, escuro ou igual ao Windows: janelas, caixas de diálogo e menus seguem o tema, sem reiniciar
 @@SearchTerm1
 trocar layout do teclado
 @@SearchTerm2

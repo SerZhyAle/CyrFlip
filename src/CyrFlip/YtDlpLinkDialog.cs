@@ -12,7 +12,7 @@ namespace CyrFlip
     /// Sized by content, not pixels - the captions exist in 13 languages (see the layout note in
     /// CLAUDE.md and <see cref="LayoutConversionDialog"/>).
     /// </summary>
-    internal sealed class YtDlpLinkDialog : Form
+    internal sealed class YtDlpLinkDialog : ThemedForm
     {
         private readonly TextBox _link = new TextBox();
         private readonly Button _ok;

@@ -35,12 +35,11 @@ $ErrorActionPreference = 'Stop'
 # and answers "cannot find the type" to the same call, so a failure here is not fatal.
 try { Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction Stop } catch { }
 
-$packaged = $false
-$logDir = Join-Path $env:LOCALAPPDATA 'CyrFlip'
-if (-not (Test-Path $logDir) -and (Test-Path (Join-Path $env:ProgramData 'CyrFlip'))) {
-    $logDir = Join-Path $env:ProgramData 'CyrFlip'
-    $packaged = $true
-}
+Import-Module (Join-Path $PSScriptRoot 'CyrFlip.UiTest.psm1') -Force
+$dataFolder = Get-CyrFlipDataFolder   # portable, Store (S0016) or a pre-S0016 Store build
+$packaged = $dataFolder.Packaged
+$logDir = $dataFolder.Path
+
 $reportsDir = Join-Path $logDir 'reports'
 
 "log folder        : $logDir$(if ($packaged) { '  (MSIX layout)' })"

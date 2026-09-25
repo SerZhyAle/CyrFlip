@@ -311,6 +311,166 @@ namespace CyrFlip.Tests
             Assert.Equal("model 'qwen2.5:3b' not found", result.Error);
         }
 
+        // ---- S0010 TD-2: idle timeout, partial answer ----
+
+        [Fact]
+        public async Task TheAnswerIsBoundBySilenceNotByATotalCap()
+        {
+            var transport = new OllamaClientTests.FakeTransport { Body = Tags("qwen2.5:3b") };
+            transport.Lines.Enqueue(Answer("Hello"));
+            TranslationService service = Service(transport, new AppConfig { TranslateTimeoutSeconds = 90 });
+
+            await service.TranslateAsync(new string('я', TranslationService.MaxChars), "en", null, CancellationToken.None);
+
+            Assert.Equal(90_000, transport.LastTimeoutMs);                    // the load, as configured
+            Assert.Equal(TranslationService.IdleTimeoutMs, transport.LastIdleTimeoutMs);
+            Assert.Equal(30_000, TranslationService.IdleTimeoutMs);           // open decision 2
+            Assert.Equal(TranslationService.MaxAnswerMs, transport.LastMaxAnswerMs);
+        }
+
+        [Fact]
+        public async Task AModelThatStopsAfterFiveLinesLeavesAPartialAnswerWithThoseLines()
+        {
+            var transport = new OllamaClientTests.FakeTransport { Body = Tags("qwen2.5:3b"), StopAfterLines = true };
+            transport.Lines.Enqueue(new[]
+            {
+                "{\"response\":\"One. \",\"done\":false}", "{\"response\":\"Two. \",\"done\":false}",
+                "{\"response\":\"Three. \",\"done\":false}", "{\"response\":\"Four. \",\"done\":false}",
+                "{\"response\":\"Five.\",\"done\":false}",
+            });
+            TranslationService service = Service(transport, new AppConfig());
+
+            TranslationResult result = await service.TranslateAsync("Раз. Два. Три. Четыре. Пять. Шесть.", "en", null, CancellationToken.None);
+
+            Assert.Equal(TranslationStatus.Ok, result.Status);
+            Assert.True(result.Partial);
+            Assert.Equal("One. Two. Three. Four. Five.", result.Text);
+            Assert.Single(transport.Posts); // a cut-short answer is never retried
+        }
+
+        [Fact]
+        public async Task AModelThatNeverWritesAnythingIsStillATimeout()
+        {
+            var transport = new OllamaClientTests.FakeTransport { Body = Tags("qwen2.5:3b"), StopAfterLines = true };
+            TranslationService service = Service(transport, new AppConfig());
+
+            TranslationResult result = await service.TranslateAsync("Привет", "en", null, CancellationToken.None);
+
+            Assert.Equal(TranslationStatus.Timeout, result.Status);
+            Assert.False(result.Partial);
+        }
+
+        // ---- S0010 TD-6: a remote endpoint, and a cancel before the model is asked ----
+
+        [Fact]
+        public async Task ARemoteServerThatDoesNotAnswerIsNamedAndNeverStartedLocally()
+        {
+            var transport = new OllamaClientTests.FakeTransport { Body = null };
+            int starts = 0;
+            var service = new TranslationService(
+                new AppConfig { TranslateEndpoint = "http://192.168.1.20:11434", TranslateAutoStartServer = true },
+                endpoint => new OllamaClient(endpoint, transport), () => true, () => { starts++; return true; });
+
+            TranslationResult result = await service.TranslateAsync("Привет", "en", null, CancellationToken.None);
+
+            Assert.Equal(TranslationStatus.Unreachable, result.Status);
+            Assert.Equal("192.168.1.20:11434", result.Server);
+            Assert.Equal(0, starts);
+            Assert.Single(transport.Gets); // one probe, no eight-second wait
+        }
+
+        [Fact]
+        public async Task ACancelWhileTheServerIsStartingIsACancellationNotAFailure()
+        {
+            var transport = new OllamaClientTests.FakeTransport { Body = null };
+            TranslationService service = Service(transport, new AppConfig { TranslateAutoStartServer = true },
+                installed: true, started: true);
+            using var cts = new CancellationTokenSource(150); // lands inside the start-and-wait loop
+
+            TranslationResult result = await service.TranslateAsync("Привет", "en", null, cts.Token);
+
+            Assert.Equal(TranslationStatus.Cancelled, result.Status);
+            Assert.Empty(transport.Posts);
+        }
+
+        // ---- S0010 TD-7: an echo that is the right answer ----
+
+        [Fact]
+        public async Task TextAlreadyInTheTargetLanguageIsAcceptedAsItsOwnTranslation()
+        {
+            var transport = new OllamaClientTests.FakeTransport { Body = Tags("qwen2.5:3b") };
+            transport.Lines.Enqueue(Answer("Привет, как дела?"));
+            TranslationService service = Service(transport, new AppConfig());
+
+            TranslationResult result = await service.TranslateAsync("Привет, как дела?", "ru", null, CancellationToken.None);
+
+            Assert.Equal(TranslationStatus.Ok, result.Status);
+            Assert.Equal("Привет, как дела?", result.Text);
+            Assert.Single(transport.Posts); // no "not a copy" retry to paraphrase a correct answer
+        }
+
+        [Fact]
+        public async Task AnEchoOfRussianIntoUkrainianIsStillRetried()
+        {
+            // Same script, different language: "ы" is not Ukrainian, so the echo is not the answer.
+            var transport = new OllamaClientTests.FakeTransport { Body = Tags("qwen2.5:3b") };
+            transport.Lines.Enqueue(Answer("Мы пошли домой"));
+            transport.Lines.Enqueue(Answer("Ми пішли додому"));
+            TranslationService service = Service(transport, new AppConfig());
+
+            TranslationResult result = await service.TranslateAsync("Мы пошли домой", "uk", null, CancellationToken.None);
+
+            Assert.Equal("Ми пішли додому", result.Text);
+            Assert.Equal(2, transport.Posts.Count);
+        }
+
+        [Fact]
+        public async Task ARetryInTheWrongScriptKeepsTheFirstAnswer()
+        {
+            var transport = new OllamaClientTests.FakeTransport { Body = Tags("qwen2.5:3b") };
+            transport.Lines.Enqueue(Answer("Привет, мир"));
+            transport.Lines.Enqueue(Answer("你好，世界"));  // English was asked for
+            TranslationService service = Service(transport, new AppConfig());
+
+            TranslationResult result = await service.TranslateAsync("Привет, мир", "en", null, CancellationToken.None);
+
+            Assert.Equal("Привет, мир", result.Text);
+        }
+
+        [Fact]
+        public async Task ARetryThatIsANearEchoKeepsTheFirstAnswer()
+        {
+            string source = "Привет, это длинное предложение для проверки";
+            var transport = new OllamaClientTests.FakeTransport { Body = Tags("qwen2.5:3b") };
+            transport.Lines.Enqueue(Answer(source));
+            transport.Lines.Enqueue(Answer(source + "."));
+            TranslationService service = Service(transport, new AppConfig());
+
+            TranslationResult result = await service.TranslateAsync(source, "de", null, CancellationToken.None);
+
+            Assert.Equal(source, result.Text);
+        }
+
+        [Theory]
+        [InlineData("Привет, мир", "ru", true)]
+        [InlineData("Hello, world", "en", true)]
+        [InlineData("Hello, world", "en-GB", true)]
+        [InlineData("Привіт, світе", "uk", true)]
+        [InlineData("Привет, мир", "en", false)]   // Cyrillic text, Latin target
+        [InlineData("Мы дома", "uk", false)]       // "ы" is not Ukrainian
+        [InlineData("Ми вдома, їмо", "ru", false)] // "ї" is not Russian
+        [InlineData("Привет, мир", "xx", false)]   // an unknown target's script is not guessed
+        public void AnEchoIsAcceptedOnlyWhenTheTextIsInTheTargetsScript(string text, string target, bool accepted)
+            => Assert.Equal(accepted, TranslationService.IsAcceptedEcho(text, text, target));
+
+        [Fact]
+        public void SimilarityIsOneForTheSameTextAndLowForAnother()
+        {
+            Assert.Equal(1.0, TranslationService.Similarity("Привет", "привет"));
+            Assert.True(TranslationService.Similarity("Hello, world", "Привет, мир") < 0.5);
+            Assert.True(TranslationService.Similarity("abcdefghijklmnopqrst", "abcdefghijklmnopqrsX") >= TranslationService.NearEchoSimilarity);
+        }
+
         private static TranslationService Service(IOllamaTransport transport, AppConfig config,
             bool installed = true, bool started = true)
             => new TranslationService(config, endpoint => new OllamaClient(endpoint, transport),

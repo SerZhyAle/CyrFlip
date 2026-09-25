@@ -263,5 +263,90 @@ namespace CyrFlip.Tests
             Assert.Empty(store.All);
             Assert.Equal("futuretype.xml", Assert.Single(store.LoadErrors));
         }
+
+        // ---- Atomic save and identity (ticket S0008, LS-9 and LS-10) ----
+
+        private static string Xml(string? id, string name)
+            => "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<AppItem>\n"
+               + (id == null ? "" : "  <Id>" + id + "</Id>\n")
+               + "  <Name>" + name + "</Name>\n  <Path>calc.exe</Path>\n</AppItem>";
+
+        [Fact]
+        public void ASaveOverAnExistingFileLeavesExactlyThatFile()
+        {
+            var store = NewStore();
+            LauncherScenario item = Sample("one");
+            store.Add(item);
+            item.Name = "renamed";
+            store.Update(item);
+
+            string only = Assert.Single(Directory.GetFiles(_folder));
+            Assert.Equal(item.Id + ".xml", Path.GetFileName(only));
+            Assert.Equal("renamed", Assert.Single(new LauncherScenarioStore(_folder).All).Name);
+        }
+
+        [Fact]
+        public void TempNamesAreUniquePerSave()
+        {
+            string path = Path.Combine(_folder, "x.xml");
+            string a = LauncherScenarioStore.TempPathFor(path), b = LauncherScenarioStore.TempPathFor(path);
+            Assert.NotEqual(a, b);
+            Assert.EndsWith(".tmp", a);
+            Assert.StartsWith(Path.Combine(_folder, "x."), a);
+        }
+
+        [Fact]
+        public void ALeftoverTempFileIsNotAScenarioAndAnOldOneIsRemoved()
+        {
+            var store = NewStore();
+            store.Add(Sample("real"));
+            string fresh = Path.Combine(_folder, "a.123.1.tmp");
+            string stale = Path.Combine(_folder, "b.123.2.tmp");
+            File.WriteAllText(fresh, Xml(Guid.NewGuid().ToString(), "half-written"));
+            File.WriteAllText(stale, Xml(Guid.NewGuid().ToString(), "abandoned"));
+            File.SetLastWriteTimeUtc(stale, DateTime.UtcNow.AddDays(-2));
+
+            var reloaded = new LauncherScenarioStore(_folder);
+            Assert.Equal("real", Assert.Single(reloaded.All).Name);
+            Assert.Empty(reloaded.LoadErrors);
+            Assert.True(File.Exists(fresh));
+            Assert.False(File.Exists(stale));
+        }
+
+        /// <summary>A file with no &lt;Id&gt; gets one - and keeps it, so a Jump List task can find it again.</summary>
+        [Fact]
+        public void AFileWithoutAnIdGetsOneThatSurvivesTheNextLoad()
+        {
+            Directory.CreateDirectory(_folder);
+            File.WriteAllText(Path.Combine(_folder, "noid.xml"), Xml(null, "anonymous"));
+
+            Guid first = Assert.Single(NewStore().All).Id;
+            Guid second = Assert.Single(NewStore().All).Id;
+            Assert.NotEqual(Guid.Empty, first);
+            Assert.Equal(first, second);
+        }
+
+        /// <summary>A copied file no longer shares its original's identity, so editing it edits it.</summary>
+        [Fact]
+        public void ADuplicateIdIsReplacedInTheSecondFileOnly()
+        {
+            Directory.CreateDirectory(_folder);
+            string id = Guid.NewGuid().ToString();
+            File.WriteAllText(Path.Combine(_folder, "a.xml"), Xml(id, "original"));
+            File.WriteAllText(Path.Combine(_folder, "b.xml"), Xml(id, "copy"));
+
+            var store = NewStore();
+            Assert.Equal(2, store.Count);
+            LauncherScenario original = store.All.Single(s => s.Name == "original");
+            LauncherScenario copy = store.All.Single(s => s.Name == "copy");
+            Assert.Equal(Guid.Parse(id), original.Id);
+            Assert.NotEqual(original.Id, copy.Id);
+
+            copy.Name = "copy edited";
+            store.Update(copy);
+            var reloaded = new LauncherScenarioStore(_folder);
+            Assert.Equal("original", reloaded.Find(Guid.Parse(id))!.Name);
+            Assert.Equal("copy edited", reloaded.Find(copy.Id)!.Name);
+        }
     }
 }

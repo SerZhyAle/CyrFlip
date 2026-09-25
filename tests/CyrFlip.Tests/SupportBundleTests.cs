@@ -194,7 +194,56 @@ namespace CyrFlip.Tests
             Assert.Contains("context menu=on", report);
             Assert.Contains("translate=off", report);
             // The report is where the promise is written down, so it is also asserted here.
-            Assert.Contains("Clipboard history is deliberately NOT part of this archive.", report);
+            Assert.Contains("Clipboard history and quick notes are deliberately NOT part of this archive.", report);
+        }
+
+        /// <summary>
+        /// S0010 TD-1: a launcher.log written by an older build carries the command line of every
+        /// launch - and "--token=..." is routine there. The secret must be nowhere in the archive,
+        /// while the parts of the line that are diagnostics (time, name, pid) survive.
+        /// </summary>
+        [Fact]
+        public void AnOldLauncherLogLosesItsCommandLinesOnCollection()
+        {
+            Write("launcher.log",
+                "2026-09-01 10:00:00 - Launched 'Deploy' (pid=42, admin=False): C:\\tools\\deploy.exe --token=SECRET-TOKEN\r\n"
+                + "2026-09-01 10:00:01 - Launch blocked for 'Backup': Файл не найден: C:\\Users\\me\\SECRET-PATH\\b.cmd\r\n"
+                + "2026-09-01 10:00:02 - Launch error for 'Sync': access denied to SECRET-ERROR\n"
+                + "2026-09-01 10:00:03 - Launched 'Calc' [0b6c3f0e-0000-0000-0000-000000000001] (exe, pid=7, admin=False)\n");
+
+            string text = ReadEntry(Create().ArchivePath, "launcher.log");
+
+            Assert.DoesNotContain("SECRET", text);
+            Assert.Contains("2026-09-01 10:00:00 - Launched 'Deploy' (pid=42, admin=False): " + SupportBundle.RemovedMarker + "\r\n", text);
+            Assert.Contains("Launch blocked for 'Backup': " + SupportBundle.RemovedMarker, text);
+            Assert.Contains("Launch error for 'Sync': " + SupportBundle.RemovedMarker, text);
+            // A line of today's shape carries nothing to cut and is left exactly as written.
+            Assert.Contains("Launched 'Calc' [0b6c3f0e-0000-0000-0000-000000000001] (exe, pid=7, admin=False)\n", text);
+        }
+
+        [Fact]
+        public void TheScrubLeavesOtherLogsAlone()
+        {
+            const string line = "2026-09-01 10:00:00 - Launched 'X' (pid=1, admin=False): kept.exe --because-not-launcher-log\n";
+            Write("translate.log", line);
+
+            Assert.Equal(line, ReadEntry(Create().ArchivePath, "translate.log"));
+        }
+
+        /// <summary>
+        /// The dialog tells the user what each file holds (TD-1): every file the bundle can collect
+        /// has a line, and every line is a registered, translated string - a file the dialog cannot
+        /// describe is one the user is asked to send blind.
+        /// </summary>
+        [Fact]
+        public void EveryCollectedFileHasATranslatedDescription()
+        {
+            var registered = new HashSet<string>(Localization.All.Select(e => e.Key));
+            foreach (string name in SupportBundle.LogFiles.Concat(new[] { SupportBundle.ReportName }))
+            {
+                Assert.True(SupportBundle.Contents.TryGetValue(name, out string? ru), name + " has no description");
+                Assert.Contains(ru!, registered);
+            }
         }
 
         private SupportBundle.Result Create(int maxFileBytes = SupportBundle.MaxFileBytes,

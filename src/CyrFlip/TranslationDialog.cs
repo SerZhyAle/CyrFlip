@@ -10,7 +10,7 @@ namespace CyrFlip
     /// chord. Laid out by an auto-sizing <see cref="TableLayoutPanel"/> like every other dialog here -
     /// captions exist in 13 languages and fixed geometry clips them.
     /// </summary>
-    internal sealed class TranslationDialog : Form
+    internal sealed class TranslationDialog : ThemedForm
     {
         private readonly string _uiLanguage;
         // The script font for hi/bn/zh; WinForms never disposes a font assigned to a control (ST-5).
@@ -134,8 +134,8 @@ namespace CyrFlip
             if (!unassigned && !Hotkey.TryParse(chord, out _))
             {
                 // Every refused OK says why (ticket S0007, DL-4).
-                MessageBox.Show(this, string.Format(T("Комбинация «{0}» не распознана."), chord),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ConfirmDialog.Show(this, _uiLanguage, string.Format(T("Комбинация «{0}» не распознана."), chord),
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 DialogResult = DialogResult.None;
                 return;
             }

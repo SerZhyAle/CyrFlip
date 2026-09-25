@@ -26,6 +26,11 @@ The scenes are chosen so that a blind toggle - what this replaced - fails the fi
   | off             | hello world   | HELLO WORLD   | on             |
   | on              | hELLO wORLD   | Hello World   | off            |
 
+A fourth scene runs only when Windows is set to "Press SHIFT to turn off Caps Lock" (KLLF_SHIFTLOCK,
+ticket S0009 FP-11): there the CapsLock key cannot turn the lock off at all, and CyrFlip has to use a
+Shift tap instead. Turn the setting on (Language settings > Typing > Advanced keyboard settings > Input
+language hot keys > Advanced Key Settings), sign out and in, and run the script again.
+
 .PARAMETER InteropOnly
 Run only the unattended half.
 
@@ -97,6 +102,12 @@ $scenes = @(
     [pscustomobject]@{ Name = 'ends upper - key switched on';            Before = $false; Typed = 'hello world'; Expect = 'HELLO WORLD'; After = $true }
     [pscustomobject]@{ Name = 'ends lower, key was on - switched off';   Before = $true;  Typed = 'hELLO wORLD'; Expect = 'Hello World'; After = $false }
 )
+if (Test-ShiftLockMode) {
+    $scenes += [pscustomobject]@{ Name = '"Press SHIFT to turn off Caps Lock" - still switched off'; Before = $true; Typed = 'hELLO wORLD'; Expect = 'Hello World'; After = $false }
+}
+else {
+    Write-Host '"Press SHIFT to turn off Caps Lock" is not set here - its scene is skipped (see the help).' -ForegroundColor DarkGray
+}
 
 Write-Host ''
 Write-Host 'Before running the rest: CyrFlip must be running, with' -NoNewline

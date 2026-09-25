@@ -8,9 +8,9 @@ namespace CyrFlip
     /// behaviours differ:
     ///   - autostart: unpackaged uses HKCU\..\Run; packaged uses the manifest's startupTask,
     ///     which the user toggles in Windows "Startup apps" settings (see <see cref="Autostart"/>);
-    ///   - <see cref="LayoutPublisher"/> writes layout.txt to %ProgramData% when packaged, because
-    ///     %LOCALAPPDATA% is virtualized into the package container and the VS Code extension
-    ///     (an unpackaged process) wouldn't see it there.
+    ///   - <see cref="DataFolder"/> addresses the package's per-user LocalCache folder by its real path
+    ///     when packaged, because %LOCALAPPDATA% is virtualized into the package container and the VS Code
+    ///     extension (an unpackaged process) must find layout.txt at a path it can compute.
     ///
     /// Detected via GetCurrentPackageFullName: it returns APPMODEL_ERROR_NO_PACKAGE for an
     /// unpackaged process and something else (ERROR_INSUFFICIENT_BUFFER) when packaged.

@@ -27,7 +27,7 @@ namespace CyrFlip
     /// Windows is CRLF. That is a property of the control, not a choice made here, and pretending
     /// otherwise by re-normalizing on save would only move the surprise somewhere less visible.</para>
     /// </summary>
-    internal sealed class QuickNotesWindow : Form
+    internal sealed class QuickNotesWindow : ThemedForm
     {
         private const int SearchDebounceMs = 150;
         private const int PreviewLength = 90;
@@ -37,7 +37,7 @@ namespace CyrFlip
         private readonly Action _showSettings;
 
         private readonly TextBox _search = new TextBox { Width = 200 };
-        private readonly Label _count = new Label { AutoSize = true, ForeColor = SystemColors.GrayText, Padding = new Padding(8, 6, 8, 0) };
+        private readonly Label _count = new Label { AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Padding = new Padding(8, 6, 8, 0) };
         private readonly ListView _list = new ListView
         {
             Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true,
@@ -58,8 +58,8 @@ namespace CyrFlip
         private readonly Panel _itemsHost = new Panel { Dock = DockStyle.Fill, Visible = false };
         private readonly RadioButton _kindText = new RadioButton { AutoSize = true, Checked = true, Margin = new Padding(3, 4, 12, 3) };
         private readonly RadioButton _kindList = new RadioButton { AutoSize = true, Margin = new Padding(3, 4, 3, 3) };
-        private readonly Label _dates = new Label { AutoSize = true, ForeColor = SystemColors.GrayText, Padding = new Padding(3, 8, 12, 0) };
-        private readonly Label _hint = new Label { AutoSize = true, ForeColor = SystemColors.GrayText, Padding = new Padding(3, 4, 3, 4) };
+        private readonly Label _dates = new Label { AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Padding = new Padding(3, 8, 12, 0) };
+        private readonly Label _hint = new Label { AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Padding = new Padding(3, 4, 3, 4) };
         private readonly Button _copy = new Button { AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
         private readonly Button _keep = new Button { AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
         private readonly Button _export = new Button { AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
@@ -67,6 +67,11 @@ namespace CyrFlip
         private readonly Button _newText = new Button { AutoSize = true, Margin = new Padding(3, 3, 3, 3) };
         private readonly Button _newList = new Button { AutoSize = true, Margin = new Padding(3, 3, 3, 3) };
         private readonly Button _settings = new Button { AutoSize = true, Margin = new Padding(3, 3, 3, 3) };
+        // The exchange file (ticket S0023): one button, its two commands in a drop-down.
+        private readonly Button _transfer = new Button { AutoSize = true, Margin = new Padding(3, 3, 3, 3) };
+        private readonly ContextMenuStrip _transferMenu = new ContextMenuStrip();
+        private readonly ToolStripMenuItem _transferExport = new ToolStripMenuItem();
+        private readonly ToolStripMenuItem _transferImport = new ToolStripMenuItem();
         private readonly Button _addItem = new Button { AutoSize = true, Margin = new Padding(3, 3, 3, 3) };
         private readonly Button _removeItem = new Button { AutoSize = true, Margin = new Padding(3, 3, 3, 3) };
         private readonly Button _itemUp = new Button { AutoSize = true, Width = 34, Margin = new Padding(3, 3, 3, 3) };
@@ -100,18 +105,22 @@ namespace CyrFlip
         private bool _boundsRestored;
         // Writes AppConfig.QuickNotesSelected to the registry. A seam so the tests never touch HKCU.
         private readonly Action _persistSelection;
+        // Export / import of the exchange file (S0023), run by the context. Null hides the button.
+        private readonly Action<IWin32Window, bool>? _exchange;
         // What was asked of the window while the service was still replaying the journal - done
         // once the notes are there (ticket S0006, QN-2).
         private bool _pendingStartNew;
         private string? _pendingText;
 
         public QuickNotesWindow(QuickNotesService service, AppConfig config, Action showSettings,
-            Action? persistSelection = null)
+            Action? persistSelection = null, Action<IWin32Window, bool>? exchange = null)
         {
             _service = service;
             _config = config;
             _showSettings = showSettings;
             _persistSelection = persistSelection ?? config.SaveQuickNotesSelected;
+            _exchange = exchange;
+            _transfer.Visible = exchange != null;
             _language = config.UiLanguage;
 
             StartPosition = FormStartPosition.Manual;
@@ -129,6 +138,11 @@ namespace CyrFlip
             _newText.Click += (_, _) => NewNote(QuickNoteKind.Text);
             _newList.Click += (_, _) => NewNote(QuickNoteKind.Checklist);
             _settings.Click += (_, _) => _showSettings();
+            _transferMenu.Items.Add(_transferExport);
+            _transferMenu.Items.Add(_transferImport);
+            _transfer.Click += (_, _) => _transferMenu.Show(_transfer, new Point(0, _transfer.Height));
+            _transferExport.Click += (_, _) => BeginInvoke((Action)(() => _exchange?.Invoke(this, false)));
+            _transferImport.Click += (_, _) => BeginInvoke((Action)(() => _exchange?.Invoke(this, true)));
             _list.SelectedIndexChanged += (_, _) => OnListSelectionChanged();
             _title.TextChanged += (_, _) => OnEdited(titleChanged: true);
             _editor.TextChanged += (_, _) => OnEdited(titleChanged: false);
@@ -146,6 +160,7 @@ namespace CyrFlip
             _delete.Click += (_, _) => DeleteCurrent();
             _service.Changed += OnServiceChanged;
             _service.Cleared += OnServiceCleared;
+            _service.Imported += OnServiceImported;
             _service.Loaded += OnServiceLoaded;
             _service.SaveFailed += OnSaveFailed;
 
@@ -211,6 +226,20 @@ namespace CyrFlip
             UpdateButtons();
         });
 
+        /// <summary>
+        /// An exchange file was imported (S0023). The import changes notes in place, so the one open
+        /// here may now hold a newer text than its editor shows: it is loaded again from the object -
+        /// the flow wrote the editor into it before the import, so nothing typed is lost.
+        /// </summary>
+        private void OnServiceImported(object? sender, EventArgs e) => OnUi(() =>
+        {
+            QuickNote? open = _current;
+            if (open != null && !_service.IsDraft(open)) LoadNote(open);
+            RefreshList();
+            RefreshDates();
+            UpdateButtons();
+        });
+
         private void OnSaveFailed(object? sender, EventArgs e) => OnUi(() =>
             _dates.Text = T("Заметка не сохранена на диск - подробности в журнале диагностики."));
 
@@ -244,6 +273,7 @@ namespace CyrFlip
             top.Controls.Add(_newList);
             top.Controls.Add(_search);
             top.Controls.Add(_count);
+            top.Controls.Add(_transfer);
             top.Controls.Add(_settings);
 
             _list.Columns.Add("", 240);
@@ -376,6 +406,9 @@ namespace CyrFlip
             _newText.Text = "+ " + T("Заметка");
             _newList.Text = "+ " + T("Список");
             _settings.Text = T("Настройки");
+            _transfer.Text = T("Перенос...");
+            _transferExport.Text = T("Экспортировать...");
+            _transferImport.Text = T("Импортировать...");
             _title.PlaceholderTextSafe(T("Имя (необязательно)"));
             _kindText.Text = T("Текст");
             _kindList.Text = T("Список");
@@ -449,9 +482,9 @@ namespace CyrFlip
             NewNote(QuickNoteKind.Text);
             if (QuickNote.ExceedsLimit(text))
             {
-                MessageBox.Show(this,
+                ConfirmDialog.Show(this, _language,
                     string.Format(T("Фрагмент больше {0} КБ и в заметку не помещается."), QuickNote.MaxBytes / 1024),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             _loading = true;
@@ -642,9 +675,9 @@ namespace CyrFlip
                 if (_editor.Text == _editorOriginal) return;   // untouched: keep the exact bytes
                 if (QuickNote.ExceedsLimit(_editor.Text))
                 {
-                    MessageBox.Show(this,
+                    ConfirmDialog.Show(this, _language,
                         string.Format(T("Фрагмент больше {0} КБ и в заметку не помещается."), QuickNote.MaxBytes / 1024),
-                        "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _loading = true;
                     _editor.Text = _editorOriginal;
                     _loading = false;
@@ -690,9 +723,9 @@ namespace CyrFlip
             if (QuickNote.ExceedsLimit(string.Join("\n", lines)))
             {
                 e.CancelEdit = true;
-                MessageBox.Show(this,
+                ConfirmDialog.Show(this, _language,
                     string.Format(T("Фрагмент больше {0} КБ и в заметку не помещается."), QuickNote.MaxBytes / 1024),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             // The label is not on the item yet inside AfterLabelEdit, so the read has to wait a turn.
@@ -713,11 +746,11 @@ namespace CyrFlip
             if (_current.Kind == kind) return;
 
             if (_current.LosesDataConvertingTo(kind)
-                && MessageBox.Show(this,
+                && ConfirmDialog.Show(this, _language,
                     kind == QuickNoteKind.Text
                         ? T("Отметки выполнения при переходе к тексту не сохранятся. Продолжить?")
                         : T("Пункты списка не хранят переносы строк: текст вернётся с обычными переводами строк. Продолжить?"),
-                    "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
             {
                 _loading = true;
                 _kindText.Checked = _current.Kind == QuickNoteKind.Text;
@@ -860,7 +893,7 @@ namespace CyrFlip
             if (_current.Kind == QuickNoteKind.Checklist && _current.HasCheckedItems)
                 message += "\n\n" + T("Отметки выполнения в Google Keep не переносятся.");
             message += "\n\n" + T("Открыть Google Keep в браузере?");
-            if (MessageBox.Show(this, message, "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes)
+            if (ConfirmDialog.Show(this, _language, message, MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes)
                 return;
             try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://keep.google.com/") { UseShellExecute = true }); }
             catch { /* the text is on the clipboard either way */ }
@@ -882,15 +915,15 @@ namespace CyrFlip
                 System.IO.File.WriteAllText(dialog.FileName,
                     markdown ? _current.ToMarkdown() : _current.ToPlainText(), System.Text.Encoding.UTF8);
                 // The one thing worth saying about an export: what leaves here is no longer encrypted.
-                MessageBox.Show(this,
+                ConfirmDialog.Show(this, _language,
                     string.Format(T("Заметка сохранена: {0}"), dialog.FileName) + "\n\n"
                     + T("Этот файл не защищён DPAPI — его прочитает любой, у кого есть доступ к папке."),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, string.Format(T("Не удалось сохранить файл: {0}"), ex.Message),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ConfirmDialog.Show(this, _language, string.Format(T("Не удалось сохранить файл: {0}"), ex.Message),
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -907,8 +940,8 @@ namespace CyrFlip
         {
             if (_current == null) return;
             if (!_service.IsDraft(_current)
-                && MessageBox.Show(this, T("Удалить эту заметку? Отменить удаление нельзя."),
-                    "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                && ConfirmDialog.Show(this, _language, T("Удалить эту заметку? Отменить удаление нельзя."),
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
             _service.Delete(_current);
             ClearEditor();
@@ -950,6 +983,8 @@ namespace CyrFlip
             {
                 _service.Changed -= OnServiceChanged;
                 _service.Cleared -= OnServiceCleared;
+                _service.Imported -= OnServiceImported;
+                _transferMenu.Dispose();
                 _service.Loaded -= OnServiceLoaded;
                 _service.SaveFailed -= OnSaveFailed;
                 _searchTimer.Stop();

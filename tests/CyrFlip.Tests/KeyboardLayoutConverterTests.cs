@@ -66,5 +66,62 @@ namespace CyrFlip.Tests
         {
             Assert.Equal("привет 2026", KeyboardLayoutConverter.Convert("ghbdtn 2026", Us, Ru));
         }
+
+        /// <summary>
+        /// One rule for a key that is punctuation on both sides (ticket S0009, FP-9): the pair's own
+        /// direction first, per character. The fallback used to follow the text's dominant script
+        /// instead, so "привет?" came back as "ghbdtn&amp;" without the Russian keyboard and as
+        /// "ghbdtn," with it. These hold on both paths now, which is the rule of this class.
+        /// </summary>
+        [Theory]
+        [InlineData("привет?", Us, Ru, "ghbdtn,")]
+        [InlineData("привет?", Ru, Us, "ghbdtn&")]
+        [InlineData("ghbdtn&", Us, Ru, "привет?")]
+        [InlineData("ghbdtn;", Us, Ru, "приветж")]
+        [InlineData("руддщ;", Ru, Us, "hello$")]
+        public void AmbiguousPunctuationFollowsThePairsDirectionOnBothPaths(string input, string from, string to, string expected)
+        {
+            Assert.Equal(expected, KeyboardLayoutConverter.Convert(input, from, to));
+        }
+
+        /// <summary>
+        /// The memo (FP-6) is exact: each character's answer never depends on its neighbours, so a
+        /// random corpus converts the same with and without it.
+        /// </summary>
+        [Fact]
+        public void TheMemoChangesNothingButTheCost()
+        {
+            const string pool = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" +
+                                "йцукенгшщзхъфывапролджэячсмитьбюёЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ" +
+                                "0123456789 .,;:'\"[]{}<>/?!@#$%^&*()-_=+\\|`~№\t\r\n";
+            var random = new System.Random(9009);
+            for (int round = 0; round < 20; round++)
+            {
+                var text = new System.Text.StringBuilder();
+                int length = random.Next(1, 400);
+                for (int i = 0; i < length; i++) text.Append(pool[random.Next(pool.Length)]);
+                string input = text.ToString();
+
+                foreach (bool convertSymbols in new[] { true, false })
+                    Assert.Equal(KeyboardLayoutConverter.Convert(input, Us, Ru, convertSymbols, memoize: false),
+                                 KeyboardLayoutConverter.Convert(input, Us, Ru, convertSymbols, memoize: true));
+            }
+        }
+
+        /// <summary>A million characters - the flip's own cap - convert in well under a second.</summary>
+        [Fact]
+        public void AMillionCharactersConvertUnderASecond()
+        {
+            string input = new string('x', ClipboardHandler.MaxFlipChars / 2) + new string('ф', ClipboardHandler.MaxFlipChars / 2);
+
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            string output = KeyboardLayoutConverter.Convert(input, Us, Ru);
+            clock.Stop();
+
+            Assert.Equal(ClipboardHandler.MaxFlipChars, output.Length);
+            Assert.Equal('ч', output[0]);
+            Assert.Equal('a', output[output.Length - 1]);
+            Assert.True(clock.ElapsedMilliseconds < 1000, "took " + clock.ElapsedMilliseconds + " ms");
+        }
     }
 }

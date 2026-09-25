@@ -56,6 +56,8 @@ Lancez un scénario depuis la zone de notification, son raccourci global ou la l
 Traducteur local facultatif : la sélection est traduite par raccourci, près du pointeur
 @@Feature17
 La traduction s'exécute sur Ollama, sur votre ordinateur - installé à part, éteint par défaut
+@@Feature18
+Clair, sombre ou comme Windows : fenêtres, boîtes de dialogue et menus suivent le thème, sans redémarrage
 @@SearchTerm1
 changer disposition clavier
 @@SearchTerm2

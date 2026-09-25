@@ -167,7 +167,7 @@
       applies at once - there is nothing to restart and nothing to save.</p>
       <table>
         <tr><th>Tab</th><th>What lives there</th></tr>
-        <tr><td>General</td><td>Start with Windows; <strong>keep the computer awake</strong> and <strong>keep the screen on</strong> (both are remembered - a switch left on keeps the machine awake after a restart too, and CyrFlip will not watch your battery for you); the <strong>interface language</strong> - 13 to choose from.</td></tr>
+        <tr><td>General</td><td>Start with Windows; <strong>keep the computer awake</strong> and <strong>keep the screen on</strong> (both are remembered - a switch left on keeps the machine awake after a restart too, and CyrFlip will not watch your battery for you); the <strong>interface language</strong> - 13 to choose from; the <strong>theme</strong> - same as Windows (the default), light or dark. Every window, dialog and menu follows it at once, and "same as Windows" follows Windows switching while CyrFlip runs; a Windows contrast theme always wins. The layout marker keeps its colours in every theme - they name the layout.</td></tr>
         <tr><td>Indicators</td><td>The I-beam cursor marker (off by default), the caret marker (on), the compact dot style, <strong>change the layout after converting text</strong>, and <strong>synchronize CapsLock after the case fix</strong>.</td></tr>
         <tr><td>Hotkeys</td><td>A master switch plus a separate on/off and chord for the case fix and the clipboard manager - so a machine can keep only the one chord it needs. Also <strong>yield hotkeys to the remote desktop</strong>: while an mstsc/msrdc window is focused the chord is passed to the remote session, which is what you want when CyrFlip runs on both ends of an RDP connection. The <strong>context menu</strong> lives here too: its on/off switch and the mouse chord that opens it.</td></tr>
         <tr><td>Layout conversions</td><td>One table holding <strong>every</strong> chord that converts text between layouts. EN ⇄ RU on <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F12</kbd> is created on the first run and can be edited or deleted like any other row; add as many pairs as you like, each with its own chord and switch.</td></tr>
@@ -204,9 +204,14 @@
         files for the next enable.</li>
         <li><strong>Migration:</strong> the first enable offers to copy your existing OneClickRunner scenarios
         (<code>%APPDATA%\OneClickRunner\Scenarios</code>); the originals are never modified, and the
-        "Import from OneClickRunner…" button repeats the import any time. <code>.ps1</code> runs via PowerShell
+        "Import from OneClickRunner..." button repeats the import any time. <code>.ps1</code> runs via PowerShell
         with a one-off <code>-ExecutionPolicy Bypass</code>, <code>.bat</code>/<code>.cmd</code> via
         <code>cmd.exe</code>; elevation is requested only by scenarios marked "run as administrator".</li>
+        <li><strong>Scenario files:</strong> the copy keeps OneClickRunner's order and each scenario's identity; a
+        file that cannot be read is skipped and named, never fatal. Running the import again adds a second copy of
+        every scenario under a new identity - import once, or delete the duplicates. The per-scenario hotkey is
+        CyrFlip's own field: OneClickRunner ignores it and drops it if it saves that file. An exported scenario is
+        a plain XML file carrying its path and arguments as written, so never put a password in the arguments.</li>
       </ul>
     </section>
 
@@ -389,7 +394,7 @@
         <li><strong>No marker in VS Code.</strong> Confirm the app is running, then check that the layout file
           exists and its contents change when you switch layout. The file path depends on how you installed the app:
           portable/winget → <code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>;
-          Microsoft Store → <code>%ProgramData%\CyrFlip\layout.txt</code>. The app removes the file when it exits, so a missing file means CyrFlip is not running.
+          Microsoft Store → <code>%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip\layout.txt</code> (older Store versions: <code>%ProgramData%\CyrFlip\layout.txt</code>). The app removes the file when it exits, so a missing file means CyrFlip is not running.
           The status-bar indicator is the quickest way to tell the extension is reading the file. Try
           <em>Developer: Reload Window</em>.</li>
         <li><strong>Marker sits at the edge of an input (not in VS Code).</strong> In Monaco-based editors the app's

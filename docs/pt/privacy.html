@@ -142,15 +142,19 @@
       <ul class="features">
         <li><strong>Arquivo de layout.</strong> O CyrFlip grava o código do layout atual - um valor de
         duas letras como <code>EN</code>, <code>ZH</code>, <code>RU</code> ou <code>AR</code> - em um
-        pequeno arquivo local (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, ou
-        <code>%ProgramData%\CyrFlip\layout.txt</code> na versão da Microsoft Store), para que a
+        pequeno arquivo local (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, ou, na
+        versão da Microsoft Store, <code>layout.txt</code> na pasta própria do aplicativo no seu perfil,
+        <code>%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip</code>), para que a
         extensão opcional do VS&nbsp;Code possa exibir o marcador junto ao cursor do editor. Ao lado dele,
         <code>layout-klid.txt</code> guarda o identificador desse layout de teclado (oito dígitos
         hexadecimais, como <code>00000409</code>), para que a extensão possa usar a mesma cor. A extensão,
         se você a instalar, grava <code>editor-caret.txt</code> na mesma pasta enquanto desenha o marcador;
         ele contém apenas o código do layout e um horário. O CyrFlip remove os seus dois arquivos ao ser
-        encerrado. Na versão da Microsoft Store essa pasta fica em <code>%ProgramData%</code>, que outras
-        contas do mesmo PC podem ler - ela não contém nada além desses valores. Nenhum desses arquivos
+        encerrado. A versão da Microsoft Store também mantém uma cópia dos seus dois arquivos em
+        <code>%ProgramData%\CyrFlip</code> para versões antigas da extensão; outras contas do mesmo PC podem
+        ler essa cópia - ela não contém nada além desses valores. Os logs e as notas rápidas que versões
+        anteriores da Microsoft Store guardavam ali são movidos para a pasta do seu próprio perfil na
+        primeira inicialização. Nenhum desses arquivos
         contém dados pessoais nem sai do seu dispositivo.</li>
 
         <li><strong>Configuração e histórico.</strong> As configurações ficam em

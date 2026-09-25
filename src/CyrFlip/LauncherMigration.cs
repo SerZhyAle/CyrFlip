@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace CyrFlip
 {
@@ -41,7 +42,7 @@ namespace CyrFlip
 
         /// <summary>
         /// Copy every readable scenario into <paramref name="store"/>, appending to the end in the
-        /// source's own order. Legacy <c>SPECIAL_YTDLP</c> files arrive as the yt-dlp type (the store's
+        /// source's own order (<see cref="InSourceOrder"/>). Legacy <c>SPECIAL_YTDLP</c> files arrive as the yt-dlp type (the store's
         /// reader normalizes them), so old OneClickRunner files keep their meaning.
         /// </summary>
         public static Result Import(LauncherScenarioStore store, string? sourceFolder = null)
@@ -64,6 +65,11 @@ namespace CyrFlip
             }
             Array.Sort(files, StringComparer.OrdinalIgnoreCase);
 
+            // Read everything first, then append in the source product's own order (SCENARIO-FILE
+            // rule 5: Order, ties by name case-insensitively, "so two readers show the same order").
+            // File-name order put "RDP Connect P7" above "Calculator". The last two keys only make
+            // the order total - the rule leaves a case-only name tie open (S0014, catalog proposal B4).
+            var readable = new List<LauncherScenario>();
             foreach (string file in files)
             {
                 LauncherScenario? item = LauncherScenarioStore.TryRead(file, out _);
@@ -73,7 +79,11 @@ namespace CyrFlip
                     LauncherLog.Log("Migration: skipped unreadable " + Path.GetFileName(file));
                     continue;
                 }
+                readable.Add(item);
+            }
 
+            foreach (LauncherScenario item in InSourceOrder(readable))
+            {
                 if (taken.Contains(item.Id))
                 {
                     item.Id = Guid.NewGuid();
@@ -88,5 +98,15 @@ namespace CyrFlip
             LauncherLog.Log($"Migration: imported {result.Imported}, skipped {result.Skipped.Count}, renumbered {result.NewIds} from {folder}");
             return result;
         }
+
+        /// <summary>
+        /// <c>SCENARIO-FILE</c> rule 5 as a total order: <c>Order</c>, then <c>Name</c> ignoring case,
+        /// then <c>Name</c> ordinal, then <c>Id</c>.
+        /// </summary>
+        internal static IEnumerable<LauncherScenario> InSourceOrder(IEnumerable<LauncherScenario> items) => items
+            .OrderBy(s => s.Order)
+            .ThenBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(s => s.Name, StringComparer.Ordinal)
+            .ThenBy(s => s.Id);
     }
 }

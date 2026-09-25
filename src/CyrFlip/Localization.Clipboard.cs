@@ -255,6 +255,20 @@ namespace CyrFlip
                 ur: "انتخاب پڑھا یا بدلا نہیں جا سکا۔ کلپ بورڈ کے ارادے کچھ اور تھے۔",
                 zh: "无法读取或替换所选内容。剪贴板另有打算。");
 
+            Add("Выделение слишком большое для конвертации (больше миллиона символов). Выделите часть.",
+                en: "The selection is too large to convert (over a million characters). Select a part of it.",
+                uk: "Виділення завелике для конвертації (понад мільйон символів). Виділіть частину.",
+                de: "Die Auswahl ist zu groß zum Umwandeln (mehr als eine Million Zeichen). Wählen Sie einen Teil aus.",
+                it: "La selezione è troppo grande da convertire (oltre un milione di caratteri). Selezionane una parte.",
+                es: "La selección es demasiado grande para convertirla (más de un millón de caracteres). Selecciona una parte.",
+                fr: "La sélection est trop grande pour être convertie (plus d'un million de caractères). Sélectionnez-en une partie.",
+                pt: "A seleção é grande demais para converter (mais de um milhão de caracteres). Selecione uma parte.",
+                ar: "التحديد أكبر من أن يُحوَّل (أكثر من مليون حرف). حدِّد جزءًا منه.",
+                hi: "चयन रूपांतरण के लिए बहुत बड़ा है (दस लाख से अधिक वर्ण)। उसका एक हिस्सा चुनें।",
+                bn: "নির্বাচনটি রূপান্তরের জন্য অনেক বড় (দশ লক্ষের বেশি অক্ষর)। এর একটি অংশ নির্বাচন করুন।",
+                ur: "انتخاب تبدیل کرنے کے لیے بہت بڑا ہے (دس لاکھ سے زیادہ حروف)۔ اس کا ایک حصہ منتخب کریں۔",
+                zh: "所选内容太大，无法转换（超过一百万个字符）。请选择其中一部分。");
+
             Add("Фрагмент слишком велик для истории (>128 КБ).",
                 en: "Fragment is too large for history (>128 KB).",
                 uk: "Фрагмент завеликий для історії (>128 КБ).",

@@ -15,9 +15,10 @@ namespace CyrFlip
     /// is punctuation on <b>both</b> sides ("/" → ".", "@" → "\"") carries no
     /// such evidence, so converting it is the caller's choice
     /// (<c>convertSymbols</c>, default true = the historic behaviour).
-    /// Which direction an ambiguous key takes comes from the dominant script
-    /// of the text. Case is preserved; unmapped characters pass through
-    /// unchanged.
+    /// An ambiguous key goes the pair's own direction first - the rule
+    /// <see cref="KeyboardLayoutConverter"/> follows - and a caller that has no
+    /// pair gets that direction from the dominant script of the text. Case is
+    /// preserved; unmapped characters pass through unchanged.
     /// </summary>
     public static class TransliterationEngine
     {
@@ -81,8 +82,8 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// Transliterate <paramref name="input"/>. Letters flip per-character;
-        /// ambiguous non-letter symbols use the dominant script direction.
+        /// Transliterate <paramref name="input"/> when the direction is not known: it is guessed from
+        /// the text's dominant script, then applied exactly as <see cref="TransliterateFrom"/> does.
         /// </summary>
         /// <param name="convertSymbols">
         /// Whether a key that is punctuation in <b>both</b> layouts ("/" against ".") is converted.
@@ -94,38 +95,51 @@ namespace CyrFlip
         {
             if (string.IsNullOrEmpty(input))
                 return input ?? string.Empty;
+            return TransliterateFrom(input!, fromLatin: !IsCyrillicDominant(input!), convertSymbols);
+        }
 
-            bool cyrillicDominant = IsCyrillicDominant(input!);
-            var sb = new StringBuilder(input!.Length);
+        /// <summary>
+        /// Transliterate with a known direction - the <see cref="KeyboardLayoutConverter"/> fallback,
+        /// which knows which layout of the pair is the source. It follows that converter's rule to the
+        /// letter (ticket S0009, FP-9): <b>per character, the pair's own direction first</b>, the
+        /// opposite one only when the first has nothing to say, and a key that is punctuation on both
+        /// sides refused in either direction while <paramref name="convertSymbols"/> is off. The old
+        /// rule - an ambiguous key follows the text's dominant script - made "привет?" come back as
+        /// "ghbdtn&amp;" here and "ghbdtn," where Windows maps the layouts: the same chord, two answers,
+        /// depending on whether the Russian keyboard happened to be installed.
+        /// </summary>
+        /// <param name="fromLatin">True when the pair's source is the Latin (US) layout.</param>
+        public static string TransliterateFrom(string input, bool fromLatin, bool convertSymbols = true)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input ?? string.Empty;
+
+            Dictionary<char, char> forward = fromLatin ? EnToRu : RuToEn;
+            Dictionary<char, char> backward = fromLatin ? RuToEn : EnToRu;
+            var sb = new StringBuilder(input.Length);
             foreach (char c in input)
             {
-                bool isCyrillicChar = c >= 0x0400 && c <= 0x052F;
-                bool isLatinLetter = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-
-                if (isCyrillicChar || isLatinLetter)
-                {
-                    // Letters are unambiguous: flip per-character.
-                    sb.Append(isCyrillicChar
-                        ? (RuToEn.TryGetValue(c, out char en) ? en : c)
-                        : (EnToRu.TryGetValue(c, out char ru) ? ru : c));
-                }
+                // Letters are unambiguous: only one of the two tables knows each of them, so they
+                // flip per character whichever direction is tried first.
+                if (TryMap(forward, c, convertSymbols, out char mapped) || TryMap(backward, c, convertSymbols, out mapped))
+                    sb.Append(mapped);
                 else
-                {
-                    // Punctuation/symbols can appear in both layouts with different
-                    // meanings; use dominant direction for context - and only when the
-                    // key carries a *letter* on the other side. A symbol that stays a
-                    // symbol either way says nothing about which layout the user meant:
-                    // "/" is "." on the Russian key, and a slash in front of a word is
-                    // far more often deliberate (a command, a path, a date) than a
-                    // mistyped full stop. Punctuation that becomes a letter is the
-                    // opposite - nobody types "," where "б" belongs.
-                    char mapped = cyrillicDominant
-                        ? (RuToEn.TryGetValue(c, out char en) ? en : c)
-                        : (EnToRu.TryGetValue(c, out char ru) ? ru : c);
-                    sb.Append(convertSymbols || char.IsLetter(mapped) ? mapped : c);
-                }
+                    sb.Append(c);
             }
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// One direction's answer for <paramref name="c"/>, or false. A symbol that stays a symbol
+        /// either way says nothing about which layout the user meant: "/" is "." on the Russian key,
+        /// and a slash in front of a word is far more often deliberate (a command, a path, a date)
+        /// than a mistyped full stop - so with <paramref name="convertSymbols"/> off it is refused.
+        /// Punctuation that becomes a letter is the opposite - nobody types "," where "б" belongs.
+        /// </summary>
+        private static bool TryMap(Dictionary<char, char> map, char c, bool convertSymbols, out char mapped)
+        {
+            if (!map.TryGetValue(c, out mapped)) return false;
+            return convertSymbols || char.IsLetter(c) || char.IsLetter(mapped);
         }
 
         /// <summary>Map a single character. Used chiefly as a fallback or helper.</summary>

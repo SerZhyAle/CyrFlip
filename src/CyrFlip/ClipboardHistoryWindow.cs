@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using Microsoft.Win32;
 
 namespace CyrFlip
 {
     /// <summary>Small topmost, owner-painted history strip. It hides instead of closing.</summary>
-    internal sealed class ClipboardHistoryWindow : Form
+    internal sealed class ClipboardHistoryWindow : ThemedForm
     {
         private const int HeaderHeight = 40;
         private const int CellHeight = 84;
@@ -120,24 +119,23 @@ namespace CyrFlip
 
         private void OnPaint(object? sender, PaintEventArgs e)
         {
-            bool dark = IsDarkTheme();
-            Color header = dark ? Color.FromArgb(40, 40, 40) : Color.FromArgb(235, 235, 235);
+            ThemePalette palette = Palette;
             // A layered (Opacity) owner-painted form can retain stale pixels in the newly exposed
             // area after a shrink followed by an expansion unless every pixel is repainted.
-            e.Graphics.Clear(dark ? Color.FromArgb(55, 55, 55) : Color.White);
-            using var headerBrush = new SolidBrush(header);
+            e.Graphics.Clear(palette.SurfaceRaised);
+            using var headerBrush = new SolidBrush(palette.SurfaceSunken);
             e.Graphics.FillRectangle(headerBrush, new Rectangle(0, 0, ClientSize.Width, HeaderHeight));
             EnsureFonts();
             Font title = _titleFont!;
             Font hotkeyFont = _hotkeyFont!;
-            using var headerForeground = new SolidBrush(dark ? Color.LightSkyBlue : Color.MidnightBlue);
-            using var hotkeyBrush = new SolidBrush(dark ? Color.Gray : Color.DimGray);
+            using var headerForeground = new SolidBrush(palette.Accent);
+            using var hotkeyBrush = new SolidBrush(palette.TextMuted);
             // Read the language on every paint: the header follows a settings change with no restart.
             // One Entries read per paint: the list is cached by the service, but the local keeps this
             // paint consistent (the caption count and the cells can't disagree).
             IReadOnlyList<ClipboardHistoryEntry> entries = _service.Entries;
             string caption = Localization.Translate(_config.UiLanguage, "Менеджер буфера") + " (" + entries.Count + ")";
-            using var iconPen = new Pen(dark ? Color.Gainsboro : SystemColors.ControlText, 1.5f);
+            using var iconPen = new Pen(palette.TextPrimary, 1.5f);
             // Keep the two actions before the caption: they remain reachable at every allowed width.
             e.Graphics.DrawEllipse(iconPen, SearchButtonLeft, 13, 10, 10);
             e.Graphics.DrawLine(iconPen, SearchButtonLeft + 9, 22, SearchButtonLeft + 13, 26);
@@ -148,17 +146,17 @@ namespace CyrFlip
                 new RectangleF(HeaderTextLeft + captionWidth + 4, 10, Math.Max(1, ClientSize.Width - HeaderTextLeft - captionWidth - 4), 20),
                 SingleLineFormat);
             var items = entries.Take(Math.Max(3, (ClientSize.Height - HeaderHeight) / CellHeight)).ToList();
-            for (int i = 0; i < items.Count; i++) DrawCell(e.Graphics, items[i], i, new Rectangle(0, HeaderHeight + i * CellHeight, ClientSize.Width, CellHeight), dark);
+            for (int i = 0; i < items.Count; i++) DrawCell(e.Graphics, items[i], i, new Rectangle(0, HeaderHeight + i * CellHeight, ClientSize.Width, CellHeight), palette);
         }
 
-        private void DrawCell(Graphics g, ClipboardHistoryEntry entry, int index, Rectangle r, bool dark)
+        private void DrawCell(Graphics g, ClipboardHistoryEntry entry, int index, Rectangle r, ThemePalette palette)
         {
-            Color bg = index % 2 == 0 ? (dark ? Color.FromArgb(55, 55, 55) : Color.White) : (dark ? Color.FromArgb(70, 70, 70) : Color.FromArgb(242, 242, 242));
+            Color bg = index % 2 == 0 ? palette.SurfaceRaised : palette.SurfaceAlternate;
             using var background = new SolidBrush(bg);
             g.FillRectangle(background, r);
             if (entry.IsCurrent)
             {
-                using var currentPen = new Pen(dark ? Color.LightSkyBlue : Color.RoyalBlue, 2);
+                using var currentPen = new Pen(palette.Accent, 2);
                 g.DrawRectangle(currentPen, r.X + 1, r.Y + 1, r.Width - 3, r.Height - 3);
             }
             // The cached preview, never the full text: this runs per visible cell on every copy and
@@ -169,9 +167,9 @@ namespace CyrFlip
             Font big = _bigFont!;      // built by OnPaint before any cell is drawn
             Font small = _smallFont!;
             Font buttons = _buttonFont!;
-            using var anchorBrush = new SolidBrush(dark ? Color.White : Color.Black);
-            using var restBrush = new SolidBrush(dark ? Color.Silver : Color.DimGray);
-            using var timeBrush = new SolidBrush(Color.Gold);
+            using var anchorBrush = new SolidBrush(palette.TextPrimary);
+            using var restBrush = new SolidBrush(palette.TextMuted);
+            using var timeBrush = new SolidBrush(palette.Info);
             int textRight = r.Right - CellButtonWidth - 3;
             const float firstLineTopOffset = 4;
             SizeF anchorSize = g.MeasureString(anchor, big, PointF.Empty, Typographic);
@@ -189,12 +187,12 @@ namespace CyrFlip
             g.Restore(clip);
             float bodyTop = r.Y + firstLineTopOffset + big.GetHeight(g) + 2;
             g.DrawString(remainingRest, small, restBrush, new RectangleF(6, bodyTop, textRight - 6, r.Bottom - 24 - bodyTop), BodyFormat);
-            DrawPin(g, r.Right - 18, r.Y + 13, entry.IsPinned);
+            DrawPin(g, r.Right - 18, r.Y + 13, entry.IsPinned, palette);
             g.DrawString("×", buttons, anchorBrush, r.Right - 23, r.Bottom - 29);
             g.DrawString(entry.CreatedAt.ToLocalTime().ToString("MM-dd:HH:mm"), small, timeBrush, 6, r.Bottom - 19);
             if (entry.SourceApp.Length > 0)
             {
-                using var sourceBrush = new SolidBrush(dark ? Color.MediumAquamarine : Color.SeaGreen);
+                using var sourceBrush = new SolidBrush(palette.Success);
                 float timeWidth = g.MeasureString("MM-dd:HH:mm", small).Width + 12;
                 g.DrawString(entry.SourceApp, small, sourceBrush, new RectangleF(6 + timeWidth, r.Bottom - 19, r.Right - 28 - (6 + timeWidth), 16), SourceFormat);
             }
@@ -245,9 +243,11 @@ namespace CyrFlip
             return low;
         }
 
-        private static void DrawPin(Graphics g, int x, int y, bool pinned)
+        private static void DrawPin(Graphics g, int x, int y, bool pinned, ThemePalette palette)
         {
-            Color color = pinned ? Color.IndianRed : Color.White;
+            // Pinned: the danger red, filled. Unpinned: a muted outline - it used to be white, which on the
+            // light strip drew nothing at all.
+            Color color = pinned ? palette.Danger : palette.TextMuted;
             using var pen = new Pen(color, 1.8f);
             using var brush = new SolidBrush(color);
             var state = g.Save();
@@ -294,31 +294,15 @@ namespace CyrFlip
             base.Dispose(disposing);
         }
 
-        private const int DarkThemeTtlMs = 2000;
-        private static bool _darkThemeKnown;
-        private static bool _darkTheme;
-        private static int _darkThemeReadAt;
-
         /// <summary>
-        /// Windows' light/dark preference, re-read at most every <see cref="DarkThemeTtlMs"/>. It used
-        /// to open the registry key on <b>every repaint</b>, and the strip repaints on every copy;
-        /// two seconds is far under how long anyone takes to notice they switched themes.
+        /// The app's palette, as last put on this window. The strip used to read Windows' preference
+        /// itself, with its own two-second cache - which is how one window of the app could be dark
+        /// beside another that was still light. It now draws with whatever <see cref="ThemeManager"/>
+        /// resolved, like every other window (ticket S0020).
         /// </summary>
-        private static bool IsDarkTheme()
-        {
-            if (_darkThemeKnown && unchecked(Environment.TickCount - _darkThemeReadAt) < DarkThemeTtlMs)
-                return _darkTheme;
+        private ThemePalette Palette => ThemeApply.PaletteOf(this) ?? ThemePalette.Light;
 
-            _darkThemeReadAt = Environment.TickCount;
-            _darkThemeKnown = true;
-            try
-            {
-                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
-                object? value = key?.GetValue("AppsUseLightTheme");
-                _darkTheme = value != null && Convert.ToInt32(value) == 0;
-            }
-            catch { _darkTheme = false; }
-            return _darkTheme;
-        }
+        /// <summary>The whole strip is owner-drawn: a theme change is a repaint.</summary>
+        protected override void OnThemeApplied(ThemePalette palette) => Invalidate();
     }
 }

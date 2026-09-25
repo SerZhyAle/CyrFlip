@@ -79,6 +79,76 @@ namespace CyrFlip.Tests
             Assert.Equal(command, received);
         }
 
+        // ---- Whose pipe it is (ticket S0008, LS-2) ----
+
+        [Fact]
+        public void ThePipeNameCarriesTheUserAndTheSession()
+        {
+            Assert.Equal("CyrFlip_Launcher_S-1-5-21-1-2-3-1001_2", LauncherIpc.BuildPipeName("S-1-5-21-1-2-3-1001", 2));
+
+            string live = LauncherIpc.PipeName;
+            using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
+                Assert.Contains(identity.User!.Value, live);
+            using (var self = System.Diagnostics.Process.GetCurrentProcess())
+                Assert.EndsWith("_" + self.SessionId, live);
+        }
+
+        [Fact]
+        public void AnOverlongLineIsNotACommand()
+        {
+            Assert.Null(LauncherIpc.ParseCommand(LauncherIpc.RunPrefix + Guid.NewGuid() + new string(' ', 10 * 1024)));
+            Assert.Null(LauncherIpc.ParseCommand(new[] { new string('a', 10 * 1024) }));
+            Assert.Null(LauncherIpc.ParseCommand((string?)null));
+        }
+
+        /// <summary>A client that connects and says nothing no longer holds the only instance forever.</summary>
+        [Fact]
+        public void ASilentClientIsDroppedAndTheNextOneIsHeard()
+        {
+            string pipe = "CyrFlipTests_" + Guid.NewGuid().ToString("N");
+            string? received = null;
+            using var done = new ManualResetEventSlim();
+            using var ipc = new LauncherIpc(cmd => { received = cmd; done.Set(); }, pipe, readTimeoutMs: 300);
+            ipc.Start();
+
+            using var silent = new System.IO.Pipes.NamedPipeClientStream(".", pipe, System.IO.Pipes.PipeDirection.Out);
+            silent.Connect(2000); // held open, never written to
+
+            bool sent = false;
+            for (int attempt = 0; attempt < 20 && !sent; attempt++)
+                sent = LauncherIpc.TrySend(LauncherIpc.SettingsCommand, 500, pipe);
+
+            Assert.True(sent, "the silent client kept the pipe");
+            Assert.True(done.Wait(TimeSpan.FromSeconds(5)));
+            Assert.Equal(LauncherIpc.SettingsCommand, received);
+        }
+
+        /// <summary>With the launcher off only /exit gets through - the build scripts still need it.</summary>
+        [Fact]
+        public void WithTheLauncherOffOnlyExitIsPassedOn()
+        {
+            string pipe = "CyrFlipTests_" + Guid.NewGuid().ToString("N");
+            var received = new System.Collections.Concurrent.ConcurrentQueue<string>();
+            using var exited = new ManualResetEventSlim();
+            using var ipc = new LauncherIpc(cmd => { received.Enqueue(cmd); if (cmd == LauncherIpc.ExitCommand) exited.Set(); }, pipe);
+            ipc.SetLauncherCommandsEnabled(false);
+            ipc.Start();
+
+            Assert.True(SendWithRetry(LauncherIpc.RunPrefix + Guid.NewGuid().ToString("D"), pipe));
+            Assert.True(SendWithRetry(LauncherIpc.SettingsCommand, pipe));
+            Assert.True(SendWithRetry(LauncherIpc.ExitCommand, pipe));
+
+            Assert.True(exited.Wait(TimeSpan.FromSeconds(5)));
+            Assert.Equal(new[] { LauncherIpc.ExitCommand }, received.ToArray());
+        }
+
+        private static bool SendWithRetry(string command, string pipe)
+        {
+            for (int attempt = 0; attempt < 20; attempt++)
+                if (LauncherIpc.TrySend(command, 500, pipe)) return true;
+            return false;
+        }
+
         [Fact]
         public void SendToNobodyFailsFast()
             => Assert.False(LauncherIpc.TrySend("/exit", 200, "CyrFlipTests_nobody_" + Guid.NewGuid().ToString("N")));

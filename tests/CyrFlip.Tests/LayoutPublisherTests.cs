@@ -96,18 +96,69 @@ namespace CyrFlip.Tests
         [Fact]
         public void TheFolderFollowsTheInstallMode()
         {
-            string Resolve(Environment.SpecialFolder f) => f == Environment.SpecialFolder.LocalApplicationData ? @"C:\Local"
-                : f == Environment.SpecialFolder.CommonApplicationData ? @"C:\Common" : @"C:\Wrong";
-
-            Assert.Equal(@"C:\Local\CyrFlip", LayoutPublisher.FolderFor(false, Resolve));
-            Assert.Equal(@"C:\Common\CyrFlip", LayoutPublisher.FolderFor(true, Resolve));
+            Assert.Equal(@"C:\Users\a\AppData\Local\CyrFlip",
+                DataFolder.For(false, @"C:\Users\a\AppData\Local", "SZA.CyrFlip_fdk7e19xt9z9j"));
+            // Packaged: the package's own per-user folder by its real path - never the machine-wide
+            // %ProgramData% (LAYOUT-SIGNAL 1.1 rule 1, ticket S0016).
+            Assert.Equal(@"C:\Users\a\AppData\Local\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip",
+                DataFolder.For(true, @"C:\Users\a\AppData\Local", "SZA.CyrFlip_fdk7e19xt9z9j"));
+            // A family name that could not be read stays per user rather than going machine-wide.
+            Assert.Equal(@"C:\Users\a\AppData\Local\CyrFlip", DataFolder.For(true, @"C:\Users\a\AppData\Local", ""));
+            Assert.Equal(@"C:\ProgramData\CyrFlip", DataFolder.LegacySharedFor(@"C:\ProgramData"));
         }
 
         [Fact]
         public void TheClaimIsReadFromTheSameFolder()
         {
             Assert.Equal(LayoutPublisher.Folder, Path.GetDirectoryName(EditorCaretSignal.FilePath));
-            Assert.Equal(LayoutPublisher.FolderFor(PackageInfo.IsPackaged, Environment.GetFolderPath), LayoutPublisher.Folder);
+            Assert.Equal(DataFolder.Current, LayoutPublisher.Folder);
+            Assert.Equal(DataFolder.Current, DiagnosticLog.ProductionFolder);
+            Assert.Equal(DataFolder.Current, SupportBundle.LogDirectory);
+            // Unpackaged (the test runner) there is no mirror, so the claim is read from one place only.
+            Assert.Equal(PackageInfo.IsPackaged, LayoutPublisher.MirrorFolder != null);
+            Assert.Equal(EditorCaretSignal.FilePath, EditorCaretSignal.FilePaths[0]);
+            Assert.Equal(LayoutPublisher.MirrorFolder == null ? 1 : 2, EditorCaretSignal.FilePaths.Length);
+        }
+
+        /// <summary>LAYOUT-SIGNAL 1.1 rule 1: the packaged build mirrors both files into the deprecated
+        /// machine-wide folder so a pre-1.1 extension keeps working, and retracts the mirror with them.</summary>
+        [Fact]
+        public void TheMirrorCarriesBothFilesAndGoesWithThem()
+        {
+            string mirror = Path.Combine(_dir, "mirror");
+            string primary = Path.Combine(_dir, "primary");
+            var channel = new LayoutPublisher.Channel(primary, mirror);
+            channel.Publish("UK", "00000422");
+            Assert.True(channel.Flush(TimeSpan.FromSeconds(10)));
+
+            foreach (string folder in new[] { primary, mirror })
+            {
+                Assert.Equal("UK", File.ReadAllText(Path.Combine(folder, LayoutPublisher.CodeFileName)));
+                Assert.Equal("00000422", File.ReadAllText(Path.Combine(folder, LayoutPublisher.KlidFileName)));
+            }
+
+            channel.Retract();
+            foreach (string folder in new[] { primary, mirror })
+            {
+                Assert.False(File.Exists(Path.Combine(folder, LayoutPublisher.CodeFileName)));
+                Assert.False(File.Exists(Path.Combine(folder, LayoutPublisher.KlidFileName)));
+            }
+        }
+
+        /// <summary>On a machine where another account created the mirror first, its writes fail - and the
+        /// primary folder must not notice.</summary>
+        [Fact]
+        public void AMirrorThatCannotBeWrittenCostsOnlyItself()
+        {
+            Directory.CreateDirectory(_dir);
+            string blocked = Path.Combine(_dir, "blocked");
+            File.WriteAllText(blocked, "a file where the mirror folder should be");
+            string primary = Path.Combine(_dir, "primary");
+            var channel = new LayoutPublisher.Channel(primary, blocked);
+            channel.Publish("EN", "00000409");
+            Assert.True(channel.Flush(TimeSpan.FromSeconds(10)));
+
+            Assert.Equal("EN", File.ReadAllText(Path.Combine(primary, LayoutPublisher.CodeFileName)));
         }
 
         /// <summary>The producer writes only on change, so an older value left on disk by two racing

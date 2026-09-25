@@ -149,6 +149,34 @@ namespace CyrFlip
         }
 
         /// <summary>
+        /// <see cref="Send"/> on a thread of its own in a <b>single-threaded apartment</b> (ticket
+        /// S0010 TD-8). <c>MAPISendMail(MAPI_DIALOG)</c> shows the mail client's compose window, and
+        /// classic Outlook expects to be called from an STA; on a thread-pool thread (MTA) it can
+        /// answer <c>MAPI_E_FAILURE</c> - silently dropping to the mailto: rung without the attachment
+        /// - or hang with the button left disabled. The UI thread is not used either: the call blocks
+        /// until the user closes the compose window, and the keyboard hook shares that thread.
+        /// A throw anywhere comes back as <see cref="MailOutcome.Manual"/>, never as a fault.
+        /// </summary>
+        public static System.Threading.Tasks.Task<MailOutcome> SendOnStaAsync(SupportMail mail, IMailTransport transport)
+        {
+            var done = new System.Threading.Tasks.TaskCompletionSource<MailOutcome>();
+            var thread = new System.Threading.Thread(() =>
+            {
+                MailOutcome outcome;
+                try { outcome = Send(mail, transport); }
+                catch { outcome = MailOutcome.Manual; }
+                done.TrySetResult(outcome);
+            })
+            {
+                IsBackground = true,
+                Name = "CyrFlip.MailSender",
+            };
+            thread.SetApartmentState(System.Threading.ApartmentState.STA);
+            thread.Start();
+            return done.Task;
+        }
+
+        /// <summary>
         /// RFC 2368: recipient in the path, subject and body as percent-encoded query values. The
         /// body is trimmed - never the subject - when the whole URL would exceed
         /// <see cref="MaxMailtoLength"/>.

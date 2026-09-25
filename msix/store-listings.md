@@ -70,6 +70,7 @@ Optional Quick launch: your programs, scripts and yt-dlp downloads as one-click 
 Start a scenario from the tray, its own global hotkey, or the taskbar Jump List
 Optional local translator: a selection is translated by hotkey in a window at the mouse pointer
 Translation runs on Ollama on your own computer - installed separately, off until you enable it
+Light, dark or same as Windows: every window, dialog and menu follows the theme, live
 ```
 
 **What's new in this version**
@@ -138,6 +139,7 @@ CyrFlip — крошечная утилита Windows в системном тр
 Запуск сценария из трея, по своей глобальной комбинации или из Jump List панели задач
 Необязательный локальный перевод: выделенный текст переводится по горячей клавише в окне у курсора мыши
 Перевод работает на Ollama на вашем компьютере — ставится отдельно, по умолчанию выключен
+Светлая, тёмная или как в Windows: тема для всех окон, диалогов и меню, без перезапуска
 ```
 
 **Что нового в этой версии**
@@ -206,6 +208,7 @@ CyrFlip — це крихітна утиліта в системному тре�
 Запуск сценарію з трея, за своїм глобальним сполученням або з Jump List панелі завдань
 Необов'язковий локальний перекладач: виділення перекладається у вікні біля вказівника миші
 Переклад працює на Ollama на вашому комп'ютері — встановлюється окремо, типово вимкнений
+Світла, темна або як у Windows: тема для всіх вікон, діалогів і меню, без перезапуску
 ```
 
 **Що нового в цій версії**

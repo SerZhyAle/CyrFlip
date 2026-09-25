@@ -145,15 +145,18 @@
         <li><strong>Layout-Datei.</strong> CyrFlip schreibt den Code des aktuellen Layouts - einen
         zweibuchstabigen Wert wie <code>EN</code>, <code>ZH</code>, <code>RU</code> oder <code>AR</code> -
         in eine kleine lokale Datei (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, in der
-        Microsoft-Store-Version <code>%ProgramData%\CyrFlip\layout.txt</code>), damit die optionale
+        Microsoft-Store-Version <code>layout.txt</code> im eigenen Ordner der App in Ihrem Profil,
+        <code>%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip</code>), damit die optionale
         VS&nbsp;Code-Erweiterung die Markierung an der Schreibmarke des Editors anzeigen kann. Daneben
         enthält <code>layout-klid.txt</code> die Kennung dieses Tastaturlayouts (acht Hexadezimalziffern, etwa
         <code>00000409</code>), damit die Erweiterung dieselbe Farbe verwenden kann. Die Erweiterung schreibt,
         sofern Sie sie installiert haben, <code>editor-caret.txt</code> in denselben Ordner, solange sie die
         Markierung zeichnet; darin stehen nur der Layout-Code und eine Uhrzeit. CyrFlip entfernt seine beiden
-        Dateien beim Beenden. In der Microsoft-Store-Version liegt dieser Ordner unter
-        <code>%ProgramData%</code>, den andere Konten auf demselben PC lesen können - er enthält nichts außer
-        diesen Werten. Keine dieser Dateien enthält personenbezogene Daten oder verlässt jemals Ihr Gerät.</li>
+        Dateien beim Beenden. Die Microsoft-Store-Version legt für ältere Versionen der Erweiterung außerdem
+        eine Kopie ihrer beiden Dateien unter <code>%ProgramData%\CyrFlip</code> ab; diese Kopie können
+        andere Konten auf demselben PC lesen - sie enthält nichts außer diesen Werten. Protokolle und
+        Schnellnotizen, die frühere Store-Versionen dort abgelegt haben, werden beim ersten Start in Ihren
+        eigenen Profilordner verschoben. Keine dieser Dateien enthält personenbezogene Daten oder verlässt jemals Ihr Gerät.</li>
 
         <li><strong>Einstellungen und Verlauf.</strong> Die Einstellungen liegen in
         <code>HKCU\Software\CyrFlip</code> - einschließlich Ihrer Umwandlungstabelle und der oben

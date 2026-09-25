@@ -15,7 +15,7 @@ namespace CyrFlip
     /// whatever the display scaling makes of the UI font. The window itself stays resizable - it is a
     /// list - but its minimum size is measured from what it holds.</para>
     /// </summary>
-    internal sealed class LayoutPickerDialog : Form
+    internal sealed class LayoutPickerDialog : ThemedForm
     {
         private readonly TextBox _filter = new TextBox { Dock = DockStyle.Fill, Margin = new Padding(3, 3, 3, 6) };
         private readonly ListBox _list = new ListBox { Dock = DockStyle.Fill, IntegralHeight = false };
@@ -48,7 +48,7 @@ namespace CyrFlip
             var hint = new Label
             {
                 Text = T("Введите язык или название раскладки для фильтра"),
-                ForeColor = SystemColors.GrayText, AutoSize = true,
+                ForeColor = ThemePalette.Light.TextMuted, AutoSize = true,
                 MaximumSize = new Size(width - 30, 0), // wrap rather than widen without limit
                 Margin = new Padding(3, 3, 3, 4),
             };

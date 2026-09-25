@@ -27,12 +27,11 @@ $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $exe = Join-Path $repo "src\CyrFlip\bin\$Configuration\net48\CyrFlip.exe"
 
-$logDir = Join-Path $env:LOCALAPPDATA 'CyrFlip'
-$packaged = $false
-if (-not (Test-Path $logDir) -and (Test-Path (Join-Path $env:ProgramData 'CyrFlip'))) {
-    $logDir = Join-Path $env:ProgramData 'CyrFlip'
-    $packaged = $true
-}
+Import-Module (Join-Path $PSScriptRoot 'CyrFlip.UiTest.psm1') -Force
+$dataFolder = Get-CyrFlipDataFolder   # portable, Store (S0016) or a pre-S0016 Store build
+$logDir = $dataFolder.Path
+$packaged = $dataFolder.Packaged
+
 $journal = Join-Path $logDir 'quick-notes.log'
 $backup = "$journal.bak"
 $diag = Join-Path $logDir 'quick-notes-diagnostics.log'

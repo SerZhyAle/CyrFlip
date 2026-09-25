@@ -214,6 +214,25 @@ namespace CyrFlip
             catch { return value.ToUpperInvariant(); }
         }
 
+        /// <summary>
+        /// The Windows language id of a translation's language, for the CF_LOCALE a pasted translation
+        /// carries (ticket S0009, FP-8); 0 when Windows does not know the code, which leaves the choice
+        /// to Windows as before.
+        /// </summary>
+        public static uint LocaleId(string? code)
+        {
+            string value = (code ?? "").Trim();
+            if (value.Length < 2) return 0;
+            try
+            {
+                // The specific culture ("ru" → ru-RU), since a neutral id has no ANSI code page of its own.
+                int lcid = CultureInfo.CreateSpecificCulture(value).LCID;
+                // 0x1000 is LOCALE_CUSTOM_UNSPECIFIED - "no real id" - and 0x7F the invariant culture.
+                return lcid == 0x1000 || lcid == 0x7F ? 0u : (uint)(lcid & 0xFFFF);
+            }
+            catch { return 0; }
+        }
+
         /// <summary>What the table and the pickers show for a row's target.</summary>
         public static string Label(string? code, string uiLanguage)
         {

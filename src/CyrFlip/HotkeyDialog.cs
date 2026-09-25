@@ -13,7 +13,7 @@ namespace CyrFlip
     /// translated into 13 languages and the whole dialog is drawn at whatever the display scaling makes
     /// of the UI font, so fixed geometry clips captions.
     /// </summary>
-    internal sealed class HotkeyDialog : Form
+    internal sealed class HotkeyDialog : ThemedForm
     {
         private readonly Label _hintLabel;
         private readonly Label _previewLabel;
@@ -82,7 +82,7 @@ namespace CyrFlip
                 Font = previewFont,
                 TextAlign = ContentAlignment.MiddleCenter,
                 BorderStyle = BorderStyle.FixedSingle,
-                BackColor = SystemColors.Window,
+                BackColor = ThemePalette.Light.SurfaceRaised,
             };
 
             _reasonLabel = new Label
@@ -90,7 +90,7 @@ namespace CyrFlip
                 Text = "",
                 AutoSize = true,
                 MaximumSize = new Size(TextWidth(new string('W', 34)), 0),
-                ForeColor = Color.Firebrick,
+                ForeColor = ThemePalette.Light.Danger,
                 Margin = new Padding(3, 6, 3, 0),
             };
 

@@ -44,13 +44,24 @@ namespace CyrFlip
     /// <summary>What one probe found: the verdict and, when a source gave it, the selected text.</summary>
     internal sealed class SelectionSnapshot
     {
-        public SelectionSnapshot(SelectionState state, string? text = null)
+        public SelectionSnapshot(SelectionState state, string? text = null, LaunchTarget? launch = null)
         {
             State = state;
             Text = string.IsNullOrEmpty(text) ? null : text;
+            Launch = launch;
         }
 
         public SelectionState State { get; }
+
+        /// <summary>
+        /// What <see cref="LaunchTargets"/> made of <see cref="Text"/>, parsed on the probe's own
+        /// thread (ticket S0008, LS-1): deciding whether a path exists is file-system work, and the
+        /// UI thread that draws the menu is the one both low-level hooks live on.
+        /// </summary>
+        public LaunchTarget? Launch { get; }
+
+        /// <summary>The same snapshot with the text's launch target attached.</summary>
+        public SelectionSnapshot WithLaunch(LaunchTarget? launch) => new SelectionSnapshot(State, Text, launch);
         /// <summary>
         /// The selection itself when it could be read through the accessibility stack - null
         /// otherwise, which is an ordinary outcome, not a failure. It is what "Launch" parses; every
@@ -213,7 +224,15 @@ namespace CyrFlip
 
             internal void Execute()
             {
-                try { Volatile.Write(ref _snapshot, Probe(_x, _y)); }
+                try
+                {
+                    SelectionSnapshot snapshot = Probe(_x, _y);
+                    // Here, not when the menu is built: the parse may ask the disk whether a path
+                    // exists, and that must never happen on the hooks' thread.
+                    if (snapshot.Text != null && LaunchTargets.TryParse(snapshot.Text, out LaunchTarget? launch))
+                        snapshot = snapshot.WithLaunch(launch);
+                    Volatile.Write(ref _snapshot, snapshot);
+                }
                 catch { /* stays Unknown - the menu shows everything enabled */ }
                 finally { _done.Set(); }
             }
@@ -241,18 +260,52 @@ namespace CyrFlip
         private static SelectionAnswer FromEditControl(IntPtr hwnd)
         {
             if (hwnd == IntPtr.Zero) return SelectionAnswer.Unknown;
-            if (!IsEditClass(ClassNameOf(hwnd))) return SelectionAnswer.Unknown;
+            string className = ClassNameOf(hwnd);
+            if (!IsEditClass(className)) return SelectionAnswer.Unknown;
 
             if (SendMessageTimeout(hwnd, EM_GETSEL, IntPtr.Zero, IntPtr.Zero,
                     SMTO_ABORTIFHUNG, SendTimeoutMs, out IntPtr result) == IntPtr.Zero)
                 return SelectionAnswer.Unknown; // the app is hung or refused - do not guess
 
-            int packed = result.ToInt32();
-            int start = packed & 0xFFFF;
-            int end = (packed >> 16) & 0xFFFF;
-            if (start == end) return SelectionAnswer.Absent;
-            return SelectionAnswer.Present(SelectedTextOf(hwnd, start, end));
+            return EditAnswer(className, result.ToInt64(), (start, end) => SelectedTextOf(hwnd, start, end));
         }
+
+        /// <summary>
+        /// The verdict of one <c>EM_GETSEL</c> reply, free of interop so it can be unit-tested.
+        ///
+        /// A <b>RichEdit</b> gives the verdict and nothing else (S0008 LS-7): its <c>EM_GETSEL</c>
+        /// counts a paragraph end as one character (CR) while <c>WM_GETTEXT</c> hands back CRLF, so the
+        /// offsets drift by one per preceding line break. The wrong text is as long as the right one,
+        /// and this source comes first, so the "longest wins" rule would let it beat UIA's correct
+        /// text - and the menu would offer to run, and count, text that is not selected.
+        /// </summary>
+        internal static SelectionAnswer EditAnswer(string? className, long packed, Func<int, int, string?> readText)
+        {
+            if (!IsEditClass(className)) return SelectionAnswer.Unknown;
+            if (!TryUnpackSelection(packed, out int start, out int end)) return SelectionAnswer.Unknown;
+            if (start == end) return SelectionAnswer.Absent;
+            if (IsRichEditClass(className)) return SelectionAnswer.Present();
+            return SelectionAnswer.Present(readText(start, end));
+        }
+
+        /// <summary>
+        /// Unpack <c>EM_GETSEL</c>'s packed reply (S0008 LS-8). The low 32 bits are the whole answer;
+        /// a zero-extended reply whose high word is ≥ 0x8000 used to overflow <c>ToInt32</c>, and the
+        /// documented <c>-1</c> - "a position above 65535, look elsewhere" - used to unpack to
+        /// start == end == 0xFFFF, i.e. a confident Absent beside a live selection. It is Unknown.
+        /// </summary>
+        internal static bool TryUnpackSelection(long packed, out int start, out int end)
+        {
+            long low = packed & 0xFFFFFFFFL;
+            start = end = 0;
+            if (low == 0xFFFFFFFFL) return false;
+            start = (int)(low & 0xFFFF);
+            end = (int)((low >> 16) & 0xFFFF);
+            return true;
+        }
+
+        internal static bool IsRichEditClass(string? className)
+            => !string.IsNullOrEmpty(className) && className!.StartsWith("RichEdit", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// The text between two offsets of an edit control. Best effort: the state above is the

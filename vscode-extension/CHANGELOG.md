@@ -4,6 +4,22 @@ All notable changes to the **CyrFlip - keyboard layout at the caret** extension 
 
 ## [Unreleased]
 
+- **Store installs: the layout comes from your own profile.** The Microsoft Store build of the app now
+  writes `layout.txt` to its per-user package folder
+  (`%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip`), and the extension reads
+  it there. The old machine-wide `%ProgramData%\CyrFlip\layout.txt` is shared by every account on the PC,
+  so a second Windows user saw the first user's layout; it is now read only when no per-user file exists
+  (an older Store version of the app), and `editor-caret.txt` follows whichever file is read.
+- **Works in remote windows.** The extension now declares itself a UI extension
+  (`"extensionKind": ["ui"]`), so it runs on the local machine in Remote-SSH, WSL, Dev Containers and
+  Codespaces windows, where the layout file actually is. Before, it was treated as a workspace
+  extension: the local copy did not run, and a copy installed on the remote side found no layout file.
+- **The app's marker stays in the chat box.** Only the user's own typing and caret moves in the active
+  editor now renew the `editor-caret.txt` claim; a language server's edits, Output channel appends,
+  reloads from disk and programmatic selection changes no longer keep it alive.
+- **Two VS Code windows no longer delete each other's claim.** The claim carries the window's session
+  id, and a window that loses the focus deletes the file only when it still holds its own id.
+
 - **README brought up to date:** both layout-file locations (`%LOCALAPPDATA%` and, for a Store
   install, `%ProgramData%`, newest wins), any layout rather than EN/RU/UK, the colour table, the 60%
   opacity and the `editor-caret.txt` claim. The `cyrflip.layoutFile` setting's description names both

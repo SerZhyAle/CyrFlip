@@ -142,14 +142,19 @@
         <li><strong>Archivo de distribución.</strong> CyrFlip escribe el código de la distribución
         actual - un valor de dos letras como <code>EN</code>, <code>ZH</code>, <code>RU</code> o
         <code>AR</code> - en un pequeño archivo local (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>,
-        o <code>%ProgramData%\CyrFlip\layout.txt</code> en la versión de Microsoft Store), para que la
+        o, en la versión de Microsoft Store, <code>layout.txt</code> en la carpeta propia de la aplicación
+        dentro de tu perfil,
+        <code>%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip</code>), para que la
         extensión opcional de VS&nbsp;Code pueda mostrar el marcador junto al cursor del editor. A su lado,
         <code>layout-klid.txt</code> guarda el identificador de esa distribución de teclado (ocho dígitos
         hexadecimales, como <code>00000409</code>), para que la extensión pueda usar el mismo color. La
         extensión, si la instalas, escribe <code>editor-caret.txt</code> en la misma carpeta mientras dibuja
         el marcador; solo contiene el código de la distribución y una hora. CyrFlip elimina sus dos archivos
-        al salir. En la versión de Microsoft Store esa carpeta está en <code>%ProgramData%</code>, que otras
-        cuentas del mismo PC pueden leer; no contiene nada más que estos valores. Ninguno de estos archivos
+        al salir. La versión de Microsoft Store también guarda una copia de sus dos archivos en
+        <code>%ProgramData%\CyrFlip</code> para las versiones antiguas de la extensión; otras cuentas del
+        mismo PC pueden leer esa copia, que no contiene nada más que estos valores. Los registros y las notas
+        rápidas que las versiones anteriores de Microsoft Store guardaban allí se trasladan a la carpeta de
+        tu propio perfil en el primer inicio. Ninguno de estos archivos
         contiene datos personales ni sale nunca de tu dispositivo.</li>
 
         <li><strong>Configuración e historial.</strong> Los ajustes se guardan en

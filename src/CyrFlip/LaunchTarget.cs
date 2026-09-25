@@ -14,7 +14,7 @@ namespace CyrFlip
         Program,
     }
 
-    /// <summary>A selection that can be opened, as resolved by <see cref="LaunchTargets.TryParse"/>.</summary>
+    /// <summary>A selection that can be opened, as resolved by <see cref="LaunchTargets.TryParse(string, out LaunchTarget, LaunchProbes)"/>.</summary>
     internal sealed class LaunchTarget
     {
         public LaunchTarget(string target, string display, LaunchKind kind)
@@ -27,6 +27,68 @@ namespace CyrFlip
         /// <summary>The same thing shortened for a menu caption.</summary>
         public string Display { get; }
         public LaunchKind Kind { get; }
+    }
+
+    /// <summary>
+    /// The four questions <see cref="LaunchTargets"/> has to ask the machine, each injectable so the
+    /// whole matrix is unit-tested without a disk, a network or the registry. Only
+    /// <see cref="Exists"/> and <see cref="RealName"/> touch a file system, and both are asked about
+    /// <b>local</b> paths only - a remote candidate is classified from its text and never probed.
+    /// </summary>
+    internal sealed class LaunchProbes
+    {
+        /// <summary>"Is there such a file or folder." Never called with a remote path.</summary>
+        public Func<string, bool> Exists { get; set; } = DefaultExists;
+
+        /// <summary>"Is this drive letter a network drive." Answered from the local mount table.</summary>
+        public Func<char, bool> IsRemoteDrive { get; set; } = DefaultIsRemoteDrive;
+
+        /// <summary>The on-disk name of an existing path's last segment, or null to keep the text's.</summary>
+        public Func<string, string?> RealName { get; set; } = DefaultRealName;
+
+        /// <summary>Windows' own "this association runs code" list, beside our fixed one.</summary>
+        public Func<string, bool> IsDangerousExtension { get; set; } = DefaultIsDangerousExtension;
+
+        /// <summary>The directory a root-relative path (<c>\x</c>) resolves against.</summary>
+        public Func<string> CurrentDirectory { get; set; } = DefaultCurrentDirectory;
+
+        public static LaunchProbes Real() => new LaunchProbes();
+
+        private static bool DefaultExists(string path)
+        {
+            try { return File.Exists(path) || Directory.Exists(path); }
+            catch { return false; }
+        }
+
+        private static bool DefaultIsRemoteDrive(char letter)
+        {
+            try { return WindowInterop.GetDriveType(letter + @":\") == WindowInterop.DRIVE_REMOTE; }
+            catch { return true; } // cannot tell: treat it as someone else's, i.e. confirm it
+        }
+
+        private static string? DefaultRealName(string path)
+        {
+            try
+            {
+                IntPtr find = WindowInterop.FindFirstFile(path, out WindowInterop.WIN32_FIND_DATA data);
+                if (find == WindowInterop.INVALID_HANDLE_VALUE) return null;
+                WindowInterop.FindClose(find);
+                return string.IsNullOrEmpty(data.cFileName) ? null : data.cFileName;
+            }
+            catch { return null; }
+        }
+
+        private static bool DefaultIsDangerousExtension(string extension)
+        {
+            try { return WindowInterop.AssocIsDangerous(extension); }
+            catch { return false; } // our own list still applies
+        }
+
+        private static string DefaultCurrentDirectory()
+        {
+            try { return Directory.GetCurrentDirectory(); }
+            catch { return ""; }
+        }
     }
 
     /// <summary>
@@ -46,7 +108,16 @@ namespace CyrFlip
     /// back as <see cref="LaunchKind.Program"/>, which is what the caller confirms with the user
     /// before starting it.
     ///
-    /// Pure but for the two probes it is handed, so the whole matrix is unit-tested without a disk.
+    /// <b>A remote path is never probed</b> (ticket S0008, LS-1). Asking "does <c>\\host\share\x</c>
+    /// exist" makes Windows open an SMB session to a host the author of the text chose, with the
+    /// user's credentials, and blocks for as long as that host takes not to answer - all to draw a
+    /// menu. So UNC paths, <c>file://host/..</c> and mapped network drives are recognised from their
+    /// text and the drive's type alone, and come back as <see cref="LaunchKind.Program"/> without an
+    /// existence check: the confirmation, which shows the full path, is what stands between them and
+    /// the shell. The parse itself runs on <see cref="SelectionProbe"/>'s worker, never on the UI
+    /// thread that the low-level hooks share.
+    ///
+    /// Pure but for the probes it is handed, so the whole matrix is unit-tested without a disk.
     /// </summary>
     internal static class LaunchTargets
     {
@@ -64,13 +135,20 @@ namespace CyrFlip
 
         /// <summary>
         /// Extensions that run code rather than open in a viewer. Not a security boundary - the
-        /// confirmation is - just the list of things worth asking about.
+        /// confirmation is - just the list of things worth asking about. Windows' own list
+        /// (<c>AssocIsDangerous</c>) is consulted beside it; the second half of this one is what
+        /// ShellExecute can still start, install, mount or hand to a script host on a machine whose
+        /// list does not name it (ticket S0008, LS-3).
         /// </summary>
         private static readonly string[] ExecutableExtensions =
         {
             ".exe", ".com", ".bat", ".cmd", ".ps1", ".psm1", ".msi", ".msp", ".scr", ".pif", ".cpl",
             ".vbs", ".vbe", ".js", ".jse", ".wsf", ".wsh", ".hta", ".reg", ".lnk", ".url", ".jar",
             ".py", ".sh", ".msc", ".gadget", ".inf",
+            ".appref-ms", ".application", ".chm", ".rdp", ".diagcab", ".settingcontent-ms",
+            ".library-ms", ".search-ms", ".searchconnector-ms", ".wsc", ".sct", ".pyw", ".xbap",
+            ".appx", ".appxbundle", ".msix", ".msixbundle", ".appinstaller", ".iso", ".img",
+            ".vhd", ".vhdx", ".ps1xml", ".psd1",
         };
 
         /// <summary>
@@ -96,14 +174,21 @@ namespace CyrFlip
         /// <summary>
         /// Resolve <paramref name="selection"/> into something openable.
         /// <paramref name="exists"/> answers "is there such a file or folder"; it is injected so the
-        /// rules can be tested without a disk, and defaults to the real one.
+        /// rules can be tested without a disk, and defaults to the real one. The other probes are the
+        /// real ones.
         /// </summary>
         public static bool TryParse(string? selection, out LaunchTarget? target, Func<string, bool>? exists = null)
         {
+            LaunchProbes probes = LaunchProbes.Real();
+            if (exists != null) probes.Exists = exists;
+            return TryParse(selection, out target, probes);
+        }
+
+        /// <summary>Resolve <paramref name="selection"/> with every probe supplied by the caller.</summary>
+        public static bool TryParse(string? selection, out LaunchTarget? target, LaunchProbes probes)
+        {
             target = null;
             if (string.IsNullOrWhiteSpace(selection)) return false;
-
-            exists = exists ?? DefaultExists;
 
             // Only the whole-text pass is length-limited - a target longer than this is not a target.
             // The word pass below still runs on a long selection, because a link inside a page of
@@ -111,11 +196,11 @@ namespace CyrFlip
             string? text = selection!.Length <= MaxLength ? Normalize(selection) : null;
             if (text != null)
             {
-                target = AsPath(text, exists) ?? AsUrl(text);
+                target = AsPath(text, probes) ?? AsUrl(text);
                 if (target != null) return true;
             }
 
-            target = FromWords(selection, exists);
+            target = FromWords(selection, probes);
             return target != null;
         }
 
@@ -130,7 +215,7 @@ namespace CyrFlip
         /// caption shows. A multi-word path ("C:\Program Files\...") is not found here, only by the
         /// whole-text pass above, which is the right way round: splitting on spaces cannot rebuild it.
         /// </summary>
-        private static LaunchTarget? FromWords(string selection, Func<string, bool> exists)
+        private static LaunchTarget? FromWords(string selection, LaunchProbes probes)
         {
             string[] words = selection.Split(WordSeparators, StringSplitOptions.RemoveEmptyEntries);
             if (words.Length < 2) return null; // one word was already tried as the whole text
@@ -141,7 +226,7 @@ namespace CyrFlip
                 if (++examined > MaxWords) break; // a menu must open now, not after a page of prose
                 string? candidate = Normalize(word);
                 if (candidate == null) continue;
-                LaunchTarget? target = AsPath(candidate, exists) ?? AsUrl(candidate);
+                LaunchTarget? target = AsPath(candidate, probes) ?? AsUrl(candidate);
                 if (target != null) return target;
             }
             return null;
@@ -150,6 +235,11 @@ namespace CyrFlip
         /// <summary>
         /// Trim the selection down to the candidate: one line, no control characters, without the
         /// brackets and sentence punctuation that come along when a link is selected inside prose.
+        ///
+        /// A bidirectional override or mark refuses the candidate outright (S0008 LS-5): it is
+        /// invisible, <see cref="char.IsControl"/> does not catch it (category Cf), and it lets
+        /// <c>invoice&lt;RLO&gt;fdp.exe</c> read as <c>invoiceexe.pdf</c> in the confirmation that is
+        /// supposed to show what will run.
         /// </summary>
         internal static string? Normalize(string? selection)
         {
@@ -158,7 +248,7 @@ namespace CyrFlip
             if (text.Length > MaxLength) return null;
 
             foreach (char c in text)
-                if (char.IsControl(c)) return null; // a newline means this is prose, not a target
+                if (char.IsControl(c) || IsBidiControl(c)) return null; // a newline means this is prose, not a target
 
             // One layer of wrapping is enough: links arrive as <a>, "a", «a» or (a), never nested.
             if (text.Length >= 2)
@@ -174,12 +264,18 @@ namespace CyrFlip
             return text.Length == 0 ? null : text;
         }
 
+        /// <summary>The invisible characters that reorder what the eye reads (LRM/RLM, embeddings, overrides, isolates, ALM).</summary>
+        internal static bool IsBidiControl(char c)
+            => c == '\u200E' || c == '\u200F' || c == '\u061C'
+               || (c >= '\u202A' && c <= '\u202E')
+               || (c >= '\u2066' && c <= '\u2069');
+
         /// <summary>
-        /// A path, but only one that is there. "Exists" is the whole test: it is what separates a
-        /// real target from a word that happens to contain a backslash, and it is also why a
-        /// selection is never turned into a command line.
+        /// A path, but only one that is there - or one that is someone else's, which is confirmed
+        /// rather than probed. "Exists" is what separates a real local target from a word that happens
+        /// to contain a backslash, and it is also why a selection is never turned into a command line.
         /// </summary>
-        private static LaunchTarget? AsPath(string text, Func<string, bool> exists)
+        private static LaunchTarget? AsPath(string text, LaunchProbes probes)
         {
             string path = text;
             if (path.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
@@ -188,7 +284,7 @@ namespace CyrFlip
                 {
                     var uri = new Uri(path);
                     if (!uri.IsFile) return null;
-                    path = uri.LocalPath;
+                    path = uri.LocalPath; // file://host/share/x -> \\host\share\x, classified below
                 }
                 catch { return null; }
             }
@@ -201,21 +297,136 @@ namespace CyrFlip
 
             if (path.Length < 3) return null;
             if (path.IndexOfAny(Path.GetInvalidPathChars()) >= 0) return null;
+            // A wildcard is not a path, and FindFirstFile would read it as a pattern.
+            if (path.IndexOf('*') >= 0 || (path.IndexOf('?') >= 0 && !path.StartsWith(@"\\?\", StringComparison.Ordinal)))
+                return null;
 
-            bool rooted;
-            try { rooted = Path.IsPathRooted(path); }
+            // Classify from the text alone, before any call that could touch a file system.
+            PathPlace place = Classify(path, probes, out string canonicalRemote);
+            switch (place)
+            {
+                case PathPlace.NotAPath:
+                    return null;
+                case PathPlace.Remote:
+                    return new LaunchTarget(canonicalRemote, Elide(canonicalRemote), LaunchKind.Program);
+            }
+
+            // Local from here on: the canonical form is what Windows will open, so it is what is
+            // probed, classified and shown (LS-3) - "x.exe. ." opens x.exe and must be asked about.
+            string full;
+            try { full = TrimTrailingDotsAndSpaces(Path.GetFullPath(path)); }
             catch { return null; }
-            if (!rooted) return null;
 
-            if (!exists(path)) return null;
+            if (!probes.Exists(full)) return null;
 
-            bool remote = path.StartsWith(@"\\", StringComparison.Ordinal);
+            string? real = null;
+            if (!IsRoot(full))
+            {
+                try { real = probes.RealName(full); }
+                catch { real = null; }
+            }
+            if (!string.IsNullOrEmpty(real))
+            {
+                string? directory = Path.GetDirectoryName(full);
+                if (directory != null) full = Path.Combine(directory, real);
+            }
+
             string extension;
-            try { extension = Path.GetExtension(path) ?? ""; }
+            try { extension = Path.GetExtension(full) ?? ""; }
             catch { extension = ""; }
 
-            LaunchKind kind = remote || IsExecutableExtension(extension) ? LaunchKind.Program : LaunchKind.Document;
-            return new LaunchTarget(path, Elide(path), kind);
+            LaunchKind kind = IsCodeExtension(extension, probes) ? LaunchKind.Program : LaunchKind.Document;
+            return new LaunchTarget(full, Elide(full), kind);
+        }
+
+        private enum PathPlace { NotAPath, Local, Remote }
+
+        /// <summary>
+        /// Where a rooted path lives, decided without touching it: a UNC name (in any slash
+        /// direction, or as <c>\\?\UNC\</c>) and a drive letter the mount table calls
+        /// <c>DRIVE_REMOTE</c> are remote; a root-relative <c>\x</c> is wherever the current directory
+        /// is. The Win32 device namespace (<c>\\?\C:\</c>, <c>\\.\..</c>) is not a launch target at all.
+        /// </summary>
+        private static PathPlace Classify(string path, LaunchProbes probes, out string canonicalRemote)
+        {
+            canonicalRemote = "";
+            string p = path.Replace('/', '\\');
+
+            if (p.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase))
+                p = @"\\" + p.Substring(8);
+            else if (p.StartsWith(@"\\?\", StringComparison.Ordinal) || p.StartsWith(@"\\.\", StringComparison.Ordinal)
+                     || p.StartsWith(@"\??\", StringComparison.Ordinal))
+                return PathPlace.NotAPath;
+
+            if (p.StartsWith(@"\\", StringComparison.Ordinal))
+            {
+                // \\server\share at the least - "\\n" in a code sample is not a share.
+                string[] parts = p.Substring(2).Split('\\');
+                if (parts.Length < 2 || parts[0].Length == 0 || parts[1].Length == 0) return PathPlace.NotAPath;
+                canonicalRemote = TrimTrailingDotsAndSpaces(p);
+                return PathPlace.Remote;
+            }
+
+            if (p.Length >= 2 && p[1] == ':' && IsAsciiLetter(p[0]))
+            {
+                if (!probes.IsRemoteDrive(char.ToUpperInvariant(p[0]))) return PathPlace.Local;
+                canonicalRemote = TrimTrailingDotsAndSpaces(p);
+                return PathPlace.Remote;
+            }
+
+            if (p.StartsWith(@"\", StringComparison.Ordinal))
+            {
+                // Root-relative: on the current directory's drive, which may itself be a share.
+                string current = probes.CurrentDirectory() ?? "";
+                if (current.StartsWith(@"\\", StringComparison.Ordinal))
+                {
+                    // The root of \\server\share\folder is \\server\share.
+                    string[] parts = current.Substring(2).Split('\\');
+                    if (parts.Length < 2) return PathPlace.NotAPath;
+                    return RemoteOn(@"\\" + parts[0] + @"\" + parts[1], p, out canonicalRemote);
+                }
+                if (current.Length >= 2 && current[1] == ':' && IsAsciiLetter(current[0])
+                    && probes.IsRemoteDrive(char.ToUpperInvariant(current[0])))
+                    return RemoteOn(current.Substring(0, 2), p, out canonicalRemote);
+                return current.Length == 0 ? PathPlace.NotAPath : PathPlace.Local;
+            }
+
+            return PathPlace.NotAPath; // IsPathRooted said yes to something we do not recognise
+        }
+
+        private static PathPlace RemoteOn(string root, string rootRelative, out string canonicalRemote)
+        {
+            canonicalRemote = TrimTrailingDotsAndSpaces(root.TrimEnd('\\') + rootRelative);
+            return PathPlace.Remote;
+        }
+
+        private static bool IsAsciiLetter(char c) => (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+
+        private static bool IsRoot(string path)
+        {
+            try { return string.Equals(Path.GetPathRoot(path), path, StringComparison.OrdinalIgnoreCase); }
+            catch { return true; }
+        }
+
+        /// <summary>
+        /// What Win32 does to the last segment of every path it opens - and what the extension
+        /// check must therefore see: <c>x.exe. .</c> is <c>x.exe</c>.
+        /// </summary>
+        internal static string TrimTrailingDotsAndSpaces(string path)
+        {
+            string trimmed = path.TrimEnd('.', ' ');
+            // "C:\.." resolves before we get here; never trim a root or a segment down to nothing.
+            if (trimmed.Length == 0 || trimmed.EndsWith(@"\", StringComparison.Ordinal) || trimmed.EndsWith(":", StringComparison.Ordinal))
+                return path;
+            return trimmed;
+        }
+
+        private static bool IsCodeExtension(string extension, LaunchProbes probes)
+        {
+            if (IsExecutableExtension(extension)) return true;
+            if (string.IsNullOrEmpty(extension)) return false;
+            try { return probes.IsDangerousExtension(extension); }
+            catch { return false; }
         }
 
         private static LaunchTarget? AsUrl(string text)
@@ -226,7 +437,7 @@ namespace CyrFlip
             // "example.com:8080/x" parses as a URI whose scheme is "example.com", so the bare-host
             // rule below still gets its say - and "javascript:alert(1)" fails there too.
             if (Uri.TryCreate(text, UriKind.Absolute, out Uri? uri) && uri != null && IsAllowedScheme(uri.Scheme))
-                return new LaunchTarget(uri.AbsoluteUri, Elide(text), LaunchKind.Url);
+                return new LaunchTarget(uri.AbsoluteUri, ElideUrl(text), LaunchKind.Url);
 
             // No scheme: accept it only when the host itself says "web address".
             string host = text;
@@ -240,7 +451,7 @@ namespace CyrFlip
             if (!IsWebHost(host)) return null;
             string url = "https://" + text;
             return Uri.TryCreate(url, UriKind.Absolute, out Uri? guessed) && guessed != null
-                ? new LaunchTarget(guessed.AbsoluteUri, Elide(text), LaunchKind.Url)
+                ? new LaunchTarget(guessed.AbsoluteUri, ElideUrl(text), LaunchKind.Url)
                 : null;
         }
 
@@ -277,7 +488,7 @@ namespace CyrFlip
             return false;
         }
 
-        /// <summary>Shorten for a menu caption, keeping both ends - the host and the last segment.</summary>
+        /// <summary>Shorten for a menu caption, keeping both ends - the drive and the last segment.</summary>
         internal static string Elide(string text)
         {
             if (text.Length <= MaxDisplayChars) return text;
@@ -286,10 +497,24 @@ namespace CyrFlip
             return text.Substring(0, head) + ".." + text.Substring(text.Length - tail);
         }
 
-        private static bool DefaultExists(string path)
+        /// <summary>
+        /// Shorten a URL for a caption <b>without ever cutting into its host</b> (S0008 LS-5): the
+        /// registrable domain is the one part of a link that says whose it is, and a middle elision
+        /// of <c>login.bank.example.attacker.test/..</c> can drop exactly the part that matters. The
+        /// scheme and the whole authority stay; only the path gives up characters, from its middle.
+        /// A host longer than the caption is shown whole - a long caption is better than a wrong one.
+        /// </summary>
+        internal static string ElideUrl(string text)
         {
-            try { return File.Exists(path) || Directory.Exists(path); }
-            catch { return false; }
+            if (text.Length <= MaxDisplayChars) return text;
+            int sep = text.IndexOf("://", StringComparison.Ordinal);
+            int start = sep >= 0 ? sep + 3 : 0;
+            int end = text.IndexOfAny(new[] { '/', '?', '#' }, start);
+            if (end < 0) return text; // the authority is all there is
+            string head = text.Substring(0, end);
+            int room = MaxDisplayChars - 2 - head.Length;
+            if (room <= 0) return head + "..";
+            return head + ".." + text.Substring(text.Length - room);
         }
     }
 }

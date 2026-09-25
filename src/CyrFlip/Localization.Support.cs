@@ -52,9 +52,119 @@ namespace CyrFlip
                 en: "Size", uk: "Розмір", de: "Größe", it: "Dimensione", es: "Tamaño", fr: "Taille",
                 pt: "Tamanho", ar: "الحجم", hi: "आकार", bn: "আকার", ur: "سائز", zh: "大小");
 
-            Add("Примечание",
-                en: "Note", uk: "Примітка", de: "Hinweis", it: "Nota", es: "Nota", fr: "Remarque",
-                pt: "Observação", ar: "ملاحظة", hi: "टिप्पणी", bn: "মন্তব্য", ur: "نوٹ", zh: "备注");
+            Add("Что внутри",
+                en: "What it holds", uk: "Що всередині", de: "Inhalt", it: "Contenuto", es: "Contenido",
+                fr: "Contenu", pt: "Conteúdo", ar: "المحتوى", hi: "इसमें क्या है", bn: "ভেতরে কী আছে",
+                ur: "اس میں کیا ہے", zh: "包含内容");
+
+            // What each collected file holds - SupportBundle.Contents, one line per file (S0010 TD-1).
+            Add("версия, Windows, раскладки, включённые функции и настройки CyrFlip",
+                en: "version, Windows, layouts, enabled features and CyrFlip settings",
+                uk: "версія, Windows, розкладки, увімкнені функції та налаштування CyrFlip",
+                de: "Version, Windows, Tastaturlayouts, aktive Funktionen und CyrFlip-Einstellungen",
+                it: "versione, Windows, layout, funzioni attive e impostazioni di CyrFlip",
+                es: "versión, Windows, distribuciones, funciones activas y ajustes de CyrFlip",
+                fr: "version, Windows, dispositions, fonctions activées et réglages de CyrFlip",
+                pt: "versão, Windows, layouts, recursos ativos e configurações do CyrFlip",
+                ar: "الإصدار وWindows والتخطيطات والميزات المفعّلة وإعدادات CyrFlip",
+                hi: "संस्करण, Windows, लेआउट, चालू सुविधाएँ और CyrFlip सेटिंग्स",
+                bn: "সংস্করণ, Windows, লেআউট, চালু বৈশিষ্ট্য ও CyrFlip-এর সেটিংস",
+                ur: "ورژن، Windows، لے آؤٹس، فعال خصوصیات اور CyrFlip کی ترتیبات",
+                zh: "版本、Windows、键盘布局、已启用的功能和 CyrFlip 设置");
+
+            Add("запуски сценариев: имя, тип, результат - без путей и аргументов",
+                en: "scenario launches: name, kind, outcome - no paths or arguments",
+                uk: "запуски сценаріїв: назва, тип, результат - без шляхів і аргументів",
+                de: "Szenariostarts: Name, Art, Ergebnis - ohne Pfade und Argumente",
+                it: "avvii degli scenari: nome, tipo, esito - senza percorsi né argomenti",
+                es: "inicios de escenarios: nombre, tipo, resultado - sin rutas ni argumentos",
+                fr: "lancements de scénarios : nom, type, résultat - sans chemins ni arguments",
+                pt: "execuções de cenários: nome, tipo, resultado - sem caminhos nem argumentos",
+                ar: "تشغيل السيناريوهات: الاسم والنوع والنتيجة - بلا مسارات ولا وسائط",
+                hi: "परिदृश्य चलाना: नाम, प्रकार, परिणाम - पथ और तर्क नहीं",
+                bn: "দৃশ্যপট চালু: নাম, ধরন, ফলাফল - পথ ও আর্গুমেন্ট ছাড়া",
+                ur: "منظرنامے چلانا: نام، قسم، نتیجہ - راستوں اور آرگیومنٹس کے بغیر",
+                zh: "场景启动：名称、类型、结果 - 不含路径和参数");
+
+            Add("контекстное меню: команды, классы окон и числа - без текста",
+                en: "context menu: commands, window classes and numbers - no text",
+                uk: "контекстне меню: команди, класи вікон і числа - без тексту",
+                de: "Kontextmenü: Befehle, Fensterklassen und Zahlen - kein Text",
+                it: "menu contestuale: comandi, classi di finestra e numeri - nessun testo",
+                es: "menú contextual: comandos, clases de ventana y números - sin texto",
+                fr: "menu contextuel : commandes, classes de fenêtre et nombres - aucun texte",
+                pt: "menu de contexto: comandos, classes de janela e números - sem texto",
+                ar: "القائمة السياقية: الأوامر وفئات النوافذ والأرقام - بلا نص",
+                hi: "संदर्भ मेनू: कमांड, विंडो क्लास और संख्याएँ - कोई पाठ नहीं",
+                bn: "কনটেক্সট মেনু: কমান্ড, উইন্ডো ক্লাস ও সংখ্যা - কোনো লেখা নয়",
+                ur: "سیاقی مینو: کمانڈز، ونڈو کلاسز اور اعداد - کوئی متن نہیں",
+                zh: "右键菜单：命令、窗口类名和数字 - 不含文本");
+
+            Add("переводы: языки, модель, длины и исход - без текста",
+                en: "translations: languages, model, lengths and outcome - no text",
+                uk: "переклади: мови, модель, довжини і результат - без тексту",
+                de: "Übersetzungen: Sprachen, Modell, Längen und Ergebnis - kein Text",
+                it: "traduzioni: lingue, modello, lunghezze ed esito - nessun testo",
+                es: "traducciones: idiomas, modelo, longitudes y resultado - sin texto",
+                fr: "traductions : langues, modèle, longueurs et résultat - aucun texte",
+                pt: "traduções: idiomas, modelo, tamanhos e resultado - sem texto",
+                ar: "الترجمات: اللغات والنموذج والأطوال والنتيجة - بلا نص",
+                hi: "अनुवाद: भाषाएँ, मॉडल, लंबाई और परिणाम - कोई पाठ नहीं",
+                bn: "অনুবাদ: ভাষা, মডেল, দৈর্ঘ্য ও ফলাফল - কোনো লেখা নয়",
+                ur: "ترجمے: زبانیں، ماڈل، لمبائیاں اور نتیجہ - کوئی متن نہیں",
+                zh: "翻译：语言、模型、长度和结果 - 不含文本");
+
+            Add("быстрые заметки: только счётчики",
+                en: "quick notes: counts only", uk: "швидкі нотатки: лише лічильники",
+                de: "Schnellnotizen: nur Zähler", it: "note rapide: solo conteggi",
+                es: "notas rápidas: solo recuentos", fr: "notes rapides : compteurs uniquement",
+                pt: "notas rápidas: apenas contagens", ar: "الملاحظات السريعة: أعداد فقط",
+                hi: "त्वरित नोट्स: केवल गिनती", bn: "দ্রুত নোট: শুধু গণনা",
+                ur: "فوری نوٹس: صرف گنتی", zh: "快速笔记：仅计数");
+
+            Add("история буфера: только счётчики",
+                en: "clipboard history: counts only", uk: "історія буфера: лише лічильники",
+                de: "Zwischenablage-Verlauf: nur Zähler", it: "cronologia appunti: solo conteggi",
+                es: "historial del portapapeles: solo recuentos", fr: "historique du presse-papiers : compteurs uniquement",
+                pt: "histórico da área de transferência: apenas contagens", ar: "سجل الحافظة: أعداد فقط",
+                hi: "क्लिपबोर्ड इतिहास: केवल गिनती", bn: "ক্লিপবোর্ডের ইতিহাস: শুধু গণনা",
+                ur: "کلپ بورڈ کی تاریخ: صرف گنتی", zh: "剪贴板历史：仅计数");
+
+            Add("конвертации выделения: длины и имена процессов - без текста",
+                en: "selection conversions: lengths and process names - no text",
+                uk: "конвертації виділення: довжини й імена процесів - без тексту",
+                de: "Umwandlungen der Auswahl: Längen und Prozessnamen - kein Text",
+                it: "conversioni della selezione: lunghezze e nomi dei processi - nessun testo",
+                es: "conversiones de la selección: longitudes y nombres de procesos - sin texto",
+                fr: "conversions de la sélection : longueurs et noms de processus - aucun texte",
+                pt: "conversões da seleção: tamanhos e nomes de processos - sem texto",
+                ar: "تحويلات التحديد: الأطوال وأسماء العمليات - بلا نص",
+                hi: "चयन रूपांतरण: लंबाई और प्रोसेस के नाम - कोई पाठ नहीं",
+                bn: "নির্বাচনের রূপান্তর: দৈর্ঘ্য ও প্রসেসের নাম - কোনো লেখা নয়",
+                ur: "انتخاب کی تبدیلیاں: لمبائیاں اور پروسیس کے نام - کوئی متن نہیں",
+                zh: "选区转换：长度和进程名 - 不含文本");
+
+            Add("диагностика каретки: классы окон и процессы - заголовки только длиной",
+                en: "caret diagnostics: window classes and processes - titles only as a length",
+                uk: "діагностика каретки: класи вікон і процеси - заголовки лише довжиною",
+                de: "Caret-Diagnose: Fensterklassen und Prozesse - Titel nur als Länge",
+                it: "diagnostica del cursore: classi di finestra e processi - titoli solo come lunghezza",
+                es: "diagnóstico del cursor: clases de ventana y procesos - títulos solo como longitud",
+                fr: "diagnostic du curseur : classes de fenêtre et processus - titres réduits à leur longueur",
+                pt: "diagnóstico do cursor: classes de janela e processos - títulos só como tamanho",
+                ar: "تشخيص المؤشر النصي: فئات النوافذ والعمليات - العناوين كطول فقط",
+                hi: "कैरेट निदान: विंडो क्लास और प्रोसेस - शीर्षक केवल लंबाई के रूप में",
+                bn: "ক্যারেট ডায়াগনস্টিক: উইন্ডো ক্লাস ও প্রসেস - শিরোনাম শুধু দৈর্ঘ্য হিসেবে",
+                ur: "کیرٹ کی تشخیص: ونڈو کلاسز اور پروسیسز - عنوان صرف لمبائی کے طور پر",
+                zh: "光标诊断：窗口类名和进程 - 标题只记录长度");
+
+            Add("код текущей раскладки",
+                en: "the current layout's code", uk: "код поточної розкладки",
+                de: "Kürzel des aktuellen Layouts", it: "codice del layout attuale",
+                es: "código de la distribución actual", fr: "code de la disposition actuelle",
+                pt: "código do layout atual", ar: "رمز التخطيط الحالي",
+                hi: "मौजूदा लेआउट का कोड", bn: "বর্তমান লেআউটের কোড",
+                ur: "موجودہ لے آؤٹ کا کوڈ", zh: "当前布局的代码");
 
             Add("обрезан — сохранён только конец файла",
                 en: "truncated - only the tail was kept", uk: "обрізаний - збережено лише кінець файлу",
@@ -73,19 +183,19 @@ namespace CyrFlip
                 hi: "शामिल नहीं - कुल आकार की सीमा पार", bn: "যোগ করা হয়নি - মোট আকারের সীমা ছাড়িয়েছে",
                 ur: "شامل نہیں - کل سائز کی حد سے زیادہ", zh: "未包含 - 超出总大小上限");
 
-            Add("Письмо отправляете вы сами — CyrFlip ничего не передаёт в сеть. История буфера обмена в архив не включена. Внутри логов встречаются пути к файлам, а в них — имя вашей учётной записи Windows.",
-                en: "You send the message yourself - CyrFlip transmits nothing over the network. Clipboard history is not part of the archive. The logs do contain file paths, and those carry your Windows account name.",
-                uk: "Лист надсилаєте ви самі - CyrFlip нічого не передає в мережу. Історія буфера обміну до архіву не входить. У логах є шляхи до файлів, а в них - ім'я вашого облікового запису Windows.",
-                de: "Gesendet wird die Nachricht von Ihnen - CyrFlip überträgt nichts ins Netz. Der Zwischenablage-Verlauf ist nicht Teil des Archivs. In den Protokollen stehen Dateipfade, und darin steht Ihr Windows-Kontoname.",
-                it: "Il messaggio lo invia lei - CyrFlip non trasmette nulla in rete. La cronologia degli appunti non fa parte dell'archivio. Nei log ci sono percorsi di file, e in essi il nome del suo account Windows.",
-                es: "El mensaje lo envía usted - CyrFlip no transmite nada por la red. El historial del portapapeles no forma parte del archivo. En los registros hay rutas de archivos y, en ellas, el nombre de su cuenta de Windows.",
-                fr: "C'est vous qui envoyez le message - CyrFlip ne transmet rien sur le réseau. L'historique du presse-papiers ne fait pas partie de l'archive. Les journaux contiennent des chemins de fichiers, donc le nom de votre compte Windows.",
-                pt: "Você mesmo envia a mensagem - o CyrFlip não transmite nada pela rede. O histórico da área de transferência não faz parte do arquivo. Os logs contêm caminhos de arquivos e, neles, o nome da sua conta do Windows.",
-                ar: "أنت من يرسل الرسالة - CyrFlip لا ينقل أي شيء عبر الشبكة. سجل الحافظة ليس جزءًا من الأرشيف. تحتوي السجلات على مسارات ملفات، وفيها اسم حساب Windows الخاص بك.",
-                hi: "संदेश आप स्वयं भेजते हैं - CyrFlip नेटवर्क पर कुछ नहीं भेजता। क्लिपबोर्ड इतिहास संग्रह का हिस्सा नहीं है। लॉग में फ़ाइल पथ होते हैं, और उनमें आपके Windows खाते का नाम होता है।",
-                bn: "বার্তা আপনি নিজেই পাঠান - CyrFlip নেটওয়ার্কে কিছুই পাঠায় না। ক্লিপবোর্ডের ইতিহাস আর্কাইভে নেই। লগে ফাইলের পথ থাকে, আর তাতে আপনার Windows অ্যাকাউন্টের নাম থাকে।",
-                ur: "پیغام آپ خود بھیجتے ہیں - CyrFlip نیٹ ورک پر کچھ نہیں بھیجتا۔ کلپ بورڈ کی تاریخ آرکائیو کا حصہ نہیں۔ لاگز میں فائلوں کے راستے ہوتے ہیں، اور اُن میں آپ کے Windows اکاؤنٹ کا نام ہوتا ہے۔",
-                zh: "邮件由您自己发送 - CyrFlip 不会向网络传输任何内容。剪贴板历史不在压缩包内。日志中含有文件路径，其中会出现您的 Windows 账户名。");
+            Add("Письмо отправляете вы сами - CyrFlip ничего не передаёт в сеть. История буфера обмена и быстрые заметки в архив не включены; пути и аргументы сценариев, заголовки окон и выделенный текст в логи не пишутся. Внутри логов встречаются пути к файлам, а в них - имя вашей учётной записи Windows.",
+                en: "You send the message yourself - CyrFlip transmits nothing over the network. Clipboard history and quick notes are not part of the archive; scenario paths and arguments, window titles and selected text are never written to the logs. The logs do contain file paths, and those carry your Windows account name.",
+                uk: "Лист надсилаєте ви самі - CyrFlip нічого не передає в мережу. Історія буфера обміну і швидкі нотатки до архіву не входять; шляхи й аргументи сценаріїв, заголовки вікон і виділений текст у логи не пишуться. У логах є шляхи до файлів, а в них - ім'я вашого облікового запису Windows.",
+                de: "Gesendet wird die Nachricht von Ihnen - CyrFlip überträgt nichts ins Netz. Zwischenablage-Verlauf und Schnellnotizen sind nicht Teil des Archivs; Szenariopfade und -argumente, Fenstertitel und markierter Text werden nie protokolliert. In den Protokollen stehen Dateipfade, und darin steht Ihr Windows-Kontoname.",
+                it: "Il messaggio lo invia lei - CyrFlip non trasmette nulla in rete. La cronologia degli appunti e le note rapide non fanno parte dell'archivio; percorsi e argomenti degli scenari, titoli delle finestre e testo selezionato non vengono mai scritti nei log. Nei log ci sono percorsi di file, e in essi il nome del suo account Windows.",
+                es: "El mensaje lo envía usted - CyrFlip no transmite nada por la red. El historial del portapapeles y las notas rápidas no forman parte del archivo; las rutas y argumentos de los escenarios, los títulos de ventana y el texto seleccionado nunca se escriben en los registros. En los registros hay rutas de archivos y, en ellas, el nombre de su cuenta de Windows.",
+                fr: "C'est vous qui envoyez le message - CyrFlip ne transmet rien sur le réseau. L'historique du presse-papiers et les notes rapides ne font pas partie de l'archive ; les chemins et arguments des scénarios, les titres de fenêtre et le texte sélectionné ne sont jamais écrits dans les journaux. Les journaux contiennent des chemins de fichiers, donc le nom de votre compte Windows.",
+                pt: "Você mesmo envia a mensagem - o CyrFlip não transmite nada pela rede. O histórico da área de transferência e as notas rápidas não fazem parte do arquivo; caminhos e argumentos de cenários, títulos de janelas e texto selecionado nunca são gravados nos logs. Os logs contêm caminhos de arquivos e, neles, o nome da sua conta do Windows.",
+                ar: "أنت من يرسل الرسالة - CyrFlip لا ينقل أي شيء عبر الشبكة. سجل الحافظة والملاحظات السريعة ليسا جزءًا من الأرشيف؛ ولا تُكتب في السجلات مسارات السيناريوهات ووسائطها ولا عناوين النوافذ ولا النص المحدد. تحتوي السجلات على مسارات ملفات، وفيها اسم حساب Windows الخاص بك.",
+                hi: "संदेश आप स्वयं भेजते हैं - CyrFlip नेटवर्क पर कुछ नहीं भेजता। क्लिपबोर्ड इतिहास और त्वरित नोट्स संग्रह का हिस्सा नहीं हैं; परिदृश्यों के पथ और तर्क, विंडो शीर्षक और चुना गया पाठ लॉग में कभी नहीं लिखे जाते। लॉग में फ़ाइल पथ होते हैं, और उनमें आपके Windows खाते का नाम होता है।",
+                bn: "বার্তা আপনি নিজেই পাঠান - CyrFlip নেটওয়ার্কে কিছুই পাঠায় না। ক্লিপবোর্ডের ইতিহাস ও দ্রুত নোট আর্কাইভে নেই; দৃশ্যপটের পথ ও আর্গুমেন্ট, উইন্ডোর শিরোনাম এবং নির্বাচিত লেখা কখনও লগে লেখা হয় না। লগে ফাইলের পথ থাকে, আর তাতে আপনার Windows অ্যাকাউন্টের নাম থাকে।",
+                ur: "پیغام آپ خود بھیجتے ہیں - CyrFlip نیٹ ورک پر کچھ نہیں بھیجتا۔ کلپ بورڈ کی تاریخ اور فوری نوٹس آرکائیو کا حصہ نہیں؛ منظرناموں کے راستے اور آرگیومنٹس، ونڈو کے عنوان اور منتخب متن کبھی لاگز میں نہیں لکھے جاتے۔ لاگز میں فائلوں کے راستے ہوتے ہیں، اور اُن میں آپ کے Windows اکاؤنٹ کا نام ہوتا ہے۔",
+                zh: "邮件由您自己发送 - CyrFlip 不会向网络传输任何内容。剪贴板历史和快速笔记不在压缩包内；场景的路径和参数、窗口标题以及选中的文本从不写入日志。日志中含有文件路径，其中会出现您的 Windows 账户名。");
 
             Add("Создать письмо",
                 en: "Create the message", uk: "Створити лист", de: "Nachricht erstellen",

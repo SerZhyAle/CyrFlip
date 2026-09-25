@@ -17,14 +17,27 @@ namespace CyrFlip
     /// caret - the place that actually shows where text will land (the mouse pointer is often an
     /// arrow while you type).
     ///
-    /// Caret position comes from three sources, tried in order:
+    /// Caret position comes from four sources, tried in order:
     ///   1. <c>GetGUIThreadInfo</c> - fast, for classic Win32 edit controls.
-    ///   2. COM UIA <c>IUIAutomationTextPattern2.GetCaretRange</c> (<see cref="UiaCaretCom"/>) - the
-    ///      live-caret API; tracks the caret in Chromium/Electron webview inputs (VS Code chat,
-    ///      browsers) where GetSelection reports a stale/whole-line rect.
-    ///   3. managed UIA <c>TextPattern.GetSelection</c> - fallback for apps without GetCaretRange.
+    ///   2. COM UIA <c>IUIAutomationTextPattern2.GetCaretRange</c> (<see cref="UiaCaretCom"/>) -
+    ///      WinUI/UWP/WPF.
+    ///   3. IAccessible2 (<see cref="Ia2Caret"/>) - Chromium/Electron (VS Code chat, browsers).
+    ///   4. managed UIA <c>TextPattern.GetSelection</c> - fallback for apps without GetCaretRange.
     /// Tracking runs on a background MTA thread so UIA's cross-process calls never block the UI;
     /// the overlay window itself is touched only via BeginInvoke on the UI thread.
+    ///
+    /// <para>Sources 2-4 are asked only while there is input to follow (<see cref="CaretQueryGate"/>,
+    /// ticket S0011 LI-1) - asking Chromium eight times a second forever kept its whole accessibility
+    /// tree switched on. Where the marker goes for a caret is <see cref="CaretPlacement"/>'s decision
+    /// (LI-7), its size follows the DPI of the caret's monitor (LI-3), and a badge whose tracker has
+    /// gone quiet - blocked inside a hung app - is hidden rather than left topmost over whatever the
+    /// user switched to (LI-11).</para>
+    ///
+    /// <para><b>Out of the app's theme on purpose</b> (<c>APP-STYLE</c> rule 5): the badge is drawn over
+    /// the user's own text in whatever window that is, in <see cref="LayoutStyle"/>'s layout colours with
+    /// their own outline - a themed colour here would mean nothing and be unreadable half the time. Its
+    /// window is therefore a plain <see cref="Form"/>, not a <see cref="ThemedForm"/>
+    /// (<c>ThemeCoverageTests</c> lists it with this reason).</para>
     /// </summary>
     internal sealed class CaretOverlay : IDisposable
     {
@@ -41,7 +54,24 @@ namespace CyrFlip
         private readonly Stopwatch _clock = Stopwatch.StartNew();
         private long _lastUiaMs = -1000;
         private bool _haveUia;
-        private int _uiaX, _uiaY;
+        private CaretRect _uiaCaret;
+        private IntPtr _uiaForeground;
+
+        /// <summary>A tracker silent for longer than this is presumed blocked, and its badge hidden.</summary>
+        internal const int StaleAfterMs = 1000;
+
+        // The tracker's heartbeat (clock ms at the end of its last tick) and the UI thread's hide
+        // generation: every hide the UI thread decides on its own bumps it, so the tracker's
+        // "I already posted exactly this" shortcut cannot keep a hidden badge hidden.
+        private long _heartbeatMs;
+        private int _generation;
+        private System.Windows.Forms.Timer? _staleTimer;
+
+        // Foreground and focus changes, out of context (no DLL injected anywhere). The delegate is a
+        // field because the native side holds only a function pointer to it.
+        private WinEventDelegate? _winEventProc;
+        private IntPtr _foregroundHook;
+        private IntPtr _focusHook;
 
         public CaretOverlay(int size, bool dotMode = false)
             => _form = new OverlayForm(size, dotMode);
@@ -49,6 +79,12 @@ namespace CyrFlip
         public void Start()
         {
             _ = _form.Handle; // create the handle on the UI thread so BeginInvoke works
+            Volatile.Write(ref _heartbeatMs, _clock.ElapsedMilliseconds);
+            InstallWinEventHooks();
+            _staleTimer = new System.Windows.Forms.Timer { Interval = 250 };
+            _staleTimer.Tick += (_, _) => HideIfTrackerIsSilent();
+            _staleTimer.Start();
+
             _running = true;
             _thread = new Thread(Loop) { IsBackground = true, Name = "CyrFlip.CaretTracker" };
             _thread.SetApartmentState(ApartmentState.MTA); // UIA client prefers MTA
@@ -67,9 +103,60 @@ namespace CyrFlip
         /// <summary>Switch between text label (the layout code) and colored dot rendering.</summary>
         public void SetDotMode(bool dot) => _form.SetDotMode(dot);
 
+        /// <summary>The marker size setting (base pixels at 100%); UI thread.</summary>
+        public void SetBaseSize(int size) => _form.SetBaseSize(size);
+
         /// <summary>How opaque the badge window is - read by the test that pins the marker's
         /// translucency, since the window itself is private to this class.</summary>
         internal double WindowOpacity => _form.Opacity;
+
+        /// <summary>The badge's current height in pixels - for the DPI tests.</summary>
+        internal int BadgeHeight => _form.BadgeHeight;
+
+        /// <summary>Test seam: size the badge as it would be on a monitor of <paramref name="dpi"/>.</summary>
+        internal void ApplyDpiForTest(int dpi) => _form.ApplyDpi(dpi);
+
+        // ------------------------------------------------------------------ foreground / focus
+
+        private void InstallWinEventHooks()
+        {
+            _winEventProc = OnWinEvent;
+            const uint flags = WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS;
+            _foregroundHook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, _winEventProc, 0, 0, flags);
+            _focusHook = SetWinEventHook(EVENT_OBJECT_FOCUS, EVENT_OBJECT_FOCUS, IntPtr.Zero, _winEventProc, 0, 0, flags);
+        }
+
+        /// <summary>
+        /// Runs on the UI thread (the thread that installed the hooks). A focus change opens the
+        /// caret query window; a foreground change also hides the badge until the tracker reports a
+        /// position for the new window - a tracker blocked in the old one would otherwise leave the
+        /// badge floating over the new one.
+        /// </summary>
+        private void OnWinEvent(IntPtr hook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint thread, uint time)
+        {
+            try
+            {
+                CaretQueryGate.NoteFocusChange();
+                if (eventType == EVENT_SYSTEM_FOREGROUND)
+                    HideUntilNextReport();
+            }
+            catch { /* a WinEvent callback must never throw */ }
+        }
+
+        private void HideUntilNextReport()
+        {
+            Interlocked.Increment(ref _generation);
+            _form.HideOverlay();
+        }
+
+        private void HideIfTrackerIsSilent()
+        {
+            if (!_form.Visible) return;
+            if (_clock.ElapsedMilliseconds - Volatile.Read(ref _heartbeatMs) > StaleAfterMs)
+                HideUntilNextReport();
+        }
+
+        // ------------------------------------------------------------------ tracker thread
 
         private void Loop()
         {
@@ -77,6 +164,7 @@ namespace CyrFlip
             {
                 try { Tick(); }
                 catch { /* never let tracking kill the app */ }
+                Volatile.Write(ref _heartbeatMs, _clock.ElapsedMilliseconds);
                 Thread.Sleep(90);
             }
         }
@@ -86,16 +174,17 @@ namespace CyrFlip
             string code = _code;
             string klid = _klid;
             bool caps = _caps;
+            IntPtr fg = GetForegroundWindow();
             if (code.Length == 0)
             {
-                Post(false, 0, 0, code, klid, caps);
+                Post(false, default, fg, code, klid, caps);
                 return;
             }
 
-            if (TryGetCaret(out int x, out int y))
-                Post(true, x, y, code, klid, caps);
+            if (TryGetCaret(fg, out CaretRect caret))
+                Post(true, caret, fg, code, klid, caps);
             else
-                Post(false, 0, 0, code, klid, caps);
+                Post(false, default, fg, code, klid, caps);
         }
 
         // What was last handed to the UI thread. The tracker ticks eleven times a second for the
@@ -104,32 +193,40 @@ namespace CyrFlip
         // that costs an allocation and a wake-up of the UI thread to change nothing at all. The
         // initial values are the form's real initial state: created, hidden, no code.
         private bool _postedShow;
-        private int _postedX, _postedY;
+        private CaretRect _postedCaret;
+        private IntPtr _postedForeground;
         private string _postedCode = "";
         private string _postedKlid = "";
         private bool _postedCaps;
+        private int _postedGeneration;
 
-        private void Post(bool show, int x, int y, string code, string klid, bool caps)
+        private void Post(bool show, CaretRect caret, IntPtr fg, string code, string klid, bool caps)
         {
             if (!_form.IsHandleCreated)
                 return;
-            if (show == _postedShow && x == _postedX && y == _postedY
-                && code == _postedCode && klid == _postedKlid && caps == _postedCaps)
+            int generation = Volatile.Read(ref _generation);
+            if (show == _postedShow && caret.Equals(_postedCaret) && fg == _postedForeground
+                && code == _postedCode && klid == _postedKlid && caps == _postedCaps
+                && generation == _postedGeneration)
                 return;
             _postedShow = show;
-            _postedX = x;
-            _postedY = y;
+            _postedCaret = caret;
+            _postedForeground = fg;
             _postedCode = code;
             _postedKlid = klid;
             _postedCaps = caps;
+            _postedGeneration = generation;
             try
             {
                 _form.BeginInvoke((Action)(() =>
                 {
-                    if (show)
+                    // Measured for a window that is no longer in front, or overtaken by a hide the UI
+                    // thread made since: showing it now would put the badge over the wrong window.
+                    bool current = generation == Volatile.Read(ref _generation) && fg == GetForegroundWindow();
+                    if (show && current)
                     {
                         _form.SetCode(code, klid, caps);
-                        _form.ShowAt(x, y);
+                        _form.ShowAt(caret);
                     }
                     else
                     {
@@ -140,103 +237,139 @@ namespace CyrFlip
             catch (InvalidOperationException) { /* form disposing */ }
         }
 
-        private bool TryGetCaret(out int x, out int y)
+        private bool TryGetCaret(IntPtr fg, out CaretRect caret)
         {
             // Our own windows have a real caret already, and a VS Code editor has the companion
             // extension's marker at Monaco's caret - drawing over either is how the user ends up
             // looking at two markers a few pixels apart.
-            if (IsOwnForegroundWindow() || EditorCaretSignal.ShouldYield())
+            if (IsOwnWindow(fg) || EditorCaretSignal.ShouldYield())
             {
                 _haveUia = false;
-                x = 0; y = 0;
+                caret = default;
                 return false;
             }
 
             // 1) System caret (classic Win32 edit controls) - cheap, run every tick.
-            if (TrySystemCaret(out x, out y))
+            if (TrySystemCaret(fg, out caret))
             {
                 _haveUia = false; // a real system caret supersedes any cached UIA position
                 return true;
             }
 
-            // 2) Cross-process caret APIs (modern apps) - expensive, so throttle. Try in order:
+            // A cached position belongs to the window it was measured in.
+            if (_haveUia && _uiaForeground != fg)
+                _haveUia = false;
+
+            // 2) Cross-process caret APIs (modern apps) - expensive, so throttled, and asked only while
+            //    the user is typing or has just moved the focus (S0011 LI-1). Outside that the caret
+            //    has not moved, so the last position stands and nobody is asked anything. In order:
             //    UIA GetCaretRange (TextPattern2: WinUI/UWP/WPF), then IAccessible2 (Chromium/Electron
             //    webviews like the VS Code chat box - the only source that works there), then the
             //    managed GetSelection path as a last resort.
             long now = _clock.ElapsedMilliseconds;
-            if (now - _lastUiaMs >= UiaThrottleMs)
+            if (now - _lastUiaMs >= UiaThrottleMs && CaretQueryGate.ShouldQueryNow())
             {
                 _lastUiaMs = now;
-                if (UiaCaretCom.TryGetCaretRange(out int ux, out int uy)
-                    || Ia2Caret.TryGetCaret(out ux, out uy)
-                    || TryUiaCaret(out ux, out uy))
+                if (UiaCaretCom.TryGetCaretRange(out CaretRect found)
+                    || Ia2Caret.TryGetCaret(out found)
+                    || TryUiaCaret(out found))
                 {
-                    _haveUia = true; _uiaX = ux; _uiaY = uy;
-                    x = ux; y = uy;
+                    _haveUia = true;
+                    _uiaCaret = found;
+                    _uiaForeground = fg;
+                    caret = found;
                     return true;
                 }
                 _haveUia = false;
-                x = 0; y = 0;
+                caret = default;
                 return false;
             }
 
-            // Between UIA polls: reuse the last known position so the marker doesn't flicker.
+            // Between polls, and while the gate is closed: the last known position.
             if (_haveUia)
             {
-                x = _uiaX; y = _uiaY;
+                caret = _uiaCaret;
                 return true;
             }
-            x = 0; y = 0;
+            caret = default;
             return false;
         }
 
         /// <summary>
-        /// Our own process id, resolved once. The tracker asks "is this window ours?" twice per tick,
+        /// Our own process id, resolved once. The tracker asks "is this window ours?" every tick,
         /// eleven times a second, for the whole life of the app - and every
         /// <c>Process.GetCurrentProcess()</c> is a finalizable object the GC then has to walk.
         /// </summary>
         private static readonly uint CurrentProcessId = (uint)Process.GetCurrentProcess().Id;
 
-        private static bool IsOwnForegroundWindow()
-        {
-            IntPtr foreground = GetForegroundWindow();
-            return foreground != IntPtr.Zero
-                && GetWindowThreadProcessId(foreground, out uint processId) != 0
+        private static bool IsOwnWindow(IntPtr hwnd)
+            => hwnd != IntPtr.Zero
+                && GetWindowThreadProcessId(hwnd, out uint processId) != 0
                 && processId == CurrentProcessId;
-        }
 
-        private static bool TrySystemCaret(out int x, out int y)
+        private static bool TrySystemCaret(IntPtr fg, out CaretRect caret)
         {
-            x = 0; y = 0;
-            IntPtr fg = GetForegroundWindow();
+            caret = default;
             if (fg == IntPtr.Zero)
                 return false;
 
-            uint tid = GetWindowThreadProcessId(fg, out uint processId);
-            // CyrFlip's own text boxes (notably history search) already have the normal caret.
-            // Putting our click-through topmost marker over them causes needless repainting and
-            // can make the dialog look as though it is losing focus.
-            if (processId == CurrentProcessId)
-                return false;
+            // CyrFlip's own text boxes (notably history search) are excluded by the caller: they
+            // already have the normal caret, and a click-through topmost marker over them causes
+            // needless repainting.
+            uint tid = GetWindowThreadProcessId(fg, out _);
             var gti = new GUITHREADINFO { cbSize = Marshal.SizeOf(typeof(GUITHREADINFO)) };
-            if (GetGUIThreadInfo(tid, ref gti)
-                && gti.hwndCaret != IntPtr.Zero
-                && gti.rcCaret.Bottom - gti.rcCaret.Top > 0)
-            {
-                // Place the marker diagonally below-right of the caret so it never covers the
-                // text on the current line (e.g. when arrowing back through it).
-                var pt = new POINT { X = gti.rcCaret.Right, Y = gti.rcCaret.Bottom };
-                ClientToScreen(gti.hwndCaret, ref pt);
-                x = pt.X + 2;
-                y = pt.Y + 1;
-                return true;
-            }
-            return false;
+            if (!GetGUIThreadInfo(tid, ref gti)
+                || gti.hwndCaret == IntPtr.Zero
+                || gti.rcCaret.Bottom - gti.rcCaret.Top <= 0)
+                return false;
+
+            var top = new POINT { X = gti.rcCaret.Right, Y = gti.rcCaret.Top };
+            var bottom = new POINT { X = gti.rcCaret.Right, Y = gti.rcCaret.Bottom };
+            ClientToPhysicalScreen(gti.hwndCaret, ref top);
+            ClientToPhysicalScreen(gti.hwndCaret, ref bottom);
+            caret = new CaretRect(bottom.X, top.Y, bottom.Y);
+            return true;
         }
 
-        private static bool TryUiaCaret(out int x, out int y)
+        /// <summary>
+        /// <c>ClientToScreen</c> for a window of any DPI awareness (ticket S0011 LI-2). The caret rect of
+        /// a DPI-unaware or system-aware window is in that window's <b>logical</b> client coordinates;
+        /// this process is per-monitor aware, so a plain <c>ClientToScreen</c> read them as physical and
+        /// the marker landed up and left of the caret on any scaled monitor - further off the further
+        /// the caret was from the client origin. The conversion is done in the window's own DPI
+        /// context, then lifted to physical pixels. Per-monitor-aware windows take neither step.
+        /// </summary>
+        internal static void ClientToPhysicalScreen(IntPtr hwnd, ref POINT pt)
         {
-            x = 0; y = 0;
+            IntPtr context = IntPtr.Zero;
+            int awareness = 2;
+            try
+            {
+                context = GetWindowDpiAwarenessContext(hwnd);
+                if (context != IntPtr.Zero)
+                    awareness = GetAwarenessFromDpiAwarenessContext(context);
+            }
+            catch (EntryPointNotFoundException) { /* pre-1607: the old behaviour */ }
+
+            if (awareness == 2 || context == IntPtr.Zero)
+            {
+                ClientToScreen(hwnd, ref pt);
+                return;
+            }
+
+            IntPtr previous = SetThreadDpiAwarenessContext(context);
+            try { ClientToScreen(hwnd, ref pt); }
+            finally
+            {
+                if (previous != IntPtr.Zero)
+                    SetThreadDpiAwarenessContext(previous);
+            }
+            LogicalToPhysicalPointForPerMonitorDPI(hwnd, ref pt);
+        }
+
+        private static bool TryUiaCaret(out CaretRect caret)
+        {
+            caret = default;
             try
             {
                 AutomationElement? focused = AutomationElement.FocusedElement;
@@ -258,15 +391,14 @@ namespace CyrFlip
                     return false;
 
                 var r = rects[0];
-                double h = r.Height > 0 ? r.Height : 16;
                 // A caret/char rect is narrow. A wide rect means we got a whole line or the text
                 // area (some controls report that for a collapsed caret) - unreliable, so skip it
                 // rather than draw the marker at the edge of the box.
-                if (r.Width > 4 * h)
+                if (CaretGeometry.IsWholeLine(r.Width, r.Height))
                     return false;
 
-                x = (int)r.Right + 2;     // diagonally below-right of the caret (see TrySystemCaret)
-                y = (int)r.Bottom + 1;
+                double h = r.Height > 0 ? r.Height : 16;
+                caret = new CaretRect((int)r.Right, (int)r.Top, (int)(r.Top + h));
                 return true;
             }
             catch
@@ -280,6 +412,10 @@ namespace CyrFlip
             _running = false;
             try { _thread?.Join(300); }
             catch { /* ignore */ }
+            _staleTimer?.Dispose();
+            if (_foregroundHook != IntPtr.Zero) UnhookWinEvent(_foregroundHook);
+            if (_focusHook != IntPtr.Zero) UnhookWinEvent(_focusHook);
+            _foregroundHook = _focusHook = IntPtr.Zero;
             _form.Dispose();
         }
 
@@ -287,8 +423,13 @@ namespace CyrFlip
 
         private sealed class OverlayForm : Form
         {
-            private readonly int _h;
-            private readonly Font _font;
+            private const int WM_DPICHANGED = 0x02E0;
+
+            private int _baseSize;
+            private int _dpi = 96;
+            private IntPtr _monitor;
+            private int _h;
+            private Font _font;
             private string _code = "";
             private string _klid = "";
             private bool _dotMode;
@@ -296,8 +437,9 @@ namespace CyrFlip
 
             public OverlayForm(int size, bool dotMode = false)
             {
-                _h = Math.Max(14, Math.Min(40, size == 0 ? 18 : size));
-                _font = new Font("Segoe UI", _h * 0.62f, FontStyle.Bold, GraphicsUnit.Pixel);
+                _baseSize = size;
+                _h = MarkerSize.OverlayHeight(_baseSize, _dpi);
+                _font = NewFont(_h);
                 _dotMode = dotMode;
 
                 FormBorderStyle = FormBorderStyle.None;
@@ -314,6 +456,10 @@ namespace CyrFlip
                 ResizeToContent();
             }
 
+            public int BadgeHeight => _h;
+
+            private static Font NewFont(int h) => new Font("Segoe UI", h * 0.62f, FontStyle.Bold, GraphicsUnit.Pixel);
+
             // Never take focus from the window the user is typing in.
             protected override bool ShowWithoutActivation => true;
 
@@ -325,6 +471,18 @@ namespace CyrFlip
                     cp.ExStyle |= WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TRANSPARENT;
                     return cp;
                 }
+            }
+
+            // The badge sizes itself for each monitor (ApplyDpi); WinForms' own rescale on a DPI
+            // change would only fight it.
+            protected override void WndProc(ref Message m)
+            {
+                if (m.Msg == WM_DPICHANGED)
+                {
+                    m.Result = IntPtr.Zero;
+                    return;
+                }
+                base.WndProc(ref m);
             }
 
             public void SetCode(string code, string klid, bool caps)
@@ -349,13 +507,50 @@ namespace CyrFlip
                 Invalidate();
             }
 
-            public void ShowAt(int x, int y)
+            /// <summary>The marker size setting changed; UI thread.</summary>
+            public void SetBaseSize(int size)
             {
-                Location = new Point(x, y);
+                if (size == _baseSize) return;
+                _baseSize = size;
+                Rescale();
+            }
+
+            /// <summary>Size the badge for a monitor of <paramref name="dpi"/>; rebuilt only on a change.</summary>
+            public void ApplyDpi(int dpi)
+            {
+                if (dpi == _dpi) return;
+                _dpi = dpi;
+                Rescale();
+            }
+
+            private void Rescale()
+            {
+                int h = MarkerSize.OverlayHeight(_baseSize, _dpi);
+                if (h == _h) return;
+                _h = h;
+                Font old = _font;
+                _font = NewFont(_h);
+                old.Dispose();
+                ResizeToContent();
+                Invalidate();
+            }
+
+            public void ShowAt(CaretRect caret)
+            {
+                Point probe = CaretPlacement.MonitorProbe(caret);
+                IntPtr monitor = MarkerSize.MonitorAt(probe.X, probe.Y);
+                if (monitor != _monitor)
+                {
+                    _monitor = monitor;
+                    ApplyDpi(MarkerSize.MonitorDpi(monitor));
+                }
+
+                Point at = CaretPlacement.Place(caret, Size, Screen.FromPoint(probe).Bounds);
+                Location = at;
                 if (!Visible)
                     Show(); // ShowWithoutActivation => doesn't steal focus from the text field
                 else
-                    SetWindowPos(Handle, HWND_TOPMOST, x, y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+                    SetWindowPos(Handle, HWND_TOPMOST, at.X, at.Y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
             }
 
             public void HideOverlay()

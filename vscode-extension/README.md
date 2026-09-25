@@ -41,8 +41,10 @@ Manager). Именно оно определяет текущую расклад
 
 - The **CyrFlip app** detects the keyboard layout and writes the current code to
   `%LOCALAPPDATA%\CyrFlip\layout.txt` - or, when CyrFlip was installed from the Microsoft Store, to
-  `%ProgramData%\CyrFlip\layout.txt`. The extension checks both and reads whichever was written most
-  recently. Beside it, `layout-klid.txt` names the exact keyboard layout, so the marker gets that
+  its own per-user folder, `%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip\layout.txt`. The extension checks both and reads whichever was written most
+  recently. Older Store versions of the app wrote to `%ProgramData%\CyrFlip\layout.txt`, which every
+  account on the PC shares; that file is read only when neither per-user file exists, so another users
+  layout never outranks yours. Beside it, `layout-klid.txt` names the exact keyboard layout, so the marker gets that
   layout's own shade. When the app exits it removes both files, and the marker disappears.
 - This extension watches that file and renders a small coloured marker (with a black outline)
   diagonally below-right of the caret, so it never shifts or covers your text. It also shows the
@@ -76,7 +78,7 @@ and search boxes, where this extension cannot draw.
    `RU`, `DE`, `ZH` or whatever layout is active) follows your caret, and the status bar shows it
    too (`⌨ EN`).
 
-If nothing appears: confirm the app is running and that `%LOCALAPPDATA%\CyrFlip\layout.txt` (for a Store install, `%ProgramData%\CyrFlip\layout.txt`) exists
+If nothing appears: confirm the app is running and that `%LOCALAPPDATA%\CyrFlip\layout.txt` (for a Store install, `%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip\layout.txt`) exists
 and updates when you switch layout. The status-bar indicator is the quickest way to confirm the
 extension is reading the file.
 
@@ -91,7 +93,7 @@ host editor decorations, so the marker can't appear there. In those spots, rely 
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `cyrflip.layoutFile` | `""` | Override the layout file path. Empty = the newest of `%LOCALAPPDATA%\CyrFlip\layout.txt` and `%ProgramData%\CyrFlip\layout.txt`. |
+| `cyrflip.layoutFile` | `""` | Override the layout file path. Empty = the newest of `%LOCALAPPDATA%\CyrFlip\layout.txt` and the Store apps `%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip\layout.txt`; `%ProgramData%\CyrFlip\layout.txt` (older Store versions) only when neither exists. |
 | `cyrflip.showStatusBar` | `true` | Also show the layout in the status bar. |
 | `cyrflip.pollIntervalMs` | `200` | How often (ms) to check the layout file. |
 

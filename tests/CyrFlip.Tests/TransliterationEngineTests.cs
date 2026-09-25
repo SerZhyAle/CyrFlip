@@ -104,6 +104,20 @@ namespace CyrFlip.Tests
             Assert.Equal(string.Empty, TransliterationEngine.Transliterate(input));
         }
 
+        /// <summary>
+        /// With the direction known (the converter's fallback), an ambiguous key goes that way first -
+        /// whatever the text's dominant script says (ticket S0009, FP-9).
+        /// </summary>
+        [Theory]
+        [InlineData("привет?", true, "ghbdtn,")]   // US → RU named: "?" is the US key, "," on the Russian one
+        [InlineData("привет?", false, "ghbdtn&")]  // RU → US named: "?" is the Russian Shift+7
+        [InlineData("ghbdtn;", true, "приветж")]
+        [InlineData("ghbdtn;", false, "привет$")]  // ";" is a Russian key too - Shift+4
+        public void AKnownDirectionDecidesTheAmbiguousKey(string input, bool fromLatin, string expected)
+        {
+            Assert.Equal(expected, TransliterationEngine.TransliterateFrom(input, fromLatin));
+        }
+
         [Fact]
         public void IsBijectiveOverTheFullAlphabet()
         {

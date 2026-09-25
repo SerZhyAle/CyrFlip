@@ -115,6 +115,12 @@ namespace CyrFlip
         /// </summary>
         public string ContextMenuChord { get; set; } = MouseChord.Default.Token;
         /// <summary>
+        /// The app's theme as an invariant token - <c>system</c> (follow Windows), <c>light</c> or
+        /// <c>dark</c> (see <see cref="ThemeModes"/>, ticket S0020). Anything unreadable is kept as
+        /// <c>system</c>, the one value that cannot be wrong.
+        /// </summary>
+        public string Theme { get; set; } = ThemeModes.SystemToken;
+        /// <summary>
         /// Snapshot of Windows' own input-language hotkeys as they were before CyrFlip first touched
         /// them (see <see cref="LanguageHotkeys"/>). Captured once, never overwritten, so "put it back
         /// as it was" always means the state the user arrived with - not the state after our last edit.
@@ -141,6 +147,12 @@ namespace CyrFlip
         /// once, so a user who empties the list (or declines the migration) is never nagged again.
         /// </summary>
         public bool LauncherFirstEnableDone { get; set; } = false;
+        /// <summary>
+        /// One-time marker for the Store build's move out of the machine-wide %ProgramData%\CyrFlip
+        /// (ticket S0016, <see cref="DataFolderMigration"/>): set once a migration pass finished with
+        /// nothing left to retry, so the journal merge never runs twice.
+        /// </summary>
+        public bool DataFolderMigrated { get; set; } = false;
         /// <summary>
         /// The built-in translator (a local Ollama server). Off by default: while false no chord is
         /// bound, the tray has no translate entry and CyrFlip never opens a socket.
@@ -205,6 +217,11 @@ namespace CyrFlip
         /// mentally un-wrap before you can read it (spec §3.4).
         /// </summary>
         public bool QuickNotesWordWrap { get; set; } = false;
+        /// <summary>
+        /// "Do not warn again for notes" of the exchange-file export (ticket S0023, spec section 2).
+        /// Only a notes-only export honours it: an export that carries clipboard history warns every time.
+        /// </summary>
+        public bool ExchangeNotesWarningOff { get; set; } = false;
         public int QuickNotesX { get; set; } = int.MinValue;
         public int QuickNotesY { get; set; } = int.MinValue;
         // 0 = never sized by the user, so the window opens at its own measured minimum - the size
@@ -315,12 +332,15 @@ namespace CyrFlip
                     // Parse, not the raw string: a hand-edited or corrupt token must land on the
                     // default rather than on something that swallows every context menu in Windows.
                     cfg.ContextMenuChord = MouseChord.Parse(cfg.ReadString(key, "ContextMenuChord", "")).Token;
+                    // Parse, not the raw string, for the same reason: an unknown token reads as "system".
+                    cfg.Theme = ThemeModes.Token(ThemeModes.Parse(cfg.ReadString(key, "Theme", cfg.Theme)));
                     // The one-time Windows snapshots cannot be taken again: an unreadable one is kept
                     // on disk untouched rather than replaced by "" on the next save.
                     cfg.LanguageHotkeysBackup = cfg.ReadString(key, "LanguageHotkeysBackup", cfg.LanguageHotkeysBackup, preserve: true);
                     cfg.InputLayoutsBackup = cfg.ReadString(key, "InputLayoutsBackup", cfg.InputLayoutsBackup, preserve: true);
                     cfg.EnableScenarioLauncher = cfg.ReadBool(key, "EnableScenarioLauncher", cfg.EnableScenarioLauncher);
                     cfg.LauncherFirstEnableDone = cfg.ReadBool(key, "LauncherFirstEnableDone", cfg.LauncherFirstEnableDone);
+                    cfg.DataFolderMigrated = cfg.ReadBool(key, "DataFolderMigrated", cfg.DataFolderMigrated);
 
                     cfg.EnableTranslate = cfg.ReadBool(key, "EnableTranslate", cfg.EnableTranslate);
                     cfg.TranslateSeeded = cfg.ReadBool(key, "TranslateSeeded", cfg.TranslateSeeded);
@@ -358,6 +378,7 @@ namespace CyrFlip
                     cfg.QuickNotesHotkey = cfg.ReadString(key, "QuickNotesHotkey", cfg.QuickNotesHotkey);
                     cfg.EnableQuickNotesHotkey = cfg.ReadBool(key, "EnableQuickNotesHotkey", cfg.EnableQuickNotesHotkey);
                     cfg.QuickNotesWordWrap = cfg.ReadBool(key, "QuickNotesWordWrap", cfg.QuickNotesWordWrap);
+                    cfg.ExchangeNotesWarningOff = cfg.ReadBool(key, "ExchangeNotesWarningOff", cfg.ExchangeNotesWarningOff);
                     cfg.QuickNotesX = cfg.ReadInt(key, "QuickNotesX", cfg.QuickNotesX);
                     cfg.QuickNotesY = cfg.ReadInt(key, "QuickNotesY", cfg.QuickNotesY);
                     cfg.QuickNotesWidth = cfg.ReadInt(key, "QuickNotesWidth", cfg.QuickNotesWidth);
@@ -414,10 +435,12 @@ namespace CyrFlip
                 key.SetValue("DeferToRemoteDesktop", DeferToRemoteDesktop ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableContextMenu", EnableContextMenu ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ContextMenuChord", ContextMenuChord, RegistryValueKind.String);
+                key.SetValue("Theme", Theme, RegistryValueKind.String);
                 WritePreserved(key, "LanguageHotkeysBackup", LanguageHotkeysBackup);
                 WritePreserved(key, "InputLayoutsBackup", InputLayoutsBackup);
                 key.SetValue("EnableScenarioLauncher", EnableScenarioLauncher ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("LauncherFirstEnableDone", LauncherFirstEnableDone ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("DataFolderMigrated", DataFolderMigrated ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableTranslate", EnableTranslate ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("TranslateSeeded", TranslateSeeded ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("TranslateSourceLang", TranslateSourceLang, RegistryValueKind.String);
@@ -441,6 +464,7 @@ namespace CyrFlip
                 key.SetValue("QuickNotesHotkey", QuickNotesHotkey, RegistryValueKind.String);
                 key.SetValue("EnableQuickNotesHotkey", EnableQuickNotesHotkey ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesWordWrap", QuickNotesWordWrap ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ExchangeNotesWarningOff", ExchangeNotesWarningOff ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesX", QuickNotesX, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesY", QuickNotesY, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesWidth", QuickNotesWidth, RegistryValueKind.DWord);
@@ -465,6 +489,18 @@ namespace CyrFlip
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 key?.SetValue("SettingsTab", SettingsTab, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
+        /// <summary>Set the one-time <see cref="DataFolderMigrated"/> marker, writing only that value.</summary>
+        public void SaveDataFolderMigrated()
+        {
+            DataFolderMigrated = true;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("DataFolderMigrated", 1, RegistryValueKind.DWord);
             }
             catch { }
         }

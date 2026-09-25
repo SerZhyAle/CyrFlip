@@ -52,6 +52,24 @@ namespace CyrFlip
             }
         }
 
+        /// <summary>
+        /// Whether <see cref="TryResolve"/> would run <paramref name="path"/> through an interpreter -
+        /// without probing for the PowerShell host, so a caller that only wants to name the kind of
+        /// target pays nothing for it.
+        /// </summary>
+        public static bool IsScript(string path)
+        {
+            switch (ScriptExtension(path?.Trim() ?? string.Empty))
+            {
+                case ".ps1":
+                case ".bat":
+                case ".cmd":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>The extension to dispatch on; empty for anything that is not run as a local script.</summary>
         private static string ScriptExtension(string path)
         {

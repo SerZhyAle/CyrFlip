@@ -181,6 +181,10 @@ namespace CyrFlip
                     if (down || message == WM_KEYUP || message == WM_SYSKEYUP)
                     {
                         var data = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
+                        // The caret overlay follows the caret only while somebody is typing (S0011
+                        // LI-1) - one field write, well inside the callback's budget.
+                        if (down && (data.flags & LLKHF_INJECTED) == 0)
+                            CaretQueryGate.NoteKey();
                         if (Decide(data, down)) return (IntPtr)1;
                     }
                 }

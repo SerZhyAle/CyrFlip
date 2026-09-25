@@ -13,12 +13,12 @@ namespace CyrFlip
     /// whatever the display scaling makes of the UI font, so any fixed geometry ends up cutting a
     /// button caption in half. Everything here sizes to its content.
     /// </summary>
-    internal sealed class LayoutConversionDialog : Form
+    internal sealed class LayoutConversionDialog : ThemedForm
     {
         private readonly ComboBox _source = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
         private readonly Label _hotkey = new Label
         {
-            AutoSize = true, BorderStyle = BorderStyle.FixedSingle, BackColor = SystemColors.Window,
+            AutoSize = true, BorderStyle = BorderStyle.FixedSingle, BackColor = ThemePalette.Light.SurfaceRaised,
             TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(6, 5, 6, 5),
         };
         private readonly ComboBox _target = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
@@ -150,8 +150,8 @@ namespace CyrFlip
             // Every refused OK says why; it used to do nothing, silently (DL-4).
             if (!Hotkey.TryParse(_hotkey.Text, out _))
             {
-                MessageBox.Show(this, T("Сначала задайте комбинацию клавиш."),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ConfirmDialog.Show(this, _uiLanguage, T("Сначала задайте комбинацию клавиш."),
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 DialogResult = DialogResult.None;
                 return;
             }
@@ -159,8 +159,8 @@ namespace CyrFlip
             // Converting a layout into itself would spend a clipboard round trip to change nothing.
             if (string.Equals(source.Klid, target.Klid, StringComparison.OrdinalIgnoreCase))
             {
-                MessageBox.Show(this, T("Исходная и целевая раскладки должны отличаться."),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ConfirmDialog.Show(this, _uiLanguage, T("Исходная и целевая раскладки должны отличаться."),
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 DialogResult = DialogResult.None;
                 return;
             }

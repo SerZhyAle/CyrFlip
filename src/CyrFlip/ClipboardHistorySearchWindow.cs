@@ -18,13 +18,13 @@ namespace CyrFlip
     /// are built only for what is on screen, from the entry's short <see cref="ClipboardHistoryEntry.Preview"/>.
     /// Matching itself still reads the full text.</para>
     /// </summary>
-    internal sealed class ClipboardHistorySearchWindow : Form
+    internal sealed class ClipboardHistorySearchWindow : ThemedForm
     {
         private const int DebounceMs = 150;
 
         private readonly ClipboardHistoryService _service;
         private readonly TextBox _query = new TextBox { Dock = DockStyle.Fill };
-        private readonly Label _hint = new Label { AutoSize = true, ForeColor = SystemColors.GrayText, Padding = new Padding(0, 6, 0, 0) };
+        private readonly Label _hint = new Label { AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Padding = new Padding(0, 6, 0, 0) };
         private readonly ListView _results = new ListView { Dock = DockStyle.Fill, FullRowSelect = true, HideSelection = false, MultiSelect = false, View = View.Details, VirtualMode = true };
         private readonly Button _restore = new Button { AutoSize = true };
         private readonly System.Windows.Forms.Timer _debounce = new System.Windows.Forms.Timer { Interval = DebounceMs };
@@ -36,7 +36,8 @@ namespace CyrFlip
         private ClipboardHistoryEntry[] _matches = new ClipboardHistoryEntry[0];
         private CancellationTokenSource? _search;
 
-        public ClipboardHistorySearchWindow(ClipboardHistoryService service, string language)
+        /// <param name="exchange">Export / import of the exchange file (S0023); null leaves the two buttons out.</param>
+        public ClipboardHistorySearchWindow(ClipboardHistoryService service, string language, Action<IWin32Window, bool>? exchange = null)
         {
             _service = service;
             _language = language;
@@ -68,6 +69,16 @@ namespace CyrFlip
             _restore.Enabled = false;
             bottom.Controls.Add(close);
             bottom.Controls.Add(_restore);
+            if (exchange != null)
+            {
+                // Left of the restore button: they act on the whole history, not on the selected row.
+                var export = new Button { Text = Localize("Экспортировать..."), AutoSize = true };
+                var import = new Button { Text = Localize("Импортировать..."), AutoSize = true };
+                export.Click += (_, _) => exchange(this, false);
+                import.Click += (_, _) => exchange(this, true);
+                bottom.Controls.Add(import);
+                bottom.Controls.Add(export);
+            }
             Controls.Add(bottom);
 
             close.Click += (_, _) => Close();

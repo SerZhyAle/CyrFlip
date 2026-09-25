@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using static CyrFlip.WindowInterop;
 
@@ -22,27 +23,56 @@ namespace CyrFlip
         /// setting means the same thing on a machine that never installed the Russian keyboard.
         /// </param>
         public static string Convert(string input, string sourceKlid, string targetKlid, bool convertSymbols = true)
+            => Convert(input, sourceKlid, targetKlid, convertSymbols, memoize: true);
+
+        /// <param name="memoize">
+        /// Remember each distinct character's answer for the length of the call (ticket S0009, FP-6).
+        /// Every character costs four P/Invokes and two allocations, and text has only a few dozen
+        /// distinct characters, so a large selection is about a thousand times cheaper this way - it
+        /// used to hold the clipboard guard for tens of seconds. The answer for a character never
+        /// depends on its neighbours (a latched dead key is flushed on the spot), which is what makes
+        /// the memo exact. False only for the test that proves exactly that.
+        /// </param>
+        internal static string Convert(string input, string sourceKlid, string targetKlid, bool convertSymbols, bool memoize)
         {
             if (string.IsNullOrEmpty(input)) return input ?? "";
 
             IntPtr source = ResolveInstalled(sourceKlid);
             IntPtr target = ResolveInstalled(targetKlid);
             if (source == IntPtr.Zero || target == IntPtr.Zero || source == target)
-                return IsBuiltInPair(sourceKlid, targetKlid) ? TransliterationEngine.Transliterate(input, convertSymbols) : input;
+                return IsBuiltInPair(sourceKlid, targetKlid)
+                    ? TransliterationEngine.TransliterateFrom(input, fromLatin: IsUs(sourceKlid), convertSymbols)
+                    : input;
 
+            var memo = memoize ? new Dictionary<char, char>() : null;
             var output = new StringBuilder(input.Length);
             foreach (char c in input)
             {
-                // Per-character direction, so one press fixes mixed text. The pair's own direction is
-                // tried first; a character the source layout cannot even produce (Cyrillic under a US
-                // source) was typed the other way round, so it is converted back. "ghbdtnпривет"
-                // becomes "приветghbdtn" instead of doubling the first half.
-                if (TryConvertChar(c, source, target, convertSymbols, out char forward)) output.Append(forward);
-                else if (TryConvertChar(c, target, source, convertSymbols, out char backward)) output.Append(backward);
-                else output.Append(c);
+                if (memo == null || !memo.TryGetValue(c, out char converted))
+                {
+                    converted = ConvertChar(c, source, target, convertSymbols);
+                    memo?.Add(c, converted);
+                }
+                output.Append(converted);
             }
             return output.ToString();
         }
+
+        /// <summary>
+        /// Per-character direction, so one press fixes mixed text. The pair's own direction is tried
+        /// first; a character the source layout cannot even produce (Cyrillic under a US source) was
+        /// typed the other way round, so it is converted back. "ghbdtnпривет" becomes "приветghbdtn"
+        /// instead of doubling the first half. The <see cref="TransliterationEngine"/> fallback follows
+        /// the same rule (<see cref="TransliterationEngine.TransliterateFrom"/>).
+        /// </summary>
+        private static char ConvertChar(char c, IntPtr source, IntPtr target, bool convertSymbols)
+        {
+            if (TryConvertChar(c, source, target, convertSymbols, out char forward)) return forward;
+            if (TryConvertChar(c, target, source, convertSymbols, out char backward)) return backward;
+            return c;
+        }
+
+        private static bool IsUs(string? klid) => string.Equals(klid, UsKlid, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// The US ⇄ Russian pair, in either direction - the one row of the table CyrFlip seeds itself

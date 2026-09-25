@@ -56,6 +56,8 @@ Lanza un escenario desde la bandeja, con su atajo global o desde la Jump List
 Traductor local opcional: la selección se traduce con un atajo, junto al puntero del ratón
 @@Feature17
 La traducción corre en Ollama en tu ordenador - se instala aparte y está apagada por defecto
+@@Feature18
+Claro, oscuro o como Windows: ventanas, diálogos y menús siguen el tema, sin reiniciar
 @@SearchTerm1
 cambiar distribución teclado
 @@SearchTerm2

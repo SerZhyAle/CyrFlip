@@ -149,15 +149,20 @@
         <li><strong>Fichier de disposition.</strong> CyrFlip écrit le code de la disposition courante -
         une valeur de deux lettres telle que <code>EN</code>, <code>ZH</code>, <code>RU</code> ou
         <code>AR</code> - dans un petit fichier local (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>,
-        ou <code>%ProgramData%\CyrFlip\layout.txt</code> dans la version du Microsoft Store), afin que
+        ou, dans la version du Microsoft Store, <code>layout.txt</code> dans le dossier propre de
+        l'application dans votre profil,
+        <code>%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip</code>), afin que
         l'extension VS&nbsp;Code optionnelle puisse afficher le marqueur au niveau du curseur de
         l'éditeur. À côté, <code>layout-klid.txt</code> contient l'identifiant de cette disposition de
         clavier (huit chiffres hexadécimaux, par exemple <code>00000409</code>), afin que l'extension puisse
         utiliser la même couleur. L'extension, si vous l'installez, écrit <code>editor-caret.txt</code> dans
         le même dossier pendant qu'elle dessine le marqueur ; il ne contient que le code de disposition et
-        une heure. CyrFlip supprime ses deux fichiers lorsqu'il se ferme. Dans la version du Microsoft Store,
-        ce dossier se trouve sous <code>%ProgramData%</code>, que les autres comptes du même PC peuvent lire
-        - il ne contient rien d'autre que ces valeurs. Aucun de ces fichiers ne contient de données
+        une heure. CyrFlip supprime ses deux fichiers lorsqu'il se ferme. La version du Microsoft Store
+        conserve aussi une copie de ses deux fichiers sous <code>%ProgramData%\CyrFlip</code> pour les
+        anciennes versions de l'extension ; les autres comptes du même PC peuvent lire cette copie - elle ne
+        contient rien d'autre que ces valeurs. Les journaux et les notes rapides que les versions précédentes
+        du Microsoft Store y conservaient sont déplacés dans le dossier de votre propre profil au premier
+        démarrage. Aucun de ces fichiers ne contient de données
         personnelles ni ne quitte votre appareil.</li>
 
         <li><strong>Configuration et historique.</strong> Les réglages sont stockés dans

@@ -51,6 +51,7 @@ PRODUCT FEATURES (max 200 chars each)
 • Start a scenario from the tray, its own global hotkey, or the taskbar Jump List
 • Optional local translator: a selection is translated by hotkey in a window at the mouse pointer
 • Translation runs on Ollama on your own computer - installed separately, off until you enable it
+• Light, dark or same as Windows: every window, dialog and menu follows the theme, live
 
 
 WHAT'S NEW IN THIS VERSION

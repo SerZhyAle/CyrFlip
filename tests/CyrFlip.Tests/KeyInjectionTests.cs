@@ -27,6 +27,16 @@ namespace CyrFlip.Tests
             Assert.Equal(SideModifiers.None, released);
         }
 
+        /// <summary>
+        /// The Shift that turns CapsLock off under "Press SHIFT to turn off Caps Lock" (S0009 FP-11):
+        /// the left key, with the mask inside it - a bare Shift tap switches the mode of several IMEs.
+        /// </summary>
+        [Fact]
+        public void TheCapsLockShiftTapIsMaskedSoNoImeReadsItAsABareShift()
+        {
+            Assert.Equal(Plan(new[] { Down(LShift), Down(Mask), Up(Mask), Up(LShift) }), Plan(KeyInjection.ShiftTap()));
+        }
+
         [Fact]
         public void RightShiftIsReleasedAsRightShiftAfterTheMask()
         {

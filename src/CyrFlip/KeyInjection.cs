@@ -102,6 +102,19 @@ namespace CyrFlip
             return plan;
         }
 
+        /// <summary>
+        /// A Shift tap that turns CapsLock off under "Press SHIFT to turn off Caps Lock" (ticket S0009,
+        /// FP-11), with the mask key inside it: a bare Shift tap is a gesture of its own to several IMEs
+        /// (the Chinese and Japanese ones switch their input mode on it).
+        /// </summary>
+        public static List<KeyStroke> ShiftTap()
+        {
+            var plan = new List<KeyStroke>(4) { new KeyStroke(PhysicalModifiers.VK_LSHIFT, false) };
+            plan.AddRange(Mask(SideModifiers.LShift));
+            plan.Add(new KeyStroke(PhysicalModifiers.VK_LSHIFT, true));
+            return plan;
+        }
+
         /// <summary>The single keys of a set, one at a time, in a fixed order.</summary>
         internal static IEnumerable<SideModifiers> Sides(SideModifiers set)
         {

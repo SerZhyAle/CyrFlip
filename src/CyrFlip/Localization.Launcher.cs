@@ -342,6 +342,34 @@ namespace CyrFlip
                 ur: "لنک میں ناجائز حروف ہیں (اقتباس یا کنٹرول حروف)۔",
                 zh: "链接包含不允许的字符（引号或控制字符）。");
 
+            Add("Ссылка должна быть адресом http:// или https://.",
+                en: "The link must be an http:// or https:// address.",
+                uk: "Посилання має бути адресою http:// або https://.",
+                de: "Der Link muss eine http://- oder https://-Adresse sein.",
+                it: "Il link deve essere un indirizzo http:// o https://.",
+                es: "El enlace debe ser una dirección http:// o https://.",
+                fr: "Le lien doit être une adresse http:// ou https://.",
+                pt: "O link deve ser um endereço http:// ou https://.",
+                ar: "يجب أن يكون الرابط عنوان http:// أو https://.",
+                hi: "लिंक http:// या https:// पता होना चाहिए।",
+                bn: "লিংকটি অবশ্যই http:// বা https:// ঠিকানা হতে হবে।",
+                ur: "لنک http:// یا https:// پتہ ہونا چاہیے۔",
+                zh: "链接必须是 http:// 或 https:// 地址。");
+
+            Add("Эти параметры не будут переданы yt-dlp: допустимы только латинские буквы, цифры, пробел и символы + / [ ] < > = * . _ , -",
+                en: "These parameters will not be passed to yt-dlp: only Latin letters, digits, spaces and the characters + / [ ] < > = * . _ , - are allowed",
+                uk: "Ці параметри не буде передано yt-dlp: дозволені лише латинські літери, цифри, пробіл і символи + / [ ] < > = * . _ , -",
+                de: "Diese Parameter werden nicht an yt-dlp übergeben: erlaubt sind nur lateinische Buchstaben, Ziffern, Leerzeichen und die Zeichen + / [ ] < > = * . _ , -",
+                it: "Questi parametri non verranno passati a yt-dlp: sono ammessi solo lettere latine, cifre, spazi e i caratteri + / [ ] < > = * . _ , -",
+                es: "Estos parámetros no se pasarán a yt-dlp: solo se permiten letras latinas, dígitos, espacios y los caracteres + / [ ] < > = * . _ , -",
+                fr: "Ces paramètres ne seront pas transmis à yt-dlp : seuls les lettres latines, les chiffres, l'espace et les caractères + / [ ] < > = * . _ , - sont autorisés",
+                pt: "Estes parâmetros não serão passados ao yt-dlp: só são permitidos letras latinas, dígitos, espaços e os caracteres + / [ ] < > = * . _ , -",
+                ar: "لن تُمرَّر هذه المعاملات إلى yt-dlp: المسموح فقط الأحرف اللاتينية والأرقام والمسافة والرموز + / [ ] < > = * . _ , -",
+                hi: "ये पैरामीटर yt-dlp को नहीं भेजे जाएँगे: केवल लैटिन अक्षर, अंक, स्पेस और वर्ण + / [ ] < > = * . _ , - मान्य हैं",
+                bn: "এই প্যারামিটারগুলো yt-dlp-এ পাঠানো হবে না: শুধু ল্যাটিন অক্ষর, সংখ্যা, স্পেস এবং + / [ ] < > = * . _ , - চিহ্ন অনুমোদিত",
+                ur: "یہ پیرامیٹر yt-dlp کو نہیں بھیجے جائیں گے: صرف لاطینی حروف، ہندسے، اسپیس اور علامات + / [ ] < > = * . _ , - کی اجازت ہے",
+                zh: "这些参数不会传给 yt-dlp：只允许拉丁字母、数字、空格以及字符 + / [ ] < > = * . _ , -");
+
             Add("yt-dlp не найден в PATH. Установите его, чтобы команда yt-dlp работала в терминале.",
                 en: "yt-dlp was not found on PATH. Install it so the yt-dlp command works in a terminal.",
                 uk: "yt-dlp не знайдено в PATH. Встановіть його, щоб команда yt-dlp працювала в терміналі.",

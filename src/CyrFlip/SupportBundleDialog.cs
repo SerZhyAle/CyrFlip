@@ -14,7 +14,7 @@ namespace CyrFlip
     /// Laid out by an auto-sizing <see cref="TableLayoutPanel"/> like every dialog here: the captions
     /// exist in 13 languages and fixed geometry clips them (<c>DialogLayoutTests</c>).
     /// </summary>
-    internal sealed class SupportBundleDialog : Form
+    internal sealed class SupportBundleDialog : ThemedForm
     {
         private const int TextWidth = 560;   // wrap width for the prose labels, not a layout constant
 
@@ -39,17 +39,26 @@ namespace CyrFlip
             var files = new ListView
             {
                 View = View.Details, FullRowSelect = true, HeaderStyle = ColumnHeaderStyle.Nonclickable,
-                MultiSelect = false, Size = new Size(TextWidth, 150), Margin = new Padding(3, 6, 3, 10),
+                MultiSelect = false, Size = new Size(TextWidth, 190), Margin = new Padding(3, 6, 3, 10),
+                ShowItemToolTips = true,
             };
-            files.Columns.Add(T("Файл"), 200);
-            files.Columns.Add(T("Размер"), 90, HorizontalAlignment.Right);
-            files.Columns.Add(T("Примечание"), 250);
+            files.Columns.Add(T("Файл"), 170);
+            files.Columns.Add(T("Размер"), 70, HorizontalAlignment.Right);
+            files.Columns.Add(T("Что внутри"), 300);
+            // What each file holds is part of the consent (S0010 TD-1): the user is shown the kind of
+            // data, one line per file, not only a name and a size. The whole line is the tooltip,
+            // since a translation can outgrow the column.
             foreach (SupportBundle.Entry entry in result.Entries)
             {
                 var item = new ListViewItem(entry.Name);
                 item.SubItems.Add(SupportBundle.FormatSize(entry.Bytes));
-                item.SubItems.Add(entry.Truncated
-                    ? T("обрезан — сохранён только конец файла") : "");
+                string contents = Describe(entry.Name);
+                if (entry.Truncated)
+                    contents = contents.Length == 0
+                        ? T("обрезан — сохранён только конец файла")
+                        : contents + " (" + T("обрезан — сохранён только конец файла") + ")";
+                item.SubItems.Add(contents);
+                item.ToolTipText = contents;
                 files.Items.Add(item);
             }
             foreach (string dropped in result.Dropped)
@@ -57,7 +66,7 @@ namespace CyrFlip
                 var item = new ListViewItem(dropped);
                 item.SubItems.Add("");
                 item.SubItems.Add(T("не вошёл — превышен общий размер"));
-                item.ForeColor = SystemColors.GrayText;
+                item.ForeColor = ThemePalette.Light.TextMuted;
                 files.Items.Add(item);
             }
 
@@ -86,7 +95,7 @@ namespace CyrFlip
             grid.Controls.Add(Prose(T("Архив с логами собран:")), 0, 0);
             grid.Controls.Add(Prose(result.ArchivePath + "  (" + SupportBundle.FormatSize(result.ArchiveBytes) + ")"), 0, 1);
             grid.Controls.Add(files, 0, 2);
-            grid.Controls.Add(Prose(T("Письмо отправляете вы сами — CyrFlip ничего не передаёт в сеть. История буфера обмена в архив не включена. Внутри логов встречаются пути к файлам, а в них — имя вашей учётной записи Windows.")), 0, 3);
+            grid.Controls.Add(Prose(T("Письмо отправляете вы сами - CyrFlip ничего не передаёт в сеть. История буфера обмена и быстрые заметки в архив не включены; пути и аргументы сценариев, заголовки окон и выделенный текст в логи не пишутся. Внутри логов встречаются пути к файлам, а в них - имя вашей учётной записи Windows.")), 0, 3);
             grid.Controls.Add(buttons, 0, 4);
             Controls.Add(grid);
 
@@ -129,6 +138,9 @@ namespace CyrFlip
             try { Font = new Font(family, Font.SizeInPoints); }
             catch { /* the font is missing on this machine - keep the default */ }
         }
+
+        private string Describe(string fileName)
+            => SupportBundle.Contents.TryGetValue(fileName, out string? ru) ? T(ru) : "";
 
         private string T(string ru) => Localization.Translate(_uiLanguage, ru);
     }

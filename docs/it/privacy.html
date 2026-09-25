@@ -139,16 +139,20 @@
       <ul class="features">
         <li><strong>File del layout.</strong> CyrFlip scrive il codice del layout corrente - un valore di
         due lettere come <code>EN</code>, <code>ZH</code>, <code>RU</code> o <code>AR</code> - in un
-        piccolo file locale (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, o
-        <code>%ProgramData%\CyrFlip\layout.txt</code> nella versione del Microsoft Store) perché
+        piccolo file locale (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, o, nella
+        versione del Microsoft Store, <code>layout.txt</code> nella cartella propria dell'app nel tuo
+        profilo, <code>%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip</code>)
+        perché
         l'estensione facoltativa per VS&nbsp;Code possa mostrare l'indicatore al cursore dell'editor.
         Accanto, <code>layout-klid.txt</code> contiene l'identificativo di quel layout di tastiera (otto
         cifre esadecimali, ad esempio <code>00000409</code>), perché l'estensione possa usare lo stesso
         colore. L'estensione, se la installi, scrive <code>editor-caret.txt</code> nella stessa cartella
         mentre disegna l'indicatore; contiene solo il codice del layout e un orario. CyrFlip rimuove i suoi
-        due file quando si chiude. Nella versione del Microsoft Store quella cartella si trova in
-        <code>%ProgramData%</code>, che gli altri account dello stesso PC possono leggere - non contiene
-        altro che questi valori. Nessuno di questi file contiene dati personali né lascia mai il
+        due file quando si chiude. La versione del Microsoft Store tiene anche una copia dei suoi due
+        file in <code>%ProgramData%\CyrFlip</code> per le versioni precedenti dell'estensione; gli altri
+        account dello stesso PC possono leggere quella copia - non contiene altro che questi valori. I log e
+        le note rapide che le versioni precedenti del Microsoft Store tenevano lì vengono spostati nella
+        cartella del tuo profilo al primo avvio. Nessuno di questi file contiene dati personali né lascia mai il
         dispositivo.</li>
 
         <li><strong>Configurazione e cronologia.</strong> Le impostazioni stanno in

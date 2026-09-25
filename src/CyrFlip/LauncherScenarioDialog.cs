@@ -15,7 +15,7 @@ namespace CyrFlip
     /// the auto-sizing form shrinks to the active type - and so the layout guard test only ever
     /// measures controls that are actually laid out.
     /// </summary>
-    internal sealed class LauncherScenarioDialog : Form
+    internal sealed class LauncherScenarioDialog : ThemedForm
     {
         private const int TypeExecutable = 0;
         private const int TypeYtDlp = 1;
@@ -28,6 +28,7 @@ namespace CyrFlip
         private readonly CheckBox _runAsAdmin;
         private readonly TextBox _ytOutput = new TextBox();
         private readonly TextBox _ytFormat = new TextBox();
+        private readonly Label _ytFormatWarning;
         private readonly Label _hotkey;
         private readonly TableLayoutPanel _executablePanel;
         private readonly TableLayoutPanel _ytDlpPanel;
@@ -57,7 +58,7 @@ namespace CyrFlip
             _runAsAdmin = new CheckBox { Text = T("Запускать от имени администратора"), AutoSize = true, Margin = new Padding(3, 6, 3, 3) };
             _hotkey = new Label
             {
-                AutoSize = true, BorderStyle = BorderStyle.FixedSingle, BackColor = SystemColors.Window,
+                AutoSize = true, BorderStyle = BorderStyle.FixedSingle, BackColor = ThemePalette.Light.SurfaceRaised,
                 TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(6, 5, 6, 5),
                 MinimumSize = new Size(TextWidth("Ctrl+Shift+Backspace"), 0),
             };
@@ -85,13 +86,23 @@ namespace CyrFlip
             _ytDlpPanel.Controls.Add(Browse(T("Обзор..."), BrowseOutput), 2, 0);
             _ytDlpPanel.Controls.Add(Caption(T("Доп. параметры yt-dlp:")), 0, 1);
             _ytDlpPanel.Controls.Add(_ytFormat, 1, 1);
+            // A stored value outside the allowed set is kept but not passed (S0008 LS-4) - say so
+            // here, where the user can see and fix it, rather than only in the launcher log.
+            _ytFormatWarning = new Label
+            {
+                AutoSize = true, MaximumSize = new Size(FieldWidth(), 0),
+                ForeColor = ThemePalette.Light.Danger, Margin = new Padding(3, 3, 3, 0),
+            };
+            _ytFormat.TextChanged += (_, _) => UpdateYtFormatWarning();
+            _ytDlpPanel.Controls.Add(_ytFormatWarning, 1, 2);
+            _ytDlpPanel.SetColumnSpan(_ytFormatWarning, 2);
             var ytNote = new Label
             {
                 Text = T("Ссылка запрашивается при каждом запуске. Программа yt-dlp должна быть доступна в PATH."),
                 AutoSize = true, MaximumSize = new Size(FieldWidth(), 0),
-                ForeColor = SystemColors.GrayText, Margin = new Padding(3, 6, 3, 3),
+                ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 6, 3, 3),
             };
-            _ytDlpPanel.Controls.Add(ytNote, 1, 2);
+            _ytDlpPanel.Controls.Add(ytNote, 1, 3);
             _ytDlpPanel.SetColumnSpan(ytNote, 2);
 
             // The inactive section is detached, not hidden, so AutoSize shrinks the form to fit.
@@ -143,6 +154,11 @@ namespace CyrFlip
         }
 
         private string T(string ru) => Localization.Translate(_uiLanguage, ru);
+
+        private void UpdateYtFormatWarning()
+            => _ytFormatWarning.Text = LauncherExecution.IsValidYtDlpFormat(_ytFormat.Text)
+                ? ""
+                : T("Эти параметры не будут переданы yt-dlp: допустимы только латинские буквы, цифры, пробел и символы + / [ ] < > = * . _ , -");
 
         private static TableLayoutPanel TypeSection() => new TableLayoutPanel
         {
@@ -246,6 +262,6 @@ namespace CyrFlip
         }
 
         private void Warn(string message)
-            => MessageBox.Show(this, message, "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            => ConfirmDialog.Show(this, _uiLanguage, message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
     }
 }

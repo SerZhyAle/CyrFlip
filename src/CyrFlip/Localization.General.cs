@@ -195,6 +195,40 @@ namespace CyrFlip
                 ur: "ان پٹ فیلڈ میں جھپکتے کیریٹ کے پاس ایک چھوٹا نشان بناتا ہے۔ یہ اُن ایپس میں کام کرتا ہے جو کیریٹ کی جگہ Windows کو بتاتی ہیں۔",
                 zh: "在输入框中闪烁的插入点旁绘制一个小标记。适用于向 Windows 报告插入点位置的应用。");
 
+            Add("Размер метки:",
+                en: "Marker size:", uk: "Розмір мітки:",
+                de: "Markierungsgröße:", it: "Dimensione dell'indicatore:",
+                es: "Tamaño de la marca:", fr: "Taille du marqueur :",
+                pt: "Tamanho da marca:", ar: "حجم العلامة:",
+                hi: "चिह्न का आकार:", bn: "চিহ্নের আকার:",
+                ur: "نشان کا سائز:", zh: "标记大小：");
+
+            Add("Маленькая",
+                en: "Small", uk: "Маленька", de: "Klein", it: "Piccola", es: "Pequeña", fr: "Petite",
+                pt: "Pequena", ar: "صغيرة", hi: "छोटा", bn: "ছোট", ur: "چھوٹا", zh: "小");
+
+            Add("Средняя",
+                en: "Medium", uk: "Середня", de: "Mittel", it: "Media", es: "Mediana", fr: "Moyenne",
+                pt: "Média", ar: "متوسطة", hi: "मध्यम", bn: "মাঝারি", ur: "درمیانہ", zh: "中");
+
+            Add("Крупная",
+                en: "Large", uk: "Велика", de: "Groß", it: "Grande", es: "Grande", fr: "Grande",
+                pt: "Grande", ar: "كبيرة", hi: "बड़ा", bn: "বড়", ur: "بڑا", zh: "大");
+
+            Add("Размер метки у каретки и на текстовом курсоре мыши. Он дополнительно подстраивается под масштаб экрана, а курсор мыши - ещё и под размер указателя из специальных возможностей Windows. Применяется сразу.",
+                en: "Size of the marker beside the caret and on the text mouse pointer. It also follows the display scaling, and the mouse pointer follows the pointer size from Windows accessibility settings too. Applied immediately.",
+                uk: "Розмір мітки біля каретки та на текстовому курсорі миші. Він додатково підлаштовується під масштаб екрана, а курсор миші - ще й під розмір вказівника зі спеціальних можливостей Windows. Застосовується одразу.",
+                de: "Größe der Markierung neben der Schreibmarke und am Text-Mauszeiger. Sie folgt zusätzlich der Anzeigeskalierung, der Mauszeiger außerdem der Zeigergröße aus den Windows-Bedienungshilfen. Wirkt sofort.",
+                it: "Dimensione dell'indicatore accanto al cursore di testo e sul puntatore del mouse. Segue anche il ridimensionamento dello schermo, e il puntatore segue pure la dimensione impostata nell'accessibilità di Windows. Si applica subito.",
+                es: "Tamaño de la marca junto al cursor de texto y en el puntero del ratón. También sigue la escala de la pantalla, y el puntero sigue además el tamaño elegido en la accesibilidad de Windows. Se aplica de inmediato.",
+                fr: "Taille du marqueur à côté du point d'insertion et sur le pointeur texte de la souris. Il suit aussi la mise à l'échelle de l'écran, et le pointeur suit en plus la taille choisie dans l'accessibilité de Windows. Effet immédiat.",
+                pt: "Tamanho da marca ao lado do cursor de texto e no ponteiro do mouse. Também acompanha a escala da tela, e o ponteiro acompanha ainda o tamanho definido na acessibilidade do Windows. Aplicado imediatamente.",
+                ar: "حجم العلامة بجوار مؤشر الكتابة وعلى مؤشر الفأرة النصي. يتبع أيضًا تحجيم الشاشة، ويتبع مؤشر الفأرة كذلك حجم المؤشر المحدد في إعدادات إمكانية الوصول في Windows. يُطبَّق فورًا.",
+                hi: "कैरेट के पास और माउस के टेक्स्ट पॉइंटर पर चिह्न का आकार। यह डिस्प्ले स्केलिंग के अनुसार भी बदलता है, और माउस पॉइंटर Windows की सुलभता सेटिंग के पॉइंटर आकार के अनुसार भी। तुरंत लागू होता है।",
+                bn: "ক্যারেটের পাশে ও মাউসের টেক্সট পয়েন্টারে চিহ্নের আকার। এটি ডিসপ্লে স্কেলিং অনুসারেও বদলায়, আর মাউস পয়েন্টার Windows-এর অ্যাক্সেসিবিলিটি সেটিংসের পয়েন্টার আকার অনুসারেও। সঙ্গে সঙ্গে প্রযোজ্য।",
+                ur: "کیریٹ کے پاس اور ماؤس کے ٹیکسٹ پوائنٹر پر نشان کا سائز۔ یہ ڈسپلے اسکیلنگ کے مطابق بھی بدلتا ہے، اور ماؤس پوائنٹر Windows کی رسائی کی ترتیبات میں پوائنٹر کے سائز کے مطابق بھی۔ فوراً لاگو ہوتا ہے۔",
+                zh: "插入点旁和文本鼠标指针上标记的大小。它还会跟随显示缩放，鼠标指针另外跟随 Windows 辅助功能中的指针大小。立即生效。");
+
             Add("Компактная точка вместо букв раскладки",
                 en: "Compact dot instead of language letters", uk: "Компактна крапка замість літер мови",
                 de: "Kompakter Punkt statt Sprachkürzel", it: "Punto compatto al posto delle lettere della lingua",

@@ -61,12 +61,18 @@ namespace CyrFlip.Tests
         /// thirds of a visibly roomier badge, which is what this asks about.
         /// </summary>
         [Theory]
-        [InlineData("EN", 40, 20)]
-        [InlineData("RU", 32, 32)]
-        [InlineData("ZH", 24, 14)]
-        [InlineData("0C0A", 48, 18)] // a language Windows cannot name: four characters, same rule
-        public void TheLettersFillTheBadgeToWithinOnePixel(string code, int width, int height)
+        [InlineData("EN", 40, 20, 96)]
+        [InlineData("RU", 32, 32, 96)]
+        [InlineData("ZH", 24, 14, 96)]
+        [InlineData("0C0A", 48, 18, 96)] // a language Windows cannot name: four characters, same rule
+        // At 200% the badge doubles (S0011 LI-3), and the rule stays one *physical* pixel of border -
+        // not two, which is what scaling the old 1px margin with the badge would have given.
+        [InlineData("EN", 40, 20, 192)]
+        [InlineData("RU", 32, 32, 192)]
+        [InlineData("ZH", 24, 14, 240)]
+        public void TheLettersFillTheBadgeToWithinOnePixel(string code, int width96, int height96, int dpi)
         {
+            int width = width96 * dpi / 96, height = height96 * dpi / 96;
             using Bitmap bmp = Render(code, width, height);
 
             Assert.False(AnyInk(bmp, (x, y) => x == 0 || y == 0 || x == width - 1 || y == height - 1),
@@ -115,6 +121,35 @@ namespace CyrFlip.Tests
             Assert.True(badgeAlpha > 150, "nothing was drawn where the badge should be (alpha " + badgeAlpha + ")");
             Assert.True(badgeAlpha <= (int)Math.Ceiling(255 * LayoutStyle.MarkerOpacity),
                 "the badge came out opaque (alpha " + badgeAlpha + ")");
+        }
+
+        /// <summary>The letters carry their own black outline, so the mouse badge has no dark plate
+        /// behind them: with one, every pixel of the badge's box was covered, and the text under the
+        /// pointer was hidden for nothing. Checked with CapsLock on as well, since its frame is drawn
+        /// on the same layer.</summary>
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TheMouseBadgeHasNoPlateBehindTheLetters(bool capsOn)
+        {
+            using Bitmap bmp = LayoutCursor.RenderCaret("EN", "00000409", 32, capsOn, out _, out _);
+
+            // Only the badge half; the I-beam sits in the left part of the bitmap.
+            int left = bmp.Width / 2, top = bmp.Height, right = -1, bottom = -1;
+            for (int y = 0; y < bmp.Height; y++)
+                for (int x = left; x < bmp.Width; x++)
+                    if (bmp.GetPixel(x, y).A > 0)
+                    {
+                        top = Math.Min(top, y); bottom = Math.Max(bottom, y); right = Math.Max(right, x);
+                    }
+            Assert.True(right >= 0, "nothing was drawn where the badge should be");
+
+            // Inside the box the letters occupy, the gaps between and inside them are see-through.
+            int clear = 0;
+            for (int y = top + 3; y <= bottom - 3; y++)
+                for (int x = left; x <= right - 3; x++)
+                    if (bmp.GetPixel(x, y).A == 0) clear++;
+            Assert.True(clear > 0, "the badge is filled edge to edge - a plate is drawn behind the letters");
         }
 
         /// <summary>LAYOUT-PALETTE rule 5 fixes the number. Every other opacity test compares with the

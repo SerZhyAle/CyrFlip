@@ -26,6 +26,24 @@ namespace CyrFlip.Tests
             Assert.True(row.IsUsable);
         }
 
+        /// <summary>
+        /// The CF_LOCALE a pasted translation carries (ticket S0009, FP-8): a specific language id,
+        /// since a neutral one has no ANSI code page, and 0 - "leave it to Windows" - for anything
+        /// Windows cannot name.
+        /// </summary>
+        [Theory]
+        [InlineData("ru", 0x0419u)]
+        [InlineData("uk", 0x0422u)]
+        [InlineData("en", 0x0409u)]
+        [InlineData("de", 0x0407u)]
+        [InlineData("", 0u)]
+        [InlineData(null, 0u)]
+        [InlineData("not-a-language", 0u)]
+        public void ATranslationsLocaleIsItsLanguagesSpecificId(string? code, uint expected)
+        {
+            Assert.Equal(expected, TranslationLanguages.LocaleId(code));
+        }
+
         [Fact]
         public void WhenTheDefaultChordIsTakenTheRowArrivesWithoutOneRatherThanStealingIt()
         {

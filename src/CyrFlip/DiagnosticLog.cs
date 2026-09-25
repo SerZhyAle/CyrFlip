@@ -37,15 +37,12 @@ namespace CyrFlip
         private static readonly HashSet<string> Rotated = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
-        /// The folder every CyrFlip log lives in: <c>%LOCALAPPDATA%\CyrFlip</c>, or
-        /// <c>%ProgramData%\CyrFlip</c> when packaged (a write to %LOCALAPPDATA% is virtualized into
-        /// the package container, where no outside reader would find it).
+        /// The folder every CyrFlip log lives in - <see cref="DataFolder.Current"/>: <c>%LOCALAPPDATA%\CyrFlip</c>,
+        /// or the package's own per-user folder when packaged, addressed by its real path so an outside
+        /// reader (the support bundle's mail client) finds it. Never the machine-wide %ProgramData%,
+        /// where another account could read these logs (ticket S0016).
         /// </summary>
-        internal static string ProductionFolder => System.IO.Path.Combine(
-            Environment.GetFolderPath(PackageInfo.IsPackaged
-                ? Environment.SpecialFolder.CommonApplicationData   // %ProgramData%
-                : Environment.SpecialFolder.LocalApplicationData),  // %LOCALAPPDATA%
-            "CyrFlip");
+        internal static string ProductionFolder => DataFolder.Current;
 
         /// <summary>
         /// Test-only destination for diagnostics. It may be assigned once, before the tests which

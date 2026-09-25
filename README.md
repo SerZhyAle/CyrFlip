@@ -44,7 +44,7 @@ Early development - which here means "it works, but we reserve the right to be h
 - **Keep a fragment** - press **Ctrl+Shift+Alt+N**, paste the code or type the thought, close the window. It is saved without a name if you don't give it one, and found later by any part of its text.
 - **Tray menu** (right-click the icon) keeps the frequent switches: show/hide history, clipboard history on/off, pause capture, the three indicator toggles, the two keep-awake switches, the **Quick launch** submenu, **Translate clipboard** and **Quick notes** (each shown only while its module is enabled), **Settings…** and **Exit**. Double-clicking the icon opens Settings.
 - **Settings** (ten tabs, every change applied at once, no restart):
-  - **General** - start with Windows, keep the computer awake, keep the screen on (both remembered across restarts), and the interface language (13 to choose from).
+  - **General** - start with Windows, keep the computer awake, keep the screen on (both remembered across restarts), the interface language (13 to choose from) and the **theme** - same as Windows (the default), light or dark. Every window, dialog and menu follows it at once, and in "same as Windows" it follows Windows switching while CyrFlip runs.
   - **Indicators** - the I-beam cursor marker (off by default), the caret marker (on by default), the compact dot style, "change the layout after converting text", and "synchronize CapsLock after the case fix".
   - **Hotkeys** - the master switch plus a separate on/off and chord for the case fix and the clipboard manager, the option to yield the chords to a focused remote-desktop client, and the **context menu** switch with the mouse chord that opens it.
   - **Layout conversions** - one table holding **every** chord that converts text between layouts, EN ⇄ RU included. Each row is a pair of installed layouts plus its own combination and on/off switch, and each works in both directions.
@@ -63,7 +63,8 @@ An optional module that absorbs [OneClickRunner](https://github.com/SerZhyAle/On
 - **Scenarios** are either *program/script* (path, arguments, working folder, an optional "run as administrator") or *yt-dlp* (download folder + extra options; the link is asked for on every run, and the external `yt-dlp` tool must be on `PATH`). Add, edit, clone, reorder, search, export and import them in the settings table.
 - **Four ways to run one:** the tray **Quick launch** submenu, the settings table (double-click / Enter), an optional **global hotkey per scenario**, and the taskbar **Jump List** - right-click the CyrFlip icon on the taskbar (pin it to have the list handy even when CyrFlip isn't running: a Jump List click then does a one-shot launch without starting the tray).
 - **Storage:** one XML per scenario in `%APPDATA%\CyrFlip\Scenarios`, format-compatible with OneClickRunner. Disabling the module clears the tray/Jump List surfaces but keeps the files.
-- **Migration:** on first enable CyrFlip offers to copy your existing OneClickRunner scenarios (`%APPDATA%\OneClickRunner\Scenarios`); the originals are never modified, and the "Import from OneClickRunner…" button repeats the import any time. `.ps1` runs via PowerShell with a one-off `-ExecutionPolicy Bypass`, `.bat`/`.cmd` via `cmd.exe`; elevation is asked only for scenarios marked "run as administrator".
+- **Migration:** on first enable CyrFlip offers to copy your existing OneClickRunner scenarios (`%APPDATA%\OneClickRunner\Scenarios`); the originals are never modified, and the "Import from OneClickRunner..." button repeats the import any time. `.ps1` runs via PowerShell with a one-off `-ExecutionPolicy Bypass`, `.bat`/`.cmd` via `cmd.exe`; elevation is asked only for scenarios marked "run as administrator".
+- **Scenario files:** the copy keeps OneClickRunner's order and each scenario's identity; a file that cannot be read is skipped and named, never fatal. Running the import again adds a second copy of every scenario under a new identity - import once, or delete the duplicates. The per-scenario hotkey is CyrFlip's own field: OneClickRunner ignores it and drops it if it saves that file. An exported scenario is a plain XML file carrying its path and arguments as written, so never put a password in the arguments.
 
 ### Interface languages
 
@@ -99,7 +100,7 @@ Inside VS Code the external marker can't track the caret precisely (Monaco draws
 The companion extension reads the layout CyrFlip publishes and renders the marker **exactly at the
 editor caret**.
 
-**How they link up:** CyrFlip writes the current layout code to `%LOCALAPPDATA%\CyrFlip\layout.txt` (`%ProgramData%\CyrFlip\layout.txt` for a Microsoft Store install; the extension reads the newer of the two, and the app removes the file when it exits)
+**How they link up:** CyrFlip writes the current layout code to `%LOCALAPPDATA%\CyrFlip\layout.txt` (for a Microsoft Store install, the apps own per-user folder `%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip\layout.txt`, plus a copy under `%ProgramData%\CyrFlip` for older extension versions; the extension reads the newest per-user file, and the app removes the files when it exits)
 (see [LayoutPublisher.cs](src/CyrFlip/LayoutPublisher.cs)); the extension watches that file and draws
 the two-letter marker of **any** layout at the caret, plus a status-bar indicator. **CyrFlip must be running** for the
 marker to appear.
@@ -147,6 +148,7 @@ All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and ar
 | Change the layout after converting text | off | After a conversion, also switches the active window to the layout the text now reads in, so you can keep typing straight away |
 | Synchronize CapsLock after the case fix | off | After a case fix, also sets the physical CapsLock key to match the corrected text - off when it ends in a small letter, on when it ends in a capital - so the next keystrokes match |
 | Interface language | OS language | 13 languages; falls back to English when Windows runs in a language CyrFlip has no translation for |
+| Theme | same as Windows | Light, dark, or following Windows' own light/dark setting - live, no restart. Every CyrFlip window, dialog and menu follows it; a Windows contrast theme always wins over it. The layout marker does not change with the theme (its colour names the layout), and the balloon tips and the file dialogs are drawn by Windows itself |
 | Keep awake / keep the screen on | off | Stop Windows sleeping or blanking the screen on idle. Both are remembered: leave one on and it keeps the machine awake after a restart too - CyrFlip will not watch your battery for you |
 | Clipboard history | off | Encrypted local text history; toggle it from the tray or Settings |
 | Show clipboard manager window | on | Remembers whether the manager window is open - close it and it stays closed on the next launch, while history keeps capturing in the background |

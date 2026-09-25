@@ -189,5 +189,58 @@ namespace CyrFlip.Tests
             Assert.InRange(SelectionProbe.MaxWaitMs, 20, 150);
             Assert.True(SelectionProbe.MaxWaitMs < SelectionProbe.BudgetMs);
         }
+
+        // ---- EM_GETSEL (ticket S0008, LS-7 and LS-8) ---------------------------------------
+
+        /// <summary>
+        /// The documented -1 ("a position above 65535") must be Unknown, not start == end == 0xFFFF,
+        /// which read as a confident Absent beside a live selection; a high word at or above 0x8000
+        /// must unpack rather than overflow.
+        /// </summary>
+        [Fact]
+        public void EmGetSelUnpacksFromTheLowThirtyTwoBits()
+        {
+            Assert.False(SelectionProbe.TryUnpackSelection(-1L, out _, out _));
+            Assert.False(SelectionProbe.TryUnpackSelection(0xFFFFFFFFL, out _, out _));
+
+            Assert.True(SelectionProbe.TryUnpackSelection(0x8000_0001L, out int start, out int end));
+            Assert.Equal(1, start);
+            Assert.Equal(0x8000, end);
+
+            Assert.True(SelectionProbe.TryUnpackSelection((12L << 16) | 5L, out start, out end));
+            Assert.Equal(5, start);
+            Assert.Equal(12, end);
+        }
+
+        [Fact]
+        public void AnEmGetSelOfMinusOneIsUnknownNotAbsent()
+            => Assert.Equal(SelectionState.Unknown,
+                SelectionProbe.EditAnswer("Edit", -1L, (_, _) => "never read").State);
+
+        /// <summary>
+        /// A RichEdit counts a paragraph end as one character while WM_GETTEXT returns CRLF, so its
+        /// offsets point at the wrong text - which is as long as the right one and would win the
+        /// "longest" rule. It gives the verdict only, and the text is left to UIA/IA2.
+        /// </summary>
+        [Fact]
+        public void ARichEditGivesTheVerdictWithoutText()
+        {
+            bool read = false;
+            SelectionAnswer answer = SelectionProbe.EditAnswer("RICHEDIT50W", (9L << 16) | 2L,
+                (_, _) => { read = true; return "shifted"; });
+            Assert.Equal(SelectionState.Present, answer.State);
+            Assert.Null(answer.Text);
+            Assert.False(read);
+        }
+
+        [Fact]
+        public void APlainEditStillHandsOverItsText()
+        {
+            SelectionAnswer answer = SelectionProbe.EditAnswer("Edit", (9L << 16) | 2L, (s, e) => s + ".." + e);
+            Assert.Equal(SelectionState.Present, answer.State);
+            Assert.Equal("2..9", answer.Text);
+            Assert.Equal(SelectionState.Absent, SelectionProbe.EditAnswer("Edit", (4L << 16) | 4L, (_, _) => "x").State);
+            Assert.Equal(SelectionState.Unknown, SelectionProbe.EditAnswer("Chrome_WidgetWin_1", (9L << 16) | 2L, (_, _) => "x").State);
+        }
     }
 }

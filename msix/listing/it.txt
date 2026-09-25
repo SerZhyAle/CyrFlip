@@ -56,6 +56,8 @@ Avvia uno scenario dall'area di notifica, da una scorciatoia globale o dalla Jum
 Traduttore locale opzionale: la selezione si traduce con una scorciatoia, accanto al puntatore
 @@Feature17
 La traduzione gira su Ollama sul tuo computer - installato a parte, spento finché non lo attivi
+@@Feature18
+Chiaro, scuro o come Windows: ogni finestra, dialogo e menu segue il tema, senza riavvio
 @@SearchTerm1
 cambio layout tastiera
 @@SearchTerm2

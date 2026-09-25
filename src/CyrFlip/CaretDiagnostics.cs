@@ -14,8 +14,8 @@ namespace CyrFlip
     /// One-shot diagnostics for "why doesn't the caret marker follow the caret here?". Captures a
     /// burst of snapshots over ~7s (so the user can click into the target input - e.g. the VS Code
     /// chat box - and type/arrow during capture) and writes a report comparing every caret source:
-    ///   - the foreground window (class/title/process),
-    ///   - the focused UIA element (ControlType/ClassName/FrameworkId),
+    ///   - the foreground window (class/process, and the title's length - never the title itself),
+    ///   - the focused UIA element (ControlType/ClassName/FrameworkId; its Name only as a length),
     ///   - the *current* overlay path (managed <c>GetSelection</c>) and whether its width guard rejects it,
     ///   - the *proposed* path (COM <c>GetCaretRange</c>, see <see cref="UiaCaretCom"/>),
     ///   - the Win32 system caret (<c>GetGUIThreadInfo</c>).
@@ -74,11 +74,7 @@ namespace CyrFlip
                 Thread.Sleep(IntervalMs);
             }
 
-            string dir = Path.Combine(
-                Environment.GetFolderPath(PackageInfo.IsPackaged
-                    ? Environment.SpecialFolder.CommonApplicationData   // %ProgramData%
-                    : Environment.SpecialFolder.LocalApplicationData),  // %LOCALAPPDATA%
-                "CyrFlip");
+            string dir = DataFolder.Current;
             Directory.CreateDirectory(dir);
             string file = Path.Combine(dir, "caret-diagnostics.txt");
             File.WriteAllText(file, sb.ToString());
@@ -95,18 +91,22 @@ namespace CyrFlip
                 GetClassName(fg, cls, cls.Capacity);
                 var title = new StringBuilder(256);
                 GetWindowText(fg, title, title.Capacity);
-                sb.AppendLine("    class:   " + cls);
-                sb.AppendLine("    title:   " + title);
-
                 uint tid = GetWindowThreadProcessId(fg, out uint pid);
                 string proc = "?";
                 try { proc = Process.GetProcessById((int)pid).ProcessName; } catch { /* exited */ }
-                sb.AppendLine("    process: " + proc + " (pid " + pid + ")");
+                AppendWindow(sb, cls.ToString(), title.ToString(), proc, pid);
 
                 var gti = new GUITHREADINFO { cbSize = Marshal.SizeOf(typeof(GUITHREADINFO)) };
                 if (GetGUIThreadInfo(tid, ref gti) && gti.hwndCaret != IntPtr.Zero
                     && gti.rcCaret.Bottom - gti.rcCaret.Top > 0)
+                {
                     sb.AppendLine($"    GUITHREADINFO caret: L={gti.rcCaret.Left} T={gti.rcCaret.Top} R={gti.rcCaret.Right} B={gti.rcCaret.Bottom} (client coords)");
+                    // The rect is logical for a DPI-unaware or system-aware window (S0011 LI-2).
+                    sb.AppendLine("    caret window DPI awareness: " + DescribeDpiAwareness(gti.hwndCaret));
+                    var screen = new POINT { X = gti.rcCaret.Right, Y = gti.rcCaret.Bottom };
+                    CaretOverlay.ClientToPhysicalScreen(gti.hwndCaret, ref screen);
+                    sb.AppendLine($"    caret bottom-right, physical screen px: x={screen.X} y={screen.Y}");
+                }
                 else
                     sb.AppendLine("    GUITHREADINFO caret: none (no Win32 caret - expected for Electron)");
             }
@@ -122,7 +122,7 @@ namespace CyrFlip
                 else
                 {
                     sb.AppendLine("  UIA focused element:");
-                    sb.AppendLine("    Name:        " + Safe(() => focused.Current.Name));
+                    sb.AppendLine("    Name:        " + TextLength(SafeOrNull(() => focused.Current.Name)));
                     sb.AppendLine("    ControlType: " + Safe(() => focused.Current.ControlType?.ProgrammaticName));
                     sb.AppendLine("    ClassName:   " + Safe(() => focused.Current.ClassName));
                     sb.AppendLine("    FrameworkId: " + Safe(() => focused.Current.FrameworkId));
@@ -135,6 +135,22 @@ namespace CyrFlip
             sb.AppendLine("  UIA GetCaretRange: " + UiaCaretCom.Diagnose());
             // The IAccessible2 path (Chromium/Electron webviews - VS Code chat, browsers).
             sb.AppendLine("  IAccessible2 caret: " + Ia2Caret.Diagnose());
+        }
+
+        private static string DescribeDpiAwareness(IntPtr hwnd)
+        {
+            try
+            {
+                IntPtr context = GetWindowDpiAwarenessContext(hwnd);
+                switch (context == IntPtr.Zero ? -1 : GetAwarenessFromDpiAwarenessContext(context))
+                {
+                    case 0: return "unaware (logical coordinates)";
+                    case 1: return "system aware (logical coordinates off the system DPI)";
+                    case 2: return "per-monitor aware (physical coordinates)";
+                    default: return "unknown";
+                }
+            }
+            catch (EntryPointNotFoundException) { return "unknown (pre-1607 Windows)"; }
         }
 
         private static string DescribeManagedSelection(AutomationElement focused)
@@ -164,6 +180,29 @@ namespace CyrFlip
                 return $"rect[L={r.Left:0} T={r.Top:0} W={r.Width:0} H={r.Height:0}] {verdict}";
             }
             catch (Exception ex) { return "error: " + ex.Message; }
+        }
+
+        /// <summary>
+        /// The foreground window as the report records it (ticket S0010 TD-1). This file goes into
+        /// the log bundle the user mails to the author, and a window title is a mail subject, a
+        /// document name or a URL - so the title appears only as its <b>length</b>. The diagnostic
+        /// value is the class, the process image and what each caret source answers, not the text.
+        /// </summary>
+        internal static void AppendWindow(StringBuilder sb, string windowClass, string? title, string process, uint pid)
+        {
+            sb.AppendLine("    class:   " + windowClass);
+            sb.AppendLine("    title:   " + TextLength(title));
+            sb.AppendLine("    process: " + process + " (pid " + pid + ")");
+        }
+
+        /// <summary>"42 chars" - a piece of the user's text, reduced to how long it is.</summary>
+        internal static string TextLength(string? text)
+            => text == null ? "<unreadable>" : text.Length + " chars";
+
+        private static string? SafeOrNull(Func<string?> f)
+        {
+            try { return f() ?? ""; }
+            catch { return null; }
         }
 
         private static string Safe(Func<string?> f)

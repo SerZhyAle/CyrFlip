@@ -18,6 +18,12 @@ namespace CyrFlip
     /// languages its own colour (what the two letters name); <see cref="Layouts"/> gives each of their 25
     /// keyboard layouts a shade inside that language's hue (what the two letters cannot name, since US
     /// and Dvorak both read "EN"); everything else is <see cref="Other"/>.
+    ///
+    /// <para><b>Deliberately outside the app's theme</b> (<c>APP-STYLE</c> rule 5, <c>LAYOUT-PALETTE</c>):
+    /// these colours name a layout, not the look of CyrFlip - red is Russian on a light desktop and on a
+    /// dark one - so the app's <c>ThemePalette</c> never touches them. They carry their own contrast with
+    /// them (the black outline of <see cref="DrawCode"/>, and no shade may be dark), which is what the rule
+    /// asks of an out-of-theme surface. The caret badge, the I-beam and the tray icon draw only from here.</para>
     /// </summary>
     internal static class LayoutStyle
     {

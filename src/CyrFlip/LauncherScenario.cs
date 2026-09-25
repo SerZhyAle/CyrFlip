@@ -31,7 +31,22 @@ namespace CyrFlip
         /// <summary>Legacy magic path kept working for scenarios created before the yt-dlp type existed.</summary>
         public const string LegacyYtDlpSentinel = "SPECIAL_YTDLP";
 
-        public Guid Id { get; set; } = Guid.NewGuid();
+        private Guid _id = Guid.NewGuid();
+
+        /// <summary>
+        /// The scenario's identity. A file without the element gets a fresh one on every read
+        /// (SCENARIO-FILE rule 3), which the store detects through <see cref="IdWasAssigned"/> and
+        /// persists at once - otherwise a Jump List task built from it could never find it again.
+        /// </summary>
+        public Guid Id
+        {
+            get => _id;
+            set { _id = value; IdWasAssigned = true; }
+        }
+
+        /// <summary>True once anything - the XML reader included - has set <see cref="Id"/>.</summary>
+        [XmlIgnore]
+        internal bool IdWasAssigned { get; private set; }
         public string Name { get; set; } = string.Empty;
         public string Path { get; set; } = string.Empty;
         public string Arguments { get; set; } = string.Empty;

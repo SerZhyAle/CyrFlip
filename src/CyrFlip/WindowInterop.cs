@@ -226,6 +226,14 @@ namespace CyrFlip
         public const uint CF_DIB = 8;
         public const uint CF_HDROP = 15;
 
+        // The LCID Windows uses to synthesize CF_TEXT/CF_OEMTEXT from CF_UNICODETEXT. Without it the
+        // system takes the input language of whichever thread wrote the clipboard - the clipboard
+        // worker's, i.e. usually English - and converted Cyrillic reaches an ANSI-only app as "?".
+        public const uint CF_LOCALE = 16;
+
+        [DllImport("user32.dll")]
+        public static extern int CountClipboardFormats();
+
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool AddClipboardFormatListener(IntPtr hwnd);
@@ -519,5 +527,175 @@ namespace CyrFlip
         // on failure, and a volume with 8.3 names disabled legitimately fails here.
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern uint GetShortPathName(string lpszLongPath, System.Text.StringBuilder? lpszShortPath, uint cchBuffer);
+
+        // ---- "Open the selection" (ticket S0008) ----------------------------------------------
+
+        // The type of the volume behind "X:\". Answers from the local mount table - a mapped network
+        // drive is DRIVE_REMOTE without its server being contacted, which is the whole point.
+        public const uint DRIVE_REMOTE = 4;
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetDriveTypeW")]
+        public static extern uint GetDriveType(string lpRootPathName);
+
+        // The list Windows itself consults before its "open file - security warning": true for an
+        // extension (".exe", ".chm", ".appref-ms"..) whose association runs code.
+        [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AssocIsDangerous(string pszAssoc);
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct WIN32_FIND_DATA
+        {
+            public uint dwFileAttributes;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftCreationTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftLastAccessTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftLastWriteTime;
+            public uint nFileSizeHigh;
+            public uint nFileSizeLow;
+            public uint dwReserved0;
+            public uint dwReserved1;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string cFileName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)] public string cAlternateFileName;
+        }
+
+        public static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+
+        // The on-disk name of the last path segment - what an 8.3 alias or a name with trailing dots
+        // actually opens.
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "FindFirstFileW", SetLastError = true)]
+        public static extern IntPtr FindFirstFile(string lpFileName, out WIN32_FIND_DATA lpFindFileData);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool FindClose(IntPtr hFindFile);
+
+        // ---- Launcher pipe peer check (ticket S0008 LS-2) -------------------------------------
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetNamedPipeServerProcessId(Microsoft.Win32.SafeHandles.SafePipeHandle pipe, out uint serverProcessId);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ProcessIdToSessionId(uint dwProcessId, out uint pSessionId);
+
+        public const uint TOKEN_QUERY = 0x0008;
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool OpenProcessToken(IntPtr processHandle, uint desiredAccess, out IntPtr tokenHandle);
+
+        // ---- Layout indicator (ticket S0011) --------------------------------------------------
+        // DPI contexts (LI-2): a DPI-unaware or system-aware window reports its caret in logical
+        // coordinates, which have to be converted before a per-monitor-aware process can use them.
+        // All Windows 10 1607+, which the manifest already requires.
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetWindowDpiAwarenessContext(IntPtr hwnd);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr SetThreadDpiAwarenessContext(IntPtr dpiContext);
+
+        /// <summary>DPI_AWARENESS: -1 invalid, 0 unaware, 1 system aware, 2 per-monitor aware.</summary>
+        [DllImport("user32.dll")]
+        public static extern int GetAwarenessFromDpiAwarenessContext(IntPtr dpiContext);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool LogicalToPhysicalPointForPerMonitorDPI(IntPtr hwnd, ref POINT lpPoint);
+
+        // Monitor DPI (LI-3): the marker is drawn in physical pixels, so it is scaled by the DPI of the
+        // monitor it is shown on.
+        public const uint MONITOR_DEFAULTTONEAREST = 2;
+        public const uint MONITOR_DEFAULTTOPRIMARY = 1;
+        public const int MDT_EFFECTIVE_DPI = 0;
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr MonitorFromPoint(POINT pt, uint dwFlags);
+
+        [DllImport("shcore.dll")]
+        public static extern int GetDpiForMonitor(IntPtr hmonitor, int dpiType, out uint dpiX, out uint dpiY);
+
+        // Foreground and focus changes (LI-1, LI-11), delivered out of context: no DLL is injected
+        // anywhere, the callback runs on the thread that installed the hook.
+        public const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+        public const uint EVENT_OBJECT_FOCUS = 0x8005;
+        public const uint WINEVENT_OUTOFCONTEXT = 0x0000;
+        public const uint WINEVENT_SKIPOWNPROCESS = 0x0002;
+
+        public delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd,
+            int idObject, int idChild, uint idEventThread, uint dwmsEventTime);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc,
+            WinEventDelegate lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool UnhookWinEvent(IntPtr hWinEventHook);
+
+        // UWP frame windows (LI-4): the input goes to a CoreWindow child of another thread.
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        public static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string? lpszClass, string? lpszWindow);
+
+        // ---- Theme (ThemeWin32.cs, ticket S0020) ----
+        // Every one of these is guarded by its caller: a refusal leaves the light look, never an exception.
+
+        /// <summary>Windows 11 and Windows 10 20H1+; Windows 10 1809-1909 answered to 19 (undocumented).</summary>
+        public const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+        public const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
+
+        [DllImport("dwmapi.dll")]
+        public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+
+        /// <summary>
+        /// A null sub-app name puts the control back on its default theme; <c>"DarkMode_Explorer"</c>,
+        /// <c>"DarkMode_CFD"</c> and <c>"DarkMode_ItemsView"</c> are the undocumented dark variants
+        /// Explorer itself uses (dark scroll bars, dark edit and combo borders, a dark list header).
+        /// </summary>
+        [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
+        public static extern int SetWindowTheme(IntPtr hwnd, string? subAppName, string? subIdList);
+
+        /// <summary>
+        /// uxtheme ordinal 135 (Windows 10 1903+): how the process's <b>native</b> popup menus are drawn -
+        /// a text box's Cut/Copy/Paste menu and a window's system menu, which no ToolStrip renderer sees.
+        /// 0 = default, 2 = force dark, 3 = force light. Undocumented; called only on a build that has it.
+        /// </summary>
+        [DllImport("uxtheme.dll", EntryPoint = "#135")]
+        public static extern int SetPreferredAppMode(int mode);
+
+        /// <summary>uxtheme ordinal 136: drop the cached menu theme so the next menu opens in the new mode.</summary>
+        [DllImport("uxtheme.dll", EntryPoint = "#136")]
+        public static extern void FlushMenuThemes();
+
+        public const uint LVM_GETHEADER = 0x101F;
+
+        [DllImport("user32.dll", EntryPoint = "SendMessageW")]
+        public static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct COMBOBOXINFO
+        {
+            public int cbSize;
+            public RECT rcItem;
+            public RECT rcButton;
+            public int stateButton;
+            public IntPtr hwndCombo;
+            public IntPtr hwndItem;
+            public IntPtr hwndList;
+        }
+
+        /// <summary>The combo box's own drop-down list window, which a theme set on the combo never reaches.</summary>
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetComboBoxInfo(IntPtr hwndCombo, ref COMBOBOXINFO info);
+
+        public const uint SWP_NOMOVE = 0x0002;
+        public const uint SWP_NOZORDER = 0x0004;
+        public const uint SWP_FRAMECHANGED = 0x0020;
+
+        /// <summary>The extended style - read to tell a mirrored (right-to-left layout) window apart.</summary>
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
+        public static extern int GetWindowLong(IntPtr hWnd, int index);
     }
 }

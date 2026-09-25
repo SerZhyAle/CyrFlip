@@ -2,7 +2,7 @@
   "name": "cyrflip-vscode",
   "displayName": "CyrFlip - keyboard layout at the caret",
   "description": "Shows the active keyboard layout right at the text caret, using the layout detected by the CyrFlip app.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "publisher": "SerZhyAle",
   "license": "MIT",
   "icon": "icon.png",
@@ -37,6 +37,9 @@
     "onStartupFinished"
   ],
   "main": "./out/extension.js",
+  "extensionKind": [
+    "ui"
+  ],
   "contributes": {
     "configuration": {
       "title": "CyrFlip",
@@ -44,7 +47,7 @@
         "cyrflip.layoutFile": {
           "type": "string",
           "default": "",
-          "description": "Path to the layout file written by the CyrFlip app. Empty = the newest of %LOCALAPPDATA%\\CyrFlip\\layout.txt and %ProgramData%\\CyrFlip\\layout.txt (Microsoft Store install)."
+          "description": "Path to the layout file written by the CyrFlip app. Empty = the newest of %LOCALAPPDATA%\\CyrFlip\\layout.txt and %LOCALAPPDATA%\\Packages\\SZA.CyrFlip_fdk7e19xt9z9j\\LocalCache\\Local\\CyrFlip\\layout.txt (Microsoft Store install); %ProgramData%\\CyrFlip\\layout.txt (older Store versions) only when neither exists."
         },
         "cyrflip.showStatusBar": {
           "type": "boolean",

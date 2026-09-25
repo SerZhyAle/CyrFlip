@@ -116,6 +116,55 @@ namespace CyrFlip
             RaiseChanged();
         }
 
+        /// <summary>What <see cref="Import"/> would do with these entries, without doing it (S0023, spec 7.1).</summary>
+        public ExchangeMergeReport PlanImport(IEnumerable<ExchangeClipboardItem> incoming)
+        {
+            var report = new ExchangeMergeReport();
+            CyrFlipExchangeMerge.PlanClipboard(_order.Find, incoming, report);
+            return report;
+        }
+
+        /// <summary>
+        /// Merge the entries of an exchange file (S0023, spec 7.2): a text not in the history is added
+        /// with the date and pin it carries, a text already here is raised to the newer date and never
+        /// unpinned, nothing is removed. The clipboard itself is not touched - an import is not a copy.
+        /// UI thread only, like every other change to the list.
+        /// </summary>
+        public ExchangeMergeReport Import(IEnumerable<ExchangeClipboardItem> incoming)
+        {
+            var report = new ExchangeMergeReport();
+            if (_disposed) return report;
+            List<CyrFlipExchangeMerge.ClipboardAction> actions = CyrFlipExchangeMerge.PlanClipboard(_order.Find, incoming, report);
+            foreach (CyrFlipExchangeMerge.ClipboardAction action in actions)
+            {
+                if (action.Existing == null)
+                {
+                    var entry = new ClipboardHistoryEntry
+                    {
+                        Uuid = action.Item.Uuid,
+                        Text = action.Item.Text,
+                        CreatedAt = action.CopiedAtUtc,
+                        IsPinned = action.Pinned,
+                        SourceApp = action.Item.SourceApp,
+                        SourceTitle = action.Item.SourceTitle,
+                    };
+                    if (_order.Add(entry)) _journal.Append(ClipboardHistoryJournal.Record.Of("add", entry));
+                }
+                else
+                {
+                    // "touch" carries both the date and the pin, and replays as exactly this update.
+                    _order.Update(action.Existing, action.CopiedAtUtc, action.Pinned);
+                    _journal.Append(ClipboardHistoryJournal.Record.Of("touch", action.Existing));
+                }
+            }
+            if (actions.Count > 0)
+            {
+                ClipboardHistoryLog.Log("history: imported " + report.ClipboardAdded + " new, " + report.ClipboardExisting + " existing");
+                RaiseChanged();
+            }
+            return report;
+        }
+
         /// <summary>
         /// Tell the windows to repaint. Every change goes through here exactly once: the strip
         /// repaints on this event, so a second, redundant raise doubles the cost of every copy.
@@ -139,7 +188,10 @@ namespace CyrFlip
         {
             try
             {
-                if (!Win32Clipboard.TryReadForHistory(out string text, out ClipboardPrivacyMarkers markers, out uint sequence)) return;
+                // Text over the cap is refused by its allocation size, before a character of it is
+                // marshalled into this process (S0009 FP-6).
+                if (!Win32Clipboard.TryReadForHistory(MaxTextBytes, out string text, out ClipboardPrivacyMarkers markers,
+                        out uint sequence, out bool tooLarge)) return;
                 // The clipboard may have moved on since the message: judge what was actually read.
                 if (!_gate.ShouldCapture(sequence)) return;
                 if (ClipboardPrivacy.ShouldSkip(markers))
@@ -147,8 +199,7 @@ namespace CyrFlip
                     Interlocked.Increment(ref _skippedMarked);
                     return;
                 }
-                if (text.Length == 0) return;
-                if (Encoding.Unicode.GetByteCount(text) > MaxTextBytes)
+                if (tooLarge || Encoding.Unicode.GetByteCount(text) > MaxTextBytes)
                 {
                     if (_ui != null)
                         _ui.Post(_ => ItemTooLarge?.Invoke(this, EventArgs.Empty), null);
@@ -156,6 +207,7 @@ namespace CyrFlip
                         ItemTooLarge?.Invoke(this, EventArgs.Empty);
                     return;
                 }
+                if (text.Length == 0) return;
 
                 string uuid = Hash(text);
                 ReadSource(hwnd, out string sourceApp, out string sourceTitle);
@@ -243,7 +295,8 @@ namespace CyrFlip
             ClipboardHistoryLog.Log("history: skipped " + skipped + " marked entries");
         }
 
-        private static string Hash(string text)
+        /// <summary>An entry's id: SHA-256 of the UTF-8 text, upper-case hex. The exchange file checks imports against it.</summary>
+        internal static string Hash(string text)
         {
             using var sha = SHA256.Create();
             return BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(text))).Replace("-", "");

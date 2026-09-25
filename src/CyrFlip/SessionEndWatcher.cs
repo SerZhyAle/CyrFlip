@@ -37,6 +37,32 @@ namespace CyrFlip
         /// </summary>
         public event EventHandler? Ending;
 
+        internal const int WM_SETTINGCHANGE = 0x001A;
+        internal const int WM_DISPLAYCHANGE = 0x007E;
+        internal const int WM_DPICHANGED = 0x02E0;
+
+        /// <summary>
+        /// <c>WM_SETTINGCHANGE</c>, with the <c>SPI_*</c> action in the argument - the same broadcast
+        /// reaches every top-level window, and this one is already here (ticket S0011 LI-6: a system
+        /// cursor reload removes the branded I-beam).
+        /// </summary>
+        public event Action<uint>? SettingChanged;
+
+        /// <summary><c>WM_DISPLAYCHANGE</c> or <c>WM_DPICHANGED</c>: a monitor or its scaling changed.</summary>
+        public event EventHandler? DisplayChanged;
+
+        internal const int WM_SYSCOLORCHANGE = 0x0015;
+        internal const int WM_THEMECHANGED = 0x031A;
+        internal const uint SPI_SETHIGHCONTRAST = 0x0043;
+
+        /// <summary>
+        /// Something the app's theme may depend on changed (ticket S0020): Windows' light/dark switch
+        /// (<c>WM_SETTINGCHANGE</c> carrying <c>"ImmersiveColorSet"</c>), high contrast, the system colours
+        /// or the visual style. Windows sends these inconsistently, so all of them are raised and
+        /// <see cref="ThemeManager.OnSystemSignal"/> ignores the ones that change nothing.
+        /// </summary>
+        public event EventHandler? ThemeSignal;
+
         public SessionEndWatcher()
         {
             CreateHandle(new CreateParams
@@ -62,8 +88,34 @@ namespace CyrFlip
                     }
                     m.Result = IntPtr.Zero;
                     return;
+                case WM_SETTINGCHANGE:
+                    uint action = unchecked((uint)m.WParam.ToInt64());
+                    try { SettingChanged?.Invoke(action); } catch { /* a broadcast */ }
+                    if (action == SPI_SETHIGHCONTRAST || (action == 0 && IsImmersiveColorSet(m.LParam)))
+                        try { ThemeSignal?.Invoke(this, EventArgs.Empty); } catch { /* a broadcast */ }
+                    break;
+                case WM_SYSCOLORCHANGE:
+                case WM_THEMECHANGED:
+                    try { ThemeSignal?.Invoke(this, EventArgs.Empty); } catch { /* a broadcast */ }
+                    break;
+                case WM_DISPLAYCHANGE:
+                case WM_DPICHANGED:
+                    try { DisplayChanged?.Invoke(this, EventArgs.Empty); } catch { /* a broadcast */ }
+                    break;
             }
             base.WndProc(ref m);
+        }
+
+        /// <summary>
+        /// The broadcast Windows sends when the apps' light/dark preference flips. Read only with a zero
+        /// action, where the argument is the name of the changed area (WinForms' own SystemEvents reads
+        /// the same argument the same way).
+        /// </summary>
+        private static bool IsImmersiveColorSet(IntPtr lParam)
+        {
+            if (lParam == IntPtr.Zero) return false;
+            try { return System.Runtime.InteropServices.Marshal.PtrToStringUni(lParam) == "ImmersiveColorSet"; }
+            catch (AccessViolationException) { return false; }
         }
 
         public void Dispose() => DestroyHandle();

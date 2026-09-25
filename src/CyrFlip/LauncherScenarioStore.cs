@@ -55,8 +55,19 @@ namespace CyrFlip
             if (!Directory.Exists(_folder))
                 return;
 
-            foreach (string file in Directory.GetFiles(_folder, "*.xml"))
+            DeleteStaleTempFiles();
+
+            // Sorted, so "which of two same-Id files keeps the Id" is the same answer on every load.
+            string[] files = Directory.GetFiles(_folder, "*.xml");
+            Array.Sort(files, StringComparer.OrdinalIgnoreCase);
+
+            var seen = new HashSet<Guid>();
+            var reidentified = new List<LauncherScenario>();
+            foreach (string file in files)
             {
+                // "*.xml" also matches through 8.3 aliases; only a real .xml is a scenario.
+                if (!file.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)) continue;
+
                 LauncherScenario? item = TryRead(file, out _);
                 if (item == null)
                 {
@@ -65,9 +76,42 @@ namespace CyrFlip
                     continue;
                 }
                 item.Filename = Path.GetFileName(file);
+
+                // One identity per scenario (S0008 LS-10). A file with no <Id> got a fresh one from
+                // the reader and would get another on the next load; a copied file shares its
+                // original's, and Update/Remove would then act on the wrong file. Both get a new Guid,
+                // written to their own file at once.
+                if (!item.IdWasAssigned || item.Id == Guid.Empty || !seen.Add(item.Id))
+                {
+                    item.Id = Guid.NewGuid();
+                    seen.Add(item.Id);
+                    reidentified.Add(item);
+                    LauncherLog.Log("Store: assigned a new identity to " + item.Filename);
+                }
                 _items.Add(item);
             }
-            NormalizeOrder();
+            NormalizeOrder(reidentified);
+        }
+
+        /// <summary>
+        /// A save that died between writing its temp file and moving it into place leaves the temp
+        /// file behind. It is never read as a scenario; one older than a day is removed.
+        /// </summary>
+        private void DeleteStaleTempFiles()
+        {
+            try
+            {
+                foreach (string temp in Directory.GetFiles(_folder, "*.tmp"))
+                {
+                    try
+                    {
+                        if (DateTime.UtcNow - File.GetLastWriteTimeUtc(temp) > TimeSpan.FromDays(1))
+                            File.Delete(temp);
+                    }
+                    catch { /* another writer's, or locked - next load */ }
+                }
+            }
+            catch { /* the folder listing itself failed - Reload reports what matters */ }
         }
 
         /// <summary>
@@ -183,9 +227,10 @@ namespace CyrFlip
 
         /// <summary>
         /// Sort by stored order (name breaks the legacy all-zero ties), then reassign contiguous
-        /// 0..n-1 ordinals, persisting only rows that actually changed.
+        /// 0..n-1 ordinals, persisting only rows that actually changed - and every row in
+        /// <paramref name="mustSave"/>, whose identity was just assigned.
         /// </summary>
-        private void NormalizeOrder()
+        private void NormalizeOrder(ICollection<LauncherScenario> mustSave)
         {
             _items = _items
                 .OrderBy(s => s.Order)
@@ -193,7 +238,7 @@ namespace CyrFlip
                 .ToList();
             for (int i = 0; i < _items.Count; i++)
             {
-                if (_items[i].Order == i) continue;
+                if (_items[i].Order == i && !mustSave.Contains(_items[i])) continue;
                 _items[i].Order = i;
                 SaveItem(_items[i]);
             }
@@ -201,23 +246,49 @@ namespace CyrFlip
 
         private void SaveItem(LauncherScenario item)
         {
+            string? temp = null;
             try
             {
                 Directory.CreateDirectory(_folder);
                 string path = Path.Combine(_folder, item.Filename);
                 var serializer = new XmlSerializer(typeof(LauncherScenario));
                 // Write to a sibling temp file, then replace: a crash mid-write can't leave a
-                // half-written scenario that the next load counts as corrupt.
-                string temp = path + ".tmp";
+                // half-written scenario that the next load counts as corrupt. The replace is one
+                // atomic File.Replace - a delete followed by a move lost the scenario to a crash in
+                // between (S0008 LS-9) - and the temp name is this writer's own, since the live
+                // instance and a one-shot /launcher-run process can save the same scenario.
+                temp = TempPathFor(path);
                 using (FileStream stream = File.Create(temp))
                     serializer.Serialize(stream, item);
-                if (File.Exists(path)) File.Delete(path);
-                File.Move(temp, path);
+                if (File.Exists(path)) File.Replace(temp, path, null);
+                else File.Move(temp, path);
+                temp = null;
             }
             catch (Exception ex)
             {
                 LauncherLog.Log("Store: save failed for " + item.Filename + ": " + ex.Message);
             }
+            finally
+            {
+                if (temp != null)
+                {
+                    try { File.Delete(temp); } catch { /* removed as stale on a later load */ }
+                }
+            }
+        }
+
+        private static readonly Random TempNames = new Random();
+
+        /// <summary><c>{name}.{pid}.{random}.tmp</c> beside the scenario - unique per writer and per save.</summary>
+        internal static string TempPathFor(string path)
+        {
+            int random;
+            lock (TempNames) random = TempNames.Next();
+            int pid;
+            using (System.Diagnostics.Process self = System.Diagnostics.Process.GetCurrentProcess())
+                pid = self.Id;
+            return Path.Combine(Path.GetDirectoryName(path) ?? "",
+                Path.GetFileNameWithoutExtension(path) + "." + pid + "." + random.ToString("x8") + ".tmp");
         }
     }
 }

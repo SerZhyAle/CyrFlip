@@ -13,11 +13,13 @@ namespace CyrFlip
     /// fact per file, the ASCII payload, one writer whose last write is the latest state, and the files
     /// removed on a clean exit so that their absence means "not running".
     ///
-    /// Unpackaged: %LOCALAPPDATA%\CyrFlip\layout.txt.
-    /// MSIX (Store): %ProgramData%\CyrFlip\layout.txt - because under MSIX a write to
-    /// %LOCALAPPDATA% is virtualized into the package container, where the (unpackaged) VS Code
-    /// extension can't find it. %ProgramData% is not virtualized, so both sides agree on the path.
-    /// The extension checks both locations (see vscode-extension/src/extension.ts).
+    /// Unpackaged: %LOCALAPPDATA%\CyrFlip\layout.txt. MSIX (Store): the package's own per-user folder,
+    /// %LOCALAPPDATA%\Packages\&lt;family&gt;\LocalCache\Local\CyrFlip\layout.txt, addressed by its real
+    /// path (<see cref="DataFolder"/>, ticket S0016), plus a best-effort <b>mirror</b> of both files in the
+    /// deprecated machine-wide %ProgramData%\CyrFlip that a pre-S0016 extension still reads
+    /// (<c>LAYOUT-SIGNAL</c> 1.1 rule 1, kept until 2027-03-31 and two extension releases - retiring it is
+    /// a contract step, not a date check in code). The extension checks every location
+    /// (see vscode-extension/src/extension.ts).
     /// </summary>
     internal static class LayoutPublisher
     {
@@ -38,16 +40,15 @@ namespace CyrFlip
         /// The one decision of where the channel lives (rule 1), shared with <see cref="EditorCaretSignal"/>
         /// so the claim is always read from the folder the code is written to.
         /// </summary>
-        internal static readonly string Folder = FolderFor(PackageInfo.IsPackaged, Environment.GetFolderPath);
+        internal static readonly string Folder = DataFolder.Current;
 
-        private static readonly Channel Default = new Channel(Folder);
+        /// <summary>
+        /// The deprecated machine-wide copy of both files (packaged only, null otherwise). Its writes fail
+        /// on a machine where another account created the files first - which is why it is only a mirror.
+        /// </summary>
+        internal static readonly string? MirrorFolder = DataFolder.LegacyShared;
 
-        internal static string FolderFor(bool packaged, Func<Environment.SpecialFolder, string> resolve)
-            => Path.Combine(
-                resolve(packaged
-                    ? Environment.SpecialFolder.CommonApplicationData   // %ProgramData%
-                    : Environment.SpecialFolder.LocalApplicationData),  // %LOCALAPPDATA%
-                "CyrFlip");
+        private static readonly Channel Default = new Channel(Folder, MirrorFolder);
 
         /// <summary>Returns at once - the caller is the UI thread; the write happens on a worker.</summary>
         public static void Publish(string code, string? klid = null) => Default.Publish(code, klid);
@@ -83,13 +84,18 @@ namespace CyrFlip
         internal sealed class Channel
         {
             private readonly string _folder;
+            private readonly string? _mirror;
             private readonly object _gate = new object();
             private string? _pendingCode;
             private string _pendingKlid = "";
             private bool _draining;
             private bool _retracted;
 
-            internal Channel(string folder) => _folder = folder;
+            internal Channel(string folder, string? mirror = null)
+            {
+                _folder = folder;
+                _mirror = mirror;
+            }
 
             internal void Publish(string code, string? klid)
             {
@@ -124,6 +130,8 @@ namespace CyrFlip
                         _pendingCode = null;
                     }
                     WriteNow(_folder, code, klid); // outside the lock: a publish never waits on the disk
+                    if (_mirror != null)
+                        WriteNow(_mirror, code, klid); // its own try: a mirror another account owns costs only itself
                 }
             }
 
@@ -154,6 +162,11 @@ namespace CyrFlip
                 Flush(TimeSpan.FromMilliseconds(250));
                 TryDelete(Path.Combine(_folder, CodeFileName));
                 TryDelete(Path.Combine(_folder, KlidFileName));
+                if (_mirror != null)
+                {
+                    TryDelete(Path.Combine(_mirror, CodeFileName));
+                    TryDelete(Path.Combine(_mirror, KlidFileName));
+                }
                 // editor-caret.txt is the extension's claim, never ours to delete (VERSIONING section 4
                 // rule 5: absence is not authority to destroy).
             }

@@ -132,13 +132,16 @@
         <li><strong>ملف التخطيط.</strong> يكتب CyrFlip رمز التخطيط الحالي - قيمة من حرفين مثل
         <code dir="ltr">EN</code> أو <code dir="ltr">ZH</code> أو <code dir="ltr">RU</code> أو
         <code dir="ltr">AR</code> - في ملف محلي صغير (<code dir="ltr">%LOCALAPPDATA%\CyrFlip\layout.txt</code>،
-        أو <code dir="ltr">%ProgramData%\CyrFlip\layout.txt</code> في نسخة Microsoft Store)، لتتمكن
+        أو، في نسخة Microsoft Store، <code dir="ltr">layout.txt</code> في مجلد التطبيق الخاص داخل ملفك الشخصي
+        <code dir="ltr">%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip</code>)، لتتمكن
         إضافة VS&nbsp;Code الاختيارية من عرض العلامة عند مؤشر الكتابة في المحرِّر. وبجواره يحمل الملف <code dir="ltr">layout-klid.txt</code>
         معرّف تخطيط لوحة المفاتيح ذاك (ثمانية أرقام ست عشرية، مثل <code dir="ltr">00000409</code>)، لتتمكن
         الإضافة من استخدام اللون نفسه. وإذا ثبّتَّ الإضافة، فإنها تكتب <code dir="ltr">editor-caret.txt</code>
         في المجلد نفسه ما دامت ترسم العلامة؛ ولا يحوي إلا رمز التخطيط ووقتًا. ويحذف CyrFlip ملفّيه الاثنين
-        عند خروجه. وفي نسخة Microsoft Store يقع ذلك المجلد تحت <code dir="ltr">%ProgramData%</code>، الذي
-        يمكن للحسابات الأخرى على الحاسوب نفسه قراءته - وليس فيه سوى هذه القيم. ولا يحتوي أي من هذه الملفات
+        عند خروجه. وتحتفظ نسخة Microsoft Store أيضًا بنسخة من ملفّيها الاثنين تحت
+        <code dir="ltr">%ProgramData%\CyrFlip</code> من أجل الإصدارات الأقدم من الإضافة؛ ويمكن للحسابات الأخرى
+        على الحاسوب نفسه قراءة هذه النسخة - وليس فيها سوى هذه القيم. أما السجلات والملاحظات السريعة التي كانت
+        إصدارات Microsoft Store السابقة تحفظها هناك، فتُنقل إلى مجلد ملفك الشخصي عند أول تشغيل. ولا يحتوي أي من هذه الملفات
         على بيانات شخصية، ولا يغادر أي منها جهازك أبدًا.</li>
 
         <li><strong>الإعدادات والسجل.</strong> تُحفظ الإعدادات في

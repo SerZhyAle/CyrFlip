@@ -43,6 +43,25 @@ namespace CyrFlip.Tests
             Assert.Equal(input, CaseFlipEngine.Flip(CaseFlipEngine.Flip(input)));
         }
 
+        /// <summary>
+        /// Letters whose case partner does not map back to them are left alone (ticket S0009, FP-10):
+        /// the micro sign, the dotless i, the final sigma, the long s and the Kelvin sign. Flipping them
+        /// used to be a one-way trip - µ → Μ → μ - so correcting a text twice changed it.
+        /// </summary>
+        [Theory]
+        [InlineData("µ")]   // µ micro sign
+        [InlineData("ı")]   // ı dotless i
+        [InlineData("ς")]   // ς final sigma
+        [InlineData("ſ")]   // ſ long s
+        [InlineData("K")]   // K Kelvin sign
+        public void LeavesLettersWithoutARoundTripAlone(string letter)
+        {
+            Assert.Equal(letter, CaseFlipEngine.Flip(letter));
+            string text = "a" + letter + "B";
+            Assert.Equal("A" + letter + "b", CaseFlipEngine.Flip(text));
+            Assert.Equal(text, CaseFlipEngine.Flip(CaseFlipEngine.Flip(text)));
+        }
+
         [Theory]
         [InlineData("")]
         [InlineData(null)]

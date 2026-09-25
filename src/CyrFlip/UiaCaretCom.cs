@@ -64,14 +64,13 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// Current caret position (screen px), placed diagonally below-right of the caret to match
-        /// <see cref="CaretOverlay"/>'s other sources. Returns false if there's no caret-bearing
-        /// focused element or UIA/COM is unavailable.
+        /// Current caret (screen px) - where the marker goes is <see cref="CaretPlacement"/>'s decision.
+        /// Returns false if there's no caret-bearing focused element or UIA/COM is unavailable.
         /// </summary>
         [HandleProcessCorruptedStateExceptions, SecurityCritical]
-        public static bool TryGetCaretRange(out int x, out int y)
+        public static bool TryGetCaretRange(out CaretRect caret)
         {
-            x = 0; y = 0;
+            caret = default;
             IUIAutomationElement? element = null;
             IUIAutomationTextPattern2? tp2 = null;
             IUIAutomationTextRange? range = null;
@@ -92,7 +91,7 @@ namespace CyrFlip
                 range = Wrap<IUIAutomationTextRange>(pRange);
                 if (range == null) return false;
 
-                return RectFromCaretRange(range, out x, out y);
+                return RectFromCaretRange(range, out caret);
             }
             catch { return false; }
             finally
@@ -126,8 +125,8 @@ namespace CyrFlip
                 range = Wrap<IUIAutomationTextRange>(pRange);
                 if (hr != 0 || range == null) return $"GetCaretRange hr=0x{hr:X8} range=null active={active}";
 
-                if (RectFromCaretRange(range, out int mx, out int my))
-                    return $"active={active} -> marker x={mx} y={my}";
+                if (RectFromCaretRange(range, out CaretRect found))
+                    return $"active={active} -> caret {found}";
                 return $"GetCaretRange OK (active={active}) but no bounding rect from caret/forward/backward";
             }
             catch (Exception ex) { return "exception: " + ex.GetType().Name + " " + ex.Message; }
@@ -138,66 +137,72 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// Screen-px point diagonally below-right of the caret, derived from a (degenerate) caret
-        /// range. A collapsed range often reports no bounding rectangle, so: try the range directly,
-        /// then extend its End forward one character (caret = left edge of the result), then extend
-        /// its Start back one character (caret = right edge) - the last covers a caret at end-of-text.
+        /// The caret, derived from a (degenerate) caret range. A collapsed range often reports no
+        /// bounding rectangle, so: try the range directly, then the character after the caret, then
+        /// the character before it (a caret at end-of-text). Every rectangle passes the whole-line check
+        /// (a provider that answers a collapsed range with its line or its text box is not answering),
+        /// and the side of the character the caret is on follows the text direction (S0011 LI-10).
         /// </summary>
-        private static bool RectFromCaretRange(IUIAutomationTextRange caret, out int x, out int y)
+        private static bool RectFromCaretRange(IUIAutomationTextRange caret, out CaretRect found)
         {
-            x = 0; y = 0;
+            found = default;
 
             // 1) Directly - some providers give a zero/narrow-width caret rect here.
-            if (caret.GetBoundingRectangles(out double[]? r) == 0 && HasRect(r))
+            if (caret.GetBoundingRectangles(out double[]? r) == 0 && Box(r) is CharBox direct)
             {
-                Place(r!, rightEdge: false, out x, out y);
+                found = CaretGeometry.ToCaret(direct.Left, direct);
                 return true;
             }
 
-            // 2) Extend End forward one char -> caret sits at the LEFT edge of the result.
-            if (caret.Clone(out IntPtr pf) == 0 && pf != IntPtr.Zero)
+            // 2) The character after the caret: its left edge, or its right edge in right-to-left text -
+            //    which only the character before it can tell.
+            if (CharAt(caret, 0, 1) is CharBox following)
             {
-                IUIAutomationTextRange? fwd = Wrap<IUIAutomationTextRange>(pf);
-                try
-                {
-                    if (fwd != null
-                        && fwd.MoveEndpointByUnit(TextEndpoint_End, TextUnit_Character, 1, out int moved) == 0 && moved == 1
-                        && fwd.GetBoundingRectangles(out double[]? rf) == 0 && HasRect(rf))
-                    {
-                        Place(rf!, rightEdge: false, out x, out y);
-                        return true;
-                    }
-                }
-                finally { Release(fwd); }
+                found = CaretGeometry.ToCaret(CaretGeometry.XFromFollowing(following, CharAt(caret, -1, 0)), following);
+                return true;
             }
 
-            // 3) Extend Start back one char -> caret sits at the RIGHT edge (caret at end-of-text).
-            if (caret.Clone(out IntPtr pb) == 0 && pb != IntPtr.Zero)
+            // 3) The character before the caret (caret at end-of-text): its right edge, or its left edge
+            //    in right-to-left text.
+            if (CharAt(caret, -1, 0) is CharBox preceding)
             {
-                IUIAutomationTextRange? bwd = Wrap<IUIAutomationTextRange>(pb);
-                try
-                {
-                    if (bwd != null
-                        && bwd.MoveEndpointByUnit(TextEndpoint_Start, TextUnit_Character, -1, out int moved) == 0 && moved == -1
-                        && bwd.GetBoundingRectangles(out double[]? rb) == 0 && HasRect(rb))
-                    {
-                        Place(rb!, rightEdge: true, out x, out y);
-                        return true;
-                    }
-                }
-                finally { Release(bwd); }
+                found = CaretGeometry.ToCaret(CaretGeometry.XFromPreceding(preceding, CharAt(caret, -2, -1)), preceding);
+                return true;
             }
 
             return false;
         }
 
-        private static bool HasRect(double[]? r) => r != null && r.Length >= 4 && r[3] > 0;
-
-        private static void Place(double[] r, bool rightEdge, out int x, out int y)
+        /// <summary>
+        /// The box of the character <paramref name="start"/>..<paramref name="end"/> characters from the
+        /// caret (0..1 = the one after it, -1..0 = the one before), or null when the text ends there or
+        /// the provider reports nothing usable.
+        /// </summary>
+        [HandleProcessCorruptedStateExceptions, SecurityCritical]
+        private static CharBox? CharAt(IUIAutomationTextRange caret, int start, int end)
         {
-            double left = r[0], top = r[1], width = r[2], height = r[3];
-            x = (int)(left + (rightEdge ? width : 0)) + 2;
-            y = (int)(top + height) + 1;
+            if (caret.Clone(out IntPtr p) != 0 || p == IntPtr.Zero) return null;
+            IUIAutomationTextRange? range = Wrap<IUIAutomationTextRange>(p);
+            try
+            {
+                if (range == null) return null;
+                // Start first: moving End below a Start that is still at the caret would collapse it.
+                if (start != 0 && (range.MoveEndpointByUnit(TextEndpoint_Start, TextUnit_Character, start, out int ms) != 0 || ms != start))
+                    return null;
+                if (end != 0 && (range.MoveEndpointByUnit(TextEndpoint_End, TextUnit_Character, end, out int me) != 0 || me != end))
+                    return null;
+                return range.GetBoundingRectangles(out double[]? rects) == 0 ? Box(rects) : null;
+            }
+            catch { return null; }
+            finally { Release(range); }
+        }
+
+        /// <summary>The first rectangle of a UIA answer, unless it is empty or a whole line.</summary>
+        private static CharBox? Box(double[]? r)
+        {
+            if (r == null || r.Length < 4 || r[3] <= 0) return null;
+            if (CaretGeometry.IsWholeLine(r[2], r[3])) return null;
+            return new CharBox(r[0], r[1], r[2], r[3]);
         }
 
         /// <summary>

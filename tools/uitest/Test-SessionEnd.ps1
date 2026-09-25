@@ -28,10 +28,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$dataDir = Join-Path $env:LOCALAPPDATA 'CyrFlip'
-if (-not (Test-Path $dataDir) -and (Test-Path (Join-Path $env:ProgramData 'CyrFlip'))) {
-    $dataDir = Join-Path $env:ProgramData 'CyrFlip'
-}
+Import-Module (Join-Path $PSScriptRoot 'CyrFlip.UiTest.psm1') -Force
+$dataFolder = Get-CyrFlipDataFolder   # portable, Store (S0016) or a pre-S0016 Store build
+$dataDir = $dataFolder.Path
+
 $layout = Join-Path $dataDir 'layout.txt'
 $layoutKlid = Join-Path $dataDir 'layout-klid.txt'
 $journal = Join-Path $dataDir 'quick-notes.log'

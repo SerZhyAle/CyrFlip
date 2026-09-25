@@ -29,12 +29,17 @@ namespace CyrFlip
         /// Budget for the <b>first</b> line. On a cold model this is almost entirely loading time -
         /// minutes on a CPU-only machine - and has nothing to do with how hard the text is.
         /// </param>
-        /// <param name="answerTimeoutMs">
-        /// Budget for the rest, re-armed once the first line proves the model is loaded and writing.
-        /// 0 keeps the original single budget.
+        /// <param name="idleTimeoutMs">
+        /// Once the first line proves the model is loaded and writing: how long it may go quiet
+        /// before the stream is given up, re-armed on <b>every</b> line (ticket S0010 TD-2). A slow
+        /// machine that keeps writing is never cut off. 0 keeps the single first-line budget.
+        /// </param>
+        /// <param name="maxAnswerMs">
+        /// The ceiling for the whole answer, counted from the first line - only a runaway model that
+        /// never stops writing reaches it. 0 = none.
         /// </param>
         Task<bool> PostLinesAsync(string url, string json, Action<string> onLine,
-            int timeoutMs, int answerTimeoutMs, CancellationToken ct);
+            int timeoutMs, int idleTimeoutMs, int maxAnswerMs, CancellationToken ct);
     }
 
     /// <summary>The real transport: one shared <see cref="HttpClient"/>, per-request timeouts.</summary>
@@ -51,8 +56,7 @@ namespace CyrFlip
 
         private static HttpClient CreateClient()
         {
-            try { ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12; }
-            catch { /* localhost is plain HTTP anyway; this only matters for a remote endpoint */ }
+            TlsPolicy.EnsureTls12();
             return new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
         }
 
@@ -70,7 +74,7 @@ namespace CyrFlip
         }
 
         public async Task<bool> PostLinesAsync(string url, string json, Action<string> onLine,
-            int timeoutMs, int answerTimeoutMs, CancellationToken ct)
+            int timeoutMs, int idleTimeoutMs, int maxAnswerMs, CancellationToken ct)
         {
             using var linked = Linked(ct, timeoutMs);
             try
@@ -99,35 +103,67 @@ namespace CyrFlip
                 // the stream underneath - otherwise Esc would only be honoured after the model
                 // finished the sentence it was writing. Registered after the stream so it is
                 // disposed first (using-declarations unwind in reverse).
+                //
+                // The dispose is queued, never run inline (ticket S0010 TD-3): Cancel() runs this
+                // callback on the thread that cancelled - the UI thread, for Esc, closing the popup
+                // or a newer chord - and closing a half-read chunked response on .NET Framework can
+                // drain the rest of it, i.e. wait for the model to finish, while the keyboard hook
+                // that shares the UI thread waits too.
                 using CancellationTokenRegistration abort = linked.Token.Register(() =>
-                {
-                    try { stream.Dispose(); } catch { }
-                });
-
-                bool firstLine = true;
-                while (true)
-                {
-                    string? line;
-                    try { line = await reader.ReadLineAsync().ConfigureAwait(false); }
-                    catch when (linked.IsCancellationRequested) { break; }
-                    if (line == null) break;
-                    linked.Token.ThrowIfCancellationRequested();
-                    if (line.Length == 0) continue;
-                    if (firstLine)
+                    ThreadPool.QueueUserWorkItem(_ =>
                     {
-                        // The model has answered, so it is loaded: from here the clock is about how
-                        // long the text takes to translate, not about how long a cold model takes to
-                        // come up. CancelAfter re-arms the existing timer.
-                        firstLine = false;
-                        if (answerTimeoutMs > 0) linked.CancelAfter(answerTimeoutMs);
-                    }
-                    onLine(line);
-                }
-                linked.Token.ThrowIfCancellationRequested();
-                return true;
+                        try { stream.Dispose(); } catch { }
+                    }));
+
+                return await PumpAsync(_ => reader.ReadLineAsync(), onLine, linked, idleTimeoutMs, maxAnswerMs)
+                    .ConfigureAwait(false);
             }
             catch (OperationCanceledException) { throw; }
             catch { return false; }
+        }
+
+        /// <summary>
+        /// The read loop, apart from HTTP so its clock is testable (S0010 TD-2). Before the first
+        /// line the budget is whatever <paramref name="linked"/> was armed with (the model load);
+        /// from the first line on, every line re-arms it to <paramref name="idleTimeoutMs"/>, so only
+        /// a model that goes <b>quiet</b> times out - a slow one that keeps writing does not. A
+        /// timeout surfaces as <see cref="OperationCanceledException"/> after the lines already
+        /// handed to <paramref name="onLine"/>, which is what lets the caller keep them.
+        /// </summary>
+        /// <param name="readLine">
+        /// Reads one line, null at the end. It is handed the linked token; the real reader cannot
+        /// take one on net48 and is cancelled by closing its stream instead.
+        /// </param>
+        internal static async Task<bool> PumpAsync(Func<CancellationToken, Task<string?>> readLine,
+            Action<string> onLine, CancellationTokenSource linked, int idleTimeoutMs, int maxAnswerMs)
+        {
+            System.Diagnostics.Stopwatch? answering = null;
+            while (true)
+            {
+                string? line;
+                try { line = await readLine(linked.Token).ConfigureAwait(false); }
+                catch when (linked.IsCancellationRequested) { break; }
+                if (line == null) break;
+                linked.Token.ThrowIfCancellationRequested();
+                if (line.Length == 0) continue;
+                if (answering == null)
+                {
+                    // The model has answered, so it is loaded: from here the clock is about whether
+                    // it is still writing, not about how long a cold model takes to come up.
+                    answering = System.Diagnostics.Stopwatch.StartNew();
+                }
+                else if (maxAnswerMs > 0 && answering.ElapsedMilliseconds > maxAnswerMs)
+                {
+                    // Only a model stuck repeating itself gets here; a quiet one is the idle timer's.
+                    linked.Cancel();
+                    linked.Token.ThrowIfCancellationRequested();
+                }
+                // CancelAfter re-arms the existing timer.
+                if (idleTimeoutMs > 0) linked.CancelAfter(idleTimeoutMs);
+                onLine(line);
+            }
+            linked.Token.ThrowIfCancellationRequested();
+            return true;
         }
 
         private static CancellationTokenSource Linked(CancellationToken ct, int timeoutMs)
@@ -160,7 +196,43 @@ namespace CyrFlip
         {
             BaseUrl = NormalizeBase(endpoint);
             _transport = transport;
+            RaiseConnectionLimit(BaseUrl);
         }
+
+        /// <summary>Connections .NET Framework allows to the Ollama endpoint at once.</summary>
+        internal const int ConnectionLimit = 4;
+
+        /// <summary>
+        /// .NET Framework allows two connections per host by default (ticket S0010 TD-3). A cancelled
+        /// stream keeps its connection busy while Ollama goes on generating, so the next probe could
+        /// wait behind it, time out, and be reported as "Ollama is not running".
+        /// </summary>
+        private static void RaiseConnectionLimit(string baseUrl)
+        {
+            try
+            {
+                ServicePoint point = ServicePointManager.FindServicePoint(new Uri(baseUrl));
+                if (point.ConnectionLimit < ConnectionLimit) point.ConnectionLimit = ConnectionLimit;
+            }
+            catch { /* an address we cannot parse fails with its own message on the first request */ }
+        }
+
+        /// <summary>
+        /// True when <paramref name="baseUrl"/> names this machine - the only server CyrFlip may
+        /// start by itself (ticket S0010 TD-6). A remote endpoint that does not answer is reported
+        /// as such; starting the <i>local</i> Ollama for it only cost eight seconds and a misleading
+        /// "not installed".
+        /// </summary>
+        internal static bool IsLoopback(string baseUrl)
+        {
+            if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri? uri) || uri == null) return false;
+            if (uri.IsLoopback) return true;
+            return IPAddress.TryParse(uri.Host.Trim('[', ']'), out IPAddress? address) && IPAddress.IsLoopback(address);
+        }
+
+        /// <summary>The host (and a non-default port) of <paramref name="baseUrl"/>, for a message.</summary>
+        internal static string HostOf(string baseUrl)
+            => Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri? uri) && uri != null ? uri.Authority : baseUrl;
 
         public string BaseUrl { get; }
 
@@ -219,7 +291,7 @@ namespace CyrFlip
                 if (error != null) { failed = true; progress?.Report(error); return; }
                 if (done) success = true;
                 if (text.Length > 0) progress?.Report(text);
-            }, 0, 0, ct).ConfigureAwait(false);
+            }, 0, 0, 0, ct).ConfigureAwait(false);
 
             return sent && success && !failed;
         }
@@ -239,9 +311,16 @@ namespace CyrFlip
         /// minutes on a CPU-only machine, and paying that again every few minutes is the single
         /// biggest thing that makes the feature feel broken.
         /// </param>
+        /// <remarks>
+        /// A deadline that fires <b>after</b> the model has written something does not throw: the
+        /// text so far is returned and <see cref="LastStoppedEarly"/> says it is incomplete (ticket
+        /// S0010 TD-2) - on a slow machine that text is minutes of work the user has already watched
+        /// appear. A deadline before the first chunk, and every cancellation by
+        /// <paramref name="ct"/>, still throws <see cref="OperationCanceledException"/>.
+        /// </remarks>
         public async Task<string?> GenerateAsync(string model, string system, string prompt,
-            int keepAliveMinutes, Action<string>? partial, int timeoutMs, int answerTimeoutMs,
-            CancellationToken ct)
+            int keepAliveMinutes, Action<string>? partial, int timeoutMs, int idleTimeoutMs,
+            int maxAnswerMs, CancellationToken ct)
         {
             string body = Json(new Dictionary<string, object>
             {
@@ -254,20 +333,36 @@ namespace CyrFlip
             });
 
             LastError = "";
+            LastStoppedEarly = false;
             var text = new StringBuilder();
             bool serverError = false;
-            bool ok = await _transport.PostLinesAsync(BaseUrl + "/api/generate", body, line =>
+            bool ok;
+            try
             {
-                string chunk = ParseGenerateChunk(line, out bool _, out string? error);
-                if (error != null) { serverError = true; LastError = error; return; }
-                if (chunk.Length == 0) return;
-                text.Append(chunk);
-                partial?.Invoke(chunk);
-            }, timeoutMs, answerTimeoutMs, ct).ConfigureAwait(false);
+                ok = await _transport.PostLinesAsync(BaseUrl + "/api/generate", body, line =>
+                {
+                    string chunk = ParseGenerateChunk(line, out bool _, out string? error);
+                    if (error != null) { serverError = true; LastError = error; return; }
+                    if (chunk.Length == 0) return;
+                    text.Append(chunk);
+                    partial?.Invoke(chunk);
+                }, timeoutMs, idleTimeoutMs, maxAnswerMs, ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested && text.Length > 0 && !serverError)
+            {
+                LastStoppedEarly = true;
+                return text.ToString();
+            }
 
             if (!ok || serverError) return null;
             return text.ToString();
         }
+
+        /// <summary>
+        /// True when the last <see cref="GenerateAsync"/> returned text that a deadline cut short -
+        /// the model stopped answering, or wrote past the ceiling.
+        /// </summary>
+        public bool LastStoppedEarly { get; private set; }
 
         /// <summary>
         /// What goes into <c>keep_alive</c>: the number -1 for "keep it loaded until Ollama exits",

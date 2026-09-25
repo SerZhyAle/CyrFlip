@@ -124,12 +124,39 @@ namespace CyrFlip
         /// <summary>As <see cref="DetectLayout()"/>, also reporting the active layout's KLID ("" if unknown).</summary>
         public static string DetectLayout(out string klid)
         {
-            IntPtr hwnd = GetForegroundWindow();
+            IntPtr hwnd = InputWindow(GetForegroundWindow());
             uint threadId = GetWindowThreadProcessId(hwnd, out _);
             IntPtr hkl = GetKeyboardLayout(threadId);
             int langId = (int)((long)hkl & 0xFFFF);
             klid = LayoutIdentity.KlidForHkl(hkl);
             return WorldLayouts.CodeForLangId(langId);
+        }
+
+        /// <summary>
+        /// The window whose thread's layout is the one the user types with (ticket S0011 LI-4). The
+        /// layout is per thread, and for a UWP app - Calculator, Settings, Store, Photos, Mail - the
+        /// foreground window is the <c>ApplicationFrameWindow</c> of ApplicationFrameHost while the
+        /// input goes to a <c>Windows.UI.Core.CoreWindow</c> child owned by another process: reading
+        /// the frame's thread showed a layout that a Win+Space inside the app never changed. So: the
+        /// focused window of the foreground thread when it has one, else the frame's CoreWindow child,
+        /// else the foreground window itself (which is what it always was for every other app).
+        /// </summary>
+        internal static IntPtr InputWindow(IntPtr foreground)
+        {
+            if (foreground == IntPtr.Zero) return foreground;
+
+            uint thread = GetWindowThreadProcessId(foreground, out _);
+            var gti = new GUITHREADINFO { cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(GUITHREADINFO)) };
+            if (thread != 0 && GetGUIThreadInfo(thread, ref gti) && gti.hwndFocus != IntPtr.Zero)
+                return gti.hwndFocus;
+
+            var cls = new System.Text.StringBuilder(64);
+            if (GetClassName(foreground, cls, cls.Capacity) > 0 && cls.ToString() == "ApplicationFrameWindow")
+            {
+                IntPtr core = FindWindowEx(foreground, IntPtr.Zero, "Windows.UI.Core.CoreWindow", null);
+                if (core != IntPtr.Zero) return core;
+            }
+            return foreground;
         }
 
         /// <summary>

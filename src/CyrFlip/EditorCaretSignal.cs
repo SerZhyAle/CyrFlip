@@ -44,6 +44,15 @@ namespace CyrFlip
         /// <summary>Read from the folder the layout is written to - one decision, rule 1.</summary>
         internal static readonly string FilePath = Path.Combine(LayoutPublisher.Folder, ClaimFileName);
 
+        /// <summary>
+        /// Every place the claim may be (rule 9, 1.1): beside the primary <c>layout.txt</c> and, for a
+        /// packaged build, beside the deprecated mirror - an extension that predates S0016 reads the mirror
+        /// and therefore claims there. A fresh file in either counts.
+        /// </summary>
+        internal static readonly string[] FilePaths = LayoutPublisher.MirrorFolder == null
+            ? new[] { FilePath }
+            : new[] { FilePath, Path.Combine(LayoutPublisher.MirrorFolder, ClaimFileName) };
+
         private static readonly Stopwatch Clock = Stopwatch.StartNew();
         private static long _checkedMs = -PollMs;
         private static bool _fresh;
@@ -65,15 +74,25 @@ namespace CyrFlip
                 return _fresh;
             _checkedMs = now;
 
-            try
+            bool fresh = false;
+            DateTime utcNow = DateTime.UtcNow;
+            foreach (string path in FilePaths)
             {
-                var info = new FileInfo(FilePath);
-                _fresh = info.Exists && IsFresh(info.LastWriteTimeUtc, DateTime.UtcNow);
+                try
+                {
+                    var info = new FileInfo(path);
+                    if (info.Exists && IsFresh(info.LastWriteTimeUtc, utcNow))
+                    {
+                        fresh = true;
+                        break;
+                    }
+                }
+                catch
+                {
+                    // an unreadable signal means "not claimed"
+                }
             }
-            catch
-            {
-                _fresh = false; // an unreadable signal means "not claimed"
-            }
+            _fresh = fresh;
             return _fresh;
         }
 

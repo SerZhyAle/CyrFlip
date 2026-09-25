@@ -140,7 +140,7 @@ namespace CyrFlip.Tests
             var chunks = new List<string>();
 
             string? answer = await client.GenerateAsync("qwen2.5:3b", "system", "prompt", 5,
-                chunk => chunks.Add(chunk), 1000, 5000, CancellationToken.None);
+                chunk => chunks.Add(chunk), 1000, 5000, 0, CancellationToken.None);
 
             Assert.Equal("Hello, world", answer);
             Assert.Equal(new[] { "Hello", ", ", "world" }, chunks);
@@ -154,7 +154,7 @@ namespace CyrFlip.Tests
             var client = new OllamaClient("", transport);
 
             await client.GenerateAsync("qwen2.5:3b", "you are an engine", "translate this", 7,
-                null, 1000, 5000, CancellationToken.None);
+                null, 1000, 5000, 0, CancellationToken.None);
 
             string body = Assert.Single(transport.Posts).Body;
             Assert.Contains("\"model\":\"qwen2.5:3b\"", body);
@@ -165,13 +165,146 @@ namespace CyrFlip.Tests
             Assert.Contains("/api/generate", transport.Posts[0].Url);
         }
 
+        // ---- S0010 TD-2: a deadline mid-stream keeps what was written ----
+
+        [Fact]
+        public async Task ADeadlineAfterTheFirstChunkReturnsTheTextSoFarMarkedIncomplete()
+        {
+            var transport = new FakeTransport { StopAfterLines = true };
+            transport.Lines.Enqueue(new[]
+            {
+                "{\"response\":\"one \",\"done\":false}", "{\"response\":\"two \",\"done\":false}",
+                "{\"response\":\"three \",\"done\":false}", "{\"response\":\"four \",\"done\":false}",
+                "{\"response\":\"five\",\"done\":false}",
+            });
+            var client = new OllamaClient("", transport);
+
+            string? answer = await client.GenerateAsync("m", "s", "p", 5, null, 1000, 30000, 0, CancellationToken.None);
+
+            Assert.Equal("one two three four five", answer);
+            Assert.True(client.LastStoppedEarly);
+        }
+
+        [Fact]
+        public async Task ADeadlineBeforeTheFirstChunkIsStillATimeout()
+        {
+            var client = new OllamaClient("", new FakeTransport { StopAfterLines = true });
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => client.GenerateAsync("m", "s", "p", 5, null, 1000, 30000, 0, CancellationToken.None));
+            Assert.False(client.LastStoppedEarly);
+        }
+
+        [Fact]
+        public async Task TheUsersOwnCancelThrowsEvenAfterChunksArrived()
+        {
+            var transport = new FakeTransport { StopAfterLines = true };
+            transport.Lines.Enqueue(new[] { "{\"response\":\"half\",\"done\":false}" });
+            var client = new OllamaClient("", transport);
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            // Esc means "never mind": nothing may be delivered, however much was written.
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => client.GenerateAsync("m", "s", "p", 5, null, 1000, 30000, 0, cts.Token));
+        }
+
+        /// <summary>
+        /// The read loop's clock (TD-2), at a hundredth of real time: a line every 20 ms for 600 ms
+        /// against a 100 ms idle limit completes - the old total cap would have cut it - and a
+        /// stream that falls silent after five lines is cut, with those five delivered.
+        /// </summary>
+        [Fact]
+        public async Task ASlowStreamThatKeepsWritingIsNeverCutOff()
+        {
+            int sent = 0;
+            var lines = new List<string>();
+            using var linked = new CancellationTokenSource(200); // the "load" budget: first line only
+
+            bool ok = await HttpOllamaTransport.PumpAsync(async token =>
+            {
+                if (sent == 30) return null;
+                await Task.Delay(20, token);
+                return "line " + sent++;
+            }, lines.Add, linked, idleTimeoutMs: 100, maxAnswerMs: 0);
+
+            Assert.True(ok);
+            Assert.Equal(30, lines.Count);
+        }
+
+        [Fact]
+        public async Task AStreamThatFallsSilentIsCutAfterWhatItWrote()
+        {
+            int sent = 0;
+            var lines = new List<string>();
+            using var linked = new CancellationTokenSource(2000);
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => HttpOllamaTransport.PumpAsync(async token =>
+            {
+                if (sent == 5) await Task.Delay(Timeout.Infinite, token);
+                await Task.Delay(10, token);
+                return "line " + sent++;
+            }, lines.Add, linked, idleTimeoutMs: 100, maxAnswerMs: 0));
+
+            Assert.Equal(5, lines.Count);
+        }
+
+        [Fact]
+        public async Task ARunawayStreamStopsAtTheCeiling()
+        {
+            var lines = new List<string>();
+            using var linked = new CancellationTokenSource(2000);
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => HttpOllamaTransport.PumpAsync(async token =>
+            {
+                await Task.Delay(10, token);
+                return "again";
+            }, lines.Add, linked, idleTimeoutMs: 1000, maxAnswerMs: 150));
+
+            Assert.InRange(lines.Count, 1, 60);
+        }
+
+        // ---- S0010 TD-6 / TD-4 ----
+
+        [Theory]
+        [InlineData("http://localhost:11434", true)]
+        [InlineData("http://LOCALHOST:11434", true)]
+        [InlineData("http://127.0.0.1:11434", true)]
+        [InlineData("http://127.0.0.5:11434", true)]
+        [InlineData("http://[::1]:11434", true)]
+        [InlineData("http://192.168.1.20:11434", false)]
+        [InlineData("http://gpu-box.lan:11434", false)]
+        [InlineData("https://ollama.example.com", false)]
+        [InlineData("not a url", false)]
+        public void OnlyThisMachineCountsAsLoopback(string url, bool loopback)
+            => Assert.Equal(loopback, OllamaClient.IsLoopback(url));
+
+        [Fact]
+        public void TheHostIsWhatTheMessageNames()
+        {
+            Assert.Equal("192.168.1.20:11434", OllamaClient.HostOf("http://192.168.1.20:11434"));
+            Assert.Equal("ollama.example.com", OllamaClient.HostOf("https://ollama.example.com"));
+        }
+
+        [Fact]
+        public void TheSystemDefaultIsLeftToTheSystem()
+        {
+            // SystemDefault lets Windows pick TLS 1.3 too; OR-ing Tls12 into it would pin 1.2 alone.
+            Assert.Equal(System.Net.SecurityProtocolType.SystemDefault,
+                TlsPolicy.WithTls12(System.Net.SecurityProtocolType.SystemDefault));
+#pragma warning disable CS0618 // Ssl3 is obsolete - which is exactly the legacy default being tested
+            var legacy = System.Net.SecurityProtocolType.Ssl3 | System.Net.SecurityProtocolType.Tls;
+            Assert.Equal(legacy | System.Net.SecurityProtocolType.Tls12, TlsPolicy.WithTls12(legacy));
+#pragma warning restore CS0618
+        }
+
         [Fact]
         public async Task AFailedRequestIsNullRatherThanAnEmptyTranslation()
         {
             var transport = new FakeTransport { PostSucceeds = false };
             var client = new OllamaClient("", transport);
 
-            Assert.Null(await client.GenerateAsync("m", "s", "p", 5, null, 1000, 5000, CancellationToken.None));
+            Assert.Null(await client.GenerateAsync("m", "s", "p", 5, null, 1000, 5000, 0, CancellationToken.None));
         }
 
         [Fact]
@@ -181,7 +314,7 @@ namespace CyrFlip.Tests
             transport.Lines.Enqueue(new[] { "{\"error\":\"model 'nope' not found\"}" });
             var client = new OllamaClient("", transport);
 
-            Assert.Null(await client.GenerateAsync("nope", "s", "p", 5, null, 1000, 5000, CancellationToken.None));
+            Assert.Null(await client.GenerateAsync("nope", "s", "p", 5, null, 1000, 5000, 0, CancellationToken.None));
         }
 
         [Fact]
@@ -230,23 +363,39 @@ namespace CyrFlip.Tests
             public readonly Queue<string[]> Lines = new Queue<string[]>();
             public readonly List<Posted> Posts = new List<Posted>();
 
-            public Task<string?> GetStringAsync(string url, int timeoutMs, CancellationToken ct)
-                => Task.FromResult(Body);
+            public readonly List<string> Gets = new List<string>();
 
-            /// <summary>The two budgets the real transport applies, recorded so tests can assert them.</summary>
+            public Task<string?> GetStringAsync(string url, int timeoutMs, CancellationToken ct)
+            {
+                Gets.Add(url);
+                // The real transport rethrows only the caller's own cancellation.
+                ct.ThrowIfCancellationRequested();
+                return Task.FromResult(Body);
+            }
+
+            /// <summary>The budgets the real transport applies, recorded so tests can assert them.</summary>
             public int LastTimeoutMs;
-            public int LastAnswerTimeoutMs;
+            public int LastIdleTimeoutMs;
+            public int LastMaxAnswerMs;
+
+            /// <summary>
+            /// A deadline that fires mid-stream: the queued lines of the next post are delivered,
+            /// then the post throws as the real transport does when its timer cancels it.
+            /// </summary>
+            public bool StopAfterLines;
 
             public Task<bool> PostLinesAsync(string url, string json, Action<string> onLine,
-                int timeoutMs, int answerTimeoutMs, CancellationToken ct)
+                int timeoutMs, int idleTimeoutMs, int maxAnswerMs, CancellationToken ct)
             {
                 if (ThrowOnPost) throw new OperationCanceledException(ct);
                 LastTimeoutMs = timeoutMs;
-                LastAnswerTimeoutMs = answerTimeoutMs;
+                LastIdleTimeoutMs = idleTimeoutMs;
+                LastMaxAnswerMs = maxAnswerMs;
                 Posts.Add(new Posted(url, json));
                 if (Lines.Count > 0)
                     foreach (string line in Lines.Dequeue())
                         onLine(line);
+                if (StopAfterLines) throw new OperationCanceledException();
                 return Task.FromResult(PostSucceeds);
             }
 

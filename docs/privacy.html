@@ -156,14 +156,17 @@
       <ul class="features">
         <li><strong>Layout file.</strong> CyrFlip writes the current layout code - a two-letter value such
         as <code>EN</code>, <code>ZH</code>, <code>RU</code>, or <code>AR</code> - to a small local file
-        (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, or <code>%ProgramData%\CyrFlip\layout.txt</code> in
-        the Microsoft Store version) so the optional companion VS&nbsp;Code extension can display the marker
+        (<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>, or in the Microsoft Store version
+        <code>layout.txt</code> in the app's own folder in your profile,
+        <code>%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip</code>) so the optional companion VS&nbsp;Code extension can display the marker
         at the editor caret. Beside it, <code>layout-klid.txt</code> holds the identifier of that keyboard
         layout (eight hexadecimal digits, such as <code>00000409</code>), so the extension can use the same
         colour. The extension, if you install it, writes <code>editor-caret.txt</code> into the same folder
         while it draws the marker; it holds only the layout code and a time. CyrFlip removes its two files
-        when it exits. In the Microsoft Store version that folder is under <code>%ProgramData%</code>, which
-        other accounts on the same PC can read - it holds nothing but these values. None of these files
+        when it exits. The Microsoft Store version also keeps a copy of its two files under
+        <code>%ProgramData%\CyrFlip</code> for older versions of the extension; other accounts on the same PC
+        can read that copy - it holds nothing but these values. Logs and quick notes that earlier Store
+        versions kept there are moved into your own profile folder on the first start. None of these files
         contains personal data or ever leaves your device.</li>
 
         <li><strong>Configuration and history.</strong> Settings are stored in

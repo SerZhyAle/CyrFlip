@@ -31,7 +31,9 @@ not a local edit and not a local copy kept "in sync".
 | [`CHECK-BASELINE.md`](CHECK-BASELINE.md) | `CHECK-BASELINE` | None - no accepted-debt file, declared |
 | [`CHECK-PLACEMENT.md`](CHECK-PLACEMENT.md) | `CHECK-PLACEMENT` | Producer - where each check runs |
 | [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md) | `BUILD-EVIDENCE` | Producer - the release ZIP carries its build's version and commit |
-| [`UPDATE-MANIFEST.md`](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | Consumer - update feed manifest discovery and package verification |
+| [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-INTERNAL-QUALITY` | Consumer - internal docs; partly conformant |
+| [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-EXTERNAL-QUALITY` | Consumer - the `docs/` site in 13 languages; partly conformant |
+| [`UPDATE-MANIFEST.md`](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | Not bound - CyrFlip has no update check |
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `REPO-STAMP` | Producer - `.sza-canon.json`, written only by the adoption run |
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `REPO-LAYOUT` | Producer - the names tools address |
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `RULE-DELIVERY` | Consumer - the `sza` plugin |

@@ -22,15 +22,40 @@ namespace CyrFlip.Tests
 
         private static readonly Func<string, bool> EmptyDisk = _ => false;
 
-        private static LaunchTarget Parse(string selection, Func<string, bool>? exists = null)
+        /// <summary>
+        /// Every probe seamed: the disk the test names, drives local unless listed, no on-disk
+        /// renaming, Windows' own dangerous list empty (so our list is what is under test), and a
+        /// local current directory.
+        /// </summary>
+        private static LaunchProbes Probes(Func<string, bool>? exists = null, string remoteDrives = "")
+            => new LaunchProbes
+            {
+                Exists = exists ?? EmptyDisk,
+                IsRemoteDrive = letter => remoteDrives.IndexOf(letter) >= 0,
+                RealName = _ => null,
+                IsDangerousExtension = _ => false,
+                CurrentDirectory = () => @"C:\work",
+            };
+
+        /// <summary>A disk probe that fails the test if it is ever asked - for inputs that must never be probed.</summary>
+        private static bool MustNotProbe(string path)
         {
-            Assert.True(LaunchTargets.TryParse(selection, out LaunchTarget? target, exists ?? EmptyDisk),
+            Assert.Fail("the file system was asked about a remote path: " + path);
+            return false;
+        }
+
+        private static LaunchTarget Parse(string selection, Func<string, bool>? exists = null)
+            => Parse(selection, Probes(exists));
+
+        private static LaunchTarget Parse(string selection, LaunchProbes probes)
+        {
+            Assert.True(LaunchTargets.TryParse(selection, out LaunchTarget? target, probes),
                 "expected a launch target for: " + selection);
             return target!;
         }
 
         private static void Refused(string? selection, Func<string, bool>? exists = null)
-            => Assert.False(LaunchTargets.TryParse(selection, out _, exists ?? EmptyDisk),
+            => Assert.False(LaunchTargets.TryParse(selection, out _, Probes(exists)),
                 "expected no launch target for: " + selection);
 
         // ---- URLs -------------------------------------------------------------------------
@@ -130,7 +155,99 @@ namespace CyrFlip.Tests
         [Fact]
         public void AFileOnANetworkShareIsAlwaysConfirmed()
             => Assert.Equal(LaunchKind.Program,
-                Parse(@"\\server\share\report.pdf", Disk(@"\\server\share\report.pdf")).Kind);
+                Parse(@"\\server\share\report.pdf", MustNotProbe).Kind);
+
+        /// <summary>
+        /// S0008 LS-1: asking whether a remote path exists makes Windows contact that host - an SMB
+        /// authentication to a server the author of the text chose, and a stall of every input
+        /// event on the machine while it does not answer. Every spelling of "remote" is recognised
+        /// from the text alone and comes back as a confirmed Program naming the full path.
+        /// </summary>
+        [Theory]
+        [InlineData(@"\\10.255.255.1\x\y.pdf", @"\\10.255.255.1\x\y.pdf")]
+        [InlineData(@"//host/share/doc.txt", @"\\host\share\doc.txt")]
+        [InlineData("file://host/share/doc.txt", @"\\host\share\doc.txt")]
+        [InlineData(@"\\?\UNC\host\share\doc.txt", @"\\host\share\doc.txt")]
+        [InlineData(@"Z:\team\plan.docx", @"Z:\team\plan.docx")]
+        public void ARemotePathIsNeverProbedAndAlwaysConfirmed(string selection, string expected)
+        {
+            LaunchTarget target = Parse(selection, Probes(MustNotProbe, remoteDrives: "Z"));
+            Assert.Equal(LaunchKind.Program, target.Kind);
+            Assert.Equal(expected, target.Target);
+        }
+
+        [Fact]
+        public void ARemotePathInsideProseIsNotProbedEither()
+            => Assert.Equal(LaunchKind.Program,
+                Parse(@"see \\host\share\x.txt for details", Probes(MustNotProbe)).Kind);
+
+        [Fact]
+        public void ARootRelativePathOnANetworkCurrentDirectoryIsRemote()
+        {
+            LaunchProbes probes = Probes(MustNotProbe);
+            probes.CurrentDirectory = () => @"\\host\share\folder";
+            LaunchTarget target = Parse(@"\docs\a.pdf", probes);
+            Assert.Equal(LaunchKind.Program, target.Kind);
+            Assert.Equal(@"\\host\share\docs\a.pdf", target.Target);
+        }
+
+        /// <summary>"\\n" in a code sample is not a share; the device namespace is not a target at all.</summary>
+        [Theory]
+        [InlineData(@"\\n")]
+        [InlineData(@"\\server")]
+        [InlineData(@"\\.\PhysicalDrive0")]
+        [InlineData(@"\\?\C:\tools\a.exe")]
+        public void NeitherAHalfUncNorADevicePathIsATarget(string selection)
+            => Assert.False(LaunchTargets.TryParse(selection, out _, Probes(MustNotProbe)));
+
+        /// <summary>
+        /// S0008 LS-3: Win32 strips trailing dots and spaces, so "x.exe. ." opens x.exe - and the
+        /// extension check has to look at what opens, not at the text.
+        /// </summary>
+        [Fact]
+        public void TrailingDotsAndSpacesDoNotHideAnExecutable()
+        {
+            LaunchTarget target = Parse(@"C:\t\x.exe. .", Disk(@"C:\t\x.exe"));
+            Assert.Equal(LaunchKind.Program, target.Kind);
+            Assert.Equal(@"C:\t\x.exe", target.Target);
+        }
+
+        [Theory]
+        [InlineData(@"C:\t\help.chm")]
+        [InlineData(@"C:\t\app.appref-ms")]
+        [InlineData(@"C:\t\x.settingcontent-ms")]
+        [InlineData(@"C:\t\disk.iso")]
+        [InlineData(@"C:\t\pkg.msix")]
+        [InlineData(@"C:\t\conn.rdp")]
+        public void WhatShellExecuteRunsOrMountsIsAProgram(string path)
+            => Assert.Equal(LaunchKind.Program, Parse(path, Disk(path)).Kind);
+
+        [Fact]
+        public void WindowsOwnDangerousListIsConsultedToo()
+        {
+            LaunchProbes probes = Probes(Disk(@"C:\t\a.newrisk"));
+            probes.IsDangerousExtension = ext => ext == ".newrisk";
+            Assert.Equal(LaunchKind.Program, Parse(@"C:\t\a.newrisk", probes).Kind);
+        }
+
+        /// <summary>An 8.3 alias hides the real extension; the real on-disk name decides.</summary>
+        [Fact]
+        public void TheRealOnDiskNameDecidesTheKind()
+        {
+            LaunchProbes probes = Probes(Disk(@"C:\t\APP~1.APP"));
+            probes.RealName = _ => "app.appref-ms";
+            LaunchTarget target = Parse(@"C:\t\APP~1.APP", probes);
+            Assert.Equal(LaunchKind.Program, target.Kind);
+            Assert.Equal(@"C:\t\app.appref-ms", target.Target);
+        }
+
+        /// <summary>S0008 LS-5: an invisible reordering character refuses the candidate outright.</summary>
+        [Theory]
+        [InlineData("C:\\t\\invoice\u202Efdp.exe")]
+        [InlineData("https://example.com/\u200Fx")]
+        [InlineData("https://exa\u2066mple.com/")]
+        public void ABidiControlCharacterRefusesTheCandidate(string selection)
+            => Refused(selection, Disk("C:\\t\\invoice\u202Efdp.exe"));
 
         [Fact]
         public void AFileUrlBecomesThePathItNames()
@@ -213,6 +330,21 @@ namespace CyrFlip.Tests
             Assert.StartsWith("https://", display);
             Assert.EndsWith("/end", display);
             Assert.Contains("..", display);
+        }
+
+        /// <summary>
+        /// S0008 LS-5: the host is the part that says whose link it is, so it is never elided - the
+        /// path gives up its middle instead, and a host longer than the caption is shown whole.
+        /// </summary>
+        [Fact]
+        public void TheHostOfALongUrlIsNeverElided()
+        {
+            string host = "login.bank.example.com.attacker-controlled-domain.test";
+            string display = Parse("https://" + host + "/" + new string('a', 80) + "/end").Display;
+            Assert.StartsWith("https://" + host, display);
+
+            string shortHost = "https://example.com/" + new string('b', 100);
+            Assert.StartsWith("https://example.com..", Parse(shortHost).Display);
         }
     }
 }

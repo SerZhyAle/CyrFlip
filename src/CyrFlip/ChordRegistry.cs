@@ -183,18 +183,18 @@ namespace CyrFlip
             ChordOwner? owner = registry.CyrFlipOwnerOf(chord, kind, id);
             if (owner != null)
             {
-                MessageBox.Show(parent, string.Format(T("Комбинация {0} уже занята действием «{1}»."),
+                ConfirmDialog.Show(parent, uiLanguage, string.Format(T("Комбинация {0} уже занята действием «{1}»."),
                     chord.Display, ChordRegistry.Label(owner, uiLanguage, layoutName)),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
             if (!askAboutWindows) return true;
             ChordOwner? windows = registry.WindowsOwnerOf(chord);
             if (windows == null) return true;
-            return MessageBox.Show(parent, string.Format(T("Комбинация {0} назначена в Windows для переключения на язык «{1}». Если её займёт CyrFlip, Windows её больше не получит. Всё равно назначить?"),
+            return ConfirmDialog.Show(parent, uiLanguage, string.Format(T("Комбинация {0} назначена в Windows для переключения на язык «{1}». Если её займёт CyrFlip, Windows её больше не получит. Всё равно назначить?"),
                     chord.Display, ChordRegistry.Label(windows, uiLanguage, layoutName)),
-                "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
         }
 
         /// <summary>
@@ -208,11 +208,11 @@ namespace CyrFlip
             List<KeyValuePair<ChordOwner, ChordOwner>> pairs = registry.Duplicates();
             if (pairs.Count == 0) return;
             KeyValuePair<ChordOwner, ChordOwner> first = pairs[0];
-            MessageBox.Show(parent, string.Format(
+            ConfirmDialog.Show(parent, uiLanguage, string.Format(
                     Localization.Translate(uiLanguage, "Комбинация {0} назначена сразу двум действиям: «{1}» и «{2}». Сработает только одно - смените одну из них."),
                     first.Key.Chord.Display, ChordRegistry.Label(first.Key, uiLanguage, layoutName),
                     ChordRegistry.Label(first.Value, uiLanguage, layoutName)),
-                "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
 }

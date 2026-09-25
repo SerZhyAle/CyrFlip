@@ -56,6 +56,8 @@ Szenario starten aus dem Infobereich, per eigenem globalem Kürzel oder aus der 
 Optionaler lokaler Übersetzer: Auswahl per Tastenkürzel, Ergebnis im Fenster am Mauszeiger
 @@Feature17
 Die Übersetzung läuft über Ollama auf Ihrem Rechner - separat installiert, standardmäßig aus
+@@Feature18
+Hell, dunkel oder wie Windows: alle Fenster, Dialoge und Menüs folgen dem Design, ohne Neustart
 @@SearchTerm1
 Tastaturlayout wechseln
 @@SearchTerm2

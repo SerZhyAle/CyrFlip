@@ -315,6 +315,87 @@ namespace CyrFlip
             Changed?.Invoke(this, EventArgs.Empty);
         }
 
+        /// <summary>
+        /// Raised after <see cref="Import"/> changed notes in place. A window holding one of them open
+        /// has to reload it from the object - its editor still shows the text from before.
+        /// </summary>
+        public event EventHandler? Imported;
+
+        /// <summary>
+        /// What <see cref="Import"/> would do with these blocks, without doing it (S0023, spec 7.1). The
+        /// replay is finished and the debounce flushed first, so the answer is about the notes as they
+        /// really are, not about half of them.
+        /// </summary>
+        public ExchangeMergeReport PlanImport(IEnumerable<ExchangeNote> incoming, bool includeNew)
+        {
+            EnsureLoaded();
+            Flush();
+            var report = new ExchangeMergeReport();
+            List<QuickNote> snapshot;
+            lock (_gate) snapshot = new List<QuickNote>(_notes);
+            CyrFlipExchangeMerge.PlanNotes(snapshot, incoming, includeNew, DateTime.UtcNow, report);
+            return report;
+        }
+
+        /// <summary>
+        /// Merge the notes of an exchange file (S0023, spec 7.2): add what is not here, replace a note
+        /// by a strictly newer version of itself, delete nothing. The plan is made again here against
+        /// the live list - the preview was confirmed in a modal dialog, and the list may have moved.
+        /// An imported note keeps the dates it carries: it was created when it was created, wherever.
+        /// </summary>
+        public ExchangeMergeReport Import(IEnumerable<ExchangeNote> incoming, bool includeNew)
+        {
+            EnsureLoaded();
+            Flush();
+            var report = new ExchangeMergeReport();
+            List<CyrFlipExchangeMerge.NoteAction> actions;
+            lock (_gate)
+            {
+                if (_disposed) return report;
+                actions = CyrFlipExchangeMerge.PlanNotes(new List<QuickNote>(_notes), incoming, includeNew, DateTime.UtcNow, report);
+            }
+
+            bool failed = false;
+            foreach (CyrFlipExchangeMerge.NoteAction action in actions)
+            {
+                QuickNote target;
+                bool created = action.Existing == null;
+                lock (_gate)
+                {
+                    if (created)
+                    {
+                        target = action.Note;
+                        // A note deleted this session and brought back by the file is a new decision
+                        // of the user's, not a stale window writing it back (QN-1).
+                        _deletedIds.Remove(target.Id);
+                        _persisted.Add(target.Id);
+                        QuickNotesOrder.Insert(_notes, target);
+                    }
+                    else
+                    {
+                        // Changed in place: the object in the list is the one any window holds.
+                        target = action.Existing!;
+                        target.Title = action.Note.Title;
+                        target.Kind = action.Note.Kind;
+                        target.RawText = action.Note.RawText;
+                        target.Items = action.Note.Items;
+                        target.UpdatedAtUtc = action.Note.UpdatedAtUtc;
+                    }
+                }
+                if (!(created ? _store.Create(target) : _store.Update(target))) failed = true;
+            }
+            if (failed) SaveFailed?.Invoke(this, EventArgs.Empty);
+            if (actions.Count > 0)
+            {
+                QuickNotesLog.Log("imported " + report.NotesAdded + " new, " + report.NotesUpdated + " updated, "
+                    + report.NotesNew + " without id");
+                Imported?.Invoke(this, EventArgs.Empty);
+                Changed?.Invoke(this, EventArgs.Empty);
+                ScheduleCompactionIfDue();
+            }
+            return report;
+        }
+
         /// <summary>The matching notes in the standard order; an empty query means all of them.</summary>
         public List<QuickNote> Search(string? query) => QuickNotesOrder.Filter(_notes, query);
 

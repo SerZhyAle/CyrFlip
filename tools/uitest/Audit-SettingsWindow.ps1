@@ -30,10 +30,14 @@ param(
     [int]$Monitor = -1,
     [switch]$OnScreen,         # inside -Monitor's working area, pushed to the bottom of the z-order
     [int]$Page = -1,           # one page only (index); -1 = all
+    [ValidateSet('', 'system', 'light', 'dark')][string]$Theme = '',   # the app theme (S0020); default: none, as before the theme existed
     [ValidateSet('Release', 'Debug')][string]$Configuration = 'Release',
     [string]$OutDir = ''       # default: artifacts\uitest\settings (Windows PowerShell has no $PSScriptRoot in param defaults)
 )
-if (-not $OutDir) { $OutDir = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'artifacts\uitest\settings' }
+if (-not $OutDir) {
+    $OutDir = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'artifacts\uitest\settings'
+    if ($Theme) { $OutDir += '-' + $Theme }
+}
 
 if ($PSVersionTable.PSEdition -eq 'Core') {
     $argList = @('-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-File', $PSCommandPath)
@@ -43,6 +47,7 @@ if ($PSVersionTable.PSEdition -eq 'Core') {
     if ($AllModules) { $argList += '-AllModules' }
     if ($OnScreen) { $argList += '-OnScreen' }
     $argList += @('-Monitor', $Monitor, '-Page', $Page, '-Configuration', $Configuration)
+    if ($Theme) { $argList += @('-Theme', $Theme) }
     if ($OutDir) { $argList += @('-OutDir', $OutDir) }
     & "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" @argList
     exit $LASTEXITCODE
@@ -230,7 +235,8 @@ function Test-TabInk($lang, $tabs, $form, [string]$shotPath) {
             $ink = 0
             for ($y = [Math]::Max(0, $pt.Y + 3); $y -lt [Math]::Min($bmp.Height, $pt.Y + $r.Height - 3); $y++) {
                 for ($x = [Math]::Max(0, $x0); $x -lt [Math]::Min($bmp.Width, $x1); $x++) {
-                    if ($bmp.GetPixel($x, $y).GetBrightness() -lt 0.45) { $ink++ }
+                    $brightness = $bmp.GetPixel($x, $y).GetBrightness()
+                    if (($inkIsLight -and $brightness -gt 0.55) -or (-not $inkIsLight -and $brightness -lt 0.45)) { $ink++ }
                 }
             }
             if ($ink -lt 25) { Add-Finding $lang $tabs.TabPages[$i].Text 'page name not drawn' 'TabPage' $tabs.TabPages[$i].Text "$ink dark pixels in the caption area" }
@@ -270,6 +276,18 @@ $regPath = 'HKCU:\Software\CyrFlip'
 $savedTab = (Get-ItemProperty $regPath -Name SettingsTab -ErrorAction SilentlyContinue).SettingsTab
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 $noB = [Action[bool]] { }; $noI = [Action[int]] { }; $noS = [Action[string]] { }; $no = [Action] { }
+
+# The app theme (ticket S0020): started in this process exactly as the tray context starts it, so the
+# window paints itself dark (or light) when its handle is created - the same path, not a re-colouring
+# done by this script. "system" follows this machine's own Windows setting.
+if ($Theme) {
+    $modes = $asm.GetType('CyrFlip.ThemeModes', $true)
+    $manager = $asm.GetType('CyrFlip.ThemeManager', $true)
+    $mode = $modes.GetMethod('Parse').Invoke($null, @($Theme))
+    [void]$manager.GetMethod('Initialize').Invoke($null, @($mode))
+    "theme: $Theme -> $($manager.GetProperty('Kind').GetValue($null))"
+}
+$inkIsLight = $Theme -and "$($asm.GetType('CyrFlip.ThemeManager', $true).GetProperty('Kind').GetValue($null))" -eq 'Dark'
 $export = [Func[string, bool, string]] { param($a, $b) '' }
 $started = Get-Date
 
@@ -346,7 +364,7 @@ finally {
 $report = Join-Path $OutDir 'report.txt'
 $lines = New-Object System.Collections.Generic.List[string]
 $lines.Add("Settings window audit - $($started.ToString('yyyy-MM-dd HH:mm')) - $exe")
-$lines.Add("Languages: $($Language -join ', ')  RealConfig=$RealConfig AllModules=$AllModules Monitor=$Monitor")
+$lines.Add("Languages: $($Language -join ', ')  RealConfig=$RealConfig AllModules=$AllModules Monitor=$Monitor Theme=$Theme")
 $lines.Add('')
 $lines.Add("== Findings ($($findings.Count))")
 foreach ($g in ($findings | Group-Object Kind | Sort-Object Count -Descending)) {

@@ -26,6 +26,10 @@ const SIGNAL_WRITE_INTERVAL_MS = 500;
 // 4-direction black outline so the bright code stays legible on any background.
 const OUTLINE = '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000';
 
+// The Store package's family name: SZA.CyrFlip plus the hash of its publisher - a frozen anchor, so
+// the app's per-user folder can be computed here without asking anyone (LAYOUT-SIGNAL 1.1 rule 1).
+const STORE_PACKAGE_FAMILY = 'SZA.CyrFlip_fdk7e19xt9z9j';
+
 let currentCode = '';
 let currentKlid = '';
 let lastEditorActivity = 0;
@@ -43,18 +47,25 @@ function layoutFilePath(): string {
   if (configured && configured.trim().length > 0) {
     return configured;
   }
-  // The desktop app writes layout.txt to %LOCALAPPDATA% when unpackaged, but to %ProgramData%
-  // when installed from the Microsoft Store (MSIX): a packaged process's %LOCALAPPDATA% write is
-  // virtualized into the package container, where this (unpackaged) extension can't see it.
-  // Pick the most recently written of the two so a stale leftover from the other install mode
-  // (e.g. an old %LOCALAPPDATA% file after switching to the Store build) never wins. Default to
-  // the unpackaged path when neither exists yet.
+  // LAYOUT-SIGNAL 1.1 rule 1. The desktop app writes layout.txt to %LOCALAPPDATA%\CyrFlip when
+  // unpackaged, and to its package's own per-user folder when installed from the Microsoft Store
+  // (MSIX) - the path is computed from the package family name, a frozen identity. Pick the most
+  // recently written of these per-user files, so a stale leftover from the other install mode never
+  // wins. The machine-wide %ProgramData%\CyrFlip is where a Store build before 1.1 wrote (and a 1.1
+  // one still mirrors to): it is read only when no per-user file exists, because every account on
+  // the PC shares it and another user's layout must never outrank this user's own. Default to the
+  // unpackaged path when nothing exists yet.
   const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
   const programData = process.env.ProgramData || 'C:\\ProgramData';
-  const candidates = [
+  const perUser = [
     path.join(localAppData, 'CyrFlip', 'layout.txt'),
-    path.join(programData, 'CyrFlip', 'layout.txt'),
+    path.join(localAppData, 'Packages', STORE_PACKAGE_FAMILY, 'LocalCache', 'Local', 'CyrFlip', 'layout.txt'),
   ];
+  const machineWide = [path.join(programData, 'CyrFlip', 'layout.txt')];
+  return newest(perUser) ?? newest(machineWide) ?? perUser[0];
+}
+
+function newest(candidates: string[]): string | undefined {
   let best: string | undefined;
   let bestMtime = -1;
   for (const candidate of candidates) {
@@ -68,7 +79,7 @@ function layoutFilePath(): string {
       // not present; skip
     }
   }
-  return best ?? candidates[0];
+  return best;
 }
 
 /**
@@ -175,8 +186,10 @@ function readKlid(): string {
  * Five seconds after the last one the file goes stale and the app's overlay comes back, which is what
  * should happen once the user has moved to the chat box (where this extension cannot draw at all).
  *
- * Written beside layout.txt, in the folder the app already publishes to, and by mtime alone - the
- * contents are only there to make the file readable by a human debugging it.
+ * Written beside layout.txt, in the folder the app already publishes to, and by mtime alone - the app
+ * never parses the contents (LAYOUT-SIGNAL rule 9). The one reader of the contents is this extension
+ * itself: the last field is the writing window's session id, so a window that loses the focus deletes
+ * only a claim it wrote, never the one another VS Code window has just made (see clearSignal).
  */
 function writeSignal(): void {
   const now = Date.now();
@@ -188,7 +201,7 @@ function writeSignal(): void {
   }
   lastSignalWrite = now;
   try {
-    fs.writeFileSync(signalFilePath(), `${currentCode} ${new Date(now).toISOString()}\n`, 'utf8');
+    fs.writeFileSync(signalFilePath(), `${currentCode} ${new Date(now).toISOString()} ${vscode.env.sessionId}\n`, 'utf8');
   } catch {
     // Best-effort: a signal we cannot write only means the app keeps drawing its own marker.
   }
@@ -203,9 +216,20 @@ function noteEditorActivity(): void {
   writeSignal();
 }
 
+/**
+ * Withdraw this window's claim. There is one claim file for every VS Code window on the machine, so
+ * window A losing the focus used to delete the claim window B had written a moment earlier - and the
+ * app then drew its overlay beside B's marker until B's next write. Only a file that still carries this
+ * window's session id is deleted.
+ */
 function clearSignal(): void {
+  const file = signalFilePath();
   try {
-    fs.unlinkSync(signalFilePath());
+    const owner = fs.readFileSync(file, 'utf8').trim().split(/\s+/).pop();
+    if (owner !== vscode.env.sessionId) {
+      return;
+    }
+    fs.unlinkSync(file);
   } catch {
     // absent already, or not ours to delete
   }
@@ -241,9 +265,22 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(statusItem);
 
   context.subscriptions.push(
-    vscode.window.onDidChangeTextEditorSelection(() => { noteEditorActivity(); render(); }),
+    // Only the user's own work in the active editor renews the claim. A language server's edit, an
+    // Output channel append, a reload from disk or an agent editing another file in the background
+    // fire these events too, and counting them kept the claim alive all the time VS Code had the
+    // focus - hiding the app's marker in the chat box, where this extension cannot draw.
+    vscode.window.onDidChangeTextEditorSelection((e) => {
+      if (e.textEditor === vscode.window.activeTextEditor && e.kind !== undefined) {
+        noteEditorActivity();
+      }
+      render();
+    }),
     vscode.window.onDidChangeActiveTextEditor(() => { noteEditorActivity(); render(); }),
-    vscode.workspace.onDidChangeTextDocument(() => noteEditorActivity()),
+    vscode.workspace.onDidChangeTextDocument((e) => {
+      if (e.document === vscode.window.activeTextEditor?.document && e.contentChanges.length > 0) {
+        noteEditorActivity();
+      }
+    }),
     vscode.window.onDidChangeWindowState((s) => { if (!s.focused) { clearSignal(); } }),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('cyrflip')) {

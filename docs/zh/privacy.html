@@ -112,13 +112,15 @@
       <ul class="features">
         <li><strong>布局文件。</strong>CyrFlip 会把当前布局的代码 - 诸如 <code>EN</code>、<code>ZH</code>、
         <code>RU</code>、<code>AR</code> 这样的两字母值 - 写入一个很小的本地文件
-        （<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>，Microsoft Store 版本为
-        <code>%ProgramData%\CyrFlip\layout.txt</code>），以便可选的 VS&nbsp;Code 扩展能在编辑器光标处显示标记。
+        （<code>%LOCALAPPDATA%\CyrFlip\layout.txt</code>，Microsoft Store 版本则为你个人资料中该应用自己的文件夹
+        <code>%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip</code> 中的
+        <code>layout.txt</code>），以便可选的 VS&nbsp;Code 扩展能在编辑器光标处显示标记。
         在它旁边，<code>layout-klid.txt</code> 保存该键盘布局的标识符（八位十六进制数字，例如
         <code>00000409</code>），以便扩展使用相同的颜色。如果你安装了该扩展，它在绘制标记时会向同一文件夹写入
         <code>editor-caret.txt</code>；其中只有布局代码和一个时间。CyrFlip 退出时会删除它自己的这两个文件。
-        在 Microsoft Store 版本中，该文件夹位于 <code>%ProgramData%</code> 下，同一台电脑上的其他账户可以读取 -
-        其中除了这些值之外别无他物。这些文件都不含个人数据，也从不离开你的设备。</li>
+        Microsoft Store 版本还会为旧版扩展在 <code>%ProgramData%\CyrFlip</code> 下保留这两个文件的一份副本；
+        同一台电脑上的其他账户可以读取这份副本 - 其中除了这些值之外别无他物。早期 Microsoft Store 版本存放在那里的
+        日志和快速笔记，会在首次启动时移到你自己的个人资料文件夹中。这些文件都不含个人数据，也从不离开你的设备。</li>
 
         <li><strong>配置与历史。</strong>设置保存在 <code>HKCU\Software\CyrFlip</code> - 包括你的转换表以及上文
         所述的 Windows 输入设置的一次性备份。剪贴板历史开启时，会以 DPAPI 保护的形式保存在应用数据文件夹中。

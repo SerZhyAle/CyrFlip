@@ -22,6 +22,9 @@ namespace CyrFlip
     ///    and unreadable off this account anyway, but that is not the reason: it is not our data.
     ///    The file list is therefore an explicit whitelist (<see cref="LogFiles"/>), never a
     ///    directory glob - a glob is exactly how that file would get in one day.
+    ///    What the whitelisted files may hold is itself a rule (ticket S0010 TD-1): no scenario
+    ///    command line and no window title - <see cref="Contents"/> is what the dialog tells the
+    ///    user about each file, and it has to stay true.
     /// 2. <b>Nothing is truncated silently.</b> A file cut to its tail carries a marker line and the
     ///    report lists whatever had to be dropped, because a quietly shortened archive reads as
     ///    "the author got everything".
@@ -56,7 +59,7 @@ namespace CyrFlip
         public static readonly string[] LogFiles =
         {
             "launcher.log", "context-menu.log", "translate.log", "quick-notes-diagnostics.log",
-            "clipboard-history-diagnostics.log", "caret-diagnostics.txt", "layout.txt",
+            "clipboard-history-diagnostics.log", "clipboard-flip.log", "caret-diagnostics.txt", "layout.txt",
         };
 
         /// <summary>
@@ -69,6 +72,68 @@ namespace CyrFlip
         {
             "clipboard-history.log", "quick-notes.log",
         };
+
+        private const string LauncherLogName = "launcher.log";
+
+        /// <summary>
+        /// What each collected file holds, as the pre-send dialog tells the user - one short line per
+        /// file, a Russian source key for <see cref="Localization"/>. Every whitelisted file has an
+        /// entry (<c>SupportBundleTests</c>), since a file the dialog cannot describe is a file the
+        /// user is asked to send blind.
+        /// </summary>
+        public static readonly IReadOnlyDictionary<string, string> Contents = new Dictionary<string, string>
+        {
+            [ReportName] = "версия, Windows, раскладки, включённые функции и настройки CyrFlip",
+            ["launcher.log"] = "запуски сценариев: имя, тип, результат - без путей и аргументов",
+            ["context-menu.log"] = "контекстное меню: команды, классы окон и числа - без текста",
+            ["translate.log"] = "переводы: языки, модель, длины и исход - без текста",
+            ["quick-notes-diagnostics.log"] = "быстрые заметки: только счётчики",
+            ["clipboard-history-diagnostics.log"] = "история буфера: только счётчики",
+            ["clipboard-flip.log"] = "конвертации выделения: длины и имена процессов - без текста",
+            ["caret-diagnostics.txt"] = "диагностика каретки: классы окон и процессы - заголовки только длиной",
+            ["layout.txt"] = "код текущей раскладки",
+        };
+
+        /// <summary>
+        /// Old <c>launcher.log</c> lines carry what the current code never writes (ticket S0010 TD-1):
+        /// <c>Launched '&lt;name&gt;' (pid=.., admin=..): &lt;FileName&gt; &lt;Arguments&gt;</c>, and
+        /// <c>Launch blocked/error for '&lt;name&gt;': &lt;message&gt;</c>, whose message could quote
+        /// the path. Each is cut after its <c>": "</c> when the file is collected. The current shapes
+        /// (<c>for 'name' [guid] (..)</c>) do not match: their quote is not followed by a colon.
+        /// </summary>
+        private static readonly System.Text.RegularExpressions.Regex[] LegacyLauncherLines =
+        {
+            new System.Text.RegularExpressions.Regex(@"^(.*? - Launched '.*?' \(pid=[^)]*\)): .*$"),
+            new System.Text.RegularExpressions.Regex(@"^(.*? - Launch (?:blocked|error) for '.*?'): .*$"),
+        };
+
+        internal const string RemovedMarker = "<removed from the log bundle>";
+
+        /// <summary>
+        /// <paramref name="bytes"/> with every legacy line cut (see <see cref="LegacyLauncherLines"/>);
+        /// line breaks - CRLF or LF - are kept as they were.
+        /// </summary>
+        internal static byte[] ScrubLauncherLog(byte[] bytes)
+        {
+            string text = Encoding.UTF8.GetString(bytes);
+            string[] lines = text.Split('\n');
+            bool changed = false;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+                bool cr = line.EndsWith("\r", StringComparison.Ordinal);
+                string body = cr ? line.Substring(0, line.Length - 1) : line;
+                foreach (var pattern in LegacyLauncherLines)
+                {
+                    var match = pattern.Match(body);
+                    if (!match.Success) continue;
+                    lines[i] = match.Groups[1].Value + ": " + RemovedMarker + (cr ? "\r" : "");
+                    changed = true;
+                    break;
+                }
+            }
+            return changed ? Encoding.UTF8.GetBytes(string.Join("\n", lines)) : bytes;
+        }
 
         /// <summary>One file inside the archive, as the pre-send dialog lists it.</summary>
         internal sealed class Entry
@@ -89,19 +154,16 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// The folder every CyrFlip log already lives in: <c>%LOCALAPPDATA%\CyrFlip</c>, or
-        /// <c>%ProgramData%\CyrFlip</c> when packaged. No second application folder for this feature.
+        /// The folder every CyrFlip log already lives in (<see cref="DataFolder.Current"/>). No second
+        /// application folder for this feature.
         /// </summary>
-        public static string LogDirectory => Path.Combine(
-            Environment.GetFolderPath(PackageInfo.IsPackaged
-                ? Environment.SpecialFolder.CommonApplicationData   // %ProgramData%
-                : Environment.SpecialFolder.LocalApplicationData),  // %LOCALAPPDATA%
-            "CyrFlip");
+        public static string LogDirectory => DataFolder.Current;
 
         /// <summary>
-        /// Where the archives go. Under MSIX this has to be the unvirtualized folder: the mail client
-        /// is a foreign process and would find nothing inside our package container - the same trap
-        /// <see cref="LayoutPublisher"/> already hit with layout.txt.
+        /// Where the archives go. Under MSIX this has to be a path a foreign process can open: the mail
+        /// client would find nothing behind a virtualized one. <see cref="DataFolder"/> addresses the
+        /// package's per-user folder by its real path for exactly that reason - and, unlike the old
+        /// machine-wide %ProgramData%, no other account can read or pre-plant the archive (ticket S0016).
         /// </summary>
         public static string ReportsDirectory => Path.Combine(LogDirectory, "reports");
 
@@ -135,6 +197,7 @@ namespace CyrFlip
                 string path = Path.Combine(logDir, name);
                 byte[]? bytes = ReadTail(path, maxFileBytes, out long omitted);
                 if (bytes == null) continue;                       // absent file is not an error
+                if (name == LauncherLogName) bytes = ScrubLauncherLog(bytes);
                 if (total + bytes.Length > maxTotalBytes)
                 {
                     result.Dropped.Add(name);
@@ -208,7 +271,9 @@ namespace CyrFlip
             sb.AppendLine(@"Registry HKCU\Software\CyrFlip:");
             sb.Append(SafeText(DescribeRegistry));
             sb.AppendLine();
-            sb.AppendLine("Clipboard history is deliberately NOT part of this archive.");
+            sb.AppendLine("Clipboard history and quick notes are deliberately NOT part of this archive.");
+            sb.AppendLine("Scenario paths and arguments, window titles and selected text are not recorded in any");
+            sb.AppendLine("collected log; launcher.log lines written by older builds are cut when collected.");
             return sb.ToString();
         }
 
@@ -334,7 +399,9 @@ namespace CyrFlip
 
         /// <summary>
         /// Count and types only. The scenario XMLs hold the user's own paths, arguments and working
-        /// directories - those are not diagnostics, and they never leave the machine here.
+        /// directories - those are not diagnostics. The report never carries them, launcher.log no
+        /// longer records them (S0010 TD-1), and the lines older builds wrote are cut on collection
+        /// (<see cref="ScrubLauncherLog"/>) - which is what makes "never leave the machine" true.
         /// </summary>
         private static string DescribeScenarios()
         {

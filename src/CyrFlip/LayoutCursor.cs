@@ -21,7 +21,8 @@ namespace CyrFlip
     /// </summary>
     internal sealed class LayoutCursor : IDisposable
     {
-        private readonly int _scale;
+        private int _baseSize;
+        private int _scale;
         private string _current = "";
         private string _currentKlid = "";
         private bool _currentCaps;
@@ -29,8 +30,52 @@ namespace CyrFlip
 
         public LayoutCursor(int cursorSize)
         {
-            // Marker/caret height in px; clamp to something legible.
-            _scale = Math.Max(18, Math.Min(64, cursorSize == 0 ? 24 : cursorSize));
+            _baseSize = cursorSize;
+            _scale = MeasureScale(cursorSize);
+        }
+
+        /// <summary>
+        /// The I-beam's height in physical pixels: the size setting, scaled by the primary monitor's DPI
+        /// and by the pointer size the user chose in Windows (ticket S0011 LI-3). CyrFlip is per-monitor
+        /// aware, so nobody scales a bitmap cursor for it - a fixed 24px I-beam sat beside a 64px system
+        /// pointer on a 200% panel, and ignored a pointer enlarged for low vision.
+        /// </summary>
+        private static int MeasureScale(int baseSize)
+            => MarkerSize.CursorHeight(baseSize, MarkerSize.PrimaryDpi(), MarkerSize.ReadCursorBaseSize());
+
+        /// <summary>The height the I-beam is currently built at - for diagnostics and tests.</summary>
+        internal int Scale => _scale;
+
+        /// <summary>The marker size setting changed; rebuilds the I-beam when it is on.</summary>
+        public void SetBaseSize(int cursorSize)
+        {
+            _baseSize = cursorSize;
+            Rebuild(force: false);
+        }
+
+        /// <summary>
+        /// Something reloaded the system cursors or changed the display (ticket S0011 LI-6). A reload -
+        /// the user changing the pointer size or colour, a theme, another tool calling
+        /// <c>SPI_SETCURSORS</c> - puts the stock I-beam back, but nothing about the layout changed, so
+        /// <see cref="Apply"/> used to return early and the headline feature stayed off until the next
+        /// layout or CapsLock change. The reload CyrFlip itself causes (<see cref="ForceRestore"/>) is
+        /// ignored. <paramref name="cursorsReloaded"/> false = only the display changed: rebuilt only
+        /// when the size it asks for differs.
+        /// </summary>
+        public void OnSystemCursorsChanged(bool cursorsReloaded)
+        {
+            if (Volatile.Read(ref s_reloading) != 0) return;
+            Rebuild(force: cursorsReloaded);
+        }
+
+        private void Rebuild(bool force)
+        {
+            int scale = MeasureScale(_baseSize);
+            bool resized = scale != _scale;
+            _scale = scale;
+            if (!_applied || (!force && !resized)) return;
+            _applied = false;
+            Apply(_current, _currentKlid, _currentCaps);
         }
 
         /// <summary>
@@ -84,8 +129,10 @@ namespace CyrFlip
         {
             if (_applied)
             {
-                ForceRestore();
+                // Cleared first: the reload below broadcasts WM_SETTINGCHANGE, which reaches our own
+                // watcher window synchronously when this runs on the UI thread.
                 _applied = false;
+                ForceRestore();
             }
         }
 
@@ -99,11 +146,17 @@ namespace CyrFlip
         public static void ForceRestore()
         {
             if (Interlocked.Exchange(ref s_replaced, 0) == 0) return;
-            ReloadCursors();
+            Interlocked.Exchange(ref s_reloading, 1);
+            try { ReloadCursors(); }
+            finally { Interlocked.Exchange(ref s_reloading, 0); }
         }
 
         /// <summary>1 while the system I-beam is ours; set by a successful <c>SetSystemCursor</c>.</summary>
         private static int s_replaced;
+
+        /// <summary>1 while CyrFlip's own <c>SPI_SETCURSORS</c> is in flight - its broadcast is not a
+        /// reload to answer (<see cref="OnSystemCursorsChanged"/>).</summary>
+        private static int s_reloading;
 
         /// <summary>The <c>SPI_SETCURSORS</c> call - a seam so the "never replaced, never reloaded" rule is testable.</summary>
         internal static Action ReloadCursors = () => SystemParametersInfo(SPI_SETCURSORS, 0, IntPtr.Zero, SPIF_SENDCHANGE);
@@ -186,10 +239,12 @@ namespace CyrFlip
                 DrawBeam(g, beamCx, beamTop, beamH, barW + 2f, serifW + 2f, serifH + 2f, Color.FromArgb(230, Color.White));
                 DrawBeam(g, beamCx, beamTop, beamH, barW, serifW, serifH, Color.Black);
 
-                // Marker pill + text, composed on their own layer and then blended in at
+                // Marker text, composed on its own layer and then blended in at
                 // LayoutStyle.MarkerOpacity. The badge is the part that covers the user's text, so it is
                 // the part that is translucent; the I-beam above stays fully opaque, because a mouse
-                // pointer you can see through is a worse cursor, not a subtler one.
+                // pointer you can see through is a worse cursor, not a subtler one. There is no dark
+                // plate behind the letters: DrawCode already outlines them in black, so a plate only
+                // hid more of the text under the pointer without making the letters any easier to read.
                 var pill = new RectangleF(pillX, beamTop + (beamH - markerH) / 2f - beamH * 0.06f, pillW, markerH + beamH * 0.12f);
                 using (var badge = new Bitmap(width, height))
                 {
@@ -197,11 +252,6 @@ namespace CyrFlip
                     {
                         bg.SmoothingMode = SmoothingMode.AntiAlias;
                         bg.TextRenderingHint = TextRenderingHint.AntiAlias;
-                        using (var pillPath = Rounded(pill, beamH * 0.22f))
-                        using (var pillBg = new SolidBrush(Color.FromArgb(235, ColorTranslator.FromHtml("#11161f"))))
-                        {
-                            bg.FillPath(pillBg, pillPath);
-                        }
                         LayoutStyle.DrawCode(bg, code, font, pill, klid);
 
                         if (capsOn)
@@ -227,18 +277,6 @@ namespace CyrFlip
             g.FillRectangle(b, cx - barW / 2f, top, barW, beamH);                 // vertical bar
             g.FillRectangle(b, cx - serifW / 2f, top, serifW, serifH);            // top serif
             g.FillRectangle(b, cx - serifW / 2f, top + beamH - serifH, serifW, serifH); // bottom serif
-        }
-
-        private static GraphicsPath Rounded(RectangleF r, float radius)
-        {
-            float d = radius * 2f;
-            var path = new GraphicsPath();
-            path.AddArc(r.X, r.Y, d, d, 180, 90);
-            path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
-            path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
-            path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
-            return path;
         }
 
         public void Dispose() => Restore();

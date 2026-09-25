@@ -32,13 +32,13 @@ namespace CyrFlip
         private static readonly Guid IID_IAccessibleText = new Guid("24FD2FFB-3AAD-4a08-8335-A3AD89C0FB4B");
 
         /// <summary>
-        /// Current caret position (screen px), placed diagonally below-right of the caret to match
-        /// <see cref="CaretOverlay"/>'s other sources. False if the focused control exposes no IA2 text.
+        /// Current caret (screen px) - where the marker goes is <see cref="CaretPlacement"/>'s decision.
+        /// False if the focused control exposes no IA2 text.
         /// </summary>
         [HandleProcessCorruptedStateExceptions, SecurityCritical]
-        public static bool TryGetCaret(out int x, out int y)
+        public static bool TryGetCaret(out CaretRect caret)
         {
-            x = 0; y = 0;
+            caret = default;
             object? acc = null;
             IAccessibleText? text = null;
             try
@@ -51,23 +51,34 @@ namespace CyrFlip
 
                 if (text.get_caretOffset(out int offset) != 0) return false;
 
-                // Caret offset usually points just before a character; use that char's left edge.
-                if (text.get_characterExtents(offset, IA2_COORDTYPE_SCREEN_RELATIVE, out int cx, out int cy, out int cw, out int ch) == 0 && ch > 0)
+                // Caret offset usually points just before a character: that character's near edge -
+                // the left one, or the right one in right-to-left text (S0011 LI-10).
+                if (Extents(text, offset) is CharBox following)
                 {
-                    x = cx + 2; y = cy + ch + 1;
+                    CharBox? preceding = offset > 0 ? Extents(text, offset - 1) : null;
+                    caret = CaretGeometry.ToCaret(CaretGeometry.XFromFollowing(following, preceding), following);
                     return true;
                 }
-                // Caret at end-of-text: no char at offset, so use the previous char's right edge.
-                if (offset > 0
-                    && text.get_characterExtents(offset - 1, IA2_COORDTYPE_SCREEN_RELATIVE, out cx, out cy, out cw, out ch) == 0 && ch > 0)
+                // Caret at end-of-text: no char at offset, so the previous char's far edge.
+                if (offset > 0 && Extents(text, offset - 1) is CharBox last)
                 {
-                    x = cx + cw + 2; y = cy + ch + 1;
+                    CharBox? beforeThat = offset > 1 ? Extents(text, offset - 2) : null;
+                    caret = CaretGeometry.ToCaret(CaretGeometry.XFromPreceding(last, beforeThat), last);
                     return true;
                 }
                 return false;
             }
             catch { return false; }
             finally { Release(text); Release(acc); }
+        }
+
+        /// <summary>One character's screen box, unless the provider has none or answers with a whole line.</summary>
+        private static CharBox? Extents(IAccessibleText text, int offset)
+        {
+            if (text.get_characterExtents(offset, IA2_COORDTYPE_SCREEN_RELATIVE, out int cx, out int cy, out int cw, out int ch) != 0
+                || ch <= 0 || CaretGeometry.IsWholeLine(cw, ch))
+                return null;
+            return new CharBox(cx, cy, cw, ch);
         }
 
         /// <summary>
@@ -164,8 +175,11 @@ namespace CyrFlip
             {
                 acc = FocusedAccessible();
                 if (acc == null) return "no focused IAccessible";
-                string name = "";
-                try { ((IAccessible)acc).get_accName((object)0, out name); } catch { }
+                string? accName = null;
+                try { ((IAccessible)acc).get_accName((object)0, out accName); } catch { }
+                // The element's name is the user's text (a mail subject, a document title), and the
+                // report goes into the log bundle - only its length is recorded (S0010 TD-1).
+                string name = "name " + CaretDiagnostics.TextLength(accName ?? "");
 
                 text = QueryText(acc);
                 if (text == null) return $"'{name}' exposes no IAccessible2 text";

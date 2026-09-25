@@ -48,6 +48,51 @@ namespace CyrFlip.Tests
             Dropped = new List<string> { "caret-diagnostics.txt" },
         };
 
+        /// <summary>A message long enough to wrap, with a path in it that cannot.</summary>
+        private const string LongMessage = "Не удалось открыть почтовую программу. Отправьте архив вручную на адрес: sza@ukr.net\n\n"
+            + @"C:\Users\u\AppData\Local\CyrFlip\reports\CyrFlip-logs-26.7.29.2340-20260729-2340.zip";
+
+        /// <summary>
+        /// Escape leaves every dialog with nothing changed (<c>APP-BEHAVIOUR</c> rule 1), and a
+        /// destructive question answers "no" to Enter as well as to Escape (ticket S0020 v0.2 item 6).
+        /// </summary>
+        [Fact]
+        public void EveryDialogHasAnEscapeAndADestructiveQuestionDefaultsToNo()
+        {
+            var problems = new List<string>();
+            OnUiThread(() =>
+            {
+                var dialogs = new List<Form>
+                {
+                    new HotkeyDialog("Ctrl+Shift+F12", "T", "English"),
+                    new LayoutPickerDialog(new string[0], "English", Available),
+                    new LayoutConversionDialog(Layouts, null, "English"),
+                    new LauncherScenarioDialog(null, "English"),
+                    new YtDlpLinkDialog("English"),
+                    new TranslationDialog(null, "English"),
+                    new SupportBundleDialog(Bundle, "English"),
+                    new ConfirmDialog("English", "?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, false, owned: true),
+                };
+                foreach (Form dialog in dialogs)
+                {
+                    if (dialog.CancelButton == null) problems.Add(dialog.GetType().Name + " has no Escape");
+                    dialog.Dispose();
+                }
+
+                using var destructive = new ConfirmDialog("English", "Delete?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true, owned: true);
+                if (((Button)destructive.CancelButton!).DialogResult != DialogResult.No) problems.Add("Escape is not No");
+                if (((Button)destructive.AcceptButton!).DialogResult != DialogResult.No) problems.Add("Enter is not No");
+                Button yes = destructive.Buttons[0];
+                if (yes.DialogResult != DialogResult.Yes || yes.BackColor != ThemePalette.Light.Danger)
+                    problems.Add("the destructive answer is not on the danger role");
+
+                using var plain = new ConfirmDialog("English", "Import?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, danger: false, owned: true);
+                if (((Button)plain.AcceptButton!).DialogResult != DialogResult.Yes) problems.Add("a plain question does not default to Yes");
+                if (((Button)plain.CancelButton!).DialogResult != DialogResult.No) problems.Add("a plain question's Escape is not No");
+            }, problems);
+            Assert.True(problems.Count == 0, string.Join("\n", problems));
+        }
+
         [Fact]
         public void NoCaptionIsClippedInAnyLanguage()
         {
@@ -89,6 +134,12 @@ namespace CyrFlip.Tests
                     // 13 languages - the exact shape that used to clip.
                     using (var dialog = new SupportBundleDialog(Bundle, language))
                         inspected += Check(dialog, language, "SupportBundleDialog", problems);
+                    // CyrFlip's own message box (ticket S0020): every button set it is asked for, the
+                    // destructive one included - "Отмена" / "Abbrechen" / "إلغاء" measured, not assumed.
+                    foreach (MessageBoxButtons buttons in new[] { MessageBoxButtons.OK, MessageBoxButtons.YesNo, MessageBoxButtons.OKCancel })
+                        foreach (bool danger in new[] { false, true })
+                            using (var dialog = new ConfirmDialog(language, LongMessage, buttons, MessageBoxIcon.Warning, danger, owned: true))
+                                inspected += Check(dialog, language, "ConfirmDialog(" + buttons + (danger ? ",danger" : "") + ")", problems);
                 }
             }, problems);
 

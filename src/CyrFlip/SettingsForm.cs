@@ -8,7 +8,7 @@ using System.Windows.Forms;
 namespace CyrFlip
 {
     /// <summary>Persistent settings surface; closing it only hides it so CyrFlip remains tray-first.</summary>
-    internal sealed class SettingsForm : Form
+    internal sealed class SettingsForm : ThemedForm
     {
         private readonly AppConfig _config;
         private readonly Action<bool> _setAutostart, _setCursor, _setCaret, _setDot, _setLanguage, _setCaps, _setHistory, _setPause, _setHistoryStartup;
@@ -33,8 +33,17 @@ namespace CyrFlip
         private readonly CheckBox _keepAwake = Check("Не давать компьютеру засыпать");
         private readonly CheckBox _keepScreen = Check("Не блокировать экран (как при видео)");
         private readonly ComboBox _uiLanguage = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 190 };
+        // The theme (ticket S0020): three radio buttons rather than a drop-down - three exclusive
+        // choices, all visible at once. One container, so Windows keeps exactly one of them checked.
+        private readonly RadioButton _themeSystem = Radio("Как в Windows");
+        private readonly RadioButton _themeLight = Radio("Светлая");
+        private readonly RadioButton _themeDark = Radio("Тёмная");
         private readonly CheckBox _caret = Check("Показывать метку раскладки рядом с кареткой");
         private readonly CheckBox _dot = Check("Компактная точка вместо букв раскладки");
+        // The marker size (S0011 LI-3): three steps, see MarkerSize.Presets. The caption beside it is a
+        // translated word, so it is rebuilt on a language change rather than remembered as Russian.
+        private readonly TrackBar _markerSize = new TrackBar { Minimum = 0, Maximum = 2, TickFrequency = 1, SmallChange = 1, LargeChange = 1, Width = 150 };
+        private readonly Label _markerSizeValue = new Label { AutoSize = true, Padding = new Padding(0, 8, 0, 0) };
         private readonly CheckBox _language = Check("Менять раскладку после конвертации текста");
         private readonly CheckBox _caps = Check("Синхронизировать CapsLock после исправления регистра");
         private readonly CheckBox _history = Check("Включить историю буфера");
@@ -67,7 +76,7 @@ namespace CyrFlip
             View = View.Details, FullRowSelect = true, MultiSelect = false, HideSelection = false,
             Width = 900, Height = 320, Margin = new Padding(3, 4, 3, 4), ShowItemToolTips = true,
         };
-        private readonly Label _launcherLoadErrors = new Label { AutoSize = true, ForeColor = Color.FromArgb(150, 60, 0), Margin = new Padding(3, 2, 3, 2), Visible = false };
+        private readonly Label _launcherLoadErrors = new Label { AutoSize = true, ForeColor = ThemePalette.Light.Warning, Margin = new Padding(3, 2, 3, 2), Visible = false };
         private readonly LauncherIconCache _launcherIcons = new LauncherIconCache();
         private readonly ImageList _launcherImages = new ImageList { ImageSize = new Size(16, 16), ColorDepth = ColorDepth.Depth32Bit };
         private readonly List<Bitmap> _launcherBitmaps = new List<Bitmap>();
@@ -93,7 +102,7 @@ namespace CyrFlip
         private readonly NumericUpDown _translateKeepAlive = new NumericUpDown { Minimum = -1, Maximum = 120, Width = 70, Margin = new Padding(3, 4, 3, 4) };
         private readonly NumericUpDown _translateTimeout = new NumericUpDown { Minimum = 5, Maximum = 600, Width = 70, Margin = new Padding(3, 4, 3, 4) };
         private readonly NumericUpDown _translateWindowTimeout = new NumericUpDown { Minimum = 0, Maximum = 600, Width = 70, Margin = new Padding(3, 4, 3, 4) };
-        private readonly Label _translateStatus = new Label { AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(3, 6, 3, 6) };
+        private readonly Label _translateStatus = new Label { AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 6, 3, 6) };
         private readonly FlowLayoutPanel _translationRows = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 4, 3, 4) };
         private readonly List<Button> _translateButtons = new List<Button>();
         // A model pull is minutes of streaming with no timeout by design; this is how the window
@@ -103,6 +112,8 @@ namespace CyrFlip
         // ---- Quick notes tab ----
         private readonly Action _setQuickNotesHotkey, _openQuickNotes, _clearQuickNotes;
         private readonly Func<string, bool, string> _exportQuickNotes;
+        // Export / import of the open exchange file (ticket S0023); null leaves the rows out.
+        private readonly Action<IWin32Window, bool>? _exchange;
         private readonly CheckBox _quickNotesEnabled = Check("Включить быстрые заметки");
         private readonly CheckBox _quickNotesHotkeyEnabled = Check("Быстрые заметки");
         private readonly CheckBox _quickNotesWrap = Check("Переносить длинные строки в редакторе");
@@ -124,6 +135,7 @@ namespace CyrFlip
         /// </summary>
         private Font BoldFont => _boldFont ?? (_boldFont = new Font(Font, FontStyle.Bold));
         private ImageList? _tabIcons;
+        private Color _tabIconsAccent = ThemePalette.Light.Accent;
         private System.Drawing.Icon? _ownIcon;
         private TabControl? _tabs;
         private FlowLayoutPanel? _launcherPanel;
@@ -158,6 +170,12 @@ namespace CyrFlip
         /// </summary>
         public event EventHandler? QuickNotesChanged;
 
+        /// <summary>
+        /// Raised after the marker size changes (the value is already in the config), so the context can
+        /// save it and resize the caret overlay and the I-beam.
+        /// </summary>
+        public event EventHandler? MarkerSizeChanged;
+
         public SettingsForm(AppConfig config,
             Action<bool> setAutostart, Action<bool> setCursor, Action<bool> setCaret, Action<bool> setDot, Action<bool> setLanguage, Action<bool> setCaps,
             Action<bool> setHistory, Action<bool> setPause, Action<bool> setHistoryStartup, Action<int> setOpacity, Action<string> setUiLanguage,
@@ -166,13 +184,14 @@ namespace CyrFlip
             Action<bool> setKeepAwake, Action<bool> setKeepScreen,
             LauncherScenarioStore launcherStore, Action<bool> setLauncherEnabled,
             Action setQuickNotesHotkey, Action openQuickNotes, Action clearQuickNotes,
-            Func<string, bool, string> exportQuickNotes)
+            Func<string, bool, string> exportQuickNotes, Action<IWin32Window, bool>? exchange = null)
         {
             _config = config;
             _launcherStore = launcherStore;
             _setLauncherEnabled = setLauncherEnabled;
             _setQuickNotesHotkey = setQuickNotesHotkey; _openQuickNotes = openQuickNotes;
             _clearQuickNotes = clearQuickNotes; _exportQuickNotes = exportQuickNotes;
+            _exchange = exchange;
             _setAutostart = setAutostart; _setCursor = setCursor; _setCaret = setCaret; _setDot = setDot; _setLanguage = setLanguage; _setCaps = setCaps;
             _setHistory = setHistory; _setPause = setPause; _setHistoryStartup = setHistoryStartup; _setOpacity = setOpacity;
             _setUiLanguage = setUiLanguage;
@@ -188,14 +207,14 @@ namespace CyrFlip
             // Vertical tab strip on the left: the captions are long in most of the 13 languages and a
             // horizontal strip either clipped them or wrapped into a second row that moved on click.
             // Left alignment draws the caption rotated unless we own-draw it - hence OwnerDrawFixed.
-            var tabs = new TabControl
+            var tabs = new ThemeTabControl
             {
                 Dock = DockStyle.Fill, Alignment = TabAlignment.Left, Multiline = true,
                 SizeMode = TabSizeMode.Fixed, DrawMode = TabDrawMode.OwnerDrawFixed,
                 ItemSize = new Size(34, 200),
             };
             _tabs = tabs;
-            _tabIcons = CreateTabIcons();
+            _tabIcons = CreateTabIcons(ThemePalette.Light.Accent);
             tabs.ImageList = _tabIcons;
             tabs.DrawItem += DrawTab;
             _uiLanguage.Items.AddRange(Localization.Names);
@@ -205,11 +224,13 @@ namespace CyrFlip
                     : "Добавляет CyrFlip в автозагрузку только текущего пользователя Windows. При следующем входе утилита запустится в фоне и появится в системном трее."),
                 Setting(_keepAwake, "Пока включено, Windows не уходит в сон или гибернацию по простою — удобно для долгих загрузок, копирования или рендера. Состояние сохраняется: забытый включённым переключатель не даст компьютеру уснуть и после перезапуска - следить за вашей батареей CyrFlip не станет."),
                 Setting(_keepScreen, "Экран не гаснет и не блокируется по бездействию, как во время просмотра видео. Блокировку по паролю (Win+L или политику безопасности) это не отменяет. Состояние сохраняется: забытый включённым переключатель не даст экрану погаснуть и после перезапуска."),
-                Setting(LanguageRow(), "Выберите язык интерфейса CyrFlip. Значение сохраняется вместе с остальными настройками и применяется также к меню в трее.")), 0));
+                Setting(LanguageRow(), "Выберите язык интерфейса CyrFlip. Значение сохраняется вместе с остальными настройками и применяется также к меню в трее."),
+                Setting(ThemeRow(), "«Как в Windows» - CyrFlip светлый или тёмный вместе с Windows и переключается вслед за ней без перезапуска. Контрастные темы Windows всегда важнее этой настройки. Метка раскладки у курсора и каретки от темы не зависит: её цвет обозначает раскладку.")), 0));
             tabs.TabPages.Add(WithIcon(Page("Индикаторы", "Параметры, которые помогают увидеть активную раскладку до ввода текста.",
                 Setting(_cursor, "Заменяет стандартный текстовый курсор I-beam на курсор с маленькой меткой текущей раскладки. Обычная стрелка мыши не меняется."),
                 Setting(_caret, "Рисует небольшую метку рядом с мигающей кареткой в поле ввода. Работает в приложениях, которые передают Windows положение каретки."),
                 Setting(_dot, "Вместо букв раскладки рядом с кареткой показывает компактную цветную точку — удобно, если буквы отвлекают."),
+                Setting(MarkerSizeRow(), "Размер метки у каретки и на текстовом курсоре мыши. Он дополнительно подстраивается под масштаб экрана, а курсор мыши - ещё и под размер указателя из специальных возможностей Windows. Применяется сразу."),
                 Setting(_language, "После конвертации текста переключает раскладку активного окна на ту, в которой текст теперь набран, чтобы можно было сразу продолжить печатать."),
                 Setting(_caps, "После исправления регистра меняет физическое состояние CapsLock, чтобы следующие нажатия соответствовали исправленному тексту.")), 1));
             tabs.TabPages.Add(WithIcon(Page("Горячие клавиши", "Комбинации работают глобально, пока CyrFlip запущен в вашем сеансе Windows. Каждый хоткей можно включить или отключить отдельно.",
@@ -217,7 +238,7 @@ namespace CyrFlip
                 HotkeyRow(_caseEnabled, _caseHotkeyValue, _setCaseHotkey, "Меняет верхний и нижний регистр у выделенного текста. Удобно для случайно включённого CapsLock."),
                 HotkeyRow(_historyEnabled, _historyHotkeyValue, _setHistoryHotkey, "Показывает или скрывает окно текстовой истории. Двум действиям CyrFlip нельзя назначить одну комбинацию."),
                 Setting(_deferRdp, "Когда в фокусе окно клиента удалённого рабочего стола (mstsc/msrdc), CyrFlip не перехватывает хоткеи — клавиша уходит в удалённый сеанс, где её обработает CyrFlip на той машине. Включите, если утилита запущена на обеих сторонах RDP."),
-                new Label { Text = "Здесь только эти два хоткея. Все комбинации, которые конвертируют текст из одной раскладки в другую — включая EN ⇄ RU на Ctrl+Shift+F12 — живут одной таблицей на вкладке «Конвертация раскладок».", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(3, 6, 3, 4) },
+                new Label { Text = "Здесь только эти два хоткея. Все комбинации, которые конвертируют текст из одной раскладки в другую — включая EN ⇄ RU на Ctrl+Shift+F12 — живут одной таблицей на вкладке «Конвертация раскладок».", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 6, 3, 4) },
                 Setting(_contextMenuEnabled, "Аккорд мыши открывает меню CyrFlip рядом с указателем: копировать, вырезать, вставить, конвертация раскладок, регистр, перевод, быстрый запуск. Родное меню приложения при этом не появляется. Пока флажок снят, CyrFlip вообще не следит за мышью."),
                 Setting(ContextMenuChordRow(), "Ctrl и правая кнопка ничем в Windows не заняты. Shift и правая кнопка отберут у Проводника расширенное меню, а средняя кнопка отберёт автоскролл и открытие ссылки в новой вкладке.")), 2));
             tabs.TabPages.Add(WithIcon(ConversionsPage(), 7));
@@ -253,6 +274,13 @@ namespace CyrFlip
             _keepScreen.CheckedChanged += (_, _) => Changed(_setKeepScreen, _keepScreen.Checked);
             _caret.CheckedChanged += (_, _) => Changed(_setCaret, _caret.Checked);
             _dot.CheckedChanged += (_, _) => Changed(_setDot, _dot.Checked);
+            _markerSize.ValueChanged += (_, _) =>
+            {
+                _markerSizeValue.Text = MarkerSizeName(_markerSize.Value);
+                if (_loading) return;
+                _config.CursorSize = MarkerSize.Presets[_markerSize.Value];
+                MarkerSizeChanged?.Invoke(this, EventArgs.Empty);
+            };
             _language.CheckedChanged += (_, _) => Changed(_setLanguage, _language.Checked);
             _caps.CheckedChanged += (_, _) => Changed(_setCaps, _caps.Checked);
             _history.CheckedChanged += (_, _) => Changed(_setHistory, _history.Checked);
@@ -283,6 +311,9 @@ namespace CyrFlip
             _restoreLayouts.Click += (_, _) => RestoreLayouts();
             _toggleCombo.SelectedIndexChanged += (_, _) => OnToggleChanged();
             _uiLanguage.SelectedIndexChanged += (_, _) => { if (!_loading && _uiLanguage.SelectedItem is string language) { _setUiLanguage(language); ApplyLanguage(); } };
+            _themeSystem.CheckedChanged += (_, _) => ThemeChosen(_themeSystem, ThemeMode.System);
+            _themeLight.CheckedChanged += (_, _) => ThemeChosen(_themeLight, ThemeMode.Light);
+            _themeDark.CheckedChanged += (_, _) => ThemeChosen(_themeDark, ThemeMode.Dark);
             _opacity.ValueChanged += (_, _) => { if (!_loading) { _opacityValue.Text = _opacity.Value + "%"; _setOpacity(_opacity.Value); } };
 
             // The quick-notes tab, same shape as the translator's: write the value, say "something
@@ -326,7 +357,13 @@ namespace CyrFlip
             // 13 used to leave the picker on its first entry (Russian) while the UI spoke English
             // (ticket S0007, CF-3).
             _uiLanguage.SelectedItem = Localization.Names[Localization.IndexOf(_config.UiLanguage)];
+            ThemeMode theme = ThemeModes.Parse(_config.Theme);
+            _themeSystem.Checked = theme == ThemeMode.System;
+            _themeLight.Checked = theme == ThemeMode.Light;
+            _themeDark.Checked = theme == ThemeMode.Dark;
             _cursor.Checked = _config.EnableCursorChange; _caret.Checked = _config.EnableCaretOverlay; _dot.Checked = _config.CaretDotMode;
+            _markerSize.Value = MarkerSize.NearestPreset(_config.CursorSize);
+            _markerSizeValue.Text = MarkerSizeName(_markerSize.Value);
             _language.Checked = _config.EnableLanguageSwitch; _caps.Checked = _config.FlipCapsLockAfter;
             _history.Checked = _config.EnableClipboardHistory; _pause.Checked = _config.PauseClipboardHistory;
             _historyStartup.Checked = _config.ShowClipboardHistoryOnStartup;
@@ -396,6 +433,7 @@ namespace CyrFlip
             _caseHotkeyValue.Text = _config.CaseHotkey; _historyHotkeyValue.Text = _config.ClipboardHistoryHotkey;
             _quickNotesHotkeyValue.Text = _config.QuickNotesHotkey;
             _opacityValue.Text = _opacity.Value + "%";
+            _markerSizeValue.Text = MarkerSizeName(_markerSize.Value);
             _version.Text = VersionLine();
             AlignHotkeyCaptions();
             AdjustTabStrip();
@@ -539,10 +577,13 @@ namespace CyrFlip
             TabPage page = _tabs.TabPages[e.Index];
             bool selected = _tabs.SelectedIndex == e.Index;
             Rectangle bounds = e.Bounds;
-            using (var back = new SolidBrush(selected ? SystemColors.Window : SystemColors.Control))
+            // The selected page shares the page's own surface; in light that is exactly the window
+            // and control colours this list was always drawn with.
+            ThemePalette palette = ThemeApply.PaletteOf(_tabs) ?? ThemePalette.Light;
+            using (var back = new SolidBrush(selected ? palette.SurfaceRaised : palette.SurfaceWindow))
                 e.Graphics.FillRectangle(back, bounds);
             if (selected)
-                using (var accent = new SolidBrush(Color.FromArgb(45, 105, 175)))
+                using (var accent = new SolidBrush(palette.Accent))
                     e.Graphics.FillRectangle(accent, bounds.Left, bounds.Top, 4, bounds.Height);
 
             int x = bounds.Left + 12;
@@ -556,7 +597,22 @@ namespace CyrFlip
             if (RightToLeft == RightToLeft.Yes) flags |= TextFormatFlags.RightToLeft;
             using (var font = new Font(Font, selected ? FontStyle.Bold : FontStyle.Regular))
                 TextRenderer.DrawText(e.Graphics, page.Text, font, new Rectangle(x, bounds.Top, Math.Max(10, bounds.Right - x - 8), bounds.Height),
-                    selected ? SystemColors.WindowText : SystemColors.ControlText, flags);
+                    palette.TextPrimary, flags);
+        }
+
+        /// <summary>
+        /// The page icons are drawn in the accent colour, which the dark theme lifts to stay readable on
+        /// the dark list - so they are drawn again when the accent changes (S0021 A10 item 3).
+        /// </summary>
+        protected override void OnThemeApplied(ThemePalette palette)
+        {
+            if (_tabs == null || _tabIcons == null || _tabIconsAccent == palette.Accent) return;
+            ImageList previous = _tabIcons;
+            _tabIcons = CreateTabIcons(palette.Accent);
+            _tabIconsAccent = palette.Accent;
+            _tabs.ImageList = _tabIcons;
+            previous.Dispose();
+            _tabs.Invalidate();
         }
 
         /// <summary>Every user-facing string here is keyed by its Russian original - see <see cref="Localization"/>.</summary>
@@ -625,7 +681,7 @@ namespace CyrFlip
                 panel.Controls.Add(new Label
                 {
                     Text = "Версия из Microsoft Store работает в контейнере, поэтому Windows может перенаправить запись в реестр внутрь пакета. Если раскладка или сочетание не подхватились даже после повторного входа в систему, задайте их в настройках Windows кнопкой внизу.",
-                    AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = Color.FromArgb(150, 60, 0), Margin = new Padding(3, 0, 3, 10),
+                    AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.Warning, Margin = new Padding(3, 0, 3, 10),
                 });
 
             panel.Controls.Add(SectionHeader("Раскладки клавиатуры"));
@@ -635,7 +691,7 @@ namespace CyrFlip
             layoutButtons.Controls.Add(Button("Добавить популярные языки", AddPopularLayouts));
             layoutButtons.Controls.Add(_restoreLayouts);
             panel.Controls.Add(layoutButtons);
-            panel.Controls.Add(new Label { Text = "English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, German, Italian и Ukrainian. Для языков с популярными вариантами (например, US International, Spanish Latin American) используйте «Добавить раскладку...».", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(3, 0, 3, 5) });
+            panel.Controls.Add(new Label { Text = "English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, German, Italian и Ukrainian. Для языков с популярными вариантами (например, US International, Spanish Latin American) используйте «Добавить раскладку...».", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 0, 3, 5) });
 
             panel.Controls.Add(SectionHeader("Переключение по кругу"));
             var toggleRow = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 2, 3, 2) };
@@ -644,7 +700,7 @@ namespace CyrFlip
             panel.Controls.Add(Setting(toggleRow, "Одно сочетание перебирает установленные языки по кругу. Это штатная настройка Windows (Alt+Shift, Ctrl+Shift или «`»); «—» отключает перебор."));
 
             panel.Controls.Add(SectionHeader("Прямые сочетания на язык"));
-            panel.Controls.Add(new Label { Text = "Эти сочетания обрабатывает сама Windows: они работают, даже когда CyrFlip закрыт. Комбинацию вы выбираете сами — в отличие от штатного окна, здесь не только Ctrl+Shift+цифра.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(3, 0, 3, 4) });
+            panel.Controls.Add(new Label { Text = "Эти сочетания обрабатывает сама Windows: они работают, даже когда CyrFlip закрыт. Комбинацию вы выбираете сами — в отличие от штатного окна, здесь не только Ctrl+Shift+цифра.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 0, 3, 4) });
             panel.Controls.Add(_languageRows);
             panel.Controls.Add(Setting(_restoreLanguageHotkeys, "Возвращает языковые сочетания Windows в то состояние, в котором они были до первого изменения из CyrFlip."));
 
@@ -665,7 +721,7 @@ namespace CyrFlip
             panel.Controls.Add(_conversionRows);
             panel.Controls.Add(Button("Добавить конвертацию...", AddConversionProfile));
             panel.Controls.Add(Setting(_convertSymbols, "Клавиша, которая в обеих раскладках даёт знак, а не букву, не говорит о том, в какой раскладке её нажали: за «/» на русской клавише стоит точка, а «/» с цифрового блока вообще одинаков везде и в скопированном тексте неотличим от обычного. Пока флажок стоит, такие знаки конвертируются вместе с текстом - так CyrFlip вёл себя всегда. Снимите его, если чаще набираете их намеренно: тогда «/ghbdtn» сохранит свой слеш вместо того, чтобы начаться с точки. Знаки, на клавише которых в другой раскладке стоит буква (запятая, скобки), конвертируются в любом случае."));
-            panel.Controls.Add(new Label { Text = "Работают только установленные в Windows раскладки — добавьте нужные на вкладке «Языки Windows». Одну комбинацию нельзя отдать двум действиям CyrFlip.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(3, 8, 3, 4) });
+            panel.Controls.Add(new Label { Text = "Работают только установленные в Windows раскладки — добавьте нужные на вкладке «Языки Windows». Одну комбинацию нельзя отдать двум действиям CyrFlip.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 8, 3, 4) });
             return page;
         }
 
@@ -747,7 +803,7 @@ namespace CyrFlip
                 _conversionRows.Controls.Add(new Label
                 {
                     Text = Translate("Таблица пуста — ни одна комбинация сейчас не конвертирует текст."),
-                    AutoSize = true, ForeColor = SystemColors.GrayText, Margin = new Padding(25, 6, 3, 4),
+                    AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(25, 6, 3, 4),
                 });
             _conversionRows.ResumeLayout();
         }
@@ -788,7 +844,7 @@ namespace CyrFlip
             // "⇄", not "→": the pair converts in whichever direction the active layout implies.
             Label pair = ColumnLabel(LayoutName(profile.SourceKlid) + " ⇄ " + LayoutName(profile.TargetKlid), _pairColumn);
             // A row is only live while the master switch is on, so say so instead of promising a chord.
-            if (!_config.EnableHotkeys) pair.ForeColor = SystemColors.GrayText;
+            if (!_config.EnableHotkeys) pair.ForeColor = ThemePalette.Light.TextMuted;
             row.Controls.Add(pair);
             row.Controls.Add(ColumnLabel(profile.Hotkey, _chordColumn, ellipsis: false));
             row.Controls.Add(Button(Translate("Изменить..."), () => EditConversionProfile(profile)));
@@ -860,7 +916,7 @@ namespace CyrFlip
             remove.Enabled = total > 1; // Windows always keeps at least one layout
             row.Controls.Add(remove);
 
-            row.Controls.Add(new Label { Text = layout.Klid, AutoSize = true, ForeColor = SystemColors.GrayText, Margin = new Padding(8, 5, 0, 0), Padding = new Padding(0, 1, 0, 0) });
+            row.Controls.Add(new Label { Text = layout.Klid, AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(8, 5, 0, 0), Padding = new Padding(0, 1, 0, 0) });
             return row;
         }
 
@@ -914,7 +970,7 @@ namespace CyrFlip
 
         private void OnRemoveLayout(InputLayouts.Installed layout)
         {
-            if (MessageBox.Show(this, string.Format(Translate("Удалить раскладку «{0}» из Windows?"), layout.LanguageName + " — " + layout.DisplayName), "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+            if (ConfirmDialog.Show(this, _config.UiLanguage, string.Format(Translate("Удалить раскладку «{0}» из Windows?"), layout.LanguageName + " — " + layout.DisplayName), MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
             EnsureSystemBackups();
             if (!InputLayouts.Remove(layout.Klid))
@@ -983,14 +1039,14 @@ namespace CyrFlip
         {
             if (_layoutNoticeShown) return;
             _layoutNoticeShown = true;
-            MessageBox.Show(this, Translate("Изменение применено к раскладкам Windows. Обычно оно вступает в силу сразу; если что-то выглядит не так, выйдите из Windows и войдите снова."),
-                "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            ConfirmDialog.Show(this, _config.UiLanguage, Translate("Изменение применено к раскладкам Windows. Обычно оно вступает в силу сразу; если что-то выглядит не так, выйдите из Windows и войдите снова."),
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void RestoreLayouts()
         {
             if (_config.InputLayoutsBackup.Length == 0) return;
-            if (MessageBox.Show(this, Translate("Вернуть раскладки Windows в исходное состояние?"), "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+            if (ConfirmDialog.Show(this, _config.UiLanguage, Translate("Вернуть раскладки Windows в исходное состояние?"), MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
             InputLayouts.RestoreAll(_config.InputLayoutsBackup);
             LanguageHotkeys.ApplyToWindows();
@@ -1033,7 +1089,7 @@ namespace CyrFlip
 
             Label valueLabel = ColumnLabel(entry != null ? entry.Display : Translate("Не назначено"), _languageChordColumn, ellipsis: false);
             valueLabel.Font = entry != null ? BoldFont : Font;
-            valueLabel.ForeColor = entry != null ? ForeColor : SystemColors.GrayText;
+            if (entry == null) valueLabel.ForeColor = ThemePalette.Light.TextMuted;
             row.Controls.Add(valueLabel);
             row.Controls.Add(Button(Translate("Задать..."), () => AssignLanguageHotkey(hkl)));
 
@@ -1042,7 +1098,7 @@ namespace CyrFlip
             row.Controls.Add(clear);
 
             // The raw HKL is the only always-correct way to tell two layouts of one language apart.
-            row.Controls.Add(new Label { Text = LanguageHotkeys.HklText(hkl), AutoSize = true, ForeColor = SystemColors.GrayText, Margin = new Padding(8, 5, 0, 0), Padding = new Padding(0, 1, 0, 0) });
+            row.Controls.Add(new Label { Text = LanguageHotkeys.HklText(hkl), AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(8, 5, 0, 0), Padding = new Padding(0, 1, 0, 0) });
             return row;
         }
 
@@ -1050,7 +1106,7 @@ namespace CyrFlip
         {
             var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 2, 3, 2) };
             Label orphanLabel = ColumnLabel(string.Format(Translate("{0} → раскладка {1} (не установлена)"), entry.Display, LanguageHotkeys.HklText(entry.TargetHkl)), Column(455));
-            orphanLabel.ForeColor = SystemColors.GrayText;
+            orphanLabel.ForeColor = ThemePalette.Light.TextMuted;
             row.Controls.Add(orphanLabel);
             row.Controls.Add(Button(Translate("Удалить"), () => RemoveOrphanHotkey(entry.Id)));
             return row;
@@ -1127,15 +1183,15 @@ namespace CyrFlip
             if (!_languageHotkeyNoticeShown)
             {
                 _languageHotkeyNoticeShown = true;
-                MessageBox.Show(this, Translate("Сочетание записано в настройки Windows — обрабатывать его будет система, а не CyrFlip. Если оно не сработало сразу, выйдите из Windows и войдите снова."),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ConfirmDialog.Show(this, _config.UiLanguage, Translate("Сочетание записано в настройки Windows — обрабатывать его будет система, а не CyrFlip. Если оно не сработало сразу, выйдите из Windows и войдите снова."),
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
         private void RestoreLanguageHotkeys()
         {
             if (_config.LanguageHotkeysBackup.Length == 0) return;
-            if (MessageBox.Show(this, Translate("Вернуть языковые сочетания Windows в исходное состояние?"), "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+            if (ConfirmDialog.Show(this, _config.UiLanguage, Translate("Вернуть языковые сочетания Windows в исходное состояние?"), MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
             LanguageHotkeys.RestoreAll(_config.LanguageHotkeysBackup);
             ReloadLanguageRows();
@@ -1159,7 +1215,7 @@ namespace CyrFlip
             => ChordGuard.IsFree(this, Chords(), chord, kind, id, _config.UiLanguage, LayoutName, askAboutWindows);
 
         private void Warn(string message)
-            => MessageBox.Show(this, message, "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            => ConfirmDialog.Show(this, _config.UiLanguage, message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
         private static void Open(string target)
         {
@@ -1178,8 +1234,28 @@ namespace CyrFlip
             opacityLine.Controls.Add(_opacity); opacityLine.Controls.Add(_opacityValue);
             panel.Controls.Add(Setting(opacityLine, "Задаёт прозрачность плавающего окна истории от 30% до 100%. Значение применяется сразу."));
             panel.Controls.Add(Setting(Button("Поиск по истории", _openHistorySearch), "Открывает отдельное окно поиска по фрагменту текста. Для поиска нужно ввести не менее трёх символов."));
-            panel.Controls.Add(Setting(Button("Очистить всю историю", () => { if (MessageBox.Show(Translate("Удалить всю сохранённую историю буфера?"), "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes) _clearHistory(); }), "Удаляет все записи из памяти и зашифрованного локального файла. Это действие нельзя отменить."));
+            panel.Controls.Add(Setting(Button("Очистить всю историю", () => { if (ConfirmDialog.Show(this, _config.UiLanguage, Translate("Удалить всю сохранённую историю буфера?"), MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) == DialogResult.Yes) _clearHistory(); }), "Удаляет все записи из памяти и зашифрованного локального файла. Это действие нельзя отменить."));
+            Control? transfer = ExchangeRow();
+            if (transfer != null)
+            {
+                panel.Controls.Add(SectionHeader("Перенос на другой компьютер"));
+                panel.Controls.Add(transfer);
+            }
             return page;
+        }
+
+        /// <summary>
+        /// Export / import of the open exchange file (ticket S0023) - the same pair on the clipboard page
+        /// and the quick-notes page, since the file carries both. Not greyed by either module's switch:
+        /// the export dialog and the import preview say themselves what a switched-off module means.
+        /// </summary>
+        private Control? ExchangeRow()
+        {
+            if (_exchange == null) return null;
+            var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0) };
+            row.Controls.Add(Button("Экспортировать...", () => _exchange(this, false)));
+            row.Controls.Add(Button("Импортировать...", () => _exchange(this, true)));
+            return Setting(row, "Один открытый текстовый файл с заметками и выбранной историей буфера: его можно прочитать в любом редакторе или на телефоне и импортировать в CyrFlip на другом компьютере. Файл не шифруется. Импорт показывает, что будет добавлено, и ничего не удаляет.");
         }
 
         // ---- Quick notes tab ----
@@ -1215,10 +1291,16 @@ namespace CyrFlip
                 "Один файл со всеми заметками по порядку. Экспортированный файл уже не защищён DPAPI — его прочитает любой, у кого есть доступ к папке.")));
             panel.Controls.Add(Track(Setting(Button("Удалить все быстрые заметки", ClearQuickNotes),
                 "Удаляет все заметки, журнал и его резервную копию. Отменить это нельзя.")));
+            Control? transfer = ExchangeRow();
+            if (transfer != null)
+            {
+                panel.Controls.Add(SectionHeader("Перенос на другой компьютер"));
+                panel.Controls.Add(transfer);
+            }
             panel.Controls.Add(new Label
             {
                 Text = "Заметки лежат только на этом компьютере и шифруются Windows DPAPI для вашей учётной записи. CyrFlip не отправляет их в сеть, не индексирует их поиском Windows и не превращает записи истории буфера в заметки — для этого есть отдельная команда. Это не хранилище секретов: не сохраняйте здесь пароли, боевые токены и приватные ключи.",
-                AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText,
+                AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted,
                 Margin = new Padding(3, 10, 3, 4),
             });
             return page;
@@ -1240,10 +1322,10 @@ namespace CyrFlip
             {
                 string path = _exportQuickNotes(dialog.FileName, _quickNotesExportMeta.Checked);
                 if (path.Length == 0) return;
-                MessageBox.Show(this,
+                ConfirmDialog.Show(this, _config.UiLanguage,
                     string.Format(Translate("Заметки сохранены: {0}"), path) + "\n\n"
                     + Translate("Этот файл не защищён DPAPI — его прочитает любой, у кого есть доступ к папке."),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -1253,9 +1335,9 @@ namespace CyrFlip
 
         private void ClearQuickNotes()
         {
-            if (MessageBox.Show(this,
+            if (ConfirmDialog.Show(this, _config.UiLanguage,
                     Translate("Удалить все быстрые заметки, журнал и резервную копию? Отменить это нельзя."),
-                    "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
             _clearQuickNotes();
         }
@@ -1316,7 +1398,7 @@ namespace CyrFlip
             panel.Controls.Add(Setting(LabeledRow("Держать модель в памяти (мин):", _translateKeepAlive),
                 "Сколько Ollama держит модель загруженной после перевода. -1 держит её всегда, и это значение по умолчанию: первая загрузка на машине без подходящей видеокарты занимает минуты, и платить за неё заново каждые несколько минут хуже, чем занятые гигабайты. 0 выгружает сразу."));
             panel.Controls.Add(Setting(LabeledRow("Ждать загрузки модели не дольше (с):", _translateTimeout),
-                "Это время на первый ответ модели, то есть почти целиком на её загрузку в память. Время на сам перевод считается отдельно и от длины текста: 15 секунд плюс по секунде на каждые 40 знаков."));
+                "Это время на первый ответ модели, то есть почти целиком на её загрузку в память. Дальше перевод идёт, пока модель пишет: он прерывается, только если она замолчит на 30 секунд, и тогда уже написанное остаётся на экране."));
 
             panel.Controls.Add(SectionHeader("Направления перевода"));
             panel.Controls.Add(_translationRows);
@@ -1324,7 +1406,7 @@ namespace CyrFlip
             panel.Controls.Add(new Label
             {
                 Text = "«Язык интерфейса» и «Язык активной раскладки» вычисляются в момент нажатия. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
-                AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(3, 8, 3, 4),
+                AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 8, 3, 4),
             });
 
             panel.Controls.Add(SectionHeader("Результат"));
@@ -1437,7 +1519,7 @@ namespace CyrFlip
                 _translationRows.Controls.Add(new Label
                 {
                     Text = Translate("Направлений пока нет — добавьте первое, чтобы назначить комбинацию."),
-                    AutoSize = true, ForeColor = SystemColors.GrayText, Margin = new Padding(25, 6, 3, 4),
+                    AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(25, 6, 3, 4),
                 });
             // Gated here, not in ReloadTranslateState: ApplyLanguage rebuilds these rows after the
             // gating pass, so a switch set there would be lost on every language change.
@@ -1481,7 +1563,7 @@ namespace CyrFlip
             };
             row.Controls.Add(enabled);
             Label target = ColumnLabel(TranslationLanguages.Label(profile.TargetLang, _config.UiLanguage), _targetColumn);
-            if (!_config.EnableHotkeys || !_config.EnableTranslate) target.ForeColor = SystemColors.GrayText;
+            if (!_config.EnableHotkeys || !_config.EnableTranslate) target.ForeColor = ThemePalette.Light.TextMuted;
             row.Controls.Add(target);
             row.Controls.Add(ColumnLabel(profile.Hotkey.Length > 0 ? profile.Hotkey : Translate("Не назначено"),
                 _translateChordColumn, ellipsis: false));
@@ -1536,17 +1618,17 @@ namespace CyrFlip
                 OllamaManager.OpenWebPage();
                 return;
             }
-            if (MessageBox.Show(this, Translate("Скачать и установить Ollama? Это несколько сотен мегабайт, загрузка может занять время."),
-                    "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            if (ConfirmDialog.Show(this, _config.UiLanguage, Translate("Скачать и установить Ollama? Это несколько сотен мегабайт, загрузка может занять время."),
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 return;
 
             SetTranslateBusy(true);
             _translateStatus.Text = Translate("Скачиваю Ollama...");
-            string installer = "";
+            var download = new OllamaManager.InstallerDownload();
             try
             {
                 var progress = new Progress<string>(text => _translateStatus.Text = Translate("Скачиваю Ollama:") + " " + text);
-                installer = await OllamaManager.DownloadInstallerAsync(progress, TranslateWorkToken());
+                download = await OllamaManager.DownloadInstallerAsync(progress, TranslateWorkToken());
             }
             catch (OperationCanceledException)
             {
@@ -1558,10 +1640,16 @@ namespace CyrFlip
             catch { /* the network gave up - the status line below says so */ }
             finally { SetTranslateBusy(false); }
 
-            if (installer.Length > 0)
+            if (download.Status == OllamaManager.InstallerStatus.Ok)
             {
                 _translateStatus.Text = Translate("Запускаю установщик Ollama...");
-                OllamaManager.RunInstaller(installer);
+                OllamaManager.RunInstaller(download.Path);
+            }
+            else if (download.Status == OllamaManager.InstallerStatus.Untrusted)
+            {
+                // Deleted, never run (S0010 TD-5); the site is the one source left that the user can judge.
+                _translateStatus.Text = Translate("Скачанный установщик не подписан Ollama - он удалён. Открываю сайт Ollama...");
+                OllamaManager.OpenWebPage();
             }
             else
             {
@@ -1705,7 +1793,7 @@ namespace CyrFlip
             panel.Controls.SetChildIndex(header, 0);
 
             panel.Controls.Add(Setting(_launcherEnabled, "Добавляет подменю сценариев в меню трея и задачи в Jump List панели задач (правый клик по значку CyrFlip на панели задач). Сценарии хранятся по одному XML-файлу и не удаляются при выключении."));
-            panel.Controls.Add(new Label { Text = "Значок на панели задач: левый клик — список сценариев, правый — Jump List Windows.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(31, 0, 3, 6) });
+            panel.Controls.Add(new Label { Text = "Значок на панели задач: левый клик — список сценариев, правый — Jump List Windows.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(31, 0, 3, 6) });
 
             var searchRow = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 2, 3, 2) };
             searchRow.Controls.Add(new Label { Text = "Поиск:", AutoSize = true, Padding = new Padding(0, 6, 8, 0) });
@@ -1724,7 +1812,10 @@ namespace CyrFlip
             row1.Controls.Add(LauncherButton("Удалить", LauncherRemove));
             var up = LauncherButton("↑", () => LauncherMove(-1));
             var down = LauncherButton("↓", () => LauncherMove(+1));
-            up.Width = down.Width = 32; up.AutoSize = down.AutoSize = false; up.Height = down.Height = RowHeight;
+            // Sized by their content, never below 32 px wide: built here, before the window takes its real font,
+            // a fixed RowHeight was the old small font's and cut the lower half of "↓" (S0019 audit A-16).
+            // GrowOnly (a button's default) grows from the current size, so it starts from 32 x 0, not 75 x 23.
+            up.AutoSize = down.AutoSize = true; up.MinimumSize = down.MinimumSize = up.Size = down.Size = new Size(32, 0);
             row1.Controls.Add(up); row1.Controls.Add(down);
             panel.Controls.Add(row1);
 
@@ -1735,7 +1826,7 @@ namespace CyrFlip
             row2.Controls.Add(_launcherImportOcr);
             panel.Controls.Add(row2);
 
-            panel.Controls.Add(new Label { Text = "Двойной клик или Enter — запуск, F2 — изменение, Delete — удаление. Импорт из OneClickRunner копирует сценарии и никогда не изменяет исходные файлы.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(3, 6, 3, 4) });
+            panel.Controls.Add(new Label { Text = "Двойной клик или Enter — запуск, F2 — изменение, Delete — удаление. Импорт из OneClickRunner копирует сценарии и никогда не изменяет исходные файлы.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 6, 3, 4) });
 
             // Context menu, keyboard shortcuts and the run-on-double-click of the source app.
             var context = new ContextMenuStrip();
@@ -1979,8 +2070,8 @@ namespace CyrFlip
         {
             LauncherScenario? selected = SelectedLauncherScenario();
             if (selected == null) return;
-            if (MessageBox.Show(this, string.Format(Translate("Удалить сценарий «{0}»?"), selected.Name),
-                    "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+            if (ConfirmDialog.Show(this, _config.UiLanguage, string.Format(Translate("Удалить сценарий «{0}»?"), selected.Name),
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
             _launcherStore.Remove(selected.Id);
             LauncherNotifyChanged();
@@ -2024,8 +2115,8 @@ namespace CyrFlip
             try
             {
                 _launcherStore.Export(selected, dialog.FileName);
-                MessageBox.Show(this, string.Format(Translate("Сценарий «{0}» экспортирован."), selected.Name),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ConfirmDialog.Show(this, _config.UiLanguage, string.Format(Translate("Сценарий «{0}» экспортирован."), selected.Name),
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -2050,7 +2141,7 @@ namespace CyrFlip
             LauncherReselect(imported.Id);
             string message = string.Format(Translate("Импортирован сценарий «{0}»."), imported.Name);
             if (chordDropped) message += "\n" + Translate("Его комбинация уже занята, поэтому не перенесена.");
-            MessageBox.Show(this, message, "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            ConfirmDialog.Show(this, _config.UiLanguage, message, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         /// <summary>The explicit, repeatable OneClickRunner import (spec §5.3) - the source is never modified.</summary>
@@ -2058,8 +2149,8 @@ namespace CyrFlip
         {
             if (!LauncherMigration.SourceExists())
             {
-                MessageBox.Show(this, Translate("Сценарии OneClickRunner не найдены."),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ConfirmDialog.Show(this, _config.UiLanguage, Translate("Сценарии OneClickRunner не найдены."),
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             LauncherMigration.Result result = LauncherMigration.Import(_launcherStore);
@@ -2070,39 +2161,39 @@ namespace CyrFlip
                     + "\n" + string.Join(", ", result.Skipped);
             if (result.NewIds > 0)
                 summary += "\n" + string.Format(Translate("Из-за совпадения идентификаторов назначены новые: {0}."), result.NewIds);
-            MessageBox.Show(this, summary, "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            ConfirmDialog.Show(this, _config.UiLanguage, summary, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private static TabPage Page(string title, string description, params Control[] controls)
         {
             var page = new TabPage(title);
-            var panel = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Padding = new Padding(16), BackColor = SystemColors.Window };
-            panel.Controls.Add(new Label { Text = description, AutoSize = true, MaximumSize = new Size(930, 0), ForeColor = SystemColors.GrayText, Padding = new Padding(2, 0, 2, 10) });
+            var panel = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Padding = new Padding(16), BackColor = ThemePalette.Light.SurfaceRaised };
+            panel.Controls.Add(new Label { Text = description, AutoSize = true, MaximumSize = new Size(930, 0), ForeColor = ThemePalette.Light.TextMuted, Padding = new Padding(2, 0, 2, 10) });
             foreach (Control control in controls) panel.Controls.Add(control);
             page.Controls.Add(panel); return page;
         }
         private static FlowLayoutPanel ContentPanel(TabPage page) => (FlowLayoutPanel)page.Controls[0];
         private static TabPage WithIcon(TabPage page, int imageIndex) { page.ImageIndex = imageIndex; return page; }
-        private static ImageList CreateTabIcons()
+        private static ImageList CreateTabIcons(Color accent)
         {
             var images = new ImageList { ImageSize = new Size(18, 18), ColorDepth = ColorDepth.Depth32Bit };
             // The bitmaps stay owned by the ImageList: it holds them as "originals" until something
             // asks for its native handle, so disposing them here throws on the first paint. The list
             // frees whatever it still holds when the form disposes it (see Dispose) - which is why the
             // ImageList itself has to be kept: a control it is assigned to never owns it.
-            images.Images.Add("general", TabIcon(0)); images.Images.Add("indicators", TabIcon(1)); images.Images.Add("hotkeys", TabIcon(2));
-            images.Images.Add("clipboard", TabIcon(3)); images.Images.Add("advanced", TabIcon(4)); images.Images.Add("about", TabIcon(5));
-            images.Images.Add("languages", TabIcon(6));
-            images.Images.Add("conversions", TabIcon(7));
-            images.Images.Add("launcher", TabIcon(8));
-            images.Images.Add("translate", TabIcon(9));
-            images.Images.Add("notes", TabIcon(10));
+            images.Images.Add("general", TabIcon(0, accent)); images.Images.Add("indicators", TabIcon(1, accent)); images.Images.Add("hotkeys", TabIcon(2, accent));
+            images.Images.Add("clipboard", TabIcon(3, accent)); images.Images.Add("advanced", TabIcon(4, accent)); images.Images.Add("about", TabIcon(5, accent));
+            images.Images.Add("languages", TabIcon(6, accent));
+            images.Images.Add("conversions", TabIcon(7, accent));
+            images.Images.Add("launcher", TabIcon(8, accent));
+            images.Images.Add("translate", TabIcon(9, accent));
+            images.Images.Add("notes", TabIcon(10, accent));
             return images;
         }
-        private static Bitmap TabIcon(int kind)
+        private static Bitmap TabIcon(int kind, Color accent)
         {
             var image = new Bitmap(18, 18); using var g = Graphics.FromImage(image); g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            using var pen = new Pen(Color.FromArgb(45, 105, 175), 1.8f); using var brush = new SolidBrush(Color.FromArgb(45, 105, 175));
+            using var pen = new Pen(accent, 1.8f); using var brush = new SolidBrush(accent);
             switch (kind)
             {
                 case 0: g.DrawEllipse(pen, 3, 3, 12, 12); g.FillEllipse(brush, 7, 7, 4, 4); for (int i = 0; i < 8; i++) { double a = i * Math.PI / 4; float x = 9 + (float)Math.Cos(a) * 7; float y = 9 + (float)Math.Sin(a) * 7; g.DrawLine(pen, 9 + (float)Math.Cos(a) * 5, 9 + (float)Math.Sin(a) * 5, x, y); } break;
@@ -2135,6 +2226,41 @@ namespace CyrFlip
             }
             return image;
         }
+        private Control MarkerSizeRow()
+        {
+            var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 5, 3, 5) };
+            row.Controls.Add(new Label { Text = "Размер метки:", AutoSize = true, Padding = new Padding(0, 8, 5, 0) });
+            row.Controls.Add(_markerSize);
+            row.Controls.Add(_markerSizeValue);
+            return row;
+        }
+
+        private string MarkerSizeName(int step)
+            => Translate(step <= 0 ? "Маленькая" : step == 1 ? "Средняя" : "Крупная");
+
+        private Control ThemeRow()
+        {
+            var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 5, 3, 5) };
+            row.Controls.Add(new Label { Text = "Тема:", AutoSize = true, Width = 155, Padding = new Padding(0, 7, 0, 0) });
+            row.Controls.Add(_themeSystem);
+            row.Controls.Add(_themeLight);
+            row.Controls.Add(_themeDark);
+            return row;
+        }
+
+        /// <summary>
+        /// One of the three theme buttons was checked: store the invariant token and repaint every window
+        /// at once (<c>APP-STYLE</c> section 2 - no restart, no "apply"). The unchecking half of the pair
+        /// raises the event too and is ignored.
+        /// </summary>
+        private void ThemeChosen(RadioButton button, ThemeMode mode)
+        {
+            if (_loading || !button.Checked) return;
+            _config.Theme = ThemeModes.Token(mode);
+            _config.Save();
+            ThemeManager.SetMode(mode);
+        }
+
         private Control LanguageRow()
         {
             var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 5, 3, 5) };
@@ -2170,7 +2296,7 @@ namespace CyrFlip
             panel.Controls.Add(Link("Сайт программы: serzhyale.github.io/CyrFlip", "https://serzhyale.github.io/CyrFlip/"));
             panel.Controls.Add(Link("GitHub: github.com/SerZhyAle/CyrFlip", "https://github.com/SerZhyAle/CyrFlip"));
             panel.Controls.Add(Link("Сайт разработчика: sza.od.ua", "https://sza.od.ua/"));
-            panel.Controls.Add(new Label { Text = "CyrFlip работает локально, без телеметрии и сетевой синхронизации истории буфера.", AutoSize = true, MaximumSize = new Size(690, 0), Padding = new Padding(0, 14, 0, 0), ForeColor = SystemColors.GrayText });
+            panel.Controls.Add(new Label { Text = "CyrFlip работает локально, без телеметрии и сетевой синхронизации истории буфера.", AutoSize = true, MaximumSize = new Size(690, 0), Padding = new Padding(0, 14, 0, 0), ForeColor = ThemePalette.Light.TextMuted });
             panel.Controls.Add(Setting(Button("Диагностика положения каретки...", _diagnoseCaret), "Создаёт локальный отчёт о том, как Windows и UI Automation видят каретку. Нужен только если метка не появляется или рисуется не там в конкретной программе."));
             _sendLogs = Button("Отправить логи автору..", SendLogsToAuthor);
             panel.Controls.Add(Setting(_sendLogs, "Собирает логи CyrFlip в один архив и открывает письмо автору с этим вложением. Письмо отправляете вы сами — CyrFlip ничего не передаёт в сеть. История буфера обмена в архив не попадает."));
@@ -2198,8 +2324,8 @@ namespace CyrFlip
                     BeginInvoke(new Action(() =>
                     {
                         if (_sendLogs != null) _sendLogs.Enabled = true;
-                        MessageBox.Show(this, Translate("Не удалось собрать архив с логами:") + "\n" + ex.Message,
-                            "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        ConfirmDialog.Show(this, _config.UiLanguage, Translate("Не удалось собрать архив с логами:") + "\n" + ex.Message,
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }));
                 }
             });
@@ -2220,11 +2346,13 @@ namespace CyrFlip
             SupportMail mail = MailSender.Compose(result.ArchivePath, SupportBundle.AppVersion(),
                 MailSender.LanguageCode(_config.UiLanguage), MailSender.DescribeSystem());
             IntPtr owner = Handle;
-            Task.Run(() =>
+            // A dedicated STA thread, not the pool (S0010 TD-8); the continuation re-enables the button.
+            MailSender.SendOnStaAsync(mail, new MailSender.WindowsMailTransport(owner)).ContinueWith(task =>
             {
-                MailOutcome outcome = MailSender.Send(mail, new MailSender.WindowsMailTransport(owner));
-                BeginInvoke(new Action(() => AfterSupportMail(outcome, result)));
-            });
+                MailOutcome outcome = task.Result;
+                try { BeginInvoke(new Action(() => AfterSupportMail(outcome, result))); }
+                catch (InvalidOperationException) { /* the settings window was closed meanwhile */ }
+            }, TaskScheduler.Default);
         }
 
         private void AfterSupportMail(MailOutcome outcome, SupportBundle.Result result)
@@ -2235,15 +2363,15 @@ namespace CyrFlip
                 // A mailto: message cannot carry an attachment - no mail client accepts one from a
                 // link. Say so plainly instead of letting the user send an empty report.
                 case MailOutcome.MailtoOpened:
-                    MessageBox.Show(this,
+                    ConfirmDialog.Show(this, _config.UiLanguage,
                         Translate("Ваша почтовая программа не принимает вложение из ссылки. Письмо открыто, а архив выделен в проводнике — перетащите его в письмо перед отправкой."),
-                        "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
                 case MailOutcome.Manual:
-                    MessageBox.Show(this,
+                    ConfirmDialog.Show(this, _config.UiLanguage,
                         Translate("Не удалось открыть почтовую программу. Отправьте архив вручную на адрес:")
                         + "\n" + MailSender.AuthorAddress + "\n\n" + result.ArchivePath,
-                        "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
             }
         }
@@ -2254,12 +2382,13 @@ namespace CyrFlip
             return link;
         }
         private static CheckBox Check(string text) => new CheckBox { Text = text, AutoSize = true, Margin = new Padding(3, 6, 3, 6) };
+        private static RadioButton Radio(string text) => new RadioButton { Text = text, AutoSize = true, Margin = new Padding(3, 5, 12, 3) };
         private static Button Button(string text, Action action) { var button = new Button { Text = text, AutoSize = true, Margin = new Padding(3, 5, 3, 5) }; button.Click += (_, _) => action(); return button; }
         private static Control Setting(Control control, string description)
         {
             var block = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 7, 3, 7) };
             block.Controls.Add(control);
-            block.Controls.Add(new Label { Text = description, AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(28, 0, 3, 3) });
+            block.Controls.Add(new Label { Text = description, AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(28, 0, 3, 3) });
             return block;
         }
         private static Control HotkeyRow(string label, Label value, Action change, string description)
@@ -2269,7 +2398,7 @@ namespace CyrFlip
             row.Controls.Add(new Label { Text = label + ":", AutoSize = true, Width = 150, Padding = new Padding(0, 7, 0, 0) });
             value.Padding = new Padding(0, 7, 5, 0); row.Controls.Add(value); row.Controls.Add(Button("Изменить...", change));
             block.Controls.Add(row);
-            block.Controls.Add(new Label { Text = description, AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(28, 0, 3, 3) });
+            block.Controls.Add(new Label { Text = description, AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(28, 0, 3, 3) });
             return block;
         }
 
@@ -2284,7 +2413,7 @@ namespace CyrFlip
             row.Controls.Add(enable);
             value.Padding = new Padding(0, 7, 5, 0); row.Controls.Add(value); row.Controls.Add(Button("Изменить...", change));
             block.Controls.Add(row);
-            block.Controls.Add(new Label { Text = description, AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(28, 0, 3, 3) });
+            block.Controls.Add(new Label { Text = description, AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(28, 0, 3, 3) });
             return block;
         }
         private void Changed(Action<bool> action, bool value) { if (_loading) return; action(value); Reload(); }

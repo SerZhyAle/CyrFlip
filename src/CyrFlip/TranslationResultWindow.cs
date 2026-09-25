@@ -15,7 +15,7 @@ namespace CyrFlip
     /// captions exist in 13 languages, and <c>DialogLayoutTests</c> can only prove nothing is clipped
     /// when there are real <see cref="Label"/>s and <see cref="Button"/>s to measure.
     /// </summary>
-    internal sealed class TranslationResultWindow : Form
+    internal sealed class TranslationResultWindow : ThemedForm
     {
         /// <summary>The size the first build shipped with - see the constructor for why it matters.</summary>
         private const int FirstReleaseWidth = 460;
@@ -23,7 +23,7 @@ namespace CyrFlip
 
         private readonly AppConfig _config;
         private readonly Label _header = new Label { AutoSize = false, AutoEllipsis = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
-        private readonly TextBox _source = new TextBox { Multiline = true, ReadOnly = true, Dock = DockStyle.Fill, ScrollBars = ScrollBars.Vertical, BackColor = SystemColors.Control };
+        private readonly TextBox _source = new TextBox { Multiline = true, ReadOnly = true, Dock = DockStyle.Fill, ScrollBars = ScrollBars.Vertical, BackColor = ThemePalette.Light.SurfaceWindow };
         private readonly TextBox _result = new TextBox { Multiline = true, ReadOnly = true, Dock = DockStyle.Fill, ScrollBars = ScrollBars.Vertical };
         // Width is measured from the widest language label in MeasureLanguageWidth - a fixed number
         // clipped "Язык активной раскладки" in the longer languages.

@@ -83,6 +83,7 @@ public static class CyrFlipUi {
     [DllImport("kernel32.dll")] public static extern IntPtr OpenProcess(uint access, bool inherit, uint pid);
     [DllImport("kernel32.dll")] public static extern bool CloseHandle(IntPtr h);
     [DllImport("user32.dll")] public static extern IntPtr PostMessageW(IntPtr h, uint msg, IntPtr w, IntPtr l);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr SendMessageTimeoutW(IntPtr h, uint msg, IntPtr w, string l, uint flags, uint timeout, out IntPtr result);
 
     // GDI and USER handle counts of another process - the two that actually leak in a WinForms tray
     // app (icons, bitmaps, fonts, windows). Private Bytes is read from the Process object instead;
@@ -568,11 +569,28 @@ function Set-CapsLockState {
     [CyrFlipUi]::keybd_event(0x14, 0, 0, [IntPtr]::Zero)
     [CyrFlipUi]::keybd_event(0x14, 0, 2, [IntPtr]::Zero)
     $deadline = (Get-Date).AddMilliseconds($TimeoutMs)
+    $shifted = $false
     while ((Get-Date) -lt $deadline) {
         if ((Get-CapsLockState) -eq $On) { return $true }
         Start-Sleep -Milliseconds 40
+        # "Press SHIFT to turn off Caps Lock": the CapsLock key only ever turns it on there.
+        if (-not $On -and -not $shifted -and (Test-ShiftLockMode)) {
+            [CyrFlipUi]::keybd_event(0xA0, 0, 0, [IntPtr]::Zero)   # VK_LSHIFT
+            [CyrFlipUi]::keybd_event(0xA0, 0, 2, [IntPtr]::Zero)
+            $shifted = $true
+        }
     }
     $false
+}
+
+function Test-ShiftLockMode {
+    <#
+    .SYNOPSIS
+    Is "Press SHIFT to turn off Caps Lock" set? That is KLLF_SHIFTLOCK (0x10000) in
+    HKCU\Keyboard Layout\Attributes - with it, the CapsLock key cannot turn the lock off.
+    #>
+    $value = (Get-ItemProperty -Path 'HKCU:\Keyboard Layout' -Name Attributes -ErrorAction SilentlyContinue).Attributes
+    $null -ne $value -and (([uint32]$value -band 0x10000) -ne 0)
 }
 
 function Get-ClipboardSequence {
@@ -691,8 +709,70 @@ function Save-WindowShot {
     [pscustomobject]@{ Path = $full; Width = $w; Height = $h }
 }
 
-Export-ModuleMember -Function Enable-UiTestDpi, Get-CyrFlipExe, Start-CyrFlipApp, Stop-CyrFlipApp,
+function Get-CyrFlipDataFolder {
+    <#
+    .SYNOPSIS
+    The folder CyrFlip keeps its per-user files in (layout signal, logs, archives, quick-notes journal),
+    as { Path; Packaged }. Portable: %LOCALAPPDATA%\CyrFlip. Store: the package's per-user folder
+    %LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip (ticket S0016); a Store
+    build older than S0016 used the machine-wide %ProgramData%\CyrFlip, still recognised here.
+    #>
+    [CmdletBinding()]
+    param()
+    $portable = Join-Path $env:LOCALAPPDATA 'CyrFlip'
+    $store = Join-Path $env:LOCALAPPDATA 'Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip'
+    $legacy = Join-Path $env:ProgramData 'CyrFlip'
+    if (Test-Path $portable) { return [pscustomobject]@{ Path = $portable; Packaged = $false } }
+    if (Test-Path $store) { return [pscustomobject]@{ Path = $store; Packaged = $true } }
+    if (Test-Path $legacy) { return [pscustomobject]@{ Path = $legacy; Packaged = $true } }
+    [pscustomobject]@{ Path = $portable; Packaged = $false }
+}
+
+function Send-SettingChange {
+    <#
+    .SYNOPSIS
+    Broadcasts WM_SETTINGCHANGE naming a changed area, the way Windows itself does after the
+    light/dark switch ("ImmersiveColorSet") - so a check can flip AppsUseLightTheme in the registry
+    and have every running app hear about it.
+    #>
+    [CmdletBinding()]
+    param([string]$Area = 'ImmersiveColorSet')
+    Initialize-UiTestNative
+    $result = [IntPtr]::Zero
+    # HWND_BROADCAST, WM_SETTINGCHANGE, SMTO_ABORTIFHUNG: a hung window must not hang the check.
+    [void][CyrFlipUi]::SendMessageTimeoutW([IntPtr]0xffff, 0x001A, [IntPtr]::Zero, $Area, 0x0002, 3000, [ref]$result)
+}
+
+function Get-ImageLuminance {
+    <#
+    .SYNOPSIS
+    Mean WCAG relative luminance (0 = black, 1 = white) of an image or of its top band, sampled on a
+    grid. The cheap, language-independent answer to "is this window dark": a themed window is mostly
+    background, so the mean is the background's to within a few hundredths.
+    .PARAMETER TopFraction
+    Measure only the top part of the image - the title bar, when the shot includes the frame.
+    #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Path, [double]$TopFraction = 1.0, [int]$Step = 5)
+    Add-Type -AssemblyName System.Drawing
+    $bmp = [System.Drawing.Bitmap]::FromFile($Path)
+    try {
+        $height = [Math]::Max(1, [int]($bmp.Height * $TopFraction))
+        $sum = 0.0; $n = 0
+        for ($y = 0; $y -lt $height; $y += $Step) {
+            for ($x = 0; $x -lt $bmp.Width; $x += $Step) {
+                $c = $bmp.GetPixel($x, $y)
+                $lin = foreach ($v in $c.R, $c.G, $c.B) { $s = $v / 255.0; if ($s -le 0.03928) { $s / 12.92 } else { [Math]::Pow(($s + 0.055) / 1.055, 2.4) } }
+                $sum += 0.2126 * $lin[0] + 0.7152 * $lin[1] + 0.0722 * $lin[2]; $n++
+            }
+        }
+        [Math]::Round($sum / [Math]::Max(1, $n), 3)
+    }
+    finally { $bmp.Dispose() }
+}
+
+Export-ModuleMember -Function Enable-UiTestDpi, Get-CyrFlipExe, Get-CyrFlipDataFolder, Start-CyrFlipApp, Stop-CyrFlipApp,
     Get-TrayIcons, Get-TrayIcon, Invoke-MouseClick, Invoke-TrayClick, Start-TargetWindow, Get-WindowLayout,
     Set-WindowForeground, Get-InstalledLayouts, Get-ForegroundWindowInfo, Get-AppWindows,
     Wait-AppWindow, Find-AppWindow, Save-WindowShot, Get-AppResourceUsage, Switch-WindowLayout,
-    Get-CapsLockState, Set-CapsLockState, Get-ClipboardSequence
+    Get-CapsLockState, Set-CapsLockState, Test-ShiftLockMode, Get-ClipboardSequence, Send-SettingChange, Get-ImageLuminance

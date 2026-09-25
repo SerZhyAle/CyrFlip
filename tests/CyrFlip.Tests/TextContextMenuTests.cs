@@ -468,6 +468,24 @@ namespace CyrFlip.Tests
             });
         }
 
+        /// <summary>
+        /// S0008 LS-5: an "&amp;" in a link is text, not a mnemonic - unescaped, "?a=1&amp;b=2" would
+        /// lose its ampersand in the caption, and the caption is what the user checks before opening.
+        /// </summary>
+        [Fact]
+        public void AnAmpersandInTheTargetIsShownNotEatenAsAMnemonic()
+        {
+            OnUiThread(() =>
+            {
+                using var menu = new ContextMenuStrip();
+                TextContextMenuState state = FullState(SelectionState.Present);
+                state.Launch = new LaunchTarget("https://example.com/?a=1&b=2", "example.com/?a=1&b=2", LaunchKind.Url);
+                Build(menu, state);
+
+                Assert.Contains("Запустить «example.com/?a=1&&b=2»", Captions(menu));
+            });
+        }
+
         [Fact]
         public void TheLaunchItemHandsBackTheTargetItNamed()
         {

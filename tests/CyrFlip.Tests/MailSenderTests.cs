@@ -20,9 +20,14 @@ namespace CyrFlip.Tests
             public readonly List<string> Calls = new List<string>();
             public string? OpenedUrl;
 
+            public System.Threading.ApartmentState? MapiApartment;
+            public bool Throw;
+
             public uint SendWithAttachment(SupportMail mail)
             {
                 Calls.Add("mapi");
+                MapiApartment = System.Threading.Thread.CurrentThread.GetApartmentState();
+                if (Throw) throw new InvalidOperationException("mail client crashed");
                 return MapiCode;
             }
 
@@ -39,6 +44,29 @@ namespace CyrFlip.Tests
         private static SupportMail Mail() =>
             MailSender.Compose(@"C:\Users\u\AppData\Local\CyrFlip\reports\CyrFlip-logs-26.7.29.2340-20260729-2340.zip",
                 "26.7.29.2340", "ru", "Windows 10.0.26200 x64");
+
+        /// <summary>
+        /// S0010 TD-8: MAPI_DIALOG opens the mail client's compose window, which classic Outlook
+        /// expects on an STA thread - the settings window used to call it from the thread pool (MTA).
+        /// </summary>
+        [Fact]
+        public async System.Threading.Tasks.Task TheMapiCallRunsInASingleThreadedApartment()
+        {
+            var transport = new FakeTransport();
+
+            MailOutcome outcome = await MailSender.SendOnStaAsync(Mail(), transport);
+
+            Assert.Equal(MailOutcome.Sent, outcome);
+            Assert.Equal(System.Threading.ApartmentState.STA, transport.MapiApartment);
+        }
+
+        [Fact]
+        public async System.Threading.Tasks.Task AThrowOnTheMailThreadComesBackAsTheManualRung()
+        {
+            var transport = new FakeTransport { Throw = true };
+
+            Assert.Equal(MailOutcome.Manual, await MailSender.SendOnStaAsync(Mail(), transport));
+        }
 
         [Fact]
         public void MapiSuccessStopsAtTheFirstRung()

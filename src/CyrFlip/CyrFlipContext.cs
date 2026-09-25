@@ -34,6 +34,8 @@ namespace CyrFlip
         // hook may only be removed by the thread that installed it, and this ticks on that thread.
         private readonly System.Windows.Forms.Timer _hookWatchdog = new System.Windows.Forms.Timer();
         private int _hookReinstallFailures;
+        // When the "another clipboard operation is still running" balloon was last shown - see BusyNotice.
+        private long _busyNoticeShownAtMs = long.MinValue;
         private readonly ToolStripMenuItem _autostartItem;
         private readonly ToolStripMenuItem _cursorItem;
         private readonly ToolStripMenuItem _caretItem;
@@ -57,6 +59,8 @@ namespace CyrFlip
         private QuickNotesService? _quickNotes;
         private QuickNotesWindow? _quickNotesWindow;
         private readonly ToolStripMenuItem _quickNotesItem;
+        // The open exchange file (ticket S0023): export / import of notes and history.
+        private readonly ExchangeFlow _exchange;
         private readonly SettingsForm _settings;
         // ---- Scenario launcher (absorbed OneClickRunner) ----
         private readonly LauncherScenarioStore _launcherStore;
@@ -109,6 +113,12 @@ namespace CyrFlip
         public CyrFlipContext(AppConfig config, bool openSettingsOnStart = false)
         {
             _config = config;
+            // First, before any window or menu exists: every one of them is painted when it is created
+            // (ticket S0020), and the tray menu reads the process-wide renderer this installs.
+            ThemeManager.Initialize(ThemeModes.Parse(_config.Theme));
+            // Before anything reads the notes journal or writes a log: the Store build's one-time move out
+            // of the machine-wide %ProgramData%\CyrFlip (ticket S0016). A no-op unpackaged and after the first run.
+            DataFolderMigration.RunOnce(_config);
             _launcherStore = new LauncherScenarioStore();
             _launcherMenu = new ToolStripMenuItem();
             _caseHotkey = Hotkey.Parse(_config.CaseHotkey);
@@ -120,6 +130,9 @@ namespace CyrFlip
             _quickNotesChordWasLive = QuickNotesChordLive;
             _clipboardHistory = new ClipboardHistoryService(_config.EnableClipboardHistory, _config.PauseClipboardHistory);
             _clipboardHistoryWindow = new ClipboardHistoryWindow(_clipboardHistory, _config, ShowHistorySearch);
+            _exchange = new ExchangeFlow(_config, _clipboardHistory,
+                () => { EnsureQuickNotes(); return _quickNotes; },
+                () => { if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed) _quickNotesWindow.CommitCurrent(); });
             _layoutCursor = new LayoutCursor(_config.CursorSize);
             _caretOverlay = new CaretOverlay(_config.CursorSize, _config.CaretDotMode);
 
@@ -272,12 +285,18 @@ namespace CyrFlip
                 SetHotkeysEnabled, SetCaseHotkeyEnabled, SetHistoryHotkeyEnabled, SetDeferToRemoteDesktop,
                 value => _keepAwakeItem.Checked = value, value => _keepScreenItem.Checked = value,
                 _launcherStore, SetLauncherEnabled,
-                OnSetQuickNotesHotkey, () => ShowQuickNotes(startNew: false), ClearQuickNotes, ExportQuickNotes);
+                OnSetQuickNotesHotkey, () => ShowQuickNotes(startNew: false), ClearQuickNotes, ExportQuickNotes, RunExchange);
             _settings.ConversionProfilesChanged += (_, _) => OnConversionProfilesChanged();
             _settings.QuickNotesChanged += (_, _) => OnQuickNotesChanged();
             _settings.LauncherScenariosChanged += (_, _) => RefreshLauncherSurfaces();
             _settings.TranslationChanged += (_, _) => OnTranslationChanged();
             _settings.TextMenuChanged += (_, _) => OnContextMenuChanged();
+            _settings.MarkerSizeChanged += (_, _) =>
+            {
+                _config.Save();
+                _caretOverlay.SetBaseSize(_config.CursorSize);
+                _layoutCursor.SetBaseSize(_config.CursorSize);
+            };
             // Tray mouse: double click opens Settings, single click walks the OS layout rotation.
             // The shell delivers the first click of a double click as an ordinary click too, so the
             // switch waits out the system double-click time before acting - otherwise every trip to
@@ -384,15 +403,23 @@ namespace CyrFlip
 
             // Launcher surfaces (tray submenu + Jump List + hook chords) and the command listener.
             // Started after _ui is captured: the IPC thread posts every command to the UI thread.
+            // The listener always runs, for /exit alone while the launcher is off (S0008 LS-2) -
+            // RefreshLauncherSurfaces tells it which commands it may pass on.
+            _launcherIpc = new LauncherIpc(cmd => _ui?.Post(_ => OnLauncherIpcCommand(cmd), null));
             RefreshLauncherSurfaces();
             // The mouse hook, likewise, only after _ui exists - its callback posts to the UI thread.
             RefreshContextMenuBinding();
-            _launcherIpc = new LauncherIpc(cmd => _ui?.Post(_ => OnLauncherIpcCommand(cmd), null));
             _launcherIpc.Start();
 
             // Sign-out / shutdown: the one exit on which neither Dispose nor ApplicationExit runs.
             _sessionEnd.QueryEnding += (_, _) => FlushQuickNotes();
             _sessionEnd.Ending += (_, _) => OnSessionEnding();
+            // A system cursor reload (pointer size or colour, a theme, another tool) takes the branded
+            // I-beam away, and a pointer-size or scaling change asks for a new size (S0011 LI-3, LI-6).
+            _sessionEnd.SettingChanged += action => _layoutCursor.OnSystemCursorsChanged(action == WindowInterop.SPI_SETCURSORS);
+            _sessionEnd.DisplayChanged += (_, _) => _layoutCursor.OnSystemCursorsChanged(cursorsReloaded: false);
+            // Windows switched light/dark, high contrast or its colours: every open window follows (S0020).
+            _sessionEnd.ThemeSignal += (_, _) => ThemeManager.OnSystemSignal();
 
             if (openSettingsOnStart)
                 _ui?.Post(_ => ShowSettings(), null);
@@ -455,7 +482,19 @@ namespace CyrFlip
             ClipboardHandler.FlipResult countOn, Action onCounted, bool suppressHistory = true)
         {
             if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
+            {
+                // Used to return in silence, exactly like a dead hotkey - and a clipboard owner that
+                // hangs can keep the guard taken for seconds (ticket S0009, FP-5). The translator
+                // already said so; the flips now say it too, at most once per BusyNotice interval.
+                long now = PasteWait.NowMs();
+                if (BusyNotice.ShouldShow(_busyNoticeShownAtMs, now))
+                {
+                    _busyNoticeShownAtMs = now;
+                    _tray.ShowBalloonTip(2000, "CyrFlip",
+                        T("Другая операция с буфером ещё не закончилась. Повторите через секунду."), ToolTipIcon.Info);
+                }
                 return;
+            }
 
             StartClipboardWorker(() =>
             {
@@ -551,6 +590,20 @@ namespace CyrFlip
                 case ClipboardHandler.FlipResult.Failed:
                     _tray.ShowBalloonTip(2000, "CyrFlip", T("Не удалось прочитать или заменить выделение. У буфера обмена были другие планы."), ToolTipIcon.Warning);
                     break;
+                case ClipboardHandler.FlipResult.TooLarge:
+                    _tray.ShowBalloonTip(2500, "CyrFlip", T("Выделение слишком большое для конвертации (больше миллиона символов). Выделите часть."), ToolTipIcon.Info);
+                    break;
+            }
+        }
+
+        /// <summary>The balloon for a capture of the translator or the quick notes that did not produce text.</summary>
+        private void ShowCaptureResult(ClipboardHandler.CaptureResult result)
+        {
+            switch (result)
+            {
+                case ClipboardHandler.CaptureResult.Failed: ShowFlipResult(ClipboardHandler.FlipResult.Failed); break;
+                case ClipboardHandler.CaptureResult.TooLarge: ShowFlipResult(ClipboardHandler.FlipResult.TooLarge); break;
+                default: ShowFlipResult(ClipboardHandler.FlipResult.NoSelection); break;
             }
         }
 
@@ -675,7 +728,8 @@ namespace CyrFlip
             var state = new TextContextMenuState
             {
                 Selection = selection.State,
-                Launch = LaunchTargets.TryParse(selection.Text, out LaunchTarget? launch) ? launch : null,
+                // Parsed on the probe's worker, never here: the hooks share this thread (S0008 LS-1).
+                Launch = selection.Launch,
                 SelectionLines = lines,
                 SelectionChars = chars,
                 SelectionTruncated = selection.Truncated,
@@ -776,10 +830,10 @@ namespace CyrFlip
         private void LaunchSelection(LaunchTarget target)
         {
             if (target.Kind == LaunchKind.Program
-                && MessageBox.Show(
+                && ConfirmDialog.Show(_config.UiLanguage,
                     string.Format(T("Запустить программу из выделенного текста?\n\n{0}\n\nCyrFlip не проверяет, что это за файл."),
                         target.Target),
-                    "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
             {
                 TextMenuLog.Log("launch declined by the user");
                 return;
@@ -834,7 +888,7 @@ namespace CyrFlip
                 service.LoadAsync();
             }
             if (_quickNotesWindow == null || _quickNotesWindow.IsDisposed)
-                _quickNotesWindow = new QuickNotesWindow(_quickNotes, _config, ShowSettings);
+                _quickNotesWindow = new QuickNotesWindow(_quickNotes, _config, ShowSettings, exchange: RunExchange);
             return _quickNotesWindow;
         }
 
@@ -864,12 +918,7 @@ namespace CyrFlip
                 _clipboardHistory.SuppressBegin();
                 ClipboardHandler.CaptureResult captured = ClipboardHandler.CaptureResult.NoSelection;
                 string text = "";
-                try
-                {
-                    ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard();
-                    try { captured = _clipboard.TryCaptureSelection(out text, out _); }
-                    finally { ClipboardHandler.RestoreClipboard(backup); }
-                }
+                try { captured = _clipboard.TakeSelection(out text, out _); }
                 catch { /* never let a clipboard op take the app down */ }
                 finally
                 {
@@ -883,7 +932,7 @@ namespace CyrFlip
                 {
                     if (result != ClipboardHandler.CaptureResult.Captured || selection.Length == 0)
                     {
-                        ShowFlipResult(ClipboardHandler.FlipResult.NoSelection);
+                        ShowCaptureResult(result);
                         return;
                     }
                     // Still only a draft: the user confirms it by closing the window or pressing
@@ -902,11 +951,11 @@ namespace CyrFlip
             if (_config.EnableQuickNotes && !_config.QuickNotesNoticeShown)
             {
                 _config.QuickNotesNoticeShown = true;
-                MessageBox.Show(
+                ConfirmDialog.Show(_config.UiLanguage,
                     T("Заметки хранятся только на этом компьютере, в зашифрованном DPAPI файле вашей учётной записи Windows. CyrFlip не отправляет их в сеть и ничем их не индексирует.")
                     + "\n\n"
                     + T("Это не хранилище секретов: не сохраняйте здесь пароли, боевые токены и приватные ключи."),
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
             // The chord going live (the module or its own switch turned on) is checked like assigning
@@ -953,6 +1002,21 @@ namespace CyrFlip
             // The service drops the open note through its Cleared event and the window forgets the
             // remembered one; DeleteAll finishes a replay still in flight first.
             _quickNotes?.DeleteAll();
+        }
+
+        /// <summary>
+        /// Export or import the open exchange file (ticket S0023), owned by the window it was asked
+        /// from. A failure is reported, never thrown into a click handler - the file is the user's
+        /// and may be anything.
+        /// </summary>
+        private void RunExchange(IWin32Window owner, bool import)
+        {
+            try { _exchange.Run(owner, import); }
+            catch (Exception ex)
+            {
+                QuickNotesLog.Log("exchange " + (import ? "import" : "export") + " failed: " + ex.GetType().Name);
+                ConfirmDialog.Show(owner, _config.UiLanguage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         /// <summary>Settings' "export everything as Markdown" - one file, in note order.</summary>
@@ -1016,12 +1080,7 @@ namespace CyrFlip
                 ClipboardHandler.CaptureResult captured = ClipboardHandler.CaptureResult.NoSelection;
                 string text = "";
                 IntPtr target = IntPtr.Zero;
-                try
-                {
-                    ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard();
-                    try { captured = _clipboard.TryCaptureSelection(out text, out target); }
-                    finally { ClipboardHandler.RestoreClipboard(backup); }
-                }
+                try { captured = _clipboard.TakeSelection(out text, out target); }
                 catch { /* never let a clipboard op take the app down */ }
                 finally
                 {
@@ -1045,7 +1104,7 @@ namespace CyrFlip
                     }
                     if (result != ClipboardHandler.CaptureResult.Captured || selection.Trim().Length == 0)
                     {
-                        ShowFlipResult(ClipboardHandler.FlipResult.NoSelection);
+                        ShowCaptureResult(result);
                         return;
                     }
                     BeginTranslate(selection, window, code, sourceCode);
@@ -1097,8 +1156,8 @@ namespace CyrFlip
             TranslateLog.Log("translating " + text.Length + " chars into " + code
                 + " (model '" + _config.TranslateModel + "', keep_alive "
                 + (_config.TranslateKeepAliveMinutes < 0 ? "forever" : _config.TranslateKeepAliveMinutes + "m")
-                + ", load budget " + Math.Max(5, _config.TranslateTimeoutSeconds) + "s, answer budget "
-                + TranslationService.AnswerTimeoutMs(Math.Min(text.Length, TranslationService.MaxChars)) / 1000 + "s)");
+                + ", load budget " + Math.Max(5, _config.TranslateTimeoutSeconds) + "s, then "
+                + TranslationService.IdleTimeoutMs / 1000 + "s of silence at most)");
 
             TranslationResult result;
             try
@@ -1112,6 +1171,7 @@ namespace CyrFlip
             }
 
             TranslateLog.Log("result: " + result.Status
+                + (result.Partial ? " (partial - the model stopped answering)" : "")
                 + (result.Model.Length > 0 ? ", model " + result.Model : "")
                 + (result.Error.Length > 0 ? ", error " + result.Error : "")
                 + ", " + result.Text.Length + " chars back");
@@ -1152,11 +1212,13 @@ namespace CyrFlip
 
             if (result.Status != TranslationStatus.Ok)
             {
-                window.ShowMessage(TranslationMessage(result.Status, result.Error),
+                window.ShowMessage(TranslationMessage(result.Status,
+                        result.Status == TranslationStatus.Unreachable ? result.Server : result.Error),
                     offerSettings: result.Status != TranslationStatus.Timeout,
                     offerRetry: result.Status == TranslationStatus.Timeout
                         || result.Status == TranslationStatus.Failed
-                        || result.Status == TranslationStatus.ServerError,
+                        || result.Status == TranslationStatus.ServerError
+                        || result.Status == TranslationStatus.Unreachable,
                     offerStart: result.Status == TranslationStatus.NotRunning
                         || result.Status == TranslationStatus.StartFailed);
                 return;
@@ -1166,8 +1228,11 @@ namespace CyrFlip
             bool canPaste = _translateTarget != IntPtr.Zero;
             window.ShowResult(result.Text, TranslationNote(result), canPaste);
             _config.IncrementTranslateCount();
+            // An incomplete translation is never pasted over the selection by itself (S0010 TD-2):
+            // that would replace the whole text with part of its translation. The buttons still work.
             DeliverTranslation(result.Text, window,
-                copy: _config.TranslateCopyResult, paste: _config.TranslatePasteResult && canPaste, manual: false);
+                copy: _config.TranslateCopyResult,
+                paste: _config.TranslatePasteResult && canPaste && !result.Partial, manual: false);
         }
 
         /// <summary>
@@ -1190,6 +1255,8 @@ namespace CyrFlip
             if (text.Length == 0) return;
 
             IntPtr target = paste ? _translateTarget : IntPtr.Zero;
+            // The language the translation is written in, for an ANSI-only target (S0009 FP-8).
+            uint locale = TranslationLanguages.LocaleId(_translateCode);
             var thread = new Thread(() =>
             {
                 // Wait briefly for a flip to finish rather than dropping the delivery: a flip owns the
@@ -1218,7 +1285,7 @@ namespace CyrFlip
                 if (!copy) _clipboardHistory.SuppressBegin();
                 try
                 {
-                    if (copy) Win32Clipboard.TrySetText(text);
+                    if (copy) Win32Clipboard.TrySetText(text, locale, TransientMarks.None);
 
                     if (paste && target != IntPtr.Zero)
                     {
@@ -1227,10 +1294,24 @@ namespace CyrFlip
                             WindowInterop.SetForegroundWindow(target);
                             Thread.Sleep(80); // let the activation settle before the synthesized Ctrl+V
                         }
-                        ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard();
-                        try { pasted = _clipboard.ReplaceSelection(text, target); }
-                        // When the user asked for the translation to stay in the clipboard, leave it there.
-                        finally { if (!copy) ClipboardHandler.RestoreClipboard(backup); }
+                        if (copy)
+                        {
+                            // The translation is meant to stay on the clipboard: nothing to restore, so
+                            // nothing to race - a plain write and the ordinary settle time.
+                            pasted = _clipboard.ReplaceSelection(text, target, out _, locale: locale, transient: false);
+                        }
+                        else
+                        {
+                            ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard();
+                            // A clipboard that could not be backed up is not overwritten (S0009 FP-5).
+                            if (backup.Unreadable) pasted = ClipboardHandler.FlipResult.Failed;
+                            else
+                            {
+                                ClipboardHandler.PasteReceipt receipt = default;
+                                try { pasted = _clipboard.ReplaceSelection(text, target, out receipt, locale: locale); }
+                                finally { ClipboardHandler.RestoreClipboard(backup, receipt); }
+                            }
+                        }
                     }
                 }
                 catch { /* never let a clipboard op take the app down */ }
@@ -1242,10 +1323,13 @@ namespace CyrFlip
 
                 // Only a real paste attempt can report a focus change; with no target there was none.
                 if (!paste || target == IntPtr.Zero || pasted == ClipboardHandler.FlipResult.Flipped) return;
+                bool failed = pasted == ClipboardHandler.FlipResult.Failed;
                 _ui?.Post(_ =>
                 {
                     if (window.IsDisposed || !window.Visible) return;
-                    window.ShowResult(window.ResultText, T("Фокус сменился — вставьте перевод вручную."));
+                    window.ShowResult(window.ResultText, failed
+                        ? T("Не удалось прочитать или заменить выделение. У буфера обмена были другие планы.")
+                        : T("Фокус сменился — вставьте перевод вручную."));
                 }, null);
             })
             {
@@ -1286,6 +1370,8 @@ namespace CyrFlip
         private string TranslationNote(TranslationResult result)
         {
             string note = TranslationLanguages.Label(_translateCode, _config.UiLanguage);
+            if (result.Partial)
+                note += " — " + T("модель перестала отвечать - перевод может быть неполным");
             if (result.Truncated)
                 note += " — " + string.Format(T("переведены первые {0} из {1} символов"),
                     TranslationService.MaxChars, result.SourceLength);
@@ -1305,6 +1391,9 @@ namespace CyrFlip
                 case TranslationStatus.NotInstalled: return T("Не найден Ollama — локальный переводчик. Его нужно установить один раз.");
                 case TranslationStatus.NotRunning: return T("Ollama не запущен.");
                 case TranslationStatus.StartFailed: return T("Не удалось запустить Ollama.");
+                // A server on another machine: CyrFlip does not start it and says whose it is (S0010 TD-6).
+                case TranslationStatus.Unreachable:
+                    return string.Format(T("Сервер {0} не отвечает. Проверьте адрес в настройках и что Ollama там запущен."), error);
                 case TranslationStatus.NoModel: return T("Не установлена ни одна модель. Рекомендуем aya-expanse:8b (~4,7 ГБ) — загрузите её в настройках.");
                 case TranslationStatus.Timeout: return T("Модель не ответила вовремя. Возможно, она слишком велика для этого компьютера.");
                 // The server's own words, when it gave any: "model not found" is worth reading verbatim.
@@ -1607,7 +1696,7 @@ namespace CyrFlip
         {
             if (Autostart.ManagedByWindows) { OnOpenStartupSettings(null, EventArgs.Empty); return; }
             try { Autostart.Set(value); _autostartItem.Checked = value; }
-            catch (Exception ex) { MessageBox.Show(T("Не удалось изменить автозапуск Windows:") + "\n" + ex.Message, "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+            catch (Exception ex) { ConfirmDialog.Show(_config.UiLanguage, T("Не удалось изменить автозапуск Windows:") + "\n" + ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Warning); }
         }
 
         /// <summary>
@@ -1638,7 +1727,7 @@ namespace CyrFlip
         {
             if (_clipboardHistorySearchWindow == null || _clipboardHistorySearchWindow.IsDisposed)
             {
-                _clipboardHistorySearchWindow = new ClipboardHistorySearchWindow(_clipboardHistory, _config.UiLanguage);
+                _clipboardHistorySearchWindow = new ClipboardHistorySearchWindow(_clipboardHistory, _config.UiLanguage, RunExchange);
                 _clipboardHistorySearchWindow.FormClosed += (_, _) => _clipboardHistorySearchWindow = null;
                 _clipboardHistorySearchWindow.Show();
             }
@@ -1785,8 +1874,8 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 _autostartItem.Checked = Autostart.IsEnabled; // revert the checkmark on failure
-                MessageBox.Show(T("Не удалось изменить автозапуск Windows:") + "\n" + ex.Message,
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ConfirmDialog.Show(_config.UiLanguage, T("Не удалось изменить автозапуск Windows:") + "\n" + ex.Message,
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -1816,10 +1905,10 @@ namespace CyrFlip
                 _config.LauncherFirstEnableDone = true;
                 if (_launcherStore.Count == 0 && LauncherMigration.SourceExists())
                 {
-                    if (MessageBox.Show(
+                    if (ConfirmDialog.Show(_config.UiLanguage,
                             string.Format(T("Найдены сценарии OneClickRunner ({0} шт.). Перенести их в CyrFlip? Исходные файлы останутся без изменений."),
                                 LauncherMigration.SourceCount()),
-                            "CyrFlip", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                         ShowMigrationSummary(LauncherMigration.Import(_launcherStore));
                 }
                 if (_launcherStore.Count == 0)
@@ -1852,7 +1941,7 @@ namespace CyrFlip
                     + "\n" + string.Join(", ", result.Skipped);
             if (result.NewIds > 0)
                 summary += "\n" + string.Format(T("Из-за совпадения идентификаторов назначены новые: {0}."), result.NewIds);
-            MessageBox.Show(summary, "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            ConfirmDialog.Show(_config.UiLanguage, summary, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         /// <summary>
@@ -1865,6 +1954,9 @@ namespace CyrFlip
         {
             bool enabled = _config.EnableScenarioLauncher;
             List<LauncherScenario> scenarios = enabled ? _launcherStore.All : new List<LauncherScenario>();
+
+            // The pipe passes on launcher commands only while the launcher is on; /exit always.
+            _launcherIpc.SetLauncherCommandsEnabled(enabled);
 
             // Tray submenu, in stored order; separator; Manage; optional re-import.
             _launcherMenu.Visible = enabled;
@@ -2045,6 +2137,9 @@ namespace CyrFlip
                 _textMenu.Dispose();
                 Microsoft.Win32.SystemEvents.SessionSwitch -= OnSessionSwitch;
                 _hook.Dispose();
+                // The clipboard owner goes after the hook, so no new flip can start: a paste it still
+                // promises is rendered for good as its window is destroyed (WM_RENDERALLFORMATS).
+                ClipboardOwner.ShutdownShared();
                 _indicator.Dispose();
                 KeepAwake.Reset(); // restore Windows' normal sleep/screen idle timeouts
                 _layoutCursor.Dispose(); // restores the default system cursor
@@ -2064,6 +2159,7 @@ namespace CyrFlip
                 _tray.Visible = false;
                 _tray.Dispose();
                 _trayIcon?.Dispose();
+                ThemeManager.Shutdown();   // after every window: nothing left for it to hold
             }
             base.Dispose(disposing);
         }
