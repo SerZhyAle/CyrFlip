@@ -23,6 +23,9 @@
 #>
 [CmdletBinding()]
 param(
+    # Do not write: render in memory, compare with the committed import CSV, and fail if they differ.
+    [switch] $Check,
+
     # Emit a pure round trip of the export. Any difference from the source file is a bug in the
     # writer below, not in the copy - which is the point of having the switch. Implies -Faithful,
     # since byte-identity is only meaningful against the export's own quoting.
@@ -107,6 +110,11 @@ function Quote([string] $value) {
     $value
 }
 
+if (-not (Test-Path $Export)) {
+    Write-Host "Export file not found: $Export" -ForegroundColor Red
+    exit 2
+}
+
 $rows    = Import-Csv $Export
 $columns = $rows[0].PSObject.Properties.Name
 $langs   = $columns | Select-Object -Skip 4          # Field, ID, Type (Type), default, then languages
@@ -164,6 +172,22 @@ function Format-Csv {
 
 $bom = [bool] ($KeepBom -or $FillNothing)
 $encoding = New-Object System.Text.UTF8Encoding($bom)
+
+if ($Check) {
+    if (-not (Test-Path $Dest)) {
+        Write-Host "Target import CSV not found: $Dest" -ForegroundColor Red
+        exit 2
+    }
+    $rendered = Format-Csv
+    $existing = [System.IO.File]::ReadAllText($Dest, $encoding)
+    if ($rendered -ne $existing) {
+        Write-Host "DRIFT: $Dest does not match re-rendered export + language copy" -ForegroundColor Red
+        Write-Host 'Run .\msix\build-store-listing-csv.ps1 to regenerate it.' -ForegroundColor Yellow
+        exit 1
+    }
+    Write-Host 'Store listing import CSV matches export and language sources.' -ForegroundColor Green
+    exit 0
+}
 
 # The plain CSV carries text only. A relative image path in it would be rejected outright - Partner
 # Center resolves such a path only against a folder upload, and "Import .csv" has nowhere to look.

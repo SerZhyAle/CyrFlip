@@ -143,6 +143,69 @@ namespace CyrFlip.Tests
             Assert.Empty(new LauncherScenarioStore(_folder).All);
         }
 
+        /// <summary>
+        /// S0034 LS2-6: a file that cannot be deleted keeps its scenario - dropping it from the list
+        /// only made the next reload bring it back, chord and all, without a word.
+        /// </summary>
+        [Fact]
+        public void AScenarioWhoseFileCannotBeDeletedStaysAndSaysWhy()
+        {
+            var store = NewStore();
+            LauncherScenario scenario = Sample("locked");
+            store.Add(scenario);
+            string file = Path.Combine(_folder, store.All[0].Filename);
+            File.SetAttributes(file, FileAttributes.ReadOnly);
+            try
+            {
+                string? failure = store.Remove(scenario.Id);
+
+                Assert.NotNull(failure);
+                Assert.Single(store.All);
+                Assert.True(File.Exists(file));
+            }
+            finally { File.SetAttributes(file, FileAttributes.Normal); }
+
+            Assert.Null(store.Remove(scenario.Id));
+            Assert.Empty(store.All);
+        }
+
+        /// <summary>
+        /// S0034 LS2-9: the log bundle counts scenarios with a store of its own; that load must not
+        /// re-identify, renumber or clean up anything - the live store would then hold ids no file has.
+        /// </summary>
+        [Fact]
+        public void AReadOnlyStoreNeverWritesAFile()
+        {
+            var store = NewStore();
+            store.Add(Sample("a"));
+            store.Add(Sample("b"));
+            string[] files = Directory.GetFiles(_folder, "*.xml");
+            // A copied file (a duplicate id) and a gap in the order - both of which a normal load repairs.
+            File.Copy(files[0], Path.Combine(_folder, "copy.xml"));
+            File.WriteAllText(files[1], File.ReadAllText(files[1])
+                .Replace("<Order>0</Order>", "<Order>5</Order>").Replace("<Order>1</Order>", "<Order>7</Order>"));
+            var before = Directory.GetFiles(_folder).ToDictionary(f => f, f => File.ReadAllText(f));
+
+            var readOnly = new LauncherScenarioStore(_folder, readOnly: true);
+
+            Assert.Equal(3, readOnly.Count);
+            var after = Directory.GetFiles(_folder).ToDictionary(f => f, f => File.ReadAllText(f));
+            Assert.Equal(before, after);
+            Assert.Throws<InvalidOperationException>(() => readOnly.Add(Sample("c")));
+        }
+
+        [Fact]
+        public void RemovingAScenarioWhoseFileIsAlreadyGoneSucceeds()
+        {
+            var store = NewStore();
+            LauncherScenario scenario = Sample("gone");
+            store.Add(scenario);
+            File.Delete(Path.Combine(_folder, store.All[0].Filename));
+
+            Assert.Null(store.Remove(scenario.Id));
+            Assert.Empty(store.All);
+        }
+
         [Fact]
         public void ImportAssignsAFreshGuidAndAppends()
         {
@@ -245,13 +308,11 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void AnUnknownTypeValueIsSkippedAndCountedRatherThanDegradedToTheDefault()
+        public void AnUnknownTypeValueMakesTheFileUnreadableUnderRule9()
         {
-            // SCENARIO-FILE section 5 item 3, and the documented gap against VERSIONING section 4
-            // rule 4: the compatibility law wants an unknown enum value to degrade to the documented
-            // default (Executable). It does not - the file fails to deserialize and is skipped like
-            // any corrupt one. That is clean and it is counted, but it costs the user the whole
-            // scenario, and this test is what pins the behaviour while the contract decides.
+            // SCENARIO-FILE rule 10 and rule 9 (S0014 B2): an unknown kind is an action this reader does
+            // not understand, and degrading it to Executable would run its Path as a program - the one
+            // outcome its author did not mean. So the file is refused whole, skipped, named and counted.
             Directory.CreateDirectory(_folder);
             File.WriteAllText(Path.Combine(_folder, "futuretype.xml"),
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -262,6 +323,70 @@ namespace CyrFlip.Tests
             var store = NewStore();
             Assert.Empty(store.All);
             Assert.Equal("futuretype.xml", Assert.Single(store.LoadErrors));
+        }
+
+        // ---- The version carrier and the renamed root (S0014 B1, A6) ----
+
+        private string WriteScenario(string name, string root)
+        {
+            Directory.CreateDirectory(_folder);
+            string file = Path.Combine(_folder, name);
+            File.WriteAllText(file, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" + root);
+            return file;
+        }
+
+        [Theory]
+        [InlineData("<AppItem2><Name>x</Name></AppItem2>")]
+        [InlineData("<AppItem xmlns=\"urn:x\"><Name>x</Name></AppItem>")]
+        [InlineData("<AppItem schemaVersion=\"2\"><Name>x</Name></AppItem>")]
+        [InlineData("<AppItem schemaVersion=\"2.1\"><Name>x</Name></AppItem>")]
+        [InlineData("<AppItem schemaVersion=\"two\"><Name>x</Name></AppItem>")]
+        [InlineData("<AppItem schemaVersion=\"\"><Name>x</Name></AppItem>")]
+        public void AFileInAFormatThisBuildDoesNotReadIsRefusedWholeAndSaysSo(string xml)
+        {
+            string file = WriteScenario("future.xml", xml);
+
+            Assert.Null(LauncherScenarioStore.TryRead(file, out Exception? error));
+            Assert.IsType<ScenarioFormatException>(error);
+
+            var store = NewStore();
+            Assert.Empty(store.All);
+            Assert.Equal("future.xml", Assert.Single(store.LoadErrors));
+        }
+
+        [Theory]
+        [InlineData("<AppItem><Name>x</Name></AppItem>")]
+        [InlineData("<AppItem schemaVersion=\"1\"><Name>x</Name></AppItem>")]
+        [InlineData("<AppItem schemaVersion=\"1.4\"><Name>x</Name></AppItem>")]
+        public void AnAbsentOrSupportedSchemaVersionReadsNormally(string xml)
+        {
+            string file = WriteScenario("ok.xml", xml);
+
+            LauncherScenario? read = LauncherScenarioStore.TryRead(file, out Exception? error);
+
+            Assert.Null(error);
+            Assert.Equal("x", read!.Name);
+        }
+
+        [Fact]
+        public void ADamagedFileIsStillADamagedFileNotAFormatRefusal()
+        {
+            string file = WriteScenario("broken.xml", "<AppItem><Id>oops");
+
+            Assert.Null(LauncherScenarioStore.TryRead(file, out Exception? error));
+            Assert.NotNull(error);
+            Assert.IsNotType<ScenarioFormatException>(error);
+        }
+
+        [Fact]
+        public void OurOwnWriterOmitsTheVersionCarrier()
+        {
+            // Writers keep omitting it until the contract's 1.0 says otherwise (B1).
+            string file = Path.Combine(_folder, "exported.xml");
+            Directory.CreateDirectory(_folder);
+            NewStore().Export(new LauncherScenario { Name = "x", Path = "calc.exe" }, file);
+
+            Assert.DoesNotContain("schemaVersion", File.ReadAllText(file));
         }
 
         // ---- Atomic save and identity (ticket S0008, LS-9 and LS-10) ----

@@ -72,6 +72,20 @@ namespace CyrFlip
                 ur: "ورژن، Windows، لے آؤٹس، فعال خصوصیات اور CyrFlip کی ترتیبات",
                 zh: "版本、Windows、键盘布局、已启用的功能和 CyrFlip 设置");
 
+            Add("версия, Windows и счётчики в виде строк ключ=значение - без текста",
+                en: "version, Windows and counters as key=value lines - no text",
+                uk: "версія, Windows і лічильники у вигляді рядків ключ=значення - без тексту",
+                de: "Version, Windows und Zähler als Zeilen Schlüssel=Wert - ohne Text",
+                it: "versione, Windows e contatori come righe chiave=valore - senza testo",
+                es: "versión, Windows y contadores como líneas clave=valor - sin texto",
+                fr: "version, Windows et compteurs en lignes clé=valeur - sans texte",
+                pt: "versão, Windows e contadores em linhas chave=valor - sem texto",
+                ar: "الإصدار وWindows والعدّادات في أسطر مفتاح=قيمة - بلا نصوص",
+                hi: "संस्करण, Windows और गिनतियाँ key=value पंक्तियों में - कोई टेक्स्ट नहीं",
+                bn: "সংস্করণ, Windows ও গণনা key=value লাইনে - কোনো লেখা নেই",
+                ur: "ورژن، Windows اور گنتیاں key=value سطروں میں - کوئی متن نہیں",
+                zh: "版本、Windows 和计数，以 key=value 行记录 - 不含文本");
+
             Add("запуски сценариев: имя, тип, результат - без путей и аргументов",
                 en: "scenario launches: name, kind, outcome - no paths or arguments",
                 uk: "запуски сценаріїв: назва, тип, результат - без шляхів і аргументів",

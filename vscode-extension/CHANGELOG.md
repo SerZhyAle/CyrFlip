@@ -16,7 +16,9 @@ All notable changes to the **CyrFlip - keyboard layout at the caret** extension 
   extension: the local copy did not run, and a copy installed on the remote side found no layout file.
 - **The app's marker stays in the chat box.** Only the user's own typing and caret moves in the active
   editor now renew the `editor-caret.txt` claim; a language server's edits, Output channel appends,
-  reloads from disk and programmatic selection changes no longer keep it alive.
+  reloads from disk and programmatic selection changes no longer keep it alive - and neither does an
+  editor that becomes active by itself, when a chat agent or a command opens a file while you type in
+  the chat.
 - **Two VS Code windows no longer delete each other's claim.** The claim carries the window's session
   id, and a window that loses the focus deletes the file only when it still holds its own id.
 

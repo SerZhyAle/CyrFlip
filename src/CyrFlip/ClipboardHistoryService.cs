@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -14,10 +15,18 @@ namespace CyrFlip
     /// (<see cref="ClipboardHistoryJournal"/>). Which updates are recorded is decided by
     /// <see cref="ClipboardHistoryGate"/> (CyrFlip's own clipboard traffic) and
     /// <see cref="ClipboardPrivacy"/> (copies another application marked "do not record").
+    ///
+    /// <para><b>The owning thread by construction</b> (ticket S0031 CH2-2). The list is not thread-safe
+    /// and the strip paints from it, so everything a pool or writer thread produces is handed back
+    /// through this service's own window - a private message and a queue (<see cref="PostToOwner"/>) -
+    /// never through <c>SynchronizationContext.Current</c> read in the constructor, which was right only
+    /// because a field initializer elsewhere happened to create a control first.</para>
     /// </summary>
     internal sealed class ClipboardHistoryService : NativeWindow, IDisposable
     {
         private const int WmClipboardUpdate = 0x031D;
+        /// <summary>WM_APP + 0x31: "run what is queued in <see cref="_toOwner"/>". Private to this window.</summary>
+        private const int WmRunQueued = 0x8000 + 0x31;
         private const int MaxTextBytes = 128 * 1024;
         // The entries, their display order and the Uuid index, all maintained incrementally. The
         // history is unbounded by design, so nothing may cost O(history) per copy - see
@@ -25,7 +34,8 @@ namespace CyrFlip
         private readonly ClipboardHistoryOrder _order = new ClipboardHistoryOrder();
         private readonly ClipboardHistoryGate _gate = new ClipboardHistoryGate();
         private readonly ClipboardHistoryJournal _journal;
-        private readonly SynchronizationContext? _ui;
+        private readonly ConcurrentQueue<Action> _toOwner = new ConcurrentQueue<Action>();
+        private int _runQueuedPosted;
         private bool _enabled;
         private bool _paused;
         private bool _disposed;
@@ -36,6 +46,8 @@ namespace CyrFlip
         public event EventHandler? ItemTooLarge;
         /// <summary>A <see cref="Clear"/> could not delete the file - another program holds it. Raised on the UI thread.</summary>
         public event EventHandler? ClearFailed;
+        /// <summary>The first journal record of this session that could not be written (S0031 CH2-4). Raised on the UI thread, once.</summary>
+        public event EventHandler? WriteFailed;
 
         /// <summary>
         /// Pinned first, then newest first. Already in that order - <see cref="ClipboardHistoryOrder"/>
@@ -56,13 +68,18 @@ namespace CyrFlip
         {
             _enabled = enabled;
             _paused = paused;
-            _ui = SynchronizationContext.Current;
             Directory.CreateDirectory(dir);
             _journal = new ClipboardHistoryJournal(Path.Combine(dir, "clipboard-history.log"), cipher ?? QuickNotesCipher.Dpapi);
             SkippedRecords = _journal.Load(_order);
             if (SkippedRecords > 0)
                 ClipboardHistoryLog.Log("history: " + SkippedRecords + " unreadable records skipped on load");
+            // Before the journal can fail a write: the handle is where the report is posted to.
             CreateHandle(new CreateParams { Caption = "CyrFlip Clipboard History Listener" });
+            _journal.WriteFailed += () => PostToOwner(() =>
+            {
+                ClipboardHistoryLog.Log("history: a journal record could not be written");
+                WriteFailed?.Invoke(this, EventArgs.Empty);
+            });
             AddClipboardFormatListener(Handle);
         }
 
@@ -109,9 +126,7 @@ namespace CyrFlip
             _order.Clear();
             _journal.Clear(deleted =>
             {
-                if (deleted) return;
-                if (_ui != null) _ui.Post(_ => ClearFailed?.Invoke(this, EventArgs.Empty), null);
-                else ClearFailed?.Invoke(this, EventArgs.Empty);
+                if (!deleted) PostToOwner(() => ClearFailed?.Invoke(this, EventArgs.Empty));
             });
             RaiseChanged();
         }
@@ -166,6 +181,43 @@ namespace CyrFlip
         }
 
         /// <summary>
+        /// Waits up to <paramref name="timeout"/> for the queued records - an import's thousands of them -
+        /// to reach the disk and returns how many are still queued (S0031 CH2-6). Any thread; the import
+        /// runs it inside <see cref="BusyDialog"/>.
+        /// </summary>
+        public int FlushJournal(TimeSpan timeout)
+        {
+            _journal.Drain(timeout);
+            return _journal.Pending;
+        }
+
+        /// <summary>
+        /// Run <paramref name="action"/> on the thread that created this service - the one that owns the
+        /// list - from any thread (S0031 CH2-2). Dropped once the service is disposed.
+        /// </summary>
+        internal void PostToOwner(Action action)
+        {
+            if (_disposed) return;
+            _toOwner.Enqueue(action);
+            // One message in flight is enough: the handler empties the whole queue.
+            if (Interlocked.Exchange(ref _runQueuedPosted, 1) != 0) return;
+            IntPtr handle = Handle;
+            if (handle == IntPtr.Zero || PostMessage(handle, WmRunQueued, IntPtr.Zero, IntPtr.Zero) == IntPtr.Zero)
+                Volatile.Write(ref _runQueuedPosted, 0);
+        }
+
+        private void RunQueued()
+        {
+            Volatile.Write(ref _runQueuedPosted, 0);
+            while (_toOwner.TryDequeue(out Action? action))
+            {
+                if (_disposed) continue;
+                try { action(); }
+                catch { /* history must never affect the clipboard or crash */ }
+            }
+        }
+
+        /// <summary>
         /// Tell the windows to repaint. Every change goes through here exactly once: the strip
         /// repaints on this event, so a second, redundant raise doubles the cost of every copy.
         /// </summary>
@@ -174,6 +226,7 @@ namespace CyrFlip
         protected override void WndProc(ref Message m)
         {
             if (m.Msg == WmClipboardUpdate) Capture();
+            else if (m.Msg == WmRunQueued) RunQueued();
             base.WndProc(ref m);
         }
 
@@ -201,23 +254,22 @@ namespace CyrFlip
                 }
                 if (tooLarge || Encoding.Unicode.GetByteCount(text) > MaxTextBytes)
                 {
-                    if (_ui != null)
-                        _ui.Post(_ => ItemTooLarge?.Invoke(this, EventArgs.Empty), null);
-                    else
-                        ItemTooLarge?.Invoke(this, EventArgs.Empty);
+                    PostToOwner(() => ItemTooLarge?.Invoke(this, EventArgs.Empty));
                     return;
                 }
                 if (text.Length == 0) return;
 
-                string uuid = Hash(text);
                 ReadSource(hwnd, out string sourceApp, out string sourceTitle);
-
-                if (_ui != null)
-                    _ui.Post(_ => ProcessCaptureResult(sequence, uuid, text, sourceApp, sourceTitle), null);
-                else
-                    ProcessCaptureResult(sequence, uuid, text, sourceApp, sourceTitle);
+                DeliverCapture(sequence, text, sourceApp, sourceTitle);
             }
             catch { /* history must never affect the clipboard or crash */ }
+        }
+
+        /// <summary>A capture read off the owning thread, handed to it. Any thread; the seam of the thread test.</summary>
+        internal void DeliverCapture(uint sequence, string text, string sourceApp, string sourceTitle)
+        {
+            string uuid = Hash(text);
+            PostToOwner(() => ProcessCaptureResult(sequence, uuid, text, sourceApp, sourceTitle));
         }
 
         private void ProcessCaptureResult(uint sequence, string uuid, string text, string sourceApp, string sourceTitle)
@@ -287,12 +339,17 @@ namespace CyrFlip
             return _journal.Drain(timeout);
         }
 
-        /// <summary>Once per session: how many privacy-marked copies were not recorded. A count, nothing else.</summary>
+        /// <summary>
+        /// Once per session: how many privacy-marked copies were not recorded and how many records could
+        /// not be written (S0031 CH2-4). Counts, nothing else.
+        /// </summary>
         private void LogSessionSummary()
         {
             int skipped = Volatile.Read(ref _skippedMarked);
-            if (skipped == 0 || Interlocked.Exchange(ref _summaryLogged, 1) != 0) return;
-            ClipboardHistoryLog.Log("history: skipped " + skipped + " marked entries");
+            int failed = _journal.WriteFailures;
+            if ((skipped == 0 && failed == 0) || Interlocked.Exchange(ref _summaryLogged, 1) != 0) return;
+            if (skipped > 0) ClipboardHistoryLog.Log("history: skipped " + skipped + " marked entries");
+            if (failed > 0) ClipboardHistoryLog.Log("history: " + failed + " journal records could not be written");
         }
 
         /// <summary>An entry's id: SHA-256 of the UTF-8 text, upper-case hex. The exchange file checks imports against it.</summary>
@@ -308,8 +365,11 @@ namespace CyrFlip
             _disposed = true;
             if (Handle != IntPtr.Zero) RemoveClipboardFormatListener(Handle);
             DestroyHandle();
-            LogSessionSummary();
             _journal.Dispose(); // drains what is queued, up to ClipboardHistoryJournal.DisposeDrain
+            LogSessionSummary();
+            int abandoned = _journal.Pending;
+            if (abandoned > 0)
+                ClipboardHistoryLog.Log("history: " + abandoned + " queued records abandoned at exit");
         }
     }
 }

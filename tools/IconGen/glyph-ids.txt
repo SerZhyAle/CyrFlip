@@ -1,0 +1,17 @@
+# Vocabulary glyphs CyrFlip draws (ICON-SET). One id per line; `glyphs` vendors exactly these into
+# src/CyrFlip/Glyphs.g.cs. A meaning that is not in the vocabulary yet (PROPOSAL-2026-09-26-cyrflip-
+# windows-tray-app in the catalog) does not get a private picture here - it waits for its record.
+action.confirm
+action.delete
+action.download
+action.move-down
+action.move-up
+action.pin
+action.pin--off
+action.search
+action.translate
+app.info
+app.settings
+content.apps
+nav.close
+nav.exit

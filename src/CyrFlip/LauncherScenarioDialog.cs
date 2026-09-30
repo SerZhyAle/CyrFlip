@@ -228,7 +228,7 @@ namespace CyrFlip
 
             bool isYtDlp = _type.SelectedIndex == TypeYtDlp;
             _edited.Name = _name.Text.Trim();
-            _edited.Hotkey = Hotkey.TryParse(_hotkey.Text, out _) ? _hotkey.Text : "";
+            _edited.Hotkey = Hotkey.TryParse(_hotkey.Text, out Hotkey scenarioChord) ? scenarioChord.Display : "";
 
             if (isYtDlp)
             {

@@ -306,7 +306,7 @@ try {
         }
         if ($RealConfig) { $storePath = Join-Path $env:APPDATA 'CyrFlip\Scenarios' }
         else { $storePath = Join-Path ([IO.Path]::GetTempPath()) ('CyrFlipAudit\' + [guid]::NewGuid().ToString('N')) }
-        $store = [Activator]::CreateInstance($T.Store, [object[]]@([string]$storePath))   # [string]: a PSObject-wrapped path matches no constructor
+        $store = [Activator]::CreateInstance($T.Store, [object[]]@([string]$storePath, $false))   # [string]: a PSObject-wrapped path matches no constructor
 
         $form = [Activator]::CreateInstance($T.Form, [object[]]@(
                 $cfg, $noB, $noB, $noB, $noB, $noB, $noB, $noB, $noB, $noB, $noI, $noS, $no, $no, $no, $no, $no,

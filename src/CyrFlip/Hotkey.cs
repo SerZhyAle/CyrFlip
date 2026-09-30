@@ -59,8 +59,12 @@ namespace CyrFlip
 
         /// <summary>
         /// Parse without the <see cref="Default"/> fallback: returns false when the text carries no
-        /// trigger key. Used wherever a saved-but-corrupt chord must stay inert instead of quietly
-        /// becoming Ctrl+Shift+F12 (see <see cref="KeyboardHook.UpdateConversionProfiles"/>).
+        /// trigger key, a second trigger key, or any token that is neither a modifier nor a known key
+        /// name. Used wherever a saved-but-corrupt chord must stay inert instead of quietly becoming
+        /// Ctrl+Shift+F12 (see <see cref="KeyboardHook.UpdateConversionProfiles"/>). INPUT-CHORD rule 3:
+        /// dropping an unknown token and binding the rest would turn "Ctrl+Shift+Hyper+F12" into
+        /// Ctrl+Shift+F12, a different chord another feature may own - and it is what lets a newer
+        /// producer add a key name without an older reader binding something else.
         /// </summary>
         public static bool TryParse(string? text, out Hotkey hotkey)
         {
@@ -88,11 +92,11 @@ namespace CyrFlip
                     case "meta":
                     case "super": win = true; break;
                     default:
-                        if (TryParseKey(tok, out int parsedVk, out string canonical))
-                        {
-                            vk = parsedVk;
-                            keyName = canonical;
-                        }
+                        // One trigger, and only a known one (INPUT-CHORD rule 3).
+                        if (vk != 0 || !TryParseKey(tok, out int parsedVk, out string canonical))
+                            return false;
+                        vk = parsedVk;
+                        keyName = canonical;
                         break;
                 }
             }
@@ -127,6 +131,7 @@ namespace CyrFlip
                 case 0x23: return "End";
                 case 0x21: return "PageUp";
                 case 0x22: return "PageDown";
+                case 0x2C: return "PrintScreen";
             }
             return "0x" + vk.ToString("X2", CultureInfo.InvariantCulture);
         }
@@ -175,6 +180,8 @@ namespace CyrFlip
                 // Ctrl+Shift+PageUp silently came back as the Ctrl+Shift+F12 default.
                 case "PAGEUP": case "PGUP": vk = 0x21; canonical = "PageUp"; return true;
                 case "PAGEDOWN": case "PGDN": vk = 0x22; canonical = "PageDown"; return true;
+                // VK_SNAPSHOT - the key people associate with screenshots (S0026 region capture).
+                case "PRINTSCREEN": case "PRTSC": case "PRTSCN": vk = 0x2C; canonical = "PrintScreen"; return true;
             }
 
             vk = 0;

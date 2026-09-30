@@ -43,6 +43,17 @@ namespace CyrFlip
         /// no longer reads AltGr as Ctrl+Alt, so it has stopped eating the character.</para>
         /// </summary>
         public const string DefaultQuickNotesHotkey = "Ctrl+Shift+Alt+N";
+        /// <summary>
+        /// The region capture's chord (S0026). PrintScreen is the key people associate with
+        /// screenshots, and with Ctrl+Shift it is unused by Windows (Alt = window, Win = file).
+        /// </summary>
+        public const string DefaultScreenshotHotkey = "Ctrl+Shift+PrintScreen";
+        /// <summary>
+        /// Opens the text context menu at the caret (S0045 K2): M for menu, in the quick notes' family
+        /// (Ctrl+Shift+Alt+N) - Ctrl+Shift+F10, the Shift+F10 mnemonic, is the clipboard history's. Bound
+        /// only while the context menu is on.
+        /// </summary>
+        public const string DefaultTextMenuHotkey = "Ctrl+Shift+Alt+M";
         private const string UsKlid = "00000409";
         private const string RussianKlid = "00000419";
 
@@ -115,6 +126,12 @@ namespace CyrFlip
         /// </summary>
         public string ContextMenuChord { get; set; } = MouseChord.Default.Token;
         /// <summary>
+        /// The keyboard's way to the same menu (S0045 K2, <c>INPUT-PARITY</c> rule 1): opens it at the
+        /// caret. Bound only while <see cref="EnableContextMenu"/> and its own switch are both on.
+        /// </summary>
+        public string TextMenuHotkey { get; set; } = DefaultTextMenuHotkey;
+        public bool EnableTextMenuHotkey { get; set; } = true;
+        /// <summary>
         /// The app's theme as an invariant token - <c>system</c> (follow Windows), <c>light</c> or
         /// <c>dark</c> (see <see cref="ThemeModes"/>, ticket S0020). Anything unreadable is kept as
         /// <c>system</c>, the one value that cannot be wrong.
@@ -131,6 +148,12 @@ namespace CyrFlip
         /// User Profile subtree) as they were before CyrFlip first changed them (see <see cref="InputLayouts"/>).
         /// </summary>
         public string InputLayoutsBackup { get; set; } = "";
+        /// <summary>
+        /// The <c>InputMethodOverride</c> CyrFlip last wrote through "По умолчанию"; empty = none. A
+        /// backup taken before ticket S0007 (format 1) never captured that value, so restoring it removes
+        /// the value only while it still equals this one (ticket S0007, WL-13).
+        /// </summary>
+        public string InputMethodOverrideWritten { get; set; } = "";
         /// <summary>
         /// Every layout→layout conversion, each with its own hotkey and its own on/off switch - the
         /// single home of these chords, including the EN ⇄ RU flip CyrFlip started life with.
@@ -154,6 +177,12 @@ namespace CyrFlip
         /// </summary>
         public bool DataFolderMigrated { get; set; } = false;
         /// <summary>
+        /// One-time marker for the unpackaged build's Start menu and desktop shortcuts (<see cref="AppShortcuts"/>):
+        /// set after the first run from a stable folder created them, so a shortcut the user deleted is never
+        /// recreated by a later start.
+        /// </summary>
+        public bool ShortcutsCreated { get; set; } = false;
+        /// <summary>
         /// The built-in translator (a local Ollama server). Off by default: while false no chord is
         /// bound, the tray has no translate entry and CyrFlip never opens a socket.
         /// </summary>
@@ -165,14 +194,6 @@ namespace CyrFlip
         public bool TranslateSeeded { get; set; } = false;
         /// <summary>Every "translate into this language" row, each with its own chord and switch.</summary>
         public List<TranslationProfile> TranslateProfiles { get; set; } = new List<TranslationProfile>();
-        /// <summary>
-        /// "My language" - the one the user writes in, used by the two fixed-pair rows. Empty follows
-        /// the UI language, which is right for almost everyone; it is a setting of its own so that an
-        /// English interface and a Russian keyboard can coexist.
-        /// </summary>
-        public string TranslateSourceLang { get; set; } = "";
-        /// <summary>The language the user wants text in. Empty means English.</summary>
-        public string TranslateTargetLang { get; set; } = "en";
         /// <summary>Empty means <see cref="OllamaClient.DefaultEndpoint"/> (localhost).</summary>
         public string TranslateEndpoint { get; set; } = "";
         /// <summary>Empty means "use whichever model is installed" (see TranslationService).</summary>
@@ -235,6 +256,17 @@ namespace CyrFlip
         public int CaseFlipCount { get; set; } = 0;
         public int TranslateCount { get; set; } = 0;
         public int QuickNoteCount { get; set; } = 0;
+        /// <summary>
+        /// The screen region capture (S0026). No module switch: the tray item is always there, and the
+        /// chord has its own switch like the case flip's and the history's (owner, 2026-09-26).
+        /// </summary>
+        public string ScreenshotHotkey { get; set; } = DefaultScreenshotHotkey;
+        public bool EnableScreenshotHotkey { get; set; } = true;
+        /// <summary>Also write each captured region as a PNG into <see cref="ScreenshotFolder"/> (CAPTURE-OUTPUT).</summary>
+        public bool ScreenshotSaveEnabled { get; set; } = false;
+        /// <summary>Empty = the <c>FOLDERID_Screenshots</c> known folder, resolved at save time (CAPTURE-OUTPUT rule 9).</summary>
+        public string ScreenshotFolder { get; set; } = "";
+        public int ScreenshotCount { get; set; } = 0;
 
         /// <summary>
         /// UI language default for a fresh install (no saved value): follow the OS UI language when
@@ -279,6 +311,7 @@ namespace CyrFlip
         /// </summary>
         public IReadOnlyCollection<string> UnreadableValues => _unreadable;
         private readonly HashSet<string> _unreadable = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        internal bool IsUnreadable(string name) => _unreadable.Contains(name);
 
         /// <summary>
         /// Tables and backups that were unreadable, with the serialized fallback they were loaded as.
@@ -301,8 +334,8 @@ namespace CyrFlip
                 }
                 else
                 {
-                    cfg.CaseHotkey = cfg.ReadString(key, "CaseHotkey", cfg.CaseHotkey);
-                    cfg.ClipboardHistoryHotkey = cfg.ReadString(key, "ClipboardHistoryHotkey", cfg.ClipboardHistoryHotkey);
+                    cfg.CaseHotkey = cfg.ReadHotkey(key, "CaseHotkey", cfg.CaseHotkey);
+                    cfg.ClipboardHistoryHotkey = cfg.ReadHotkey(key, "ClipboardHistoryHotkey", cfg.ClipboardHistoryHotkey);
                     cfg.UiLanguage = cfg.ReadString(key, "UiLanguage", cfg.UiLanguage);
                     cfg.SettingsTab = Math.Max(0, cfg.ReadInt(key, "SettingsTab", cfg.SettingsTab));
                     cfg.EnableClipboardHistory = cfg.ReadBool(key, "EnableClipboardHistory", cfg.EnableClipboardHistory);
@@ -332,21 +365,23 @@ namespace CyrFlip
                     // Parse, not the raw string: a hand-edited or corrupt token must land on the
                     // default rather than on something that swallows every context menu in Windows.
                     cfg.ContextMenuChord = MouseChord.Parse(cfg.ReadString(key, "ContextMenuChord", "")).Token;
+                    cfg.TextMenuHotkey = cfg.ReadHotkey(key, "TextMenuHotkey", cfg.TextMenuHotkey);
+                    cfg.EnableTextMenuHotkey = cfg.ReadBool(key, "EnableTextMenuHotkey", cfg.EnableTextMenuHotkey);
                     // Parse, not the raw string, for the same reason: an unknown token reads as "system".
                     cfg.Theme = ThemeModes.Token(ThemeModes.Parse(cfg.ReadString(key, "Theme", cfg.Theme)));
                     // The one-time Windows snapshots cannot be taken again: an unreadable one is kept
                     // on disk untouched rather than replaced by "" on the next save.
                     cfg.LanguageHotkeysBackup = cfg.ReadString(key, "LanguageHotkeysBackup", cfg.LanguageHotkeysBackup, preserve: true);
                     cfg.InputLayoutsBackup = cfg.ReadString(key, "InputLayoutsBackup", cfg.InputLayoutsBackup, preserve: true);
+                    cfg.InputMethodOverrideWritten = cfg.ReadString(key, "InputMethodOverrideWritten", cfg.InputMethodOverrideWritten);
                     cfg.EnableScenarioLauncher = cfg.ReadBool(key, "EnableScenarioLauncher", cfg.EnableScenarioLauncher);
                     cfg.LauncherFirstEnableDone = cfg.ReadBool(key, "LauncherFirstEnableDone", cfg.LauncherFirstEnableDone);
                     cfg.DataFolderMigrated = cfg.ReadBool(key, "DataFolderMigrated", cfg.DataFolderMigrated);
+                    cfg.ShortcutsCreated = cfg.ReadBool(key, "ShortcutsCreated", cfg.ShortcutsCreated);
 
                     cfg.EnableTranslate = cfg.ReadBool(key, "EnableTranslate", cfg.EnableTranslate);
                     cfg.TranslateSeeded = cfg.ReadBool(key, "TranslateSeeded", cfg.TranslateSeeded);
                     cfg.TranslateProfiles = cfg.ReadTable<TranslationProfile>(key, "TranslateProfiles", SanitizeTranslationProfiles, ref repaired);
-                    cfg.TranslateSourceLang = cfg.ReadString(key, "TranslateSourceLang", cfg.TranslateSourceLang);
-                    cfg.TranslateTargetLang = cfg.ReadString(key, "TranslateTargetLang", cfg.TranslateTargetLang);
                     cfg.TranslateEndpoint = cfg.ReadString(key, "TranslateEndpoint", cfg.TranslateEndpoint);
                     cfg.TranslateModel = cfg.ReadString(key, "TranslateModel", cfg.TranslateModel);
                     // The ranges the translator tab's spin boxes offer.
@@ -375,7 +410,7 @@ namespace CyrFlip
 
                     cfg.EnableQuickNotes = cfg.ReadBool(key, "EnableQuickNotes", cfg.EnableQuickNotes);
                     cfg.QuickNotesNoticeShown = cfg.ReadBool(key, "QuickNotesNoticeShown", cfg.QuickNotesNoticeShown);
-                    cfg.QuickNotesHotkey = cfg.ReadString(key, "QuickNotesHotkey", cfg.QuickNotesHotkey);
+                    cfg.QuickNotesHotkey = cfg.ReadHotkey(key, "QuickNotesHotkey", cfg.QuickNotesHotkey);
                     cfg.EnableQuickNotesHotkey = cfg.ReadBool(key, "EnableQuickNotesHotkey", cfg.EnableQuickNotesHotkey);
                     cfg.QuickNotesWordWrap = cfg.ReadBool(key, "QuickNotesWordWrap", cfg.QuickNotesWordWrap);
                     cfg.ExchangeNotesWarningOff = cfg.ReadBool(key, "ExchangeNotesWarningOff", cfg.ExchangeNotesWarningOff);
@@ -389,6 +424,12 @@ namespace CyrFlip
                     cfg.CaseFlipCount = cfg.ReadInt(key, "CaseFlipCount", cfg.CaseFlipCount);
                     cfg.TranslateCount = cfg.ReadInt(key, "TranslateCount", cfg.TranslateCount);
                     cfg.QuickNoteCount = cfg.ReadInt(key, "QuickNoteCount", cfg.QuickNoteCount);
+
+                    cfg.ScreenshotHotkey = cfg.ReadHotkey(key, "ScreenshotHotkey", cfg.ScreenshotHotkey);
+                    cfg.EnableScreenshotHotkey = cfg.ReadBool(key, "EnableScreenshotHotkey", cfg.EnableScreenshotHotkey);
+                    cfg.ScreenshotSaveEnabled = cfg.ReadBool(key, "ScreenshotSaveEnabled", cfg.ScreenshotSaveEnabled);
+                    cfg.ScreenshotFolder = cfg.ReadString(key, "ScreenshotFolder", cfg.ScreenshotFolder);
+                    cfg.ScreenshotCount = cfg.ReadInt(key, "ScreenshotCount", cfg.ScreenshotCount);
                 }
             }
             mustSave = seeded || repaired;
@@ -435,16 +476,18 @@ namespace CyrFlip
                 key.SetValue("DeferToRemoteDesktop", DeferToRemoteDesktop ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableContextMenu", EnableContextMenu ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ContextMenuChord", ContextMenuChord, RegistryValueKind.String);
+                key.SetValue("TextMenuHotkey", TextMenuHotkey, RegistryValueKind.String);
+                key.SetValue("EnableTextMenuHotkey", EnableTextMenuHotkey ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("Theme", Theme, RegistryValueKind.String);
                 WritePreserved(key, "LanguageHotkeysBackup", LanguageHotkeysBackup);
                 WritePreserved(key, "InputLayoutsBackup", InputLayoutsBackup);
+                key.SetValue("InputMethodOverrideWritten", InputMethodOverrideWritten, RegistryValueKind.String);
                 key.SetValue("EnableScenarioLauncher", EnableScenarioLauncher ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("LauncherFirstEnableDone", LauncherFirstEnableDone ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("DataFolderMigrated", DataFolderMigrated ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ShortcutsCreated", ShortcutsCreated ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableTranslate", EnableTranslate ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("TranslateSeeded", TranslateSeeded ? 1 : 0, RegistryValueKind.DWord);
-                key.SetValue("TranslateSourceLang", TranslateSourceLang, RegistryValueKind.String);
-                key.SetValue("TranslateTargetLang", TranslateTargetLang, RegistryValueKind.String);
                 key.SetValue("TranslateEndpoint", TranslateEndpoint, RegistryValueKind.String);
                 key.SetValue("TranslateModel", TranslateModel, RegistryValueKind.String);
                 key.SetValue("TranslateTimeoutSeconds", TranslateTimeoutSeconds, RegistryValueKind.DWord);
@@ -474,6 +517,11 @@ namespace CyrFlip
                 key.SetValue("CaseFlipCount", CaseFlipCount, RegistryValueKind.DWord);
                 key.SetValue("TranslateCount", TranslateCount, RegistryValueKind.DWord);
                 key.SetValue("QuickNoteCount", QuickNoteCount, RegistryValueKind.DWord);
+                key.SetValue("ScreenshotHotkey", ScreenshotHotkey, RegistryValueKind.String);
+                key.SetValue("EnableScreenshotHotkey", EnableScreenshotHotkey ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ScreenshotSaveEnabled", ScreenshotSaveEnabled ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ScreenshotFolder", ScreenshotFolder, RegistryValueKind.String);
+                key.SetValue("ScreenshotCount", ScreenshotCount, RegistryValueKind.DWord);
             }
         }
 
@@ -501,6 +549,18 @@ namespace CyrFlip
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 key?.SetValue("DataFolderMigrated", 1, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
+        /// <summary>Set the one-time <see cref="ShortcutsCreated"/> marker, writing only that value.</summary>
+        public void SaveShortcutsCreated()
+        {
+            ShortcutsCreated = true;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("ShortcutsCreated", 1, RegistryValueKind.DWord);
             }
             catch { }
         }
@@ -537,6 +597,18 @@ namespace CyrFlip
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 key?.SetValue("TranslateCount", TranslateCount, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
+        /// <summary>Increment the region-capture counter and persist only that value (cheap write).</summary>
+        public void IncrementScreenshotCount()
+        {
+            ScreenshotCount++;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("ScreenshotCount", ScreenshotCount, RegistryValueKind.DWord);
             }
             catch { }
         }
@@ -741,6 +813,21 @@ namespace CyrFlip
         internal string ReadString(IConfigKey key, string name, string def, bool preserve = false)
             => ReadOptionalString(key, name, def, preserve) ?? def;
 
+        /// <summary>
+        /// One hotkey string. Absent uses <paramref name="def"/>; unreadable or unparsable falls back
+        /// to <paramref name="def"/> and records the value in <see cref="UnreadableValues"/> (KC2-5).
+        /// A parsable value comes back in its canonical spelling, so the next save writes that
+        /// (INPUT-CHORD rule 2: "control + shift + f12" is stored as "Ctrl+Shift+F12").
+        /// </summary>
+        internal string ReadHotkey(IConfigKey key, string name, string def)
+        {
+            string? raw = ReadOptionalString(key, name, null);
+            if (raw == null) return def;
+            if (Hotkey.TryParse(raw, out Hotkey parsed)) return parsed.Display;
+            _unreadable.Add(name);
+            return def;
+        }
+
         internal string? ReadOptionalString(IConfigKey key, string name, string? def, bool preserve = false)
         {
             object? val = Raw(key, name);
@@ -808,6 +895,7 @@ namespace CyrFlip
                 if (row.SourceKlid == null) { row.SourceKlid = ""; changed = true; }
                 if (row.TargetKlid == null) { row.TargetKlid = ""; changed = true; }
                 if (row.Hotkey == null) { row.Hotkey = ""; changed = true; }
+                if (CanonicalizeChord(row.Hotkey, out string conversionChord)) { row.Hotkey = conversionChord; changed = true; }
                 if (string.IsNullOrEmpty(row.Id) || !ids.Add(row.Id)) { row.Id = NewId(ids); changed = true; }
             }
             return changed;
@@ -823,9 +911,23 @@ namespace CyrFlip
             {
                 if (row.TargetLang == null) { row.TargetLang = ""; changed = true; }
                 if (row.Hotkey == null) { row.Hotkey = ""; changed = true; }
+                if (CanonicalizeChord(row.Hotkey, out string translationChord)) { row.Hotkey = translationChord; changed = true; }
                 if (string.IsNullOrEmpty(row.Id) || !ids.Add(row.Id)) { row.Id = NewId(ids); changed = true; }
             }
             return changed;
+        }
+
+        /// <summary>
+        /// True when <paramref name="stored"/> parses but is not spelled canonically, with the canonical
+        /// spelling in <paramref name="canonical"/> (INPUT-CHORD rule 2). A chord that does not parse is
+        /// left exactly as stored: it is inert (rule 3), and the user's value is not ours to rewrite.
+        /// </summary>
+        internal static bool CanonicalizeChord(string? stored, out string canonical)
+        {
+            canonical = stored ?? "";
+            if (!Hotkey.TryParse(stored, out Hotkey parsed) || parsed.Display == stored) return false;
+            canonical = parsed.Display;
+            return true;
         }
 
         private static string NewId(HashSet<string> taken)

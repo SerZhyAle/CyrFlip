@@ -517,6 +517,20 @@ namespace CyrFlip
                 ur: "Ollama ڈاؤن لوڈ ہو رہا ہے...",
                 zh: "正在下载 Ollama...");
 
+            Add("Загрузка остановлена.",
+                en: "Download stopped.",
+                uk: "Завантаження зупинено.",
+                de: "Download angehalten.",
+                it: "Download interrotto.",
+                es: "Descarga detenida.",
+                fr: "Téléchargement arrêté.",
+                pt: "Transferência interrompida.",
+                ar: "تم إيقاف التنزيل.",
+                hi: "डाउनलोड रोका गया।",
+                bn: "ডাউনলোড থামানো হয়েছে।",
+                ur: "ڈاؤن لوڈ روک دیا گیا۔",
+                zh: "下载已停止。");
+
             Add("Скачиваю Ollama:",
                 en: "Downloading Ollama:",
                 uk: "Завантажую Ollama:",
@@ -967,41 +981,6 @@ namespace CyrFlip
                 bn: "নির্বাচন নেওয়ার সময় উইন্ডো বদলে গেছে। অনুবাদ বাতিল করা হয়েছে।",
                 ur: "انتخاب لیتے وقت ونڈو بدل گئی۔ ترجمہ منسوخ کر دیا گیا۔",
                 zh: "取选中内容时窗口切换了，翻译已取消。");
-
-            Add("Автоопределение → язык перевода",
-                en: "Auto-detect → translation language", uk: "Автовизначення → мова перекладу",
-                de: "Automatisch erkennen → Zielsprache", it: "Rilevamento automatico → lingua di traduzione",
-                es: "Detección automática → idioma de traducción", fr: "Détection automatique → langue de traduction",
-                pt: "Detecção automática → idioma de tradução", ar: "كشف تلقائي ← لغة الترجمة",
-                hi: "स्वतः पहचान → अनुवाद की भाषा", bn: "স্বয়ংক্রিয় শনাক্তকরণ → অনুবাদের ভাষা",
-                ur: "خودکار شناخت ← ترجمے کی زبان", zh: "自动识别 → 翻译语言");
-
-            Add("Мой язык → язык перевода",
-                en: "My language → translation language", uk: "Моя мова → мова перекладу",
-                de: "Meine Sprache → Zielsprache", it: "La mia lingua → lingua di traduzione",
-                es: "Mi idioma → idioma de traducción", fr: "Ma langue → langue de traduction",
-                pt: "Meu idioma → idioma de tradução", ar: "لغتي ← لغة الترجمة",
-                hi: "मेरी भाषा → अनुवाद की भाषा", bn: "আমার ভাষা → অনুবাদের ভাষা",
-                ur: "میری زبان ← ترجمے کی زبان", zh: "我的语言 → 翻译语言");
-
-            Add("Язык перевода → мой язык",
-                en: "Translation language → my language", uk: "Мова перекладу → моя мова",
-                de: "Zielsprache → meine Sprache", it: "Lingua di traduzione → la mia lingua",
-                es: "Idioma de traducción → mi idioma", fr: "Langue de traduction → ma langue",
-                pt: "Idioma de tradução → meu idioma", ar: "لغة الترجمة ← لغتي",
-                hi: "अनुवाद की भाषा → मेरी भाषा", bn: "অনুবাদের ভাষা → আমার ভাষা",
-                ur: "ترجمے کی زبان ← میری زبان", zh: "翻译语言 → 我的语言");
-
-            Add("Мой язык:",
-                en: "My language:", uk: "Моя мова:", de: "Meine Sprache:", it: "La mia lingua:",
-                es: "Mi idioma:", fr: "Ma langue :", pt: "Meu idioma:", ar: "لغتي:",
-                hi: "मेरी भाषा:", bn: "আমার ভাষা:", ur: "میری زبان:", zh: "我的语言：");
-
-            Add("Язык перевода:",
-                en: "Translation language:", uk: "Мова перекладу:", de: "Zielsprache:",
-                it: "Lingua di traduzione:", es: "Idioma de traducción:", fr: "Langue de traduction :",
-                pt: "Idioma de tradução:", ar: "لغة الترجمة:", hi: "अनुवाद की भाषा:",
-                bn: "অনুবাদের ভাষা:", ur: "ترجمے کی زبان:", zh: "翻译语言：");
 
             Add("Перевести буфер обмена",
                 en: "Translate the clipboard",

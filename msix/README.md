@@ -15,9 +15,9 @@ Store-distributed build is also the most effective answer to the Avast/AVG `IDP.
 | [build-msix.ps1](build-msix.ps1) | Builds Release, stages payload, generates logo PNGs, fills the manifest, packs the `.msix`. |
 | [store-listing-export.csv](store-listing-export.csv) | **The source of truth for every word of the listing**, in all 14 listing languages (the app's 13 plus `pt`): Partner Center's bulk export/import format (Description, ReleaseNotes, Product features, Search terms). Edit here, then re-import via *Store listings → Import* in Partner Center - keeps the listing content under version control instead of only living in the Partner Center UI. Screenshot/logo asset rows are Partner-Center-hosted URLs, left as-is. |
 | [store-listing-import-13-languages.csv](store-listing-import-13-languages.csv) | **Generated** - the export above with every empty cell filled, ready for *Store listings → Import*. Do not hand-edit; run `build-store-listing-csv.ps1`. |
-| [build-store-listing-csv.ps1](build-store-listing-csv.ps1) | Fills the gaps in the export from `listing/`. It **only writes empty cells** and never reorders columns, so asset URLs and anything Partner Center already holds survive untouched. `-FillNothing` proves the writer is lossless: the output must come back byte-identical to the export. `-ScreenshotOnlyMissing` stages a screenshot only where the language has none - the flag every import after the first needs. |
+| [build-store-listing-csv.ps1](build-store-listing-csv.ps1) | Fills the gaps in the export from `listing/`. It **only writes empty cells** and never reorders columns, so asset URLs and anything Partner Center already holds survive untouched. `-Check` renders in memory and compares against the committed CSV (exit 0 on match, 1 on drift, 2 on missing inputs). `-FillNothing` proves the writer is lossless: the output must come back byte-identical to the export. `-ScreenshotOnlyMissing` stages a screenshot only where the language has none - the flag every import after the first needs. |
 | [listing/](listing/) | One `@@Field / value` text file per language, written when the export did not yet carry those 11 languages. Plain text on purpose: this is prose to be proofread, not code. Keep it in step with the CSV - the merge above only fills **empty** cells, so a change made here alone never reaches the Store. |
-| [render-listing-mirrors.ps1](render-listing-mirrors.ps1) | Rewrites the two human-readable mirrors - `store-listings.md` and `store/listing-*.txt` - from the export. `-Check` renders in memory and exits 1 on drift (the release preflight runs it). Both mirrors were a release behind in three languages before this existed. |
+| [render-listing-mirrors.ps1](render-listing-mirrors.ps1) | Rewrites the two human-readable mirrors - `store-listings.md` and `store/listing-*.txt` - from the export. `-Check` renders in memory and exits 0 on match, 1 on drift, 2 on missing inputs (the release preflight runs it). Both mirrors were a release behind in three languages before this existed. |
 
 Diagnostics are generated on demand rather than kept around: `-SkipFields <Field...> -OutFile <name>`
 narrows an import down to the field being blamed, and `-LogoFlagOnly` writes the logo-flag repair
@@ -74,11 +74,12 @@ every build/update (they're public - they live inside every published `.msix`):
 Requires the Windows SDK (`makeappx`): `winget install Microsoft.WindowsSDK`.
 
 ```powershell
-.\build-msix.ps1 `
-  -IdentityName        "SZA.CyrFlip" `
-  -Publisher           "CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD" `
-  -PublisherDisplayName "SZA"
+.\build-msix.ps1 -ReleaseZip <the tag's release ZIP> -Version <YY.M.D.HHmm>
 ```
+
+The identity above is the script's default - it never defaults to anything else (S0038 RP-2) - and
+it refuses an exe whose `ProductVersion` is not `<version>+<tag commit>`, i.e. one not built from the
+tag (RP-3).
 
 Output: `msix/dist/CyrFlip-<version>-x64.msix`, **unsigned** - that's correct, upload it as-is.
 The internal package version is derived from the exe's `YY.M.D.HHmm` stamp and remapped to a
@@ -183,10 +184,12 @@ For an existing app you only create a new submission - the identity above is unc
 ## Test locally before submitting (self-signed)
 
 To sideload and run the package on your own machine, sign it with a throwaway cert (its subject must
-equal `-Publisher`, so keep the default or pass a matching `CN=`):
+equal `-Publisher`). `-TestIdentity` switches to a local test identity, so the package installs beside
+a Store build as a family of its own (with the Store identity a self-signed package cannot install
+over the Store-signed one):
 
 ```powershell
-.\build-msix.ps1 -SelfSign
+.\build-msix.ps1 -NoBuild -Version <YY.M.D.HHmm> -SelfSign -TestIdentity
 ```
 
 The script signs the package and prints the two commands to (1) trust the test cert in

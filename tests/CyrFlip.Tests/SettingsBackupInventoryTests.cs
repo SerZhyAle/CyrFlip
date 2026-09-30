@@ -44,7 +44,7 @@ namespace CyrFlip.Tests
                 Match write = Writer.Match(body);
                 if (!write.Success) continue;
                 writers++;
-                int backup = body.IndexOf("EnsureSystemBackups();", StringComparison.Ordinal);
+                int backup = body.IndexOf("EnsureSystemBackups()", StringComparison.Ordinal);
                 if (backup < 0 || backup > write.Index)
                     problems.Add(body.Substring(0, body.IndexOf('\n')).Trim() + " -> " + write.Value);
             }
@@ -59,22 +59,7 @@ namespace CyrFlip.Tests
     [Collection(SharedGdiCollection.Name)]
     public class SettingsFormStateTests
     {
-        private static Form Build(AppConfig config)
-        {
-            Type type = typeof(AppConfig).Assembly.GetType("CyrFlip.SettingsForm", true)!;
-            Action<bool> b = _ => { };
-            Action noop = () => { };
-            Action<int> i = _ => { };
-            Action<string> s = _ => { };
-            var launcherStore = new LauncherScenarioStore(Path.Combine(Path.GetTempPath(), "CyrFlipTests", Guid.NewGuid().ToString("N")));
-            Func<string, bool, string> export = (_, _) => "";
-            return (Form)Activator.CreateInstance(type, new object[]
-            {
-                config, b, b, b, b, b, b, b, b, b, i, s, noop, noop, noop, noop, noop, b, b, b, b, b, b,
-                launcherStore, b,
-                noop, noop, noop, export,
-            })!;
-        }
+        private static Form Build(AppConfig config) => TestForms.NewSettings(config);
 
         private static T Field<T>(Form form, string name)
             => (T)form.GetType().GetField(name, BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(form)!;

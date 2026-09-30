@@ -12,10 +12,13 @@ re-hitting the same traps every time. This folder is that script, kept.
 | `Test-KeepAwake.ps1` | End-to-end: the saved keep-awake state becomes a real Windows power request (`powercfg /requests`) and stops being one when saved off |
 | `Test-SupportBundle.ps1` | The "Send logs to the author" archive: contents, truncation markers, retention. `-NoUi` builds the bundle itself (reflection into the built exe, real log folder and registry) so the disk half runs unattended; without it, you press the button and it checks what appeared. Either way the compose window is yours to look at |
 | `Test-PerUserFolder.ps1` | The Store build's per-user data folder (ticket S0016, the spec's section 7.3 gate): with the package installed, runs commands **inside** it (`Invoke-CommandInDesktopPackage`) to prove that the explicit `LocalCache\Local\CyrFlip` path is not redirected again, that the package's own `%LOCALAPPDATA%` writes land there too, and that a file an unpackaged process writes there is visible to the package; with the Store CyrFlip running, also the layout files, the `%ProgramData%` mirror and that none of the user's old files stayed behind. Prints the two-account checklist |
+| `Test-InputLayoutApi.ps1` | The "Windows languages" edits through the documented `input.dll` API (ticket S0007 WL-1 phase B). Default: read-only - the built exe's `Win32InputLayoutApi` enumerates the enabled list, one default, every Preload KLID accounted for. `-Apply` adds `-Klid` (Ukrainian by default, must not be enabled) through the phase-B path alone - a fallback to the registry shows as a FAIL - checks both stores, removes it through the settings tab's own call and checks the list, Preload, `Languages` and `InputMethodOverride` are exactly what they were. Prints the sign-out/in checklist |
 | `Test-SessionEnd.ps1` | Sign-out with CyrFlip running: `-Before` (app running) records the state, you edit a note and sign out, `-After` (signed back in, app not started) checks that `layout.txt`/`layout-klid.txt` were retracted and the quick-notes journal was written by the session end. Whether Windows stopped on "CyrFlip is preventing you from signing out" is yours to watch. Run with autostart off |
 | `Test-CapsSync.ps1` | "Synchronize CapsLock after case correction": the key must end up matching the corrected text, not merely change. `-InteropOnly` runs the unattended half - that `GetKeyState` is honest on a queue-less thread, which is where CyrFlip reads it; the rest stages three scenes and asks you to press the chord (one of them is the case a blind toggle got backwards), plus a fourth when "Press SHIFT to turn off Caps Lock" is set |
 | `Test-ClipboardFlip.ps1` | The flip pipeline's clipboard hand-back (ticket S0009). `-InteropOnly` runs unattended: reflection into the built exe drives the real `ClipboardHandler` against a text box in its own process - the delay-rendered paste (the target's read arriving as `WM_RENDERFORMAT`, `CF_LOCALE` beside it), a whole case flip handing back the user's clipboard with a password manager's markers, the chord with nothing selected leaving the clipboard unwritten, a Cut's move effect surviving. **It borrows your clipboard** for a few seconds: backed up first with CyrFlip's own backup (it refuses to start when that fails) and handed back at the end; everything it stages is marked "do not record". A NOTE names any clipboard monitor that fetches every change at once (a VM's clipboard sharing) - there flips fall back to the fixed wait, by design. Without the switch it adds the checklist for RDP, Word, Excel, VS Code, KeePass, Explorer and an ANSI app |
 | `Test-HooksAndChords.ps1` | The keyboard hook and chord fixes (ticket S0004): what a real application does with the keys CyrFlip injects - no DevTools on LCtrl+RShift+F12, no "Save As" on a double tap, no stuck modifier, no layout switch on Ctrl+Shift+F11, AltGr still typing. `-InteropOnly` runs the unattended half (every side-specific modifier resolves to its own scan code); the rest walks you through twelve scenes, since CyrFlip never fires on injected keys and only physical ones prove anything |
+| `Test-HookThreadBlocking.ps1` | The hooks' thread never waits on a share (ticket S0030). `-Unattended` stages a launcher scenario on `\\10.255.255.1\x\a.exe` (never answers), starts CyrFlip and opens Settings while pinging its UI thread with `SendMessageTimeout(WM_NULL)` every 50 ms, against a baseline run with a local path; fails when the share adds more than 1 s to the worst ping. `-ExePath` runs it against an older build (before S0030: a 22 s stall at startup). Without the switch it adds the scenes by hand - settings clicks, tray and context-menu launches while typing, and a physical chord afterwards. Scenario file and registry values are put back |
+| `Measure-TranslateCancel.ps1` | What cancelling a streaming translation costs the cancelling thread (S0010 TD-3, measured under S0037 TR-7). Against the local Ollama: a raw half-read chunked response disposed inline (the netfx drain TD-3 feared - 504 ms on 2026-09-26, over the 300 ms hook timeout), and the production path through the built exe, whose `Cancel()` must stay near 0 ms. Windows PowerShell 5.1 only - the behaviour measured is .NET Framework's. Unattended, changes nothing |
 | `Test-LongRun.ps1` | Hours-long watch of a live instance: GDI/USER handle counts (a leak there is invisible in the memory column), private bytes and threads, sampled to CSV while a throwaway window's layout is switched to drive the icon/cursor/overlay rendering. Fails on handle growth; private bytes are reported but never judged, since the clipboard history is unbounded by design |
 | `Save-SettingsShots.ps1` | PNG of every settings tab - for layout/localization eyeballing |
 | `Audit-SettingsWindow.ps1` | The settings window built **in its own process** (reflection into the built exe, off-screen, no mouse, no focus) per UI language: a PNG of every page and every screenful of it, plus a report of clipped captions, combo boxes and column headers, ellipsized or undrawn page names (checked in pixels), glyph buttons without an accessible name, text contrast and how much of each page is used. Runs while you work. `-Theme dark|light|system` starts the app theme in that process first (ticket S0020), so every page is rendered in it - into `artifacts\uitest\settings-<theme>` |
@@ -25,6 +28,18 @@ re-hitting the same traps every time. This folder is that script, kept.
 
 Nothing here is wired into `dotnet test`, `build.ps1` or CI: these drive the real desktop (they
 move the mouse and steal focus), so they are run deliberately, on a machine somebody is watching.
+
+## Contract Conformance (`CHECK-VERDICT`, `BUILD-EVIDENCE`)
+
+All uitest test scripts adhere to the `CHECK-VERDICT` and `BUILD-EVIDENCE` contracts:
+- **Subject Banner:** Every test prints the target exe path, FileVersion, PID, and environment info before testing.
+- **Exit Codes:**
+  - `0`: PASS — check succeeded.
+  - `1`: FAIL — defect or regression detected.
+  - `2`: NOT VERIFIED — could not verify (e.g. app not running, required log/fixture absent, target window never foreground, UAC prompt declined, human chord interaction omitted).
+  - `3`: PASS WITH ADVISORIES — check passed with non-fatal advisories (e.g. `-SkipHookCheck`).
+- **Verdict Line:** The last line on stdout is always machine-readable:
+  `<subject>: PASS|FAIL (n)|NOT VERIFIED (n)|PASS WITH ADVISORIES (n)`.
 
 ## Run
 
@@ -44,9 +59,12 @@ dotnet build CyrFlip.sln -c Release
 .\tools\uitest\Test-ClipboardFlip.ps1 -InteropOnly      # unattended; borrows and hands back your clipboard
 .\tools\uitest\Test-HooksAndChords.ps1 -InteropOnly     # unattended: side-specific scan codes
 .\tools\uitest\Test-HooksAndChords.ps1                  # then twelve scenes with physical keys
+.\tools\uitest\Test-HookThreadBlocking.ps1 -Unattended  # unattended: UI-thread pings, local path vs dead share
+powershell.exe -File .\tools\uitest\Measure-TranslateCancel.ps1   # unattended; needs Ollama with qwen2.5:3b
 .\tools\uitest\Test-SupportBundle.ps1 -NoUi             # unattended: disk half only
 .\tools\uitest\Test-SupportBundle.ps1                   # then press the About-tab button yourself
 .\tools\uitest\Test-PerUserFolder.ps1                   # Store/sideloaded package installed; Win10 22H2 and Win11
+.\tools\uitest\Test-InputLayoutApi.ps1 -Apply           # adds and removes Ukrainian, checks everything came back
 .\tools\uitest\Test-SessionEnd.ps1 -Before              # then edit a note and sign out;
 .\tools\uitest\Test-SessionEnd.ps1 -After               # after sign-in, before starting CyrFlip
 .\tools\uitest\Test-LongRun.ps1 -DurationMinutes 60     # watches a *running* instance; ends by

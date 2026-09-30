@@ -149,8 +149,8 @@ Per the user, the product has these features, in priority order:
    open-ended table - rows of "translate the selection into this language, on this chord"
    (`TranslationProfile`, `AppConfig.TranslateProfiles`, bound by `KeyboardHook.UpdateTranslationProfiles`
    with the same immutable-snapshot discipline as the conversion table, and included in the RDP-deferral
-   condition). A row's target is a language code or one of two tokens resolved **when the chord fires**:
-   `ui` (the CyrFlip UI language) and `active` (the layout live in the target window) -
+   condition). A row's target is a language code or one of two live tokens resolved **when the chord
+   fires**: `ui` (the CyrFlip UI language) and `active` (the layout live in the target window) -
    `TranslationLanguages.Resolve`. The answer streams into a popup **beside the mouse pointer**
    (`TranslationResultWindow`) that never steals focus, and can optionally be copied to the clipboard -
    where the history records it like any other copy, which is the point - or pasted over the selection.
@@ -172,7 +172,8 @@ Per the user, the product has these features, in priority order:
    `EnableContextMenu=0` means the **`WH_MOUSE_LL` hook is not installed at all** - a hook that sits in
    the path of every mouse move on the machine must not exist for a feature nobody switched on. Enabled,
    a mouse chord (`MouseChord`, default **Ctrl + right click**, stored as an invariant token in
-   `ContextMenuChord`) is swallowed - down, up **and** the double-click message, because most apps open
+   `ContextMenuChord`) is swallowed - down **and** up (a low-level hook never sees a double-click message;
+   the second down of a fast double click is swallowed like the first), because most apps open
    their menu on `WM_CONTEXTMENU`, which arrives after the release - and CyrFlip's own menu opens at the
    pointer: Copy/Cut/Paste first, then - only when the selection itself parses as something openable -
    **"Запустить «…»"** (`LaunchTarget`, below), then the live conversion rows, the case flip and the
@@ -193,7 +194,8 @@ Per the user, the product has these features, in priority order:
    the taskbar button. Greying follows `SelectionProbe` (§ below); a drop-down owned by a non-foreground
    process never sees the click that should dismiss it, so `MouseHook.ForeignButtonDown` closes it -
    `SetForegroundWindow` (the taskbar button's trick) is forbidden here, it would take the focus this
-   whole feature exists to keep. Spec: [PLAN/done/ContextMenu_Spec_Idea_v0.1.md](PLAN/done/ContextMenu_Spec_Idea_v0.1.md).
+   whole feature exists to keep. The keyboard opens the same menu with **`Ctrl+Shift+Alt+M`** (`TextMenuHotkey`, S0045 K2) at the caret; opened that way the menu does take the foreground - the arrows have to reach it - through a hidden window of ours, and hands it back when it closes without a command.
+   Spec: [PLAN/done/ContextMenu_Spec_Idea_v0.1.md](PLAN/done/ContextMenu_Spec_Idea_v0.1.md).
 
 8. **Быстрые заметки ("Быстрые заметки"), opt-in and off by default.** `EnableQuickNotes=0` means the
    journal file is **never read and never created**, there is no tray entry and no chord is bound - a
@@ -220,12 +222,23 @@ Per the user, the product has these features, in priority order:
    Storage is `quick-notes.log` in the MSIX-aware folder: an append-only journal of create/update/delete,
    **the whole record DPAPI-encrypted, not just the payload** (a title names a customer as often as a body
    holds a token), replayed **on the pool** at first use (the window opens in a "loading" state - the UI
-   thread is the hook's thread), compacted **in the background** once `QuickNotesStore.CompactAfterOperations`
-   (500) is reached, and on exit, via `File.Replace` - atomic, and the previous journal becomes the `.bak` in
-   the same call. A line that will not read is skipped, counted, reported once **and carried through every
-   compaction verbatim** (a DPAPI key can come back); a missing journal is restored from its `.bak`. Every
+   thread is the hook's thread), compacted **in the background** once the journal holds
+   `QuickNotesStore.CompactAfterOperations` (500) records more than a fresh snapshot would - not a flat 500,
+   which rewrote every note on every save for anyone with 500 notes - and on exit, via `File.Replace` -
+   atomic, and the previous journal becomes the `.bak` in the same call; a compaction that failed waits for
+   another 500 records instead of re-encrypting everything on the next save (S0035 QN2-8). A line that will
+   not read is skipped, counted, reported once **and carried through every compaction verbatim** when it is
+   a whole ciphertext (a DPAPI key can come back) or opens but is no record (a later format); a **fragment**
+   a kill left mid-append - told apart by walking the DPAPI blob's length-prefixed fields
+   (`QuickNotesCipher.IsWholeBlob`, a cipher's optional `IQuickNotesCipherShape`) - is dropped by the
+   compaction the load itself asks for, so it is warned about once, not at every start (QN2-2). A missing
+   journal is restored from its `.bak`. Every
    record is written with a **leading** line break, so a torn tail costs only itself. A note is rewritten
-   only when it was edited, and a note deleted this session is never committed again (ticket S0006). The
+   only when it was edited, and a note deleted this session is never committed again (ticket S0006). **A
+   write that fails stays pending** - the note (or delete) goes back to the debounce, retried after 5 s or
+   on the next save, and the window shows the failure until a write succeeds (`SaveFailing`/`SaveRecovered`,
+   QN2-1); it used to be cleared as saved and overwritten on screen at once. "Delete every note" also
+   removes the crash-left `.tmp` and the migration's kept journals (QN2-3). The
    count goes to `quick-notes-diagnostics.log` and the note text goes nowhere. `SupportBundle.ExcludedFiles` now holds **two** names: the journal is as
    off-limits as `clipboard-history.log`. Google Keep is a **manual clipboard transfer** and says so - the
    Keep REST API is a Workspace-administrator interface, unusable from a personal account, so CyrFlip does
@@ -245,7 +258,11 @@ Per the user, the product has these features, in priority order:
      (`ThemePalette.RoleOfDesignColor`). Dark assigns the role's dark value; light and high contrast put the
      record back. `ThemeCoverageTests` proves light-after-dark restores every property it touched.
    - **High contrast wins over every mode**: nothing of ours is drawn - the tree goes back to system colours
-     and owner-drawn parts use `ThemePalette.HighContrast`, followed live like a theme switch.
+     and owner-drawn parts use `ThemePalette.HighContrast`, followed live like a theme switch. The flag is
+     read with `SPI_GETHIGHCONTRAST` each time (`ThemeManager.SystemHighContrast`, S0036 UI-2): net48's
+     `SystemInformation.HighContrast` stays cached until the framework's own handler runs, which comes
+     after ours, so a toggle used to resolve against the old value. A list row built in a role colour
+     (the support-bundle dialog's muted "not included" row) is mapped like a control (UI-6).
    - **The layout marker is not themed** - `LAYOUT-PALETTE`; its colours name a layout. Declared at
      `LayoutStyle.cs` and `CaretOverlay.cs` per `APP-STYLE` rule 5.
    - **No colour literal lives outside `ThemePalette.cs`** and the marker's files, and **no `MessageBox.Show`
@@ -256,7 +273,49 @@ Per the user, the product has these features, in priority order:
      `danger` role and defaults to No.
    Declared exceptions (Windows draws them): balloon tips, the Jump List, the common file dialogs, native
    tooltips, the track bar's channel and thumb, the numeric up-down arrows, disabled combo boxes, and the
-   quick-notes checklist's (empty) list header. Spec: [PLAN/S0020_dark-theme.md](PLAN/S0020_dark-theme.md) (v0.2).
+   quick-notes checklist's (empty) list header. Spec: [PLAN/done/S0020_dark-theme.md](PLAN/done/S0020_dark-theme.md) (v0.2).
+
+10. **The open exchange file - "Перенос на другой компьютер" (ticket S0023).** One plain UTF-8 text file,
+   "CyrFlip Exchange Text v1", carrying quick notes and a chosen slice of the clipboard history to another
+   PC or a phone: `Экспортировать...` / `Импортировать...` in the quick-notes window ("Перенос..."), the
+   history search window and a row on both the clipboard and the quick-notes settings pages. It is **open
+   on purpose** - no DPAPI, no base64, no password; the export dialog says so beside the button that
+   writes it (every time history is included; `ExchangeNotesWarningOff` may silence it for notes-only), and
+   the defaults take notes + pinned history only, never the whole history. It is a **snapshot, not a
+   storage format**: the journals stay DPAPI and may change on their own, v1 is frozen by the files people
+   already hold. Four rules carry it: **payloads are verbatim** inside a backtick fence longer than any run
+   in the text (framing is LF, a payload's own CRLF survives; a file converted to CRLF as a whole is
+   detected by its marker line); **a clipboard block's `Id` is `sha256:` of its raw UTF-8 text** - the
+   history's own id - and a text that no longer hashes to it is refused; **the import is additive** -
+   preview first (`PlanImport` on both services, re-planned at apply time), a note replaced only by a
+   strictly newer `Updated-At` (a tie keeps the local one, `CreatedAtUtc` is never rewritten), a pin never
+   removed, nothing deleted, a hand-written `## Note` without an id imported only after a yes; **a bad block
+   costs itself** (reported with its line), except an unclosed fence, which swallows the rest. Caps: 25 MB
+   file, 128 KB per history text, 512 KB per note, 4 KB per metadata line, 10 000 objects. Dates are written
+   to the second and truncated, so a re-import never "updates" a note with itself. Notes are skipped while
+   the quick notes are off, history entries while the history is off. CyrFlip never sends, opens or
+   watches the file. Spec: [PLAN/done/S0023_history-notes-exchange-and-features.md](PLAN/done/S0023_history-notes-exchange-and-features.md).
+
+11. **The "Графика" settings tab and its first tool, the screen region capture (ticket S0026).** Deliberately
+   **no module switch and no tray submenu** (owner, 2026-09-26: an extra switch and one more menu level make
+   the command slower to reach) - the tab groups the settings, the tray has a top-level
+   **"Снимок области экрана"** item that is always there, and the chord has only its own switch
+   (`EnableScreenshotHotkey`, on). The chord (`ScreenshotHotkey`, default **Ctrl+Shift+PrintScreen** -
+   `Hotkey` learned `PrintScreen`/`PrtSc`, and `HotkeyDialog` captures it on the key-**up**, since Windows
+   posts no key-down for it), the tray item or the settings button **freeze every screen first** (`ScreenCapture.Grab`, one
+   `BitBlt` with `SRCCOPY | CAPTUREBLT` - `CopyFromScreen` drops layered windows, i.e. the tooltip the chord
+   exists to catch), then `RegionSelectionOverlay` shows **one window per monitor** painting its slice of
+   that one frame (a single window across mixed DPI is rescaled by Windows), with one selection rectangle in
+   virtual-screen physical pixels. The cropped region goes to the clipboard as **`PNG` + `CF_DIB`** of the
+   same pixels in one open (`Win32Clipboard.TrySetImage`, `ClipboardImage`), under the `_busy` guard for the
+   write only; the user's previous clipboard is replaced, not restored, and on cancel it is never opened.
+   The optional **"also save to a folder"** (`ScreenshotSaveEnabled`, off) writes the same PNG bytes per
+   `CAPTURE-OUTPUT` (kind `screenshot`): `screenshot_yyMMdd_HHmmss[ (n)].png` with invariant digits and the
+   freeze time, the ordinal checked against the folder itself, temp-then-no-replace-rename, default
+   `FOLDERID_Screenshots` with no product subfolder, fallback Screenshots -> Downloads **always told** by a
+   balloon (`ScreenshotSaver`, file system behind `IScreenshotFileSystem`). The caret badge and the
+   translation popup are `WDA_EXCLUDEFROMCAPTURE` (S0026 4.2) - they also vanish from other tools' captures
+   and screen shares. Spec: [PLAN/done/S0026_screen-region-capture.md](PLAN/done/S0026_screen-region-capture.md).
 
 It runs in the **system tray** (the icon also shows the layout; right-click menu = the history controls, the three indicator toggles, the two keep-awake switches, the **Launcher** submenu and **"Перевести буфер обмена"** - each visible only while its module is enabled - then Settings and Exit). **Tray mouse:** a **single left click switches the input language to the next one in Windows' rotation** (`LayoutSwitcher.SwitchToNext`), a **double click opens Settings**. Since the shell also delivers the first click of a double click as an ordinary click, the switch is deferred by `SystemInformation.DoubleClickTime` and cancelled when the double click arrives - and it targets `CursorIndicator.LastActiveWindow`, not the foreground window, because clicking the notification area moves the focus to the taskbar. See [PLAN/done/Spec_v1.1_Cursor_and_Caret.md](PLAN/done/Spec_v1.1_Cursor_and_Caret.md) for the indicator design.
 
@@ -285,14 +344,17 @@ It runs in the **system tray** (the icon also shows the layout; right-click menu
 Each class owns one concern (keep it this way - the spec prioritizes a minimal surface):
 
 - **Program.cs** - entry point (`[STAThread]` Main). Enforces **single instance** via a named mutex (`Local\CyrFlipSingleInstance`) - a second copy would install a second hook and fight over the system cursor - then runs `CyrFlipContext`.
-- **CyrFlipContext.cs** - the tray app shell (`ApplicationContext`). Builds the tray `NotifyIcon` + menu (history controls, cursor/caret/dot-mode toggles, keep-awake toggles, Settings, Exit), subscribes to `LayoutChanged(code, capsOn)` (forwarding the CapsLock state to all three surfaces), and on any hotkey runs the matching clipboard op via the shared `RunClipboardOp` helper **on a dedicated background thread** guarded by a single `Interlocked` `_busy` flag - it serializes every conversion and the case-flip (all own the clipboard) and blocks auto-repeat re-entry. Tracks usage via `AppConfig.IncrementFlipCount` / `IncrementCaseFlipCount`. The three fixed chords (case flip, clipboard history, quick notes) are changed at runtime via `HotkeyDialog` and rejected when any other chord owner holds them (`ChordRegistry`, below); the conversion chords are set from the table itself.
+- **CyrFlipContext.cs** - the tray app shell (`ApplicationContext`). Builds the tray `NotifyIcon` + menu (history controls, cursor/caret/dot-mode toggles, keep-awake toggles, Settings, Exit), subscribes to `LayoutChanged(code, klid, capsOn)` (forwarding the CapsLock state to all three surfaces), and on any hotkey runs the matching clipboard op via the shared `RunClipboardOp` helper **on a dedicated background thread** guarded by a single `Interlocked` `_busy` flag - it serializes every conversion and the case-flip (all own the clipboard) and blocks auto-repeat re-entry. Tracks usage via `AppConfig.IncrementFlipCount` / `IncrementCaseFlipCount`. The three fixed chords (case flip, clipboard history, quick notes) are changed at runtime via `HotkeyDialog` and rejected when any other chord owner holds them (`ChordRegistry`, below); the conversion chords are set from the table itself.
 - **SessionEndWatcher.cs / CloseToHide.cs** - how CyrFlip ends (ticket S0003). An `ApplicationContext`
   with no main form is simply terminated after `WM_ENDSESSION`, so neither `Dispose` nor
   `ApplicationExit` runs at sign-out/shutdown; the watcher is a hidden **top-level** `NativeWindow`
   (a message-only window never receives the end-session messages) that always answers
   `WM_QUERYENDSESSION` with yes and, on `WM_ENDSESSION(TRUE)`, lets `CyrFlipContext.OnSessionEnding`
-  retract the layout files, flush the quick notes, drain the queued history writes and restore the
-  cursor inside a 3 s budget. `CloseToHide.Intercept` is the rule every "close means hide" window
+  run `SessionEndSequence` inside a 3 s budget: retract the layout files, append the last note edit,
+  drain the queued history writes, restore the cursor, and only then - when no background compaction is
+  running and under a second has gone - compact the notes journal, then flush the logs (S0035 QN2-6:
+  the compaction used to come second, wait for a running one on the journal lock and leave the history
+  no time). `CloseToHide.Intercept` is the rule every "close means hide" window
   follows: **only a `UserClosing` close is cancelled** - cancelling `WindowsShutDown` vetoed the
   sign-out, and cancelling `ApplicationExitCall` kept the app running after the fatal-error box said
   it would close. `CyrFlipContext.Dispose` is guarded (it runs twice), and every clipboard worker is
@@ -323,28 +385,66 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   `DarkMode_Explorer` (lists, multi-line boxes, scrollable panels), `DarkMode_CFD` (edits and combo boxes -
   kept **not** flat, since WinForms' flat combo draws a white frame whatever the colours),
   `DarkMode_ItemsView` (list headers), and uxtheme ordinals 135/136 for the native menus.
-  `ThemeToolStripRenderer` is installed **process-wide** through `ToolStripManager.Renderer` (every
+  `ThemeToolStripRenderer` is installed on the UI thread (`[ThreadStatic]` in net48) through `ToolStripManager.Renderer` (every
   manager-mode strip draws with it, so a new menu cannot forget the theme; light and high contrast get
   the stock renderer back); a `ToolStripLabel` reads as muted, not as a disabled command.
   `ThemeTabControl` user-paints the settings page list in dark only.
+- **Glyphs.g.cs / GlyphPath.cs / GlyphRenderer.cs / AppGlyphs.cs / HistoryStripGlyphs.cs /
+  LauncherShortcutIcons.cs** - the vocabulary glyphs (`ICON-SET` / `ICON-RENDER` / `ICON-EXTERNAL`, ticket
+  S0022), one concern each. `Glyphs.g.cs` is **generated** (`dotnet run --project tools/IconGen -- glyphs
+  -CatalogRoot <catalog>`, from `tools/IconGen/glyph-ids.txt`; the catalog root is an argument, never a
+  literal path): SVG path data on the 24 grid, read by key from the catalog, a MAJOR other than 0 or a
+  missing id fails the run and leaves the previous file. `GlyphPath` reads SVG path data into a
+  `GraphicsPath` (all of M L H V C S Q T A Z, **`FillMode.Winding`** - GDI+'s Alternate punches holes in
+  overlapping glyphs; a path that does not parse yields null, never an exception). `GlyphRenderer` fills
+  it at draw time in the **caller's theme colour** - nothing is baked, one path serves every size and DPI -
+  plus the decorated look on a round plate (glyph 0.6 of the plate) for shortcuts. `AppGlyphs` is the one
+  place an id is spelled (a test fails on a literal id handed to the renderer elsewhere). Held: the
+  clipboard strip's search / close / pin / delete (`HistoryStripGlyphs`, exposed to a screen reader as an
+  `AccessibleObject` with four kinds of child), the notes window's move buttons, the Settings / About /
+  Translate tabs, and the Jump List's Manage / Exit / yt-dlp / unreadable-program icons - written as
+  `.ico` files into `icons\` beside `layout.txt` (`LauncherShortcutIcons`, the MSIX-aware folder; the name
+  carries a revision), because the shell wants a file location and an SDK-style net48 project embeds one
+  icon. **A meaning the vocabulary lacks does not get a private picture** - eight tabs and the launcher's
+  mark still do until their records exist (catalog proposal of 2026-09-26). The layout badge is not a glyph.
+  The licence notice for the vendored Material glyphs is `THIRD-PARTY-NOTICES.md` (release ZIP, MSIX, About).- **BusyDialog.cs** - the small modal "please wait" window behind every job that is too long for the
+  hooks' thread (ticket S0030 HT-2/HT-6): the exchange file's read, parse and write, the notes import's
+  batched journal append (`QuickNotesStore.AppendBatch`), the Markdown export, and waiting for the notes
+  replay before "delete all" / "export everything" (`LoadAsync`, never `EnsureLoaded`'s `Wait`, in the
+  app). `BusyDialog.Run`/`Wait` run the job on the pool and keep the message loop - and so both hooks -
+  going; `ShowDialog` disabling the thread's other windows is what keeps the notes unchanged while a worker
+  reads them. A job done within 40 ms shows nothing; the wait for it is a wait handle, never `Task.Wait`,
+  which may run an unstarted task inline on this very thread. Switching the quick notes off hands the final
+  compaction to the pool (`QuickNotesService.RetireAsync`), and the next service replays only after it.
 - **ConfirmDialog.cs** - CyrFlip's own message and confirmation box (S0020 v0.2 item 6), in place of
   `MessageBox`: laid out by content, 13 languages (`DialogLayoutTests`), the system icon and sound,
   Ctrl+C copies the message, an ownerless box comes to the front with a taskbar button. The safe answer
   is the cancel role; `danger: true` puts Yes on the `danger` role and makes No the default.
-- **KeyboardHook.cs** - `SetWindowsHookEx(WH_KEYBOARD_LL)` wrapper. The callback never fires on an injected event (`LLKHF_INJECTED`) so our own `SendInput` can't re-enter it, matches the chords against a **physical modifier table** (`ChordMatcher`, below - never `GetAsyncKeyState`, which our own injected key-ups falsify), sees key-**ups** too so a fired trigger's auto-repeats and release are swallowed with it, raises `CaseHotkeyPressed` (case flip), `ClipboardHistoryHotkeyPressed`, or `LayoutConversionHotkeyPressed(id)` (any row of the conversion table), and returns `1` to **swallow** the trigger key. **Every subscriber posts to the UI thread and does nothing inside the callback** (`CyrFlipContext` wraps all of them in `_ui.Post`) - file I/O, showing a window or starting a thread in there runs while the whole machine's keyboard waits. **`Reinstall()` exists because Windows drops a low-level hook that overran `LowLevelHooksTimeout` (~300 ms) and tells nobody**: there is no API to ask whether we are still hooked, so `CyrFlipContext._hookWatchdog` re-arms both hooks every 60 s (a WinForms timer, since a hook may only be removed by the thread that installed it), and three consecutive failures earn one balloon. That silent drop is the "my hotkeys stopped working after a while" report; the hook is also installed only *after* `_ui` is captured, or a chord pressed during startup would be swallowed and then dropped. Gated by a **master switch** (`_enabled` - when off the hook passes every key through) and **per-hotkey switches** (`_caseEnabled`/`_historyEnabled` for the two fixed chords; each conversion row carries its own `Enabled`). On a real chord match, if **`_deferInRemoteClient`** is on and `RemoteDesktop.IsClientForeground()`, it does **not** swallow the key - it lets the chord travel to the remote session (avoids the double-instance clash when CyrFlip runs on both ends of an RDP connection; see `RemoteDesktop.cs`). `Install(caseFlip, history, deferInRemoteClient, enabled, caseEnabled, historyEnabled)`; `UpdateCaseHotkey`/`UpdateClipboardHistoryHotkey`/`UpdateConversionProfiles`/`UpdateTranslationProfiles` and `UpdateEnabled`/`UpdateCaseEnabled`/`UpdateHistoryEnabled`/`UpdateDeferInRemoteClient` swap fields at runtime (safe from any thread - the callback reads the fields on each invocation). One key is watched that is **not** a chord: while `UpdateCancelKeyWatch(true)` is on - only while a translation is streaming - a bare **Escape** raises `CancelKeyPressed` and is **passed through**, never swallowed. The translation popup deliberately never takes focus, so it can never receive a key of its own; without this branch the "Esc to cancel" it promises could not work at all.
+- **KeyboardHook.cs** - `SetWindowsHookEx(WH_KEYBOARD_LL)` wrapper. The callback never fires on an injected event (`LLKHF_INJECTED`) so our own `SendInput` can't re-enter it, matches the chords against a **physical modifier table** (`ChordMatcher`, below - never `GetAsyncKeyState`, which our own injected key-ups falsify), sees key-**ups** too so a fired trigger's auto-repeats and release are swallowed with it, raises `CaseHotkeyPressed` (case flip), `ClipboardHistoryHotkeyPressed`, `QuickNotesHotkeyPressed`, `ScreenshotHotkeyPressed`, `TextMenuHotkeyPressed`, `LayoutConversionHotkeyPressed(id)`, `LauncherHotkeyPressed`, `TranslateHotkeyPressed`, or `ChordFired`, and returns `1` to **swallow** the trigger key. **Every subscriber posts to the UI thread and does nothing inside the callback** (`CyrFlipContext` wraps all of them in `_ui.Post`) - file I/O, showing a window or starting a thread in there runs while the whole machine's keyboard waits. **`Reinstall()` exists because Windows drops a low-level hook that overran `LowLevelHooksTimeout` (~300 ms) and tells nobody**: there is no API to ask whether we are still hooked, so `CyrFlipContext._hookWatchdog` re-arms both hooks every 60 s (a WinForms timer, since a hook may only be removed by the thread that installed it), and three consecutive failures earn one balloon. That silent drop is the "my hotkeys stopped working after a while" report; the hook is also installed only *after* `_ui` is captured, or a chord pressed during startup would be swallowed and then dropped. Gated by a **master switch** (`_enabled` - when off the hook passes every key through) and **per-hotkey switches** (`_caseEnabled`/`_historyEnabled`/`_quickNotesEnabled` for the three fixed chords; each conversion row carries its own `Enabled`). On a real chord match, if **`_deferInRemoteClient`** is on and `RemoteDesktop.IsClientForeground()`, it does **not** swallow the key - it lets the chord travel to the remote session (avoids the double-instance clash when CyrFlip runs on both ends of an RDP connection; see `RemoteDesktop.cs`). `Install(caseFlip, history, quickNotes, deferInRemoteClient, enabled, caseEnabled, historyEnabled, quickNotesEnabled)`; `UpdateCaseHotkey`/`UpdateClipboardHistoryHotkey`/`UpdateQuickNotesHotkey`/`UpdateConversionProfiles`/`UpdateTranslationProfiles` and `UpdateEnabled`/`UpdateCaseEnabled`/`UpdateHistoryEnabled`/`UpdateQuickNotesEnabled`/`UpdateDeferInRemoteClient` swap fields at runtime (safe from any thread - the callback reads the fields on each invocation). One key is watched that is **not** a chord: while `UpdateCancelKeyWatch(true)` is on - only while a translation is streaming - a bare **Escape** raises `CancelKeyPressed` and is **passed through**, never swallowed. The translation popup deliberately never takes focus, so it can never receive a key of its own; without this branch the "Esc to cancel" it promises could not work at all. A second such key, **F6**, is watched only while the finished popup is up (`UpdateFocusKeyWatch`, S0045 K1) and, unlike Escape, **is** swallowed - a bare F6 only; the matcher then owns its repeats and release like a chord trigger's - raising `FocusKeyPressed`: the popup's way in and back out (`TranslationResultWindow.ToggleKeyboardFocus`), since it never takes the focus by itself.
 - **ChordMatcher.cs / KeyInjection.cs / HotkeyRules.cs / ChordRegistry.cs** - the pure halves of the
   hook and chord rules (ticket S0004), each unit-tested without a desktop. `PhysicalModifiers` is the
   eight side-specific modifier flags the hook keeps from the key events it sees; **CyrFlip's own
   injections carry `KeyInjection.Tag` in `dwExtraInfo` and never touch it**, while another tool's
   injected modifiers do count (a CapsLock→Ctrl remapper has to keep working). AltGr's fake LCtrl (scan
-  `0x21D`) is tracked apart and matches **no** chord - it is not Ctrl+Alt. `ChordMatcher` owns a fired
-  trigger until its key-up (repeats and release swallowed; a gap over 1 s means the up was lost).
+  `0x21D`) is tracked apart and matches **no** chord - it is not Ctrl+Alt. **The table is reconciled
+  downwards** before a chord is matched and before every injection plan (ticket S0033 KC2-1): an up the
+  hook never saw (Ctrl+Alt+Del → Cancel, a release over an elevated window) is dropped when
+  `GetAsyncKeyState` says the key is up - **except a key CyrFlip itself released**, marked when the hook
+  sees our tagged up (`TrackOwn`) and trusted to the table until the system reports it down again,
+  since that "up" is the one lie KC-1 is about. So a plan never reuses a Ctrl the system does not
+  confirm, and never leaves one logically down. `ChordMatcher` owns a fired trigger until its key-up
+  (repeats and release swallowed; a gap longer than the keyboard's initial repeat delay + 500 ms,
+  `SPI_GETKEYBOARDDELAY`, means the up was lost - KC2-2), and a watchdog re-arm keeps a trigger still
+  inside that window: the system never saw the swallowed down, so its own state cannot be asked.
+  `HotkeyDialog` sets `KeyboardHook.SuspendChords` while it is open, so the capture sees CyrFlip's own
+  chords instead of running them (KC2-4).
   `KeyInjection` plans every synthesized key: side-specific VKs with real scan codes and the extended
   flag, only what is held, and the **mask key `vkE8`** tapped while modifiers are down - the swallowed
   trigger otherwise leaves Windows a bare Ctrl+Shift / Alt+Shift / Alt / Win release, which switches
   the layout, opens the menu bar or the Start menu (`KeyboardHook.ChordFired` → the context taps it on
   the UI thread). `HotkeyRules` is what `HotkeyDialog` refuses: Shift alone off F1-F24, the editing
-  chords, and a Ctrl+Alt chord that types a character on **any installed** layout. `ChordRegistry` is
+  and system chords (Ctrl+C/V/X/Z/Y/A/S/Insert, Ctrl+Space - the Pinyin toggle - Ctrl+Backspace/Delete/
+  Home/End, Alt+F4, Alt+Space; KC2-7), and a Ctrl+Alt chord that types a character on **any installed** layout. `ChordRegistry` is
   the one ownership check behind every setter and every enable switch - **a switched-off chord still
   owns its chord**, the master switch does not gate the check, and Windows' direct-language hotkeys are
   read-only owners the user is *asked* about rather than refused. The re-arm rule both hooks share:
@@ -355,9 +455,13 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   is not one of our button messages leaves through a `switch` before a byte is marshalled - and a GC pause
   on this thread stalls the pointer system-wide, with Windows dropping a hook that exceeds
   `LowLevelHooksTimeout` (300 ms); nothing is **shown** from the callback (the subscriber posts to the UI
-  thread - opening a menu inside a hook would run a foreign message loop there); **down, up and dblclk**
-  are all swallowed; and the up is swallowed by a **flag** (`SwallowUpGate`), not by re-checking modifiers,
-  because the user often releases Ctrl before the button. The flag **expires after 3 s**: an up released
+  thread - opening a menu inside a hook would run a foreign message loop there) and no thread is started
+  there either - the press only stamps and signals `SelectionProbe.Worker` (S0030 HT-3) and posts the
+  **mask key** for a chord with Alt or Shift (KC2-3 - Windows never saw the swallowed click, so the
+  modifier's release would be a bare Alt/Shift tap: menu mode, an IME mode switch); **down and up**
+  are both swallowed (the second down of a fast double click is swallowed like the first); and the up is
+  swallowed by a **flag** (`SwallowUpGate`), not by re-checking modifiers, because the user often releases
+  Ctrl before the button. The flag **expires after 3 s**: an up released
   over an elevated window is hidden from the hook by UIPI, and a flag that never cleared used to eat the
   next ordinary right click anywhere. `ForeignButtonDown` fires only while
   `UpdateForeignClickWatch(true)` (i.e. while the menu is open) - the outside click that dismisses it.
@@ -367,7 +471,10 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   `Choices` is the fixed six-option list the settings dropdown offers.
 - **SelectionProbe.cs** - "is anything selected right now, and what does it say?", asked when the chord
   goes **down** and read when it comes **up**, so the 80-150 ms the user spends holding the button pays
-  for the cross-process calls. Three sources in cost order - `EM_GETSEL` via `SendMessageTimeout`
+  for the cross-process calls. The probing runs on **one long-lived MTA `Worker`** created and stopped
+  with the mouse hook (ticket S0030 HT-3) - the hook callback used to create a thread per press; a
+  request overtaken before the worker reached it (the second click of a double click) is answered
+  Unknown at once. Three sources in cost order - `EM_GETSEL` via `SendMessageTimeout`
   (classic Edit/RichEdit only - **gated on the window class**, since `EM_GETSEL` to a non-edit reaches
   `DefWindowProc` and returns a confident, wrong 0), then `Ia2Caret` (Chromium/Electron), then managed
   UIA `TextPattern.GetSelection` (a **degenerate** range = caret only = nothing selected) - and **each
@@ -381,7 +488,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   `Present`** - a greyed command beside a live selection is the failure the user sees, while a command
   that runs and does nothing is what "no selection → no-op" already means everywhere else. The probe also
   brings back **the selected text itself** when a source hands it over (`WM_GETTEXT` on an edit control,
-  IA2 `get_text`, UIA `range.GetText`) - capped at 2048 chars, and the only reason it exists is the
+  IA2 `get_text`, UIA `range.GetText`) - capped at 64K chars (`MaxTextChars` = 65536; 2048 is `LaunchTargets.MaxLength` for candidate parsing), and the only reason it exists is the
   launch item below. **The longest text wins, not the first**, and that is why every source is asked
   rather than the scan stopping at the first answer: measured live in Chromium, IA2 returns only the
   part of the selection inside the element *under the pointer* - one styled run, one highlighted word -
@@ -401,7 +508,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
 - **LaunchTarget.cs** - "the user selected a link - offer to open it". Turns the probe's text into
   something the shell can open, and **refuses far more than it accepts**: the text came out of whatever
   window the pointer was over, so it is untrusted input the user is one click away from handing to
-  `ShellExecute`. Exactly three shapes pass - an absolute URL in a whitelisted scheme (http/https/ftp/
+  `ShellExecute`. Exactly three shapes pass - an absolute URL in a whitelisted scheme (http/https/ftp/ftps/
   mailto; `javascript:`, `shell:`, `ms-settings:` are refused **by name**), a bare host whose TLD is in a
   curated list (a whitelist, because "two to twenty-four letters" turns `readme.md` and `setup.exe` into
   web addresses), and a path that **exists on this machine right now** - and anything else yields no menu
@@ -412,7 +519,9 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   whole-text pass, which is the right way round, since splitting on spaces cannot put it back together. Anything that runs code, or anything on a network share, comes
   back as `LaunchKind.Program`, which `CyrFlipContext.LaunchSelection` **confirms first, naming the full
   path** - the menu caption is elided, and a truncated path is exactly what a plausible-looking one
-  relies on. **A remote path is never probed** (ticket S0008 LS-1): asking whether `\\host\share\x`
+  relies on. The confirmation stays on the UI thread; the `ShellExecute` after it runs on the pool
+  (S0030 HT-5), since a confirmed share would otherwise freeze input for the SMB connect.
+  **A remote path is never probed** (ticket S0008 LS-1): asking whether `\\host\share\x`
   exists opens an SMB session to a host the author of the text chose and stalls the thread for as long
   as it does not answer - so UNC (either slash, `\\?\UNC\`), `file://host/..`, a mapped drive whose
   `GetDriveType` is `DRIVE_REMOTE` and a root-relative path on a network current directory are
@@ -421,8 +530,12 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   (`SelectionSnapshot.Launch`), never on the UI thread the hooks share. A local path is classified by
   what **opens** (LS-3): its canonical form with Win32's trailing dots/spaces stripped and the on-disk
   name of its last segment, against our list plus `AssocIsDangerous`. A bidi override or mark refuses
-  the candidate, a URL caption elides the path but never the host, and `&` is doubled in the caption
-  (LS-5). The parser takes its probes as a `LaunchProbes` argument, so the whole matrix is
+  the candidate - checked again on the final string after `Uri.LocalPath` unescapes a `%E2%80%AE` and
+  after the variables are expanded, and on the on-disk name (S0034 LS2-1) - a URL caption elides the
+  path but never the host, and `&` is doubled in the caption (LS-5). A **remote** whole-text candidate
+  whose last segment has whitespace and no extension (`\\server\share\x.txt for details`) goes to the
+  word pass first, since nothing probes it (LS2-4). The probe's verdict is published before the parse,
+  so a slow parse costs only the launch item (LS2-5). The parser takes its probes as a `LaunchProbes` argument, so the whole matrix is
   unit-tested without a disk (`LaunchTargetTests`).
 - **TextContextMenu.cs** - the pure builder (`TextContextMenuState` in, `ContextMenuStrip` items out), so
   the whole "what is shown / what is grey / which separator disappears" matrix is unit-tested. Same
@@ -435,26 +548,36 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   input event, and **refuses silently**: `Form.Activate()` returns, the window is visible, and it sits
   behind the user's editor - which is exactly how "Настройки" in the text context menu read as broken.
   The fix is to share the foreground thread's input queue for the duration of the call
-  (`AttachThreadInput`). Used by `ShowSettings`, `ShowHistorySearch` and `ClipboardHistoryWindow.ToggleVisible`.
+  (`AttachThreadInput`) - but only with a thread that is pumping (S0036 UI-1): a **hung** window
+  (`IsHungAppWindow`, no wait) is never attached to, since the activation would then wait on it with the
+  hooks' thread; one that answers `WM_NULL` within 50 ms is; and when activation is still refused (a busy
+  editor, a recalculating Excel) the window is at least raised above the others without the focus
+  (a `HWND_TOPMOST`/`HWND_NOTOPMOST` pair) instead of opening behind them - which is what the plain 50 ms
+  gate of `eb9a156` had brought back. Used by `ShowSettings`, `ShowHistorySearch` and `ClipboardHistoryWindow.ToggleVisible`.
   Every action of the text context menu is also deferred one message-loop turn (`CyrFlipContext.Defer`):
   inside the `Click` the drop-down is still tearing down and still holds the mouse capture.
 - **RemoteDesktop.cs** - `IsClientForeground()`: true when the focused window belongs to a remote-desktop client (`mstsc`/`msrdc`/`msrdcw`), resolved via `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)` → `QueryFullProcessImageName`. Used only by the hook's RDP-deferral path, and only on a real chord match, so the process lookup never runs on ordinary keystrokes. Beside it, **`IsSlowClipboardTarget(hwnd)`** - a wider, separate list (the RDP clients plus Citrix `wfica32`/`CDViewer`, Hyper-V `vmconnect`, VMware, VirtualBox, and the `VMware*`/`VirtualBox*` window classes): targets whose far side reads the clipboard late, which the flip pipeline gives its long waits (ticket S0009, FP-1). The deferral list stays RDP-only.
-- **Hotkey.cs** - parses `"Ctrl+Shift+F12"` → modifiers + VK (+ named keys: Space/Enter/F1-F24/..); `Display` round-trips it. `Hotkey.Default` is **Ctrl+Shift+F12** - the `Parse` fallback, and the chord the seeded EN⇄RU conversion row carries (Ctrl+Shift+T was dropped - it conflicts with browser "reopen tab" and Windows text-extraction tools). `Hotkey.CaseDefault` is **Ctrl+Shift+F11** (case flip). `SameChord` compares trigger key + modifiers (used to reject duplicate hotkeys).
-- **CursorIndicator.cs** - polls the foreground window's layout (`GetKeyboardLayout` → the HKL's language id → `WorldLayouts.CodeForLangId`, **the one place that decode lives**, so the marker and the settings tables can never call the same layout two different things; a language Windows cannot name comes back as its four hex digits, not as `"??"`) **and the CapsLock state** (`IsCapsLockOn`, `GetKeyState(VK_CAPITAL)` low bit) on a 150 ms `Timer` and raises `LayoutChanged(code, klid, capsOn)` when any of them changes; the KLID beside the code comes from `LayoutIdentity` and is what picks the layout's own shade (`DetectLayout(out klid)`). Also renders the tray icon (`RenderIcon(code, klid, capsOn)`, GDI → managed `Icon` via a PNG-payload .ico, no leaked HICON). `LayoutChanged` drives all three surfaces (tray icon, `LayoutCursor`, `CaretOverlay`). The same poll remembers **`LastActiveWindow`** - the last foreground window that is neither ours nor a taskbar surface (`Shell_TrayWnd` & co, filtered by class name + process id) - because a tray click focuses the shell, so the tray's layout switch has to act on the window the user came from.
+- **Hotkey.cs** - parses `"Ctrl+Shift+F12"` → modifiers + VK (+ named keys: Space/Enter/F1-F24/..); `Display` round-trips it. `Hotkey.Default` is **Ctrl+Shift+F12** - the `Parse` fallback, and the chord the seeded EN⇄RU conversion row carries (Ctrl+Shift+T was dropped - it conflicts with browser "reopen tab" and Windows text-extraction tools). `Hotkey.CaseDefault` is **Ctrl+Shift+F11** (case flip). `SameChord` compares trigger key + modifiers (used to reject duplicate hotkeys). **The stored token is `INPUT-CHORD` rules 1-4**: an unknown token or a second trigger makes `TryParse` fail - the chord is inert, never the rest of it bound (`Ctrl+Shift+Hyper+F12` must not become `Ctrl+Shift+F12`) - and stored chords are re-written in the canonical spelling on load (`AppConfig.ReadHotkey`, `AppConfig.CanonicalizeChord`). `InputChordContractTests` generates the contract's vectors (`tests/CyrFlip.Tests/Fixtures/InputChord/chord-tokens.jsonl`, rewritten with `CYRFLIP_WRITE_CHORD_VECTORS=1`) and fails when file and parser disagree; the catalog holds a byte-exact copy.
+- **CursorIndicator.cs** - polls the foreground window's layout (`GetKeyboardLayout` → `LayoutIdentity.KlidForHkl` → `LayoutIdentity.CodeFor`: the **curated** code when the resolved KLID is one of ours, else the HKL's language id through `WorldLayouts.CodeForLangId`, **the one place that decode lives**, so the marker and the settings tables can never call the same layout two different things - Canadian French, `00001009`, whose low word is en-CA, used to read "EN" on the marker and "FR" in the tables (S0036 UI-3); a language Windows cannot name comes back as its four hex digits, not as `"??"`) **and the CapsLock state** (`IsCapsLockOn`, `GetKeyState(VK_CAPITAL)` low bit) on a 150 ms `Timer` and raises `LayoutChanged(code, klid, capsOn)` when any of them changes; the KLID beside the code comes from `LayoutIdentity` and is what picks the layout's own shade (`DetectLayout(out klid)`). Also renders the tray icon (`RenderIcon(code, klid, capsOn)`, GDI → managed `Icon` via a PNG-payload .ico, no leaked HICON). `LayoutChanged` drives all three surfaces (tray icon, `LayoutCursor`, `CaretOverlay`). The same poll remembers **`LastActiveWindow`** - the last foreground window that is neither ours nor a taskbar surface (`Shell_TrayWnd` & co, filtered by class name + process id) - because a tray click focuses the shell, so the tray's layout switch has to act on the window the user came from.
 - **LayoutCursor.cs** *(headline)* - renders the caret + EN/RU/UK marker to a `Bitmap`, turns it into a color cursor with a hotspot (`GetHicon` → `GetIconInfo` → `CreateIconIndirect` with `fIcon=false`), installs it via `SetSystemCursor(OCR_IBEAM)`, and nudges a repaint (`ForceCursorRefresh`). `Apply(code, klid, capsOn)` rebuilds when the code, the layout *or* the CapsLock state changes (CapsLock adds the 1px frame). There is **no dark plate** behind the letters - their own black outline carries them - and the letters are composed on **their own bitmap** and blended in at `LayoutStyle.MarkerOpacity`, so the badge is translucent while the I-beam over it stays fully opaque; `RenderCaret` is `internal` because "is the badge see-through" is a pixel fact no build can check (`LayoutMarkerTests`). `Restore`/`ForceRestore` reload default cursors. Scaled by `config.cursorSize`, the primary monitor's DPI and the Windows pointer size (`MarkerSize.CursorHeight`). **A system cursor reload by anyone else** (pointer size/colour, a theme) puts the stock I-beam back, so `SessionEndWatcher`'s `WM_SETTINGCHANGE(SPI_SETCURSORS)` re-applies it (`OnSystemCursorsChanged`) - ignoring the broadcast of CyrFlip's own `ForceRestore` (S0011 LI-6).
-- **CaretOverlay.cs** *(headline)* - a borderless, topmost, click-through (`WS_EX_TRANSPARENT`), no-activate (`WS_EX_NOACTIVATE` + `ShowWithoutActivation`) `Form` with a rounded window region, showing the EN/RU/UK marker **diagonally below-right of the text caret** (so it never covers the current line). Supports two rendering modes: **text label** (EN/RU/UK letters, default) and **dot mode** (a small solid circle in the layout's colour - set via `SetDotMode(bool)`; **this is the mode the 25-layout palette exists for**, since there are no letters there to name the language). `SetLayout(code, klid, capsOn)` carries the layout and the CapsLock state; when caps is on, the badge gets the 1px frame (text mode) or a dark ring (dot mode). The window is drawn at `LayoutStyle.MarkerOpacity` (`Form.Opacity`, i.e. a layered window - which the click-through/no-activate styles are happy to live with). A background MTA thread finds the caret via `GetGUIThreadInfo` (every ~90 ms) then a **throttled (~120 ms) cross-process fallback** that tries, in order, COM `GetCaretRange` (`UiaCaretCom`, WinUI/UWP/WPF), IAccessible2 (`Ia2Caret`, Chromium/Electron - VS Code chat & browsers), then managed `TextPattern.GetSelection`; it positions the form via `BeginInvoke`. **The cross-process sources run only while there is input to follow** (`CaretQueryGate`, ticket S0011 LI-1): 3 s after a physical key-down (stamped by `KeyboardHook`) or 1.5 s after a foreground/focus change (an out-of-context `SetWinEventHook`) - a query every 120 ms kept Chromium's whole accessibility tree switched on in every tab. Outside that window the last position stands. Every source returns a `CaretRect` (x, line top, line bottom; a whole-line rect refused, the RTL side read from the neighbouring character - `CaretGeometry`), `CaretPlacement.Place` keeps the badge on the caret's monitor (above the line at the bottom edge, left of the caret at the right edge), the badge is sized per monitor DPI (`MarkerSize`), a `GetGUIThreadInfo` caret of a DPI-unaware window is converted from logical coordinates (`ClientToPhysicalScreen`), and a foreground change or a tracker silent for 1 s hides the badge until the tracker reports for the new window. Shows/hides with WinForms `Show()`/`Hide()` (relies on `ShowWithoutActivation` so it never steals focus). Passes an empty string to `SetLayout` to hide. The Monaco/VS Code *editor* caret is best handled by the companion extension; the *chat* box and browsers are handled by the IAccessible2 path - and since IAccessible2 finds the *editor* caret too, the overlay stands down there via `EditorCaretSignal` (below), which is what stopped two markers appearing at one caret.
+- **CaretOverlay.cs** *(headline)* - a borderless, topmost, click-through (`WS_EX_TRANSPARENT`), no-activate (`WS_EX_NOACTIVATE` + `ShowWithoutActivation`) `Form` with a rounded window region, showing the EN/RU/UK marker **diagonally below-right of the text caret** (so it never covers the current line). Supports two rendering modes: **text label** (EN/RU/UK letters, default) and **dot mode** (a small solid circle in the layout's colour - set via `SetDotMode(bool)`; **this is the mode the 25-layout palette exists for**, since there are no letters there to name the language). `SetLayout(code, klid, capsOn)` carries the layout and the CapsLock state; when caps is on, the badge gets the 1px frame (text mode) or a dark ring (dot mode). The window is drawn at `LayoutStyle.MarkerOpacity` (`Form.Opacity`, i.e. a layered window - which the click-through/no-activate styles are happy to live with). A background MTA thread finds the caret via `GetGUIThreadInfo` (every ~90 ms) then a **throttled (~120 ms) cross-process fallback** that tries, in order, COM `GetCaretRange` (`UiaCaretCom`, WinUI/UWP/WPF), IAccessible2 (`Ia2Caret`, Chromium/Electron - VS Code chat & browsers), then managed `TextPattern.GetSelection`; it positions the form via `BeginInvoke`. **The cross-process sources run only while there is input to follow** (`CaretQueryGate`, ticket S0011 LI-1): 3 s after a physical key-down (stamped by `KeyboardHook`) or 1.5 s after a foreground/focus change (an out-of-context `SetWinEventHook`) - a query every 120 ms kept Chromium's whole accessibility tree switched on in every tab. Outside that window the last position stands. Every source returns a `CaretRect` (x, line top, line bottom; a whole-line rect refused, the RTL side read from the neighbouring character - `CaretGeometry`), `CaretPlacement.Place` keeps the badge on the caret's monitor (above the line at the bottom edge, left of the caret at the right edge), the badge is sized per monitor DPI (`MarkerSize`) and re-reads it on `WM_DISPLAYCHANGE`/`WM_DPICHANGED` (`OnDisplayChanged`, S0036 UI-4 - a monitor whose scaling changed keeps its handle), a `GetGUIThreadInfo` caret of a DPI-unaware window is converted from logical coordinates (`ClientToPhysicalScreen`), and a foreground change or a tracker silent for 1 s hides the badge until the tracker reports for the new window. Shows/hides with WinForms `Show()`/`Hide()` (relies on `ShowWithoutActivation` so it never steals focus). Passes an empty string to `SetLayout` to hide. The Monaco/VS Code *editor* caret is best handled by the companion extension; the *chat* box and browsers are handled by the IAccessible2 path - and since IAccessible2 finds the *editor* caret too, the overlay stands down there via `EditorCaretSignal` (below), which is what stopped two markers appearing at one caret.
 - **EditorCaretSignal.cs** - "the editor is drawing the marker, stay out of the way". The extension publishes `editor-caret.txt` beside `layout.txt` while it draws; `ShouldYield()` is true when that file is **fresh** (< 1.5 s) **and** the foreground process is a VS Code-family editor. Both halves are load-bearing: the file alone leaves the overlay hidden for a beat after the user alt-tabs away (the extension only notices the lost focus a poll later), and the process alone would hide the marker in VS Code's chat box and terminal, where the extension cannot draw at all. **The claim is time-limited because VS Code's API cannot say where the focus is** - `activeTextEditor` keeps pointing at the last editor even while the user types in the chat - so the extension refreshes the file only while there has been editor activity in the last 5 s. The consequence is deliberate and worth knowing: sit still in the editor for five seconds and the overlay returns beside the extension's marker. `IsFresh` and `IsEditorImage` are `internal` so the rule is unit-tested without a clock, a file or a foreground window (`EditorCaretSignalTests`).
 - **UiaCaretCom.cs** - hand-rolled COM interop to call `IUIAutomationTextPattern2.GetCaretRange` (absent from managed UIA). `GetFocusedElementSmart` = `GetFocusedElement` with a `GetFocusedElementBuildCache` fallback. See the "COM vtable gotchas" note above - the interface slot order is load-bearing.
 - **Ia2Caret.cs** - hand-rolled IAccessible2 interop (`oleacc.AccessibleObjectFromWindow` → drill `accFocus` → `QueryService(IAccessible2 → IAccessibleText)` → `caretOffset`/`characterExtents`). The caret source that works in Chromium/Electron where every UIA path fails.
-- **CaretDiagnostics.cs** - the tray "Diagnose caret position..." capture: 14 snapshots over ~7 s of every caret source for the focused element, written to `caret-diagnostics.txt` in the MSIX-aware folder. Run it while a problem input is focused to see exactly which source (if any) locates the caret.
+- **CaretDiagnostics.cs** - the tray "Diagnose caret position..." capture: 14 snapshots over ~7 s of every caret source for the focused element, written to `caret-diagnostics.txt` in the MSIX-aware folder. Run it while a problem input is focused to see exactly which source (if any) locates the caret. The sources are listed **in the overlay's order**, each asked through the overlay's own function (Win32 caret, `GetCaretRange`, IAccessible2, `GetSelection`), and the marker position printed is `CaretPlacement.Place`'s for the first that answered - never a hand-computed "+2/+1" (S0036 UI-7).
 - **SupportBundle.cs / MailSender.cs / SupportBundleDialog.cs** - the About tab's **"Отправить логи автору.."**:
   pack the diagnostic logs into one ZIP and hand it to the user's own mail client. Three things here are
   decisions, not implementation details. **`clipboard-history.log` is never collected** - the file list is an
   explicit whitelist (`SupportBundle.LogFiles`), never a directory glob, because a glob is exactly how that
   file gets in one day; it has its own test, and so does the fact that its payload appears nowhere in the
   archive. **What the whitelisted files may hold is a rule too** (ticket S0010 TD-1): `launcher.log` names a
-  launch by the scenario's id, name and kind - never `FileName` or `Arguments`, where tokens live - and the
-  lines older builds wrote are cut after their `": "` on collection (`ScrubLauncherLog`);
+  launch by the scenario's id, name and kind - never `FileName` or `Arguments`, where tokens live - and on
+  collection the file is held to a **whitelist of today's record shapes** (`ScrubLauncherLog`, S0034
+  LS2-3): a record of a known safe shape goes as written, a known legacy one is cut after its diagnostic
+  head, any other keeps only the words before a quote/slash/`%`, and a line with no time stamp (the
+  continuation of a record whose name held a line break) is dropped - a list of legacy shapes had missed
+  the `Started yt-dlp .. in '<folder>'` line every release up to v26.9.16.2132 wrote. The report counts
+  scenarios through a **read-only** store that never re-identifies or renumbers a file (LS2-9);
   `caret-diagnostics.txt` records window classes and processes, a title or element name only as its length;
   and the dialog shows, per file, what kind of data it holds (`SupportBundle.Contents`, 13 languages).
   **`mailto:` cannot carry an attachment** (RFC 2368 has no such field and `attach=` is deliberately
@@ -465,10 +588,17 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   name) goes through `GetShortPathName` or drops a rung rather than arriving as mojibake; a 32-bit Outlook
   answers our 64-bit process with `MAPI_E_FAILURE`, which is unfixable and is why rung 2 exists. The ladder
   runs on a dedicated **STA** thread (`SendOnStaAsync`, S0010 TD-8) - classic Outlook's compose window
-  expects one, and a pool thread (MTA) could fail silently or hang. **The dialog
+  expects one, and a pool thread (MTA) could fail silently or hang. The compose window gets **no owner**
+  (an owner on the hooks' UI thread attached the two threads' input queues while it was open), and
+  `SendWithAttachment` carries `[HandleProcessCorruptedStateExceptions]` so a Simple MAPI provider that
+  faults drops a rung instead of taking the tray process down (S0036 UI-8). **The dialog
   is the consent step** - file list, sizes, path, an "open the folder" button and the plain statement that the
   logs contain paths carrying the Windows account name - so there are no checkboxes and, deliberately, **no
-  new registry values**: the feature has no state. Long logs are kept by their **tail** with a marker line
+  new registry values**: the feature has no state. Since S0040 (`DIAGNOSTIC-REPORT` rules 1-4) every text in
+  the archive passes **`DiagnosticRedactor`** (the data folders become `<APP_DATA>`, the profile and any
+  `X:\Users\<name>` `<USER>`, a URL loses its userinfo), `environment.txt` (`key=value`, counts and platform
+  facts only) sits beside `report.txt`, the name carries seconds, and the markers are the contract's
+  `[Diag] LOG COMPACTED | ...` / `[Diag] LOG TRUNCATED | ...`. Long logs are kept by their **tail** with a marker line
   (512 KB per file, 3 MB of collected bytes), archives live in `reports\` beside `layout.txt` (the MSIX-aware
   folder, because a mail client is a foreign process) and the five newest are kept. Subject and body are
   **English whatever the UI language is** - the artefact is addressed to the author - and the address is
@@ -485,11 +615,30 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   is nowhere until it has content, the 750 ms debounce and the flush-then-compact on exit.
   `QuickNotesWindow` is the only part that knows WinForms; `QuickNotesLog` is its one-line
   `DiagnosticLog` wrapper, and it records counts, never a note.
+- **CyrFlipExchangeModels.cs / CyrFlipExchangeWriter.cs / CyrFlipExchangeReader.cs / CyrFlipExchangeMerge.cs /
+  ExchangeExportDialog.cs / ExchangeFlow.cs** - the open exchange file (feature 10). The first four know no
+  WinForms and are what `CyrFlipExchangeTests` holds to the spec: the DTOs and caps, the writer (fence
+  choice, one-line metadata, second-truncated dates, `SelectHistory`, the temp-file-then-replace write), the
+  reader (splits on **LF only** - `TextReader.ReadLine` would eat a payload's CR - with the CRLF-file
+  detection and the hash-decided line endings) and the merge planner that both the preview and the import
+  run. `QuickNotesService.Import` changes an existing note **in place** and raises `Imported`, so the notes
+  window reloads the one it holds open. `ExchangeFlow` is only the dialogs around them, run through
+  `CyrFlipContext.RunExchange`. `SettingsForm` takes the `exchange` callback as its last (nullable,
+  required) parameter; every test builds the window through the one compiled `TestForms.NewSettings`, so
+  a constructor change breaks the build, never the run (S0029 RB-1 - reflection binds no defaults).
+- **ScreenCapture.cs / RegionSelectionOverlay.cs / ClipboardImage.cs / ScreenshotSaver.cs** - the Graphics
+  module's region capture (feature 11), one concern each: the grab, the crop and the pure rectangle math
+  (`Normalize`, `ClampToVirtualScreen`, `IsClick`, `MonitorSlice` - `ScreenCaptureTests`); the per-monitor
+  overlay windows, the only part that knows WinForms (declared out of theme - it paints the user's own
+  screen; its veil colours live in `ThemePalette` as `Capture*`); the PNG and bottom-up 32bpp DIB
+  encodings (`ClipboardImageTests`); and the `CAPTURE-OUTPUT` saver (`ScreenshotSaverTests` - conformance
+  step 1, the name in ar-SA/hi-IN/bn-BD). The frame is the one large allocation (~66 MB for two 4K
+  monitors) and is disposed the moment the region is cropped out of it.
 - **LayoutStyle.cs** - shared marker look used by all three surfaces. The palette has **two levels and one exit**: `Curated` is the colour of a *language* (the 13; EN=blue, RU=red, UK=green ..), `Layouts` is the colour of one *keyboard layout* keyed by KLID (all 25 layouts of those 13 languages, each a shade **inside its language's hue**), and `Other` is the single neutral colour for everything else. `ColorFor(code)` answers the first, `ColorForLayout(klid, code)` walks all three rungs (exact layout → its language → `Other`), which is what every drawing surface calls. `DrawCode` renders the letters with that fill **plus a black outline** (`GraphicsPath.AddString` → `Flatten` → measure → scale → `DrawPath` black pen → `FillPath`): the **flatten-then-fit** step is load-bearing, since `GetBounds` on a curved path measures the Béziers' control points, not the ink, and fitting to that leaves lopsided margins - visibly so at 14px. `TextMargin` (1px), `OutlineFraction` and `AntiAliasBleed` are the constants behind "one pixel of border, letters as large as that allows". `MarkerOpacity` (0.6) is the translucency the caret overlay, the mouse badge and the VS Code extension share. `DrawCapsFrame` draws the **1px rounded layout-colour frame** that flags CapsLock around the marker. **This file is the source of truth for the palette, and the palette has exactly two other consumers, handled two different ways.** `tools/IconGen` **compiles this very file** (`<Compile Include>` in its csproj), so it cannot disagree - which is also why this file must depend on nothing but `System.Drawing`. The VS Code extension is packaged separately and cannot compile C#, so it reads `vscode-extension/src/layout-colors.json` - the machine-readable copy of both tables and `other` - and `LayoutColorsTests` fails the build when the two drift, in either direction. That test exists because the drift already happened once and is invisible in both builds: the extension knew only EN/RU/UK and painted the other ten curated languages grey while the app drew them in colour.
-- **LayoutIdentity.cs** - the HKL → KLID decode that lets the colour name a *layout* rather than only a language. An HKL's high word is the language id again for a language's primary keyboard and `0xF000 | LayoutId` for every other one, where `LayoutId` is the value beside that layout in `HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\<klid>` (verified live on this machine: US-International = `F0010409`, Russian Typewriter = `F0080419`). `Resolve(hkl, map)` takes the registry as an argument so the decode is unit-tested (`LayoutIdentityTests`) while the registry read is cached - re-read at most every 30 s, and only after a lookup misses, because a display-language pack can add layouts while CyrFlip is running. Anything unresolvable (an IME's `0xE0xx` handle, an id that belongs to another language, an unreadable registry) falls back to the language's primary KLID: the marker is about to draw that language either way, and answering "unknown" would drop it to the neutral colour, which would be a lie.
+- **LayoutIdentity.cs** - the HKL → KLID decode that lets the colour name a *layout* rather than only a language. An HKL's high word is the language id again for a language's primary keyboard and `0xF000 | LayoutId` for every other one, where `LayoutId` is the value beside that layout in `HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\<klid>` (verified live on this machine: US-International = `F0010409`, Russian Typewriter = `F0080419`). `Resolve(hkl, map)` takes the registry as an argument so the decode is unit-tested (`LayoutIdentityTests`) while the registry read is cached - re-read at most every 30 s, and only when the layout id is **absent** from the map (`NeedsReread`, ticket S0030 HT-7), because a display-language pack can add layouts while CyrFlip is running; an id that is there but belongs to another language (US-International under Russian) comes back from a re-read unchanged, and used to re-open some two hundred HKLM subkeys every 30 s. Anything unresolvable (an IME's `0xE0xx` handle, an id that belongs to another language, an unreadable registry) falls back to the language's primary KLID: the marker is about to draw that language either way, and answering "unknown" would drop it to the neutral colour, which would be a lie.
 - **TransliterationEngine.cs** - `static`; two `Dictionary<char,char>` (EN→RU, RU→EN) covering the 34 letter *and* punctuation key positions. `Transliterate` auto-detects direction **per character**, so one pass fixes either direction and mixed text; case preserved; unmapped chars pass through. O(n). A **non-letter** is the one ambiguous case, and it follows **the converter's rule** (S0009 FP-9): `TransliterateFrom(input, fromLatin)` - what the `KeyboardLayoutConverter` fallback calls, since it knows which layout of the pair is the source - tries the pair's own direction first, per character, and the opposite one only when the first has nothing to say; `Transliterate(input)` without a pair picks that direction from the text's dominant script. The old dominant-script-only rule made `привет?` come back as `ghbdtn&` without the Russian keyboard and `ghbdtn,` with it. `convertSymbols` (from `AppConfig.ConvertSymbols`, default true) says whether a key that is punctuation on *both* sides is swapped at all - see feature 2.
 - **CaseFlipEngine.cs** - `static`; `Flip` inverts each cased letter (UPPER↔lower) via invariant-culture mapping, leaving digits/punctuation/whitespace untouched. Works for Latin and Cyrillic; it is its own inverse for every character it changes - a letter is flipped only when its case partner maps back to it, so µ, ı, ς, ſ and the Kelvin sign K (whose partners come back as μ, i, σ, s and K) are left alone (S0009 FP-10). The transform behind the case-flip hotkey (undo an accidental CapsLock). O(n). Beside it, `DesiredCapsLock` answers **which state the CapsLock key should end up in** for a given text - the last cased letter decides, and `null` means "nothing cased here, leave the key alone". It lives here because it is a pure fact about text, which is what makes the whole "sync CapsLock" behaviour unit-testable without a keyboard.
-- **ClipboardHandler.cs** - the selection transform pipeline: back up clipboard → clean synthesized Ctrl+C (`SendInput`, releasing held modifiers first) → poll for the selection → apply the transform → cancel if the foreground window changed → set clipboard → Ctrl+V → restore clipboard. The core `Run(transform, syncCapsAfter, targetKlid)` is shared: `ConvertLayout(profile, switchLayoutAfter)` passes the row's physical-key conversion (and, when the setting is on, switches the window to the layout the text now reads in), `FlipCase(syncCapsAfter)` passes `CaseFlipEngine.Flip` (never switches layout; optionally sets CapsLock to match the pasted text via `SetCapsLock`, which reads the live state and sends the synthesized `VK_CAPITAL` down+up **only when it differs** - Windows has no API that sets a lock state directly, and that comparison is what makes the call idempotent). Both post-actions are absolute: `ReplaceSelection` takes a `bool? capsAfter` (null = leave it alone) beside `targetKlid`, exactly as the layout switch names a layout rather than "the next one"; with "Press SHIFT to turn off Caps Lock" (`KLLF_SHIFTLOCK`) the CapsLock key cannot turn the lock off, so `SetCapsLock` re-reads it and taps a masked Shift (`KeyInjection.ShiftTap`) when it is still on - never while the user holds a Shift (S0009 FP-11). Clipboard ops retry 3× on lock (spec §5.3). Both halves are also available on their own - **`TakeSelection`** (backup, capture, hand the clipboard straight back - the translator's and the quick notes' phase A) and **`ReplaceSelection`** - because the translator needs seconds of network time between them and cannot hold the clipboard that long; `Run` is capture + replace inside one backup, so the flips keep their single-backup behaviour. **The backup covers three formats, not just text** (`CF_UNICODETEXT` + `CF_DIB` + `CF_HDROP`, handed back in one open/empty/refill pass via `Win32Clipboard.RestoreIf` - restoring them one at a time cannot work, since each write empties the clipboard again): the copy half ends in `EmptyClipboard`, so backing up text alone meant a user who had a screenshot or a set of copied files on the clipboard and then fixed a word with a chord **lost them for good**. `CF_DIB` is what covers images, because Windows synthesizes `CF_BITMAP`/`CF_DIBV5` from it; an image over `MaxBackupImageBytes` (64 MB) is skipped rather than carried through memory twice on every flip. **Ticket S0009 made the hand-back exact**, and each rule has its own test: the backup is read in **one** open behind the `IClipboardReader` seam (`FakeClipboard` in the tests), text as raw bytes, with its **companions** - a password manager's four "do not record" markers (a marker that is present but unreadable goes back as DWORD 0, never dropped: dropping it published the secret to Win+V), `Preferred DropEffect` + `Shell IDList Array` (a Cut of files stays a move) and `CF_LOCALE`; a clipboard that held formats but **could not be read** stops the flip with `Failed` before a key is sent (FP-5), where it used to be overwritten and never restored; the restore is decided **inside its own open** by `ClipboardRestore.Plan` - **not at all** when the sequence number never moved (FP-3: the chord with nothing selected no longer rewrites the clipboard, which had destroyed RTF, HTML and Excel's live cell copy), and not over a clipboard somebody wrote after our paste (FP-1); an editor's whole-line copy on an empty selection (`LineCopyMarkers`) counts as no selection (FP-4); a selection over `MaxFlipChars` (1 M) is refused unread with its own balloon (FP-6); the pasted text carries `CF_LOCALE` - the target layout's language for a conversion, the selection's own for a case flip, the translation's for a translation (FP-8). **The paste is delay-rendered** (`ClipboardOwner`, below): the restore waits for the target's own read instead of a fixed 140 ms (FP-1B). Which modifiers the user is physically holding comes from the hook's table (`PhysicalModifiers.Shared`), not from `GetAsyncKeyState`, which our own key-ups falsify; every synthesized chord is planned by `KeyInjection` (side-specific keys, only what is held, the mask key) and the released keys are pressed again only while still physically held. Runs on the dedicated background clipboard thread (MTA - `Win32Clipboard` is raw Win32, not OLE, so no STA/message pump is needed).
+- **ClipboardHandler.cs** - the selection transform pipeline: back up clipboard → clean synthesized Ctrl+C (`SendInput`, releasing held modifiers first) → poll for the selection → apply the transform → cancel if the foreground window changed → set clipboard → Ctrl+V → restore clipboard. The core `Run(transform, syncCapsAfter, targetKlid)` is shared: `ConvertLayout(profile, switchLayoutAfter)` passes the row's physical-key conversion (and, when the setting is on, switches the window to the layout the text now reads in), `FlipCase(syncCapsAfter)` passes `CaseFlipEngine.Flip` (never switches layout; optionally sets CapsLock to match the pasted text via `SetCapsLock`, which reads the live state and sends the synthesized `VK_CAPITAL` down+up **only when it differs** - Windows has no API that sets a lock state directly, and that comparison is what makes the call idempotent). Both post-actions are absolute: `ReplaceSelection` takes a `bool? capsAfter` (null = leave it alone) beside `targetKlid`, exactly as the layout switch names a layout rather than "the next one"; with "Press SHIFT to turn off Caps Lock" (`KLLF_SHIFTLOCK`) the CapsLock key cannot turn the lock off, so `SetCapsLock` re-reads it and taps a masked Shift (`KeyInjection.ShiftTap`) when it is still on - never while the user holds a Shift (S0009 FP-11). Clipboard ops retry up to 12 attempts, 15 ms apart on lock (`Win32Clipboard.cs:444`). Both halves are also available on their own - **`TakeSelection`** (backup, capture, hand the clipboard straight back - the translator's and the quick notes' phase A) and **`ReplaceSelection`** - because the translator needs seconds of network time between them and cannot hold the clipboard that long; `Run` is capture + replace inside one backup, so the flips keep their single-backup behaviour. **The backup covers three formats, not just text** (`CF_UNICODETEXT` + `CF_DIB` + `CF_HDROP`, handed back in one open/empty/refill pass via `Win32Clipboard.RestoreIf` - restoring them one at a time cannot work, since each write empties the clipboard again): the copy half ends in `EmptyClipboard`, so backing up text alone meant a user who had a screenshot or a set of copied files on the clipboard and then fixed a word with a chord **lost them for good**. `CF_DIB` is what covers images, because Windows synthesizes `CF_BITMAP`/`CF_DIBV5` from it; an image over `MaxBackupImageBytes` (64 MB) is skipped rather than carried through memory twice on every flip. **Ticket S0009 made the hand-back exact**, and each rule has its own test: the backup is read in **one** open behind the `IClipboardReader` seam (`FakeClipboard` in the tests), text as raw bytes, with its **companions** - a password manager's four "do not record" markers (a marker that is present but unreadable goes back as DWORD 0, never dropped: dropping it published the secret to Win+V), `Preferred DropEffect` + `Shell IDList Array` (a Cut of files stays a move) and `CF_LOCALE`; a clipboard that held formats but **could not be read** stops the flip with `Failed` before a key is sent (FP-5), where it used to be overwritten and never restored; the restore is decided **inside its own open** by `ClipboardRestore.Plan` - **not at all** when the sequence number never moved (FP-3: the chord with nothing selected no longer rewrites the clipboard, which had destroyed RTF, HTML and Excel's live cell copy), and not over a clipboard somebody wrote after our paste (FP-1); an editor's whole-line copy on an empty selection (`LineCopyMarkers`) counts as no selection (FP-4); a selection over `MaxFlipChars` (1 M) is refused unread with its own balloon (FP-6); the pasted text carries `CF_LOCALE` - the target layout's language for a conversion, the selection's own for a case flip, the translation's for a translation (FP-8). **Ticket S0032 closed four edges**: the backup's sequence number is the one read *after* its own reads and again after the close (FP2-1 - reading a delay-rendered format makes Excel render and move it, which turned "unchanged" into a rewrite of the live cell copy); only the **text** can make a backup unreadable, and so can text over `MaxBackupTextBytes` (64 MB) - a picture or file list that fails to render is logged and not carried (FP2-2); a clipboard that held **no format at all** is handed back empty (`ClipboardBackup.WasEmpty`/`Restorable`, FP2-4); `TakeSelection` takes the consumer's own cap (the quick notes' 512 K) and `RunEdit` never marshals the selection at all - a one-character cap with `presenceOnly` (FP2-5). **The paste is delay-rendered** (`ClipboardOwner`, below): the restore waits for the target's own read instead of a fixed 140 ms (FP-1B). Which modifiers the user is physically holding comes from the hook's table (`PhysicalModifiers.Shared`), not from `GetAsyncKeyState`, which our own key-ups falsify; every synthesized chord is planned by `KeyInjection` (side-specific keys, only what is held, the mask key) and the released keys are pressed again only while still physically held. Runs on the dedicated background clipboard thread (MTA - `Win32Clipboard` is raw Win32, not OLE, so no STA/message pump is needed).
 - **ClipboardOwner.cs** - the STA thread with a message-only window that owns the clipboard while a
   flip's text is on it, so the text can be **delay-rendered** (ticket S0009, FP-1B): `Offer` announces
   CF_UNICODETEXT with no data (plus `CF_LOCALE` and the scaffolding's "do not record" markers,
@@ -502,7 +651,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   targets get `TransientMarks.HistoryOnly` - never `ExcludeClipboardContentFromMonitorProcessing`, since
   their clipboard bridge is itself a monitor. The restore judges "still ours" by **ownership**
   (`OwnsClipboard`: any other writer empties the clipboard, which takes it from this window), a plain
-  write by its sequence number. Everything degrades rather than fails: an owner that cannot start or
+  write by its sequence number. A render counts as the paste only when the requester is the target's process or a remote/VM bridge (`PasteOffer.IsTargetRead`, S0032 FP2-3) - a clipboard manager that ignores the markers is an early render, i.e. the fixed wait; a failed owner start is retried after a back-off (`RetryDelayMs`, 30 s doubling to 30 min) and a window created too late stops itself (FP2-6). Everything degrades rather than fails: an owner that cannot start or
   cannot take the clipboard makes the caller write the text directly and wait the fixed time. Stopped by
   `ShutdownShared` in `CyrFlipContext.Dispose`, so a promised paste is rendered for good
   (`WM_RENDERALLFORMATS`). **Verified live 2026-09-25** (`tools/uitest/Test-ClipboardFlip.ps1`, inside an
@@ -526,7 +675,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   process rendered a paste early) - lengths and process names, never a character of the text.
 - **ClipboardHistoryService.cs (+ `ClipboardHistoryWindow` / `ClipboardHistorySearchWindow`)** - the opt-in
   clipboard manager: a `NativeWindow` listening on `AddClipboardFormatListener`, an append-only log
-  (`%LOCALAPPDATA%\CyrFlip\clipboard-history.log`, each `add` payload DPAPI-protected per user) and the
+  (`%LOCALAPPDATA%\CyrFlip\clipboard-history.log`, **every record DPAPI-protected whole** - text, id, source app, window title - ticket S0031) and the
   in-memory list the strip and the search window paint from.
   **Accepted design decision (2026-07-26, after a leak audit): the history is deliberately unbounded.**
   There is no entry cap, no age-based retention and no log compaction - the whole point is that nothing
@@ -563,6 +712,19 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   on a background task cancelled per keystroke, and is a `VirtualMode` `ListView`.
   `clipboard-history-diagnostics.log` (`ClipboardHistoryLog`) holds only counts and is in the support
   bundle's whitelist.
+  Ticket S0031 added four rules. **Nothing readable on disk**: a record is `{"v":2,"blob":...}`, the blob
+  the cipher of the whole record - the id is the SHA-256 of the text, which reverses a short code in
+  milliseconds, so it never stands beside the blob (and needs no keyed hash inside it); v1 lines (payload
+  encrypted, the rest in clear) are still read, never rewritten. **"×" erases**: a delete rewrites the file
+  without any line of that entry (unreadable lines carried verbatim, no `.bak`), and only a failed rewrite
+  falls back to a tombstone - a user-requested removal is not the silent dropping the unbounded decision
+  forbids. **The owning thread by construction**: every result from the pool or the writer (capture,
+  "too large", "clear failed", "write failed") is posted to the service's own window (`PostToOwner`, a
+  private `WM_APP` message + a queue), never through a `SynchronizationContext` read in the constructor.
+  **Losses are counted**: a failed write (`WriteFailures`, one balloon per session), an import reports
+  only after `FlushJournal`, and `Dispose` logs the records it abandoned. A privacy DWORD marker that is
+  present but unreadable counts as 0 (`ClipboardPrivacy.MarkerValue`) - the flip backup's rule.
+- **AppShortcuts.cs** - the unpackaged build's Start menu and desktop `CyrFlip.lnk` (ticket S0041): there is no installer, so the first run from a stable folder creates both (`ShortcutsCreated` marker), later runs re-point an existing link at the running exe when the folder moved, a start from `%TEMP%` or `bin` touches nothing, and a deleted link comes back only through the General-page checkbox. The packaged build writes none - Windows lists the package in Start itself; an MSIX desktop shortcut (`desktop7:Shortcut`, build 19645+) is still open.
 - **Autostart.cs** - `HKCU\..\Run` toggle (per-user; not a service - see deviations). **Packaged (Store) builds
   are different in both directions:** the `Run` write is virtualized, so `Set` is a no-op and the settings
   checkbox opens *Settings ▸ Apps ▸ Startup* instead - but the state is **read** from the startupTask record
@@ -571,7 +733,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   broken: it opened the system page and then "unticked" itself even though Windows was starting CyrFlip.
 - **KeepAwake.cs** - the two "don't sleep / don't blank the screen (like video)" toggles. Two independent switches (`KeepSystemAwake`/`KeepScreenOn`) OR-ed into one `SetThreadExecutionState` call: `ES_SYSTEM_REQUIRED` (system won't sleep) and `ES_DISPLAY_REQUIRED` (display won't blank/lock on idle). `ES_CONTINUOUS` makes the request sticky (one call per change, no polling); it is bound to the calling thread (the tray UI thread), so a hard kill clears it for free, and `Reset()` restores the normal idle policy on exit and when both are off. **Both switches are persisted** (`AppConfig.KeepSystemAwake`/`KeepScreenOn`) and re-applied at startup by `Restore(system, screen)` - **one** call carrying both bits, never two, so a launch with both on never asks Windows for half the policy first. That reverses spec §5's original "memory only, off on every launch" (changed 2026-07-28): a switch that silently forgot itself read as broken, which is exactly how it was reported. The old safety argument now lives in the UI text instead - the settings hint says outright that a forgotten switch keeps the machine awake after a restart too and that CyrFlip will not watch your battery for you. `KeepAwake` still persists nothing itself: `CyrFlipContext` writes the config and hands the state back, so the P/Invoke seam (`SetExecutionState`) stays the only thing to fake in tests. No admin rights; the two registry values are ordinary `AppConfig` state. Driven by two checkable tray items + two "General"-tab checkboxes; see [PLAN/done/KeepAwake_Spec_Idea_v0.1.md](PLAN/done/KeepAwake_Spec_Idea_v0.1.md). **Only `powercfg /requests` (admin) can confirm the request landed** - `SetThreadExecutionState` returns the previous state, never a confirmation; `tools/uitest/Test-KeepAwake.ps1` is that check.
 - **WindowInterop.cs** - all `[DllImport]`s + interop structs. The `INPUT` union includes `MOUSEINPUT` so `Marshal.SizeOf(INPUT)` matches the real struct on x64 (else `SendInput` silently fails).
-- **AppConfig.cs** - persists settings to `HKCU\Software\CyrFlip`. On first run with no registry key, migrates from a legacy `config.json` (from `%APPDATA%\CyrFlip\` or beside the exe) and seeds the conversion table (`NeedsFlipRow`/`FlipRow`, called from `Load()`; see feature 2). Fields: `CaseHotkey` (default **Ctrl+Shift+F11**), `CursorSize`, `EnableCursorChange` (default **false**), `EnableCaretOverlay` (default **true**), `CaretDotMode` (default **false**), `EnableLanguageSwitch` (default **false**), `FlipCapsLockAfter` (default **false**), `ConvertSymbols` (default **true**), the hotkey switches `EnableHotkeys`/`EnableCaseHotkey`/`EnableHistoryHotkey` (all default **true**), `DeferToRemoteDesktop` (default **false**), `FlipCount` + `CaseFlipCount` + `TranslateCount` (usage counters), and the translator block (`EnableTranslate`, `TranslateSeeded`, `TranslateProfiles`, `TranslateEndpoint`, `TranslateModel`, the timeouts and the result-window options - see the config table). `UiLanguage` holds the language **endonym** ("Русский", "Deutsch", "中文", ..) and defaults to the OS UI language via `Localization.DefaultLanguage()` (any of the 13 translated languages, else **English** - never Russian, which is only the translation table's source language). The **user's display language** (`CurrentUICulture`) wins over the language Windows was installed in (`InstalledUICulture`), which is the only one that is right for an English Windows switched to a Russian desktop; regional variants resolve to their language, so de-AT, pt-BR and zh-Hans-CN all find their translation. `SettingsTab` remembers which settings page was open (restored on the next launch too, clamped against the live page count - the tab strip grows between versions). `Save()` writes all fields; `IncrementFlipCount()`/`IncrementCaseFlipCount()`/`IncrementTranslateCount()`/`SaveSettingsTab()` write only that one value (cheap). **Every value is read on its own** (`LoadFrom`/`SaveTo` over the `IConfigKey` seam, `AppConfigLoadTests`; ticket S0007 CF-1): a value of the wrong kind falls back to its own default and lands in `UnreadableValues` (one balloon per start), where it used to abort the whole load and let the next save wipe the conversion table and the one-time Windows snapshots. A table or snapshot that is present but unreadable is **never saved over** until the user edits it; numbers are clamped to their UI's range; and the two profile tables are sanitized on load - null rows dropped, null strings made `""`, duplicate ids regenerated, the repaired form written back (CF-2).
+- **AppConfig.cs** - persists settings to `HKCU\Software\CyrFlip`. On first run with no registry key, migrates from a legacy `config.json` (from `%APPDATA%\CyrFlip\` or beside the exe) and seeds the conversion table (`NeedsFlipRow`/`FlipRow`, called from `Load()`; see feature 2). Fields: `CaseHotkey` (default **Ctrl+Shift+F11**), `CursorSize`, `EnableCursorChange` (default **false**), `EnableCaretOverlay` (default **true**), `CaretDotMode` (default **false**), `EnableLanguageSwitch` (default **false**), `FlipCapsLockAfter` (default **false**), `ConvertSymbols` (default **true**), the hotkey switches `EnableHotkeys`/`EnableCaseHotkey`/`EnableHistoryHotkey` (all default **true**), `DeferToRemoteDesktop` (default **false**), `FlipCount` + `CaseFlipCount` + `TranslateCount` (usage counters), and the translator block (`EnableTranslate`, `TranslateSeeded`, `TranslateProfiles`, `TranslateEndpoint`, `TranslateModel`, the timeouts and the result-window options - see the config table). `UiLanguage` holds the language **endonym** ("Русский", "Deutsch", "中文", ..) and defaults to the OS UI language via `Localization.DefaultLanguage()` (any of the 13 translated languages, else **English** - never Russian, which is only the translation table's source language). The **user's display language** (`CurrentUICulture`) wins over the language Windows was installed in (`InstalledUICulture`), which is the only one that is right for an English Windows switched to a Russian desktop; regional variants resolve to their language, so de-AT, pt-BR and zh-Hans-CN all find their translation. `SettingsTab` remembers which settings page was open (restored on the next launch too, clamped against the live page count - the tab strip grows between versions). `Save()` writes all fields; `IncrementFlipCount()`/`IncrementCaseFlipCount()`/`IncrementTranslateCount()`/`SaveSettingsTab()` write only that one value (cheap). **Every value is read on its own** (`LoadFrom`/`SaveTo` over the `IConfigKey` seam, `AppConfigLoadTests`; ticket S0007 CF-1): a value of the wrong kind falls back to its own default and lands in `UnreadableValues` (one balloon per start), where it used to abort the whole load and let the next save wipe the conversion table and the one-time Windows snapshots. A table or snapshot that is present but unreadable is **never saved over** until the user edits it; window geometry values are clamped by their windows rather than on load, other numbers are clamped to their UI's range; and the two profile tables are sanitized on load - null rows dropped, null strings made `""`, duplicate ids regenerated, the repaired form written back (CF-2).
 - **Localization.cs (+ `Localization.*.cs` partials)** - the **single localization layer** for the whole
   app: settings window, tray menu and every dialog read from it, so adding a language is one column
   instead of a ternary in each file (the old `ru ? ... : uk ? ...` pattern is gone). The **key is the
@@ -593,6 +755,7 @@ auto-sizing `TableLayoutPanel` in an `AutoSize` form; `SettingsForm.RowHeight` d
 and `MeasureConversionColumns` measures the text that is actually going to be drawn. `DialogLayoutTests`
 guards it.
 - **HotkeyDialog.cs** - a modal `Form` (`FormBorderStyle.FixedDialog`) that captures a new hotkey from the user. `KeyPreview = true`; requires at least one modifier (Ctrl/Shift/Alt) plus a trigger key (A-Z, 0-9, F1-F24, or named keys). The constructor takes an optional window title (so the case-flip dialog reads "Set case hotkey"). Returns the hotkey string via `CapturedHotkey` on `DialogResult.OK`.
+- **RowFocus.cs** - keeps the keyboard focus in a settings row table across the rebuild every row action does (S0045 K6), and `RowCheckBox`, the rows' caption-less switch that draws its focus rectangle round the box (K9). The keyboard routes S0045 added elsewhere: the history strip's cursor (arrows, Enter, Space pins, Delete, Ctrl+F), Esc/Enter/Delete in the history search, the region capture's arrows / Shift+arrows / Enter (whole monitor with no selection) / Ctrl+A (`RegionSelectionOverlay.OnKey`, `Nudge`), the settings page list's focus frame, and the launcher taskbar menu opening on the taskbar's edge when the pointer is not on it (`LauncherTaskbarWindow.MenuAnchor`). `KeyboardParityTests` holds the pure parts.
 - **InputLayouts.cs** - installs / removes / reorders **Windows keyboard layouts** for the "Языки Windows" tab
   (no downloads - the layout DLLs ship with Windows). Win11 keeps input layouts in **two** stores at once:
   legacy `HKCU\Keyboard Layout\Preload`+`Substitutes` (read by `GetKeyboardLayoutList`) and the modern,
@@ -603,15 +766,28 @@ guards it.
   (`0804:{CLSID}{PROFILE}` - Pinyin, the Japanese/Korean IMEs; ticket S0007 WL-1), drops a language only when
   this edit removed its last layout and it holds no TIP, keeps a keyboard under the language it already lives
   in, never reorders `Languages` (the user's app/web language list) and makes a layout the default through
-  `InputMethodOverride`. The durable fix - the documented `input.dll` `InstallLayoutOrTip` API, which models
-  language + layout/TIP pairs - is S0007 phase B, still open. The live session is driven by the documented
+  `InputMethodOverride`. **Add, remove and "Default" go first through the documented `input.dll` API**
+  (`InputLayoutApi.cs`, S0007 WL-1 phase B: `EnumEnabledLayoutOrTip` / `InstallLayoutOrTip` /
+  `SetDefaultLayoutOrTip`, language + keyboard/TIP pairs, `LAYOUTORTIPPROFILE` checked live), each call
+  **verified by enumerating again**; a missing API, a refusal or a "yes" that changed nothing returns null and
+  the edit takes the registry path above. ↑↓ has no API call and stays on that path; a Pinyin-style stand-in row
+  is still refused (it cannot say which TIP it is). `tools/uitest/Test-InputLayoutApi.ps1 -Apply` is the live
+  check. The live session is driven by the documented
   `LoadKeyboardLayout`/`UnloadKeyboardLayout`; a removal unloads only the handles `LayoutIdentity` decodes to
   that KLID (`HklsToUnload`). Preload can't list two layouts of one language, so the
   2nd+ use a `d<nnn><langid>` device handle via `Substitutes` (`BuildPreload`, unit-tested). A KLID's low 4 hex
   = its language id. `BackupAll`/`RestoreAll` snapshot both stores - format 2 keeps every profile value with
   its registry kind; format 1 (before S0007) is still restorable - and the restore deletes only the language
   subkeys, never the profile root, then reloads the live layouts. Every settings handler that writes Windows
-  state calls `SettingsForm.EnsureSystemBackups` first (`SettingsBackupInventoryTests` scans for it).
+  state calls `SettingsForm.EnsureSystemBackups` first (`SettingsBackupInventoryTests` scans for it), and
+  writes nothing when that snapshot cannot be taken; a stored backup that did not read is never retaken
+  over. The S0007 audit additions: an edit refuses when Preload cannot be read **whole**
+  (`TryReadEffectiveKlids`) and the modern store loses only the one KLID a removal names, never a layout
+  the list merely missed (WL-10); ↑↓ move a layout only within its own language (`GroupOf`/`CanMove` -
+  the `Languages` order rebuilds Preload at sign-in, WL-8); a row that stands for an IME (`IsManagedByWindows`)
+  is not removed (WL-9); a backup is all-or-nothing and restore refuses one that could not put a layout
+  back (`TryParseSnapshot`, WL-11); duplicate direct-switch slots of one HKL are one assignment
+  (`LanguageHotkeys.SlotsFor`, WL-12).
   `LayoutPickerDialog.cs` is the type-to-filter "add layout" picker (an auto-sizing `TableLayoutPanel`).
 - **LanguageHotkeys.cs** - editor for **Windows'** own "switch straight to this input language" chords, stored
   in `HKCU\Control Panel\Input Method\Hot Keys\<id>` (ids `0x100`-`0x11F` = `IME_HOTKEY_DSWITCH_FIRST/LAST`),
@@ -653,7 +829,7 @@ guards it.
   that survives edits) and, beside it, `WorldLayouts`: the curated ten-language KLID set, `LabelForKlid`, and
   `CodeForKlid` (curated code, else the language id decoded through the OS - a non-curated layout still reads as
   e.g. "PL", never as a raw KLID). `LayoutConversionDialog.cs` edits a row and rejects source == target.
-- **LayoutPublisher.cs** - writes the current layout code to `%LOCALAPPDATA%\CyrFlip\layout.txt` on every change, so the companion VS Code extension can place the marker at the editor caret (the external overlay can't track Monaco's caret reliably). Writes go through **one drain worker** (`LayoutPublisher.Channel`): the producer writes only on change, so two racing thread-pool writes could leave an older value on disk that the next poll would never heal. On a clean exit `Retract()` **deletes both files** - from the context's disposal and exit handlers only, never from `Program`, whose `/launcher-run` forwarding process would otherwise delete the live instance's files - so a missing `layout.txt` means "CyrFlip is not running" (`LAYOUT-SIGNAL` rules 5 and 6). `Folder` (= `DataFolder.Current`) is where the channel lives; a packaged build also keeps the deprecated **mirror** of both files in `%ProgramData%\CyrFlip` (`MirrorFolder`, `LAYOUT-SIGNAL` 1.1 rule 1), written and retracted with them, and `EditorCaretSignal` reads the claim from both. The active layout's KLID goes to **`layout-klid.txt` beside it, not into that file**: the extension reads the first four characters of `layout.txt` as the code, so appending anything there would break every already-installed copy - and the extension ships on its own clock, so old copies are the normal case. A second file is additive: an extension that does not know about it behaves exactly as before, one that does gets the layout's own shade.
+- **LayoutPublisher.cs** - writes the current layout code to `%LOCALAPPDATA%\CyrFlip\layout.txt` on every change, so the companion VS Code extension can place the marker at the editor caret (the external overlay can't track Monaco's caret reliably). Writes go through **one drain worker** (`LayoutPublisher.Channel`): the producer writes only on change, so two racing thread-pool writes could leave an older value on disk that the next poll would never heal. On a clean exit `Retract()` **deletes both files** - from the context's disposal, exit handlers and `Program.Fatal` (primary instance only - never from `/launcher-run` forwarding processes, which would otherwise delete the live instance's files) - so a missing `layout.txt` means "CyrFlip is not running" (`LAYOUT-SIGNAL` rules 5 and 6). `Folder` (= `DataFolder.Current`) is where the channel lives; a packaged build also keeps the deprecated **mirror** of both files in `%ProgramData%\CyrFlip` (`MirrorFolder`, `LAYOUT-SIGNAL` 1.1 rule 1), written and retracted with them, and `EditorCaretSignal` reads the claim from both. The active layout's KLID goes to **`layout-klid.txt` beside it, not into that file**: the extension reads the first four characters of `layout.txt` as the code, so appending anything there would break every already-installed copy - and the extension ships on its own clock, so old copies are the normal case. A second file is additive: an extension that does not know about it behaves exactly as before, one that does gets the layout's own shade.
 - **DataFolder.cs / DataFolderMigration.cs** - the one decision of where every per-user file lives (ticket
   S0016): `%LOCALAPPDATA%\CyrFlip` unpackaged; packaged, the package's own per-user folder
   `%LOCALAPPDATA%\Packages\<family>\LocalCache\Local\CyrFlip`, built from the **unvirtualized**
@@ -666,7 +842,11 @@ guards it.
   anyone could read anyone's logs. `DataFolderMigration.RunOnce` (first packaged start, marker
   `DataFolderMigrated`) moves the **current user's own** journal and `reports\` archives out and deletes
   their old logs; a file another account owns is never touched, and a journal meeting an existing one is
-  kept as `quick-notes.migrated-<date>.log` and replayed once, the newer `UpdatedAtUtc` winning per note.
+  kept as `quick-notes.migrated-<date>.log` and replayed once, the newer `UpdatedAtUtc` winning per note
+  and a note the live journal deleted staying deleted (S0035 QN2-7). Every pass merges each kept journal
+  without a `.merged` marker, so a merge that failed is retried like every other step (QN2-4), and every
+  moved file has its inherited ACEs reset to the new folder's - a same-volume move kept
+  `%ProgramData%`'s "Users: read" (QN2-5).
   **The live gate is still open**: that the explicit LocalCache path is not redirected a second time was
   reasoned, not observed - `tools/uitest/Test-PerUserFolder.ps1` is the check, to run on Windows 10 22H2
   and 11 with the package installed.
@@ -676,7 +856,12 @@ guards it.
   runs an installer**, its button opens ollama.com. **The installer is verified before it runs** (ticket
   S0010 TD-5): a random `%TEMP%\CyrFlip-ollama-<guid>\` folder, its length against `Content-Length`, and a
   valid Authenticode signature whose CN **and** O are `Ollama Inc.` (`AuthenticodeCheck`, `WinVerifyTrust`
-  without an online revocation check); a failure deletes the file and opens ollama.com instead. TLS goes
+  without an online revocation check); a failure deletes the file and opens ollama.com instead. The verified
+  file is **held open read-only-shared** from before the signature check until the installer process exists
+  (`InstallerDownload.Guard`, S0037 TR-4), its folder is removed once the installer exits and old ones
+  whenever the translator page is shown (TR-5), and the download ends on the settings' **Cancel** button or
+  after 60 s of silence (`CopyAsync`, TR-1 - net48's pending read ignores its token, so both dispose the
+  stream on the pool; a stalled download used to disable every translator button until a restart). TLS goes
   through **`TlsPolicy.EnsureTls12`**, which adds TLS 1.2 **only when the value is not `SystemDefault`** - a
   net48 target already starts at `SystemDefault`, and `|= Tls12` there pinned the whole process to 1.2 and
   switched TLS 1.3 off (TD-4).
@@ -685,9 +870,13 @@ guards it.
   linked token, and a `CancellationTokenRegistration` that disposes the response stream because net48's
   `ReadLineAsync` takes no token - without it Esc would only be honoured after the model finished its
   sentence). That dispose is **queued to the pool, never run inline** (S0010 TD-3): `Cancel()` runs the
-  registration on the UI thread, and closing a half-read chunked response on netfx can drain the rest of it;
-  the endpoint's `ConnectionLimit` is raised to 4 so a cancelled stream still generating cannot starve the
-  next probe. **The clock after the first line is silence, not a total** (TD-2): `PumpAsync` (the read loop,
+  registration on the UI thread, and closing a half-read chunked response on netfx **does** drain the rest of
+  it - measured live on 2026-09-26 (`tools/uitest/Measure-TranslateCancel.ps1`, S0037 TR-7): an inline
+  dispose took 504 ms, past the hooks' 300 ms timeout, while the app's `Cancel()` took 0 ms; the endpoint's
+  `ConnectionLimit` is raised to 4 so a cancelled stream still generating cannot starve the
+  next probe. `NormalizeBase` puts `http://` before an address without a scheme - `127.0.0.1:11434`,
+  Ollama's own `OLLAMA_HOST` shape, used to be parsed as a scheme and reported as an unreachable remote
+  server (TR-2). **The clock after the first line is silence, not a total** (TD-2): `PumpAsync` (the read loop,
   apart from HTTP so it is testable) re-arms a 30 s idle timer on every line, with a 10-minute ceiling for a
   runaway model; a deadline that fires after the first chunk makes `GenerateAsync` return the text so far
   with `LastStoppedEarly`, which becomes `TranslationResult.Partial` - shown with a note and never pasted
@@ -699,7 +888,7 @@ guards it.
   resolve the model (the configured one if installed, else the best installed by `PickPreferredModel`), build
   the prompt, stream one completion, and judge the answer. The judgement is deliberately small (spec §5.3):
   an **empty or echoed** answer earns exactly one retry with a firmer prompt, and a bad retry keeps the first
-  answer. **An echo is accepted without a retry when the text already is in the target language** (S0010
+  answer - a retry that times out included (S0037 TR-3). **An echo is accepted without a retry when the text already is in the target language** (S0010
   TD-7, `IsAcceptedEcho`): the source's dominant script is the target's and no letter contradicts it (`ы`
   is not Ukrainian, `ї` is not Russian); a retry replaces the first answer only when it is not a near-echo
   (95 % edit similarity) and is written in the target's script. **Only a loopback endpoint is auto-started**
@@ -731,25 +920,25 @@ guards it.
   `LayoutConversionDialog`.
 - **Launcher (absorbed OneClickRunner), one concern per file:**
   - **LauncherScenario.cs** - the model. `[XmlRoot("AppItem")]` + identical field names = the OneClickRunner XML contract; `Hotkey` is the one CyrFlip extension; **public** only because net48 `XmlSerializer` refuses internal types. `SPECIAL_YTDLP` legacy sentinel → `IsYtDlp`.
-  - **LauncherScenarioStore.cs** - file-per-scenario store (`%APPDATA%\CyrFlip\Scenarios`, folder created lazily on first write). Corrupt file → skipped + counted in `LoadErrors`, never fatal. Contiguous `Order` normalization à la OneClickRunner (name breaks legacy all-zero ties); temp-file-then-`File.Replace` saves, the temp name unique per writer (`{name}.{pid}.{random}.tmp`; a leftover is never read and is deleted after a day - S0008 LS-9); a file with no `<Id>` or a duplicate one gets a fresh Guid saved at once (`LauncherScenario.IdWasAssigned`, LS-10); `Import` always fresh Guid; `SeedSample` only into an empty store (caller guards with the one-time marker).
+  - **LauncherScenarioStore.cs** - file-per-scenario store (`%APPDATA%\CyrFlip\Scenarios`, folder created lazily on first write). Corrupt file → skipped + counted in `LoadErrors`, never fatal. Contiguous `Order` normalization à la OneClickRunner (name breaks legacy all-zero ties); temp-file-then-`File.Replace` saves, the temp name unique per writer (`{name}.{pid}.{random}.tmp`; a leftover is never read and is deleted after a day - S0008 LS-9); a file with no `<Id>` or a duplicate one gets a fresh Guid saved at once (`LauncherScenario.IdWasAssigned`, LS-10); `Import` always fresh Guid; `SeedSample` only into an empty store (caller guards with the one-time marker). `Remove` drops a scenario only once its file is gone and returns the reason otherwise - the settings page says it (S0034 LS2-6); `readOnly: true` never writes (the log bundle's count, LS2-9). Every OneClickRunner import - first enable, tray, settings button - clears an imported chord something else already owns (`LauncherMigration.StripClashingHotkey`, LS2-8).
   - **LauncherMigration.cs** - read-only import from `%APPDATA%\OneClickRunner\Scenarios`: Guid preserved unless colliding (then fresh + counted), unreadable files listed by name, source **never** written.
-  - **LauncherExecution.cs** - the single launch path (port of `ScenarioLauncher`): `TryResolveTarget` (file / http(s) / workdir-relative / PATH+PATHEXT, relative PATH entries skipped) returns the **absolute** path it validated, and that path is what is started or elevated (S0008 LS-6); `runas` iff `RunAsAdmin`; UAC decline (Win32 error 1223) = cancel, not failure; yt-dlp = `cmd /s /k` console starting yt-dlp by its resolved full path (`NoDefaultCurrentDirectoryInExePath=1`), with `--` before the link and the link **only in `CYRFLIP_YTDLP_LINK`** (an absolute http(s) URL, quote/control chars rejected); `YtDlpFormat` is passed only when every space-separated token matches `[A-Za-z0-9+/\[\]<>=*._,-]` (≤ 200 chars), each token quoted - otherwise kept but not passed, and the scenario dialog says why (S0008 LS-4). Error strings are Russian-source keys passed through a `translate` seam.
+  - **LauncherExecution.cs** - the single launch path (port of `ScenarioLauncher`): `TryResolveTarget` (file / http(s) / workdir-relative / PATH+PATHEXT, relative PATH entries skipped) returns the **absolute** path it validated, and that path is what is started or elevated (S0008 LS-6); `runas` iff `RunAsAdmin`; UAC decline (Win32 error 1223) = cancel, not failure; interpreters (`cmd.exe`, Windows PowerShell) are started by their System32 path, never a bare name (S0034 LS2-7); yt-dlp = `cmd /s /k` console (cmd by its System32 path, started in the user profile) starting yt-dlp by its resolved full path (`NoDefaultCurrentDirectoryInExePath=1`), with `--` before the link and the link **only in `CYRFLIP_YTDLP_LINK`** (an absolute http(s) URL, quote/control chars rejected); **no config is read from the download folder** (S0034 LS2-2): yt-dlp loads a "home" `yt-dlp.conf` from its `-P` folder or, without `-P`, its current directory - Downloads by default, where a web page can drop one saying `--exec` - so the command says `--ignore-config` and names the user's own configs (the portable one beside the exe, the first user config in yt-dlp's own search order, never one inside the download folder) with `--config-locations`; the folder is `-P` through `CYRFLIP_YTDLP_FOLDER` (a UNC folder cannot be cmd's current directory), so a user config's own `-P` no longer overrides the scenario's folder; `YtDlpFormat` is passed only when every space-separated token matches `[A-Za-z0-9+/\[\]<>=*._,-]` (≤ 200 chars), each token quoted - otherwise kept but not passed, and the scenario dialog says why (S0008 LS-4). Error strings are Russian-source keys passed through a `translate` seam.
   - **LauncherScriptInterpreter.cs** - `.ps1` → pwsh (probed) else Windows PowerShell, `-NoProfile -ExecutionPolicy Bypass -File` last; `.bat`/`.cmd` → `cmd /s /c ""script" args"` (the one quoting that survives spaced paths AND quoted args). Do not "simplify" the quoting.
-  - **LauncherIconResolver.cs** - exe/own icon, scripts borrow the interpreter's, fallback = CyrFlip's own icon (never a blank Jump List task, never OneClickRunner branding); + `LauncherIconCache` (display-only, extraction failure never blocks a launch).
+  - **LauncherIconResolver.cs** - exe/own icon, scripts borrow the interpreter's, fallback = CyrFlip's own icon (never a blank Jump List task, never OneClickRunner branding); + `LauncherIconCache` (display-only, extraction failure never blocks a launch). **Never on the UI thread** (ticket S0030 HT-1): a scenario on `\\nas\..` or a PATH entry on a dead server stalled the hooks' thread for the SMB timeout at startup and on every settings click. A remote path (`LaunchTargets.IsRemotePath`, the selection launch's own classifier) is not probed at all and takes the fallback icon; the Jump List's tasks are built on the pool and applied back on the UI thread (a generation counter drops a stale build); the settings table gets its icons from `LauncherIconCache.Get`, which resolves on the pool and hands the icon back through the caller's sync context; the probes are a `LauncherPathProbes` argument so the tests count them. The table is rebuilt from `ApplyLanguage` only when the language, the store's `Version` or the launcher switch changed. Launching goes through `LauncherExecution.LaunchAsync` (the yt-dlp prompt on the caller's thread, everything else on the pool); the synchronous `Launch` is left to the one-shot process, which has no hook.
   - **LauncherIpc.cs** - named pipe `CyrFlip_Launcher_{userSid}_{sessionId}` (ticket S0008 LS-2: a pipe name is machine-global while the mutex is per session, so with fast user switching the second user used to fail forever). Strict `ParseCommand` - on the command line **and** on every line read from the pipe: only `/launcher-run:{guid}` (guid validated + normalized), `/launcher-settings`, `/exit`, at most 256 characters. One server instance for the process lifetime (`Disconnect` between clients), a DACL admitting the current user only and never the network, a 2 s read timeout, exponential backoff to 30 s logged once per hundred failures. `TrySend` connects at Identification level and refuses a server outside its own session/user (`GetNamedPipeServerProcessId`). The listener always runs, but while `EnableScenarioLauncher=0` it passes on **only `/exit`** - the build scripts stop the tray with it (`SetLauncherCommandsEnabled`, driven by `RefreshLauncherSurfaces`). Marshalling to the UI thread is the subscriber's job (`CyrFlipContext` posts via `_ui`).
   - **LauncherJumpList.cs** - hand-rolled COM `ICustomDestinationList` + `IObjectCollection` + `IShellLinkW` + `IPropertyStore` (PKEY_Title via a minimal PROPVARIANT). Vtable order is load-bearing (same gotcha class as `UiaCaretCom`). `BuildTasks` is pure (unit-tested); `Apply`/`Clear` guarded → shell refusal degrades to "no jump list".
   - **LauncherTrayMenu.cs** - builds the tray submenu **and** the taskbar button's left-click menu (scenarios → separator → Manage → optional Import) from one `Fill`, so the two lists can never drift apart. It is its own file for one load-bearing reason: `ToolStripItem.Dispose` **removes the item from its owner's collection**, so disposing while enumerating `DropDownItems` throws *"Collection was modified"* - verified on net48, and invisible until the *second* rebuild (the first starts from an empty menu). Copy out → clear → dispose, exactly as the settings window does in every `Reload*Rows`. Being a static seam it is covered directly by `LauncherTrayMenuTests`.
   - **LauncherScenarioDialog.cs / YtDlpLinkDialog.cs** - content-sized modal dialogs (no pixel geometry). The scenario dialog swaps the type-specific section **out of the control tree** (not `Visible=false`) so `DialogLayoutTests` measures only what is laid out.
   - **LauncherTaskbarWindow.cs** - the taskbar button: a 1x1, `Opacity=0`, permanently **minimized** form (`ShowInTaskbar`) that exists only while the launcher is on. It rests minimized on purpose - a taskbar click on the *active* window minimizes it, so a window that stayed restored would answer only every second click; the restore raises `WM_SIZE`/`SIZE_RESTORED` (the one notification every shell path ends in - `SC_RESTORE` is not always sent), the menu is shown there and the window minimizes again on close, which also hands focus straight back to the user's editor. The `SIZE_RESTORED` of window creation is ignored (only a restore *out of* the minimized resting state counts). A shell "Close window" is cancelled - the launcher switch owns its lifetime, exactly as the tray icon's.
   - **LauncherBrand.cs** - OneClickRunner's `app.ico`, embedded (`EmbeddedResource` + `LogicalName=CyrFlip.launcher.ico`, so the single exe still ships alone) and handed out cached/shared - callers must not dispose it. Marks the *feature* (settings page header, taskbar button), never the app. `DrawGlyph` repeats the same shape as line art for the settings tab strip, where a full-colour tile among nine line-drawn tabs would read as a foreign object.
-  - **LauncherLog.cs** - `launcher.log` in the same MSIX-aware folder as `layout.txt`; never logs the yt-dlp link. Like `TranslateLog` and `TextMenuLog` it is a one-line wrapper over **`DiagnosticLog`**, which owns the lock, the folder and the **rotation**: on the session's first write a file over 2 MB is cut to its last 512 KB, starting on a line boundary and behind a marker line saying how much was dropped. Without it these three files grew forever (`context-menu.log` writes a line per menu opening *and* per click). The rewrite is **in place, not via a temp file that replaces it** - replacing means deleting, and a file another process holds open cannot be deleted, which is exactly the case that matters since `SupportBundle` reads these logs to build its archive.
+  - **LauncherLog.cs** - `launcher.log` in the same MSIX-aware folder as `layout.txt`; never logs the yt-dlp link. Like `TranslateLog` and `TextMenuLog` it is a one-line wrapper over **`DiagnosticLog`**, which owns the folder, the **rotation** and - since ticket S0030 HT-4 - **the write itself**: `Append` only queues the line and returns, and one background writer drains the queue in order, one open per file per batch (most callers are on the hooks' thread, and a synchronous open/append/close behind one process-wide lock let another log's rotation or an antivirus scan stall the next context-menu line). `DiagnosticLog.Flush(timeout)` is called by `SupportBundle.CreateDefault` before it reads the logs, by the session end, by `CyrFlipContext.Dispose` and by `Program` on its way out. On a file's first write of the session and again every 1000 lines, a file over 2 MB is cut to its last 512 KB, starting on a line boundary and behind a marker line saying how much was dropped - "once per session" alone was no cap for an autostarted tray session that lasts weeks. Without it these three files grew forever (`context-menu.log` writes a line per menu opening *and* per click). The rewrite is **in place, not via a temp file that replaces it** - replacing means deleting, and a file another process holds open cannot be deleted, which is exactly the case that matters since `SupportBundle` reads these logs to build its archive.
   - Integration: `CyrFlipContext.RefreshLauncherSurfaces()` rebuilds tray submenu + Jump List + hook snapshot on every change (enable/disable, CRUD, language change); `KeyboardHook.UpdateLauncherHotkeys` mirrors the conversion-table snapshot discipline; the chord conflict check covers every owner through `ChordRegistry`.
 
 ## Companion VS Code extension (`vscode-extension/`)
 
 A small TypeScript extension (no native code). The app publishes the layout to a file; the extension reads it and renders the layout marker **exactly at Monaco's caret** via an `after` decoration whose CSS is absolutely-positioned (so it doesn't shift text) and outlined. This is the precise in-editor answer to the UIA-can't-find-the-caret problem in VS Code/Electron. Build with `npm install && npm run compile` (or `npx @vscode/vsce package`). Requires the CyrFlip app to be running.
 
-**Its palette is not its own** (see `LayoutStyle.cs`): `src/layout-colors.json` is the shared copy - `curated` (13 languages), `layouts` (25 KLIDs) and `other` - imported with `resolveJsonModule` so tsc emits it into `out/` and vsce packages it. The file has to live inside the extension root - vsce packages nothing from a parent directory, so a shared file under `assets/` would simply be missing from the published `.vsix`. The extension has **no test runner**; what keeps it honest is that `colorFor(code, klid)` is now a pair of table lookups with no algorithm to reimplement, and `LayoutColorsTests` compares both tables entry for entry in both directions. It reads the active layout from `layout-klid.txt` beside `layout.txt`; **when that file is absent (an older CyrFlip) it falls back to the language colour**, so an extension newer than the app still works. It writes one file of its own - `editor-caret.txt`, the "I am drawing the marker here" claim the app honours through `EditorCaretSignal` - refreshed every poll while the window is focused, an editor is active and there has been editor activity within 5 s, and deleted when the window loses focus or the extension shuts down.
+**Its palette is not its own** (see `LayoutStyle.cs`): `src/layout-colors.json` is the shared copy - `curated` (13 languages), `layouts` (25 KLIDs) and `other` - imported with `resolveJsonModule` so tsc emits it into `out/` and vsce packages it. The file has to live inside the extension root - vsce packages nothing from a parent directory, so a shared file under `assets/` would simply be missing from the published `.vsix`. The extension has **no test runner**; what keeps it honest is that `colorFor(code, klid)` is now a pair of table lookups with no algorithm to reimplement, and `LayoutColorsTests` compares both tables entry for entry in both directions. It reads the active layout from `layout-klid.txt` beside `layout.txt`; **when that file is absent (an older CyrFlip) it falls back to the language colour**, so an extension newer than the app still works. It writes one file of its own - `editor-caret.txt`, the "I am drawing the marker here" claim the app honours through `EditorCaretSignal` - refreshed at most every 500 ms while the window is focused, an editor is active and there has been editor activity within 5 s, and deleted when the window loses focus or the extension shuts down. Activity is the user's own: a selection change with a `kind` or an edit of the active document - **not** an editor becoming active, which an agent or a command does by itself while the user types in the chat (S0036 UI-5).
 
 End-to-end flow: hotkey (KeyboardHook, UI thread) → `OnLayoutConversionHotkeyPressed(id)`/`OnCaseHotkeyPressed` → `RunClipboardOp` spins a background thread → `ClipboardHandler.ConvertLayout` (copy → KeyboardLayoutConverter, or TransliterationEngine for an unresolvable US⇄RU pair → paste) or `ClipboardHandler.FlipCase` (copy → CaseFlipEngine → paste). CursorIndicator updates the tray icon independently on its timer.
 
@@ -772,7 +961,7 @@ Map case-insensitively but preserve case; pass through characters with no mappin
 ## Error-handling rules (from spec)
 
 - No selection → no-op (skip silently).
-- Clipboard locked → retry up to **3 times**.
+- Clipboard locked → retry up to **12 attempts, 15 ms apart** (`Win32Clipboard.cs:444`).
 - Foreground window changes mid-operation → **cancel** the operation.
 - Clipboard that holds something but cannot be backed up → **refuse** the operation before a key is sent
   (the "clipboard had other plans" balloon), never overwrite it (S0009 FP-5).
@@ -784,6 +973,14 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | Registry value | Type | Default | Description |
 | --- | --- | --- | --- |
 | `CaseHotkey` | `REG_SZ` | `Ctrl+Shift+F11` | Case-flip hotkey (user-configurable on the "Горячие клавиши" tab) |
+| `UiLanguage` | `REG_SZ` | Windows UI language, else `English` | Interface language endonym |
+| `ClipboardHistoryHotkey` | `REG_SZ` | `Ctrl+Shift+F10` | Opens clipboard history |
+| `EnableClipboardHistory` | `REG_DWORD` | `0` | Enables local clipboard history |
+| `PauseClipboardHistory` | `REG_DWORD` | `0` | Temporarily stops recording clipboard changes |
+| `ShowClipboardHistoryOnStartup` | `REG_DWORD` | `1` | Opens the history window at startup when history is enabled |
+| `ClipboardHistoryX` / `ClipboardHistoryY` | `REG_DWORD` | `MinValue` / `MinValue` | Last history window position |
+| `ClipboardHistoryWidth` / `ClipboardHistoryHeight` | `REG_DWORD` | `260` / `360` | Last history window width and height |
+| `ClipboardHistoryOpacity` | `REG_DWORD` | `100` | History window opacity in percent (30..100) |
 | `SettingsTab` | `REG_DWORD` | `0` | Index of the settings tab last left open; the window reopens on it (clamped against the live page count) |
 | `CursorSize` | `REG_DWORD` | `24` | Base size of the I-beam cursor and caret overlay marker (px at 100%); the "Размер метки" slider on the "Индикаторы" tab writes 18 / 24 / 32. The badge is scaled by its monitor's DPI, the I-beam by the primary monitor's DPI and the Windows pointer size (`CursorBaseSize`) - `MarkerSize`, S0011 LI-3 |
 | `EnableCursorChange` | `REG_DWORD` | `0` | 1 = replace the system I-beam with the layout-branded cursor |
@@ -800,38 +997,48 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `DeferToRemoteDesktop` | `REG_DWORD` | `0` | 1 = while an RDP client (mstsc/msrdc) is focused, let the chord pass to the remote session |
 | `EnableContextMenu` | `REG_DWORD` | `0` | 1 = CyrFlip's own menu over the selection is on (the `WH_MOUSE_LL` hook is installed). 0 = no mouse hook at all |
 | `ContextMenuChord` | `REG_SZ` | `Ctrl+RightClick` | The chord that opens it, as an invariant token; an unparsable value (incl. a bare `RightClick`) falls back to the default |
+| `TextMenuHotkey` | `REG_SZ` | `Ctrl+Shift+Alt+M` | The keyboard's way to the same menu (S0045 K2, `INPUT-PARITY` rule 1): opens it at the caret (the system caret, else the caret overlay's last sighting in that window, else the pointer), taking the foreground while it is open and handing it back on close. Checked against every other chord owner; an update that finds the chord already taken switches it off instead |
+| `EnableTextMenuHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound (only while `EnableContextMenu`=1) |
 | `Theme` | `REG_SZ` | `system` | The app theme as an invariant token: `system` (follow Windows' `AppsUseLightTheme`, live), `light`, `dark`. Anything else reads as `system`. Windows' high contrast wins over every value |
 | `LanguageHotkeysBackup` | `REG_SZ` | *(empty)* | One-time JSON snapshot of Windows' own language hotkeys, taken before CyrFlip first edits them; empty = never touched |
 | `InputLayoutsBackup` | `REG_SZ` | *(empty)* | One-time JSON snapshot of the keyboard-layout stores (Preload/Substitutes + User Profile), taken before CyrFlip first edits them |
+| `InputMethodOverrideWritten` | `REG_SZ` | *(empty)* | The `InputMethodOverride` CyrFlip last wrote through "По умолчанию"; restoring a format-1 layout backup (which never captured that value) removes it only while it still equals this (S0007 WL-13) |
 | `LayoutConversionProfiles` | `REG_SZ` | *(seeded)* | JSON array of the layout→layout conversion table (source KLID, target KLID, chord, enabled). Absent (or empty while the legacy `Hotkey`/`EnableFlipHotkey` values survive) = seed one EN⇄RU row on Ctrl+Shift+F12; `[]` after the migration = the user emptied it, left alone |
 | `EnableScenarioLauncher` | `REG_DWORD` | `0` | 1 = the scenario launcher is on (tray submenu + taskbar button with its Jump List and left-click menu + per-scenario hotkeys). 0 = every surface cleared, button closed; scenario XMLs stay on disk |
 | `LauncherFirstEnableDone` | `REG_DWORD` | `0` | One-time marker: the first enable's migration offer / Calculator seeding ran; an emptied list is never re-nagged or reseeded |
 | `DataFolderMigrated` | `REG_DWORD` | `0` | One-time marker (packaged builds only): the move out of the machine-wide `%ProgramData%\CyrFlip` into the per-user package folder finished with nothing left to retry (S0016) |
+| `ShortcutsCreated` | `REG_DWORD` | `0` | One-time marker (unpackaged builds only): the first run from a stable folder created the Start menu and desktop shortcuts (`AppShortcuts`, S0041); a shortcut the user deletes is never recreated by a start |
 | `EnableTranslate` | `REG_DWORD` | `0` | 1 = the translator is on (chords bound, tray entry visible). 0 = no chord, no tray entry, no socket |
 | `TranslateSeeded` | `REG_DWORD` | `0` | One-time marker: the starter row was offered on the first enable; a table the user empties is never refilled |
 | `TranslateProfiles` | `REG_SZ` | *(empty)* | JSON array of the translation table (target language or the `ui`/`active` token, chord, enabled) |
 | `TranslateEndpoint` | `REG_SZ` | *(empty)* | Ollama address; empty = `http://localhost:11434`. Another address means the selection is sent to that machine |
 | `TranslateModel` | `REG_SZ` | `aya-expanse:8b` | Model name; empty = use whichever model is installed. **Chosen by measurement (2026-07-28), not by size:** every model under 4 GB failed English ⇄ Russian ⇄ Ukrainian - `qwen2.5:3b` (the old default) even emitted Chinese characters inside a Russian translation |
-| `TranslateTimeoutSeconds` | `REG_DWORD` | `120` | Hard timeout for one completion |
-| `TranslateKeepAliveMinutes` | `REG_DWORD` | `5` | Ollama's `keep_alive`; the RAM is the Ollama process's, not CyrFlip's. 0 = unload at once |
+| `TranslateTimeoutSeconds` | `REG_DWORD` | `120` | Budget for the first token; then the 30 s idle timer and the 10-min ceiling |
+| `TranslateKeepAliveMinutes` | `REG_DWORD` | `-1` | Ollama's `keep_alive` (-1..120 minutes); -1 = keep loaded (default), 0 = unload at once; the RAM is the Ollama process's, not CyrFlip's |
 | `TranslateAutoStartServer` | `REG_DWORD` | `1` | 1 = try to start Ollama once (waiting ~8 s) when it doesn't answer |
 | `TranslateCopyResult` | `REG_DWORD` | `0` | 1 = put the translation on the clipboard, where the history records it like any other copy |
 | `TranslatePasteResult` | `REG_DWORD` | `0` | 1 = paste the translation over the selection (skipped, with a note, if the focus moved) |
 | `TranslateShowSource` | `REG_DWORD` | `0` | 1 = show the source text above the translation |
 | `TranslateWindowTimeout` | `REG_DWORD` | `0` | Auto-close the result window after N seconds; 0 = never |
-| `TranslateWindowWidth` / `Height` | `REG_DWORD` | `700` / `460` | Remembered size of the result window (its position is always at the cursor). A stored `460`/`260` - the first build's default, i.e. "never resized" - is replaced by today's, and any size is clamped to the monitor the pointer is on |
+| `TranslateWindowWidth` / `TranslateWindowHeight` | `REG_DWORD` | `700` / `460` | Remembered size of the result window (its position is always at the cursor). A stored `460`/`260` - the first build's default, i.e. "never resized" - is replaced by today's, and any size is clamped to the monitor the pointer is on |
 | `TranslateWindowOpacity` | `REG_DWORD` | `100` | Opacity of the result window, 30..100 |
 | `EnableQuickNotes` | `REG_DWORD` | `0` | 1 = the quick notes are on. 0 = the journal is never read or created, no tray entry, no chord |
 | `QuickNotesNoticeShown` | `REG_DWORD` | `0` | One-time marker: the "local, DPAPI, not a secret store" notice was shown on the first enable |
 | `QuickNotesHotkey` | `REG_SZ` | `Ctrl+Shift+Alt+N` | Opens a new note with the caret in the body; checked against every other chord owner (`ChordRegistry`). The default was `Ctrl+Alt+N` until S0004 - Ctrl+Alt is AltGr, and AltGr+N is "ń" on Polish; a stored `Ctrl+Alt+N` is kept, since the hook no longer reads AltGr as Ctrl+Alt |
 | `EnableQuickNotesHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound (only while `EnableQuickNotes`=1) |
 | `QuickNotesWordWrap` | `REG_DWORD` | `0` | 1 = the editor wraps long lines. Off by default: the body is more often code than prose |
-| `QuickNotesX` / `Y` / `Width` / `Height` | `REG_DWORD` | `MinValue` / `MinValue` / `0` / `0` | Window geometry, saved on every move and resize. A position no live monitor covers falls back to the primary working area; a size of `0` (never resized by the user) opens the window at its **measured minimum** - `QuickNotesWindow.ApplyMinimumSize` adds up the real width of the button row, the top row and the privacy hint in the current language at the current display scaling, so the floor is never the pair of constants that used to clip the buttons in most of the 13 languages. A stored size is only ever **grown** to that minimum, never shrunk |
+| `ExchangeNotesWarningOff` | `REG_DWORD` | `0` | 1 = a **notes-only** export to the exchange file no longer shows the "plain unencrypted text" warning. An export that carries clipboard history always shows it (S0023) |
+| `QuickNotesX` / `QuickNotesY` / `QuickNotesWidth` / `QuickNotesHeight` | `REG_DWORD` | `MinValue` / `MinValue` / `0` / `0` | Window geometry, saved at the end of a move or resize (ResizeEnd) and on hide (APP-BEHAVIOUR rule 10). A position no live monitor covers is clamped to the nearest surviving monitor (`ScreenPlacement.Clamp`); a size of `0` (never resized by the user) opens the window at its **measured minimum** - `QuickNotesWindow.ApplyMinimumSize` adds up the real width of the button row, the top row and the privacy hint in the current language at the current display scaling, so the floor is never the pair of constants that used to clip the buttons in most of the 13 languages. A stored size is only ever **grown** to that minimum, never shrunk |
 | `QuickNotesSelected` | `REG_SZ` | *(empty)* | The note the window was last left on, so it reopens where the user was |
 | `FlipCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful transliteration |
 | `CaseFlipCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful case flip |
 | `TranslateCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful translation |
 | `QuickNoteCount` | `REG_DWORD` | `0` | Usage counter; incremented when a note is created for the first time |
+| `ScreenshotHotkey` | `REG_SZ` | `Ctrl+Shift+PrintScreen` | Starts the screen region capture; checked against every other chord owner (`ChordRegistry`) |
+| `EnableScreenshotHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound. The only switch the capture has: no module switch, the tray item is always there |
+| `ScreenshotSaveEnabled` | `REG_DWORD` | `0` | 1 = every capture is also saved as a PNG (the cropped region, the clipboard's bytes) into `ScreenshotFolder` |
+| `ScreenshotFolder` | `REG_SZ` | *(empty)* | Where saved captures go; empty = the `FOLDERID_Screenshots` known folder, resolved at save time (`CAPTURE-OUTPUT` rule 9) |
+| `ScreenshotCount` | `REG_DWORD` | `0` | Usage counter; incremented on each capture that reached the clipboard |
 
 Legacy `config.json` (still accepted on first run for migration):
 ```json
@@ -841,14 +1048,14 @@ Legacy `config.json` (still accepted on first run for migration):
 ## Build, run, test
 
 ```powershell
-dotnet build CyrFlip.sln -c Release          # build (clean build is warning-free; see WarningsAsErrors)
+dotnet build CyrFlip.sln -c Release          # build (clean build is warning-free except xUnit1031 until S0029 RB-9; see WarningsAsErrors)
 dotnet test  CyrFlip.sln                      # run xUnit tests
 .\src\CyrFlip\bin\Release\net48\CyrFlip.exe   # run the app (tray icon → right-click → Exit)
 .\build.ps1                                   # build + test + stage single exe + deploy to C:\GD\..
 dotnet run --project tools/IconGen            # regenerate icon/banner assets
 ```
 
-The `net48` build output *is* the distributable: a single `CyrFlip.exe` plus `config.json`, no runtime to install. (The spec's `dotnet publish .. --self-contained false` line assumed a .NET 6+ target and does not apply to the net48 choice.) Releases are cut by pushing a `vYY.M.D.HHmm` tag (`.github/workflows/release.yml` builds the ZIP + sha256). winget manifests in `winget/` are filled per release (see `winget/README.md`).
+The `net48` build output *is* the distributable: a single `CyrFlip.exe` plus `config.json`, no runtime to install. (The spec's `dotnet publish .. --self-contained false` line assumed a .NET 6+ target and does not apply to the net48 choice.) Releases are cut by pushing a `vYY.M.D.HHmm` tag (`.github/workflows/release.yml` builds the ZIP + sha256, carrying `CyrFlip.exe`, `CyrFlip.exe.config`, `README.md`, `LICENSE`, and `THIRD-PARTY-NOTICES.md`). winget manifests in `winget/` are filled per release (see `winget/README.md`).
 
 Version is stamped at build time as `YY.M.D.HHmm` via a `<Version>` property in the csproj (verified: e.g. `26.6.11.1649`).
 
@@ -1042,7 +1249,7 @@ no CI job and no second machine could reach.
 - **Version shape** - dotted `YY.M.D.HHmm` (e.g. `26.7.22.1712`), stamped at build time by the csproj
   (`src/CyrFlip/CyrFlip.csproj`). The `v*` git tag is authoritative for release-asset names; `release.yml`
   re-pins the embedded exe version to the tag (`-p:Version=<tag>`) so the in-file stamp matches the ZIP name.
-  The **VS Code extension runs its own semver clock** (`vscode-extension/package.json`, `0.1.4`), decoupled
+  The **VS Code extension runs its own semver clock** (`vscode-extension/package.json`, `0.1.5`), decoupled
   from the app date tag.
 - **Channels (4 publish ops + a site).** GitHub Release (`CyrFlip-<ver>-windows-x64.zip` + `.sha256`, body
   auto from `generate_release_notes`); **winget** `SerZhyAle.CyrFlip` (`winget/*.yaml`, `InstallerType: zip`
@@ -1063,23 +1270,33 @@ no CI job and no second machine could reach.
   script-capability wall. **A dirty tree blocks neither script** (single-developer repo): the preflight
   reports how many paths are uncommitted - they simply won't be in the release, since the tag points at
   the anchor commit - and carries on; `-RequireClean` brings the old refusal back. `build.ps1 -Commit`
-  with nothing to commit likewise reports and finishes instead of failing.
+  with nothing to commit likewise reports and finishes instead of failing. `build.ps1` stops the running
+  tray app before building and, when the build or the tests fail, **starts the previous copy again** from
+  where it ran (S0038 RP-5) - it used to leave the user without indicator and hotkeys until a green build.
 - Levers wired: `[skip ci]` on build commits; a `paths` filter with `!` exclusions on `ci.yml` (`**.md`,
   `docs/**`, `PLAN/**`, `winget/**`, `assets/**`, `vscode-extension/**`, `.github/ISSUE_TEMPLATE/**`) that
   re-includes the three extension files the suite reads (`layout-colors.json`, `extension.ts`,
-  `package.json`) - a check has to run on a change to its own inputs (`CHECK-PLACEMENT` rule 2); `if:` skip of
+  `package.json`) and two icons (`cyrflip.ico`, `app.ico`); it still excludes test inputs `docs/**` and the three READMEs read by `TrustPageTests.cs:87` (declared exclusion, `CHECK-PLACEMENT` rule 2); `if:` skip of
   `release:`-prefixed commits; the tag triggers only `release.yml` (branch-only CI);
   `concurrency cancel-in-progress` true on CI / false on release.
-- **The preflight is fail-fast, and that is the whole of its verdict contract**: every gate `throw`s, so
-  there is no path on which a green tail line is printed over a gate that failed inside. What it does
-  **not** do is distinguish "found a defect" from "could not verify" by exit code - both leave as 1. The
-  one could-not-verify path that continues is the unreachable-origin branch (`release.ps1:91-93`), which
-  warns in yellow and skips only the remote tag/behind checks.
+- **Preflight verdict contract (`CHECK-VERDICT` 0.9)**: gates exit **0** (pass), **1** (defect/drift), **2** (could-not-verify / unverified / tool missing / unreachable origin without `-Offline`), or **3** (advisories). A green tail line is never printed over a failed check. The preflight ends with a machine-readable verdict line `<subject>: PASS|FAIL (n)|NOT VERIFIED (n)` as the last stdout line. Mirror and CSV checks run even after a failed test (rule 9 collect-all).
+- **Check placement (`CHECK-PLACEMENT` 0.9)**: declared in `tools/checks/check-placement.jsonl` and verified both ways by `tools/checks/Test-CheckPlacement.ps1` in `build.ps1` and `release.ps1`.
+- **Zero accepted debt (`CHECK-BASELINE` 0.9)**: zero-tolerance build (`WarningsAsErrors`, `Skipped: 0`), no accepted-debt baseline file exists.
 - **Artifact version gate** - `release.yml` checks out the tag it releases (also on a manual dispatch),
   re-applies the tag-shape gate, and fails unless the built exe - and again the exe inside the ZIP - has
   `FileVersion` = the tag version and `ProductVersion` = `<version>+<commit sha>` (`BUILD-EVIDENCE` rule 2).
+  `msix/build-msix.ps1` applies the same `ProductVersion` check on both its paths (S0038 RP-3), and its
+  identity defaults **are** the frozen Store anchors (`SZA.CyrFlip` / `CN=F98ACEDB-...` / `SZA`; a local
+  test identity only behind `-SelfSign -TestIdentity`, RP-2).
+- **A published tag is never rebuilt** (S0038 RP-1): the resolve step asks `gh release view` and refuses
+  when the release already carries its `CyrFlip-*.zip`, and the publish step has `overwrite_files: false`
+  - a re-run makes a ZIP with other bytes (`Compress-Archive` stamps fresh times), and replacing it and its
+  `.sha256` breaks the hash in every winget manifest already merged.
 - **Tag-format gate** - `release.ps1` validates `^\d{2}\.(?:[1-9]|1[0-2])\.(?:[1-9]|[12]\d|3[01])\.\d{4}$` (no zero-padded month/day) + `ParseExact` before
-  tagging, so a mistyped `-Version` fails before any push.
+  tagging, so a mistyped `-Version` fails before any push; `release.yml` applies the same shape,
+  `ParseExact` and "newer than every other `v*` tag" gates to what it is asked to release (RP-6).
+- **About and the log report show the tag's spelling** (`26.9.26.0930`, from the informational version -
+  `SupportBundle.AppVersion`, S0038 RP-4), not the SDK-normalized assembly version (`26.9.26.930`).
 - Releases ship **unsigned** (CI Authenticode step is opt-in via `SIGNING_CERT_*` secrets, which are unset;
   the Store re-signs the MSIX). Don't claim releases are signed.
 

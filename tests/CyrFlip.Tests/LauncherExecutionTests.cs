@@ -90,17 +90,20 @@ namespace CyrFlip.Tests
             string hostileLink = "https://x.test/a?b=1&c=2|whoami<x>y";
             ProcessStartInfo info = LauncherExecution.BuildYtDlpStartInfo(scenario, hostileLink, @"C:\Downloads", YtDlpPath);
 
-            Assert.Equal("cmd.exe", info.FileName);
+            Assert.Equal(Path.Combine(Environment.SystemDirectory, "cmd.exe"), info.FileName);
             // The command line references the variable, never the raw link - so &, |, <, > can
             // never become shell operators.
             Assert.DoesNotContain(hostileLink, info.Arguments);
             Assert.Contains("\"%" + LauncherExecution.YtDlpLinkVariable + "%\"", info.Arguments);
             Assert.Equal(hostileLink, info.EnvironmentVariables[LauncherExecution.YtDlpLinkVariable]);
             Assert.False(info.UseShellExecute); // required for the environment to transfer
-            Assert.Equal(@"C:\Downloads", info.WorkingDirectory);
         }
 
         private const string YtDlpPath = @"C:\Tools\yt-dlp.exe";
+
+        private static string YtDlpHead => "/s /k \"\"" + YtDlpPath + "\" --ignore-config ";
+        private static string FolderArg => "-P \"%" + LauncherExecution.YtDlpFolderVariable + "%\" ";
+        private static string LinkTail => "-- \"%" + LauncherExecution.YtDlpLinkVariable + "%\"\"";
 
         /// <summary>
         /// S0008 LS-4: the full path that was resolved on PATH (cmd would search the download folder
@@ -112,7 +115,7 @@ namespace CyrFlip.Tests
         {
             var scenario = new LauncherScenario { Type = LauncherScenarioType.YtDlp };
             ProcessStartInfo info = LauncherExecution.BuildYtDlpStartInfo(scenario, "https://x.test/v", @"C:\D", YtDlpPath);
-            Assert.Equal("/s /k \"\"" + YtDlpPath + "\" -- \"%" + LauncherExecution.YtDlpLinkVariable + "%\"\"", info.Arguments);
+            Assert.Equal(YtDlpHead + FolderArg + LinkTail, info.Arguments);
             Assert.Equal("1", info.EnvironmentVariables["NoDefaultCurrentDirectoryInExePath"]);
         }
 
@@ -121,8 +124,65 @@ namespace CyrFlip.Tests
         {
             var scenario = new LauncherScenario { Type = LauncherScenarioType.YtDlp, YtDlpFormat = "-f bestvideo[height<=1080]+bestaudio" };
             ProcessStartInfo info = LauncherExecution.BuildYtDlpStartInfo(scenario, "https://x.test/v", @"C:\D", YtDlpPath);
-            Assert.Equal("/s /k \"\"" + YtDlpPath + "\" \"-f\" \"bestvideo[height<=1080]+bestaudio\" -- \"%"
-                + LauncherExecution.YtDlpLinkVariable + "%\"\"", info.Arguments);
+            Assert.Equal(YtDlpHead + FolderArg + "\"-f\" \"bestvideo[height<=1080]+bestaudio\" " + LinkTail, info.Arguments);
+        }
+
+        /// <summary>
+        /// S0034 LS2-2: yt-dlp reads a "home" yt-dlp.conf from the -P folder, or without -P from its
+        /// current directory - the download folder, where a web page can drop one. So no config is
+        /// read but the user's own, named explicitly; the folder goes to -P through the environment
+        /// (a UNC folder cannot be cmd's current directory), and cmd starts in the user profile.
+        /// </summary>
+        [Fact]
+        public void YtDlpReadsNoConfigButTheUsersOwnAndGetsTheFolderAsAnOption()
+        {
+            var scenario = new LauncherScenario { Type = LauncherScenarioType.YtDlp };
+            var configs = new[] { @"C:\Users\u\AppData\Roaming\yt-dlp\config" };
+            ProcessStartInfo info = LauncherExecution.BuildYtDlpStartInfo(scenario, "https://x.test/v", @"\\nas\video", YtDlpPath, configs);
+
+            Assert.Equal(YtDlpHead + "--config-locations \"%" + LauncherExecution.YtDlpConfigVariable + "1%\" "
+                + FolderArg + LinkTail, info.Arguments);
+            Assert.Equal(configs[0], info.EnvironmentVariables[LauncherExecution.YtDlpConfigVariable + "1"]);
+            Assert.Equal(@"\\nas\video", info.EnvironmentVariables[LauncherExecution.YtDlpFolderVariable]);
+            Assert.Equal(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), info.WorkingDirectory);
+            Assert.DoesNotContain("nas", info.Arguments);
+        }
+
+        /// <summary>A trailing separator would make yt-dlp read <c>"D:\"</c> as an escaped quote.</summary>
+        [Theory]
+        [InlineData(@"D:\", @"D:\.")]
+        [InlineData(@"D:\Media\", @"D:\Media\.")]
+        [InlineData(@"D:\Media", @"D:\Media")]
+        public void TheFolderNeverEndsInABackslashInsideItsQuotes(string folder, string expected)
+            => Assert.Equal(expected, LauncherExecution.QuotableFolder(folder));
+
+        private static readonly Func<string, string?> NoEnvironment = _ => null;
+
+        [Fact]
+        public void TheUsersOwnConfigsAreFoundInYtDlpsOrder()
+        {
+            var disk = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                @"C:\Tools\yt-dlp.conf",                      // portable, beside the exe
+                @"C:\AppData\yt-dlp\config",                  // the first user config
+                @"C:\Users\u\yt-dlp.conf",                    // a later one - yt-dlp stops at the first
+            };
+            var found = LauncherExecution.YtDlpConfigLocations(YtDlpPath, @"C:\Users\u\Downloads", disk.Contains,
+                name => name == "APPDATA" ? @"C:\AppData" : null, @"C:\Users\u");
+            Assert.Equal(new[] { @"C:\Tools\yt-dlp.conf", @"C:\AppData\yt-dlp\config" }, found);
+        }
+
+        [Fact]
+        public void NoConfigIsTakenFromTheDownloadFolder()
+        {
+            // yt-dlp.exe downloaded into Downloads, and a planted yt-dlp.conf beside it.
+            var disk = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                @"C:\Users\u\Downloads\yt-dlp.conf",
+            };
+            var found = LauncherExecution.YtDlpConfigLocations(@"C:\Users\u\Downloads\yt-dlp.exe",
+                @"C:\Users\u\Downloads\", disk.Contains, NoEnvironment, @"C:\Users\u");
+            Assert.Empty(found);
         }
 
         /// <summary>A stored format outside the allowed set is kept in the scenario but never reaches cmd.</summary>
@@ -227,7 +287,8 @@ namespace CyrFlip.Tests
         public void BatAndCmdUseTheDoubleQuotedSlashSForm(string script)
         {
             Assert.True(LauncherScriptInterpreter.TryResolve(script, "-y \"a b\"", out string interpreter, out string args));
-            Assert.Equal("cmd.exe", interpreter);
+            // By its System32 path, never a bare name ShellExecute would search for (S0034 LS2-7).
+            Assert.Equal(Path.Combine(Environment.SystemDirectory, "cmd.exe"), interpreter);
             // /s /c "" script "..." - the one form that survives a spaced path AND quoted arguments.
             Assert.Equal("/s /c \"\"" + script + "\" -y \"a b\"\"", args);
         }
@@ -240,8 +301,13 @@ namespace CyrFlip.Tests
             => Assert.False(LauncherScriptInterpreter.TryResolve(path, null, out _, out _));
 
         [Fact]
-        public void PowerShellHostAlwaysResolvesToSomething()
-            => Assert.False(string.IsNullOrEmpty(LauncherScriptInterpreter.PowerShellHost()));
+        public void PowerShellHostAlwaysResolvesToAFullPath()
+            => Assert.True(Path.IsPathRooted(LauncherScriptInterpreter.PowerShellHost()));
+
+        [Fact]
+        public void WindowsPowerShellIsTakenFromSystem32()
+            => Assert.Equal(Path.Combine(Environment.SystemDirectory, @"WindowsPowerShell\v1.0\powershell.exe"),
+                LauncherScriptInterpreter.WindowsPowerShellPath);
 
         // ---- What launcher.log may say (S0010 TD-1) ----
 

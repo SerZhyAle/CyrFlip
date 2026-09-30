@@ -25,6 +25,26 @@ namespace CyrFlip
         [DllImport("user32.dll")]
         public static extern short GetAsyncKeyState(int vKey);
 
+        public const uint SPI_GETKEYBOARDDELAY = 0x0016;
+        public const uint SPI_GETHIGHCONTRAST = 0x0042;
+        public const uint HCF_HIGHCONTRASTON = 0x0001;
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct HIGHCONTRAST
+        {
+            public uint cbSize;
+            public uint dwFlags;
+            public IntPtr lpszDefaultScheme;
+        }
+
+        [DllImport("user32.dll", EntryPoint = "SystemParametersInfoW", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref HIGHCONTRAST pvParam, uint fWinIni);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref int pvParam, uint fWinIni);
+
         // CapsLock state + toggling. GetKeyState's low bit is the toggle flag; the CyrFlip UI
         // thread runs a global LL keyboard hook (pumping system-wide key input) so its key-state
         // table stays current. VK_CAPITAL is also sent (down+up) to toggle CapsLock after a flip.
@@ -204,6 +224,41 @@ namespace CyrFlip
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern int ToUnicodeEx(uint wVirtKey, uint wScanCode, byte[] lpKeyState,
             System.Text.StringBuilder pwszBuff, int cchBuff, uint wFlags, IntPtr dwhkl);
+
+        // ---- The documented input-profile API (input.dll, InputLayoutApi.cs; ticket S0007 WL-1 phase B) ----
+        // Not declared in a public header; the entry points and LAYOUTORTIPPROFILE (584 bytes on x64)
+        // were checked live on 2026-09-29 - EnumEnabledLayoutOrTip returned "0409:00000409" with
+        // LOT_DEFAULT set on the default entry.
+        public const uint LOTP_INPUTPROCESSOR = 1;
+        public const uint LOTP_KEYBOARDLAYOUT = 2;
+        public const uint LOT_DEFAULT = 0x1;
+        public const uint LOT_DISABLED = 0x2;
+        public const uint ILOT_UNINSTALL = 0x1;
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct LAYOUTORTIPPROFILE
+        {
+            public uint dwProfileType;
+            public ushort langid;
+            public Guid clsid;
+            public Guid guidProfile;
+            public Guid catid;
+            public uint dwSubstituteLayout;
+            public uint dwFlags;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string szId;
+        }
+
+        [DllImport("input.dll", CharSet = CharSet.Unicode)]
+        public static extern uint EnumEnabledLayoutOrTip(string? pszUserReg, string? pszSystemReg, string? pszSoftwareReg,
+            [Out] LAYOUTORTIPPROFILE[]? pLayoutOrTip, uint uBufLength);
+
+        [DllImport("input.dll", CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool InstallLayoutOrTip(string psz, uint dwFlags);
+
+        [DllImport("input.dll", CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetDefaultLayoutOrTip(string psz, uint dwFlags);
 
         // Resolves an "@file.dll,-123" indirect string to the localized display name of a layout.
         [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
@@ -395,7 +450,13 @@ namespace CyrFlip
         public const int WS_EX_NOACTIVATE = 0x8000000;
 
         public static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        public static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
         public const uint SWP_NOSIZE = 0x0001;
+
+        /// <summary>True when the window's thread has not answered for about 5 s - asked without waiting on it.</summary>
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsHungAppWindow(IntPtr hwnd);
         public const uint SWP_NOACTIVATE = 0x0010;
         public const uint SWP_SHOWWINDOW = 0x0040;
         public const uint SWP_HIDEWINDOW = 0x0080;
@@ -616,6 +677,11 @@ namespace CyrFlip
         [DllImport("shcore.dll")]
         public static extern int GetDpiForMonitor(IntPtr hmonitor, int dpiType, out uint dpiX, out uint dpiY);
 
+        public const int SM_CYCURSOR = 14;
+
+        [DllImport("user32.dll")]
+        public static extern int GetSystemMetrics(int index);
+
         // Foreground and focus changes (LI-1, LI-11), delivered out of context: no DLL is injected
         // anywhere, the callback runs on the thread that installed the hook.
         public const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
@@ -694,8 +760,59 @@ namespace CyrFlip
         public const uint SWP_NOZORDER = 0x0004;
         public const uint SWP_FRAMECHANGED = 0x0020;
 
+        public const int WM_PAINT = 0x000F;
+        public const int WM_NCPAINT = 0x0085;
+        public const uint LVM_GETHOTITEM = 0x103D;
+        public const uint LVM_GETTOOLTIPS = 0x104E;
+
+        /// <summary>The whole window's DC, frame included - where a dark theme's light edit border is painted over.</summary>
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetWindowDC(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+
         /// <summary>The extended style - read to tell a mirrored (right-to-left layout) window apart.</summary>
         [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
         public static extern int GetWindowLong(IntPtr hWnd, int index);
+
+        // ---- Screen region capture (S0026) ----
+        public const uint SRCCOPY = 0x00CC0020;
+        /// <summary>Without it layered windows (tooltips, many modern menus) are missing from a BitBlt.</summary>
+        public const uint CAPTUREBLT = 0x40000000;
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetDC(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+        [DllImport("gdi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool BitBlt(IntPtr hdcDest, int xDest, int yDest, int width, int height,
+            IntPtr hdcSrc, int xSrc, int ySrc, uint rop);
+
+        /// <summary>Windows 10 2004+: the window is left out of every screen capture and screen share.</summary>
+        public const uint WDA_EXCLUDEFROMCAPTURE = 0x00000011;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowDisplayAffinity(IntPtr hWnd, uint affinity);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetCursorPos(out POINT point);
+
+        [DllImport("shell32.dll")]
+        public static extern int SHGetKnownFolderPath([MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint flags,
+            IntPtr token, out IntPtr path);
+
+        /// <summary>Moves a file; without MOVEFILE_REPLACE_EXISTING an existing target is never replaced.</summary>
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool MoveFileEx(string existing, string target, uint flags);
+
+        public const uint MOVEFILE_WRITE_THROUGH = 0x8;
     }
 }

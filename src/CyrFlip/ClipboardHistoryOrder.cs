@@ -24,7 +24,7 @@ namespace CyrFlip
     /// rest by <c>CreatedAt</c> descending. Every mutation goes through
     /// <see cref="Detach"/> + <see cref="Insert"/>, so the position is always derived from the
     /// entry's own state rather than assumed - which is what lets the log replay in
-    /// <c>ClipboardHistoryService.Load</c> use the same three methods in whatever order the log
+    /// <c>ClipboardHistoryJournal.Replay</c> use the same three methods in whatever order the log
     /// happens to carry.</para>
     ///
     /// <para>Not thread-safe: every caller is the UI thread (the clipboard listener's WndProc and

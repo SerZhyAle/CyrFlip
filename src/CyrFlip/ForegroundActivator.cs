@@ -16,10 +16,24 @@ namespace CyrFlip
     ///
     /// The way around it is to share the foreground thread's input queue for the duration of the call
     /// (<c>AttachThreadInput</c>), which makes the two threads count as one for that rule. The attach
-    /// is skipped when the foreground window is unknown, hung, or already ours, and is always undone.
+    /// is skipped when the foreground window is unknown or already ours, and is always undone.
+    ///
+    /// <para><b>Which foreground thread is attached to</b> is the part that is easy to get wrong in
+    /// both directions (S0036 UI-1). With the queues shared, the activation change sends messages to
+    /// the other thread and waits for them - so attaching to a thread that is not pumping blocks
+    /// CyrFlip's UI thread, which is the thread of both low-level hooks, for as long as that thread is
+    /// busy (the "hang rate" commit <c>eb9a156</c> guarded against). But its 50 ms <c>WM_NULL</c> gate
+    /// then skipped the whole fix whenever the foreground app was merely busy - a build, a
+    /// recalculation - and Settings opened behind the editor again. Now: a <b>hung</b> window
+    /// (<c>IsHungAppWindow</c>, asked without waiting) is never attached to; one that answers
+    /// <c>WM_NULL</c> within 50 ms is pumping and is attached to; and when activation is still refused
+    /// - the busy case - our window is at least raised above the others without taking the focus, so
+    /// it is in front where the user looks, and a click activates it.</para>
     /// </summary>
     internal static class ForegroundActivator
     {
+        /// <summary>How long a foreground thread gets to prove it is pumping before it is not attached to.</summary>
+        internal const uint ResponsiveProbeMs = 50;
         public static void Activate(Form? form)
         {
             if (form == null || form.IsDisposed || !form.IsHandleCreated) return;
@@ -41,13 +55,7 @@ namespace CyrFlip
             uint ours = GetCurrentThreadId();
             uint theirs = foreground == IntPtr.Zero ? 0 : GetWindowThreadProcessId(foreground, out _);
 
-            // Guard against hung target processes: only attach thread input if the foreground window
-            // responds to WM_NULL within 50 ms. If it is hung or unresponsive, skip AttachThreadInput
-            // to prevent CyrFlip's UI thread from deadlocking.
-            bool responsive = theirs != 0 && theirs != ours
-                && SendMessageTimeout(foreground, 0, IntPtr.Zero, IntPtr.Zero, SMTO_ABORTIFHUNG, 50, out _) != IntPtr.Zero;
-
-            bool attached = responsive && AttachThreadInput(theirs, ours, true);
+            bool attached = ShouldAttach(foreground, theirs, ours) && AttachThreadInput(theirs, ours, true);
             try
             {
                 BringWindowToTop(target);
@@ -58,6 +66,27 @@ namespace CyrFlip
             {
                 if (attached) AttachThreadInput(theirs, ours, false);
             }
+
+            // Refused all the same (a busy foreground app we did not attach to): in front, not focused.
+            if (form != null && GetForegroundWindow() != target)
+            {
+                const uint flags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE;
+                SetWindowPos(target, HWND_TOPMOST, 0, 0, 0, 0, flags);
+                SetWindowPos(target, HWND_NOTOPMOST, 0, 0, 0, 0, flags);
+            }
+        }
+
+        /// <summary>
+        /// Attach only to a foreground thread that is pumping right now: never to a hung one (no wait
+        /// at all), and to anything else only once it has answered <c>WM_NULL</c> - the activation would
+        /// otherwise wait on it with the hooks' thread.
+        /// </summary>
+        private static bool ShouldAttach(IntPtr foreground, uint theirs, uint ours)
+        {
+            if (theirs == 0 || theirs == ours) return false;
+            if (IsHungAppWindow(foreground)) return false;
+            return SendMessageTimeout(foreground, 0, IntPtr.Zero, IntPtr.Zero, SMTO_ABORTIFHUNG,
+                ResponsiveProbeMs, out _) != IntPtr.Zero;
         }
     }
 }

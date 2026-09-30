@@ -63,14 +63,16 @@ namespace CyrFlip
         internal sealed class ClipboardBackup
         {
             public ClipboardBackup(bool hadText, string? text, byte[]? image = null, byte[]? files = null,
-                IReadOnlyList<KeyValuePair<uint, byte[]>>? companions = null, uint sequence = 0, bool unreadable = false)
-                : this(hadText, text == null ? null : Win32Clipboard.UnicodeBytes(text), image, files, companions, sequence, unreadable, raw: true)
+                IReadOnlyList<KeyValuePair<uint, byte[]>>? companions = null, uint sequence = 0, bool unreadable = false,
+                bool wasEmpty = false)
+                : this(hadText, text == null ? null : Win32Clipboard.UnicodeBytes(text), image, files, companions, sequence, unreadable, wasEmpty, raw: true)
             {
             }
 
             private ClipboardBackup(bool hadText, byte[]? textBytes, byte[]? image, byte[]? files,
-                IReadOnlyList<KeyValuePair<uint, byte[]>>? companions, uint sequence, bool unreadable, bool raw)
+                IReadOnlyList<KeyValuePair<uint, byte[]>>? companions, uint sequence, bool unreadable, bool wasEmpty, bool raw)
             {
+                WasEmpty = wasEmpty;
                 HadText = hadText;
                 TextBytes = textBytes;
                 Image = image;
@@ -82,8 +84,8 @@ namespace CyrFlip
 
             /// <summary>The backup exactly as it was read: the text as the owner's raw CF_UNICODETEXT block.</summary>
             internal static ClipboardBackup FromRaw(bool hadText, byte[]? textBytes, byte[]? image, byte[]? files,
-                IReadOnlyList<KeyValuePair<uint, byte[]>> companions, uint sequence, bool unreadable)
-                => new ClipboardBackup(hadText, textBytes, image, files, companions, sequence, unreadable, raw: true);
+                IReadOnlyList<KeyValuePair<uint, byte[]>> companions, uint sequence, bool unreadable, bool wasEmpty = false)
+                => new ClipboardBackup(hadText, textBytes, image, files, companions, sequence, unreadable, wasEmpty, raw: true);
 
             public bool HadText { get; }
 
@@ -127,6 +129,16 @@ namespace CyrFlip
 
             /// <summary>True when there is anything at all worth handing back. Companions alone are not content.</summary>
             public bool HasContent => (HadText && TextBytes != null) || Image != null || Files != null;
+
+            /// <summary>
+            /// The clipboard held no format at all. Handing that back means emptying it (S0032 FP2-4):
+            /// otherwise the selection a flip copied stays there - never recorded by the history, and
+            /// after a flip still owned by CyrFlip's window until exit.
+            /// </summary>
+            public bool WasEmpty { get; }
+
+            /// <summary>Whether a restore has anything to put back - content, or the emptiness itself.</summary>
+            public bool Restorable => HasContent || WasEmpty;
         }
 
         /// <summary>
@@ -171,6 +183,13 @@ namespace CyrFlip
         /// exception rather than the rule.
         /// </summary>
         internal const int MaxBackupImageBytes = 64 * 1024 * 1024;
+
+        /// <summary>
+        /// Cap on backed-up text (S0032 FP2-5). Unlike an image, text over it is not dropped but makes
+        /// the backup unreadable - the flip is refused with its balloon rather than destroying a
+        /// clipboard it holds no copy of. 64 MB of UTF-16 is 32 million characters.
+        /// </summary>
+        internal const int MaxBackupTextBytes = 64 * 1024 * 1024;
 
         /// <summary>Cap on one companion format; a Shell IDList Array for thousands of files stays far below it.</summary>
         internal const int MaxCompanionBytes = 1024 * 1024;
@@ -258,8 +277,10 @@ namespace CyrFlip
             SideModifiers released = SideModifiers.None;
             try
             {
-                CaptureResult captured = CaptureSelection(int.MaxValue, refuseLineCopy: command == EditCommand.Cut,
-                    out _, out _, out released);
+                // The copy only has to be seen to have landed, not read (S0032 FP2-5): with a cap of one
+                // character anything longer answers "too large" unread, which here means "there".
+                CaptureResult captured = CaptureSelection(1, refuseLineCopy: command == EditCommand.Cut,
+                    out _, out _, out released, presenceOnly: true);
                 if (captured != CaptureResult.Captured) return ToFlipResult(captured);
 
                 // The Delete goes before the held modifiers come back: a Shift pressed again first
@@ -354,26 +375,51 @@ namespace CyrFlip
             uint sequence = reader.Sequence();
             int count = reader.CountFormats();
             if (!reader.Open())
-                return ClipboardBackup.FromRaw(false, null, null, null, new KeyValuePair<uint, byte[]>[0], sequence, unreadable: count > 0);
+                return ClipboardBackup.FromRaw(false, null, null, null, new KeyValuePair<uint, byte[]>[0], sequence,
+                    unreadable: count > 0, wasEmpty: count == 0);
+            bool hadText, failed = false, wasEmpty;
+            byte[]? text = null, image = null, files = null;
+            List<KeyValuePair<uint, byte[]>> companions;
             try
             {
-                // Nobody can change the clipboard while it is open, so this number is the content's.
+                wasEmpty = reader.CountFormats() == 0;
+
+                // The only content whose failure refuses the flip (S0032 FP2-2): the text is what a
+                // flip overwrites. A picture or a file list its owner fails to render - a huge Excel
+                // range, a broken synthesized bitmap - could not be pasted by anyone either, and
+                // refusing every flip until the next copy over it helped nobody.
+                hadText = reader.IsAvailable(CF_UNICODETEXT);
+                if (hadText) failed = ReadText(reader, out text);
+
+                if (reader.IsAvailable(CF_DIB) && !ReadContent(reader, CF_DIB, MaxBackupImageBytes, out image))
+                    ClipboardFlipLog.Log("backup: the picture could not be rendered and is not carried");
+                if (reader.IsAvailable(CF_HDROP) && !ReadContent(reader, CF_HDROP, int.MaxValue, out files))
+                    ClipboardFlipLog.Log("backup: the file list could not be rendered and is not carried");
+
+                companions = ReadCompanions(reader);
+                // Reading a delay-rendered format makes its owner render it, and that may move the
+                // sequence (S0032 FP2-1): the number that describes the content is the one after the
+                // last read. Otherwise the chord with nothing selected would see "changed" and rewrite
+                // Excel's live copy with text and a picture.
                 sequence = reader.Sequence();
-                bool failed = false;
-
-                bool hadText = reader.IsAvailable(CF_UNICODETEXT);
-                byte[]? text = null;
-                if (hadText) failed |= !ReadContent(reader, CF_UNICODETEXT, int.MaxValue, out text);
-
-                byte[]? image = null;
-                if (reader.IsAvailable(CF_DIB)) failed |= !ReadContent(reader, CF_DIB, MaxBackupImageBytes, out image);
-
-                byte[]? files = null;
-                if (reader.IsAvailable(CF_HDROP)) failed |= !ReadContent(reader, CF_HDROP, int.MaxValue, out files);
-
-                return ClipboardBackup.FromRaw(hadText, text, image, files, ReadCompanions(reader), sequence, failed);
             }
             finally { reader.Close(); }
+            // And once more after the close: a render that lands as the clipboard closes moves it too.
+            // Nobody else can have written in between that a restore could mistake for ours - the
+            // flip's own Ctrl+C comes after this.
+            sequence = reader.Sequence();
+            return ClipboardBackup.FromRaw(hadText, text, image, files, companions, sequence, failed, wasEmpty);
+        }
+
+        /// <summary>The text: true when it failed or is over <see cref="MaxBackupTextBytes"/> - either way unreadable.</summary>
+        private static bool ReadText(IClipboardReader reader, out byte[]? text)
+        {
+            ClipboardRead result = reader.Read(CF_UNICODETEXT, MaxBackupTextBytes, out text);
+            if (result == ClipboardRead.Ok) return false;
+            text = null;
+            if (result == ClipboardRead.TooLarge)
+                ClipboardFlipLog.Log("backup: the text on the clipboard is over " + MaxBackupTextBytes / (1024 * 1024) + " MB");
+            return result == ClipboardRead.Failed || result == ClipboardRead.TooLarge;
         }
 
         /// <summary>
@@ -444,7 +490,7 @@ namespace CyrFlip
             Win32Clipboard.RestoreIf(current =>
             {
                 opened = true;
-                action = ClipboardRestore.Plan(backup.Sequence, backup.HasContent, current, receipt.StillOurs(current));
+                action = ClipboardRestore.Plan(backup.Sequence, backup.Restorable, current, receipt.StillOurs(current));
                 return action == RestoreAction.Restore;
             }, RestorePayloads(backup));
 
@@ -460,7 +506,11 @@ namespace CyrFlip
         /// the clipboard straight back. For callers that need seconds between reading the selection and
         /// doing anything with it (the translator, a quick note): the clipboard is theirs again at once.
         /// </summary>
-        internal CaptureResult TakeSelection(out string selection, out IntPtr foreground)
+        /// <param name="maxChars">
+        /// The consumer's own cap (S0032 FP2-5): a longer selection is refused unread as
+        /// <see cref="CaptureResult.TooLarge"/> instead of being marshalled whole into this process.
+        /// </param>
+        internal CaptureResult TakeSelection(out string selection, out IntPtr foreground, int maxChars = MaxFlipChars)
         {
             selection = "";
             foreground = IntPtr.Zero;
@@ -474,7 +524,7 @@ namespace CyrFlip
             SideModifiers released = SideModifiers.None;
             try
             {
-                CaptureResult result = CaptureSelection(int.MaxValue, refuseLineCopy: true,
+                CaptureResult result = CaptureSelection(maxChars, refuseLineCopy: true,
                     out Win32Clipboard.CaptureRead read, out foreground, out released);
                 if (result == CaptureResult.Captured) selection = read.Text;
                 return result;
@@ -494,8 +544,9 @@ namespace CyrFlip
         /// <param name="refuseLineCopy">
         /// Treat an editor's "no selection - copy the whole line" as nothing selected (FP-4).
         /// </param>
+        /// <param name="presenceOnly">A selection over <paramref name="maxChars"/> counts as captured, not too large.</param>
         private CaptureResult CaptureSelection(int maxChars, bool refuseLineCopy, out Win32Clipboard.CaptureRead read,
-            out IntPtr foreground, out SideModifiers released)
+            out IntPtr foreground, out SideModifiers released, bool presenceOnly = false)
         {
             read = default;
             read.Text = "";
@@ -516,12 +567,12 @@ namespace CyrFlip
 
                 if (GetClipboardSequenceNumber() == initialSeq) continue;
                 if (!Win32Clipboard.TryReadCapture(maxChars, out read)) continue;
-                if (read.TooLarge)
+                if (read.TooLarge && !presenceOnly)
                 {
                     ClipboardFlipLog.Log("selection over " + maxChars + " chars refused");
                     return CaptureResult.TooLarge;
                 }
-                if (read.Text.Length == 0) continue;
+                if (read.Text.Length == 0 && !read.TooLarge) continue;
                 if (refuseLineCopy && read.LineCopy)
                 {
                     ClipboardFlipLog.Log("editor line copy (no selection) ignored");
@@ -562,7 +613,7 @@ namespace CyrFlip
             TransientMarks marks = !transient ? TransientMarks.None : remote ? TransientMarks.HistoryOnly : TransientMarks.All;
 
             ClipboardOwner? owner = transient ? ClipboardOwner.Shared : null;
-            PasteOffer? offer = owner?.Offer(text, locale, marks);
+            PasteOffer? offer = owner?.Offer(text, locale, marks, foreground);
             if (owner != null && offer != null)
             {
                 receipt = PasteReceipt.ByOwner(owner, offer.OwnSequence);

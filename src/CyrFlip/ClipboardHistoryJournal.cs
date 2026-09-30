@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -25,6 +26,22 @@ namespace CyrFlip
     /// is written as <c>"\n" + json</c>, so the record after a torn tail starts a line of its own
     /// instead of being glued onto it. Skipped lines are never removed from disk (the history is
     /// unbounded by decision: nothing is dropped from the file).</para>
+    ///
+    /// <para><b>Nothing readable on disk</b> (ticket S0031 CH2-1). A record is written as
+    /// <c>{"v":2,"blob":"..."}</c>, the blob being the cipher of the whole record - action, id, dates,
+    /// text, source app and window title. The id is the SHA-256 of the text, which reverses a short
+    /// code or PIN in milliseconds, so it may not stand beside the blob either; inside it, it is exactly
+    /// as protected as the text, which is why no keyed hash is needed. Lines an earlier release wrote
+    /// (the text encrypted, everything else in clear) are still read and never rewritten; they go with
+    /// the next Clear or with their entry's delete.</para>
+    ///
+    /// <para><b>A delete erases</b> (CH2-5). "×" is the user's own request, not the silent dropping the
+    /// unbounded-history decision forbids: the file is rewritten without any line of that entry (lines
+    /// that will not read are carried through verbatim), and only when the rewrite fails is a tombstone
+    /// appended instead, so the entry still stays deleted on the next start.</para>
+    ///
+    /// <para><b>A failed write is counted</b> (CH2-4): <see cref="WriteFailures"/>, and
+    /// <see cref="WriteFailed"/> for the first one. It used to vanish without a trace.</para>
     /// </summary>
     internal sealed class ClipboardHistoryJournal : IDisposable
     {
@@ -70,6 +87,17 @@ namespace CyrFlip
         private FileStream? _stream;
         private int _pending;
         private int _disposed;
+        private int _writeFailures;
+
+        /// <summary>
+        /// The <c>File.Replace</c> of a delete's rewrite. A seam for the test of the fallback: a replace
+        /// that fails cannot be produced on demand any other way. No backup file - it would keep exactly
+        /// the text the user asked to erase.
+        /// </summary>
+        internal Action<string, string> ReplaceFile = (source, destination) => File.Replace(source, destination, null);
+
+        /// <summary>The first failed write of this journal. Raised once, on the writer thread.</summary>
+        public event Action? WriteFailed;
 
         /// <param name="beforeCommand">Test seam: runs on the writer thread before each command (e.g. a random yield).</param>
         internal ClipboardHistoryJournal(string path, IQuickNotesCipher cipher, Action? beforeCommand = null)
@@ -82,6 +110,12 @@ namespace CyrFlip
         }
 
         public string Path => _path;
+
+        /// <summary>Records that could not be written - disk full, a lock, the cipher throwing (S0031 CH2-4).</summary>
+        public int WriteFailures => Volatile.Read(ref _writeFailures);
+
+        /// <summary>Records still queued; after <see cref="Dispose"/>, the ones it abandoned (CH2-6).</summary>
+        public int Pending => Volatile.Read(ref _pending);
 
         /// <summary>Queue one record. Safe from any thread; ignored after <see cref="Dispose"/>.</summary>
         public void Append(Record record) => Enqueue(new Command { Record = record });
@@ -114,25 +148,45 @@ namespace CyrFlip
                 try
                 {
                     _beforeCommand?.Invoke();
-                    if (command.Record != null) Write(command.Record);
-                    else ExecuteClear(command.ClearDone);
+                    if (command.Record == null) ExecuteClear(command.ClearDone);
+                    else if (command.Record.Action == "delete") ExecuteDelete(command.Record);
+                    else Write(command.Record);
                 }
-                catch { /* history must never affect the clipboard or crash */ }
+                catch { CountFailure(); /* history must never affect the clipboard or crash */ }
                 finally { Interlocked.Decrement(ref _pending); }
             }
             CloseStream();
         }
 
-        private void Write(Record record)
+        private void CountFailure()
         {
-            var line = new HistoryLine { Action = record.Action, Uuid = record.Uuid, CreatedAt = record.CreatedAt, IsPinned = record.IsPinned };
+            if (Interlocked.Increment(ref _writeFailures) != 1) return;
+            try { WriteFailed?.Invoke(); } catch { }
+        }
+
+        /// <summary>One v2 line: the whole record under the cipher, nothing beside it but the version.</summary>
+        private string Encode(Record record)
+        {
+            var inner = new SealedRecord
+            {
+                Action = record.Action,
+                Uuid = record.Uuid,
+                CreatedAt = record.CreatedAt,
+                IsPinned = record.IsPinned,
+            };
             if (record.Action == "add")
             {
-                line.Payload = _cipher.Protect(record.Text ?? "");
-                line.SourceApp = record.SourceApp;
-                line.SourceTitle = record.SourceTitle;
+                inner.Text = record.Text ?? "";
+                inner.SourceApp = record.SourceApp;
+                inner.SourceTitle = record.SourceTitle;
             }
-            byte[] bytes = Encoding.UTF8.GetBytes("\n" + _writerJson.Serialize(line));
+            string blob = _cipher.Protect(_writerJson.Serialize(inner));
+            return _writerJson.Serialize(new Dictionary<string, object> { { "v", 2 }, { "blob", blob } });
+        }
+
+        private void Write(Record record)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes("\n" + Encode(record));
             try
             {
                 _stream ??= new FileStream(_path, FileMode.Append, FileAccess.Write, FileShare.Read);
@@ -144,6 +198,54 @@ namespace CyrFlip
                 // Reopen on the next record rather than keep writing through a broken handle.
                 CloseStream();
                 throw;
+            }
+        }
+
+        /// <summary>Erase the entry's lines; when that cannot be done, append the tombstone instead (CH2-5).</summary>
+        private void ExecuteDelete(Record record)
+        {
+            if (TryPurge(record.Uuid)) return;
+            Write(record);
+        }
+
+        /// <summary>
+        /// Rewrite the file without any line of <paramref name="uuid"/>. A line that will not read is
+        /// kept verbatim - it may belong to any entry, and a DPAPI key can come back. False when the
+        /// rewrite could not be completed; the file is then as it was.
+        /// </summary>
+        private bool TryPurge(string uuid)
+        {
+            CloseStream();
+            string temp = _path + ".purge.tmp";
+            try
+            {
+                if (!File.Exists(_path)) return true;
+                var json = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+                bool removed = false;
+                using (var writer = new StreamWriter(temp, false, new UTF8Encoding(false)))
+                {
+                    foreach (string line in File.ReadLines(_path))
+                    {
+                        if (string.IsNullOrWhiteSpace(line)) continue;
+                        SealedRecord? r = null;
+                        try { r = Decode(json, line); } catch { }
+                        if (r != null && r.Uuid == uuid) { removed = true; continue; }
+                        writer.Write("\n");
+                        writer.Write(line);
+                    }
+                }
+                if (!removed)
+                {
+                    File.Delete(temp);
+                    return true;
+                }
+                ReplaceFile(temp, _path);
+                return true;
+            }
+            catch
+            {
+                try { if (File.Exists(temp)) File.Delete(temp); } catch { }
+                return false;
             }
         }
 
@@ -194,7 +296,7 @@ namespace CyrFlip
         /// <summary>False for a line that parsed but is not a usable record.</summary>
         private bool Replay(JavaScriptSerializer json, string line, ClipboardHistoryOrder order)
         {
-            HistoryLine? r = json.Deserialize<HistoryLine>(line);
+            SealedRecord? r = Decode(json, line);
             if (r == null || string.IsNullOrEmpty(r.Uuid)) return false;
             ClipboardHistoryEntry? e = order.Find(r.Uuid);
             switch (r.Action)
@@ -203,14 +305,12 @@ namespace CyrFlip
                     if (e != null) order.Remove(e);
                     return true;
                 case "add":
-                    if (string.IsNullOrEmpty(r.Payload)) return false;
+                    if (r.Text == null) return false;
                     if (e != null) return true; // already present: a repeated add changes nothing
-                    string? text = _cipher.Unprotect(r.Payload!);
-                    if (text == null) return false;
                     order.Add(new ClipboardHistoryEntry
                     {
                         Uuid = r.Uuid,
-                        Text = text,
+                        Text = r.Text,
                         CreatedAt = new DateTime(r.CreatedAt, DateTimeKind.Utc),
                         IsPinned = r.IsPinned,
                         SourceApp = r.SourceApp ?? "",
@@ -228,7 +328,44 @@ namespace CyrFlip
             }
         }
 
-        /// <summary>Completes the queue and waits up to <see cref="DisposeDrain"/> for the writer to finish it.</summary>
+        /// <summary>
+        /// One line of either shape as a record with its text in clear; null for a line this journal
+        /// cannot read - an unknown version, a blob the cipher refuses, a v1 payload it refuses.
+        /// </summary>
+        private SealedRecord? Decode(JavaScriptSerializer json, string line)
+        {
+            var raw = json.Deserialize<Dictionary<string, object>>(line);
+            if (raw == null) return null;
+            if (raw.TryGetValue("v", out object? version))
+            {
+                if (!(version is int v) || v != 2) return null;
+                if (!raw.TryGetValue("blob", out object? blob) || !(blob is string sealedText)) return null;
+                string? inner = _cipher.Unprotect(sealedText);
+                return inner == null ? null : json.Deserialize<SealedRecord>(inner);
+            }
+            // v1, written before S0031: only the payload is encrypted.
+            LegacyLine legacy = json.ConvertToType<LegacyLine>(raw);
+            var r = new SealedRecord
+            {
+                Action = legacy.Action,
+                Uuid = legacy.Uuid,
+                CreatedAt = legacy.CreatedAt,
+                IsPinned = legacy.IsPinned,
+                SourceApp = legacy.SourceApp,
+                SourceTitle = legacy.SourceTitle,
+            };
+            if (legacy.Action == "add" && !string.IsNullOrEmpty(legacy.Payload))
+            {
+                r.Text = _cipher.Unprotect(legacy.Payload!);
+                if (r.Text == null) return null;
+            }
+            return r;
+        }
+
+        /// <summary>
+        /// Completes the queue and waits up to <see cref="DisposeDrain"/> for the writer to finish it;
+        /// what it could not wait for stays in <see cref="Pending"/> for the caller to report (CH2-6).
+        /// </summary>
         public void Dispose()
         {
             if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
@@ -236,8 +373,20 @@ namespace CyrFlip
             _writer.Join(DisposeDrain);
         }
 
-        /// <summary>The on-disk shape - unchanged from the files earlier releases wrote.</summary>
-        private sealed class HistoryLine
+        /// <summary>What a v2 blob holds: the whole record, the text in clear inside the cipher.</summary>
+        private sealed class SealedRecord
+        {
+            public string Action { get; set; } = "";
+            public string Uuid { get; set; } = "";
+            public long CreatedAt { get; set; }
+            public bool IsPinned { get; set; }
+            public string? Text { get; set; }
+            public string? SourceApp { get; set; }
+            public string? SourceTitle { get; set; }
+        }
+
+        /// <summary>The v1 shape earlier releases wrote - read, never written again.</summary>
+        private sealed class LegacyLine
         {
             public string Action { get; set; } = "";
             public string Uuid { get; set; } = "";

@@ -1,5 +1,4 @@
 using System;
-using Microsoft.Win32;
 using static CyrFlip.WindowInterop;
 
 namespace CyrFlip
@@ -9,8 +8,9 @@ namespace CyrFlip
     /// DPI aware, so Windows scales none of its drawing: a size in pixels stays that size on a 250%
     /// laptop panel, where the old fixed 24px badge was six or seven logical pixels - barely readable -
     /// and the I-beam sat beside a system pointer three times its size. The base size is the user's
-    /// setting (<see cref="AppConfig.CursorSize"/>, one of <see cref="Presets"/>); the monitor's DPI and,
-    /// for the I-beam, the pointer-size accessibility setting are applied on top.
+    /// setting (<see cref="AppConfig.CursorSize"/>, one of <see cref="Presets"/>); the monitor's DPI is
+    /// applied on top. The I-beam is drawn for the nominal cursor cell, and Windows applies the
+    /// pointer-size accessibility setting to it itself (<see cref="CursorHeight"/>).
     /// </summary>
     internal static class MarkerSize
     {
@@ -42,15 +42,41 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// Height of the branded I-beam in physical pixels: the base size scaled by the DPI and by the
-        /// pointer size the user chose in Windows (<c>CursorBaseSize</c>, 32 at the smallest step), so a
-        /// user who enlarged the pointer for their eyesight does not get a small I-beam back.
+        /// How tall Windows' own I-beam is at the default marker size, as a fraction of the base size.
+        /// Measured on the stock <c>ibeam_eoa.cur</c>: its glyph is 0.57 of the pointer cell (73px in a
+        /// 128px cell, 127px in a 224px one), i.e. about 18px in the standard 32px cell - so the default
+        /// base of 24 maps onto 18px.
         /// </summary>
-        public static int CursorHeight(int baseSize, int dpi, int cursorBaseSize)
+        internal const double StockIBeamPerBase = 0.75;
+
+        /// <summary>
+        /// Height of the branded I-beam in pixels <b>of the nominal cursor cell</b>
+        /// (<paramref name="nominalCursor"/> = <c>SM_CYCURSOR</c>, which follows the DPI but not the
+        /// pointer size): the base size calibrated to the stock I-beam (<see cref="StockIBeamPerBase"/>).
+        /// Windows itself stretches a cursor set with <c>SetSystemCursor</c> from that nominal cell to the
+        /// pointer size chosen in Settings ▸ Accessibility, exactly as it does its own cursors - verified
+        /// live at pointer size 7 on a 175% panel, where a 126px I-beam came out about 4.7 times the
+        /// height of the arrow (224px cell / 48px nominal). Multiplying by the pointer size here as well
+        /// (S0011 LI-3) scaled it twice.
+        /// </summary>
+        public static int CursorHeight(int baseSize, int nominalCursor)
         {
             int b = baseSize <= 0 ? DefaultBase : baseSize;
-            int pointer = cursorBaseSize < StandardCursorBaseSize ? StandardCursorBaseSize : cursorBaseSize;
-            return Clamp((int)Math.Round(b * Dpi(dpi) / 96.0 * pointer / StandardCursorBaseSize), 18, 192);
+            int cell = nominalCursor <= 0 ? StandardCursorBaseSize : nominalCursor;
+            return Clamp((int)Math.Round(b * StockIBeamPerBase * cell / StandardCursorBaseSize), 14, 192);
+        }
+
+        /// <summary>The nominal cursor cell Windows scales every cursor from (<c>SM_CYCURSOR</c>: 32 at
+        /// 100%, 48 at 150-175%, 64 at 200%); 32 when it cannot be read.</summary>
+        public static int NominalCursorSize()
+        {
+            try
+            {
+                int size = GetSystemMetrics(SM_CYCURSOR);
+                if (size > 0) return size;
+            }
+            catch (EntryPointNotFoundException) { }
+            return StandardCursorBaseSize;
         }
 
         private static int Dpi(int dpi) => dpi <= 0 ? 96 : dpi;
@@ -77,18 +103,5 @@ namespace CyrFlip
 
         /// <summary>The DPI of the primary monitor - where a system cursor is designed for.</summary>
         public static int PrimaryDpi() => MonitorDpi(MonitorFromPoint(new POINT(), MONITOR_DEFAULTTOPRIMARY));
-
-        /// <summary>The pointer size from Settings ▸ Accessibility ▸ Mouse pointer (32 when unset).</summary>
-        public static int ReadCursorBaseSize()
-        {
-            try
-            {
-                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Cursors");
-                if (key?.GetValue("CursorBaseSize") is int size && size > 0)
-                    return size;
-            }
-            catch { /* unreadable: the standard size */ }
-            return StandardCursorBaseSize;
-        }
     }
 }

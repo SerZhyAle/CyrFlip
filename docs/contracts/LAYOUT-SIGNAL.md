@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `LAYOUT-SIGNAL` |
-| **Version** | 1.1, active (1.1 written 2026-09-26 by ticket S0016; the shipped app and extension still carry 1.0 until the next release) |
+| **Version** | 1.2, active (1.1 written 2026-09-26 by ticket S0016, 1.2 the same day by S0012/S0013 - rules 3, 5, 6, 7 in section 9; the shipped app and extension still carry 1.0 until the next release) |
 | **Home** | `layout-indicator/README.md` in the shared contracts catalog |
 | **Role here** | producer of `layout.txt` and `layout-klid.txt`; consumer of the editor's caret claim |
 

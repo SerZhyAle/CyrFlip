@@ -17,9 +17,9 @@ namespace CyrFlip
     /// <summary>A selection that can be opened, as resolved by <see cref="LaunchTargets.TryParse(string, out LaunchTarget, LaunchProbes)"/>.</summary>
     internal sealed class LaunchTarget
     {
-        public LaunchTarget(string target, string display, LaunchKind kind)
+        public LaunchTarget(string target, string display, LaunchKind kind, bool remote = false)
         {
-            Target = target; Display = display; Kind = kind;
+            Target = target; Display = display; Kind = kind; IsRemote = remote;
         }
 
         /// <summary>Exactly what is handed to the shell.</summary>
@@ -27,6 +27,8 @@ namespace CyrFlip
         /// <summary>The same thing shortened for a menu caption.</summary>
         public string Display { get; }
         public LaunchKind Kind { get; }
+        /// <summary>A path on another machine - classified from its text, never probed.</summary>
+        public bool IsRemote { get; }
     }
 
     /// <summary>
@@ -194,15 +196,46 @@ namespace CyrFlip
             // The word pass below still runs on a long selection, because a link inside a page of
             // text is exactly the case the user selects by dragging.
             string? text = selection!.Length <= MaxLength ? Normalize(selection) : null;
+            LaunchTarget? whole = null;
             if (text != null)
             {
-                target = AsPath(text, probes) ?? AsUrl(text);
-                if (target != null) return true;
+                whole = AsPath(text, probes) ?? AsUrl(text);
+                // A remote path is never probed, so the existence check that throws "C:\x.txt for
+                // details" out and lets the word pass find C:\x.txt does not exist for it - the whole
+                // sentence would be the target (S0034 LS2-4). Such a text goes to the word pass first,
+                // and is the target itself only when no word of it is.
+                if (whole != null && !(whole.IsRemote && LooksLikeProseAfterPath(text)))
+                {
+                    target = whole;
+                    return true;
+                }
             }
 
-            target = FromWords(selection, probes);
+            target = FromWords(selection, probes) ?? whole;
             return target != null;
         }
+
+        /// <summary>
+        /// True when the whitespace in a path-shaped text reads as prose after the path rather than
+        /// as spaces inside its names: the last segment has whitespace and does not end in an
+        /// extension. <c>\\nas\My Videos\a.mp4</c> and <c>\\nas\s\My File.docx</c> are one path each;
+        /// <c>\\server\share\x.txt for details</c> and <c>Z:\plan.docx is final</c> are not.
+        /// </summary>
+        internal static bool LooksLikeProseAfterPath(string text)
+        {
+            if (text.IndexOfAny(WordSeparators) < 0) return false;
+            string last = text.Substring(text.LastIndexOfAny(PathSeparators) + 1);
+            if (last.IndexOfAny(WordSeparators) < 0) return false; // the spaces are in folder names
+
+            int dot = last.LastIndexOf('.');
+            if (dot <= 0 || dot == last.Length - 1 || last.Length - dot - 1 > MaxExtensionChars) return true;
+            for (int i = dot + 1; i < last.Length; i++)
+                if (!char.IsLetterOrDigit(last[i])) return true;
+            return false;
+        }
+
+        private static readonly char[] PathSeparators = { '\\', '/' };
+        private const int MaxExtensionChars = 5;
 
         /// <summary>
         /// The selection was not a target as a whole - look for one word inside it that is.
@@ -264,6 +297,14 @@ namespace CyrFlip
             return text.Length == 0 ? null : text;
         }
 
+        /// <summary>A control character or a bidi control anywhere in <paramref name="text"/>.</summary>
+        internal static bool HasHiddenCharacters(string text)
+        {
+            foreach (char c in text)
+                if (char.IsControl(c) || IsBidiControl(c)) return true;
+            return false;
+        }
+
         /// <summary>The invisible characters that reorder what the eye reads (LRM/RLM, embeddings, overrides, isolates, ALM).</summary>
         internal static bool IsBidiControl(char c)
             => c == '\u200E' || c == '\u200F' || c == '\u061C'
@@ -295,6 +336,11 @@ namespace CyrFlip
                 catch { /* keep the literal text */ }
             }
 
+            // Normalize saw the text before LocalPath unescaped it and before the variables were
+            // expanded: file://host/s/invoice%E2%80%AEfdp.exe only becomes a right-to-left override
+            // here, and would reach the caption and the confirmation spoofed (S0034 LS2-1).
+            if (HasHiddenCharacters(path)) return null;
+
             if (path.Length < 3) return null;
             if (path.IndexOfAny(Path.GetInvalidPathChars()) >= 0) return null;
             // A wildcard is not a path, and FindFirstFile would read it as a pattern.
@@ -308,7 +354,9 @@ namespace CyrFlip
                 case PathPlace.NotAPath:
                     return null;
                 case PathPlace.Remote:
-                    return new LaunchTarget(canonicalRemote, Elide(canonicalRemote), LaunchKind.Program);
+                    return HasHiddenCharacters(canonicalRemote)
+                        ? null
+                        : new LaunchTarget(canonicalRemote, Elide(canonicalRemote), LaunchKind.Program, remote: true);
             }
 
             // Local from here on: the canonical form is what Windows will open, so it is what is
@@ -330,6 +378,9 @@ namespace CyrFlip
                 string? directory = Path.GetDirectoryName(full);
                 if (directory != null) full = Path.Combine(directory, real);
             }
+            // The name on disk is what the confirmation shows - a real file called so as to read
+            // backwards is refused like the text that spells one.
+            if (HasHiddenCharacters(full)) return null;
 
             string extension;
             try { extension = Path.GetExtension(full) ?? ""; }
@@ -392,6 +443,42 @@ namespace CyrFlip
             }
 
             return PathPlace.NotAPath; // IsPathRooted said yes to something we do not recognise
+        }
+
+        /// <summary>
+        /// Whether <paramref name="path"/> lives on another machine, decided from its text and the
+        /// local mount table alone - the same classifier the selection launch uses, shared with the
+        /// scenario launcher (ticket S0030 HT-1): a UNC name in either slash direction or as
+        /// <c>\\?\UNC\</c>, <c>file://host/..</c>, a <c>DRIVE_REMOTE</c> letter, or a root-relative
+        /// path on a network current directory. Probing such a path opens an SMB session and waits out
+        /// its timeout, so a caller on the UI thread takes it "as written" instead. A relative path or
+        /// anything that is not a path at all is not remote.
+        /// </summary>
+        internal static bool IsRemotePath(string? path, LaunchProbes? probes = null)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return false;
+            string p = path!.Trim().Trim('"');
+            if (p.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var uri = new Uri(p);
+                    if (!uri.IsFile) return false;
+                    p = uri.LocalPath; // file://host/share/x -> \\host\share\x
+                }
+                catch { return false; }
+            }
+            if (p.IndexOf('%') >= 0)
+            {
+                try { p = Environment.ExpandEnvironmentVariables(p); }
+                catch { /* keep the literal text */ }
+            }
+
+            bool rooted;
+            try { rooted = Path.IsPathRooted(p); }
+            catch { return false; }
+            if (!rooted) return false;
+            return Classify(p, probes ?? LaunchProbes.Real(), out _) == PathPlace.Remote;
         }
 
         private static PathPlace RemoteOn(string root, string rootRelative, out string canonicalRemote)

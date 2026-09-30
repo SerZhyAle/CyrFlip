@@ -151,6 +151,90 @@ namespace CyrFlip.Tests
             Assert.Equal(after, File.ReadAllBytes(live));
         }
 
+        /// <summary>
+        /// S0035 QN2-4: a merge that fails once (the live journal held by a scan) is not the end of
+        /// those notes - the next pass finds the kept journal unmarked and merges it.
+        /// </summary>
+        [Fact]
+        public void AFailedMergeIsRetriedOnTheNextPass()
+        {
+            Journal(Legacy).Create(Note("only in the old journal", DateTime.UtcNow));
+            var live = Journal(Current);
+            live.Create(Note("only in the live journal", DateTime.UtcNow));
+
+            DataFolderMigration.Result first;
+            using (new FileStream(live.Path, FileMode.Open, FileAccess.Read, FileShare.None))
+                first = Migrate();
+
+            Assert.False(first.Complete);
+            Assert.Null(first.MergedJournal);
+            string kept = Path.Combine(Current, "quick-notes.migrated-20260926.log");
+            Assert.True(File.Exists(kept));
+            Assert.False(File.Exists(kept + DataFolderMigration.MergedMarker));
+
+            var second = Migrate();
+
+            Assert.True(second.Complete);
+            Assert.Equal(kept, second.MergedJournal);
+            Assert.True(File.Exists(kept + DataFolderMigration.MergedMarker));
+            Assert.Contains(Journal(Current).Load(), n => n.RawText == "only in the old journal");
+        }
+
+        /// <summary>S0035 QN2-7: deletes are applied as recorded - on the live side too.</summary>
+        [Fact]
+        public void TheMergeDoesNotBringBackANoteTheLiveJournalDeleted()
+        {
+            Guid id = Guid.NewGuid();
+            Journal(Legacy).Create(Note("deleted here since", new DateTime(2026, 9, 1, 0, 0, 0, DateTimeKind.Utc), id));
+            var live = Journal(Current);
+            live.Create(Note("deleted here since", new DateTime(2026, 9, 1, 0, 0, 0, DateTimeKind.Utc), id));
+            live.Delete(id);
+            live.Create(Note("still here", DateTime.UtcNow));
+
+            var result = Migrate();
+
+            Assert.True(result.Complete);
+            Assert.Equal(0, result.NotesMerged);
+            Assert.Equal("still here", Journal(Current).Load().Single().RawText);
+        }
+
+        /// <summary>
+        /// S0035 QN2-5: a same-volume move keeps the ACEs a file inherited from the shared folder. The
+        /// moved file must carry what its new folder passes down, and nothing of the old one's - here a
+        /// "Guests may read" the legacy folder hands to every file in it.
+        /// </summary>
+        [Fact]
+        public void AMovedFileTakesItsNewFoldersAclNotTheSharedOnes()
+        {
+            var guests = new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.BuiltinGuestsSid, null);
+            var folder = Directory.GetAccessControl(Legacy);
+            folder.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(guests,
+                System.Security.AccessControl.FileSystemRights.ReadAndExecute,
+                System.Security.AccessControl.InheritanceFlags.ObjectInherit | System.Security.AccessControl.InheritanceFlags.ContainerInherit,
+                System.Security.AccessControl.PropagationFlags.None, System.Security.AccessControl.AccessControlType.Allow));
+            Directory.SetAccessControl(Legacy, folder);
+            string reports = Path.Combine(Legacy, DataFolderMigration.ReportsFolderName);
+            Directory.CreateDirectory(reports);
+            string archive = Path.Combine(reports, "CyrFlip-logs-1.zip");
+            File.WriteAllText(archive, "logs");
+            Assert.True(HasAce(archive, guests), "the setup must give the file the shared folder's ACE");
+
+            var result = Migrate();
+
+            string moved = Path.Combine(Current, DataFolderMigration.ReportsFolderName, "CyrFlip-logs-1.zip");
+            Assert.Equal(1, result.ReportsMoved);
+            Assert.False(HasAce(moved, guests), "the moved archive still lets Guests read it");
+            Assert.Equal("logs", File.ReadAllText(moved)); // and it is still ours to read
+        }
+
+        private static bool HasAce(string path, System.Security.Principal.SecurityIdentifier sid)
+        {
+            foreach (System.Security.AccessControl.FileSystemAccessRule rule in File.GetAccessControl(path)
+                         .GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier)))
+                if (rule.IdentityReference.Equals(sid)) return true;
+            return false;
+        }
+
         [Fact]
         public void OwnLogsAreDeletedForeignOnesKeptAndLayoutFilesLeftToTheMirror()
         {

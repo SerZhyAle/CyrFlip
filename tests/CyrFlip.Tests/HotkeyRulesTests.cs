@@ -52,6 +52,13 @@ namespace CyrFlip.Tests
         [InlineData("Ctrl+Insert")]
         [InlineData("Shift+Insert")]
         [InlineData("Shift+Delete")]
+        [InlineData("Ctrl+Space")]
+        [InlineData("Ctrl+Backspace")]
+        [InlineData("Ctrl+Delete")]
+        [InlineData("Ctrl+Home")]
+        [InlineData("Ctrl+End")]
+        [InlineData("Alt+F4")]
+        [InlineData("Alt+Space")]
         public void EditingChordsAreRefused(string chord)
             => Assert.Equal(HotkeyRules.Refusal.EditingChord, Check(chord, Us));
 

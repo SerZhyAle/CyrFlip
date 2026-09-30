@@ -57,7 +57,18 @@ namespace CyrFlip.Tests
         public void BelowRightOfTheCaretWhenThereIsRoom()
         {
             Point p = CaretPlacement.Place(new CaretRect(500, 300, 320), Badge, Primary);
-            Assert.Equal(new Point(500 + CaretPlacement.GapX, 320 + CaretPlacement.GapY), p);
+            Assert.Equal(new Point(500 + CaretPlacement.GapX, 320 + CaretPlacement.GapY + Badge.Height / 2), p);
+        }
+
+        [Fact]
+        public void TheBadgeIsPressedAgainstTheCaretAndDroppedHalfItsHeight()
+        {
+            // The user's rule: tight against the caret (a touch to its left) and half a badge lower,
+            // so it never covers the text right after the caret.
+            Point p = CaretPlacement.Place(new CaretRect(500, 300, 320), Badge, Primary);
+            Assert.True(p.X <= 500, "the badge starts right of the caret");
+            Assert.True(p.X >= 500 - 2, "the badge starts too far left of the caret");
+            Assert.True(p.Y >= 320 + Badge.Height / 2, "the badge is not dropped by half its height");
         }
 
         [Fact]
@@ -65,7 +76,7 @@ namespace CyrFlip.Tests
         {
             // The prompt on the last line of a maximized terminal.
             Point p = CaretPlacement.Place(new CaretRect(500, 1062, 1078), Badge, Primary);
-            Assert.Equal(1062 - CaretPlacement.GapY - Badge.Height, p.Y);
+            Assert.Equal(1062 - CaretPlacement.GapY - Badge.Height / 2 - Badge.Height, p.Y);
             Assert.True(p.Y + Badge.Height <= 1062, "the marker covers the line being typed");
         }
 
@@ -73,7 +84,7 @@ namespace CyrFlip.Tests
         public void LeftOfTheCaretAtTheRightEdge()
         {
             Point p = CaretPlacement.Place(new CaretRect(1910, 300, 320), Badge, Primary);
-            Assert.Equal(1910 - CaretPlacement.GapX - Badge.Width, p.X);
+            Assert.Equal(1910 - Badge.Width, p.X);
         }
 
         [Fact]
@@ -175,14 +186,32 @@ namespace CyrFlip.Tests
         public void TheBadgeScalesWithTheMonitor(int baseSize, int dpi, int expected)
             => Assert.Equal(expected, MarkerSize.OverlayHeight(baseSize, dpi));
 
+        /// <summary>The I-beam is drawn for the nominal cursor cell (SM_CYCURSOR: 32 / 48 / 64 with the
+        /// DPI) and never for the accessibility pointer size - Windows stretches it to that itself, and
+        /// doing it here too drew it 4.7 times the arrow at pointer size 7.</summary>
         [Theory]
-        [InlineData(24, 96, 32, 24)]
-        [InlineData(24, 192, 32, 48)]
-        [InlineData(24, 96, 64, 48)]   // the pointer enlarged in the accessibility settings
-        [InlineData(24, 192, 64, 96)]
-        [InlineData(24, 96, 0, 24)]    // an unreadable pointer size is the standard one
-        public void TheIBeamFollowsDpiAndThePointerSize(int baseSize, int dpi, int pointer, int expected)
-            => Assert.Equal(expected, MarkerSize.CursorHeight(baseSize, dpi, pointer));
+        [InlineData(24, 32, 18)]
+        [InlineData(24, 48, 27)]   // 150-175%
+        [InlineData(24, 64, 36)]   // 200%
+        [InlineData(18, 48, 20)]
+        [InlineData(32, 48, 36)]
+        [InlineData(24, 0, 18)]    // unreadable: the standard cell
+        public void TheIBeamIsDrawnForTheNominalCursorCell(int baseSize, int nominal, int expected)
+            => Assert.Equal(expected, MarkerSize.CursorHeight(baseSize, nominal));
+
+        /// <summary>At the default marker size the branded I-beam is Windows' own I-beam's height in the
+        /// same cell: its glyph is 0.57 of the cell (measured on <c>ibeam_eoa.cur</c> at 128 and 224px),
+        /// so after Windows stretches both by the same factor they still match.</summary>
+        [Theory]
+        [InlineData(32)]
+        [InlineData(48)]
+        [InlineData(64)]
+        public void AtTheDefaultSizeTheIBeamMatchesTheStockOne(int nominal)
+        {
+            double stock = 0.567 * nominal;
+            int ours = MarkerSize.CursorHeight(MarkerSize.DefaultBase, nominal);
+            Assert.InRange(ours, stock * 0.9, stock * 1.1);
+        }
 
         [Theory]
         [InlineData(18, 0)]

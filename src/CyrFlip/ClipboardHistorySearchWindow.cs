@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -26,7 +26,7 @@ namespace CyrFlip
         private readonly TextBox _query = new TextBox { Dock = DockStyle.Fill };
         private readonly Label _hint = new Label { AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Padding = new Padding(0, 6, 0, 0) };
         private readonly ListView _results = new ListView { Dock = DockStyle.Fill, FullRowSelect = true, HideSelection = false, MultiSelect = false, View = View.Details, VirtualMode = true };
-        private readonly Button _restore = new Button { AutoSize = true };
+        private readonly Button _restore = new Button { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
         private readonly System.Windows.Forms.Timer _debounce = new System.Windows.Forms.Timer { Interval = DebounceMs };
         private readonly string _language;
         // This window is built fresh on every search, and a Form disposes neither the font nor the icon
@@ -63,8 +63,8 @@ namespace CyrFlip
             _results.Columns.Add(Localize("Текст"), 420);
             _results.Columns.Add(Localize("Дата"), 135);
             _results.Columns.Add(Localize("Источник"), 120);
-            var bottom = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 48, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(8) };
-            var close = new Button { Text = Localize("Закрыть"), AutoSize = true };
+            var bottom = new FlowLayoutPanel { Dock = DockStyle.Bottom, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(0, 48), FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(8) };
+            var close = new Button { Text = Localize("Закрыть"), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
             _restore.Text = Localize("Вернуть в буфер");
             _restore.Enabled = false;
             bottom.Controls.Add(close);
@@ -72,8 +72,8 @@ namespace CyrFlip
             if (exchange != null)
             {
                 // Left of the restore button: they act on the whole history, not on the selected row.
-                var export = new Button { Text = Localize("Экспортировать..."), AutoSize = true };
-                var import = new Button { Text = Localize("Импортировать..."), AutoSize = true };
+                var export = new Button { Text = Localize("Экспортировать..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
+                var import = new Button { Text = Localize("Импортировать..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
                 export.Click += (_, _) => exchange(this, false);
                 import.Click += (_, _) => exchange(this, true);
                 bottom.Controls.Add(import);
@@ -82,6 +82,11 @@ namespace CyrFlip
             Controls.Add(bottom);
 
             close.Click += (_, _) => Close();
+            // INPUT-PARITY rule 1: Esc closes, Enter restores the selected row, Delete removes it, and
+            // Down/Up in the query box walk into the results - every pointer action has a key.
+            CancelButton = close;
+            _query.KeyDown += OnQueryKeyDown;
+            _results.KeyDown += OnResultsKeyDown;
             _query.TextChanged += (_, _) => ScheduleRefresh();
             _debounce.Tick += (_, _) => { _debounce.Stop(); RefreshResults(); };
             _results.RetrieveVirtualItem += OnRetrieveVirtualItem;
@@ -189,6 +194,40 @@ namespace CyrFlip
             row.SubItems.Add(entry.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm"));
             row.SubItems.Add(entry.SourceApp);
             e.Item = row;
+        }
+
+        private void OnQueryKeyDown(object? sender, KeyEventArgs e)
+        {
+            if ((e.KeyCode != Keys.Down && e.KeyCode != Keys.Up) || e.Modifiers != Keys.None || _matches.Length == 0) return;
+            int index = _results.SelectedIndices.Count == 1 ? _results.SelectedIndices[0] : 0;
+            SelectRow(index);
+            _results.Focus();
+            e.Handled = e.SuppressKeyPress = true;
+        }
+
+        private void OnResultsKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Modifiers != Keys.None) return;
+            if (e.KeyCode == Keys.Enter) { RestoreSelected(); e.Handled = e.SuppressKeyPress = true; }
+            else if (e.KeyCode == Keys.Delete) { DeleteSelected(); e.Handled = e.SuppressKeyPress = true; }
+        }
+
+        private void SelectRow(int index)
+        {
+            if (index < 0 || index >= _matches.Length) return;
+            _results.SelectedIndices.Clear();
+            _results.SelectedIndices.Add(index);
+            _results.FocusedItem = _results.Items[index];
+            _results.EnsureVisible(index);
+        }
+
+        /// <summary>The strip's "×", from the keyboard; the list refreshes through <see cref="OnHistoryChanged"/>.</summary>
+        private void DeleteSelected()
+        {
+            if (_results.SelectedIndices.Count != 1) return;
+            int index = _results.SelectedIndices[0];
+            if (index < 0 || index >= _matches.Length) return;
+            _service.Delete(_matches[index]);
         }
 
         private void RestoreSelected()

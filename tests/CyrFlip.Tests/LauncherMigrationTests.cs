@@ -32,6 +32,71 @@ namespace CyrFlip.Tests
             Assert.Equal(9, Directory.GetFiles(Fixtures, "*.xml").Length);
         }
 
+        /// <summary>
+        /// S0034 LS2-8: a file CyrFlip wrote carries its chord, and the import is repeatable - the
+        /// second run must not bind the same chord to a second scenario. Since S0014 B5 an identical
+        /// scenario is skipped, so the copy that reaches the chord check is one whose content changed.
+        /// </summary>
+        [Fact]
+        public void ARepeatedImportNeverBindsOneChordToTwoScenarios()
+        {
+            string source = Path.Combine(_target, "source");
+            var sourceStore = new LauncherScenarioStore(source);
+            var tool = new LauncherScenario
+            {
+                Name = "Tool", Path = @"C:\Windows\System32\calc.exe", Hotkey = "Ctrl+Alt+F9",
+            };
+            sourceStore.Add(tool);
+            var store = new LauncherScenarioStore(Path.Combine(_target, "store"));
+            var config = new AppConfig();
+            Func<ChordRegistry> chords = () => ChordRegistry.Build(config, store.All, new LanguageHotkeys.Entry[0]);
+
+            Assert.Equal(0, LauncherMigration.Import(store, source, chords).ChordsDropped);
+            tool.Arguments = "--changed since the first import";
+            sourceStore.Update(tool);
+            LauncherMigration.Result second = LauncherMigration.Import(store, source, chords);
+
+            Assert.Equal(1, second.NewIds);
+            Assert.Equal(1, second.ChordsDropped);
+            Assert.Equal(2, store.Count);
+            Assert.Single(store.All, s => s.Hotkey == "Ctrl+Alt+F9");
+        }
+
+        /// <summary>
+        /// SCENARIO-FILE rule 8 on a repeated migration (S0014 B5): the same id with the same content
+        /// is the scenario arriving again - skipped and counted, never doubled.
+        /// </summary>
+        [Fact]
+        public void RunningTheMigrationTwiceImportsNothingTheSecondTime()
+        {
+            var store = new LauncherScenarioStore(_target);
+            Assert.Equal(9, LauncherMigration.Import(store, Fixtures).Imported);
+
+            LauncherMigration.Result second = LauncherMigration.Import(store, Fixtures);
+
+            Assert.Equal(0, second.Imported);
+            Assert.Equal(9, second.AlreadyPresent);
+            Assert.Equal(0, second.NewIds);
+            Assert.Equal(9, store.Count);
+        }
+
+        [Fact]
+        public void TheSameIdWithOtherContentIsStillACollisionNotAnAlreadyMigratedScenario()
+        {
+            var store = new LauncherScenarioStore(_target);
+            LauncherMigration.Import(store, Fixtures);
+            LauncherScenario calc = Assert.Single(store.All, s => s.Id == Guid.Parse("12345678-1234-1234-1234-123456789abc"));
+            calc.Arguments = "edited by the user";
+            store.Update(calc);
+
+            LauncherMigration.Result second = LauncherMigration.Import(store, Fixtures);
+
+            Assert.Equal(1, second.Imported);
+            Assert.Equal(1, second.NewIds);
+            Assert.Equal(8, second.AlreadyPresent);
+            Assert.Equal(10, store.Count);
+        }
+
         [Fact]
         public void ImportBringsEveryFixtureAndPreservesGuids()
         {

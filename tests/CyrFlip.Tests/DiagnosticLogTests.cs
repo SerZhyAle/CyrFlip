@@ -60,8 +60,7 @@ namespace CyrFlip.Tests
             DiagnosticLog.Rotate(path, maxBytes: 4096, keepBytes: 2048);
 
             string[] rotated = File.ReadAllLines(path);
-            Assert.StartsWith("--- rotated ", rotated[0]);
-            Assert.Contains("dropped, tail follows ---", rotated[0]);
+            Assert.StartsWith("[Diag] LOG COMPACTED | ", rotated[0]);
             // The tail starts on a line boundary, never mid-line: the second line has to be one of
             // the originals, whole.
             Assert.Contains(rotated[1], lines);
@@ -82,14 +81,16 @@ namespace CyrFlip.Tests
             DiagnosticLog.Rotate(path, maxBytes: 4096, keepBytes: 2048);
 
             string marker = File.ReadAllLines(path)[0];
-            // "first N bytes of M dropped" - both numbers are the real ones, so a reader can tell
-            // what is missing rather than guessing. N is at least everything outside the kept
-            // window, and a little more because the tail is cut forward to a line boundary.
-            Assert.Contains(" bytes of " + original + " dropped", marker);
-            int first = marker.IndexOf("first ", StringComparison.Ordinal) + "first ".Length;
-            int end = marker.IndexOf(' ', first);
-            long reported = long.Parse(marker.Substring(first, end - first));
-            Assert.InRange(reported, original - 2048, original);
+            // DIAGNOSTIC-REPORT rule 4's marker: both numbers are the real ones, so a reader can tell
+            // what is missing rather than guessing. The dropped part is at least everything outside the
+            // kept window, a little more because the tail is cut forward to a line boundary, and the two
+            // add up to the original length exactly.
+            var match = System.Text.RegularExpressions.Regex.Match(marker,
+                @"^\[Diag\] LOG COMPACTED \| dropped_middle_bytes=(\d+) \| kept_head_bytes=0 \| kept_tail_bytes=(\d+)$");
+            Assert.True(match.Success, marker);
+            long dropped = long.Parse(match.Groups[1].Value), kept = long.Parse(match.Groups[2].Value);
+            Assert.InRange(dropped, original - 2048, original);
+            Assert.Equal(original, dropped + kept);
         }
 
         [Fact]
@@ -106,6 +107,7 @@ namespace CyrFlip.Tests
 
             DiagnosticLog.Append(path, "first message");
             DiagnosticLog.Append(path, "second message");
+            Assert.True(DiagnosticLog.Flush(TimeSpan.FromSeconds(10)));
 
             string[] result = File.ReadAllLines(path);
             Assert.Equal("second message", result[result.Length - 1]);
@@ -120,8 +122,62 @@ namespace CyrFlip.Tests
             string path = Path.Combine(_dir, "nested", "fresh.log");
 
             DiagnosticLog.Append(path, "hello");
+            Assert.True(DiagnosticLog.Flush(TimeSpan.FromSeconds(10)));
 
             Assert.Equal(new[] { "hello" }, File.ReadAllLines(path));
+        }
+
+        [Fact]
+        public void Append_returns_without_touching_the_file_system()
+        {
+            // The sink stands in for the whole file write and holds the writer up: if Append did
+            // any of the work itself, it would either block here or run the sink on this thread.
+            int callerThread = Environment.CurrentManagedThreadId;
+            int sinkThread = -1;
+            var release = new System.Threading.ManualResetEventSlim(false);
+            var written = new System.Collections.Generic.List<string>();
+            var writer = new DiagnosticLog.Writer(4096, 2048, 10, (path, lines) =>
+            {
+                sinkThread = Environment.CurrentManagedThreadId;
+                release.Wait(TimeSpan.FromSeconds(10));
+                lock (written) written.AddRange(lines);
+            });
+            string target = Path.Combine(_dir, "never", "created.log");
+
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            for (int i = 0; i < 100; i++) writer.Append(target, "line " + i);
+            clock.Stop();
+
+            Assert.True(clock.ElapsedMilliseconds < 1000, "Append waited " + clock.ElapsedMilliseconds + " ms");
+            Assert.False(Directory.Exists(Path.GetDirectoryName(target)));
+            Assert.False(writer.Flush(TimeSpan.FromMilliseconds(50)), "the sink is still held, so nothing can be flushed yet");
+
+            release.Set();
+            Assert.True(writer.Flush(TimeSpan.FromSeconds(10)));
+            Assert.NotEqual(callerThread, sinkThread);
+            Assert.Equal(100, written.Count);
+            for (int i = 0; i < 100; i++) Assert.Equal("line " + i, written[i]); // order kept
+        }
+
+        [Fact]
+        public void A_long_session_is_rotated_again_after_enough_appends()
+        {
+            // An autostarted tray session lasts weeks; "rotate on the first write" alone was no cap.
+            string path = Path.Combine(_dir, "long.log");
+            var writer = new DiagnosticLog.Writer(maxBytes: 4096, keepBytes: 2048, checkEvery: 20);
+            string payload = new string('q', 100);
+
+            for (int i = 0; i < 200; i++)
+            {
+                writer.Append(path, payload);
+                if (i % 7 == 0) Assert.True(writer.Flush(TimeSpan.FromSeconds(10))); // batches of varied size
+            }
+            Assert.True(writer.Flush(TimeSpan.FromSeconds(10)));
+
+            // ~20 KB written in all; each check caps the file, so it never runs far past the cap.
+            long length = new FileInfo(path).Length;
+            Assert.InRange(length, 1, 4096 + 40 * (payload.Length + Environment.NewLine.Length));
+            Assert.StartsWith("[Diag] LOG COMPACTED | ", File.ReadAllLines(path)[0]);
         }
 
         [Fact]
@@ -136,7 +192,7 @@ namespace CyrFlip.Tests
             using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 DiagnosticLog.Rotate(path, maxBytes: 4096, keepBytes: 2048);
 
-            Assert.StartsWith("--- rotated ", File.ReadAllLines(path)[0]);
+            Assert.StartsWith("[Diag] LOG COMPACTED | ", File.ReadAllLines(path)[0]);
         }
     }
 }

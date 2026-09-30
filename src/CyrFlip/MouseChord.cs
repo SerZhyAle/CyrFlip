@@ -116,10 +116,19 @@ namespace CyrFlip
                     case "alt": alt = true; break;
                     case "right":
                     case "rmb":
-                    case "rightclick": button = MouseChordButton.Right; break;
+                    case "rightclick":
+                        if (button != null) return false;
+                        button = MouseChordButton.Right;
+                        break;
                     case "middle":
                     case "mmb":
-                    case "middleclick": button = MouseChordButton.Middle; break;
+                    case "middleclick":
+                        if (button != null) return false;
+                        button = MouseChordButton.Middle;
+                        break;
+                    // Win, a keyboard key or a button a later version names: the whole chord is
+                    // inert rather than the rest of it bound (INPUT-CHORD rules 3 and 4).
+                    default: return false;
                 }
             }
 

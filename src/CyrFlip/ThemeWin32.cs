@@ -74,6 +74,18 @@ namespace CyrFlip
             catch (ObjectDisposedException) { }
         }
 
+        /// <summary>The item tooltip of a list (<c>ShowItemToolTips</c>) is a window of its own too.</summary>
+        public static void SetListViewToolTipTheme(ListView list, string? subApp)
+        {
+            if (!list.IsHandleCreated) return;
+            try
+            {
+                IntPtr tip = WindowInterop.SendMessage(list.Handle, WindowInterop.LVM_GETTOOLTIPS, IntPtr.Zero, IntPtr.Zero);
+                SetTheme(tip, subApp);
+            }
+            catch (ObjectDisposedException) { }
+        }
+
         /// <summary>The combo box's drop-down list is a window of its own, with its own scroll bar.</summary>
         public static void SetComboListTheme(ComboBox combo, string? subApp)
         {

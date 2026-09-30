@@ -92,23 +92,7 @@ namespace CyrFlip.Tests
             return e;
         }
 
-        private static Form BuildSettings()
-        {
-            Type type = typeof(AppConfig).Assembly.GetType("CyrFlip.SettingsForm", true)!;
-            Action<bool> b = _ => { };
-            Action noop = () => { };
-            Action<int> i = _ => { };
-            Action<string> s = _ => { };
-            var launcherStore = new LauncherScenarioStore(Path.Combine(
-                Path.GetTempPath(), "CyrFlipTests", Guid.NewGuid().ToString("N")));
-            Func<string, bool, string> export = (_, _) => "";
-            return (Form)Activator.CreateInstance(type, new object[]
-            {
-                new AppConfig { UiLanguage = "English" }, b, b, b, b, b, b, b, b, b, i, s, noop, noop, noop, noop, noop, b, b, b, b, b, b,
-                launcherStore, b,
-                noop, noop, noop, export,
-            })!;
-        }
+        private static Form BuildSettings() => TestForms.NewSettings(new AppConfig { UiLanguage = "English" });
 
         private static void OnUiThread(Action body)
         {

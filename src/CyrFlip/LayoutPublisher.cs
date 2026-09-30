@@ -53,6 +53,9 @@ namespace CyrFlip
         /// <summary>Returns at once - the caller is the UI thread; the write happens on a worker.</summary>
         public static void Publish(string code, string? klid = null) => Default.Publish(code, klid);
 
+        /// <summary>Retries publishing the pending layout if a previous write failed (e.g. sharing violation).</summary>
+        public static void RetryIfPending() => Default.RetryIfPending();
+
         /// <summary>
         /// Deletes both files on a clean exit (rule 6). Called only by the primary instance's context -
         /// never from <c>Program</c>, where the <c>/launcher-run</c> forwarding process and the one-shot
@@ -61,17 +64,45 @@ namespace CyrFlip
         public static void Retract() => Default.Retract();
 
         /// <summary>The synchronous write, the body of every publish. Swallows every failure.</summary>
-        internal static void WriteNow(string folder, string code, string klid)
+        internal static void WriteNow(string folder, string code, string klid) => TryWriteNow(folder, code, klid);
+
+        internal static bool TryWriteNow(string folder, string code, string klid)
         {
             try
             {
                 Directory.CreateDirectory(folder);
-                File.WriteAllText(Path.Combine(folder, CodeFileName), code);
-                File.WriteAllText(Path.Combine(folder, KlidFileName), klid);
+                bool ok1 = WriteFileAtomic(folder, CodeFileName, code);
+                bool ok2 = WriteFileAtomic(folder, KlidFileName, klid);
+                return ok1 && ok2;
             }
             catch
             {
                 // Best-effort - never let publishing affect the app.
+                return false;
+            }
+        }
+
+        private static bool WriteFileAtomic(string folder, string fileName, string content)
+        {
+            string targetPath = Path.Combine(folder, fileName);
+            string tempPath = Path.Combine(folder, fileName + "." + Guid.NewGuid().ToString("N") + ".tmp");
+            try
+            {
+                File.WriteAllText(tempPath, content);
+                if (File.Exists(targetPath))
+                {
+                    File.Replace(tempPath, targetPath, null, ignoreMetadataErrors: true);
+                }
+                else
+                {
+                    File.Move(tempPath, targetPath);
+                }
+                return true;
+            }
+            catch
+            {
+                try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
+                return false;
             }
         }
 
@@ -112,6 +143,17 @@ namespace CyrFlip
                 ThreadPool.QueueUserWorkItem(_ => Drain());
             }
 
+            internal void RetryIfPending()
+            {
+                lock (_gate)
+                {
+                    if (_retracted || _pendingCode == null || _draining)
+                        return;
+                    _draining = true;
+                }
+                ThreadPool.QueueUserWorkItem(_ => Drain());
+            }
+
             private void Drain()
             {
                 while (true)
@@ -123,15 +165,34 @@ namespace CyrFlip
                         {
                             _draining = false;
                             Monitor.PulseAll(_gate);
+                            if (_retracted)
+                                DeleteFiles();
                             return;
                         }
                         code = _pendingCode;
                         klid = _pendingKlid;
                         _pendingCode = null;
                     }
-                    WriteNow(_folder, code, klid); // outside the lock: a publish never waits on the disk
+                    bool ok = TryWriteNow(_folder, code, klid); // outside the lock: a publish never waits on the disk
                     if (_mirror != null)
-                        WriteNow(_mirror, code, klid); // its own try: a mirror another account owns costs only itself
+                        TryWriteNow(_mirror, code, klid); // its own try: a mirror another account owns costs only itself
+
+                    if (!ok)
+                    {
+                        lock (_gate)
+                        {
+                            if (!_retracted && _pendingCode == null)
+                            {
+                                _pendingCode = code;
+                                _pendingKlid = klid;
+                            }
+                            _draining = false;
+                            Monitor.PulseAll(_gate);
+                            if (_retracted)
+                                DeleteFiles();
+                            return;
+                        }
+                    }
                 }
             }
 
@@ -160,6 +221,13 @@ namespace CyrFlip
                 }
                 // A write already in flight would otherwise recreate the files after the delete.
                 Flush(TimeSpan.FromMilliseconds(250));
+                DeleteFiles();
+                // editor-caret.txt is the extension's claim, never ours to delete (VERSIONING section 4
+                // rule 5: absence is not authority to destroy).
+            }
+
+            private void DeleteFiles()
+            {
                 TryDelete(Path.Combine(_folder, CodeFileName));
                 TryDelete(Path.Combine(_folder, KlidFileName));
                 if (_mirror != null)
@@ -167,8 +235,6 @@ namespace CyrFlip
                     TryDelete(Path.Combine(_mirror, CodeFileName));
                     TryDelete(Path.Combine(_mirror, KlidFileName));
                 }
-                // editor-caret.txt is the extension's claim, never ours to delete (VERSIONING section 4
-                // rule 5: absence is not authority to destroy).
             }
 
             private static void TryDelete(string path)

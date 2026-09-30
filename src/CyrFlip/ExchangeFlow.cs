@@ -21,6 +21,8 @@ namespace CyrFlip
     {
         /// <summary>How many unreadable blocks the preview names one by one before it only counts.</summary>
         private const int ProblemLinesShown = 8;
+        /// <summary>How long the import waits for its history records to reach the disk before it reports.</summary>
+        private static readonly TimeSpan HistoryImportFlush = TimeSpan.FromMinutes(2);
 
         private readonly AppConfig _config;
         private readonly ClipboardHistoryService _history;
@@ -87,23 +89,32 @@ namespace CyrFlip
             List<QuickNote>? noteList = null;
             if (includeNotes && notes != null)
             {
-                // "Everything" means everything: the open editor's text and the replay, both finished first.
+                // "Everything" means everything: the open editor's text and the replay, both finished
+                // first - the replay waited for with the message loop running (S0030 HT-6).
                 _commitOpenNote();
-                notes.EnsureLoaded();
+                WaitForNotes(owner, notes);
                 notes.Flush();
                 noteList = new List<QuickNote>(notes.Notes);
             }
-            List<ClipboardHistoryEntry>? entries = pinned || rest
-                ? CyrFlipExchangeWriter.SelectHistory(_history.Entries, pinned, rest, scope, DateTime.UtcNow)
-                : null;
+            // Snapshots taken here; selecting, formatting and writing them is the worker's (S0030 HT-2).
+            List<ClipboardHistoryEntry>? history = pinned || rest ? new List<ClipboardHistoryEntry>(_history.Entries) : null;
+            List<ClipboardHistoryEntry>? entries = null;
 
             try
             {
-                CyrFlipExchangeWriter.WriteFile(path, CyrFlipExchangeWriter.ToText(DateTime.UtcNow, noteList, entries));
+                entries = BusyDialog.Run(owner, _config.UiLanguage, () =>
+                {
+                    DateTime now = DateTime.UtcNow;
+                    List<ClipboardHistoryEntry>? selected = history != null
+                        ? CyrFlipExchangeWriter.SelectHistory(history, pinned, rest, scope, now)
+                        : null;
+                    CyrFlipExchangeWriter.WriteFile(path, CyrFlipExchangeWriter.ToText(now, noteList, selected));
+                    return selected;
+                });
             }
             catch (Exception ex)
             {
-                ConfirmDialog.Show(owner, _config.UiLanguage, string.Format(T("Не удалось сохранить файл: {0}"), ex.Message),
+                ConfirmDialog.Show(owner, _config.UiLanguage, string.Format(T("Не удалось сохранить файл: {0}"), FailureCause.Describe(ex, _config.UiLanguage)),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -129,19 +140,17 @@ namespace CyrFlip
                 path = open.FileName;
             }
 
+            // Read and parsed on the pool (S0030 HT-2): a legal file is up to 25 MB.
             ExchangeReadResult read;
-            Cursor? previous = Cursor.Current;
             try
             {
-                Cursor.Current = Cursors.WaitCursor;
-                read = CyrFlipExchangeReader.ReadFile(path);
+                read = BusyDialog.Run(owner, _config.UiLanguage, () => CyrFlipExchangeReader.ReadFile(path));
             }
             catch (Exception ex)
             {
-                Tell(owner, string.Format(T("Не удалось прочитать файл: {0}"), ex.Message), MessageBoxIcon.Warning);
+                Tell(owner, string.Format(T("Не удалось прочитать файл: {0}"), FailureCause.Describe(ex, _config.UiLanguage)), MessageBoxIcon.Warning);
                 return;
             }
-            finally { Cursor.Current = previous; }
 
             if (read.Fatal != null)
             {
@@ -163,7 +172,11 @@ namespace CyrFlip
                     string.Format(T("Заметок без Id в файле: {0} - похоже, они написаны вручную. Импортировать их как новые заметки?"), read.NotesWithoutId),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
 
-            if (notes != null) _commitOpenNote();
+            if (notes != null)
+            {
+                _commitOpenNote();
+                WaitForNotes(owner, notes); // the plan is about all the notes, not about the replay so far
+            }
             ExchangeMergeReport noteplan = notes?.PlanImport(read.Notes, includeNew) ?? new ExchangeMergeReport();
             ExchangeMergeReport historyplan = history ? _history.PlanImport(read.Clipboard) : new ExchangeMergeReport();
 
@@ -193,10 +206,26 @@ namespace CyrFlip
                 return;
 
             // Planned again inside each service, against the live state: the preview was modal, not frozen.
-            ExchangeMergeReport done = notes?.Import(read.Notes, includeNew) ?? new ExchangeMergeReport();
+            // The list changes here; the thousands of encrypted records go out on the pool (S0030 HT-2).
+            ExchangeMergeReport done = notes?.Import(read.Notes, includeNew,
+                write => BusyDialog.Run(owner, _config.UiLanguage, write)) ?? new ExchangeMergeReport();
             ExchangeMergeReport doneHistory = history ? _history.Import(read.Clipboard) : new ExchangeMergeReport();
-            Tell(owner, string.Format(T("Импорт завершён: добавлено заметок {0}, обновлено {1}, добавлено записей истории {2}."),
-                done.NotesAdded + done.NotesNew, done.NotesUpdated, doneHistory.ClipboardAdded), MessageBoxIcon.Information);
+            // "Done" only once the records are on disk (S0031 CH2-6): a quick exit after the report used
+            // to abandon the tail of a large import's queue without a word.
+            int unwritten = history && doneHistory.ClipboardAdded + doneHistory.ClipboardExisting > 0
+                ? BusyDialog.Run(owner, _config.UiLanguage, () => _history.FlushJournal(HistoryImportFlush))
+                : 0;
+            string message = string.Format(T("Импорт завершён: добавлено заметок {0}, обновлено {1}, добавлено записей истории {2}."),
+                done.NotesAdded + done.NotesNew, done.NotesUpdated, doneHistory.ClipboardAdded);
+            if (unwritten > 0)
+                message += "\n\n" + string.Format(T("Записей истории ещё не записано на диск: {0}. Они будут дописаны, пока CyrFlip работает."), unwritten);
+            Tell(owner, message, unwritten > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
+        }
+
+        /// <summary>Wait for the notes replay with the message loop running - never <c>Task.Wait</c> on this thread.</summary>
+        private void WaitForNotes(IWin32Window? owner, QuickNotesService notes)
+        {
+            if (!notes.IsLoaded) BusyDialog.Wait(owner, _config.UiLanguage, notes.LoadAsync());
         }
 
         private void Tell(IWin32Window? owner, string message, MessageBoxIcon icon)

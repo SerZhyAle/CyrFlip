@@ -38,6 +38,8 @@ namespace CyrFlip.Tests
         {
             ["CyrFlip.CaretOverlay+OverlayForm"] =
                 "the caret badge: layout colours drawn over the user's own text (LAYOUT-PALETTE, APP-STYLE rule 5)",
+            ["CyrFlip.RegionSelectionOverlay+MonitorWindow"] =
+                "the region capture's overlay: a frozen picture of the user's own screen under a fixed veil (S0026 4.4)",
             ["CyrFlip.LauncherTaskbarWindow"] =
                 "a 1x1 window at Opacity 0 that exists only to own a taskbar button - there is nothing to paint",
         };
@@ -173,7 +175,8 @@ namespace CyrFlip.Tests
             {
                 ArchivePath = @"C:\x\reports\CyrFlip-logs.zip", ArchiveBytes = 1000,
                 Entries = new List<SupportBundle.Entry> { new SupportBundle.Entry { Name = "report.txt", Bytes = 100 } },
-                Dropped = new List<string>(),
+                // A row the dialog builds in text.muted - the list-item colour the walk must follow (S0036 UI-6).
+                Dropped = new List<string> { "clipboard-flip.log" },
             };
             var config = new AppConfig { UiLanguage = "English" };
             Directory.CreateDirectory(_root);
@@ -187,10 +190,12 @@ namespace CyrFlip.Tests
             yield return ("TranslationDialog", () => new TranslationDialog(null, "English"));
             yield return ("TranslationResultWindow", () => new TranslationResultWindow(new AppConfig { UiLanguage = "English" }, "English"));
             yield return ("SupportBundleDialog", () => new SupportBundleDialog(bundle, "English"));
+            yield return ("ExchangeExportDialog", () => new ExchangeExportDialog("English", notesAvailable: true, notesWarningOff: false));
             yield return ("ConfirmDialog", () => new ConfirmDialog("English", "Delete?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true, owned: true));
-            yield return ("ClipboardHistoryWindow", () => new ClipboardHistoryWindow(History(), config, () => { }));
-            yield return ("ClipboardHistorySearchWindow", () => new ClipboardHistorySearchWindow(History(), "English"));
-            yield return ("QuickNotesWindow", () => new QuickNotesWindow(Notes(), config, () => { }, () => { }));
+            yield return ("BusyDialog", () => new BusyDialog("English", System.Threading.Tasks.Task.CompletedTask));
+            yield return ("ClipboardHistoryWindow",() => new ClipboardHistoryWindow(History(), config, () => { }));
+            yield return ("ClipboardHistorySearchWindow", () => new ClipboardHistorySearchWindow(History(), "English", (_, _) => { }));
+            yield return ("QuickNotesWindow", () => new QuickNotesWindow(Notes(), config, () => { }, () => { }, (_, _) => { }));
         }
 
         private ClipboardHistoryService History()
@@ -202,13 +207,7 @@ namespace CyrFlip.Tests
         private T Own<T>(T disposable) where T : IDisposable { _owned.Add(disposable); return disposable; }
 
         private SettingsForm NewSettings(AppConfig config)
-        {
-            Action<bool> b = _ => { };
-            Action noop = () => { };
-            var store = new LauncherScenarioStore(Path.Combine(_root, "scenarios"));
-            return new SettingsForm(config, b, b, b, b, b, b, b, b, b, _ => { }, _ => { }, noop, noop, noop, noop, noop,
-                b, b, b, b, b, b, store, b, noop, noop, noop, (_, _) => "");
-        }
+            => TestForms.NewSettings(config, Path.Combine(_root, "scenarios"));
 
         // ---- The checks ----
 
@@ -269,6 +268,17 @@ namespace CyrFlip.Tests
                                             && !list.CheckBoxes && !list.OwnerDraw:
                         problems.Add($"{path}: the list header is not owner-drawn");
                         break;
+                }
+                // A row's own colour is painted by the native list, outside every control's colours (UI-6).
+                if (control is ListView rows && !rows.VirtualMode)
+                    for (int i = 0; i < rows.Items.Count; i++)
+                    {
+                        Color fore = rows.Items[i].ForeColor;
+                        if (fore != rows.ForeColor && (fore.IsSystemColor || !DarkForeColors.Contains(fore.ToArgb())))
+                            problems.Add($"{path}/item {i}: ForeColor {Describe(fore)} is not a dark palette colour");
+                    }
+                switch (control)
+                {
                     case ThemeTabControl tabs when !IsUserPainted(tabs):
                         problems.Add($"{path}: the page list is left to the light native paint");
                         break;
@@ -318,6 +328,9 @@ namespace CyrFlip.Tests
                         break;
                     case ListView list:
                         result[path + ".OwnerDraw"] = list.OwnerDraw.ToString();
+                        if (!list.VirtualMode)
+                            for (int i = 0; i < list.Items.Count; i++)
+                                result[path + "/item " + i + ".ForeColor"] = Describe(list.Items[i].ForeColor);
                         break;
                 }
             }

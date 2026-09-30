@@ -23,6 +23,10 @@ namespace CyrFlip
         public event EventHandler? ClipboardHistoryHotkeyPressed;
         /// <summary>Raised when a new quick note should be opened, ready to type into.</summary>
         public event EventHandler? QuickNotesHotkeyPressed;
+        /// <summary>Raised when a screen region capture should start (S0026).</summary>
+        public event EventHandler? ScreenshotHotkeyPressed;
+        /// <summary>The keyboard's way to the text context menu (S0045 K2): opens it at the caret.</summary>
+        public event EventHandler? TextMenuHotkeyPressed;
         /// <summary>Raised with the id of a user-configured layout conversion profile.</summary>
         public event Action<string>? LayoutConversionHotkeyPressed;
         /// <summary>Raised with the id of a launcher scenario whose per-scenario chord matched.</summary>
@@ -37,6 +41,13 @@ namespace CyrFlip
         /// </summary>
         public event EventHandler? CancelKeyPressed;
         /// <summary>
+        /// Raised on a bare F6 while <see cref="UpdateFocusKeyWatch"/> is on - i.e. while the finished
+        /// translation popup is up (ticket S0045 K1, <c>INPUT-PARITY</c> rule 1). The popup never takes the
+        /// focus by itself, so F6 - Windows' "next pane" key - is the keyboard's way into it and back out.
+        /// Unlike Escape the key <b>is</b> swallowed, down, repeats and up: it is a command to us then.
+        /// </summary>
+        public event EventHandler? FocusKeyPressed;
+        /// <summary>
         /// Raised, before the chord's own event, whenever a chord fires and its trigger is swallowed,
         /// with the modifiers held at that moment. The subscriber taps the mask key (on the UI thread,
         /// never in here): Windows never saw the trigger, so to it the user pressed and released the
@@ -44,6 +55,12 @@ namespace CyrFlip
         /// switch and a lone Alt into the menu bar (ticket S0004, KC-4).
         /// </summary>
         public event Action<SideModifiers>? ChordFired;
+
+        /// <summary>
+        /// When true (e.g. while <see cref="HotkeyDialog"/> is capturing a key), chords are passed
+        /// through rather than swallowed and triggered (ticket S0033, KC2-4).
+        /// </summary>
+        public static volatile bool SuspendChords;
 
         private LowLevelKeyboardProc? _proc;
         private IntPtr _hook = IntPtr.Zero;
@@ -68,6 +85,12 @@ namespace CyrFlip
         // Off unless the quick notes are switched on at all - the same discipline the tables use:
         // a feature nobody enabled costs the callback one field read and nothing else.
         private bool _quickNotesEnabled;
+        // The screen region capture's chord - off until the context binds it from the config.
+        private Hotkey _screenshotHotkey = Hotkey.Parse(AppConfig.DefaultScreenshotHotkey);
+        private Hotkey _textMenuHotkey = Hotkey.Parse(AppConfig.DefaultTextMenuHotkey);
+        // Off unless the context menu and the chord's own switch are both on.
+        private bool _textMenuEnabled;
+        private bool _screenshotEnabled;
         private ConversionBinding[] _conversionProfiles = new ConversionBinding[0];
         // Launcher scenario chords. Same discipline as the conversion table: an immutable snapshot
         // array swapped atomically, empty whenever the launcher is off, so the callback never pays
@@ -79,6 +102,9 @@ namespace CyrFlip
         // On only while a translation is streaming, so an ordinary Escape costs one field read.
         private bool _watchCancelKey;
         private const int VK_ESCAPE = 0x1B;
+        // On only while the finished translation popup is visible.
+        private bool _watchFocusKey;
+        private const int VK_F6 = 0x75;
 
 
         public KeyboardHook()
@@ -161,12 +187,13 @@ namespace CyrFlip
 
         /// <summary>
         /// Re-read which modifiers are held (install, re-arm, session unlock): a key pressed or
-        /// released while the hook was not listening would otherwise stay wrong in the table.
+        /// released while the hook was not listening would otherwise stay wrong in the table. A
+        /// trigger held across the re-arm stays owned (KC2-2).
         /// </summary>
         public void RefreshModifiers()
         {
             _matcher.Modifiers.Refresh(vk => (GetAsyncKeyState(vk) & 0x8000) != 0);
-            _matcher.Reset();
+            _matcher.Reset(unchecked((uint)Environment.TickCount));
         }
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
@@ -213,8 +240,19 @@ namespace CyrFlip
             if (_watchCancelKey && data.vkCode == VK_ESCAPE)
                 CancelKeyPressed?.Invoke(this, EventArgs.Empty);
 
-            // Pass everything through when hotkey listening is switched off in settings.
-            if (!_enabled) return false;
+            // F6 while the popup is up (S0045 K1): ahead of the master switch like Escape, since the
+            // popup also opens from the tray with the hotkeys off. Only a bare F6 - Ctrl+F6, Shift+F6
+            // and the rest keep their meaning in the user's window.
+            // The matcher then owns its repeats and its release, exactly as for a chord's trigger.
+            if (down && data.vkCode == VK_F6 && _watchFocusKey && _matcher.Modifiers.Held == SideModifiers.None)
+            {
+                _matcher.Fired(VK_F6, data.time);
+                FocusKeyPressed?.Invoke(this, EventArgs.Empty);
+                return true;
+            }
+
+            // Pass everything through when hotkey listening is switched off in settings or suspended.
+            if (!_enabled || SuspendChords) return false;
 
             uint vk = data.vkCode;
             // Each hotkey is matched only when its own switch is on (so a machine can, say,
@@ -222,11 +260,13 @@ namespace CyrFlip
             bool caseMatch = _caseEnabled && _matcher.Matches(_caseHotkey, vk);
             bool historyMatch = _historyEnabled && _matcher.Matches(_clipboardHistoryHotkey, vk);
             bool notesMatch = _quickNotesEnabled && _matcher.Matches(_quickNotesHotkey, vk);
+            bool screenshotMatch = _screenshotEnabled && _matcher.Matches(_screenshotHotkey, vk);
+            bool textMenuMatch = _textMenuEnabled && _matcher.Matches(_textMenuHotkey, vk);
             LayoutConversionProfile? conversion = FindConversion(vk);
             Guid? launcher = FindLauncher(vk);
             TranslationProfile? translation = FindTranslation(vk);
 
-            if (!caseMatch && !historyMatch && !notesMatch && conversion == null && launcher == null && translation == null)
+            if (!caseMatch && !historyMatch && !notesMatch && !screenshotMatch && !textMenuMatch && conversion == null && launcher == null && translation == null)
                 return false;
 
             // When a remote-desktop client is focused and deferral is on, don't touch the key: let
@@ -244,6 +284,8 @@ namespace CyrFlip
             if (caseMatch) CaseHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (historyMatch) ClipboardHistoryHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (notesMatch) QuickNotesHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (screenshotMatch) ScreenshotHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (textMenuMatch) TextMenuHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (conversion != null) LayoutConversionHotkeyPressed?.Invoke(conversion.Id);
             else if (launcher != null) LauncherHotkeyPressed?.Invoke(launcher.Value);
             else TranslateHotkeyPressed?.Invoke(translation!.Id);
@@ -305,9 +347,18 @@ namespace CyrFlip
         public void UpdateHistoryEnabled(bool enabled) => _historyEnabled = enabled;
         /// <summary>False whenever the quick notes are off <b>or</b> their own chord switch is.</summary>
         public void UpdateQuickNotesEnabled(bool enabled) => _quickNotesEnabled = enabled;
+        public void UpdateScreenshotHotkey(Hotkey hotkey) => _screenshotHotkey = hotkey;
+        public void UpdateTextMenuHotkey(Hotkey hotkey) => _textMenuHotkey = hotkey;
+        /// <summary>False whenever the context menu is off <b>or</b> this chord's own switch is.</summary>
+        public void UpdateTextMenuEnabled(bool enabled) => _textMenuEnabled = enabled;
+        /// <summary>The capture chord's own switch.</summary>
+        public void UpdateScreenshotEnabled(bool enabled) => _screenshotEnabled = enabled;
 
         /// <summary>Watch for Escape (see <see cref="CancelKeyPressed"/>) - on only while translating.</summary>
         public void UpdateCancelKeyWatch(bool watch) => _watchCancelKey = watch;
+
+        /// <summary>Watch for a bare F6 (see <see cref="FocusKeyPressed"/>) - on only while the popup is up.</summary>
+        public void UpdateFocusKeyWatch(bool watch) => _watchFocusKey = watch;
 
         /// <summary>Replace the custom conversion hotkeys without reinstalling the global hook.</summary>
         public void UpdateConversionProfiles(IEnumerable<LayoutConversionProfile> profiles)

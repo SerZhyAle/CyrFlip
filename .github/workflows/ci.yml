@@ -88,7 +88,12 @@ jobs:
         run: dotnet build CyrFlip.sln -c Release --no-restore
 
       - name: Test
-        run: dotnet test CyrFlip.sln -c Release --no-build --verbosity normal
+        shell: pwsh
+        # The TRX count check fails a run that discovered nothing, which exits 0 (S0029 RB-6).
+        run: |
+          dotnet test CyrFlip.sln -c Release --no-build --verbosity normal --logger trx --results-directory TestResults
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./tools/Assert-TestRun.ps1 -ResultsDirectory TestResults
 
       - name: Build IconGen
         run: dotnet build tools/IconGen --configuration Release

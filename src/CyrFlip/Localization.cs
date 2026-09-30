@@ -49,6 +49,8 @@ namespace CyrFlip
             AddQuickNotesStrings();
             AddSupportStrings();
             AddThemeStrings();
+            AddExchangeStrings();
+            AddGraphicsStrings();
         }
 
         /// <summary>Every registered source string with its translations - used by the localization test.</summary>
@@ -56,7 +58,10 @@ namespace CyrFlip
 
         public static int IndexOf(string? language)
         {
-            int index = Array.IndexOf(Names, language ?? "");
+            if (string.IsNullOrEmpty(language)) return English;
+            int index = Array.IndexOf(Names, language);
+            if (index >= 0) return index;
+            index = Array.IndexOf(Codes, language);
             return index < 0 ? English : index;
         }
 
@@ -67,12 +72,33 @@ namespace CyrFlip
         /// </summary>
         public static string Translate(string language, string ru)
         {
+            if (string.IsNullOrEmpty(ru)) return string.Empty;
             int index = IndexOf(language);
             if (index == 0) return ru;
             if (!Map.TryGetValue(ru, out string[]? values)) return ru;
             string value = values[index - 1];
             if (value.Length == 0) value = values[English - 1];
             return value.Length == 0 ? ru : value;
+        }
+
+        /// <summary>
+        /// Safely formats a translated string with the given arguments (APP-BEHAVIOUR rule 7).
+        /// If formatting fails (e.g. broken placeholder in template), catches <see cref="FormatException"/>
+        /// and falls back to formatting the Russian template or returning the template as-is.
+        /// </summary>
+        public static string Format(string language, string? ru, params object?[] args)
+        {
+            if (string.IsNullOrEmpty(ru)) return string.Empty;
+            string template = Translate(language, ru!);
+            try
+            {
+                return string.Format(template, args);
+            }
+            catch (FormatException)
+            {
+                try { return string.Format(ru!, args); }
+                catch { return template; }
+            }
         }
 
         /// <summary>Arabic and Urdu are written right-to-left; WinForms has to mirror for them.</summary>
@@ -160,6 +186,14 @@ namespace CyrFlip
 
         private static void Add(string ru, string en, string uk, string de, string it, string es, string fr,
             string pt, string ar, string hi, string bn, string ur, string zh)
-            => Map[ru] = new[] { en, uk, de, it, es, fr, pt, ar, hi, bn, ur, zh };
+        {
+            // Last wins, so a second registration would silently replace the first translation;
+            // the test suite asserts this list stays empty (S0029 RB-10).
+            if (Map.ContainsKey(ru)) DuplicateKeys.Add(ru);
+            Map[ru] = new[] { en, uk, de, it, es, fr, pt, ar, hi, bn, ur, zh };
+        }
+
+        /// <summary>Keys registered more than once - always empty in a correct build.</summary>
+        internal static readonly List<string> DuplicateKeys = new List<string>();
     }
 }

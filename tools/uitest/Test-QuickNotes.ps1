@@ -28,6 +28,12 @@ $repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $exe = Join-Path $repo "src\CyrFlip\bin\$Configuration\net48\CyrFlip.exe"
 
 Import-Module (Join-Path $PSScriptRoot 'CyrFlip.UiTest.psm1') -Force
+Import-Module (Join-Path $repo 'tools\checks\CheckVerdict.psm1') -Force
+
+$banner = Get-CyrFlipSubjectBanner -ExePath $exe
+Set-CheckSubject "uitest/Test-QuickNotes $($banner.SubjectAxis)"
+Write-Host "Subject: $($banner.BannerText)" -ForegroundColor Cyan
+
 $dataFolder = Get-CyrFlipDataFolder   # portable, Store (S0016) or a pre-S0016 Store build
 $logDir = $dataFolder.Path
 $packaged = $dataFolder.Packaged
@@ -55,14 +61,16 @@ if (Test-Path $reg) {
 if ($enabled -ne 1) {
     Write-Warning 'The quick notes are off. Settings > Быстрые заметки > enable, then run this again.'
     Write-Warning 'While off there is deliberately no journal at all, so nothing below can be checked.'
-    return
+    Add-CheckFinding -Severity notverified -Name 'feature-disabled' -Reason 'Quick notes feature is disabled in settings'
+    Complete-Check
 }
 
 # ---- The journal on disk ----
 
 if (-not (Test-Path $journal)) {
     Write-Warning 'No journal yet: create one note first, then run this again.'
-    return
+    Add-CheckFinding -Severity notverified -Name 'journal-absent' -Reason 'No journal file found (create a note first)'
+    Complete-Check
 }
 
 $lines = @(Get-Content $journal)
@@ -74,7 +82,8 @@ $lines = @(Get-Content $journal)
 # written in the clear by a future change would show up here and nowhere else.
 $plain = @($lines | Where-Object { $_ -and $_ -notmatch '^[A-Za-z0-9+/]+={0,2}$' })
 if ($plain.Count -gt 0) {
-    Write-Error "FAIL: $($plain.Count) journal line(s) are not base64 - something is writing in the clear."
+    Write-Host "FAIL: $($plain.Count) journal line(s) are not base64 - something is writing in the clear." -ForegroundColor Red
+    Add-CheckFinding -Severity fail -Name 'cleartext-journal' -Reason "$($plain.Count) journal line(s) are not base64"
 } else {
     'journal shape     : OK - every line is base64, nothing readable beside it'
 }
@@ -97,10 +106,12 @@ foreach ($line in $lines) {
 }
 "DPAPI decrypt     : $decoded ok, $failed unreadable"
 if ($decoded -eq 0) {
-    Write-Error 'FAIL: not one record decrypted under this Windows account.'
+    Write-Host 'FAIL: not one record decrypted under this Windows account.' -ForegroundColor Red
+    Add-CheckFinding -Severity fail -Name 'dpapi-decrypt-zero' -Reason 'not one record decrypted under this Windows account'
 } elseif ($failed -gt 0) {
     Write-Warning "$failed record(s) did not decrypt. The app skips those and keeps the rest;"
     Write-Warning "quick-notes-diagnostics.log should say the same number."
+    Add-CheckFinding -Severity advisory -Name 'dpapi-partial-unreadable' -Reason "$failed record(s) did not decrypt"
 }
 
 if (Test-Path $diag) {
@@ -113,13 +124,14 @@ if (Test-Path $diag) {
 if (Test-Path $diag) {
     $diagText = Get-Content $diag -Raw
     if ($diagText -match 'note text|Title|RawText') {
-        Write-Error 'FAIL: the diagnostics log looks like it is carrying note content.'
+        Write-Host 'FAIL: the diagnostics log looks like it is carrying note content.' -ForegroundColor Red
+        Add-CheckFinding -Severity fail -Name 'diag-log-leak' -Reason 'diagnostics log appears to carry note content'
     } else {
         'diagnostics shape : OK - counts and errors only, no note content'
     }
 }
 
-if ($NoUi) { return }
+if ($NoUi) { Complete-Check }
 
 # ---- The human half ----
 
@@ -137,6 +149,10 @@ The rest needs you at the keyboard. In order:
      -> the note is found by its body, even though it has no name;
   5. exit CyrFlip from the tray and start it again, open the notes
      -> the fragment is there, character for character, tabs included.
+  6. (S0035 QN2-6) turn the clipboard history on, copy three short texts, edit a note and at once
+     sign out of Windows; sign back in
+     -> the note edit and all three copies are there, and quick-notes-diagnostics.log shows no
+        second "journal compacted" line for that sign-out.
 
 Step 3 is the one worth being fussy about: the copy behind it is scaffolding, and the whole point
 of the feature is that the history stays the record of what YOU copied.
@@ -145,3 +161,5 @@ of the feature is that the history stays the record of what YOU copied.
 if (-not (Test-Path $exe)) {
     Write-Warning "Built exe not found at $exe - build first if you want to run it from here."
 }
+
+Complete-Check

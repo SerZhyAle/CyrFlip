@@ -23,6 +23,7 @@ namespace CyrFlip
     {
         private int _baseSize;
         private int _scale;
+        private int _badge;
         private string _current = "";
         private string _currentKlid = "";
         private bool _currentCaps;
@@ -31,17 +32,20 @@ namespace CyrFlip
         public LayoutCursor(int cursorSize)
         {
             _baseSize = cursorSize;
-            _scale = MeasureScale(cursorSize);
+            (_scale, _badge) = MeasureScale(cursorSize);
         }
 
         /// <summary>
-        /// The I-beam's height in physical pixels: the size setting, scaled by the primary monitor's DPI
-        /// and by the pointer size the user chose in Windows (ticket S0011 LI-3). CyrFlip is per-monitor
-        /// aware, so nobody scales a bitmap cursor for it - a fixed 24px I-beam sat beside a 64px system
-        /// pointer on a 200% panel, and ignored a pointer enlarged for low vision.
+        /// The I-beam's height in the nominal cursor cell (<c>SM_CYCURSOR</c>, which carries the DPI);
+        /// Windows stretches it to the pointer size the user chose, as it does its own cursors
+        /// (<see cref="MarkerSize.CursorHeight"/>). The badge is sized from the I-beam, so the two keep
+        /// their proportions at every pointer size.
         /// </summary>
-        private static int MeasureScale(int baseSize)
-            => MarkerSize.CursorHeight(baseSize, MarkerSize.PrimaryDpi(), MarkerSize.ReadCursorBaseSize());
+        private static (int beam, int badge) MeasureScale(int baseSize)
+        {
+            int beam = MarkerSize.CursorHeight(baseSize, MarkerSize.NominalCursorSize());
+            return (beam, beam);
+        }
 
         /// <summary>The height the I-beam is currently built at - for diagnostics and tests.</summary>
         internal int Scale => _scale;
@@ -70,9 +74,10 @@ namespace CyrFlip
 
         private void Rebuild(bool force)
         {
-            int scale = MeasureScale(_baseSize);
-            bool resized = scale != _scale;
+            (int scale, int badge) = MeasureScale(_baseSize);
+            bool resized = scale != _scale || badge != _badge;
             _scale = scale;
+            _badge = badge;
             if (!_applied || (!force && !resized)) return;
             _applied = false;
             Apply(_current, _currentKlid, _currentCaps);
@@ -168,7 +173,7 @@ namespace CyrFlip
 
         private IntPtr BuildCursor(string code, string klid, bool capsOn)
         {
-            using Bitmap bmp = RenderCaret(code, klid, _scale, capsOn, out int hotX, out int hotY);
+            using Bitmap bmp = RenderCaret(code, klid, _scale, _badge, capsOn, out int hotX, out int hotY);
 
             // GetHicon preserves alpha; rebuild it as a *cursor* (fIcon = false) with a hotspot.
             IntPtr hicon = bmp.GetHicon();
@@ -199,18 +204,25 @@ namespace CyrFlip
         /// Internal so a test can read the pixels back - "is the badge see-through" is not something a
         /// build can answer, and it is the whole point of the marker not hiding the text under it.</summary>
         internal static Bitmap RenderCaret(string code, string klid, int scale, bool capsOn, out int hotX, out int hotY)
+            => RenderCaret(code, klid, scale, scale, capsOn, out hotX, out hotY);
+
+        /// <summary><paramref name="scale"/> is the I-beam's height, <paramref name="badgeSize"/> the
+        /// badge's size - separate, since only the I-beam follows the Windows pointer size.</summary>
+        internal static Bitmap RenderCaret(string code, string klid, int scale, int badgeSize, bool capsOn, out int hotX, out int hotY)
         {
             float beamH = scale;
+            float badgeH = badgeSize > 0 ? badgeSize : scale;
             float barW = Math.Max(2f, beamH * 0.10f);
             float serifW = beamH * 0.42f;
             float serifH = Math.Max(2f, beamH * 0.10f);
-            int pad = (int)Math.Ceiling(beamH * 0.16f);
-            int height = (int)Math.Ceiling(beamH) + pad * 2;
+            int pad = (int)Math.Ceiling(Math.Max(beamH, badgeH) * 0.16f);
 
             float beamCx = pad + serifW / 2f;
+            float beamTop = pad;
+            float beamMid = beamTop + beamH / 2f;
 
             // Measure the marker text to size the canvas.
-            using var font = new Font("Segoe UI", beamH * 0.6f, FontStyle.Bold, GraphicsUnit.Pixel);
+            using var font = new Font("Segoe UI", badgeH * 0.6f, FontStyle.Bold, GraphicsUnit.Pixel);
             float markerW, markerH;
             using (var probeBmp = new Bitmap(1, 1))
             using (var probe = Graphics.FromImage(probeBmp))
@@ -220,11 +232,18 @@ namespace CyrFlip
                 markerH = s.Height;
             }
 
-            float gap = beamH * 0.14f;
-            float pillPadX = beamH * 0.12f;
+            // The badge sits tight against the I-beam and hangs below it, its top at three quarters of
+            // the beam - the descender zone of the line the beam spans: centred on the beam it covered
+            // the text right after the pointer, which is the text the user is aiming at.
+            float gap = Math.Max(1f, badgeH * 0.04f);
+            float pillPadX = badgeH * 0.12f;
             float pillX = pad + serifW + gap;
             float pillW = markerW + pillPadX * 2f;
+            float pillH = markerH + badgeH * 0.12f;
+            var pill = new RectangleF(pillX, beamTop + beamH * 0.75f, pillW, pillH);
+
             int width = (int)Math.Ceiling(pillX + pillW) + pad;
+            int height = (int)Math.Ceiling(Math.Max(beamTop + beamH, pill.Bottom)) + pad;
 
             var bmp = new Bitmap(width, height);
             using (var g = Graphics.FromImage(bmp))
@@ -232,8 +251,6 @@ namespace CyrFlip
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 g.TextRenderingHint = TextRenderingHint.AntiAlias;
                 g.Clear(Color.Transparent);
-
-                float beamTop = pad;
 
                 // I-beam: white halo (so it shows on dark backgrounds) then black core on top.
                 DrawBeam(g, beamCx, beamTop, beamH, barW + 2f, serifW + 2f, serifH + 2f, Color.FromArgb(230, Color.White));
@@ -245,7 +262,6 @@ namespace CyrFlip
                 // pointer you can see through is a worse cursor, not a subtler one. There is no dark
                 // plate behind the letters: DrawCode already outlines them in black, so a plate only
                 // hid more of the text under the pointer without making the letters any easier to read.
-                var pill = new RectangleF(pillX, beamTop + (beamH - markerH) / 2f - beamH * 0.06f, pillW, markerH + beamH * 0.12f);
                 using (var badge = new Bitmap(width, height))
                 {
                     using (var bg = Graphics.FromImage(badge))
@@ -255,7 +271,7 @@ namespace CyrFlip
                         LayoutStyle.DrawCode(bg, code, font, pill, klid);
 
                         if (capsOn)
-                            LayoutStyle.DrawCapsFrame(bg, pill, beamH * 0.22f, code, klid);
+                            LayoutStyle.DrawCapsFrame(bg, pill, badgeH * 0.22f, code, klid);
                     }
 
                     using var attributes = new ImageAttributes();
@@ -265,9 +281,10 @@ namespace CyrFlip
                 }
             }
 
-            // Hotspot sits on the I-beam (where the text caret would be).
+            // Hotspot sits on the middle of the I-beam (where the text caret would be) - no longer the
+            // middle of the bitmap, which the lowered badge makes taller below the beam than above it.
             hotX = (int)Math.Round(beamCx);
-            hotY = height / 2;
+            hotY = (int)Math.Round(beamMid);
             return bmp;
         }
 

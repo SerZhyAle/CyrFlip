@@ -24,7 +24,7 @@ namespace CyrFlip
         {
             Text = Localization.Translate(uiLanguage, "Загрузка yt-dlp");
             FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false; MinimizeBox = false;
-            StartPosition = FormStartPosition.CenterScreen; ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterParent; ShowInTaskbar = false;
             AutoSize = true; AutoSizeMode = AutoSizeMode.GrowAndShrink;
             if (Localization.IsRightToLeft(uiLanguage)) { RightToLeft = RightToLeft.Yes; RightToLeftLayout = true; }
             string? family = Localization.FontFamily(uiLanguage);

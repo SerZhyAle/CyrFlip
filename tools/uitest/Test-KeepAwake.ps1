@@ -26,9 +26,14 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'CyrFlip.UiTest.psm1') -Force
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+Import-Module (Join-Path $repo 'tools\checks\CheckVerdict.psm1') -Force
 
 $regPath = 'HKCU:\Software\CyrFlip'
 $exe = Get-CyrFlipExe -Configuration $Configuration
+$banner = Get-CyrFlipSubjectBanner -ExePath $exe
+Set-CheckSubject "uitest/Test-KeepAwake $($banner.SubjectAxis)"
+Write-Host "Subject: $($banner.BannerText)" -ForegroundColor Cyan
 "exe               : $exe"
 
 function Get-SavedSwitch {
@@ -53,7 +58,11 @@ function Get-PowerRequests {
     Remove-Item $out -ErrorAction SilentlyContinue
     Start-Process powershell -Verb RunAs -Wait -ArgumentList `
         '-NoProfile', '-Command', "powercfg /requests | Out-File -Encoding utf8 '$out'"
-    if (-not (Test-Path $out)) { throw "powercfg produced no output - was the UAC prompt declined?" }
+    if (-not (Test-Path $out)) {
+        Write-Host "powercfg produced no output - was the UAC prompt declined?" -ForegroundColor Yellow
+        Add-CheckFinding -Severity notverified -Name 'uac-declined' -Reason 'powercfg produced no output (UAC prompt declined)'
+        Complete-Check
+    }
 
     $sections = @{}
     $current = $null
@@ -85,7 +94,7 @@ function Assert-Requests {
         $verdict = if ($actual -eq $Expected) { 'OK  ' } else { 'FAIL' }
         "$verdict $Stage : $section holds a CyrFlip request = $actual (expected $Expected)"
         if ($actual -ne $Expected) {
-            throw "$Stage : expected CyrFlip $(if ($Expected) { 'in' } else { 'absent from' }) the $section list."
+            Add-CheckFinding -Severity fail -Name "$Stage-$section" -Reason "expected CyrFlip $(if ($Expected) { 'in' } else { 'absent from' }) the $section list"
         }
     }
 }
@@ -109,5 +118,4 @@ finally {
     "restored        : KeepSystemAwake=$wasSystemAwake KeepScreenOn=$wasScreenOn, CyrFlip restarted on it"
 }
 
-""
-"PASS - the saved keep-awake state reaches Windows as a real power request."
+Complete-Check

@@ -209,5 +209,25 @@ namespace CyrFlip.Tests
             Assert.NotNull(toggle);
             Assert.False(LanguageHotkeys.TryParseBackup("not json", out _, out _));
         }
+
+        [Fact]
+        public void EveryDuplicateSlotOfOneLayoutIsOneAssignment()
+        {
+            // WL-12: a build before WL-4 wrote a second slot for US-International beside its own.
+            IntPtr usIntl = LanguageHotkeys.HklFromStored(0xF0010409);
+            var entries = new List<LanguageHotkeys.Entry>
+            {
+                new LanguageHotkeys.Entry { Id = 0x105, TargetHkl = new IntPtr(0xF0010409L), VirtualKey = 0x32 },
+                new LanguageHotkeys.Entry { Id = 0x100, TargetHkl = LanguageHotkeys.HklFromStored(0x04190419), VirtualKey = 0x31 },
+                new LanguageHotkeys.Entry { Id = 0x102, TargetHkl = usIntl, VirtualKey = 0x33 },
+            };
+
+            List<int> own = LanguageHotkeys.SlotsFor(entries, usIntl);
+
+            Assert.Equal(new[] { 0x102, 0x105 }, own);
+            // The slot Assign writes is the lowest - the one FindFor, reading in id order, shows.
+            Assert.Equal(0x102, LanguageHotkeys.PickSlot(new[] { 0x100, 0x102, 0x105 }, own[0]));
+            Assert.Empty(LanguageHotkeys.SlotsFor(entries, LanguageHotkeys.HklFromStored(0x04220422)));
+        }
     }
 }

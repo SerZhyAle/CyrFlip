@@ -1,4 +1,4 @@
-﻿<#
+<#
     CyrFlip РЕЛИЗ orchestrator.
 
     A РЕЛИЗ (release) is the paid, outward-facing path (vs a local "сборка" = build.ps1):
@@ -33,11 +33,18 @@ param(
     [switch] $RequireClean,
     # Kept so older invocations and the checklists that mention it still run: dirty is the default
     # now, so this is a no-op.
-    [switch] $AllowDirty
+    [switch] $AllowDirty,
+    # Skip remote origin reachable check without failing with NOT VERIFIED (exit 2).
+    [switch] $Offline
 )
 $ErrorActionPreference = 'Stop'
 $RepoRoot = $PSScriptRoot
 Set-Location $RepoRoot
+
+if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+    Write-Host 'dotnet SDK not found on PATH.' -ForegroundColor Red
+    exit 2
+}
 
 function Step($t) { Write-Host "`n=== $t ===" -ForegroundColor Cyan }
 
@@ -76,6 +83,8 @@ if (git tag --list $Tag) { throw "Tag $Tag already exists locally. Pick another 
 # push time, after the anchor commit and the local tag were already made. Ask origin first - and
 # while we are asking, make sure main is not behind, for the same reason.
 $remoteReachable = $true
+$preflightUnverified = [System.Collections.Generic.List[string]]::new()
+$preflightFails = [System.Collections.Generic.List[string]]::new()
 try {
     git fetch --quiet --tags origin 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) { $remoteReachable = $false }
@@ -90,7 +99,13 @@ if ($remoteReachable) {
     }
 }
 else {
-    Write-Host 'Could not reach origin - the remote tag/sync check was skipped.' -ForegroundColor Yellow
+    if ($Offline) {
+        Write-Host 'Could not reach origin - the remote tag/sync check was skipped (-Offline).' -ForegroundColor Yellow
+    }
+    else {
+        Write-Host 'Could not reach origin - the remote tag/sync check was skipped.' -ForegroundColor Yellow
+        $preflightUnverified.Add('remote origin unreachable (tag/behind check skipped; pass -Offline to ignore)')
+    }
 }
 
 # Store and package feeds only move forward. The local tag set includes the tags fetched above,
@@ -142,24 +157,82 @@ try {
     $worktreeAdded = $true
     Push-Location $preflightRoot
     try {
+        Step 'Check placement'
+        & (Join-Path $preflightRoot 'tools\checks\Test-CheckPlacement.ps1')
+        if ($LASTEXITCODE -ne 0) { $preflightFails.Add("placement check failed (exit $LASTEXITCODE)") }
+
         dotnet build CyrFlip.sln -c Release -p:Version=$Version --nologo
-        if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
-        # The same FileVersion gate release.yml applies after the tag - run here, so a mismatch
-        # fails before the tag exists. The SDK normalizes HHmm's leading zero in FileVersion.
-        $exeInfo = (Get-Item (Join-Path $preflightRoot 'src\CyrFlip\bin\Release\net48\CyrFlip.exe')).VersionInfo
-        if ([version]$exeInfo.FileVersion -ne [version]$Version) {
-            throw "exe FileVersion '$($exeInfo.FileVersion)' does not read back as '$Version'."
+        if ($LASTEXITCODE -ne 0) {
+            $preflightFails.Add("Build failed (exit $LASTEXITCODE)")
+            Write-Host 'Build failed - skipping dependent gates.' -ForegroundColor Red
         }
-        dotnet test CyrFlip.sln -c Release --no-build --nologo
-        if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
-        Write-Host 'Detached-HEAD build + tests green.' -ForegroundColor Green
+        else {
+            # The same FileVersion gate release.yml applies after the tag - run here, so a mismatch
+            # fails before the tag exists. The SDK normalizes HHmm's leading zero in FileVersion.
+            $exeInfo = (Get-Item (Join-Path $preflightRoot 'src\CyrFlip\bin\Release\net48\CyrFlip.exe')).VersionInfo
+            if ([version]$exeInfo.FileVersion -ne [version]$Version) {
+                $preflightFails.Add("exe FileVersion '$($exeInfo.FileVersion)' does not read back as '$Version'")
+            }
+
+            $testResults = Join-Path $preflightRoot 'TestResults-preflight'
+            dotnet test CyrFlip.sln -c Release --no-build --nologo --logger trx --results-directory $testResults
+            if ($LASTEXITCODE -ne 0) {
+                $preflightFails.Add("Unit tests failed (exit $LASTEXITCODE)")
+            }
+            else {
+                # A run that discovered nothing also exits 0 (S0029 RB-6).
+                & (Join-Path $preflightRoot 'tools\Assert-TestRun.ps1') -ResultsDirectory $testResults
+                if ($LASTEXITCODE -ne 0) { $preflightFails.Add("Test discovery count check failed") }
+                else { Write-Host 'Detached-HEAD build + tests green.' -ForegroundColor Green }
+            }
+
+            # The VS Code extension is compiled by nothing else before it is published by hand, and its
+            # source once shipped changes that out/extension.js never had (S0029 RB-7). Compile it here
+            # whenever it changed since the last release tag.
+            $lastTag = git describe --tags --abbrev=0 --match 'v*' HEAD 2>$null
+            $extensionChanged = $true
+            if ($LASTEXITCODE -eq 0 -and $lastTag) {
+                $extensionChanged = [bool](git diff --name-only $lastTag HEAD -- vscode-extension)
+            }
+            if ($extensionChanged) {
+                Step 'VS Code extension compile'
+                Push-Location (Join-Path $preflightRoot 'vscode-extension')
+                try {
+                    npm ci --no-audit --no-fund
+                    if ($LASTEXITCODE -ne 0) { $preflightFails.Add("npm ci failed in vscode-extension (exit $LASTEXITCODE)") }
+                    else {
+                        npm run compile
+                        if ($LASTEXITCODE -ne 0) { $preflightFails.Add("The VS Code extension does not compile (exit $LASTEXITCODE)") }
+                    }
+                }
+                finally { Pop-Location }
+            }
+        }
 
         # xUnit cannot see this one: store-listings.md and store/listing-*.txt repeat the listing copy
         # for the paste-by-hand path, and a mirror a release behind is exactly what gets pasted live.
         Step 'Store listing mirrors'
         & (Join-Path $preflightRoot 'msix\render-listing-mirrors.ps1') -Check
-        if ($LASTEXITCODE -ne 0) {
-            throw 'Store listing mirrors drifted from msix/store-listing-export.csv. Run msix\render-listing-mirrors.ps1, review the diff, commit.'
+        if ($LASTEXITCODE -eq 1) {
+            $preflightFails.Add('Store listing mirrors drifted from msix/store-listing-export.csv. Run msix\render-listing-mirrors.ps1, review the diff, commit.')
+        }
+        elseif ($LASTEXITCODE -eq 2) {
+            $preflightNotVerified.Add('Could not read msix/store-listing-export.csv or listing mirrors.')
+        }
+        elseif ($LASTEXITCODE -ne 0) {
+            $preflightFails.Add("Store listing mirror check failed (exit $LASTEXITCODE).")
+        }
+
+        Step 'Store listing CSV import check'
+        & (Join-Path $preflightRoot 'msix\build-store-listing-csv.ps1') -Check
+        if ($LASTEXITCODE -eq 1) {
+            $preflightFails.Add('Store listing import CSV drifted from export + language copy. Run msix\build-store-listing-csv.ps1, review the diff, commit.')
+        }
+        elseif ($LASTEXITCODE -eq 2) {
+            $preflightNotVerified.Add('Could not read msix/store-listing-export.csv or language files.')
+        }
+        elseif ($LASTEXITCODE -ne 0) {
+            $preflightFails.Add("Store listing import CSV check failed (exit $LASTEXITCODE).")
         }
     }
     finally { Pop-Location }
@@ -178,12 +251,14 @@ finally {
     }
 }
 
-# --- Trigger the GitHub build (only with -Push) -----------------------------
-if (-not $Push) {
-    Step 'PREFLIGHT ONLY - nothing pushed'
-    Write-Host "Re-run with -Push to create tag $Tag and start the GitHub release build." -ForegroundColor Yellow
+if ($preflightFails.Count -gt 0 -or $preflightNotVerified.Count -gt 0) {
+    if ($Push) {
+        Write-Host "Cannot push release tag $Tag because preflight checks did not pass." -ForegroundColor Red
+    }
 }
-else {
+
+# --- Trigger the GitHub build (only with -Push and clean preflight) -----------
+if ($Push -and $preflightFails.Count -eq 0 -and $preflightNotVerified.Count -eq 0) {
     Step "Tag + push $Tag (triggers paid GitHub release build)"
     # The anchor gets precisely HEAD's tree, regardless of what the user staged. `git commit` would
     # consume the index; commit-tree does not. Move the current branch only after the object exists.
@@ -206,6 +281,10 @@ else {
     if (Get-Command gh -ErrorAction SilentlyContinue) {
         Write-Host 'Watch:  gh run watch   (or: gh run list --workflow=Release)' -ForegroundColor DarkGray
     }
+}
+elseif (-not $Push) {
+    Step 'PREFLIGHT ONLY - nothing pushed'
+    Write-Host "Re-run with -Push to create tag $Tag and start the GitHub release build." -ForegroundColor Yellow
 }
 
 # --- The rest is manual / external: print the checklist ---------------------
@@ -233,10 +312,9 @@ Step "РЕЛИЗ checklist for $Tag  (see RELEASE.md for detail)"
         Then FILL IN THE PR BODY by hand (gh pr edit <n> --repo microsoft/winget-pkgs --body-file):
         wingetcreate submits Microsoft's template untouched - empty description, every box unticked.
 
-[ ] 4. Microsoft Store (MSIX):  .\msix\build-msix.ps1 -ReleaseZip <downloaded-release-ZIP> -Version $Version ``
-          -IdentityName "SZA.CyrFlip" ``
-          -Publisher "CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD" ``
-          -PublisherDisplayName "SZA"
+[ ] 4. Microsoft Store (MSIX):  .\msix\build-msix.ps1 -ReleaseZip <downloaded-release-ZIP> -Version $Version
+        (the Store identity SZA.CyrFlip / CN=F98ACEDB-... / SZA is the script's default; it checks the
+        exe was built from this tag's commit.)
         Then Partner Center -> CyrFlip -> Create new submission -> replace .msix -> Store listings
         -> Import from msix/store-listing-export.csv (the source of truth, all 13 languages; use
         build-store-listing-csv.ps1 -ImportFolder when screenshots go with the copy) -> Submit.
@@ -248,3 +326,23 @@ Step "РЕЛИЗ checklist for $Tag  (see RELEASE.md for detail)"
 
 [ ] 6. Smoke-test the published artefacts (winget install / Store install) once live.
 "@ | Write-Host
+
+# --- Machine-readable verdict line (last stdout line) -----------------------
+$subjectName = if ($Push) { "release v$Version" } else { "release-preflight v$Version" }
+if ($preflightFails.Count -gt 0) {
+    Write-Host "`nPREFLIGHT FAILURES:" -ForegroundColor Red
+    foreach ($f in $preflightFails) { Write-Host "  - $f" -ForegroundColor Red }
+    Write-Host "$($subjectName): FAIL ($($preflightFails.Count))" -ForegroundColor Red
+    exit 1
+}
+elseif ($preflightNotVerified.Count -gt 0) {
+    Write-Host "`nPREFLIGHT UNVERIFIED:" -ForegroundColor Yellow
+    foreach ($u in $preflightNotVerified) { Write-Host "  - $u" -ForegroundColor Yellow }
+    Write-Host "$($subjectName): NOT VERIFIED ($($preflightNotVerified.Count))" -ForegroundColor Yellow
+    exit 2
+}
+else {
+    Write-Host "$($subjectName): PASS" -ForegroundColor Green
+    exit 0
+}
+

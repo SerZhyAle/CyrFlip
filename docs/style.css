@@ -109,3 +109,18 @@ html[data-theme="light"] .btn:not(.primary):not(.accent) { background: rgba(16, 
 }
 .wrap footer a { color: var(--text-2); }
 .wrap footer a:hover { color: var(--text); }
+
+.details-ctrl { display: flex; gap: .5rem; margin-bottom: 1rem; }
+
+@media (pointer: coarse) {
+  .langbar a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* Guide captures retain readable UI text and fit narrow screens. */
+.guide-shot { margin: 1.5rem 0; }
+.guide-shot img { display: block; width: 100%; height: auto; border-radius: 8px; }
+.guide-shot figcaption { margin-top: .5rem; font-size: .9rem; opacity: .8; }

@@ -189,7 +189,7 @@ namespace CyrFlip
                 if (hr != 0 && offset > 0)
                     hr = text.get_characterExtents(offset - 1, IA2_COORDTYPE_SCREEN_RELATIVE, out cx, out cy, out cw, out ch);
                 if (hr != 0 || ch <= 0) return $"'{name}' offset={offset} characterExtents failed (hr=0x{hr:X8})";
-                return $"'{name}' caretOffset={offset} caret[x={cx} y={cy} w={cw} h={ch}] -> marker x={cx + 2} y={cy + ch + 1}";
+                return $"'{name}' caretOffset={offset} caret[x={cx} y={cy} w={cw} h={ch}]";
             }
             catch (Exception ex) { return "exception: " + ex.GetType().Name + " " + ex.Message; }
             finally { Release(text); Release(acc); }

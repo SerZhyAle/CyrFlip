@@ -54,24 +54,31 @@ namespace CyrFlip.Tests
             Assert.Contains(SupportBundle.AppVersion(), english);
         }
 
+        /// <summary>
+        /// S0038 RP-4: a release cut between 00:00 and 09:59 is tagged v26.9.26.0930, and its
+        /// assembly version is normalized to 26.9.26.930 - About and the log report must show the
+        /// tag's spelling, the one on the ZIP.
+        /// </summary>
+        [Theory]
+        [InlineData("26.9.26.0930+0123abcd", 26, 9, 26, 930, "26.9.26.0930")]
+        [InlineData("26.9.26.1712", 26, 9, 26, 1712, "26.9.26.1712")]
+        [InlineData(null, 26, 9, 26, 930, "26.9.26.0930")]      // no informational version: pad HHmm
+        [InlineData("", 26, 9, 26, 5, "26.9.26.0005")]
+        public void TheVersionIsSpelledAsTheTagSpellsIt(string? informational, int major, int minor, int build, int revision, string expected)
+            => Assert.Equal(expected, SupportBundle.VersionFrom(informational, new Version(major, minor, build, revision)));
+
+        [Fact]
+        public void TheLiveVersionKeepsTheLeadingZeroOfItsStamp()
+        {
+            string version = SupportBundle.AppVersion();
+            Assert.Matches(@"^\d{2}\.\d{1,2}\.\d{1,2}\.\d{4}$", version);
+        }
+
         /// <summary>Builds the real settings window in one language and reads its version label.</summary>
         private static string VersionLabelText(string language)
         {
-            Type type = typeof(AppConfig).Assembly.GetType("CyrFlip.SettingsForm", true)!;
-            var config = new AppConfig { UiLanguage = language };
-            Action<bool> b = _ => { };
-            Action noop = () => { };
-            Action<int> i = _ => { };
-            Action<string> s = _ => { };
-            var launcherStore = new LauncherScenarioStore(System.IO.Path.Combine(
-                System.IO.Path.GetTempPath(), "CyrFlipTests", Guid.NewGuid().ToString("N")));
-            Func<string, bool, string> export = (_, _) => "";
-            object form = Activator.CreateInstance(type, new object[]
-            {
-                config, b, b, b, b, b, b, b, b, b, i, s, noop, noop, noop, noop, noop, b, b, b, b, b, b,
-                launcherStore, b,
-                noop, noop, noop, export,
-            })!;
+            Type type = typeof(SettingsForm);
+            object form = TestForms.NewSettings(new AppConfig { UiLanguage = language }, withExchange: false);
             try
             {
                 object label = type.GetField("_version", BindingFlags.NonPublic | BindingFlags.Instance)!

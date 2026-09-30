@@ -128,6 +128,37 @@ namespace CyrFlip
                 bn: "মাউস ইন্টারসেপ্ট করা যায়নি, কনটেক্সট মেনু খুলবে না।",
                 ur: "ماؤس کو روکا نہیں جا سکا، سیاق مینو نہیں کھلے گا۔",
                 zh: "无法挂钩鼠标，右键菜单将无法打开。");
+
+            // The keyboard chord that opens the same menu at the caret (S0045 K2).
+            Add("Открыть меню с клавиатуры",
+                en: "Open the menu from the keyboard", uk: "Відкрити меню з клавіатури",
+                de: "Menü über die Tastatur öffnen", it: "Apri il menu dalla tastiera",
+                es: "Abrir el menú desde el teclado", fr: "Ouvrir le menu au clavier",
+                pt: "Abrir o menu pelo teclado", ar: "فتح القائمة من لوحة المفاتيح",
+                hi: "कीबोर्ड से मेनू खोलें", bn: "কিবোর্ড থেকে মেনু খুলুন",
+                ur: "کی بورڈ سے مینو کھولیں", zh: "用键盘打开菜单");
+
+            Add("То же меню с клавиатуры: открывается у текстового курсора, а где его не видно - у указателя мыши. Стрелки выбирают пункт, Enter выполняет, Esc закрывает.",
+                en: "The same menu from the keyboard: it opens at the text cursor, or at the mouse pointer where the cursor cannot be found. The arrows pick an item, Enter runs it, Esc closes the menu.",
+                uk: "Те саме меню з клавіатури: відкривається біля текстового курсора, а де його не видно - біля вказівника миші. Стрілки вибирають пункт, Enter виконує, Esc закриває.",
+                de: "Dasselbe Menü über die Tastatur: Es öffnet sich an der Einfügemarke oder, wo sie nicht zu finden ist, am Mauszeiger. Die Pfeiltasten wählen einen Eintrag, Enter führt ihn aus, Esc schließt das Menü.",
+                it: "Lo stesso menu dalla tastiera: si apre al cursore di testo o, dove non si trova, al puntatore del mouse. Le frecce scelgono una voce, Invio la esegue, Esc chiude il menu.",
+                es: "El mismo menú desde el teclado: se abre en el cursor de texto o, donde no se encuentra, en el puntero del ratón. Las flechas eligen una opción, Intro la ejecuta, Esc cierra el menú.",
+                fr: "Le même menu au clavier : il s'ouvre au curseur de texte, ou au pointeur de la souris là où le curseur est introuvable. Les flèches choisissent une commande, Entrée l'exécute, Échap ferme le menu.",
+                pt: "O mesmo menu pelo teclado: abre no cursor de texto ou, onde ele não é encontrado, no ponteiro do mouse. As setas escolhem um item, Enter o executa, Esc fecha o menu.",
+                ar: "القائمة نفسها من لوحة المفاتيح: تُفتح عند مؤشر النص، أو عند مؤشر الفأرة حيث لا يمكن العثور عليه. تختار الأسهم عنصرًا، وينفذه Enter، ويغلق Esc القائمة.",
+                hi: "वही मेनू कीबोर्ड से: यह टेक्स्ट कर्सर के पास खुलता है, और जहाँ कर्सर न मिले वहाँ माउस पॉइंटर के पास। तीर कुंजियाँ आइटम चुनती हैं, Enter उसे चलाता है, Esc मेनू बंद करता है।",
+                bn: "একই মেনু কিবোর্ড থেকে: এটি টেক্সট কার্সরের কাছে খোলে, আর যেখানে কার্সর পাওয়া যায় না সেখানে মাউস পয়েন্টারের কাছে। তীর কী আইটেম বাছাই করে, Enter সেটি চালায়, Esc মেনু বন্ধ করে।",
+                ur: "وہی مینو کی بورڈ سے: یہ ٹیکسٹ کرسر کے پاس کھلتا ہے، اور جہاں کرسر نہ ملے وہاں ماؤس پوائنٹر کے پاس۔ تیر آئٹم چنتے ہیں، Enter اسے چلاتا ہے، Esc مینو بند کرتا ہے۔",
+                zh: "用键盘打开同一个菜单：它出现在文本光标处，找不到光标时出现在鼠标指针处。方向键选择项目，Enter 执行，Esc 关闭菜单。");
+
+            Add("Задать хоткей контекстного меню",
+                en: "Set the context-menu hotkey", uk: "Задати хоткей контекстного меню",
+                de: "Tastenkombination für das Kontextmenü festlegen", it: "Imposta la combinazione per il menu contestuale",
+                es: "Definir la combinación del menú contextual", fr: "Définir le raccourci du menu contextuel",
+                pt: "Definir o atalho do menu de contexto", ar: "تعيين اختصار قائمة السياق",
+                hi: "संदर्भ मेनू की हॉटकी तय करें", bn: "কনটেক্সট মেনুর হটকি নির্ধারণ করুন",
+                ur: "سیاق مینو کی ہاٹ کی مقرر کریں", zh: "设置右键菜单的快捷键");
         }
     }
 }

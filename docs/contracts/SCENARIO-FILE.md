@@ -23,7 +23,7 @@
   SHA-256 values as literals, since CI has no copy of the catalog. A re-issue of the vectors updates that
   test in the same change.
 - **Identity: preserved on migration, replaced on import** (rule 8). A colliding id gets a fresh one and is
-  counted, so the user is told.
+  counted, so the user is told; the same id with the same content is skipped and counted instead.
 - **A corrupt file costs one scenario, never the list** (rule 9), and its name is surfaced.
 - **`SPECIAL_YTDLP` keeps working forever** (rule 4), and normalizing it happens in our own store only.
 - **Nothing runs at import** (rule 10); targets are validated at launch. An untrusted runtime input - the
@@ -31,17 +31,21 @@
 
 ## Open debts
 
-Each is an exception row in the registry and a ticket in
-`PLAN/Contract_Conformance_Backlog_v0.1.md` (local, not published); the product's proposals on them are
-S0014 section 4 (B1-B7):
+The product side of the three decisions the owner took on 2026-09-30 (proposals B1, B2, B5 of S0014) is
+implemented; what remains is the catalog - the contract text and the registry rows still describe them as open.
+Each is an exception row in the registry and a ticket in `PLAN/Contract_Conformance_Backlog_v0.1.md` (local,
+not published):
 
-1. **C1** - the format carries **no version at all**, so no reader can refuse a future MAJOR cleanly
-   (proposal B1: a `schemaVersion` attribute on `AppItem`, which today's reader already ignores);
-2. **C2** - an unknown `Type` value fails the whole file instead of degrading to `Executable`. Pinned by
-   `LauncherScenarioStoreTests`; this product argues the contract should make refusal the documented
-   default (B2);
-3. **C8** - a repeated OneClickRunner migration imports every scenario again under fresh ids: counted,
-   not silent, but doubled (rule 8; proposal B5).
+1. **C1** - a `schemaVersion` attribute on `AppItem` (absent = 1). This product reads it and refuses a higher
+   MAJOR, a renamed or namespaced root and a non-numeric value with one localized "newer format" message
+   (`AFileInAFormatThisBuildDoesNotReadIsRefusedWholeAndSaysSo`); its writer still omits the attribute. The
+   contract has to name the carrier before OneClickRunner can honour it;
+2. **C2** - an unknown `Type` refuses the file under rule 9, because degrading it to `Executable` would run
+   its `Path` as a program (rule 10). Pinned by `AnUnknownTypeValueMakesTheFileUnreadableUnderRule9`; the
+   contract has to write that down as the documented default (B2);
+3. **C8** - a repeated OneClickRunner migration skips what is already there (same id, same name, path and
+   arguments), counts it and says so; the same id with other content is a collision and gets a fresh id
+   (`RunningTheMigrationTwiceImportsNothingTheSecondTime`; proposal B5 for the contract).
 
 The contract is a draft because its declared owner - OneClickRunner, whose format it is - has not confirmed
 it. That repository was read and not touched.

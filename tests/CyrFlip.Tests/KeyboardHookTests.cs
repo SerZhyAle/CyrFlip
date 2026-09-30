@@ -120,5 +120,32 @@ namespace CyrFlip.Tests
             Assert.False(hook.Decide(Key(0x7A, 30), down: true));
             Assert.Equal(0, fired);
         }
+
+        [Fact]
+        public void SuspendedChordsPassThroughWithoutFiring()
+        {
+            KeyboardHook hook = new FakeHooks().Create();
+            Install(hook, enabled: true);
+            int fired = 0;
+            hook.CaseHotkeyPressed += (_, _) => fired++;
+
+            KeyboardHook.SuspendChords = true;
+            try
+            {
+                hook.Decide(Key(0xA2, 10), down: true); // LCtrl
+                hook.Decide(Key(0xA0, 20), down: true); // LShift
+                Assert.False(hook.Decide(Key(0x7A, 30), down: true)); // F11 passes through, not swallowed
+                Assert.Equal(0, fired);
+            }
+            finally
+            {
+                KeyboardHook.SuspendChords = false;
+            }
+
+            // Once resumed, chords fire normally
+            Assert.True(hook.Decide(Key(0x7A, 50), down: true));
+            Assert.Equal(1, fired);
+        }
     }
 }
+

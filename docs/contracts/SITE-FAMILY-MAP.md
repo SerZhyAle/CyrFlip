@@ -15,4 +15,4 @@
   the author's profile.
 - **Cross-links in body copy only where genuinely relevant** (OneClickRunner, whose launcher CyrFlip absorbed).
 
-Not yet held: the grid is on the trilingual landing page only, not on the 10 standalone locale pages.
+Held across all 11 landing pages and secondary pages.

@@ -29,6 +29,9 @@ namespace CyrFlip
         /// <summary>Quiet time after the last edit before the note is written (spec §3.4).</summary>
         public const int DebounceMs = 750;
 
+        /// <summary>How long after a failed write it is tried again, typing or not (S0035 QN2-1).</summary>
+        public const int RetryAfterFailureMs = 5000;
+
         private readonly QuickNotesStore _store;
         private readonly List<QuickNote> _notes = new List<QuickNote>();
         // Notes the journal already knows about. A note absent from here is still a draft, so its
@@ -42,6 +45,11 @@ namespace CyrFlip
         // (or anything else) still holding the object must not write a deleted note back as a new
         // one - which is exactly what "delete all" followed by closing the window used to do (QN-1).
         private readonly HashSet<Guid> _deletedIds = new HashSet<Guid>();
+        // Writes that failed and wait for their retry (S0035 QN2-1): notes whose record did not reach
+        // the journal, and deletes that did not. Until both are empty the failure is shown, however
+        // often the window repaints its dates.
+        private readonly HashSet<Guid> _failed = new HashSet<Guid>();
+        private readonly HashSet<Guid> _failedDeletes = new HashSet<Guid>();
         private readonly object _gate = new object();
         private readonly Timer _debounce;
         private readonly SynchronizationContext? _owner;
@@ -68,6 +76,19 @@ namespace CyrFlip
 
         /// <summary>A write to the journal failed. The note is still in memory, but not on disk.</summary>
         public event EventHandler? SaveFailed;
+
+        /// <summary>Every write that had failed has now reached the journal.</summary>
+        public event EventHandler? SaveRecovered;
+
+        /// <summary>
+        /// True while a write that failed has not yet been retried successfully (S0035 QN2-1). A
+        /// failure used to be shown for an instant - the next repaint of the note's dates overwrote
+        /// it - and never retried, so the edit was gone after a restart.
+        /// </summary>
+        public bool SaveFailing
+        {
+            get { lock (_gate) return _failed.Count > 0 || _failedDeletes.Count > 0; }
+        }
 
         /// <summary>The app's service: nothing is read until <see cref="LoadAsync"/>.</summary>
         public QuickNotesService() : this(new QuickNotesStore(), loadNow: false) { }
@@ -115,21 +136,30 @@ namespace CyrFlip
         /// Replay the journal on the pool and apply it on the owner thread. The returned task
         /// completes once <see cref="IsLoaded"/> is true; calling it again returns the same task.
         /// </summary>
-        public Task LoadAsync()
+        /// <param name="after">
+        /// Start the replay only once this has finished - the previous service's background retirement
+        /// (<see cref="RetireAsync"/>), which may still be compacting the same journal.
+        /// </param>
+        public Task LoadAsync(Task? after = null)
         {
             lock (_gate)
             {
                 if (IsLoaded || _replay != null) return _loadDone.Task;
-                _replay = Task.Run(() => _store.Load());
+                _replay = after == null || after.IsCompleted
+                    ? Task.Run(() => _store.Load())
+                    : after.ContinueWith(_ => _store.Load(), CancellationToken.None,
+                        TaskContinuationOptions.None, TaskScheduler.Default);
             }
             _replay.ContinueWith(_ => OnOwnerThread(FinishLoad), TaskScheduler.Default);
             return _loadDone.Task;
         }
 
         /// <summary>
-        /// Wait for the replay here and now. For the two commands that cannot act on a half-loaded
-        /// set - "delete everything" and "export everything". The replay itself never posts back, so
-        /// waiting on the owner thread cannot deadlock; the posted apply then finds nothing to do.
+        /// Wait for the replay here and now. For tests and for a caller with no message loop: the app
+        /// waits for <see cref="LoadAsync"/> behind a <see cref="BusyDialog"/> instead, which keeps
+        /// the hooks' thread pumping (ticket S0030 HT-6) - so every method below that calls this finds
+        /// the set already loaded there. The replay itself never posts back, so waiting on the owner
+        /// thread cannot deadlock; the posted apply then finds nothing to do.
         /// </summary>
         public void EnsureLoaded()
         {
@@ -145,7 +175,13 @@ namespace CyrFlip
         {
             lock (_gate)
             {
-                if (IsLoaded || _disposed || _replay == null || !_replay.IsCompleted) return;
+                if (_disposed)
+                {
+                    // Nothing to apply to - but whoever waits for the load must not wait forever.
+                    _loadDone.TrySetResult(false);
+                    return;
+                }
+                if (IsLoaded || _replay == null || !_replay.IsCompleted) return;
                 List<QuickNote> loaded;
                 if (_replay.Status == TaskStatus.RanToCompletion) loaded = _replay.Result;
                 else
@@ -231,8 +267,11 @@ namespace CyrFlip
                 }
             }
 
+            // A create that failed is retried as an update: its record carries the creation date, and
+            // replay takes an update of an id it has not seen as the note itself.
             bool written = created ? _store.Create(note) : _store.Update(note);
-            if (!written) SaveFailed?.Invoke(this, EventArgs.Empty);
+            if (written) NoteWritten(note.Id);
+            else RetryLater(note);
             if (created)
             {
                 Created?.Invoke(this, EventArgs.Empty);
@@ -258,37 +297,95 @@ namespace CyrFlip
             }
         }
 
-        /// <summary>Write everything the debounce is still holding. Called on close and on exit.</summary>
+        /// <summary>
+        /// Write everything the debounce is still holding, and retry every write that failed. Called
+        /// by the debounce, on close and on exit.
+        /// </summary>
         public void Flush()
         {
             List<QuickNote> due;
+            List<Guid> deletes;
             lock (_gate)
             {
-                if (_dirty.Count == 0) return;
+                if (_dirty.Count == 0 && _failedDeletes.Count == 0) return;
                 due = new List<QuickNote>(_dirty.Count);
                 foreach (Guid id in _dirty)
                     if (_pending.TryGetValue(id, out QuickNote? note)) due.Add(note);
                 _dirty.Clear();
                 _pending.Clear();
+                deletes = new List<Guid>(_failedDeletes);
             }
             foreach (QuickNote note in due) Commit(note, onlyIfDirty: false);
+            foreach (Guid id in deletes)
+            {
+                if (_store.Delete(id)) DeleteWritten(id);
+                else RetryDeleteLater(id);
+            }
+        }
+
+        private void RetryLater(QuickNote note) => RetryLater(new[] { note });
+
+        private void RetryDeleteLater(Guid id) => RetryLater(new QuickNote[0], id);
+
+        /// <summary>
+        /// A write failed: the notes go back among the unsaved ones and the debounce is armed to try
+        /// again (QN2-1), so a full disk or a locked journal costs a delay, not the edit. After the
+        /// service is disposed there is no later - the failure is only reported.
+        /// </summary>
+        private void RetryLater(IEnumerable<QuickNote> notes, Guid? deletedId = null)
+        {
+            lock (_gate)
+            {
+                foreach (QuickNote note in notes)
+                {
+                    if (_deletedIds.Contains(note.Id)) continue;
+                    _failed.Add(note.Id);
+                    if (_disposed) continue;
+                    _dirty.Add(note.Id);
+                    _pending[note.Id] = note;
+                }
+                if (deletedId != null) _failedDeletes.Add(deletedId.Value);
+                if (!_disposed) _debounce.Change(RetryAfterFailureMs, Timeout.Infinite);
+            }
+            SaveFailed?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void NoteWritten(Guid id)
+        {
+            bool recovered;
+            lock (_gate)
+                recovered = _failed.Remove(id) && _failed.Count == 0 && _failedDeletes.Count == 0;
+            if (recovered) SaveRecovered?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void DeleteWritten(Guid id)
+        {
+            bool recovered;
+            lock (_gate)
+                recovered = _failedDeletes.Remove(id) && _failed.Count == 0 && _failedDeletes.Count == 0;
+            if (recovered) SaveRecovered?.Invoke(this, EventArgs.Empty);
         }
 
         public void Delete(QuickNote note)
         {
-            bool persisted;
+            bool persisted, recovered;
             lock (_gate)
             {
                 _dirty.Remove(note.Id);
                 _pending.Remove(note.Id);
                 _notes.Remove(note);
                 _deletedIds.Add(note.Id);
+                // Its own pending write, if one failed, is moot now - the delete is what counts.
+                recovered = _failed.Remove(note.Id) && _failed.Count == 0 && _failedDeletes.Count == 0;
                 persisted = _persisted.Remove(note.Id);
             }
+            if (recovered && !persisted) SaveRecovered?.Invoke(this, EventArgs.Empty);
             // A draft was never written, so there is nothing to record its removal of.
             if (persisted)
             {
-                if (!_store.Delete(note.Id)) SaveFailed?.Invoke(this, EventArgs.Empty);
+                // A delete that did not reach the journal would bring the note back at the next start.
+                if (!_store.Delete(note.Id)) RetryDeleteLater(note.Id);
+                else if (recovered) SaveRecovered?.Invoke(this, EventArgs.Empty);
                 ScheduleCompactionIfDue();
             }
             Changed?.Invoke(this, EventArgs.Empty);
@@ -309,6 +406,9 @@ namespace CyrFlip
                 _persisted.Clear();
                 _dirty.Clear();
                 _pending.Clear();
+                // Nothing is left to write: the journal itself is about to go.
+                _failed.Clear();
+                _failedDeletes.Clear();
             }
             _store.DeleteEverything();
             Cleared?.Invoke(this, EventArgs.Empty);
@@ -342,8 +442,16 @@ namespace CyrFlip
         /// by a strictly newer version of itself, delete nothing. The plan is made again here against
         /// the live list - the preview was confirmed in a modal dialog, and the list may have moved.
         /// An imported note keeps the dates it carries: it was created when it was created, wherever.
+        ///
+        /// <para>The list changes on this thread; the journal records go out as <b>one</b> batched
+        /// append (<see cref="QuickNotesStore.AppendBatch"/>) through <paramref name="offThread"/>,
+        /// which the app points at a worker behind a <see cref="BusyDialog"/> - a few thousand
+        /// encrypted records are seconds of work, and this is the hooks' thread (S0030 HT-2). The
+        /// modal dialog is also what keeps the notes unchanged while the worker reads them. Null runs
+        /// the write here (the tests' shape).</para>
         /// </summary>
-        public ExchangeMergeReport Import(IEnumerable<ExchangeNote> incoming, bool includeNew)
+        public ExchangeMergeReport Import(IEnumerable<ExchangeNote> incoming, bool includeNew,
+            Func<Func<bool>, bool>? offThread = null)
         {
             EnsureLoaded();
             Flush();
@@ -355,7 +463,7 @@ namespace CyrFlip
                 actions = CyrFlipExchangeMerge.PlanNotes(new List<QuickNote>(_notes), incoming, includeNew, DateTime.UtcNow, report);
             }
 
-            bool failed = false;
+            var records = new List<KeyValuePair<bool, QuickNote>>(actions.Count);
             foreach (CyrFlipExchangeMerge.NoteAction action in actions)
             {
                 QuickNote target;
@@ -382,9 +490,22 @@ namespace CyrFlip
                         target.UpdatedAtUtc = action.Note.UpdatedAtUtc;
                     }
                 }
-                if (!(created ? _store.Create(target) : _store.Update(target))) failed = true;
+                records.Add(new KeyValuePair<bool, QuickNote>(created, target));
             }
-            if (failed) SaveFailed?.Invoke(this, EventArgs.Empty);
+            if (records.Count > 0)
+            {
+                Func<bool> write = () => _store.AppendBatch(records);
+                bool written;
+                try { written = offThread != null ? offThread(write) : write(); }
+                catch (Exception ex)
+                {
+                    QuickNotesLog.Log("import write failed: " + ex.GetType().Name);
+                    written = false;
+                }
+                // Every note the batch carried stays unsaved and is retried one by one (QN2-1).
+                if (!written)
+                    RetryLater(records.ConvertAll(record => record.Value));
+            }
             if (actions.Count > 0)
             {
                 QuickNotesLog.Log("imported " + report.NotesAdded + " new, " + report.NotesUpdated + " updated, "
@@ -443,6 +564,31 @@ namespace CyrFlip
                 }
             });
             QuickNotesLog.Log("journal compacted to " + count + " note(s)");
+        }
+
+        /// <summary>
+        /// <see cref="Dispose"/> for the feature being switched off from the settings (S0030 HT-6):
+        /// the last edit is written here - a debounced note or two - while the wait for a running
+        /// compaction and the final one go to the pool. Exit and the session end keep the synchronous
+        /// <see cref="Dispose"/>, since the process ends right after. The returned task is what a new
+        /// service for the same journal has to wait for before it replays it (<see cref="LoadAsync"/>).
+        /// </summary>
+        public Task RetireAsync()
+        {
+            Task? compaction;
+            lock (_gate)
+            {
+                if (_disposed) return Task.CompletedTask;
+                _disposed = true;
+                compaction = _compaction;
+            }
+            _debounce.Dispose();
+            Flush();
+            return Task.Run(() =>
+            {
+                try { compaction?.Wait(2000); } catch { }
+                CompactIfNeeded();
+            });
         }
 
         public void Dispose()

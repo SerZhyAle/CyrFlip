@@ -1,4 +1,4 @@
-﻿<#
+<#
     Renders the two human-readable mirrors of the Store listing copy from the one source of truth.
 
       source of truth   msix/store-listing-export.csv   what Partner Center exports and imports
@@ -31,6 +31,11 @@ $MsixDir  = $PSScriptRoot
 $RepoRoot = Split-Path $MsixDir -Parent
 $Export   = Join-Path $MsixDir 'store-listing-export.csv'
 $Markdown = Join-Path $MsixDir 'store-listings.md'
+
+if (-not (Test-Path $Export)) {
+    Write-Host "Export file not found: $Export" -ForegroundColor Red
+    exit 2
+}
 
 $rows = Import-Csv $Export
 
@@ -183,6 +188,19 @@ function Render-Text($file) {
 }
 
 # --- Run ----------------------------------------------------------------------------------------
+
+if (-not (Test-Path $Markdown)) {
+    Write-Host "Markdown mirror not found: $Markdown" -ForegroundColor Red
+    exit 2
+}
+
+foreach ($file in $TxtFiles) {
+    $p = Join-Path $RepoRoot $file.path
+    if (-not (Test-Path $p)) {
+        Write-Host "Text mirror not found: $p" -ForegroundColor Red
+        exit 2
+    }
+}
 
 $write   = -not $Check
 $changed = @()

@@ -133,6 +133,11 @@ namespace CyrFlip
         /// <summary>The popup was dismissed while a translation was still running.</summary>
         public event EventHandler? CancelRequested;
         public event Action<string>? TargetLanguageChosen;
+        /// <summary>
+        /// The finished popup is up and waits for the user: the context turns the hook's F6 watch on
+        /// with it (S0045 K1) and off again when it goes (<see cref="Control.VisibleChanged"/>).
+        /// </summary>
+        public event EventHandler? AwaitingUser;
 
         /// <summary>True while the model is still writing - the caller must not act on a stale answer.</summary>
         public bool IsTranslating => _busy;
@@ -148,6 +153,13 @@ namespace CyrFlip
                 cp.ExStyle |= WS_EX_TOOLWINDOW;
                 return cp;
             }
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            // A popup of ours over the user's content: never part of a screenshot (S0026 4.2).
+            ScreenCapture.ExcludeFromCapture(Handle);
         }
 
         /// <summary>
@@ -259,6 +271,45 @@ namespace CyrFlip
         }
 
         /// <summary>
+        /// F6 (S0045 K1, <c>INPUT-PARITY</c> rule 1): into the popup when the focus is elsewhere, back to
+        /// the window it opened over when the focus is already here. Only on the user's own key - the
+        /// popup still never takes the focus by itself.
+        /// </summary>
+        public void ToggleKeyboardFocus()
+        {
+            if (!Visible || _busy) return;
+            if (ContainsFocus) { ReturnFocus(); return; }
+            SetKeyboardReachable(true);
+            ForegroundActivator.Activate(this);
+            Control first = FirstCommand();
+            first.Focus();
+        }
+
+        private void ReturnFocus()
+        {
+            SetKeyboardReachable(false);
+            if (_openedOver != IntPtr.Zero && _openedOver != Handle) SetForegroundWindow(_openedOver);
+        }
+
+        /// <summary>The first visible command, else the answer itself - where Tab starts.</summary>
+        private Control FirstCommand()
+        {
+            foreach (Control control in _buttons.Controls)
+                if (control.Visible && control is Button) return control;
+            return _result;
+        }
+
+        /// <summary>
+        /// The commands leave the tab order while the popup is only looked at, and join it while the
+        /// keyboard is in it.
+        /// </summary>
+        private void SetKeyboardReachable(bool reachable)
+        {
+            foreach (Control control in _buttons.Controls)
+                if (control is Button) control.TabStop = reachable;
+        }
+
+        /// <summary>
         /// The single way the popup goes away - Esc, the title-bar ×, the auto-close timer or the
         /// foreground watch. A translation still in flight is cancelled here, because an answer that
         /// arrives after the user dismissed the window would otherwise paste itself into whatever they
@@ -266,6 +317,9 @@ namespace CyrFlip
         /// </summary>
         public void Dismiss()
         {
+            // Opened into from the keyboard: hand the focus back where it came from before the window
+            // goes, or Windows picks whatever is next in the z-order.
+            if (ContainsFocus) ReturnFocus();
             if (_busy)
             {
                 _busy = false;
@@ -306,6 +360,7 @@ namespace CyrFlip
             // Only after the answer is in: closing the popup the moment the user clicks back into
             // their editor would throw away the translation they are waiting for.
             _watchForeground.Start();
+            AwaitingUser?.Invoke(this, EventArgs.Empty);
             int seconds = Math.Max(0, _config.TranslateWindowTimeout);
             if (seconds <= 0) return;
             _autoClose.Interval = seconds * 1000;

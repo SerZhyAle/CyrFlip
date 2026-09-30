@@ -61,6 +61,9 @@ namespace CyrFlip
             try
             {
                 AppConfig config = AppConfig.Load();
+                // No installer puts the portable build in the Start menu or on the desktop - the first
+                // run does, and later runs keep those links pointing at this exe. Never throws.
+                AppShortcuts.SyncOnStartup(config);
                 // "Manage scenarios" from the Jump List while CyrFlip was not running: become the
                 // normal (single) instance and open the settings window once the tray is up.
                 using var context = new CyrFlipContext(config, openSettingsOnStart: command == LauncherIpc.SettingsCommand);
@@ -119,6 +122,11 @@ namespace CyrFlip
             {
                 LauncherLog.Log("One-shot: unexpected error: " + ex.Message);
             }
+            finally
+            {
+                // The process ends right after this: the log's background writer gets its lines out first.
+                DiagnosticLog.Flush(TimeSpan.FromSeconds(1));
+            }
         }
 
         private static void Fatal(Exception? ex)
@@ -128,12 +136,13 @@ namespace CyrFlip
             // CyrFlip ran again (LAYOUT-SIGNAL rule 6). Only the primary instance gets here - the
             // forwarding and one-shot paths return before these handlers are installed.
             LayoutPublisher.Retract();
+            DiagnosticLog.Flush(TimeSpan.FromMilliseconds(500));
             try
             {
                 // The system box, deliberately, and the one left in the app (ThemeSourceGateTests): the
                 // process is going down, and this is the dialog least likely to fail with it.
                 MessageBox.Show(
-                    "CyrFlip hit an unexpected error and will close:\n\n" + (ex?.Message ?? "Unknown error"),
+                    "CyrFlip hit an unexpected error and will close.\n\nDiagnostic logs: " + DataFolder.Current,
                     "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch { /* ignore */ }

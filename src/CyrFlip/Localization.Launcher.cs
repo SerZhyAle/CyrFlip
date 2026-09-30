@@ -174,6 +174,14 @@ namespace CyrFlip
                 pt: "Falha ao exportar: {0}", ar: "فشل التصدير: {0}", hi: "निर्यात विफल: {0}",
                 bn: "রপ্তানি ব্যর্থ: {0}", ur: "ایکسپورٹ ناکام: {0}", zh: "导出失败：{0}");
 
+            Add("Не удалось удалить сценарий «{0}»: {1}",
+                en: "Could not delete scenario \"{0}\": {1}", uk: "Не вдалося видалити сценарій «{0}»: {1}",
+                de: "Szenario \"{0}\" konnte nicht gelöscht werden: {1}", it: "Impossibile eliminare lo scenario \"{0}\": {1}",
+                es: "No se pudo eliminar el escenario \"{0}\": {1}", fr: "Impossible de supprimer le scénario « {0} » : {1}",
+                pt: "Não foi possível excluir o cenário \"{0}\": {1}", ar: "تعذّر حذف السيناريو «{0}»: {1}",
+                hi: "परिदृश्य \"{0}\" हटाया नहीं जा सका: {1}", bn: "দৃশ্যপট \"{0}\" মোছা যায়নি: {1}",
+                ur: "منظرنامہ «{0}» حذف نہیں ہو سکا: {1}", zh: "无法删除场景“{0}”：{1}");
+
             Add("Выберите XML-файл сценария",
                 en: "Select a scenario XML file", uk: "Виберіть XML-файл сценарію",
                 de: "Szenario-XML-Datei auswählen", it: "Seleziona un file XML di scenario",
@@ -250,6 +258,14 @@ namespace CyrFlip
                 hi: "छोड़ी गई क्षतिग्रस्त फ़ाइलें: {0}।", bn: "বাদ দেওয়া নষ্ট ফাইল: {0}টি।",
                 ur: "چھوڑی گئی خراب فائلیں: {0}۔", zh: "已跳过损坏文件：{0} 个。");
 
+            Add("Комбинации уже заняты, поэтому не перенесены: {0}.",
+                en: "Shortcuts already taken, so not carried over: {0}.", uk: "Сполучення вже зайняті, тому не перенесено: {0}.",
+                de: "Bereits belegte Tastenkürzel, daher nicht übernommen: {0}.", it: "Scorciatoie già in uso, quindi non importate: {0}.",
+                es: "Atajos ya en uso, por lo que no se importaron: {0}.", fr: "Raccourcis déjà pris, donc non repris : {0}.",
+                pt: "Atalhos já em uso, por isso não importados: {0}.", ar: "اختصارات مستخدمة بالفعل، لذلك لم تُنقل: {0}.",
+                hi: "पहले से उपयोग में शॉर्टकट, इसलिए स्थानांतरित नहीं किए गए: {0}।", bn: "ইতিমধ্যে ব্যবহৃত শর্টকাট, তাই স্থানান্তরিত হয়নি: {0}টি।",
+                ur: "پہلے سے استعمال شدہ شارٹ کٹ، اس لیے منتقل نہیں کیے گئے: {0}۔", zh: "快捷键已被占用，因此未迁移：{0} 个。");
+
             Add("Из-за совпадения идентификаторов назначены новые: {0}.",
                 en: "New ids assigned because of collisions: {0}.", uk: "Через збіг ідентифікаторів призначено нові: {0}.",
                 de: "Wegen Kollisionen neue IDs vergeben: {0}.", it: "Nuovi id assegnati per collisioni: {0}.",
@@ -257,6 +273,28 @@ namespace CyrFlip
                 pt: "Novos ids atribuídos por colisões: {0}.", ar: "معرّفات جديدة بسبب التطابق: {0}.",
                 hi: "टकराव के कारण नए id दिए गए: {0}।", bn: "সংঘর্ষের কারণে নতুন আইডি: {0}টি।",
                 ur: "ٹکراؤ کی وجہ سے نئے شناختی نمبر: {0}۔", zh: "因冲突而分配新 ID：{0} 个。");
+
+            Add("Уже перенесены ранее: {0}.",
+                en: "Already imported earlier: {0}.", uk: "Уже перенесено раніше: {0}.",
+                de: "Bereits früher übernommen: {0}.", it: "Già importati in precedenza: {0}.",
+                es: "Ya importados antes: {0}.", fr: "Déjà repris auparavant : {0}.",
+                pt: "Já importados anteriormente: {0}.", ar: "تم نقلها سابقًا: {0}.",
+                hi: "पहले ही स्थानांतरित: {0}।", bn: "আগেই স্থানান্তরিত: {0}টি।",
+                ur: "پہلے ہی منتقل شدہ: {0}۔", zh: "此前已迁移：{0} 个。");
+
+            Add("Файл не является сценарием в формате, который понимает эта версия CyrFlip. Возможно, он создан более новой версией - обновите CyrFlip.",
+                en: "This file is not a scenario in a format this version of CyrFlip understands. It may have been written by a newer version - update CyrFlip.",
+                uk: "Файл не є сценарієм у форматі, який розуміє ця версія CyrFlip. Можливо, його створила новіша версія - оновіть CyrFlip.",
+                de: "Diese Datei ist kein Szenario in einem Format, das diese CyrFlip-Version versteht. Möglicherweise stammt sie von einer neueren Version - aktualisieren Sie CyrFlip.",
+                it: "Questo file non è uno scenario in un formato che questa versione di CyrFlip comprende. Potrebbe essere stato creato da una versione più recente - aggiorna CyrFlip.",
+                es: "Este archivo no es un escenario en un formato que esta versión de CyrFlip entienda. Puede haberlo creado una versión más reciente - actualiza CyrFlip.",
+                fr: "Ce fichier n'est pas un scénario dans un format que cette version de CyrFlip comprend. Il a peut-être été créé par une version plus récente - mettez CyrFlip à jour.",
+                pt: "Este arquivo não é um cenário em um formato que esta versão do CyrFlip entende. Ele pode ter sido criado por uma versão mais recente - atualize o CyrFlip.",
+                ar: "هذا الملف ليس سيناريو بصيغة تفهمها هذه النسخة من CyrFlip. ربما أنشأته نسخة أحدث - حدّث CyrFlip.",
+                hi: "यह फ़ाइल ऐसे प्रारूप का परिदृश्य नहीं है जिसे CyrFlip का यह संस्करण समझता है। हो सकता है इसे नए संस्करण ने बनाया हो - CyrFlip अपडेट करें।",
+                bn: "এই ফাইলটি এমন ফরম্যাটের দৃশ্যপট নয় যা CyrFlip-এর এই সংস্করণ বোঝে। এটি হয়তো নতুন সংস্করণে তৈরি - CyrFlip আপডেট করুন।",
+                ur: "یہ فائل ایسی شکل کا منظرنامہ نہیں جسے CyrFlip کا یہ ورژن سمجھتا ہے۔ ہو سکتا ہے یہ نئے ورژن نے بنائی ہو - CyrFlip اپ ڈیٹ کریں۔",
+                zh: "此文件不是这个版本的 CyrFlip 能识别格式的场景。它可能由更新的版本创建 - 请更新 CyrFlip。");
 
             Add("Калькулятор",
                 en: "Calculator", uk: "Калькулятор", de: "Rechner", it: "Calcolatrice", es: "Calculadora",

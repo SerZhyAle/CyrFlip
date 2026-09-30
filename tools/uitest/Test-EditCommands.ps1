@@ -29,7 +29,13 @@ param([int]$SettleMs = 220)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'CyrFlip.UiTest.psm1') -Force
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+Import-Module (Join-Path $repo 'tools\checks\CheckVerdict.psm1') -Force
 Enable-UiTestDpi
+
+$banner = Get-CyrFlipSubjectBanner
+Set-CheckSubject "uitest/Test-EditCommands $($banner.SubjectAxis)"
+Write-Host "Subject: $($banner.BannerText)" -ForegroundColor Cyan
 
 $VK_SHIFT = 0x10; $VK_CONTROL = 0x11; $VK_MENU = 0x12; $VK_LWIN = 0x5B; $VK_RWIN = 0x5C
 $VK_A = 0x41; $VK_C = 0x43; $VK_V = 0x56; $VK_X = 0x58
@@ -63,7 +69,10 @@ $failures = @()
 function Check([string]$name, [bool]$ok, [string]$detail) {
     $mark = if ($ok) { 'PASS' } else { 'FAIL' }
     Write-Host ("  [{0}] {1}{2}" -f $mark, $name, $(if ($detail) { " - $detail" } else { '' }))
-    if (-not $ok) { $script:failures += $name }
+    if (-not $ok) {
+        $script:failures += $name
+        Add-CheckFinding -Severity fail -Name $name -Reason $detail
+    }
 }
 
 $marker = "cyrflip-edit-check-$(Get-Random)"
@@ -71,6 +80,11 @@ $target = $null
 try {
     Write-Host 'Opening an editable target window..'
     $target = Start-TargetWindow -Title 'CyrFlip edit-command check'
+    if (-not $target -or -not (Set-WindowForeground -Handle $target.Handle)) {
+        Write-Host 'Target window never reached the foreground.' -ForegroundColor Yellow
+        Add-CheckFinding -Severity notverified -Name 'target-foreground' -Reason 'Target window never reached the foreground'
+        Complete-Check
+    }
 
     # --- Paste -----------------------------------------------------------------------------
     Set-Clipboard -Value $marker
@@ -110,10 +124,4 @@ finally {
 }
 
 Write-Host ''
-if ($failures.Count -eq 0) {
-    Write-Host 'All edit commands work against a plain editable field.' -ForegroundColor Green
-    Write-Host 'If one of them does nothing in a real app, that app is refusing it (a read-only field cannot cut).'
-    exit 0
-}
-Write-Host ("Failed: " + ($failures -join ', ')) -ForegroundColor Red
-exit 1
+Complete-Check

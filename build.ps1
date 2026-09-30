@@ -1,4 +1,4 @@
-﻿<#
+<#
     CyrFlip local build + deploy  ==  a "СБОРКА" (build) in this project's vocabulary.
 
     A СБОРКА is fully LOCAL and costs no GitHub Actions minutes:
@@ -26,6 +26,11 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
+if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+    Write-Host 'dotnet SDK not found on PATH.' -ForegroundColor Red
+    exit 2
+}
+
 if ($Commit -and -not $Message) { throw 'Pass -Message "<text>" when using -Commit.' }
 if ($Push   -and -not $Commit)  { throw '-Push requires -Commit (nothing to push otherwise).' }
 
@@ -44,6 +49,10 @@ $Destinations = @(
 # CyrFlip deliberately has a unique process name, therefore this also covers a copy launched from
 # one of the local sync folders.
 $running = @(Get-Process -Name 'CyrFlip' -ErrorAction SilentlyContinue)
+# Where the stopped copy ran from: a build or a test that fails leaves the user without it otherwise -
+# indicator, hotkeys and keep-awake all off until the next green build (S0038 RP-5).
+$stoppedPaths = @($running | ForEach-Object { try { $_.Path } catch { $null } } | Where-Object { $_ } | Select-Object -Unique)
+$restartStopped = $false
 if ($running.Count -gt 0) {
     Write-Host 'Stopping running CyrFlip..' -ForegroundColor Cyan
     foreach ($process in $running) {
@@ -61,13 +70,25 @@ if ($running.Count -gt 0) {
     }
 }
 
+$restartStopped = $stoppedPaths.Count -gt 0
+try {
 Write-Host 'Building Release..' -ForegroundColor Cyan
 dotnet build $Solution -c Release --nologo
 if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
 
 Write-Host 'Running tests..' -ForegroundColor Cyan
-dotnet test $Solution -c Release --no-build --nologo
-if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
+$testResults = Join-Path ([IO.Path]::GetTempPath()) ("CyrFlip-tests-" + [Guid]::NewGuid().ToString('N'))
+try {
+    dotnet test $Solution -c Release --no-build --nologo --logger trx --results-directory $testResults
+    if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
+    # A run that discovered nothing also exits 0 (S0029 RB-6).
+    & (Join-Path $PSScriptRoot 'tools\Assert-TestRun.ps1') -ResultsDirectory $testResults
+
+    Write-Host 'Checking check placement..' -ForegroundColor Cyan
+    & (Join-Path $PSScriptRoot 'tools\checks\Test-CheckPlacement.ps1')
+    if ($LASTEXITCODE -ne 0) { throw "Placement checks failed (exit $LASTEXITCODE)." }
+}
+finally { Remove-Item -LiteralPath $testResults -Recurse -Force -ErrorAction SilentlyContinue }
 
 $ExePath = Join-Path $OutDir $ExeName
 if (-not (Test-Path $ExePath)) { throw "Output not found: $ExePath" }
@@ -81,7 +102,10 @@ Write-Host "Built CyrFlip $version" -ForegroundColor Green
 if ($env:CYRFLIP_SIGN_PFX -and (Test-Path $env:CYRFLIP_SIGN_PFX)) {
     $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe' -ErrorAction SilentlyContinue |
         Sort-Object FullName -Descending | Select-Object -First 1
-    if (-not $signtool) { throw 'signtool.exe not found (install the Windows 10/11 SDK).' }
+    if (-not $signtool) {
+        Write-Host 'signtool.exe not found (install the Windows 10/11 SDK).' -ForegroundColor Red
+        exit 2
+    }
     Write-Host 'Signing CyrFlip.exe..' -ForegroundColor Cyan
     & $signtool.FullName sign /f $env:CYRFLIP_SIGN_PFX /p $env:CYRFLIP_SIGN_PASSWORD `
         /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 `
@@ -115,6 +139,20 @@ if (-not $NoRun) {
     Write-Host "Starting deployed CyrFlip: $DeployedExe" -ForegroundColor Cyan
     Start-Process -FilePath $DeployedExe -WorkingDirectory (Split-Path $DeployedExe -Parent)
 }
+# Built, tested and deployed: from here the new copy is what runs (or, with -NoRun, deliberately nothing).
+$restartStopped = $false
+}
+finally {
+    if ($restartStopped) {
+        # The previous copy, from where it ran - the deployed one is not overwritten before the tests pass.
+        $previous = $stoppedPaths[0]
+        if (Test-Path $previous) {
+            Write-Host "Build did not finish - restarting the previous CyrFlip: $previous" -ForegroundColor Yellow
+            try { Start-Process -FilePath $previous -WorkingDirectory (Split-Path $previous -Parent) }
+            catch { Write-Host "Could not restart it: $($_.Exception.Message)" -ForegroundColor Yellow }
+        }
+    }
+}
 
 # Optional commit of the сборка. Always carries [skip ci] so the push to main does not
 # spend GitHub minutes re-building what we just built+tested locally.
@@ -142,3 +180,6 @@ if ($Commit) {
         Write-Host "Pushed (CI skipped via [skip ci] - no GitHub minutes spent)." -ForegroundColor Green
     }
 }
+
+Write-Host "build ${version}: PASS" -ForegroundColor Green
+

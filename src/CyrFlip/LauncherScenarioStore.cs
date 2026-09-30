@@ -2,10 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Serialization;
 
 namespace CyrFlip
 {
+    /// <summary>
+    /// A scenario file in a format this build does not read (renamed root, newer <c>schemaVersion</c>).
+    /// Not damage: the single-file import tells the user to update CyrFlip.
+    /// </summary>
+    internal sealed class ScenarioFormatException : Exception
+    {
+        public ScenarioFormatException(string message) : base(message) { }
+    }
+
     /// <summary>
     /// File-per-scenario storage for the launcher: one <c>{guid}.xml</c> per scenario under
     /// <c>%APPDATA%\CyrFlip\Scenarios</c> (the OneClickRunner storage model, moved to CyrFlip's
@@ -34,9 +44,15 @@ namespace CyrFlip
 
         public string Folder => _folder;
 
-        public LauncherScenarioStore(string? folder = null)
+        // A store that only looks (S0034 LS2-9): the log bundle counts scenarios, and a second store
+        // that re-identified, renumbered or cleaned up on its own load used to rewrite files behind
+        // the live store's back - Jump List tasks and chords then named an id no file had.
+        private readonly bool _readOnly;
+
+        public LauncherScenarioStore(string? folder = null, bool readOnly = false)
         {
             _folder = folder ?? DefaultFolder;
+            _readOnly = readOnly;
             Reload();
         }
 
@@ -45,17 +61,24 @@ namespace CyrFlip
 
         public int Count => _items.Count;
 
+        /// <summary>
+        /// Bumped on every change to the list (a reload, an add, an edit, a removal, a move), so a
+        /// surface that mirrors it can tell "nothing changed" without comparing scenarios (S0030 HT-1).
+        /// </summary>
+        public int Version { get; private set; }
+
         public LauncherScenario? Find(Guid id) => _items.Find(s => s.Id == id);
 
         /// <summary>Re-read every XML in the folder. Corrupt files land in <see cref="LoadErrors"/>.</summary>
         public void Reload()
         {
+            Version++;
             _items.Clear();
             LoadErrors.Clear();
             if (!Directory.Exists(_folder))
                 return;
 
-            DeleteStaleTempFiles();
+            if (!_readOnly) DeleteStaleTempFiles();
 
             // Sorted, so "which of two same-Id files keeps the Id" is the same answer on every load.
             string[] files = Directory.GetFiles(_folder, "*.xml");
@@ -72,7 +95,7 @@ namespace CyrFlip
                 if (item == null)
                 {
                     LoadErrors.Add(Path.GetFileName(file));
-                    LauncherLog.Log("Store: failed to read " + Path.GetFileName(file));
+                    if (!_readOnly) LauncherLog.Log("Store: failed to read " + Path.GetFileName(file));
                     continue;
                 }
                 item.Filename = Path.GetFileName(file);
@@ -81,7 +104,7 @@ namespace CyrFlip
                 // the reader and would get another on the next load; a copied file shares its
                 // original's, and Update/Remove would then act on the wrong file. Both get a new Guid,
                 // written to their own file at once.
-                if (!item.IdWasAssigned || item.Id == Guid.Empty || !seen.Add(item.Id))
+                if (!_readOnly && (!item.IdWasAssigned || item.Id == Guid.Empty || !seen.Add(item.Id)))
                 {
                     item.Id = Guid.NewGuid();
                     seen.Add(item.Id);
@@ -90,8 +113,12 @@ namespace CyrFlip
                 }
                 _items.Add(item);
             }
-            NormalizeOrder(reidentified);
+            if (_readOnly) SortOnly();
+            else NormalizeOrder(reidentified);
         }
+
+        private void SortOnly()
+            => _items = _items.OrderBy(s => s.Order).ThenBy(s => s.Name, StringComparer.OrdinalIgnoreCase).ToList();
 
         /// <summary>
         /// A save that died between writing its temp file and moving it into place leaves the temp
@@ -119,9 +146,13 @@ namespace CyrFlip
         /// yt-dlp type so the editor reflects reality (the execution path handles the sentinel too) -
         /// <c>SCENARIO-FILE</c> rule 4, normalized in our own store only.
         ///
-        /// <para>An unknown element is ignored (rule 2), which is the format's only forward tolerance -
-        /// it carries no version. An unknown <c>Type</c> value is not: it fails the whole file, which is
-        /// counted and named rather than silent, and is ticket C2 of the conformance backlog.</para>
+        /// <para>An unknown element is ignored (rule 2). What is refused, whole and never partly read, is
+        /// a file this build cannot honestly understand (rule 9, counted and named by the callers): a root
+        /// that is not <c>AppItem</c>, a <c>schemaVersion</c> above <see cref="LauncherScenario.SupportedSchemaMajor"/>
+        /// or one that is not a number, and an unknown <c>Type</c> value - an action this reader does not
+        /// understand must not run its <c>Path</c> as a program (rule 10; S0014 B1, B2). The first two
+        /// surface as <see cref="ScenarioFormatException"/>, so the single-file import can say "newer
+        /// format" instead of printing the serializer's text.</para>
         /// </summary>
         public static LauncherScenario? TryRead(string file, out Exception? error)
         {
@@ -130,7 +161,10 @@ namespace CyrFlip
             {
                 var serializer = new XmlSerializer(typeof(LauncherScenario));
                 using FileStream stream = File.OpenRead(file);
-                var item = (LauncherScenario?)serializer.Deserialize(stream);
+                using XmlReader reader = XmlReader.Create(stream);
+                reader.MoveToContent();
+                CheckRoot(reader);
+                var item = (LauncherScenario?)serializer.Deserialize(reader);
                 if (item != null && item.Path == LauncherScenario.LegacyYtDlpSentinel
                     && item.Type == LauncherScenarioType.Executable)
                     item.Type = LauncherScenarioType.YtDlp;
@@ -143,6 +177,26 @@ namespace CyrFlip
             }
         }
 
+        /// <summary>
+        /// The two refusals that are about the file's format rather than its damage: the root is not
+        /// <c>AppItem</c> (a breaking change renames it, <c>SCENARIO-FILE</c> section 3) or the declared
+        /// <c>schemaVersion</c> is above what this build reads.
+        /// </summary>
+        private static void CheckRoot(XmlReader reader)
+        {
+            if (reader.NodeType != XmlNodeType.Element || reader.LocalName != "AppItem" || reader.NamespaceURI.Length != 0)
+                throw new ScenarioFormatException("the root element is not AppItem");
+
+            string? declared = reader.GetAttribute("schemaVersion");
+            if (declared == null) return;
+            string major = declared.Trim().Split('.')[0];
+            if (!int.TryParse(major, System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture, out int version))
+                throw new ScenarioFormatException("schemaVersion is not a number");
+            if (version > LauncherScenario.SupportedSchemaMajor)
+                throw new ScenarioFormatException("schemaVersion " + declared.Trim() + " is newer than this build reads");
+        }
+
         /// <summary>Append a scenario: fresh filename when empty, order = end of list, then persist.</summary>
         public void Add(LauncherScenario item)
         {
@@ -150,6 +204,7 @@ namespace CyrFlip
                 item.Filename = item.Id + ".xml";
             item.Order = _items.Count == 0 ? 0 : _items.Max(s => s.Order) + 1;
             _items.Add(item);
+            Version++;
             SaveItem(item);
         }
 
@@ -160,16 +215,37 @@ namespace CyrFlip
             item.Filename = _items[index].Filename;
             item.Order = _items[index].Order;
             _items[index] = item;
+            Version++;
             SaveItem(item);
         }
 
-        public void Remove(Guid id)
+        /// <summary>
+        /// Delete a scenario's file, and only then the scenario (S0034 LS2-6). A file an antivirus
+        /// scan or a sync client holds, or one marked read-only, used to be logged and dropped from
+        /// the list anyway - and the next reload brought the scenario and its global chord back
+        /// without a word.
+        /// </summary>
+        /// <returns>null when the scenario is gone (its file deleted, or already absent); the reason otherwise, and the scenario stays.</returns>
+        public string? Remove(Guid id)
         {
             LauncherScenario? item = _items.Find(s => s.Id == id);
-            if (item == null) return;
-            try { File.Delete(Path.Combine(_folder, item.Filename)); }
-            catch (Exception ex) { LauncherLog.Log("Store: delete failed for " + item.Filename + ": " + ex.Message); }
+            if (item == null) return null;
+            string path = Path.Combine(_folder, item.Filename);
+            try { File.Delete(path); }
+            catch (Exception ex)
+            {
+                bool gone;
+                try { gone = !File.Exists(path); }
+                catch { gone = false; }
+                if (!gone)
+                {
+                    LauncherLog.Log("Store: delete failed for " + item.Filename + ": " + ex.GetType().Name);
+                    return FailureCause.Describe(ex, "Русский");
+                }
+            }
             _items.Remove(item);
+            Version++;
+            return null;
         }
 
         /// <summary>
@@ -188,6 +264,7 @@ namespace CyrFlip
             _items[newIndex] = a;
             _items[index].Order = index;
             _items[newIndex].Order = newIndex;
+            Version++;
             SaveItem(_items[index]);
             SaveItem(_items[newIndex]);
         }
@@ -246,6 +323,7 @@ namespace CyrFlip
 
         private void SaveItem(LauncherScenario item)
         {
+            if (_readOnly) throw new InvalidOperationException("A read-only scenario store is never written.");
             string? temp = null;
             try
             {

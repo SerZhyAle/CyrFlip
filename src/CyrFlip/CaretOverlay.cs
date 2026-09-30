@@ -116,6 +116,19 @@ namespace CyrFlip
         /// <summary>Test seam: size the badge as it would be on a monitor of <paramref name="dpi"/>.</summary>
         internal void ApplyDpiForTest(int dpi) => _form.ApplyDpi(dpi);
 
+        /// <summary>
+        /// A monitor or its scaling changed (S0036 UI-4): the next placement asks the monitor's DPI
+        /// again. It used to be re-read only when the caret moved to a <i>different</i> monitor, and
+        /// a monitor whose scaling changed keeps its handle - the badge stayed at the old size until
+        /// the caret visited another screen. Posted, so nothing is done inside the broadcast.
+        /// </summary>
+        public void OnDisplayChanged()
+        {
+            if (_form.IsDisposed || !_form.IsHandleCreated) return;
+            try { _form.BeginInvoke((Action)_form.ForgetMonitor); }
+            catch (InvalidOperationException) { /* torn down meanwhile */ }
+        }
+
         // ------------------------------------------------------------------ foreground / focus
 
         private void InstallWinEventHooks()
@@ -182,7 +195,10 @@ namespace CyrFlip
             }
 
             if (TryGetCaret(fg, out CaretRect caret))
+            {
+                Remember(fg, caret);
                 Post(true, caret, fg, code, klid, caps);
+            }
             else
                 Post(false, default, fg, code, klid, caps);
         }
@@ -235,6 +251,45 @@ namespace CyrFlip
                 }));
             }
             catch (InvalidOperationException) { /* form disposing */ }
+        }
+
+        // The last caret the tracker found, for the text menu's keyboard chord (S0045 K2). One object
+        // swapped whole, so the UI thread never reads a window from one tick and a position from another.
+        private sealed class Sighting
+        {
+            public IntPtr Window;
+            public CaretRect Caret;
+            public long AtMs;
+        }
+
+        private Sighting? _sighting;
+
+        private void Remember(IntPtr fg, CaretRect caret)
+        {
+            Sighting? last = Volatile.Read(ref _sighting);
+            long now = _clock.ElapsedMilliseconds;
+            // Most ticks see the same caret: do not allocate for them, only refresh the stamp.
+            if (last != null && last.Window == fg && last.Caret.Equals(caret)) { Volatile.Write(ref last.AtMs, now); return; }
+            Volatile.Write(ref _sighting, new Sighting { Window = fg, Caret = caret, AtMs = now });
+        }
+
+        /// <summary>How old a caret sighting may be and still say where the caret is now.</summary>
+        internal const int SightingFreshMs = 2000;
+
+        /// <summary>
+        /// Where the tracker last saw the caret of <paramref name="window"/>, if it saw it within
+        /// <see cref="SightingFreshMs"/> - the only caret source that covers Chromium and WinUI without
+        /// a cross-process call on the UI thread. False while the overlay is off (nothing tracks then).
+        /// </summary>
+        public bool TryGetRecentCaret(IntPtr window, out CaretRect caret)
+        {
+            Sighting? last = Volatile.Read(ref _sighting);
+            caret = default;
+            if (last == null || last.Window != window
+                || _clock.ElapsedMilliseconds - Volatile.Read(ref last.AtMs) > SightingFreshMs)
+                return false;
+            caret = last.Caret;
+            return true;
         }
 
         private bool TryGetCaret(IntPtr fg, out CaretRect caret)
@@ -307,7 +362,7 @@ namespace CyrFlip
                 && GetWindowThreadProcessId(hwnd, out uint processId) != 0
                 && processId == CurrentProcessId;
 
-        private static bool TrySystemCaret(IntPtr fg, out CaretRect caret)
+        internal static bool TrySystemCaret(IntPtr fg, out CaretRect caret)
         {
             caret = default;
             if (fg == IntPtr.Zero)
@@ -367,7 +422,7 @@ namespace CyrFlip
             LogicalToPhysicalPointForPerMonitorDPI(hwnd, ref pt);
         }
 
-        private static bool TryUiaCaret(out CaretRect caret)
+        internal static bool TryUiaCaret(out CaretRect caret)
         {
             caret = default;
             try
@@ -473,6 +528,13 @@ namespace CyrFlip
                 }
             }
 
+            protected override void OnHandleCreated(EventArgs e)
+            {
+                base.OnHandleCreated(e);
+                // The badge is ours, drawn over the user's text: never part of a screenshot (S0026 4.2).
+                ScreenCapture.ExcludeFromCapture(Handle);
+            }
+
             // The badge sizes itself for each monitor (ApplyDpi); WinForms' own rescale on a DPI
             // change would only fight it.
             protected override void WndProc(ref Message m)
@@ -514,6 +576,9 @@ namespace CyrFlip
                 _baseSize = size;
                 Rescale();
             }
+
+            /// <summary>Forget the monitor, so the next <see cref="ShowAt"/> reads its DPI again.</summary>
+            public void ForgetMonitor() => _monitor = IntPtr.Zero;
 
             /// <summary>Size the badge for a monitor of <paramref name="dpi"/>; rebuilt only on a change.</summary>
             public void ApplyDpi(int dpi)

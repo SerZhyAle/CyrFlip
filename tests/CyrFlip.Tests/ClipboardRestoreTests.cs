@@ -209,6 +209,52 @@ namespace CyrFlip.Tests
             Assert.Equal(PasteSignalState.RenderedEarly, offer.Wait(0));
         }
 
+        // ---- S0032 FP2-3: only the target's read is the proof ----
+
+        [Fact]
+        public void A_foreign_render_after_the_ctrl_v_is_not_the_target_and_falls_back_to_the_fixed_wait()
+        {
+            var offer = new PasteOffer("x", 0, TransientMarks.All, targetProcessId: 42);
+            offer.Arm();
+            offer.MarkRendered(byTarget: false);   // a clipboard manager that ignores the markers
+
+            Assert.Equal(PasteSignalState.RenderedEarly, offer.Wait(0));
+        }
+
+        [Fact]
+        public void A_foreign_render_after_the_target_took_the_paste_changes_nothing()
+        {
+            var offer = new PasteOffer("x", 0, TransientMarks.All, targetProcessId: 42);
+            offer.Arm();
+            offer.MarkRendered(byTarget: true);
+            offer.MarkRendered(byTarget: false);
+
+            Assert.Equal(PasteSignalState.Consumed, offer.Wait(0));
+        }
+
+        [Theory]
+        [InlineData(42u, 42u, false, true)]   // the target itself
+        [InlineData(7u, 42u, false, false)]   // a clipboard manager
+        [InlineData(7u, 42u, true, true)]     // a remote/VM clipboard bridge
+        [InlineData(0u, 42u, false, true)]    // opened without a window: most likely the target
+        [InlineData(7u, 0u, false, true)]     // the target's process is unknown: nothing to compare
+        public void Whose_read_counts_as_the_paste(uint requester, uint target, bool bridge, bool expected)
+        {
+            Assert.Equal(expected, PasteOffer.IsTargetRead(requester, target, bridge));
+        }
+
+        // ---- S0032 FP2-6: a failed owner start is retried ----
+
+        [Fact]
+        public void A_failed_owner_start_backs_off_and_is_retried()
+        {
+            Assert.Equal(0, ClipboardOwner.RetryDelayMs(0));
+            Assert.Equal(30000, ClipboardOwner.RetryDelayMs(1));
+            Assert.Equal(60000, ClipboardOwner.RetryDelayMs(2));
+            Assert.True(ClipboardOwner.RetryDelayMs(3) > ClipboardOwner.RetryDelayMs(2));
+            Assert.Equal(30L * 60 * 1000, ClipboardOwner.RetryDelayMs(50));
+        }
+
         [Fact]
         public void An_offer_nobody_asked_for_is_pending_and_one_emptied_is_lost()
         {

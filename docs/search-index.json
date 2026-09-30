@@ -1,0 +1,674 @@
+[
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/guide.html",
+    "lang": "en",
+    "title": "CyrFlip - setup guide",
+    "description": "Install CyrFlip for instant layout indicators everywhere. The VS Code extension is optional.",
+    "headings": [
+      "CyrFlip setup guide",
+      "Find a task",
+      "Glossary",
+      "How the two pieces fit together",
+      "Step 1 - Install and run the CyrFlip app",
+      "Step 2 - Install the VS Code extension (optional)",
+      "Step 3 - Use them together",
+      "Clipboard history (optional)",
+      "Settings, tab by tab",
+      "Quick launch (scenario launcher, optional)",
+      "Translation (local model, optional)",
+      "CyrFlip's own context menu (optional)",
+      "Quick notes (optional)",
+      "Interface languages",
+      "What the marker's colour means",
+      "Where the layout shows up",
+      "Troubleshooting"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ru/guide.html",
+    "lang": "ru",
+    "title": "CyrFlip - инструкция",
+    "description": "Установите CyrFlip для мгновенного отображения раскладки везде. Расширение для VS Code — необязательное дополнение.",
+    "headings": [
+      "Инструкция по установке CyrFlip",
+      "Найти задачу",
+      "Словарь",
+      "Как связаны две части",
+      "Шаг 1 - установите и запустите приложение CyrFlip",
+      "История буфера (необязательно)",
+      "Перевод выделенного текста (необязательно)",
+      "Настройки по вкладкам",
+      "Быстрый запуск (лаунчер сценариев, необязательно)",
+      "Собственное контекстное меню CyrFlip (необязательно)",
+      "Быстрые заметки (необязательно)",
+      "Языки интерфейса",
+      "Шаг 2 - установите расширение для VS Code (необязательно)",
+      "Шаг 3 - пользуйтесь вместе",
+      "Что означает цвет маркера",
+      "Где показывается раскладка",
+      "Решение проблем"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/uk/guide.html",
+    "lang": "uk",
+    "title": "CyrFlip - інструкція",
+    "description": "Встановіть CyrFlip для миттєвого відображення розкладки всюди. Розширення для VS Code — необов'язковий додаток.",
+    "headings": [
+      "Інструкція з встановлення CyrFlip",
+      "Знайти завдання",
+      "Словник",
+      "Як пов'язані дві частини",
+      "Крок 1 - встановіть і запустіть застосунок CyrFlip",
+      "Історія буфера (необов'язково)",
+      "Налаштування по вкладках",
+      "Швидкий запуск (лаунчер сценаріїв, необов'язково)",
+      "Переклад виділеного тексту (необов'язково)",
+      "Власне контекстне меню CyrFlip (необов'язково)",
+      "Швидкі нотатки (необов'язково)",
+      "Мови інтерфейсу",
+      "Крок 2 - встановіть розширення для VS Code (необов'язково)",
+      "Крок 3 - користуйтеся разом",
+      "Що означає колір маркера",
+      "Де показується розкладка",
+      "Усунення проблем"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/privacy.html",
+    "lang": "en",
+    "title": "CyrFlip - Privacy Policy",
+    "description": "CyrFlip does not collect, store, log, or transmit any personal data. It runs entirely on your own device.",
+    "headings": [
+      "Privacy Policy",
+      "What the app accesses, and why",
+      "Local files CyrFlip writes",
+      "Data sharing",
+      "Children's privacy",
+      "Open source",
+      "Changes to this policy",
+      "Contact"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ru/privacy.html",
+    "lang": "ru",
+    "title": "CyrFlip - политика конфиденциальности",
+    "description": "CyrFlip не собирает, не хранит, не журналирует и не передаёт персональные данные. Всё работает на вашем устройстве.",
+    "headings": [
+      "Политика конфиденциальности",
+      "К чему приложение обращается и зачем",
+      "Локальные файлы, которые пишет CyrFlip",
+      "Передача данных",
+      "Конфиденциальность детей",
+      "Открытый исходный код",
+      "Изменения политики",
+      "Контакты"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/uk/privacy.html",
+    "lang": "uk",
+    "title": "CyrFlip - політика конфіденційності",
+    "description": "CyrFlip не збирає, не зберігає, не журналює й не передає персональних даних. Усе працює на вашому пристрої.",
+    "headings": [
+      "Політика конфіденційності",
+      "До чого застосунок звертається і навіщо",
+      "Локальні файли, які пише CyrFlip",
+      "Передавання даних",
+      "Конфіденційність дітей",
+      "Відкритий код",
+      "Зміни політики",
+      "Контакти"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/de/privacy.html",
+    "lang": "de",
+    "title": "CyrFlip - Datenschutzerklärung",
+    "description": "CyrFlip erhebt, speichert, protokolliert und überträgt keine personenbezogenen Daten. Alles läuft auf Ihrem eigenen Gerät.",
+    "headings": [
+      "Datenschutzerklärung",
+      "Worauf die App zugreift und warum",
+      "Lokale Dateien, die CyrFlip schreibt",
+      "Weitergabe von Daten",
+      "Datenschutz für Kinder",
+      "Quelloffen",
+      "Änderungen dieser Erklärung",
+      "Kontakt"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/it/privacy.html",
+    "lang": "it",
+    "title": "CyrFlip - Informativa sulla privacy",
+    "description": "CyrFlip non raccoglie, non conserva, non registra e non trasmette dati personali. Tutto gira sul tuo dispositivo.",
+    "headings": [
+      "Informativa sulla privacy",
+      "A cosa accede l'app, e perché",
+      "File locali che CyrFlip scrive",
+      "Condivisione dei dati",
+      "Privacy dei minori",
+      "Codice aperto",
+      "Modifiche a questa informativa",
+      "Contatti"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/es/privacy.html",
+    "lang": "es",
+    "title": "CyrFlip - Política de privacidad",
+    "description": "CyrFlip no recopila, almacena, registra ni transmite ningún dato personal. Funciona por completo en tu propio dispositivo.",
+    "headings": [
+      "Política de privacidad",
+      "A qué accede la aplicación, y por qué",
+      "Archivos locales que escribe CyrFlip",
+      "Cesión de datos",
+      "Privacidad de los menores",
+      "Código abierto",
+      "Cambios en esta política",
+      "Contacto"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/fr/privacy.html",
+    "lang": "fr",
+    "title": "CyrFlip - Politique de confidentialité",
+    "description": "CyrFlip ne collecte, ne stocke, ne journalise ni ne transmet aucune donnée personnelle. Tout se passe sur votre propre appareil.",
+    "headings": [
+      "Politique de confidentialité",
+      "Ce à quoi l'application accède, et pourquoi",
+      "Fichiers locaux écrits par CyrFlip",
+      "Partage de données",
+      "Vie privée des enfants",
+      "Code source ouvert",
+      "Modifications de cette politique",
+      "Contact"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/pt/privacy.html",
+    "lang": "pt",
+    "title": "CyrFlip - Política de privacidade",
+    "description": "O CyrFlip não coleta, armazena, registra nem transmite quaisquer dados pessoais. Tudo acontece no seu próprio dispositivo.",
+    "headings": [
+      "Política de privacidade",
+      "A que o aplicativo acessa, e por quê",
+      "Arquivos locais que o CyrFlip grava",
+      "Compartilhamento de dados",
+      "Privacidade de crianças",
+      "Código aberto",
+      "Alterações desta política",
+      "Contato"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ar/privacy.html",
+    "lang": "ar",
+    "title": "CyrFlip - سياسة الخصوصية",
+    "description": "لا يجمع CyrFlip أي بيانات شخصية ولا يخزّنها ولا يسجّلها ولا ينقلها. كل شيء يجري على جهازك أنت.",
+    "headings": [
+      "سياسة الخصوصية",
+      "ما الذي يصل إليه التطبيق، ولماذا",
+      "الملفات المحلية التي يكتبها CyrFlip",
+      "مشاركة البيانات",
+      "خصوصية الأطفال",
+      "مفتوح المصدر",
+      "تغييرات هذه السياسة",
+      "التواصل"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/hi/privacy.html",
+    "lang": "hi",
+    "title": "CyrFlip - गोपनीयता नीति",
+    "description": "CyrFlip कोई व्यक्तिगत डेटा एकत्र, संग्रहीत, अभिलिखित या प्रेषित नहीं करता। सब कुछ आपके ही उपकरण पर होता है।",
+    "headings": [
+      "गोपनीयता नीति",
+      "ऐप किन चीज़ों तक पहुँचता है, और क्यों",
+      "CyrFlip द्वारा लिखी जाने वाली स्थानीय फ़ाइलें",
+      "डेटा साझा करना",
+      "बच्चों की गोपनीयता",
+      "मुक्त स्रोत",
+      "इस नीति में परिवर्तन",
+      "संपर्क"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/bn/privacy.html",
+    "lang": "bn",
+    "title": "CyrFlip - গোপনীয়তা নীতি",
+    "description": "CyrFlip কোনো ব্যক্তিগত তথ্য সংগ্রহ, সংরক্ষণ, নথিভুক্ত বা প্রেরণ করে না। সবকিছু আপনার নিজের যন্ত্রেই ঘটে।",
+    "headings": [
+      "গোপনীয়তা নীতি",
+      "অ্যাপ কীসে হাত দেয়, আর কেন",
+      "CyrFlip যেসব স্থানীয় ফাইল লেখে",
+      "তথ্য ভাগাভাগি",
+      "শিশুদের গোপনীয়তা",
+      "মুক্ত উৎস",
+      "এই নীতির পরিবর্তন",
+      "যোগাযোগ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ur/privacy.html",
+    "lang": "ur",
+    "title": "CyrFlip - پرائیویسی پالیسی",
+    "description": "CyrFlip کوئی ذاتی معلومات جمع، محفوظ، درج یا منتقل نہیں کرتی۔ سب کچھ آپ ہی کے آلے پر ہوتا ہے۔",
+    "headings": [
+      "پرائیویسی پالیسی",
+      "ایپ کس چیز تک رسائی لیتی ہے، اور کیوں",
+      "مقامی فائلیں جو CyrFlip لکھتی ہے",
+      "معلومات کا اشتراک",
+      "بچوں کی پرائیویسی",
+      "کھلا ماخذ",
+      "اس پالیسی میں تبدیلیاں",
+      "رابطہ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/zh/privacy.html",
+    "lang": "zh",
+    "title": "CyrFlip - 隐私政策",
+    "description": "CyrFlip 隐私政策：应用在你自己的设备上运行，不收集任何内容，也没有自己的服务器；可选的翻译功能只把你选中的文本发送到你指定的 Ollama 地址，默认就是你自己的电脑。",
+    "headings": [
+      "隐私政策",
+      "应用访问什么，为什么",
+      "CyrFlip 写入的本地文件",
+      "数据共享",
+      "儿童隐私",
+      "开放源代码",
+      "本政策的变更",
+      "联系方式"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/trust.html",
+    "lang": "en",
+    "title": "CyrFlip - Why Windows or an antivirus may warn",
+    "description": "What the Windows SmartScreen or antivirus warning about CyrFlip means, why it appears, exactly what to click, and what CyrFlip never does.",
+    "headings": [
+      "Why Windows or an antivirus may warn about CyrFlip",
+      "What the warning is",
+      "\"Windows protected your PC\"",
+      "An antivirus quarantines or blocks CyrFlip.exe",
+      "Why it appears",
+      "Exactly what to click",
+      "What CyrFlip never does",
+      "Administrator prompts you may still see",
+      "What it changes, and how to undo it"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ru/trust.html",
+    "lang": "ru",
+    "title": "CyrFlip - почему Windows или антивирус могут предупреждать",
+    "description": "Что означает предупреждение Windows SmartScreen или антивируса о CyrFlip, почему оно появляется, что именно нажать и чего CyrFlip никогда не делает.",
+    "headings": [
+      "Почему Windows или антивирус могут предупреждать о CyrFlip",
+      "Что это за предупреждение",
+      "«Система Windows защитила ваш компьютер»",
+      "Антивирус помещает CyrFlip.exe в карантин или блокирует его",
+      "Почему оно появляется",
+      "Что именно нажать",
+      "Чего CyrFlip никогда не делает",
+      "Запросы прав администратора, которые вы всё же можете увидеть",
+      "Что он меняет и как это отменить"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/uk/trust.html",
+    "lang": "uk",
+    "title": "CyrFlip - чому Windows або антивірус можуть попереджати",
+    "description": "Що означає попередження Windows SmartScreen або антивірусу про CyrFlip, чому воно з'являється, що саме натиснути і чого CyrFlip ніколи не робить.",
+    "headings": [
+      "Чому Windows або антивірус можуть попереджати про CyrFlip",
+      "Що це за попередження",
+      "\"Windows protected your PC\" (Windows захистила ваш комп'ютер)",
+      "Антивірус поміщає CyrFlip.exe у карантин або блокує його",
+      "Чому воно з'являється",
+      "Що саме натиснути",
+      "Чого CyrFlip ніколи не робить",
+      "Запити прав адміністратора, які ви все ж можете побачити",
+      "Що він змінює і як це скасувати"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/de/trust.html",
+    "lang": "de",
+    "title": "CyrFlip - Warum Windows oder ein Virenschutz warnen kann",
+    "description": "Was die SmartScreen- oder Virenschutz-Warnung vor CyrFlip bedeutet, warum sie erscheint, was Sie anklicken und was CyrFlip nie tut.",
+    "headings": [
+      "Warum Windows oder ein Virenschutz vor CyrFlip warnen kann",
+      "Was die Warnung ist",
+      "„Der Computer wurde durch Windows geschützt\"",
+      "Ein Virenschutz stellt CyrFlip.exe unter Quarantäne oder blockiert es",
+      "Warum sie erscheint",
+      "Was genau Sie anklicken",
+      "Was CyrFlip nie tut",
+      "Administrator-Abfragen, die Sie trotzdem sehen können",
+      "Was es ändert und wie Sie es rückgängig machen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/it/trust.html",
+    "lang": "it",
+    "title": "CyrFlip - avviso di Windows o antivirus",
+    "description": "Cosa significa l'avviso di Windows SmartScreen o dell'antivirus su CyrFlip, perché compare, esattamente su cosa fare clic e cosa CyrFlip non fa mai.",
+    "headings": [
+      "Perché Windows o un antivirus possono mostrare un avviso su CyrFlip",
+      "Cos'è l'avviso",
+      "«Windows ha protetto il PC»",
+      "Un antivirus mette CyrFlip.exe in quarantena o lo blocca",
+      "Perché compare",
+      "Esattamente su cosa fare clic",
+      "Cosa CyrFlip non fa mai",
+      "Richieste di amministratore che potresti comunque vedere",
+      "Cosa modifica, e come annullarlo"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/es/trust.html",
+    "lang": "es",
+    "title": "CyrFlip - Por qué Windows o un antivirus pueden avisar",
+    "description": "Qué significa el aviso de Windows SmartScreen o de un antivirus sobre CyrFlip, por qué aparece, qué pulsar exactamente y qué no hace nunca CyrFlip.",
+    "headings": [
+      "Por qué Windows o un antivirus pueden avisar sobre CyrFlip",
+      "Qué es el aviso",
+      "\"Windows protected your PC\" (Windows protegió tu PC)",
+      "Un antivirus pone CyrFlip.exe en cuarentena o lo bloquea",
+      "Por qué aparece",
+      "Qué pulsar exactamente",
+      "Lo que CyrFlip nunca hace",
+      "Solicitudes de administrador que aún puedes ver",
+      "Qué cambia y cómo deshacerlo"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/fr/trust.html",
+    "lang": "fr",
+    "title": "CyrFlip - avertissement Windows ou antivirus",
+    "description": "Ce que signifie l'avertissement de Windows SmartScreen ou d'un antivirus au sujet de CyrFlip, pourquoi il apparaît, sur quoi cliquer exactement.",
+    "headings": [
+      "Pourquoi Windows ou un antivirus peut afficher un avertissement pour CyrFlip",
+      "Ce qu'est cet avertissement",
+      "« Windows a protégé votre ordinateur »",
+      "Un antivirus met CyrFlip.exe en quarantaine ou le bloque",
+      "Pourquoi il apparaît",
+      "Sur quoi cliquer exactement",
+      "Ce que CyrFlip ne fait jamais",
+      "Demandes d'administrateur que vous pouvez tout de même voir",
+      "Ce qu'il modifie, et comment l'annuler"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/pt/trust.html",
+    "lang": "pt",
+    "title": "CyrFlip - aviso do Windows ou antivírus",
+    "description": "O que significa o aviso do Windows SmartScreen ou do antivírus sobre o CyrFlip, por que ele aparece, exatamente onde clicar e o que o CyrFlip nunca faz.",
+    "headings": [
+      "Por que o Windows ou um antivírus pode avisar sobre o CyrFlip",
+      "O que é o aviso",
+      "«O Windows protegeu o computador»",
+      "Um antivírus coloca o CyrFlip.exe em quarentena ou o bloqueia",
+      "Por que ele aparece",
+      "Exatamente onde clicar",
+      "O que o CyrFlip nunca faz",
+      "Pedidos de administrador que você ainda pode ver",
+      "O que ele altera, e como desfazer"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ar/trust.html",
+    "lang": "ar",
+    "title": "CyrFlip - لماذا قد يحذّر Windows أو برنامج مكافحة الفيروسات",
+    "description": "ما معنى تحذير Windows SmartScreen أو برنامج مكافحة الفيروسات بشأن CyrFlip، ولماذا يظهر، وعلى ماذا تنقر بالضبط، وما الذي لا يفعله CyrFlip أبدًا.",
+    "headings": [
+      "لماذا قد يحذّر Windows أو برنامج مكافحة الفيروسات من CyrFlip",
+      "ما هو التحذير",
+      "\"Windows protected your PC\" (حمى Windows حاسوبك)",
+      "برنامج مكافحة فيروسات يعزل CyrFlip.exe أو يحظره",
+      "لماذا يظهر",
+      "على ماذا تنقر بالضبط",
+      "ما الذي لا يفعله CyrFlip أبدًا",
+      "مطالبات المسؤول التي قد تظل تراها",
+      "ما الذي يغيّره، وكيف تتراجع عنه"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/hi/trust.html",
+    "lang": "hi",
+    "title": "CyrFlip - Windows या एंटीवायरस चेतावनी क्यों दे सकता है",
+    "description": "CyrFlip के बारे में Windows SmartScreen या एंटीवायरस की चेतावनी का क्या अर्थ है, वह क्यों दिखती है, ठीक-ठीक क्या क्लिक करें, और CyrFlip क्या कभी नहीं करता।",
+    "headings": [
+      "Windows या एंटीवायरस CyrFlip के बारे में चेतावनी क्यों दे सकता है",
+      "चेतावनी क्या है",
+      "\"Windows protected your PC\" (Windows ने आपके PC की सुरक्षा की)",
+      "कोई एंटीवायरस CyrFlip.exe को क्वारंटीन या ब्लॉक करता है",
+      "यह क्यों दिखती है",
+      "ठीक-ठीक क्या क्लिक करें",
+      "CyrFlip क्या कभी नहीं करता",
+      "व्यवस्थापक संकेत जो आपको फिर भी दिख सकते हैं",
+      "यह क्या बदलता है, और उसे कैसे पलटें"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/bn/trust.html",
+    "lang": "bn",
+    "title": "CyrFlip - কেন Windows বা অ্যান্টিভাইরাস সতর্ক করতে পারে",
+    "description": "CyrFlip সম্পর্কে Windows SmartScreen বা অ্যান্টিভাইরাসের সতর্কবার্তার মানে কী, কেন তা দেখা দেয়, ঠিক কোথায় ক্লিক করবেন, এবং CyrFlip কখনও কী করে না।",
+    "headings": [
+      "কেন Windows বা কোনো অ্যান্টিভাইরাস CyrFlip সম্পর্কে সতর্ক করতে পারে",
+      "সতর্কবার্তাটি কী",
+      "\"Windows protected your PC\" (Windows আপনার পিসি সুরক্ষিত করেছে)",
+      "কোনো অ্যান্টিভাইরাস CyrFlip.exe কোয়ারেন্টাইন বা ব্লক করে",
+      "কেন এটি দেখা দেয়",
+      "ঠিক কোথায় ক্লিক করবেন",
+      "CyrFlip কখনও কী করে না",
+      "প্রশাসকের যে অনুরোধগুলো তবুও দেখতে পারেন",
+      "এটি কী বদলায়, আর কীভাবে তা ফেরাবেন"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ur/trust.html",
+    "lang": "ur",
+    "title": "CyrFlip - Windows یا اینٹی وائرس کیوں خبردار کر سکتا ہے",
+    "description": "CyrFlip کے بارے میں Windows SmartScreen یا اینٹی وائرس کی تنبیہ کا کیا مطلب ہے، یہ کیوں ظاہر ہوتی ہے، ٹھیک ٹھیک کیا کلک کرنا ہے، اور CyrFlip کیا.",
+    "headings": [
+      "Windows یا کوئی اینٹی وائرس CyrFlip کے بارے میں کیوں خبردار کر سکتا ہے",
+      "تنبیہ کیا ہے",
+      "\"Windows protected your PC\" (Windows نے آپ کے PC کی حفاظت کی)",
+      "کوئی اینٹی وائرس CyrFlip.exe کو قرنطینہ یا بلاک کر دیتا ہے",
+      "یہ کیوں ظاہر ہوتی ہے",
+      "ٹھیک ٹھیک کیا کلک کریں",
+      "CyrFlip کیا کبھی نہیں کرتی",
+      "منتظم کے تقاضے جو آپ کو پھر بھی نظر آ سکتے ہیں",
+      "یہ کیا بدلتی ہے، اور اسے کیسے واپس لیں"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/zh/trust.html",
+    "lang": "zh",
+    "title": "CyrFlip - 为什么 Windows 或杀毒软件可能发出警告",
+    "description": "关于 CyrFlip 的 Windows SmartScreen 或杀毒软件警告意味着什么、为什么会出现、具体该点击什么，以及 CyrFlip 从不做的事。",
+    "headings": [
+      "为什么 Windows 或杀毒软件可能对 CyrFlip 发出警告",
+      "这是什么警告",
+      "“Windows 已保护你的电脑”",
+      "杀毒软件隔离或阻止了 CyrFlip.exe",
+      "为什么会出现",
+      "具体该点击什么",
+      "CyrFlip 从不做的事",
+      "你仍可能看到的管理员提示",
+      "它会更改什么，以及如何撤销"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/",
+    "lang": "en",
+    "title": "CyrFlip - fix wrong-layout text on Windows",
+    "description": "CyrFlip is a Windows tray tool that shows the active keyboard layout where you type and fixes selected text typed in the wrong layout.",
+    "headings": [
+      "Исправляйте текст в неверной раскладке и видьте текущую до ввода.Fix wrong-layout text and see the active layout before you type.Виправляйте текст у хибній розкладці й бачте поточну до введення.",
+      "Основные ситуацииCommon situationsОсновні ситуації",
+      "Увидеть раскладку до вводаSee the layout before typingПобачити розкладку до введення",
+      "Исправить набранный текст и CapsLockFix typed text and CapsLockВиправити набраний текст і CapsLock",
+      "Вернуться к недавнему фрагментуReturn to a recent snippetПовернутися до недавнього фрагмента",
+      "Сохранить фрагмент кода на потомKeep a fragment of code for laterЗберегти фрагмент коду на потім",
+      "Понять текст на чужом языкеUnderstand text in another languageЗрозуміти текст чужою мовою",
+      "Всё то же самое — мышьюThe same things, by mouseТе саме — мишею",
+      "Продолжить по своей задачеContinue with your taskПродовжити зі своїм завданням",
+      "Подробности и ограниченияDetails and limitationsПодробиці та обмеження"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/de/",
+    "lang": "de",
+    "title": "CyrFlip — falsch getippten Text unter Windows korrigieren",
+    "description": "CyrFlip zeigt das aktive Tastaturlayout dort, wo Sie tippen, und korrigiert markierten Text, der im falschen Layout eingegeben wurde.",
+    "headings": [
+      "Korrigieren Sie Text im falschen Layout und sehen Sie das aktive Layout schon vor dem Tippen.",
+      "Layout vor dem Tippen sehen",
+      "Bereits getippten Text und CapsLock korrigieren",
+      "Zwischenablage-Verlauf",
+      "Codeausschnitt für später aufheben",
+      "Markierten Text übersetzen",
+      "Dasselbe – mit der Maus"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/it/",
+    "lang": "it",
+    "title": "CyrFlip - correggere il testo nel layout sbagliato",
+    "description": "CyrFlip mostra il layout di tastiera attivo dove stai scrivendo e corregge il testo selezionato digitato con il layout sbagliato.",
+    "headings": [
+      "Correggi il testo digitato con il layout sbagliato e vedi quello attivo prima di scrivere.",
+      "Vedere il layout prima di scrivere",
+      "Correggere il testo digitato e CapsLock",
+      "Cronologia degli appunti",
+      "Conservare un frammento per dopo",
+      "Tradurre la selezione",
+      "Le stesse cose, col mouse"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/es/",
+    "lang": "es",
+    "title": "CyrFlip - corregir texto con otra distribución",
+    "description": "CyrFlip muestra la distribución de teclado activa donde escribes y corrige el texto seleccionado que se escribió con la distribución equivocada.",
+    "headings": [
+      "Corrige el texto escrito con la distribución equivocada y mira la activa antes de teclear.",
+      "Ver la distribución antes de escribir",
+      "Corregir texto escrito y CapsLock",
+      "Historial del portapapeles",
+      "Guardar un fragmento para después",
+      "Traducir el texto seleccionado",
+      "Lo mismo, con el ratón"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/fr/",
+    "lang": "fr",
+    "title": "CyrFlip - corriger un texte saisi au mauvais clavier",
+    "description": "CyrFlip affiche la disposition de clavier active là où vous tapez et corrige le texte sélectionné saisi dans la mauvaise disposition.",
+    "headings": [
+      "Corrigez le texte saisi dans la mauvaise disposition et voyez la disposition active avant de taper.",
+      "Voir la disposition avant de taper",
+      "Corriger le texte saisi et Verr. Maj.",
+      "Historique du presse-papiers",
+      "Garder un fragment pour plus tard",
+      "Traduire la sélection",
+      "Les mêmes gestes, à la souris"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/pt/",
+    "lang": "pt",
+    "title": "CyrFlip - corrigir texto no layout errado",
+    "description": "O CyrFlip mostra o layout de teclado ativo onde você digita e corrige o texto selecionado digitado no layout errado.",
+    "headings": [
+      "Corrija o texto digitado no layout errado e veja o layout ativo antes de digitar.",
+      "Ver o layout antes de digitar",
+      "Corrigir texto digitado e CapsLock",
+      "Histórico da área de transferência",
+      "Guardar um trecho para depois",
+      "Traduzir a seleção",
+      "As mesmas coisas, com o mouse"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ar/",
+    "lang": "ar",
+    "title": "CyrFlip — تصحيح النص المكتوب بتخطيط خاطئ على Windows",
+    "description": "يعرض CyrFlip تخطيط لوحة المفاتيح النشط حيث تكتب، ويصحّح النص المحدّد الذي كُتب بتخطيط خاطئ.",
+    "headings": [
+      "صحّح النص المكتوب بتخطيط خاطئ، وشاهد التخطيط النشط قبل أن تبدأ الكتابة.",
+      "رؤية التخطيط قبل الكتابة",
+      "تصحيح النص المكتوب وCapsLock",
+      "سجل الحافظة",
+      "حفظ مقتطف لوقت لاحق",
+      "ترجمة النص المحدَّد",
+      "الأشياء نفسها - بالفأرة"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/hi/",
+    "lang": "hi",
+    "title": "CyrFlip — Windows पर गलत लेआउट में लिखा पाठ ठीक करें",
+    "description": "CyrFlip वहीं सक्रिय कीबोर्ड लेआउट दिखाता है जहाँ आप टाइप करते हैं और गलत लेआउट में लिखा चयनित पाठ ठीक करता है।",
+    "headings": [
+      "गलत लेआउट में लिखा पाठ ठीक करें और टाइप करने से पहले सक्रिय लेआउट देखें।",
+      "टाइप करने से पहले लेआउट देखें",
+      "लिखा पाठ और CapsLock ठीक करें",
+      "क्लिपबोर्ड इतिहास",
+      "कोड का अंश बाद के लिए रखें",
+      "चुने हुए पाठ का अनुवाद",
+      "वही सब, माउस से"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/bn/",
+    "lang": "bn",
+    "title": "CyrFlip — Windows-এ ভুল লেআউটে লেখা টেক্সট ঠিক করুন",
+    "description": "CyrFlip আপনি যেখানে টাইপ করছেন সেখানেই সক্রিয় কীবোর্ড লেআউট দেখায় এবং ভুল লেআউটে লেখা নির্বাচিত টেক্সট ঠিক করে।",
+    "headings": [
+      "ভুল লেআউটে লেখা টেক্সট ঠিক করুন এবং টাইপ করার আগেই সক্রিয় লেআউট দেখুন।",
+      "টাইপ করার আগে লেআউট দেখুন",
+      "লেখা টেক্সট ও CapsLock ঠিক করুন",
+      "ক্লিপবোর্ডের ইতিহাস",
+      "কোডের অংশ পরের জন্য রাখুন",
+      "নির্বাচিত লেখার অনুবাদ",
+      "একই কাজ, মাউস দিয়ে"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ur/",
+    "lang": "ur",
+    "title": "CyrFlip — ونڈوز پر غلط لے آؤٹ میں لکھا متن درست کریں",
+    "description": "‏CyrFlip وہیں فعال کی بورڈ لے آؤٹ دکھاتا ہے جہاں آپ لکھ رہے ہیں، اور غلط لے آؤٹ میں لکھا منتخب متن درست کرتا ہے۔",
+    "headings": [
+      "غلط لے آؤٹ میں لکھا متن درست کریں اور لکھنے سے پہلے ہی فعال لے آؤٹ دیکھیں۔",
+      "لکھنے سے پہلے لے آؤٹ دیکھیں",
+      "لکھا متن اور CapsLock درست کریں",
+      "کلپ بورڈ کی تاریخ",
+      "کوڈ کا ٹکڑا بعد کے لیے رکھیں",
+      "منتخب متن کا ترجمہ",
+      "وہی سب کچھ - ماؤس سے"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/zh/",
+    "lang": "zh",
+    "title": "CyrFlip — 在 Windows 上修正用错误键盘布局输入的文本",
+    "description": "CyrFlip 在你输入的位置显示当前键盘布局，并修正用错误布局输入的选中文本。",
+    "headings": [
+      "修正用错误布局输入的文本，并在开始输入前就看清当前布局。",
+      "输入前先看清布局",
+      "修正输错的文本与 CapsLock",
+      "剪贴板历史",
+      "把代码片段留到以后",
+      "翻译选中的文本",
+      "同样的事，用鼠标完成"
+    ]
+  }
+]

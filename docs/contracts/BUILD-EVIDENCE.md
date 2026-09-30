@@ -17,5 +17,5 @@
 - **Each generator ships with its compare check** (rule 7): the Store listing mirrors have one
   (`render-listing-mirrors.ps1 -Check`).
 
-Not yet held: the MSIX build (`msix/build-msix.ps1`) is not pinned to the tag, and
-`build-store-listing-csv.ps1` and `tools/IconGen` have no compare check.
+The MSIX build (`msix/build-msix.ps1`) is pinned to the tag too (S0038 RP-3): on both of its paths the
+exe's `ProductVersion` must be `<version>+<tag commit>`. Generators have compare checks: `render-listing-mirrors.ps1 -Check` and `build-store-listing-csv.ps1 -Check`. IconGen is checked via CI build and declared in placement registry.

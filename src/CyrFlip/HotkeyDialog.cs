@@ -46,7 +46,7 @@ namespace CyrFlip
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            StartPosition = FormStartPosition.CenterScreen;
+            StartPosition = FormStartPosition.CenterParent;
             ShowInTaskbar = false;
             KeyPreview = true;
             AutoSize = true;
@@ -210,7 +210,30 @@ namespace CyrFlip
 
         protected override void OnKeyUp(KeyEventArgs e)
         {
+            // Windows posts no WM_KEYDOWN for PrintScreen, only the key-up, so that one key is
+            // captured on its release (S0026 - the region capture's default chord uses it).
+            if (e.KeyCode == Keys.PrintScreen)
+            {
+                OnKeyDown(e);
+                return;
+            }
             e.Handled = true;
+        }
+
+        private static int _capturingDialogs;
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            if (System.Threading.Interlocked.Increment(ref _capturingDialogs) > 0)
+                KeyboardHook.SuspendChords = true;
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            if (System.Threading.Interlocked.Decrement(ref _capturingDialogs) <= 0)
+                KeyboardHook.SuspendChords = false;
+            base.OnFormClosed(e);
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -274,6 +297,7 @@ namespace CyrFlip
                 case Keys.End: name = "End"; return true;
                 case Keys.PageUp: name = "PageUp"; return true;
                 case Keys.PageDown: name = "PageDown"; return true;
+                case Keys.PrintScreen: name = "PrintScreen"; return true;
             }
             name = "";
             return false;

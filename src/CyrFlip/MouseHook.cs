@@ -17,8 +17,8 @@ namespace CyrFlip
     ///    Windows silently drops a hook that takes longer than <c>LowLevelHooksTimeout</c> (300 ms).
     /// 2. <b>Nothing is shown from here.</b> The subscriber posts to the UI thread; opening a menu
     ///    inside the callback would run a foreign message loop inside a hook.
-    /// 3. <b>Both the down and the up are swallowed</b> (and the double-click message, which replaces
-    ///    the down on a fast second click): most applications open their menu on <c>WM_CONTEXTMENU</c>,
+    /// 3. <b>Both the down and the up are swallowed</b> (the second down of a fast double click is
+    ///    swallowed like the first): most applications open their menu on <c>WM_CONTEXTMENU</c>,
     ///    which arrives after the button is released, so a lone up would raise their menu over ours.
     /// 4. <b>The up is swallowed by flag, not by re-checking the modifiers</b> - the user may well let
     ///    Ctrl go before the button.
@@ -113,10 +113,8 @@ namespace CyrFlip
                 {
                     case WM_LBUTTONDOWN:
                     case WM_RBUTTONDOWN:
-                    case WM_RBUTTONDBLCLK:
                     case WM_RBUTTONUP:
                     case WM_MBUTTONDOWN:
-                    case WM_MBUTTONDBLCLK:
                     case WM_MBUTTONUP:
                         break;
                     default:
@@ -132,9 +130,8 @@ namespace CyrFlip
 
                 bool right = _chord.Button == MouseChordButton.Right;
                 int downMsg = right ? WM_RBUTTONDOWN : WM_MBUTTONDOWN;
-                int dblMsg = right ? WM_RBUTTONDBLCLK : WM_MBUTTONDBLCLK;
                 int upMsg = right ? WM_RBUTTONUP : WM_MBUTTONUP;
-                if ((msg == downMsg || msg == dblMsg) && ModifiersMatch())
+                if (msg == downMsg && ModifiersMatch())
                 {
                     _swallowUp.Arm(data.time);
                     ChordPressed?.Invoke(data.pt.X, data.pt.Y);

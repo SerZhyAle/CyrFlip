@@ -121,6 +121,17 @@ namespace CyrFlip
         public Color Success => this[ThemeRole.Success];
 
         /// <summary>
+        /// The region capture's overlay (S0026 4.4) - drawn over a frozen picture of the user's own
+        /// screen, whose colours are whatever they are, so it is the same in every theme: a translucent
+        /// black veil, a white selection frame with a dark hairline beside it, and a dark size label.
+        /// </summary>
+        public static readonly Color CaptureVeil = Color.FromArgb(110, 0, 0, 0);
+        public static readonly Color CaptureFrame = Color.FromArgb(255, 255, 255);
+        public static readonly Color CaptureFrameShadow = Color.FromArgb(160, 0, 0, 0);
+        public static readonly Color CaptureLabelBack = Color.FromArgb(200, 32, 32, 32);
+        public static readonly Color CaptureLabelText = Color.FromArgb(255, 255, 255);
+
+        /// <summary>
         /// The design-time palette: what every control is built with and what the app looked like before
         /// there was a theme. The neutral roles are live system colours, so a customized colour scheme is
         /// honoured exactly as it was; the accent and warning are the two literals the settings window

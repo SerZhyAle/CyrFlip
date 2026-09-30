@@ -23,8 +23,20 @@ namespace CyrFlip.Tests
         [InlineData("http://localhost:11434/api", "http://localhost:11434")]
         [InlineData("http://localhost:11434/api/", "http://localhost:11434")]
         [InlineData("http://ai.lan:11434", "http://ai.lan:11434")]
+        // S0037 TR-2: Ollama's own OLLAMA_HOST shape has no scheme.
+        [InlineData("127.0.0.1:11434", "http://127.0.0.1:11434")]
+        [InlineData("localhost:11434/", "http://localhost:11434")]
+        [InlineData("ai.lan:11434/api", "http://ai.lan:11434")]
+        [InlineData("https://ai.example:443", "https://ai.example:443")]
         public void TheEndpointIsNormalizedIntoWhatTheUserProbablyMeant(string? entered, string expected)
             => Assert.Equal(expected, OllamaClient.NormalizeBase(entered));
+
+        /// <summary>...and the scheme-less local server is local: it is the one CyrFlip may start.</summary>
+        [Theory]
+        [InlineData("127.0.0.1:11434")]
+        [InlineData("localhost:11434")]
+        public void ASchemeLessLocalEndpointIsLoopback(string entered)
+            => Assert.True(OllamaClient.IsLoopback(OllamaClient.NormalizeBase(entered)));
 
         [Fact]
         public void ModelNamesAreReadFromATagsBody()
@@ -210,26 +222,28 @@ namespace CyrFlip.Tests
         }
 
         /// <summary>
-        /// The read loop's clock (TD-2), at a hundredth of real time: a line every 20 ms for 600 ms
-        /// against a 100 ms idle limit completes - the old total cap would have cut it - and a
-        /// stream that falls silent after five lines is cut, with those five delivered.
+        /// The read loop's clock (TD-2), scaled down: a line every 20 ms for 1.6 s against a 500 ms idle
+        /// limit completes - the old total cap (the 500 ms "load" budget) would have cut it - and a
+        /// stream that falls silent after five lines is cut, with those five delivered. The idle limit
+        /// is 25 gaps wide on purpose: the full suite runs 40 s of parallel GUI tests, and a 20 ms
+        /// delay against a 100 ms limit was cut by thread-pool starvation alone (S0029).
         /// </summary>
         [Fact]
         public async Task ASlowStreamThatKeepsWritingIsNeverCutOff()
         {
             int sent = 0;
             var lines = new List<string>();
-            using var linked = new CancellationTokenSource(200); // the "load" budget: first line only
+            using var linked = new CancellationTokenSource(500); // the "load" budget: first line only
 
             bool ok = await HttpOllamaTransport.PumpAsync(async token =>
             {
-                if (sent == 30) return null;
+                if (sent == 80) return null;
                 await Task.Delay(20, token);
                 return "line " + sent++;
-            }, lines.Add, linked, idleTimeoutMs: 100, maxAnswerMs: 0);
+            }, lines.Add, linked, idleTimeoutMs: 500, maxAnswerMs: 0);
 
             Assert.True(ok);
-            Assert.Equal(30, lines.Count);
+            Assert.Equal(80, lines.Count);
         }
 
         [Fact]
@@ -237,14 +251,14 @@ namespace CyrFlip.Tests
         {
             int sent = 0;
             var lines = new List<string>();
-            using var linked = new CancellationTokenSource(2000);
+            using var linked = new CancellationTokenSource(5000);
 
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => HttpOllamaTransport.PumpAsync(async token =>
             {
                 if (sent == 5) await Task.Delay(Timeout.Infinite, token);
                 await Task.Delay(10, token);
                 return "line " + sent++;
-            }, lines.Add, linked, idleTimeoutMs: 100, maxAnswerMs: 0));
+            }, lines.Add, linked, idleTimeoutMs: 500, maxAnswerMs: 0));
 
             Assert.Equal(5, lines.Count);
         }
@@ -384,10 +398,14 @@ namespace CyrFlip.Tests
             /// </summary>
             public bool StopAfterLines;
 
+            /// <summary>Throw as a deadline does from this post on (1 = the first), leaving earlier ones alone.</summary>
+            public int ThrowFromPost;
+
             public Task<bool> PostLinesAsync(string url, string json, Action<string> onLine,
                 int timeoutMs, int idleTimeoutMs, int maxAnswerMs, CancellationToken ct)
             {
                 if (ThrowOnPost) throw new OperationCanceledException(ct);
+                if (ThrowFromPost > 0 && Posts.Count + 1 >= ThrowFromPost) throw new OperationCanceledException();
                 LastTimeoutMs = timeoutMs;
                 LastIdleTimeoutMs = idleTimeoutMs;
                 LastMaxAnswerMs = maxAnswerMs;

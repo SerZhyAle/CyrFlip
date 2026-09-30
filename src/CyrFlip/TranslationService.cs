@@ -140,21 +140,13 @@ namespace CyrFlip
         /// Translate one selection into <paramref name="targetCode"/>, streaming into
         /// <paramref name="sink"/> as the model writes.
         /// </summary>
-        public Task<TranslationResult> TranslateAsync(string text, string targetCode,
-            TranslationSink? sink, CancellationToken ct)
-            => TranslateAsync(text, targetCode, null, sink, ct);
-
-        /// <param name="sourceCode">
-        /// The language the text is expected to be in (the fixed-pair rows), or null to let the model
-        /// work it out - which is what every auto-detecting row does.
-        /// </param>
         public async Task<TranslationResult> TranslateAsync(string text, string targetCode,
-            string? sourceCode, TranslationSink? sink, CancellationToken ct)
+            TranslationSink? sink, CancellationToken ct)
         {
             var result = new TranslationResult { SourceLength = (text ?? "").Length };
             try
             {
-                return await TranslateCoreAsync(text ?? "", targetCode, sourceCode, sink, result, ct).ConfigureAwait(false);
+                return await TranslateCoreAsync(text ?? "", targetCode, sink, result, ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -167,7 +159,7 @@ namespace CyrFlip
         }
 
         private async Task<TranslationResult> TranslateCoreAsync(string text, string targetCode,
-            string? sourceCode, TranslationSink? sink, TranslationResult result, CancellationToken ct)
+            TranslationSink? sink, TranslationResult result, CancellationToken ct)
         {
             string source = Truncate(text, MaxChars, out bool truncated).Trim();
             result.Truncated = truncated;
@@ -196,14 +188,11 @@ namespace CyrFlip
             result.Model = model;
 
             string language = TranslationLanguages.EnglishName(targetCode);
-            string? sourceLanguage = string.IsNullOrEmpty(sourceCode) || string.Equals(sourceCode, targetCode, StringComparison.OrdinalIgnoreCase)
-                ? null
-                : TranslationLanguages.EnglishName(sourceCode);
 
             string? answer;
             try
             {
-                answer = await client.GenerateAsync(model, SystemPrompt, BuildPrompt(language, source, sourceLanguage),
+                answer = await client.GenerateAsync(model, SystemPrompt, BuildPrompt(language, source),
                     _config.TranslateKeepAliveMinutes, chunk => sink?.Chunk(chunk),
                     TimeoutMs, IdleTimeoutMs, MaxAnswerMs, ct).ConfigureAwait(false);
             }
@@ -230,14 +219,21 @@ namespace CyrFlip
                 string? second;
                 try
                 {
-                    second = await client.GenerateAsync(model, SystemPrompt, BuildRetryPrompt(language, source, sourceLanguage),
+                    second = await client.GenerateAsync(model, SystemPrompt, BuildRetryPrompt(language, source),
                         _config.TranslateKeepAliveMinutes, chunk => sink?.Chunk(chunk),
                         TimeoutMs, IdleTimeoutMs, MaxAnswerMs, ct).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
-                    result.Status = ct.IsCancellationRequested ? TranslationStatus.Cancelled : TranslationStatus.Timeout;
-                    return result;
+                    // A retry that timed out is a bad retry, and a bad retry keeps the first answer
+                    // (S0037 TR-3) - it used to come back as a Timeout with nothing to show. Only the
+                    // user's own cancel, or a first answer that was empty anyway, ends the translation.
+                    if (ct.IsCancellationRequested || answer.Length == 0)
+                    {
+                        result.Status = ct.IsCancellationRequested ? TranslationStatus.Cancelled : TranslationStatus.Timeout;
+                        return result;
+                    }
+                    second = null;
                 }
 
                 second = (second ?? "").Trim();
@@ -330,27 +326,15 @@ namespace CyrFlip
             return truncated ? text.Substring(0, max) : text;
         }
 
-        /// <summary>
-        /// The source-language line for a fixed-pair row. Phrased as an <b>expectation</b>: pressing
-        /// the wrong half of the pair must degrade to a correct translation, not to a model dutifully
-        /// translating out of a language the text is not in.
-        /// </summary>
-        internal static string SourceHintLine(string? sourceLanguageName)
-            => string.IsNullOrEmpty(sourceLanguageName) ? "" :
-               "The text is expected to be in " + sourceLanguageName +
-               "; if it plainly is not, translate from whatever language it is actually in.\n";
-
-        internal static string BuildPrompt(string languageName, string text, string? sourceLanguageName = null)
-            => SourceHintLine(sourceLanguageName) +
-               "Translate the FULL following text into " + languageName + "." + "\n" +
+        internal static string BuildPrompt(string languageName, string text)
+            => "Translate the FULL following text into " + languageName + "." + "\n" +
                "Translate every sentence and detail faithfully; do not summarize, shorten, or omit anything." + "\n" +
                "Write the translation ENTIRELY in " + languageName + " using its native alphabet; do NOT use " +
                "Chinese characters or any other language. Output only the translation, no notes and no quotes." + "\n" +
                "Text: " + text;
 
-        internal static string BuildRetryPrompt(string languageName, string text, string? sourceLanguageName = null)
-            => SourceHintLine(sourceLanguageName) +
-               "Translate this ENTIRE text into " + languageName + " ONLY. Translate every sentence and detail; " +
+        internal static string BuildRetryPrompt(string languageName, string text)
+            => "Translate this ENTIRE text into " + languageName + " ONLY. Translate every sentence and detail; " +
                "do not summarize, shorten, or omit anything. The output must be written entirely in " +
                languageName + "'s native alphabet. Produce a genuine translation, not a copy. " +
                "Output only the translation." + "\n" +

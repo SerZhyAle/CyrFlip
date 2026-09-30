@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace CyrFlip
 {
@@ -39,6 +40,15 @@ namespace CyrFlip
     {
         /// <summary>The environment variable that carries the yt-dlp link (never the command line - see BuildYtDlpStartInfo).</summary>
         public const string YtDlpLinkVariable = "CYRFLIP_YTDLP_LINK";
+
+        /// <summary>The environment variable that carries the download folder, handed to yt-dlp as <c>-P</c>.</summary>
+        public const string YtDlpFolderVariable = "CYRFLIP_YTDLP_FOLDER";
+
+        /// <summary>The prefix of the variables that carry the user's own yt-dlp configs (<c>..1</c>, <c>..2</c>).</summary>
+        public const string YtDlpConfigVariable = "CYRFLIP_YTDLP_CONFIG";
+
+        /// <summary>cmd by its System32 path (S0034 LS2-7): a bare name is searched for, starting beside CyrFlip.exe.</summary>
+        internal static string CmdPath => Path.Combine(Environment.SystemDirectory, "cmd.exe");
 
         /// <summary>Longest "extra yt-dlp parameters" string that is ever passed.</summary>
         public const int MaxYtDlpFormatLength = 200;
@@ -83,7 +93,7 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 LauncherLog.Log(FailedLine(item, kind, ex));
-                return LauncherLaunchResult.Fail(ex.Message);
+                return LauncherLaunchResult.Fail(FailureCause.Describe(ex, "Русский"));
             }
         }
 
@@ -143,20 +153,55 @@ namespace CyrFlip
             return startInfo;
         }
 
+        /// <summary>
+        /// <see cref="Launch"/> for a caller on the UI thread - the thread both low-level hooks share
+        /// (ticket S0030 HT-1). The yt-dlp link prompt is modal UI, so it still runs here, on the
+        /// caller's thread; everything after it - validation, the PATH walk, <c>Process.Start</c>,
+        /// the download folder - runs on the pool, because any of it can touch a network share and
+        /// wait out an SMB connect while the whole machine's keyboard waits with it. The task
+        /// completes on the pool; surfacing a failure is the caller's job, on its own thread.
+        /// </summary>
+        public static Task<LauncherLaunchResult> LaunchAsync(LauncherScenario item, Func<string, string> translate,
+            Func<string?>? promptForLink = null)
+        {
+            LauncherScenario snapshot = item.Clone(); // an edit made meanwhile must not reach the worker half-way
+            if (!snapshot.IsYtDlp)
+                return Task.Run(() => Launch(snapshot, translate));
+
+            LauncherLaunchResult? early = PromptYtDlpLink(translate, promptForLink, out string? link);
+            if (early != null)
+                return Task.FromResult(early);
+            return Task.Run(() => StartYtDlp(snapshot, link!, translate));
+        }
+
         private static LauncherLaunchResult LaunchYtDlp(LauncherScenario item, Func<string, string> translate,
             Func<string?>? promptForLink)
         {
+            LauncherLaunchResult? early = PromptYtDlpLink(translate, promptForLink, out string? link);
+            return early ?? StartYtDlp(item, link!, translate);
+        }
+
+        /// <summary>The UI half of a yt-dlp launch: the link, or the result that ends the launch here.</summary>
+        private static LauncherLaunchResult? PromptYtDlpLink(Func<string, string> translate,
+            Func<string?>? promptForLink, out string? link)
+        {
+            link = null;
             if (promptForLink == null)
                 return LauncherLaunchResult.Fail(translate("Сценарию yt-dlp нужен запрос ссылки, недоступный в этом контексте."));
 
-            string? link = promptForLink();
-            if (string.IsNullOrWhiteSpace(link))
+            string? answer = promptForLink();
+            if (string.IsNullOrWhiteSpace(answer))
             {
                 LauncherLog.Log("yt-dlp launch cancelled by user");
                 return LauncherLaunchResult.UserCancelled();
             }
-            link = link!.Trim();
+            link = answer!.Trim();
+            return null;
+        }
 
+        /// <summary>The worker half of a yt-dlp launch: validate, resolve, create the folder, start.</summary>
+        private static LauncherLaunchResult StartYtDlp(LauncherScenario item, string link, Func<string, string> translate)
+        {
             string? linkError = ValidateYtDlpLink(link, translate);
             if (linkError != null)
                 return LauncherLaunchResult.Fail(linkError);
@@ -177,12 +222,14 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 return LauncherLaunchResult.Fail(string.Format(
-                    translate("Не удалось использовать папку загрузки «{0}»: {1}"), outputFolder, ex.Message));
+                    translate("Не удалось использовать папку загрузки «{0}»: {1}"), outputFolder, FailureCause.Describe(ex, "Русский")));
             }
 
             try
             {
-                ProcessStartInfo startInfo = BuildYtDlpStartInfo(item, link, outputFolder, ytDlp);
+                ProcessStartInfo startInfo = BuildYtDlpStartInfo(item, link, outputFolder, ytDlp,
+                    YtDlpConfigLocations(ytDlp, outputFolder, File.Exists, Environment.GetEnvironmentVariable,
+                        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
                 Process? process = Process.Start(startInfo);
                 // The link itself is deliberately absent from the log (spec §9).
                 LauncherLog.Log(LaunchedLine(item, "yt-dlp", process?.Id));
@@ -191,7 +238,7 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 LauncherLog.Log(FailedLine(item, "yt-dlp", ex));
-                return LauncherLaunchResult.Fail(ex.Message);
+                return LauncherLaunchResult.Fail(FailureCause.Describe(ex, "Русский"));
             }
         }
 
@@ -239,16 +286,28 @@ namespace CyrFlip
         /// command line: it travels in an environment variable and is referenced quoted, so cmd treats
         /// '&amp;', '|', '&lt;', '&gt;' inside it as literal text rather than shell operators.
         ///
-        /// Three more rules (S0008 LS-4): yt-dlp is started by the <b>full path</b> that was resolved
-        /// on PATH - cmd searches its current directory, the download folder, first - and
-        /// <c>NoDefaultCurrentDirectoryInExePath</c> keeps it from doing so for anything it starts
-        /// itself; <c>--</c> ends the options before the link; and the extra parameters are passed
-        /// only when <see cref="IsValidYtDlpFormat"/> allows them, each token quoted. The outer quote
-        /// pair with <c>/s</c> is the one cmd quoting that survives a quoted program path followed by
-        /// quoted arguments (see <see cref="LauncherScriptInterpreter"/>).
+        /// <para>Three more rules (S0008 LS-4): yt-dlp is started by the <b>full path</b> that was
+        /// resolved on PATH, and <c>NoDefaultCurrentDirectoryInExePath</c> keeps cmd from searching its
+        /// current directory for anything it starts; <c>--</c> ends the options before the link; and
+        /// the extra parameters are passed only when <see cref="IsValidYtDlpFormat"/> allows them, each
+        /// token quoted. The outer quote pair with <c>/s</c> is the one cmd quoting that survives a
+        /// quoted program path followed by quoted arguments (see <see cref="LauncherScriptInterpreter"/>).</para>
+        ///
+        /// <para><b>No config is read from the download folder</b> (S0034 LS2-2). yt-dlp loads a
+        /// "home" <c>yt-dlp.conf</c> from the folder given to <c>-P</c> - or, without <c>-P</c>, from its
+        /// current directory, which used to be the download folder, Downloads by default: a file a web
+        /// page can drop there, and a config can say <c>--exec</c>. So the command says
+        /// <c>--ignore-config</c> and names the user's own configs - found where yt-dlp itself would
+        /// look, <see cref="YtDlpConfigLocations"/> - with <c>--config-locations</c>. The folder is given
+        /// as <c>-P</c> rather than as the working directory: cmd refuses a UNC current directory and
+        /// falls back to <c>C:\Windows</c>, where the download failed while CyrFlip reported success.
+        /// cmd itself starts in the user profile. The folder and the config paths travel in
+        /// environment variables like the link - a path may hold a <c>%</c>.</para>
         /// </summary>
-        internal static ProcessStartInfo BuildYtDlpStartInfo(LauncherScenario item, string link, string outputFolder, string ytDlpPath)
+        internal static ProcessStartInfo BuildYtDlpStartInfo(LauncherScenario item, string link, string outputFolder,
+            string ytDlpPath, System.Collections.Generic.IReadOnlyList<string>? configs = null)
         {
+            var configArgs = new StringBuilder();
             var format = new StringBuilder();
             if (!string.IsNullOrWhiteSpace(item.YtDlpFormat) && IsValidYtDlpFormat(item.YtDlpFormat))
                 foreach (string token in item.YtDlpFormat.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
@@ -256,14 +315,92 @@ namespace CyrFlip
 
             var startInfo = new ProcessStartInfo
             {
-                FileName = "cmd.exe",
-                Arguments = $"/s /k \"\"{ytDlpPath}\" {format}-- \"%{YtDlpLinkVariable}%\"\"",
+                FileName = CmdPath,
                 UseShellExecute = false, // required to pass the environment; also gives us the console window
-                WorkingDirectory = outputFolder,
+                WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             };
+            int n = 0;
+            foreach (string config in configs ?? Array.Empty<string>())
+            {
+                string variable = YtDlpConfigVariable + (++n).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                startInfo.EnvironmentVariables[variable] = config;
+                configArgs.Append("--config-locations \"%").Append(variable).Append("%\" ");
+            }
+            startInfo.Arguments = $"/s /k \"\"{ytDlpPath}\" --ignore-config {configArgs}-P \"%{YtDlpFolderVariable}%\" "
+                + $"{format}-- \"%{YtDlpLinkVariable}%\"\"";
             startInfo.EnvironmentVariables[YtDlpLinkVariable] = link;
+            startInfo.EnvironmentVariables[YtDlpFolderVariable] = QuotableFolder(outputFolder);
             startInfo.EnvironmentVariables["NoDefaultCurrentDirectoryInExePath"] = "1";
             return startInfo;
+        }
+
+        /// <summary>
+        /// A folder that can stand inside a quote pair: yt-dlp reads its arguments by the C runtime's
+        /// rules, where <c>\"</c> is an escaped quote - so <c>"D:\"</c> would swallow the closing quote.
+        /// A trailing separator becomes <c>\.</c>, the same folder.
+        /// </summary>
+        internal static string QuotableFolder(string folder)
+            => folder.EndsWith("\\", StringComparison.Ordinal) || folder.EndsWith("/", StringComparison.Ordinal)
+                ? folder + "."
+                : folder;
+
+        /// <summary>
+        /// The user's own yt-dlp configs, as <c>--ignore-config</c> would otherwise drop them: the
+        /// portable one beside the executable, then the first user config found in yt-dlp's own
+        /// search order (<c>%XDG_CONFIG_HOME%</c> or <c>~\.config</c>, <c>%APPDATA%</c>, <c>~</c> - the
+        /// order of yt-dlp's <c>get_user_config_dirs</c> and <c>_load_from_config_dirs</c>). Anything
+        /// inside the download folder is left out - that is the folder the rule exists for.
+        /// </summary>
+        internal static System.Collections.Generic.List<string> YtDlpConfigLocations(string ytDlpPath, string outputFolder,
+            Func<string, bool> fileExists, Func<string, string?> environment, string home)
+        {
+            var found = new System.Collections.Generic.List<string>(2);
+            string download = NormalizeFolder(outputFolder);
+            bool Usable(string path)
+            {
+                try
+                {
+                    return path.IndexOf('"') < 0 && fileExists(path)
+                        && !string.Equals(NormalizeFolder(Path.GetDirectoryName(path) ?? ""), download, StringComparison.OrdinalIgnoreCase);
+                }
+                catch { return false; }
+            }
+
+            string? exeFolder = null;
+            try { exeFolder = Path.GetDirectoryName(ytDlpPath); } catch { }
+            if (!string.IsNullOrEmpty(exeFolder) && Usable(Path.Combine(exeFolder!, "yt-dlp.conf")))
+                found.Add(Path.Combine(exeFolder!, "yt-dlp.conf"));
+
+            var candidates = new System.Collections.Generic.List<string>(10);
+            string xdg = environment("XDG_CONFIG_HOME") ?? "";
+            if (xdg.Length == 0) xdg = Path.Combine(home, ".config");
+            candidates.Add(Path.Combine(xdg, "yt-dlp.conf"));
+            candidates.Add(Path.Combine(xdg, "yt-dlp", "config"));
+            candidates.Add(Path.Combine(xdg, "yt-dlp", "config.txt"));
+            string appData = environment("APPDATA") ?? "";
+            if (appData.Length > 0)
+            {
+                candidates.Add(Path.Combine(appData, "yt-dlp.conf"));
+                candidates.Add(Path.Combine(appData, "yt-dlp", "config"));
+                candidates.Add(Path.Combine(appData, "yt-dlp", "config.txt"));
+            }
+            candidates.Add(Path.Combine(home, "yt-dlp.conf"));
+            candidates.Add(Path.Combine(home, "yt-dlp.conf.txt"));
+            candidates.Add(Path.Combine(home, ".yt-dlp", "config"));
+            candidates.Add(Path.Combine(home, ".yt-dlp", "config.txt"));
+            foreach (string candidate in candidates)
+                if (Usable(candidate))
+                {
+                    found.Add(candidate);
+                    break;
+                }
+            return found;
+        }
+
+        private static string NormalizeFolder(string folder)
+        {
+            try { return Path.GetFullPath(folder).TrimEnd('\\', '/'); }
+            catch { return folder.TrimEnd('\\', '/'); }
         }
 
         /// <summary>

@@ -36,6 +36,14 @@ $ErrorActionPreference = 'Stop'
 try { Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction Stop } catch { }
 
 Import-Module (Join-Path $PSScriptRoot 'CyrFlip.UiTest.psm1') -Force
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+Import-Module (Join-Path $repo 'tools\checks\CheckVerdict.psm1') -Force
+
+$defaultExe = Join-Path $repo "src\CyrFlip\bin\$Configuration\net48\CyrFlip.exe"
+$banner = Get-CyrFlipSubjectBanner -ExePath $defaultExe
+Set-CheckSubject "uitest/Test-SupportBundle $($banner.SubjectAxis)"
+Write-Host "Subject: $($banner.BannerText)" -ForegroundColor Cyan
+
 $dataFolder = Get-CyrFlipDataFolder   # portable, Store (S0016) or a pre-S0016 Store build
 $packaged = $dataFolder.Packaged
 $logDir = $dataFolder.Path
@@ -52,6 +60,7 @@ if (Test-Path $history) {
 } else {
     Write-Warning 'clipboard-history.log is absent: the exclusion check cannot fail in this run.'
     Write-Warning 'Enable the clipboard manager, copy something, then run this script again.'
+    Add-CheckFinding -Severity notverified -Name 'clipboard-history-absent' -Reason 'clipboard-history.log is absent: exclusion check cannot fail in this run'
 }
 
 $before = @()
@@ -124,7 +133,7 @@ try {
         if ($entry.Length -lt 400KB) { continue }
         $reader = New-Object System.IO.StreamReader($entry.Open())
         try { $first = $reader.ReadLine() } finally { $reader.Dispose() }
-        if ($first -notlike '--- truncated:*') {
+        if (-not $first.StartsWith('[Diag] LOG TRUNCATED | ') -and $first -notlike '--- truncated:*') {
             $failures.Add("$($entry.FullName) is at the size cap but carries no truncation marker")
         }
     }
@@ -145,17 +154,22 @@ $after = @(Get-ChildItem $reportsDir -Filter 'CyrFlip-logs-*.zip')
 "archives after    : $($after.Count)"
 if ($after.Count -gt 5) { $failures.Add("retention kept $($after.Count) archives, expected at most 5") }
 
+foreach ($f in $failures) {
+    Add-CheckFinding -Severity fail -Name 'support-bundle-defect' -Reason $f
+}
+
 ''
 if ($failures.Count -gt 0) {
     $failures | ForEach-Object { Write-Host "FAIL: $_" -ForegroundColor Red }
-    throw "$($failures.Count) check(s) failed."
+} else {
+    Write-Host 'PASS: archive contents, truncation markers and retention are as specified.' -ForegroundColor Green
 }
-Write-Host 'PASS: archive contents, truncation markers and retention are as specified.' -ForegroundColor Green
 
 ''
 if ($NoUi) {
     'This run covered the disk half only - no dialog was shown and no message was prepared.'
     'Run the script without -NoUi and press the button to cover the list below.'
+    Complete-Check
 }
 'Left for your eyes - nothing in this repo can assert it:'
 '  1. press "Create the message" and confirm the compose window opened at all;'
@@ -164,3 +178,5 @@ if ($NoUi) {
 '     notice, this machine has no Simple MAPI client (new Outlook and webmail do not register one)'
 '     and the mailto: rung answered - that is the designed fallback, not a bug;'
 '  4. nothing was sent until you pressed Send yourself.'
+
+Complete-Check

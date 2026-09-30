@@ -22,14 +22,28 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'CyrFlip.UiTest.psm1') -Force
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+Import-Module (Join-Path $repo 'tools\checks\CheckVerdict.psm1') -Force
 
 $layouts = @(Get-InstalledLayouts)
 "installed layouts : " + (($layouts | ForEach-Object Klid) -join ', ')
-if ($layouts.Count -lt 2) { throw "Need at least two installed layouts to see a switch." }
+if ($layouts.Count -lt 2) {
+    Set-CheckSubject 'uitest/Test-TrayMouse'
+    Add-CheckFinding -Severity notverified -Name 'installed-layouts' -Reason 'Need at least two installed layouts to see a switch.'
+    Complete-Check
+}
 
 $app = $null
 if ($StartApp) { $app = Start-CyrFlipApp -Configuration $Configuration -Fresh:$Fresh }
-elseif (-not (Get-Process CyrFlip -ErrorAction SilentlyContinue)) { throw "CyrFlip is not running (pass -StartApp)." }
+elseif (-not (Get-Process CyrFlip -ErrorAction SilentlyContinue)) {
+    Set-CheckSubject 'uitest/Test-TrayMouse'
+    Add-CheckFinding -Severity notverified -Name 'app-not-running' -Reason 'CyrFlip is not running (pass -StartApp).'
+    Complete-Check
+}
+
+$banner = Get-CyrFlipSubjectBanner
+Set-CheckSubject "uitest/Test-TrayMouse $($banner.SubjectAxis)"
+Write-Host "Subject: $($banner.BannerText)" -ForegroundColor Cyan
 
 $icon = Get-TrayIcon
 "tray icon         : $($icon.X),$($icon.Y)  '$($icon.Name -replace '\r?\n', ' | ')'"
@@ -89,8 +103,9 @@ finally {
     if ($app) { Stop-CyrFlipApp }
 }
 
-""
-if ($failures.Count -eq 0) { "RESULT: PASS"; exit 0 }
-"RESULT: FAIL"
-$failures | ForEach-Object { "  - $_" }
-exit 1
+foreach ($f in $failures) {
+    Add-CheckFinding -Severity fail -Name 'tray-mouse-defect' -Reason $f
+}
+
+Write-Host ''
+Complete-Check

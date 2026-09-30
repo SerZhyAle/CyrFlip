@@ -32,6 +32,10 @@ namespace IconGen
             Directory.CreateDirectory(assets);
             Directory.CreateDirectory(docsAssets);
 
+            // `-- glyphs -CatalogRoot <dir>` vendors the ICON-SET glyphs into src/CyrFlip/Glyphs.g.cs
+            // (ticket S0022 A1) and touches no other asset.
+            if (args.Length > 0 && args[0] == "glyphs") return GlyphVendoring.Run(root, args);
+
             // `dotnet run --project tools/IconGen -- store` generates ONLY the Microsoft Store
             // logos (into assets/store/), without rewriting the other assets.
             if (args.Length > 0 && args[0] == "store")
@@ -375,9 +379,9 @@ namespace IconGen
 
             using var font = new Font("Segoe UI", beamH * 0.6f, FontStyle.Bold, GraphicsUnit.Pixel);
             SizeF sz = g.MeasureString(code, font);
-            float pillX = x + serifW / 2f + beamH * 0.14f;
+            float pillX = x + serifW / 2f + Math.Max(1f, beamH * 0.04f);
             float pillPad = beamH * 0.12f;
-            var pill = new RectangleF(pillX, yCenter - sz.Height / 2f - beamH * 0.04f, sz.Width + pillPad * 2f, sz.Height + beamH * 0.08f);
+            var pill = new RectangleF(pillX, yCenter + beamH * 0.25f,sz.Width + pillPad * 2f, sz.Height + beamH * 0.12f);
             Color codeColor = PreviewColor(code);
             using (var path = Rounded(pill, beamH * 0.22f))
             using (var bg = new SolidBrush(Color.FromArgb(235, ColorTranslator.FromHtml("#11161f"))))

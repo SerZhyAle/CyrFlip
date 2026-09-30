@@ -128,6 +128,19 @@ namespace CyrFlip.Tests
             Assert.False(ClipboardPrivacy.ShouldSkip(new ClipboardPrivacyMarkers { CanUploadToCloud = 1 }));
             Assert.False(ClipboardPrivacy.ShouldSkip(new ClipboardPrivacyMarkers { CanIncludeInHistory = 1, CanUploadToCloud = 1 }));
             Assert.True(ClipboardPrivacy.ShouldSkip(new ClipboardPrivacyMarkers { CanIncludeInHistory = 1, CanUploadToCloud = 0 }));
+
+            // S0031 CH2-3: present but unreadable (delay-rendered, shorter than a DWORD) is 0, not absent.
+            Assert.Null(ClipboardPrivacy.MarkerValue(present: false, value: null));
+            Assert.Equal(0u, ClipboardPrivacy.MarkerValue(present: true, value: null));
+            Assert.Equal(1u, ClipboardPrivacy.MarkerValue(present: true, value: 1));
+            Assert.True(ClipboardPrivacy.ShouldSkip(new ClipboardPrivacyMarkers
+            {
+                CanIncludeInHistory = ClipboardPrivacy.MarkerValue(present: true, value: null),
+            }));
+            Assert.False(ClipboardPrivacy.ShouldSkip(new ClipboardPrivacyMarkers
+            {
+                CanIncludeInHistory = ClipboardPrivacy.MarkerValue(present: false, value: null),
+            }));
         }
 
         // ---- CH-4: the preview ----

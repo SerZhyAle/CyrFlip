@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using CyrFlip;
@@ -161,7 +161,7 @@ namespace CyrFlip.Tests
             var first = new LauncherScenario { Name = "First", Path = "calc.exe" };
             var second = new LauncherScenario { Name = "Second", Path = "notepad.exe" };
             List<LauncherJumpList.TaskSpec> tasks = LauncherJumpList.BuildTasks(
-                new[] { first, second }, @"C:\apps\CyrFlip.exe", ru => "T:" + ru);
+                new[] { first, second }, @"C:\apps\CyrFlip.exe", ru => "T:" + ru, StubIcons());
 
             Assert.Equal(4, tasks.Count);
             Assert.Equal("First", tasks[0].Title);
@@ -180,7 +180,7 @@ namespace CyrFlip.Tests
         public void NoScenariosStillYieldsManageAndExit()
         {
             List<LauncherJumpList.TaskSpec> tasks = LauncherJumpList.BuildTasks(
-                new LauncherScenario[0], @"C:\apps\CyrFlip.exe", ru => ru);
+                new LauncherScenario[0], @"C:\apps\CyrFlip.exe", ru => ru, StubIcons());
             Assert.Equal(2, tasks.Count);
             Assert.Equal(LauncherIpc.SettingsCommand, tasks[0].Arguments);
             Assert.Equal(LauncherIpc.ExitCommand, tasks[1].Arguments);
@@ -189,13 +189,44 @@ namespace CyrFlip.Tests
         [Fact]
         public void EveryTaskCarriesANonEmptyIconSource()
         {
-            // T0021: no blank icons - even an unresolvable target falls back to the app icon.
+            // T0021: no blank icons - even an unresolvable target falls back to a glyph, never to nothing.
             var strange = new LauncherScenario { Name = "odd", Path = "no-such-thing-anywhere.xyz" };
             List<LauncherJumpList.TaskSpec> tasks = LauncherJumpList.BuildTasks(
-                new[] { strange }, @"C:\apps\CyrFlip.exe", ru => ru);
+                new[] { strange }, @"C:\apps\CyrFlip.exe", ru => ru, StubIcons());
             foreach (LauncherJumpList.TaskSpec task in tasks)
                 Assert.False(string.IsNullOrEmpty(task.IconPath), "blank icon for " + task.Title);
         }
+
+        [Fact]
+        public void NoTaskEverWearsTheAppsOwnMark()
+        {
+            // ICON-SET rule 7 (ticket S0022 A6): the product mark is not a meaning. Manage is the settings
+            // glyph, Exit the exit glyph, the stand-in for an unreadable program the apps glyph.
+            const string exe = @"C:\apps\CyrFlip.exe";
+            var strange = new LauncherScenario { Name = "odd", Path = "no-such-thing-anywhere.xyz" };
+            var download = new LauncherScenario { Name = "dl", Type = LauncherScenarioType.YtDlp };
+            List<LauncherJumpList.TaskSpec> tasks = LauncherJumpList.BuildTasks(
+                new[] { strange, download }, exe, ru => ru, StubIcons());
+            Assert.All(tasks, task => Assert.NotEqual(exe, task.IconPath));
+            Assert.Equal(@"C:\icons\content.apps.ico", tasks[0].IconPath);
+            Assert.Equal(@"C:\icons\action.download.ico", tasks[1].IconPath);
+            Assert.Equal(@"C:\icons\app.settings.ico", tasks[2].IconPath);
+            Assert.Equal(@"C:\icons\nav.exit.ico", tasks[3].IconPath);
+        }
+
+        [Fact]
+        public void AnIconThatCannotBeWrittenLeavesTheTaskWithoutOneAndStillBuilds()
+        {
+            var probes = new LauncherPathProbes { VocabularyIcon = _ => null };
+            List<LauncherJumpList.TaskSpec> tasks = LauncherJumpList.BuildTasks(
+                new LauncherScenario[0], @"C:\apps\CyrFlip.exe", ru => ru, probes);
+            Assert.Equal(2, tasks.Count);
+            Assert.All(tasks, task => Assert.Equal("", task.IconPath));
+        }
+
+        /// <summary>Icon files are never written to the real data folder by a test.</summary>
+        private static LauncherPathProbes StubIcons()
+            => new LauncherPathProbes { VocabularyIcon = id => @"C:\icons\" + id + ".ico" };
 
         // ---- Hotkey binding snapshot ----
 

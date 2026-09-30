@@ -120,4 +120,73 @@ namespace CyrFlip
 
         public void Dispose() => DestroyHandle();
     }
+
+    /// <summary>
+    /// What CyrFlip does in the seconds Windows gives it at sign-out, <b>in the order that matters</b>
+    /// (ticket S0003 LC-2, S0035 QN2-6): what carries data first, the optional optimisation last. The
+    /// quick-notes compaction used to come second - so a sign-out during a background compaction
+    /// waited for it on the journal lock, compacted a second time, and reached the queued
+    /// clipboard-history records with no budget left, and they were lost. Now the compaction runs only
+    /// when none is already running and the budget is still fresh, and every wait is bounded by what
+    /// is left. The steps are delegates so the order is tested without a session to end.
+    /// </summary>
+    internal sealed class SessionEndSequence
+    {
+        /// <summary>The whole budget: Windows kills a process that takes much longer after WM_ENDSESSION.</summary>
+        public static readonly TimeSpan Budget = TimeSpan.FromSeconds(3);
+
+        /// <summary>The compaction is only started while at most this much of the budget is spent.</summary>
+        public static readonly TimeSpan CompactionCutoff = TimeSpan.FromSeconds(1);
+
+        /// <summary>The cap on waiting for queued clipboard-history writes.</summary>
+        public static readonly TimeSpan HistoryDrain = TimeSpan.FromSeconds(1);
+
+        /// <summary>The cap on waiting for queued diagnostic-log lines (S0030 HT-4).</summary>
+        public static readonly TimeSpan LogDrain = TimeSpan.FromMilliseconds(500);
+
+        /// <summary>1. The layout files - their absence means "CyrFlip is not running" (LAYOUT-SIGNAL rule 6).</summary>
+        public Action Retract { get; set; } = () => { };
+        /// <summary>2. The last note edit, appended - never a compaction.</summary>
+        public Action FlushNotes { get; set; } = () => { };
+        /// <summary>3. Clipboard-history records still queued, waited for at most the given time.</summary>
+        public Action<TimeSpan> DrainHistory { get; set; } = _ => { };
+        /// <summary>4. The system cursor.</summary>
+        public Action RestoreCursor { get; set; } = () => { };
+        /// <summary>True while a background compaction runs - then there is no second one.</summary>
+        public Func<bool> CompactionRunning { get; set; } = () => false;
+        /// <summary>5. The compaction a clean exit would have made; skipped, a later exit makes it.</summary>
+        public Action Compact { get; set; } = () => { };
+        /// <summary>6. Diagnostic lines still queued, waited for at most the given time.</summary>
+        public Action<TimeSpan> FlushLogs { get; set; } = _ => { };
+
+        /// <param name="elapsed">Time spent since WM_ENDSESSION arrived.</param>
+        public void Run(Func<TimeSpan> elapsed)
+        {
+            Try(Retract);
+            Try(FlushNotes);
+
+            TimeSpan left = Budget - elapsed();
+            if (left > TimeSpan.Zero)
+                Try(() => DrainHistory(left < HistoryDrain ? left : HistoryDrain));
+
+            Try(RestoreCursor);
+
+            if (elapsed() < CompactionCutoff && !Safe(CompactionRunning))
+                Try(Compact);
+
+            left = Budget - elapsed();
+            if (left > TimeSpan.Zero)
+                Try(() => FlushLogs(left < LogDrain ? left : LogDrain));
+        }
+
+        private static void Try(Action step)
+        {
+            try { step(); } catch { /* one failed step must not cost the next */ }
+        }
+
+        private static bool Safe(Func<bool> question)
+        {
+            try { return question(); } catch { return true; } // cannot tell: do not start a second one
+        }
+    }
 }

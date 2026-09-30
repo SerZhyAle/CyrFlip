@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-BEHAVIOUR` |
-| **Version** | 0.9, draft |
+| **Version** | 0.10, draft |
 | **Home** | `desktop-app-ux/APP-BEHAVIOUR.md` in the shared contracts catalog |
 | **Role here** | consumer - CyrFlip and its launcher module; **partly conformant** |
 

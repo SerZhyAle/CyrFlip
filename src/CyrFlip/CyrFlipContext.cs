@@ -59,6 +59,16 @@ namespace CyrFlip
         private QuickNotesService? _quickNotes;
         private QuickNotesWindow? _quickNotesWindow;
         private readonly ToolStripMenuItem _quickNotesItem;
+        // ---- Screen region capture (S0026) ----
+        private Hotkey _screenshotHotkey;
+        // A top-level item, always there: one click from the tray, no module switch (owner, 2026-09-26).
+        private readonly ToolStripMenuItem _screenshotItem;
+        private RegionSelectionOverlay? _regionOverlay;
+        private bool _screenshotChordWasLive;
+        private bool _textMenuChordWasLive;
+        // A start from the tray or the settings button waits for the menu to finish closing, or the
+        // closing menu would be frozen into the picture.
+        private readonly System.Windows.Forms.Timer _screenshotDelay = new System.Windows.Forms.Timer { Interval = 250 };
         // The open exchange file (ticket S0023): export / import of notes and history.
         private readonly ExchangeFlow _exchange;
         private readonly SettingsForm _settings;
@@ -71,7 +81,13 @@ namespace CyrFlip
         // ---- Text context menu (own menu over the selection) ----
         private readonly MouseHook _mouseHook = new MouseHook();
         private readonly ContextMenuStrip _textMenu = new ContextMenuStrip();
+        // The open menu came from the keyboard chord and holds the foreground (S0045 K2).
+        private bool _textMenuFromKeyboard;
         private SelectionProbe.Run? _selectionProbe;
+        /// <summary>The probe's own thread, alive while the mouse hook is installed (S0030 HT-3).</summary>
+        private SelectionProbe.Worker? _probeWorker;
+        /// <summary>The last quick-notes service switched off, still finishing its compaction on the pool.</summary>
+        private System.Threading.Tasks.Task? _quickNotesRetired;
         private IntPtr _textMenuTarget;
 
         // ---- Translator (local Ollama) ----
@@ -80,23 +96,12 @@ namespace CyrFlip
         private TranslationResultWindow? _translateWindow;
         private CancellationTokenSource? _translateCts;
         private bool _disposed;
+        /// <summary>Bumped by every launcher refresh, so a Jump List built on the pool for an older one is dropped.</summary>
+        private int _jumpListGeneration;
         private readonly SessionEndWatcher _sessionEnd = new SessionEndWatcher();
 
-        /// <summary>
-        /// Everything the session end has to put on disk, in <see cref="OnSessionEnding"/>. Windows
-        /// allows about 5 s before it shows "this app is preventing shutdown"; this stays well inside it.
-        /// </summary>
-        private static readonly TimeSpan SessionEndBudget = TimeSpan.FromSeconds(3);
-
-        /// <summary>Journal compaction is only started while at most this much of the budget is spent.</summary>
-        private static readonly TimeSpan SessionEndCompactionCutoff = TimeSpan.FromSeconds(1);
-
-        /// <summary>The cap on waiting for queued clipboard-history writes.</summary>
-        private static readonly TimeSpan SessionEndHistoryDrain = TimeSpan.FromSeconds(1);
         private string _translateSource = "";
         private string _translateCode = "";
-        // The expected source language of the pair rows; null for every auto-detecting row.
-        private string? _translateSourceCode;
         private IntPtr _translateTarget = IntPtr.Zero;
 
         private readonly SynchronizationContext? _ui;
@@ -121,13 +126,15 @@ namespace CyrFlip
             DataFolderMigration.RunOnce(_config);
             _launcherStore = new LauncherScenarioStore();
             _launcherMenu = new ToolStripMenuItem();
-            _caseHotkey = Hotkey.Parse(_config.CaseHotkey);
-            _clipboardHistoryHotkey = Hotkey.Parse(_config.ClipboardHistoryHotkey);
+            _caseHotkey = Hotkey.TryParse(_config.CaseHotkey, out Hotkey caseChord) ? caseChord : Hotkey.CaseDefault;
+            _clipboardHistoryHotkey = Hotkey.TryParse(_config.ClipboardHistoryHotkey, out Hotkey histChord) ? histChord : new Hotkey(true, true, false, false, 0x79, "F10");
             if (_clipboardHistoryHotkey.SameChord(_caseHotkey))
                 _clipboardHistoryHotkey = new Hotkey(true, true, false, false, 0x79, "F10");
-            _quickNotesHotkey = Hotkey.Parse(_config.QuickNotesHotkey);
+            _quickNotesHotkey = Hotkey.TryParse(_config.QuickNotesHotkey, out Hotkey notesChord) ? notesChord : Hotkey.Parse(AppConfig.DefaultQuickNotesHotkey);
+            _screenshotHotkey = Hotkey.TryParse(_config.ScreenshotHotkey, out Hotkey shotChord) ? shotChord : Hotkey.Parse(AppConfig.DefaultScreenshotHotkey);
             _translateWasOn = _config.EnableTranslate;
             _quickNotesChordWasLive = QuickNotesChordLive;
+            _screenshotChordWasLive = ScreenshotChordLive;
             _clipboardHistory = new ClipboardHistoryService(_config.EnableClipboardHistory, _config.PauseClipboardHistory);
             _clipboardHistoryWindow = new ClipboardHistoryWindow(_clipboardHistory, _config, ShowHistorySearch);
             _exchange = new ExchangeFlow(_config, _clipboardHistory,
@@ -202,7 +209,7 @@ namespace CyrFlip
             };
             _capsAfterItem.CheckedChanged += OnCapsAfterToggle;
 
-            // ---- Keep-awake toggles (state lives only in memory, off on every launch) ----
+            // ---- Keep-awake toggles (persisted in AppConfig since 2026-07-28) ----
             _keepAwakeItem = new ToolStripMenuItem { CheckOnClick = true, Checked = KeepAwake.KeepSystemAwake };
             _keepAwakeItem.CheckedChanged += OnKeepAwakeToggle;
             _keepScreenItem = new ToolStripMenuItem { CheckOnClick = true, Checked = KeepAwake.KeepScreenOn };
@@ -226,11 +233,15 @@ namespace CyrFlip
             {
                 Visible = _config.EnableQuickNotes,
             };
+            _screenshotItem = new ToolStripMenuItem(null, null, (_, _) => StartRegionCaptureDeferred());
+            _screenshotDelay.Tick += (_, _) => { _screenshotDelay.Stop(); StartRegionCapture(); };
             _settingsItem = new ToolStripMenuItem(null, null, (_, _) => ShowSettings());
             _exitItem = new ToolStripMenuItem(null, null, (_, _) => ExitThread());
 
             // ---- Menu ----
             var menu = new ContextMenuStrip();
+            menu.RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
+            _textMenu.RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
             menu.Items.Add(_showHistoryItem);
             menu.Items.Add(_historyEnabledItem);
             menu.Items.Add(_historyPauseItem);
@@ -247,6 +258,7 @@ namespace CyrFlip
             menu.Items.Add(_launcherMenu);
             menu.Items.Add(_translateClipboardItem);
             menu.Items.Add(_quickNotesItem);
+            menu.Items.Add(_screenshotItem);
             menu.Items.Add(_settingsItem);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(_exitItem);
@@ -259,6 +271,8 @@ namespace CyrFlip
                 // Dot style only makes sense when the caret overlay is on.
                 _dotModeItem.Enabled = _caretItem.Checked;
                 _historyPauseItem.Enabled = _historyEnabledItem.Checked;
+                // The chord is shown only while it would actually fire.
+                _screenshotItem.ShortcutKeyDisplayString = _config.EnableHotkeys && ScreenshotChordLive ? _screenshotHotkey.Display : null;
             };
 
             Icon initialIcon = TryGetAppIcon();
@@ -285,9 +299,14 @@ namespace CyrFlip
                 SetHotkeysEnabled, SetCaseHotkeyEnabled, SetHistoryHotkeyEnabled, SetDeferToRemoteDesktop,
                 value => _keepAwakeItem.Checked = value, value => _keepScreenItem.Checked = value,
                 _launcherStore, SetLauncherEnabled,
-                OnSetQuickNotesHotkey, () => ShowQuickNotes(startNew: false), ClearQuickNotes, ExportQuickNotes, RunExchange);
+                OnSetQuickNotesHotkey, () => ShowQuickNotes(startNew: false), ClearQuickNotes, ExportQuickNotes, RunExchange,
+                () => _clipboardHistory.Entries.Count, () => _quickNotes?.Notes.Count ?? 0);
             _settings.ConversionProfilesChanged += (_, _) => OnConversionProfilesChanged();
             _settings.QuickNotesChanged += (_, _) => OnQuickNotesChanged();
+            _settings.GraphicsChanged += (_, _) => OnGraphicsChanged();
+            _settings.ScreenshotHotkeyChangeRequested += (_, _) => OnSetScreenshotHotkey();
+            _settings.TextMenuHotkeyChangeRequested += (_, _) => OnSetTextMenuHotkey();
+            _settings.ScreenshotRequested += (_, _) => StartRegionCaptureDeferred();
             _settings.LauncherScenariosChanged += (_, _) => RefreshLauncherSurfaces();
             _settings.TranslationChanged += (_, _) => OnTranslationChanged();
             _settings.TextMenuChanged += (_, _) => OnContextMenuChanged();
@@ -342,29 +361,57 @@ namespace CyrFlip
             _hook.CaseHotkeyPressed += (_, _) => _ui?.Post(_ => OnCaseHotkeyPressed(null, EventArgs.Empty), null);
             _hook.ClipboardHistoryHotkeyPressed += (_, _) => _ui?.Post(_ => _clipboardHistoryWindow.ToggleVisible(), null);
             _hook.QuickNotesHotkeyPressed += (_, _) => _ui?.Post(_ => ShowQuickNotes(startNew: true), null);
+            // The chord starts the grab at once - that is what freezes a tooltip or an open menu (S0026 scenario 2).
+            _hook.ScreenshotHotkeyPressed += (_, _) => _ui?.Post(_ => StartRegionCapture(), null);
             _hook.LayoutConversionHotkeyPressed += id => _ui?.Post(_ => OnLayoutConversionHotkeyPressed(id), null);
             _hook.LauncherHotkeyPressed += OnLauncherHotkeyPressed; // already posts, and re-checks the switch there
             _hook.TranslateHotkeyPressed += id => _ui?.Post(_ => OnTranslateHotkeyPressed(id), null);
             _hook.CancelKeyPressed += (_, _) => _ui?.Post(_ => CancelTranslationFromEscape(), null);
+            // F6 into the finished translation popup and back out (S0045 K1).
+            _hook.FocusKeyPressed += (_, _) => _ui?.Post(_ =>
+            {
+                if (_translateWindow != null && !_translateWindow.IsDisposed) _translateWindow.ToggleKeyboardFocus();
+            }, null);
             // Mouse chord → own context menu. The probe starts on the press so the 80-150 ms the user
             // spends holding the button pays for it; the menu itself is only ever shown from the UI
             // thread, never from inside the hook callback.
             _mouseHook.ChordPressed += (x, y) =>
             {
+                // First, the mask key, posted like the keyboard chord's (KC-4): Windows never saw the
+                // swallowed click, so the release of the Alt or Shift of the chord would reach it as a
+                // bare tap - menu mode in Notepad/Explorer/Office, an IME mode switch (S0033 KC2-3).
+                // Only the snapshot is taken in here; the SendInput runs on the UI thread, still
+                // well before the user lets go of the modifier.
+                SideModifiers held = PhysicalModifiers.Shared.Snapshot();
+                if ((held & ~SideModifiers.Ctrl) != 0)
+                    _ui?.Post(_ => KeyInjection.SendMask(held), null);
                 // Remember the window the menu is being opened over. Every action of this menu
                 // synthesizes input, and synthesized input follows the foreground window - so the
                 // one thing we must not lose is which window that was before the menu appeared.
                 _textMenuTarget = WindowInterop.GetForegroundWindow();
                 // The pointer position is half the question: in read-only text the selection is
                 // under the pointer while the focus is elsewhere entirely (see SelectionProbe).
-                _selectionProbe = SelectionProbe.Start(x, y);
+                // Stamp and signal only - the probe thread already exists (S0030 HT-3).
+                _selectionProbe = _probeWorker?.Request(x, y);
             };
             _mouseHook.ChordReleased += (x, y) => _ui?.Post(_ => ShowTextContextMenu(x, y), null);
+            _hook.TextMenuHotkeyPressed += (_, _) => _ui?.Post(_ => OpenTextMenuFromKeyboard(), null);
             _mouseHook.ForeignButtonDown += (x, y) => _ui?.Post(_ => CloseTextMenuIfOutside(x, y), null);
-            _textMenu.Closed += (_, _) => _mouseHook.UpdateForeignClickWatch(false);
+            _textMenu.Closed += (_, e) =>
+            {
+                _mouseHook.UpdateForeignClickWatch(false);
+                // A menu opened from the keyboard held the foreground; closed without a command (Esc,
+                // a click elsewhere) it hands it back. A command does that itself (DeferOnTarget).
+                if (_textMenuFromKeyboard && e.CloseReason != ToolStripDropDownCloseReason.ItemClicked)
+                    _ui?.Post(_ => RestoreTargetForeground(), null);
+                _textMenuFromKeyboard = false;
+            };
             _clipboardHistory.ItemTooLarge += (_, _) => _tray.ShowBalloonTip(2000, "CyrFlip", T("Фрагмент слишком велик для истории (>128 КБ)."), ToolTipIcon.Info);
             _clipboardHistory.ClearFailed += (_, _) => _tray.ShowBalloonTip(3000, "CyrFlip",
                 T("Файл истории буфера занят другой программой, и он не удалён. Повторите очистку."), ToolTipIcon.Warning);
+            // Once per session: the service raises it for the first failed write only (S0031 CH2-4).
+            _clipboardHistory.WriteFailed += (_, _) => _tray.ShowBalloonTip(4000, "CyrFlip",
+                T("Запись в файл истории буфера не удалась - новые записи могут не сохраниться после перезапуска."), ToolTipIcon.Warning);
             // Once per session, like the quick notes: a damaged line now costs only itself (S0005 CH-2).
             if (_config.EnableClipboardHistory && _clipboardHistory.SkippedRecords > 0)
                 _tray.ShowBalloonTip(4000, "CyrFlip",
@@ -383,8 +430,10 @@ namespace CyrFlip
             if (_config.EnableClipboardHistory && _config.ShowClipboardHistoryOnStartup)
                 _clipboardHistoryWindow.ToggleVisible();
 
-            // Captured after the overlay/indicator created control handles, so this is the
-            // WinForms sync context - lets the background flip thread post tray feedback to the UI.
+            // The WinForms sync context - lets the background flip thread post tray feedback to the UI.
+            // It exists because a control was created on this thread before this line (the field
+            // initializers already build one); nothing that needs it may run before it is read here.
+            // The clipboard history does not use it at all: it posts to its own window (S0031 CH2-2).
             _ui = SynchronizationContext.Current;
 
             // Only now, for the same reason the mouse hook and the IPC listener wait: every hook
@@ -393,6 +442,18 @@ namespace CyrFlip
             _hook.Install(_caseHotkey, _clipboardHistoryHotkey, _quickNotesHotkey,
                 _config.DeferToRemoteDesktop, _config.EnableHotkeys,
                 _config.EnableCaseHotkey, _config.EnableHistoryHotkey, QuickNotesChordLive);
+            _hook.UpdateScreenshotHotkey(_screenshotHotkey);
+            _hook.UpdateScreenshotEnabled(ScreenshotChordLive);
+            // The chord arrived with an update (S0045 K2): a chord the user had already given to something
+            // else stays theirs, and this one is switched off rather than bound twice.
+            if (TextMenuChordLive && Chords().CyrFlipOwnerOf(ParsedTextMenuHotkey(), ChordKind.TextMenu) != null)
+            {
+                _config.EnableTextMenuHotkey = false;
+                _config.Save();
+            }
+            _hook.UpdateTextMenuHotkey(ParsedTextMenuHotkey());
+            _hook.UpdateTextMenuEnabled(TextMenuChordLive);
+            _textMenuChordWasLive = TextMenuChordLive;
             _hook.UpdateConversionProfiles(_config.LayoutConversionProfiles);
             BindTranslationHotkeys();
             _hookWatchdog.Interval = HookWatchdogIntervalMs;
@@ -417,7 +478,11 @@ namespace CyrFlip
             // A system cursor reload (pointer size or colour, a theme, another tool) takes the branded
             // I-beam away, and a pointer-size or scaling change asks for a new size (S0011 LI-3, LI-6).
             _sessionEnd.SettingChanged += action => _layoutCursor.OnSystemCursorsChanged(action == WindowInterop.SPI_SETCURSORS);
-            _sessionEnd.DisplayChanged += (_, _) => _layoutCursor.OnSystemCursorsChanged(cursorsReloaded: false);
+            _sessionEnd.DisplayChanged += (_, _) =>
+            {
+                _layoutCursor.OnSystemCursorsChanged(cursorsReloaded: false);
+                _caretOverlay.OnDisplayChanged(); // the badge re-reads its monitor's DPI (S0036 UI-4)
+            };
             // Windows switched light/dark, high contrast or its colours: every open window follows (S0020).
             _sessionEnd.ThemeSignal += (_, _) => ThemeManager.OnSystemSignal();
 
@@ -619,6 +684,9 @@ namespace CyrFlip
             if (_config.EnableContextMenu)
             {
                 MouseChord chord = MouseChord.Parse(_config.ContextMenuChord);
+                // The probe's thread lives exactly as long as the hook, created here rather than
+                // inside the hook callback (S0030 HT-3).
+                _probeWorker ??= new SelectionProbe.Worker();
                 try
                 {
                     if (_mouseHook.Installed) _mouseHook.UpdateChord(chord);
@@ -634,6 +702,8 @@ namespace CyrFlip
                 return;
             }
 
+            _probeWorker?.Dispose();
+            _probeWorker = null;
             if (!_mouseHook.Installed) return;
             if (_textMenu.Visible) _textMenu.Close();
             _mouseHook.Dispose();
@@ -642,6 +712,17 @@ namespace CyrFlip
         /// <summary>The context-menu settings changed (the settings window writes straight into the config).</summary>
         private void OnContextMenuChanged()
         {
+            // The keyboard chord going live is checked like assigning it (ticket S0004, KC-6).
+            if (TextMenuChordLive && !_textMenuChordWasLive
+                && Hotkey.TryParse(_config.TextMenuHotkey, out Hotkey chord)
+                && !ChordIsFree(chord, ChordKind.TextMenu, askAboutWindows: false))
+            {
+                _config.EnableTextMenuHotkey = false;
+                _ui?.Post(_ => _settings.Reload(), null);
+            }
+            _textMenuChordWasLive = TextMenuChordLive;
+            _hook.UpdateTextMenuHotkey(ParsedTextMenuHotkey());
+            _hook.UpdateTextMenuEnabled(TextMenuChordLive);
             _config.Save();
             RefreshContextMenuBinding();
         }
@@ -652,7 +733,7 @@ namespace CyrFlip
         /// <see cref="SelectionProbe.BudgetMs"/> - deliberately bounded well under the 300 ms Windows
         /// gives a low-level hook, since the keyboard hook shares this thread.
         /// </summary>
-        private void ShowTextContextMenu(int x, int y)
+        private void ShowTextContextMenu(int x, int y, bool fromKeyboard = false)
         {
             if (!_config.EnableContextMenu) return;
             if (_textMenu.Visible) _textMenu.Close();
@@ -685,7 +766,51 @@ namespace CyrFlip
             // (the trick the taskbar button uses) is out of the question here: it would take the focus
             // away from the very field whose selection we are about to work on.
             _mouseHook.UpdateForeignClickWatch(true);
+            if (fromKeyboard)
+            {
+                // The menu never takes the focus from the selection when the mouse opened it; from the
+                // keyboard the arrows have to reach it, so it takes the foreground the way the tray's
+                // own menu does - through a hidden window of ours - and hands it back on close.
+                _textMenuFromKeyboard = true;
+                ForegroundActivator.Activate(_sessionEnd.Handle);
+            }
             _textMenu.Show(new Point(x, y));
+            if (fromKeyboard) SelectFirstTextMenuItem();
+        }
+
+        /// <summary>
+        /// The keyboard chord (S0045 K2, <c>INPUT-PARITY</c> rule 1): the same menu, opened at the text
+        /// caret - the system caret, else the one the caret overlay last found in this window, else the
+        /// pointer. The selection probe is asked at that point exactly as for the mouse chord; there is
+        /// no held button to pay for it here, so <see cref="SelectionProbe.MaxWaitMs"/> is the cost.
+        /// </summary>
+        private void OpenTextMenuFromKeyboard()
+        {
+            if (!_config.EnableContextMenu || !_config.EnableTextMenuHotkey) return;
+            IntPtr target = WindowInterop.GetForegroundWindow();
+            Point at = TextMenuAnchor(target);
+            _textMenuTarget = target;
+            _selectionProbe = _probeWorker?.Request(at.X, at.Y);
+            TextMenuLog.Log("keyboard chord at " + at.X + "," + at.Y);
+            ShowTextContextMenu(at.X, at.Y, fromKeyboard: true);
+        }
+
+        /// <summary>Just below the caret's line, so the menu never covers the selection's own line.</summary>
+        private Point TextMenuAnchor(IntPtr window)
+        {
+            if (CaretOverlay.TrySystemCaret(window, out CaretRect caret) || _caretOverlay.TryGetRecentCaret(window, out caret))
+                return new Point(caret.X, caret.Bottom + 2);
+            return Cursor.Position;
+        }
+
+        private void SelectFirstTextMenuItem()
+        {
+            foreach (ToolStripItem item in _textMenu.Items)
+                if (item.Available && item.Enabled && item.CanSelect && !(item is ToolStripSeparator) && !(item is ToolStripLabel))
+                {
+                    item.Select();
+                    return;
+                }
         }
 
         /// <summary>
@@ -839,20 +964,225 @@ namespace CyrFlip
                 return;
             }
 
-            try
+            // The confirmation above stays on this thread; the start does not (S0030 HT-5). A
+            // confirmed \\host\share\tool.exe makes ShellExecute open an SMB session first, and for
+            // as long as the host does not answer this thread - the hooks' thread - would not either.
+            System.Threading.Tasks.Task.Run(() =>
             {
-                Process.Start(new ProcessStartInfo(target.Target) { UseShellExecute = true });
-                // The target itself is not logged: it is the user's own text, exactly like the
-                // yt-dlp link the launcher keeps out of its log.
-                TextMenuLog.Log("launched a " + target.Kind + " target");
-            }
-            catch (Exception ex)
+                try
+                {
+                    Process.Start(new ProcessStartInfo(target.Target) { UseShellExecute = true });
+                    // The target itself is not logged: it is the user's own text, exactly like the
+                    // yt-dlp link the launcher keeps out of its log.
+                    TextMenuLog.Log("launched a " + target.Kind + " target");
+                }
+                catch (Exception ex)
+                {
+                    TextMenuLog.Log("launch failed: " + ex.Message);
+                    _ui?.Post(_ => ShowWarningBalloon(3000,
+                        string.Format(T("Не удалось запустить «{0}»: {1}"), target.Display, FailureCause.Describe(ex, _config.UiLanguage))), null);
+                }
+            });
+        }
+
+        // ---- Screen region capture (ticket S0026) ----
+
+        /// <summary>The chord has only its own switch - there is no module switch (owner, 2026-09-26).</summary>
+        private bool ScreenshotChordLive => _config.EnableScreenshotHotkey;
+
+        /// <summary>How long the image write may wait for another clipboard operation to finish.</summary>
+        private const int ScreenshotClipboardWaitMs = 3000;
+
+        /// <summary>From the tray or the settings button: let the menu finish closing before the grab.</summary>
+        private void StartRegionCaptureDeferred()
+        {
+            if (_regionOverlay != null) return;
+            _screenshotDelay.Stop();
+            _screenshotDelay.Start();
+        }
+
+        /// <summary>
+        /// Freeze every screen first, then show the selection over the frozen picture (S0026 4.1). The
+        /// grab is one <c>BitBlt</c> on this thread; the encoding and the clipboard write run on a
+        /// worker, so a large region never stalls the loop the keyboard hook shares (4.6). A second
+        /// chord while the overlay is open is ignored.
+        /// </summary>
+        private void StartRegionCapture()
+        {
+            if (_disposed || _regionOverlay != null) return;
+
+            // Where Ctrl+V goes next: the window the user came from, not the tray's taskbar.
+            IntPtr returnTo = _indicator.LastActiveWindow;
+            // CAPTURE-OUTPUT rule 3: the name carries the moment the capture started - the freeze.
+            DateTime started = DateTime.Now;
+            Rectangle screen = ScreenCapture.VirtualScreen;
+            Bitmap? frame = ScreenCapture.Grab(screen);
+            if (frame == null)
             {
-                TextMenuLog.Log("launch failed: " + ex.Message);
-                _tray.ShowBalloonTip(3000, "CyrFlip",
-                    string.Format(T("Не удалось запустить «{0}»: {1}"), target.Display, ex.Message),
-                    ToolTipIcon.Warning);
+                ShowWarningBalloon(3000, T("Не удалось сделать снимок экрана."));
+                return;
             }
+
+            RegionSelectionOverlay overlay;
+            try { overlay = new RegionSelectionOverlay(frame, screen, ScreenCapture.MonitorBounds()); }
+            catch
+            {
+                frame.Dispose();
+                ShowWarningBalloon(3000, T("Не удалось сделать снимок экрана."));
+                return;
+            }
+            _regionOverlay = overlay;
+            overlay.Finished += region =>
+            {
+                // The crop is a copy, so the frame - the one large allocation - goes at once (section 7).
+                Bitmap? cropped = null;
+                if (region.HasValue)
+                {
+                    try { cropped = ScreenCapture.Crop(frame, screen, region.Value); }
+                    catch { /* a region outside the frame: treated as a cancel */ }
+                }
+                frame.Dispose();
+                _regionOverlay = null;
+                // Not from inside the overlay's own event: its windows are still on the call stack.
+                _ui?.Post(_ => overlay.Dispose(), null);
+                if (returnTo != IntPtr.Zero) ForegroundActivator.Activate(returnTo);
+                if (cropped != null) DeliverScreenshot(cropped, started);
+            };
+            try { overlay.Show(); }
+            catch { overlay.Cancel(); }
+        }
+
+        /// <summary>
+        /// PNG + DIB on the clipboard under the <see cref="_busy"/> guard (the write only, not the
+        /// selection - S0026 5.1), then, when saving is on, the same PNG bytes into the folder outside
+        /// the guard (5.4). Clipboard first: it is the result the user is waiting for.
+        /// </summary>
+        private void DeliverScreenshot(Bitmap cropped, DateTime started)
+        {
+            bool save = _config.ScreenshotSaveEnabled;
+            string folder = _config.ScreenshotFolder;
+            var worker = new Thread(() =>
+            {
+                byte[] png, dib;
+                try
+                {
+                    png = ClipboardImage.EncodePng(cropped);
+                    dib = ClipboardImage.EncodeDib(cropped);
+                }
+                catch
+                {
+                    _ui?.Post(_ => ShowWarningBalloon(3000, T("Не удалось сделать снимок экрана.")), null);
+                    return;
+                }
+                finally { cropped.Dispose(); }
+
+                bool onClipboard = false;
+                if (AcquireClipboardGuard(ScreenshotClipboardWaitMs))
+                {
+                    try { onClipboard = Win32Clipboard.TrySetImage(png, dib); }
+                    catch { /* never let a clipboard op take the app down */ }
+                    finally { Interlocked.Exchange(ref _busy, 0); }
+                }
+                if (onClipboard)
+                    _config.IncrementScreenshotCount();
+                else
+                    _ui?.Post(_ => ShowWarningBalloon(3000,
+                        T("Не удалось положить снимок в буфер обмена - он занят другой программой. Повторите.")), null);
+
+                if (!save) return;
+                ScreenshotSaver.Result result = new ScreenshotSaver().Save(png, started, folder);
+                // CAPTURE-OUTPUT rule 11: a fallback is told in the same moment, naming where it went.
+                if (result.Outcome == ScreenshotSaver.Outcome.SavedToFallback)
+                    _ui?.Post(_ => ShowInfoBalloon(5000,
+                        string.Format(T("Папка для снимков недоступна - снимок сохранён сюда: {0}"), result.Folder)), null);
+                else if (result.Outcome == ScreenshotSaver.Outcome.Failed)
+                    _ui?.Post(_ => ShowWarningBalloon(5000,
+                        T("Снимок в буфере обмена, но сохранить файл не удалось ни в одну папку.")), null);
+            })
+            { IsBackground = true, Name = "CyrFlip screenshot" };
+            try { worker.Start(); }
+            catch
+            {
+                cropped.Dispose();
+                ShowWarningBalloon(3000, T("Не удалось сделать снимок экрана."));
+            }
+        }
+
+        /// <summary>
+        /// Take <see cref="_busy"/> for the image write, waiting a little for a flip that is still
+        /// running - unlike a chord, a finished selection must not simply be dropped on a busy guard.
+        /// </summary>
+        private bool AcquireClipboardGuard(int waitMs)
+        {
+            int waited = 0;
+            while (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
+            {
+                if (waited >= waitMs) return false;
+                Thread.Sleep(20);
+                waited += 20;
+            }
+            return true;
+        }
+
+        private void ShowInfoBalloon(int timeout, string text)
+        {
+            if (_disposed) return;
+            try { _tray.ShowBalloonTip(timeout, "CyrFlip", text, ToolTipIcon.Info); }
+            catch { /* the tray icon is being torn down */ }
+        }
+
+        /// <summary>Anything on the Graphics tab changed: save and rebind the chord.</summary>
+        private void OnGraphicsChanged()
+        {
+            // The chord going live is checked like assigning it (ticket S0004, KC-6).
+            if (ScreenshotChordLive && !_screenshotChordWasLive
+                && Hotkey.TryParse(_config.ScreenshotHotkey, out Hotkey chord)
+                && !ChordIsFree(chord, ChordKind.Screenshot, askAboutWindows: false))
+            {
+                _config.EnableScreenshotHotkey = false;
+                _ui?.Post(_ => _settings.Reload(), null);
+            }
+            _screenshotChordWasLive = ScreenshotChordLive;
+
+            _config.Save();
+            _screenshotHotkey = Hotkey.TryParse(_config.ScreenshotHotkey, out Hotkey parsed) ? parsed : Hotkey.Parse(AppConfig.DefaultScreenshotHotkey);
+            _hook.UpdateScreenshotHotkey(_screenshotHotkey);
+            _hook.UpdateScreenshotEnabled(ScreenshotChordLive);
+            UpdateTrayTexts();
+        }
+
+        /// <summary>The text menu's keyboard chord is bound only while the menu and its own switch are on (S0045 K2).</summary>
+        private bool TextMenuChordLive => _config.EnableContextMenu && _config.EnableTextMenuHotkey;
+
+        private Hotkey ParsedTextMenuHotkey()
+            => Hotkey.TryParse(_config.TextMenuHotkey, out Hotkey chord) ? chord : Hotkey.Parse(AppConfig.DefaultTextMenuHotkey);
+
+        /// <summary>The text menu's keyboard chord, set from the settings tab and checked against every other owner.</summary>
+        private void OnSetTextMenuHotkey()
+        {
+            using var dlg = new HotkeyDialog(ParsedTextMenuHotkey().Display, T("Задать хоткей контекстного меню"), _config.UiLanguage);
+            if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
+            if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.TextMenu)) return;
+
+            _config.TextMenuHotkey = next.Display;
+            _config.Save();
+            _hook.UpdateTextMenuHotkey(next);
+            _settings.Reload();
+        }
+
+        /// <summary>The capture chord, set from the settings tab and checked against every other owner.</summary>
+        private void OnSetScreenshotHotkey()
+        {
+            using var dlg = new HotkeyDialog(_screenshotHotkey.Display, T("Задать хоткей снимка области экрана"), _config.UiLanguage);
+            if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
+            if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.Screenshot)) return;
+
+            _screenshotHotkey = next;
+            _config.ScreenshotHotkey = next.Display;
+            _config.Save();
+            _hook.UpdateScreenshotHotkey(next);
+            UpdateTrayTexts();
+            _settings.Reload();
         }
 
         // ---- Quick notes (spec: PLAN/QuickNotes_Spec_Idea_v0.1.md) ----
@@ -885,7 +1215,9 @@ namespace CyrFlip
                     if (lines.Count > 0 && ReferenceEquals(service, _quickNotes))
                         _tray.ShowBalloonTip(4000, "CyrFlip", string.Join("\n", lines), ToolTipIcon.Warning);
                 };
-                service.LoadAsync();
+                // After a previous service's background retirement, which may still be compacting
+                // this very journal (S0030 HT-6).
+                service.LoadAsync(_quickNotesRetired);
             }
             if (_quickNotesWindow == null || _quickNotesWindow.IsDisposed)
                 _quickNotesWindow = new QuickNotesWindow(_quickNotes, _config, ShowSettings, exchange: RunExchange);
@@ -918,7 +1250,8 @@ namespace CyrFlip
                 _clipboardHistory.SuppressBegin();
                 ClipboardHandler.CaptureResult captured = ClipboardHandler.CaptureResult.NoSelection;
                 string text = "";
-                try { captured = _clipboard.TakeSelection(out text, out _); }
+                // The note's own cap, in characters: a UTF-8 byte per character at the least (S0032 FP2-5).
+                try { captured = _clipboard.TakeSelection(out text, out _, QuickNote.MaxBytes); }
                 catch { /* never let a clipboard op take the app down */ }
                 finally
                 {
@@ -970,7 +1303,7 @@ namespace CyrFlip
             _quickNotesChordWasLive = QuickNotesChordLive;
 
             _config.Save();
-            _quickNotesHotkey = Hotkey.Parse(_config.QuickNotesHotkey);
+            _quickNotesHotkey = Hotkey.TryParse(_config.QuickNotesHotkey, out Hotkey parsedNotes) ? parsedNotes : Hotkey.Parse(AppConfig.DefaultQuickNotesHotkey);
             _hook.UpdateQuickNotesHotkey(_quickNotesHotkey);
             _hook.UpdateQuickNotesEnabled(QuickNotesChordLive);
             _quickNotesItem.Visible = _config.EnableQuickNotes;
@@ -987,21 +1320,37 @@ namespace CyrFlip
                     _quickNotesWindow = null;
                 }
             }
-            if (!_config.EnableQuickNotes)
+            if (!_config.EnableQuickNotes && _quickNotes != null)
             {
-                _quickNotes?.Dispose();
+                // The last edit is written here; the wait for a running compaction and the final one
+                // go to the pool (S0030 HT-6) - this is a settings click on the hooks' thread.
+                _quickNotesRetired = _quickNotes.RetireAsync();
                 _quickNotes = null;
             }
             UpdateTrayTooltip();
         }
 
+        /// <summary>
+        /// Wait for the notes replay with the message loop running, behind a small modal window -
+        /// never <c>Task.Wait</c> on this thread, which the hooks share (S0030 HT-6).
+        /// </summary>
+        private void WaitForQuickNotesLoaded(QuickNotesService service)
+        {
+            if (service.IsLoaded) return;
+            IWin32Window? owner = _settings.Visible ? _settings : null;
+            BusyDialog.Wait(owner, _config.UiLanguage, service.LoadAsync());
+        }
+
         /// <summary>Settings' "delete every quick note" - the service owns the files.</summary>
         private void ClearQuickNotes()
         {
-            if (EnsureQuickNotes() == null) return;
-            // The service drops the open note through its Cleared event and the window forgets the
-            // remembered one; DeleteAll finishes a replay still in flight first.
-            _quickNotes?.DeleteAll();
+            if (EnsureQuickNotes() == null || _quickNotes == null) return;
+            // A set still loading would come back the moment it arrived, so the replay is finished
+            // first. The service drops the open note through its Cleared event and the window
+            // forgets the remembered one.
+            QuickNotesService service = _quickNotes;
+            WaitForQuickNotesLoaded(service);
+            if (ReferenceEquals(service, _quickNotes)) service.DeleteAll();
         }
 
         /// <summary>
@@ -1015,7 +1364,7 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 QuickNotesLog.Log("exchange " + (import ? "import" : "export") + " failed: " + ex.GetType().Name);
-                ConfirmDialog.Show(owner, _config.UiLanguage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ConfirmDialog.Show(owner, _config.UiLanguage, FailureCause.Describe(ex, _config.UiLanguage), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -1025,16 +1374,22 @@ namespace CyrFlip
             QuickNotesService? service = _quickNotes;
             if (service == null && _config.EnableQuickNotes) { EnsureQuickNotes(); service = _quickNotes; }
             if (service == null) return "";
-            service.EnsureLoaded();   // "everything" must not be whatever the replay has reached
-            var text = new StringBuilder();
-            bool first = true;
-            foreach (QuickNote note in service.Notes)
+            WaitForQuickNotesLoaded(service);   // "everything" must not be whatever the replay has reached
+            var notes = new List<QuickNote>(service.Notes);
+            // Formatted and written on the pool, behind the same modal window (S0030 HT-6).
+            IWin32Window? owner = _settings.Visible ? _settings : null;
+            BusyDialog.Run(owner, _config.UiLanguage, () =>
             {
-                if (!first) text.Append("\n\n---\n\n");
-                text.Append(note.ToMarkdown(metadata));
-                first = false;
-            }
-            System.IO.File.WriteAllText(path, text.ToString(), Encoding.UTF8);
+                var text = new StringBuilder();
+                bool first = true;
+                foreach (QuickNote note in notes)
+                {
+                    if (!first) text.Append("\n\n---\n\n");
+                    text.Append(note.ToMarkdown(metadata));
+                    first = false;
+                }
+                System.IO.File.WriteAllText(path, text.ToString(), Encoding.UTF8);
+            });
             return path;
         }
 
@@ -1050,12 +1405,9 @@ namespace CyrFlip
             if (!_config.EnableTranslate) { TranslateLog.Log("chord ignored: the translator is off"); return; }
             TranslationProfile? profile = _config.TranslateProfiles.Find(p => p.Id == id && p.Enabled);
             if (profile == null) { TranslateLog.Log("chord ignored: no enabled row with id " + id); return; }
-            TranslationDirection direction = TranslationLanguages.ResolveDirection(
-                profile.TargetLang, _config.UiLanguage, _currentLayout,
-                _config.TranslateSourceLang, _config.TranslateTargetLang);
-            TranslateLog.Log("chord: row " + profile.TargetLang + " -> into " + direction.TargetCode
-                + (direction.SourceCode == null ? " (auto-detect source)" : " from " + direction.SourceCode));
-            CaptureSelectionForTranslation(direction.TargetCode, direction.SourceCode);
+            string code = TranslationLanguages.Resolve(profile.TargetLang, _config.UiLanguage, _currentLayout);
+            TranslateLog.Log("chord: row " + profile.TargetLang + " -> into " + code + " (auto-detect source)");
+            CaptureSelectionForTranslation(code);
         }
 
         /// <summary>
@@ -1063,7 +1415,7 @@ namespace CyrFlip
         /// clipboard straight back, and release <see cref="_busy"/>. The model call must not hold the
         /// clipboard lock: a translation takes seconds, and a flip pressed meanwhile has to work.
         /// </summary>
-        private void CaptureSelectionForTranslation(string code, string? sourceCode)
+        private void CaptureSelectionForTranslation(string code)
         {
             if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
             {
@@ -1107,7 +1459,7 @@ namespace CyrFlip
                         ShowCaptureResult(result);
                         return;
                     }
-                    BeginTranslate(selection, window, code, sourceCode);
+                    BeginTranslate(selection, window, code);
                 }, null);
             });
         }
@@ -1129,12 +1481,11 @@ namespace CyrFlip
         /// the first (the user changed their mind about the fragment), which is what the token
         /// identity check at the end is for.
         /// </summary>
-        private async void BeginTranslate(string text, IntPtr target, string code, string? sourceCode = null)
+        private async void BeginTranslate(string text, IntPtr target, string code)
         {
             _translateSource = text;
             _translateTarget = target;
             _translateCode = code;
-            _translateSourceCode = sourceCode;
 
             _translateCts?.Cancel();
             var cts = new CancellationTokenSource();
@@ -1146,6 +1497,7 @@ namespace CyrFlip
             // The popup never takes focus, so its own Esc never fires; the hook watches for it while
             // the model is writing, and only then.
             _hook.UpdateCancelKeyWatch(true);
+            _hook.UpdateFocusKeyWatch(false); // back on when the answer is in (AwaitingUser)
 
             // The sink marshals to the UI thread itself: chunks arrive on whatever thread finished
             // the HTTP read, and a stale request must not paint over a newer one.
@@ -1162,7 +1514,7 @@ namespace CyrFlip
             TranslationResult result;
             try
             {
-                result = await _translation.TranslateAsync(text, code, sourceCode, sink, cts.Token);
+                result = await _translation.TranslateAsync(text, code, sink, cts.Token);
             }
             catch (Exception ex)
             {
@@ -1345,10 +1697,13 @@ namespace CyrFlip
             var window = new TranslationResultWindow(_config, _config.UiLanguage);
             window.CopyRequested += (_, _) => DeliverTranslation(window.ResultText, window, copy: true, paste: false, manual: true);
             window.PasteRequested += (_, _) => DeliverTranslation(window.ResultText, window, copy: false, paste: true, manual: true);
-            window.RetryRequested += (_, _) => BeginTranslate(_translateSource, _translateTarget, _translateCode, _translateSourceCode);
+            window.RetryRequested += (_, _) => BeginTranslate(_translateSource, _translateTarget, _translateCode);
             window.SettingsRequested += (_, _) => ShowSettings();
             window.StartServerRequested += (_, _) => StartOllamaAndRetry();
             window.CancelRequested += (_, _) => _translateCts?.Cancel();
+            // F6 is watched only while the finished popup is up: a bare F6 is the user's everywhere else.
+            window.AwaitingUser += (_, _) => _hook.UpdateFocusKeyWatch(true);
+            window.VisibleChanged += (_, _) => { if (!window.Visible) _hook.UpdateFocusKeyWatch(false); };
             window.TargetLanguageChosen += code => BeginTranslate(_translateSource, _translateTarget,
                 TranslationLanguages.Resolve(code, _config.UiLanguage, _currentLayout));
             _translateWindow = window;
@@ -1363,7 +1718,7 @@ namespace CyrFlip
         {
             OllamaManager.StartServer();
             if (_translateSource.Length > 0)
-                BeginTranslate(_translateSource, _translateTarget, _translateCode, _translateSourceCode);
+                BeginTranslate(_translateSource, _translateTarget, _translateCode);
         }
 
         /// <summary>The line above the translation: the language, and anything the user should know.</summary>
@@ -1579,10 +1934,15 @@ namespace CyrFlip
             _keepScreenItem.Text = T("Не блокировать экран (как при видео)");
             _translateClipboardItem.Text = T("Перевести буфер обмена");
             _quickNotesItem.Text = T("Быстрые заметки");
+            _screenshotItem.Text = T("Снимок области экрана");
+            _screenshotItem.ShortcutKeyDisplayString = _config.EnableHotkeys && ScreenshotChordLive ? _screenshotHotkey.Display : null;
             if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed)
                 _quickNotesWindow.ApplyLanguage(_config.UiLanguage);
             _settingsItem.Text = T("Настройки...");
             _exitItem.Text = T("Выход");
+            if (_tray.ContextMenuStrip != null)
+                _tray.ContextMenuStrip.RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
+            _textMenu.RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
             // Note: _autostartItem / _langSwitchItem / _capsAfterItem are state-holder items synced with
             // the settings checkboxes; they are not added to the tray menu, so their Text is never shown.
             UpdateTrayTooltip();
@@ -1613,6 +1973,8 @@ namespace CyrFlip
                     lines.Add(_clipboardHistoryHotkey.Display + " - " + T("менеджер буфера"));
                 if (QuickNotesChordLive)
                     lines.Add(_quickNotesHotkey.Display + " - " + T("быстрые заметки"));
+                if (ScreenshotChordLive)
+                    lines.Add(_screenshotHotkey.Display + " - " + T("снимок области экрана"));
                 foreach (LayoutConversionProfile profile in _config.LayoutConversionProfiles)
                     if (profile.Enabled && profile.IsUsable)
                         lines.Add(profile.Hotkey + " - " + WorldLayouts.CodeForKlid(profile.SourceKlid)
@@ -1628,7 +1990,7 @@ namespace CyrFlip
                                 + TranslationLanguages.Label(profile.TargetLang, _config.UiLanguage));
             }
 
-            // Keep-awake has no chord and no persisted state, so the tooltip is its only ambient
+            // Keep-awake has no chord, so the tooltip is its only ambient
             // sign it's on. "Screen stays on" implies the system is awake too, so it wins when both.
             if (KeepAwake.KeepScreenOn)
                 lines.Add(T("экран не гаснет"));
@@ -1696,7 +2058,7 @@ namespace CyrFlip
         {
             if (Autostart.ManagedByWindows) { OnOpenStartupSettings(null, EventArgs.Empty); return; }
             try { Autostart.Set(value); _autostartItem.Checked = value; }
-            catch (Exception ex) { ConfirmDialog.Show(_config.UiLanguage, T("Не удалось изменить автозапуск Windows:") + "\n" + ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+            catch (Exception ex) { ConfirmDialog.Show(_config.UiLanguage, T("Не удалось изменить автозапуск Windows:") + "\n" + FailureCause.Describe(ex, _config.UiLanguage), MessageBoxButtons.OK, MessageBoxIcon.Warning); }
         }
 
         /// <summary>
@@ -1874,7 +2236,7 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 _autostartItem.Checked = Autostart.IsEnabled; // revert the checkmark on failure
-                ConfirmDialog.Show(_config.UiLanguage, T("Не удалось изменить автозапуск Windows:") + "\n" + ex.Message,
+                ConfirmDialog.Show(_config.UiLanguage, T("Не удалось изменить автозапуск Windows:") + "\n" + FailureCause.Describe(ex, _config.UiLanguage),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
@@ -1909,7 +2271,7 @@ namespace CyrFlip
                             string.Format(T("Найдены сценарии OneClickRunner ({0} шт.). Перенести их в CyrFlip? Исходные файлы останутся без изменений."),
                                 LauncherMigration.SourceCount()),
                             MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                        ShowMigrationSummary(LauncherMigration.Import(_launcherStore));
+                        ShowMigrationSummary(LauncherMigration.Import(_launcherStore, chords: Chords));
                 }
                 if (_launcherStore.Count == 0)
                     _launcherStore.SeedSample(T("Калькулятор"));
@@ -1928,7 +2290,7 @@ namespace CyrFlip
         private void RequestOneClickRunnerImport()
             => _ui?.Post(_ =>
             {
-                ShowMigrationSummary(LauncherMigration.Import(_launcherStore));
+                ShowMigrationSummary(LauncherMigration.Import(_launcherStore, chords: Chords));
                 RefreshLauncherSurfaces();
                 _settings.Reload();
             }, null);
@@ -1936,11 +2298,15 @@ namespace CyrFlip
         private void ShowMigrationSummary(LauncherMigration.Result result)
         {
             string summary = string.Format(T("Перенесено сценариев: {0}."), result.Imported);
+            if (result.AlreadyPresent > 0)
+                summary += "\n" + string.Format(T("Уже перенесены ранее: {0}."), result.AlreadyPresent);
             if (result.Skipped.Count > 0)
                 summary += "\n" + string.Format(T("Пропущено повреждённых файлов: {0}."), result.Skipped.Count)
                     + "\n" + string.Join(", ", result.Skipped);
             if (result.NewIds > 0)
                 summary += "\n" + string.Format(T("Из-за совпадения идентификаторов назначены новые: {0}."), result.NewIds);
+            if (result.ChordsDropped > 0)
+                summary += "\n" + string.Format(T("Комбинации уже заняты, поэтому не перенесены: {0}."), result.ChordsDropped);
             ConfirmDialog.Show(_config.UiLanguage, summary, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -1976,7 +2342,7 @@ namespace CyrFlip
                     _launcherTaskbar = new LauncherTaskbarWindow(FillLauncherMenu);
                     _launcherTaskbar.Show();
                 }
-                _launcherTaskbar.ApplyLanguage(T);
+                _launcherTaskbar.ApplyLanguage(_config.UiLanguage);
             }
             else if (_launcherTaskbar != null)
             {
@@ -1984,9 +2350,12 @@ namespace CyrFlip
                 _launcherTaskbar = null;
             }
 
-            // Jump List: the same ordered list, or nothing at all while disabled.
+            // Jump List: the same ordered list, or nothing at all while disabled. Its icons are looked
+            // up on the pool - a scenario on a share or a PATH entry on an unreachable server used to
+            // stall this thread, the hooks' thread, at startup and on every settings change (S0030 HT-1).
+            int jumpList = ++_jumpListGeneration;
             if (enabled)
-                LauncherJumpList.Apply(LauncherJumpList.BuildTasks(scenarios, Application.ExecutablePath, T));
+                ApplyJumpListInBackground(scenarios, jumpList);
             else
                 LauncherJumpList.Clear();
 
@@ -1998,6 +2367,32 @@ namespace CyrFlip
                         bindings.Add((scenario.Id, scenario.Hotkey));
             _hook.UpdateLauncherHotkeys(bindings);
             UpdateTrayTooltip();
+        }
+
+        /// <summary>
+        /// Build the Jump List's tasks on the pool and apply them back here, on the UI (STA) thread
+        /// the shell's COM objects want - unless a newer refresh, or switching the launcher off, has
+        /// overtaken this one in the meantime (<paramref name="generation"/>).
+        /// </summary>
+        private void ApplyJumpListInBackground(List<LauncherScenario> scenarios, int generation)
+        {
+            List<LauncherScenario> snapshot = scenarios.ConvertAll(s => s.Clone());
+            string exePath = Application.ExecutablePath;
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                List<LauncherJumpList.TaskSpec> tasks;
+                try { tasks = LauncherJumpList.BuildTasks(snapshot, exePath, T); }
+                catch (Exception ex)
+                {
+                    LauncherLog.Log("JumpList: build failed: " + ex.GetType().Name);
+                    return;
+                }
+                _ui?.Post(_ =>
+                {
+                    if (_disposed || generation != _jumpListGeneration || !_config.EnableScenarioLauncher) return;
+                    LauncherJumpList.Apply(tasks);
+                }, null);
+            });
         }
 
         /// <summary>
@@ -2042,19 +2437,33 @@ namespace CyrFlip
         /// <summary>
         /// Launch from the tray, Jump List or hotkey: same single execution path as the settings
         /// editor, but failures surface as a tray balloon so no dialog steals the user's focus
-        /// (the editor shows its own modal error - spec §7).
+        /// (the editor shows its own modal error - spec §7). The launch itself runs on the pool
+        /// (S0030 HT-1); only the yt-dlp prompt and the failure balloon are on this thread.
         /// </summary>
         private void RunLauncherScenario(LauncherScenario scenario)
         {
-            LauncherLaunchResult result = LauncherExecution.Launch(scenario, T, () =>
+            string name = scenario.Name;
+            LauncherExecution.LaunchAsync(scenario, T, () =>
             {
                 using var prompt = new YtDlpLinkDialog(_config.UiLanguage);
                 return prompt.ShowDialog() == DialogResult.OK ? prompt.Link : null;
-            });
-            if (!result.Success && !result.Cancelled)
-                _tray.ShowBalloonTip(4000, "CyrFlip",
-                    string.Format(T("Не удалось запустить «{0}»: {1}"), scenario.Name, result.ErrorMessage),
-                    ToolTipIcon.Warning);
+            }).ContinueWith(task =>
+            {
+                LauncherLaunchResult result = task.Status == System.Threading.Tasks.TaskStatus.RanToCompletion
+                    ? task.Result
+                    : LauncherLaunchResult.Fail(task.Exception != null ? FailureCause.Describe(task.Exception.GetBaseException(), _config.UiLanguage) : "");
+                if (!result.Success && !result.Cancelled)
+                    _ui?.Post(_ => ShowWarningBalloon(4000,
+                        string.Format(T("Не удалось запустить «{0}»: {1}"), name, result.ErrorMessage)), null);
+            }, System.Threading.Tasks.TaskScheduler.Default);
+        }
+
+        /// <summary>A warning balloon posted from a worker - the tray may be gone by the time it runs.</summary>
+        private void ShowWarningBalloon(int timeout, string text)
+        {
+            if (_disposed) return;
+            try { _tray.ShowBalloonTip(timeout, "CyrFlip", text, ToolTipIcon.Warning); }
+            catch { /* the tray icon is being torn down */ }
         }
 
         private static Icon TryGetAppIcon()
@@ -2087,29 +2496,26 @@ namespace CyrFlip
         /// <summary>
         /// <c>WM_ENDSESSION(TRUE)</c>: the process is about to be terminated, and this is the only
         /// cleanup the sign-out path gets. Synchronous, in order, each step on its own - one that fails
-        /// must not cost the next - and inside <see cref="SessionEndBudget"/>.
+        /// must not cost the next - and inside <see cref="SessionEndSequence.Budget"/> (Windows allows
+        /// about 5 s before it shows "this app is preventing shutdown").
         /// </summary>
         private void OnSessionEnding()
         {
             var clock = System.Diagnostics.Stopwatch.StartNew();
-
-            // 1. Absence of layout.txt = CyrFlip not running (LAYOUT-SIGNAL rule 6). Without this, the
-            //    next sign-in without autostart left the VS Code extension drawing a stale marker.
-            try { LayoutPublisher.Retract(); } catch { }
-
-            // 2. The last note edit, then - only while the budget is still fresh - the compaction the
-            //    journal would have had on a clean exit. Skipped, it simply happens on a later exit.
-            FlushQuickNotes();
-            if (clock.Elapsed < SessionEndCompactionCutoff)
-                try { _quickNotes?.CompactIfNeeded(); } catch { }
-
-            // 3. Clipboard-history records still queued on the thread pool.
-            TimeSpan left = SessionEndBudget - clock.Elapsed;
-            if (left > TimeSpan.Zero)
-                try { _clipboardHistory.WaitForPendingWrites(left < SessionEndHistoryDrain ? left : SessionEndHistoryDrain); } catch { }
-
-            // 4. The system cursor - a no-op unless CyrFlip actually replaced it (LayoutCursor.ForceRestore).
-            try { LayoutCursor.ForceRestore(); } catch { }
+            // Data first, the optional compaction last and only when none is running (S0035 QN2-6).
+            new SessionEndSequence
+            {
+                // Absence of layout.txt = CyrFlip not running (LAYOUT-SIGNAL rule 6). Without this, the
+                // next sign-in without autostart left the VS Code extension drawing a stale marker.
+                Retract = LayoutPublisher.Retract,
+                FlushNotes = FlushQuickNotes,
+                DrainHistory = wait => _clipboardHistory.WaitForPendingWrites(wait),
+                // A no-op unless CyrFlip actually replaced the cursor (LayoutCursor.ForceRestore).
+                RestoreCursor = LayoutCursor.ForceRestore,
+                CompactionRunning = () => _quickNotes?.CompactionTask is System.Threading.Tasks.Task running && !running.IsCompleted,
+                Compact = () => _quickNotes?.CompactIfNeeded(),
+                FlushLogs = wait => DiagnosticLog.Flush(wait),
+            }.Run(() => clock.Elapsed);
         }
 
         protected override void Dispose(bool disposing)
@@ -2131,9 +2537,14 @@ namespace CyrFlip
                 _translateWindow?.Dispose();
                 _trayClickTimer.Stop();
                 _trayClickTimer.Dispose();
+                _screenshotDelay.Stop();
+                _screenshotDelay.Dispose();
+                _regionOverlay?.Cancel();
+                _regionOverlay?.Dispose();
                 _hookWatchdog.Stop();
                 _hookWatchdog.Dispose();
                 _mouseHook.Dispose();
+                _probeWorker?.Dispose();
                 _textMenu.Dispose();
                 Microsoft.Win32.SystemEvents.SessionSwitch -= OnSessionSwitch;
                 _hook.Dispose();
@@ -2155,11 +2566,14 @@ namespace CyrFlip
                     _quickNotesWindow.CommitCurrent();
                 _quickNotesWindow?.Dispose();
                 _quickNotes?.Dispose();
+                // A retirement still compacting on the pool finishes before the process goes (S0030 HT-6).
+                try { _quickNotesRetired?.Wait(2000); } catch { }
                 _settings.Dispose();
                 _tray.Visible = false;
                 _tray.Dispose();
                 _trayIcon?.Dispose();
                 ThemeManager.Shutdown();   // after every window: nothing left for it to hold
+                DiagnosticLog.Flush(SessionEndSequence.LogDrain); // last: everything above may still have logged
             }
             base.Dispose(disposing);
         }

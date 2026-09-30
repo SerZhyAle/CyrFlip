@@ -50,7 +50,13 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'CyrFlip.UiTest.psm1') -Force
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+Import-Module (Join-Path $repo 'tools\checks\CheckVerdict.psm1') -Force
 Enable-UiTestDpi
+
+$banner = Get-CyrFlipSubjectBanner
+Set-CheckSubject "uitest/Test-CapsSync $($banner.SubjectAxis)"
+Write-Host "Subject: $($banner.BannerText)" -ForegroundColor Cyan
 
 $VK_CONTROL = 0x11; $VK_A = 0x41; $VK_C = 0x43; $VK_V = 0x56
 $KEYUP = 2
@@ -60,7 +66,10 @@ function Check([string]$name, [bool]$ok, [string]$detail) {
     $mark = if ($ok) { 'PASS' } else { 'FAIL' }
     $colour = if ($ok) { 'Green' } else { 'Red' }
     Write-Host ("  [{0}] {1}{2}" -f $mark, $name, $(if ($detail) { " - $detail" } else { '' })) -ForegroundColor $colour
-    if (-not $ok) { $script:failures += $name }
+    if (-not $ok) {
+        $script:failures += $name
+        Add-CheckFinding -Severity fail -Name $name -Reason $detail
+    }
 }
 
 function Send-Chord([int]$vk) {
@@ -76,7 +85,11 @@ Write-Host 'CapsLock state, read from a thread with no message queue:'
 $original = Get-CapsLockState
 try {
     foreach ($state in @($true, $false)) {
-        if (-not (Set-CapsLockState -On $state)) { throw "Could not put CapsLock into '$state'." }
+        if (-not (Set-CapsLockState -On $state)) {
+            Write-Host "Could not put CapsLock into '$state'." -ForegroundColor Yellow
+            Add-CheckFinding -Severity notverified -Name 'capslock-toggle' -Reason "Could not put CapsLock into '$state'"
+            break
+        }
         $onThread = Get-CapsLockState
         $offThread = Get-CapsLockState -OffThread
         Check "CapsLock=$state is seen off-thread" ($offThread -eq $state) "this thread = $onThread, worker thread = $offThread"
@@ -88,12 +101,7 @@ finally {
 
 if ($InteropOnly) {
     Write-Host ''
-    if ($failures.Count -eq 0) {
-        Write-Host 'The reading CyrFlip bases the decision on is honest on a queue-less thread.' -ForegroundColor Green
-        exit 0
-    }
-    Write-Host ("Failed: " + ($failures -join ', ')) -ForegroundColor Red
-    exit 1
+    Complete-Check
 }
 
 # ---- 2. End-to-end, with a human pressing the chord ---------------------------------------------
@@ -121,7 +129,11 @@ try {
     $target = Start-TargetWindow -Title 'CyrFlip caps-sync check'
     foreach ($scene in $scenes) {
         Write-Host ("Scene: {0}" -f $scene.Name) -ForegroundColor Cyan
-        if (-not (Set-WindowForeground -Handle $target.Handle)) { throw 'Target window never reached the foreground.' }
+        if (-not (Set-WindowForeground -Handle $target.Handle)) {
+            Write-Host 'Target window never reached the foreground.' -ForegroundColor Yellow
+            Add-CheckFinding -Severity notverified -Name 'target-foreground' -Reason 'Target window never reached the foreground'
+            Complete-Check
+        }
 
         # Stage the text through the clipboard: typing it would be at the mercy of the very
         # CapsLock state this check is about.
@@ -161,9 +173,4 @@ finally {
 }
 
 Write-Host ''
-if ($failures.Count -eq 0) {
-    Write-Host 'CapsLock follows the corrected text in all three scenes.' -ForegroundColor Green
-    exit 0
-}
-Write-Host ("Failed: " + ($failures -join ', ')) -ForegroundColor Red
-exit 1
+Complete-Check

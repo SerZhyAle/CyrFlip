@@ -16,5 +16,4 @@
   first, with the link to the trust page (`INSTALL-TRUST`), inside `#get`.
 - **Never state a channel, platform or claim the release does not have.**
 
-Not yet held: the audience sentence exists in RU only, and there are eight feature cards rather than at
-most six. Plan in `PLAN/` (local, not published).
+Held across all 13 landing locales.

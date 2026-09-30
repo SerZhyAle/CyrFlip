@@ -56,7 +56,12 @@ $scenes = @(
     'KC-2  Hotkey dialog: Ctrl+Shift+PageUp is accepted and shown as Ctrl+Shift+PageUp after reopening Settings.',
     'KC-6  Untick the case flip, then try to give its chord to a conversion row. Refused, naming the case flip as the owner.',
     'KC-7  Ctrl + right-press over a normal window, release over Task Manager (elevated), wait 4 s, right-click elsewhere: the application''s own menu opens.',
-    'KC-8  Hotkeys master switch OFF, translate the clipboard from the tray, press Esc while it streams: the translation stops.'
+    'KC-8  Hotkeys master switch OFF, translate the clipboard from the tray, press Esc while it streams: the translation stops.',
+    'KC2-1 Hold Ctrl+Alt, press Del, choose Cancel. At once, in Notepad: a lone F12 does NOT convert; select a word, Ctrl+Shift+F12 converts it; afterwards typing "a" types "a" (no Ctrl stuck down).',
+    'KC2-1 Notepad: select a word, hold Ctrl+Shift and tap F12 twice quickly. Converted, then converted back (the held Shift survives our own release).',
+    'KC2-2 Control Panel > Keyboard > Repeat delay = Long. Hold a launcher scenario chord for two seconds: the scenario starts ONCE.',
+    'KC2-3 Context menu chord Alt+RightClick: open it over Notepad, press Esc, release Alt. Notepad''s menu bar does NOT get the focus. (With a Chinese IME and Shift+RightClick: the IME mode does NOT toggle.)',
+    'KC2-4 Settings > translation row > change chord, press Ctrl+Shift+F12 (the EN-RU conversion chord). The dialog shows Ctrl+Shift+F12 and no conversion runs; OK is refused naming the conversion row as the owner.'
 )
 
 $results = @()

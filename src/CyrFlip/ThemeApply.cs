@@ -49,6 +49,8 @@ namespace CyrFlip
             public bool OwnerDraw;
             public bool NativeDark;
             public ThemePalette? Palette;
+            /// <summary>The frame painter of an edit or combo box, held here so it lives as long as the control.</summary>
+            public ThemeFrame? Frame;
             /// <summary>The button's two raw visual-style fields - see <see cref="ReadVisualStyleFields"/>.</summary>
             public (bool Enabled, bool Set)? VisualStyleRaw;
         }
@@ -187,6 +189,9 @@ namespace CyrFlip
                     // colour it is given. A list with check boxes keeps its native header - owner-draw and
                     // check boxes do not mix in a list view (declared in ThemeCoverageTests).
                     list.OwnerDraw = palette.IsDark && !list.CheckBoxes ? true : state.OwnerDraw;
+                    // A virtual list has no items to walk - it paints what it is asked for.
+                    if (!list.VirtualMode)
+                        foreach (ListViewItem item in list.Items) PaintItem(item, list, palette);
                     break;
             }
 
@@ -221,6 +226,34 @@ namespace CyrFlip
             if (palette.IsDark) Set(control, back, palette[ThemePalette.RoleOfDesignColor(built) ?? fallback]);
             else if (back) control.ResetBackColor();
             else control.ResetForeColor();
+        }
+
+        /// <summary>The colours a list row was built with, when they were its own rather than its list's.</summary>
+        private sealed class ItemState
+        {
+            public Color? Fore;
+            public Color? Back;
+        }
+
+        private static readonly ConditionalWeakTable<ListViewItem, ItemState> ItemStates = new ConditionalWeakTable<ListViewItem, ItemState>();
+
+        /// <summary>
+        /// A list row's own colour keeps its meaning in every palette (S0036 UI-6), as a control's does:
+        /// the support-bundle dialog's "not included" row is built in <c>text.muted</c>, and the walk
+        /// used to visit controls only - in dark that row was the light palette's grey on the dark
+        /// surface, about 2.7:1. A row colour that is its list's (never set) is left to follow the list.
+        /// </summary>
+        private static void PaintItem(ListViewItem item, ListView list, ThemePalette palette)
+        {
+            ItemState state = ItemStates.GetValue(item, row => new ItemState
+            {
+                Fore = row.ForeColor != list.ForeColor ? row.ForeColor : (Color?)null,
+                Back = row.BackColor != list.BackColor ? row.BackColor : (Color?)null,
+            });
+            if (state.Fore is Color fore && ThemePalette.RoleOfDesignColor(fore) is ThemeRole foreRole)
+                item.ForeColor = palette.Kind == ThemeKind.Light ? fore : palette[foreRole];
+            if (state.Back is Color back && ThemePalette.RoleOfDesignColor(back) is ThemeRole backRole)
+                item.BackColor = palette.Kind == ThemeKind.Light ? back : palette[backRole];
         }
 
         private static void Set(Control control, bool back, Color color)
@@ -302,14 +335,28 @@ namespace CyrFlip
                 ScrollableControl scrollable when scrollable.AutoScroll => ThemeWin32.ExplorerDark,
                 _ => null,
             };
-            if (subApp == null) return;
+            bool framed = control is ComboBox
+                || control is TextBoxBase edit && edit.BorderStyle == BorderStyle.Fixed3D
+                || control is UpDownBase upDown && upDown.BorderStyle == BorderStyle.Fixed3D;
+            if (subApp == null && !framed) return;
             // Nothing to undo on a control that was never dark: its theme is still the one WinForms gave it.
             if (!dark && !state.NativeDark) return;
 
-            ThemeWin32.SetTheme(control.Handle, dark ? subApp : null);
-            if (control is ListView list) ThemeWin32.SetListViewHeaderTheme(list, dark ? ThemeWin32.HeaderDark : null);
-            if (control is ComboBox combo) ThemeWin32.SetComboListTheme(combo, dark ? ThemeWin32.ExplorerDark : null);
+            if (framed)
+            {
+                state.Frame ??= new ThemeFrame(control);
+                state.Frame.Update(dark);
+            }
             state.NativeDark = dark;
+            if (subApp == null) return;
+
+            ThemeWin32.SetTheme(control.Handle, dark ? subApp : null);
+            if (control is ListView list)
+            {
+                ThemeWin32.SetListViewHeaderTheme(list, dark ? ThemeWin32.HeaderDark : null);
+                ThemeWin32.SetListViewToolTipTheme(list, dark ? ThemeWin32.ExplorerDark : null);
+            }
+            if (control is ComboBox combo) ThemeWin32.SetComboListTheme(combo, dark ? ThemeWin32.ExplorerDark : null);
         }
 
         // ---- Late arrivals ----
@@ -356,7 +403,137 @@ namespace CyrFlip
 
         private static void OnDrawItem(object? sender, DrawListViewItemEventArgs e) => e.DrawDefault = true;
 
-        private static void OnDrawSubItem(object? sender, DrawListViewSubItemEventArgs e) => e.DrawDefault = true;
+        /// <summary>
+        /// In dark a row is drawn here, not by the list: under <c>DarkMode_Explorer</c> the list paints the
+        /// text of a selected or hot row black on its dark highlight, whatever colour the row carries.
+        /// Light and high contrast keep the native drawing.
+        /// </summary>
+        private static void OnDrawSubItem(object? sender, DrawListViewSubItemEventArgs e)
+        {
+            ThemePalette? palette = sender is ListView list ? PaletteOf(list) : null;
+            if (palette == null || !palette.IsDark || e.Item == null || e.SubItem == null)
+            {
+                e.DrawDefault = true;
+                return;
+            }
+            try { DrawSubItemDark((ListView)sender!, e, palette); }
+            catch (ArgumentException) { e.DrawDefault = true; }   // a disposed font or image list mid-teardown
+        }
+
+        private static void DrawSubItemDark(ListView list, DrawListViewSubItemEventArgs e, ThemePalette palette)
+        {
+            ListViewItem item = e.Item!;
+            bool first = e.ColumnIndex == 0;
+            bool rowPart = first || list.FullRowSelect;
+            bool selected = rowPart && item.Selected && (list.Focused || !list.HideSelection);
+            bool hot = rowPart && !selected && item.Index == HotItem(list);
+            bool itemStyle = first || item.UseItemStyleForSubItems;
+            Rectangle bounds = e.Bounds;
+
+            Color back = selected ? (list.Focused ? palette.SurfaceSelected : palette.Control)
+                : hot ? palette.SurfaceAlternate
+                : itemStyle ? item.BackColor : e.SubItem!.BackColor;
+            using (var fill = new SolidBrush(back)) e.Graphics.FillRectangle(fill, bounds);
+
+            int left = bounds.X + 6;
+            ImageList? images = list.SmallImageList;
+            if (first && images != null)
+            {
+                int index = item.ImageIndex >= 0 ? item.ImageIndex
+                    : !string.IsNullOrEmpty(item.ImageKey) ? images.Images.IndexOfKey(item.ImageKey) : -1;
+                int x = bounds.X + 2;
+                if (index >= 0 && index < images.Images.Count)
+                    images.Draw(e.Graphics, x, bounds.Y + (bounds.Height - images.ImageSize.Height) / 2, index);
+                left = x + images.ImageSize.Width + 3;
+            }
+
+            string text = first ? item.Text : e.SubItem!.Text;
+            if (string.IsNullOrEmpty(text)) return;
+            HorizontalAlignment align = first || e.Header == null ? HorizontalAlignment.Left : e.Header.TextAlign;
+            TextFormatFlags flags = TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine
+                | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding;
+            flags |= align == HorizontalAlignment.Center ? TextFormatFlags.HorizontalCenter
+                : align == HorizontalAlignment.Right ? TextFormatFlags.Right : TextFormatFlags.Left;
+            if (list.RightToLeft == RightToLeft.Yes) flags |= TextFormatFlags.RightToLeft;
+            var face = new Rectangle(left, bounds.Y, Math.Max(0, bounds.Right - 6 - left), bounds.Height);
+            Color fore = itemStyle ? item.ForeColor : e.SubItem!.ForeColor;
+            Font font = itemStyle ? item.Font : e.SubItem!.Font;
+            TextRenderer.DrawText(e.Graphics, text, font, face, fore, flags);
+        }
+
+        private static int HotItem(ListView list)
+        {
+            try { return (int)WindowInterop.SendMessage(list.Handle, WindowInterop.LVM_GETHOTITEM, IntPtr.Zero, IntPtr.Zero); }
+            catch (ObjectDisposedException) { return -1; }
+        }
+
+        // ---- Input frames ----
+
+        /// <summary>
+        /// The frame of an edit or combo box in dark. <c>DarkMode_CFD</c> - the only theme that gives
+        /// these controls a dark face - draws their border in a light grey, the brightest line in the
+        /// window; a numeric up-down draws its own in the light edit style. The border is still painted;
+        /// this repaints the same pixels in <c>border</c> right after, in the message that drew them: the
+        /// non-client paint of an edit, the client paint of a combo box or an up-down.
+        /// A recreated handle drops the subclass, and the walk attaches it again on
+        /// <see cref="Control.HandleCreated"/>.
+        /// </summary>
+        internal sealed class ThemeFrame : NativeWindow
+        {
+            private readonly Control _control;
+            private bool _dark;
+
+            public ThemeFrame(Control control) => _control = control;
+
+            public void Update(bool dark)
+            {
+                _dark = dark;
+                IntPtr hwnd = _control.Handle;
+                if (dark && Handle != hwnd)
+                {
+                    if (Handle != IntPtr.Zero) ReleaseHandle();
+                    AssignHandle(hwnd);
+                }
+                else if (!dark && Handle != IntPtr.Zero) ReleaseHandle();
+                // An edit's border is non-client: only a frame change paints it again.
+                WindowInterop.SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0,
+                    WindowInterop.SWP_NOMOVE | WindowInterop.SWP_NOSIZE | WindowInterop.SWP_NOZORDER
+                    | WindowInterop.SWP_NOACTIVATE | WindowInterop.SWP_FRAMECHANGED);
+            }
+
+            protected override void WndProc(ref Message m)
+            {
+                base.WndProc(ref m);
+                if (!_dark) return;
+                if (m.Msg == WindowInterop.WM_NCPAINT && _control is TextBoxBase) PaintFrame(window: true);
+                else if (m.Msg == WindowInterop.WM_PAINT && (_control is ComboBox || _control is UpDownBase)) PaintFrame(window: false);
+            }
+
+            private void PaintFrame(bool window)
+            {
+                ThemePalette? palette = PaletteOf(_control);
+                IntPtr hwnd = Handle;
+                if (palette == null || !palette.IsDark || hwnd == IntPtr.Zero) return;
+                if (!WindowInterop.GetWindowRect(hwnd, out WindowInterop.RECT rect)) return;
+                int width = rect.Right - rect.Left, height = rect.Bottom - rect.Top;
+                if (width < 4 || height < 4) return;
+                IntPtr dc = window ? WindowInterop.GetWindowDC(hwnd) : WindowInterop.GetDC(hwnd);
+                if (dc == IntPtr.Zero) return;
+                try
+                {
+                    using (Graphics g = Graphics.FromHdc(dc))
+                    {
+                        using (var border = new Pen(palette.Border))
+                            g.DrawRectangle(border, 0, 0, width - 1, height - 1);
+                        // The edit's second ring is a bevel line; it becomes part of the face.
+                        if (window)
+                            using (var inner = new Pen(_control.BackColor))
+                                g.DrawRectangle(inner, 1, 1, width - 3, height - 3);
+                    }
+                }
+                finally { WindowInterop.ReleaseDC(hwnd, dc); }
+            }
+        }
 
         // ---- Disabled text ----
 

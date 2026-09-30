@@ -25,6 +25,12 @@ namespace CyrFlip
     /// language CyrFlip did not empty itself - and drive the live session with the documented
     /// <c>LoadKeyboardLayout</c>/<c>UnloadKeyboardLayout</c> APIs.</para>
     ///
+    /// <para><b>Phase B (ticket S0007 WL-1/WL-2).</b> Add, remove and "make default" go first through
+    /// the documented input-profile API (<see cref="InputLayoutApi"/>), which works on language +
+    /// keyboard/TIP pairs and writes both stores itself; the registry path above is the verified
+    /// fallback for an API that is missing or did not do what it said, and the only path for ↑↓,
+    /// which the API has no call for.</para>
+    ///
     /// <para><b>Reversibility.</b> <see cref="BackupAll"/> captures both stores verbatim before the first
     /// edit; <see cref="RestoreAll"/> puts them back byte-for-byte. As with the language hotkeys, a change
     /// may need a sign-out/in to fully settle - the UI says so rather than pretending otherwise.</para>
@@ -59,6 +65,33 @@ namespace CyrFlip
             public string LanguageName { get; set; } = "";
             public string DisplayName { get; set; } = "";
             public bool IsDefault { get; set; }
+            /// <summary>
+            /// The modern-store language the keyboard lives under (<c>ru</c> for a US keyboard added to
+            /// Russian). Up/down only moves a layout within its group - see <see cref="CanMove"/>.
+            /// </summary>
+            public string Group { get; set; } = "";
+            /// <summary>
+            /// The row stands for an IME/TIP (Pinyin as <c>00000804</c>), not for a keyboard CyrFlip
+            /// can remove - see <see cref="IsManagedByWindows"/>.
+            /// </summary>
+            public bool ManagedByWindows { get; set; }
+        }
+
+        /// <summary>What a layout edit did. Anything but <see cref="Ok"/> means nothing was written.</summary>
+        internal enum EditResult
+        {
+            Ok,
+            /// <summary>The input list could not be read whole; an edit built on it would drop layouts (WL-10).</summary>
+            Unreadable,
+            /// <summary>Windows must keep one layout.</summary>
+            LastLayout,
+            /// <summary>
+            /// The row is the stand-in a TIP shows up as in Preload (Pinyin as <c>00000804</c>); it cannot
+            /// say which of its language's input methods it stands for, so it is not removed from here (WL-9).
+            /// </summary>
+            ManagedByWindows,
+            /// <summary>Up/down across languages - the modern store would undo it at sign-in (WL-8).</summary>
+            CrossLanguage,
         }
 
         // ---- Reading ----
@@ -104,6 +137,7 @@ namespace CyrFlip
         {
             var result = new List<Installed>();
             List<string> klids = EffectiveKlids();
+            ProfileModel model = ReadProfileModelOrEmpty();
             for (int i = 0; i < klids.Count; i++)
             {
                 string klid = klids[i];
@@ -115,6 +149,8 @@ namespace CyrFlip
                     LanguageName = LanguageName(langId),
                     DisplayName = DisplayNameFor(klid),
                     IsDefault = i == 0,
+                    Group = GroupOf(model, klid),
+                    ManagedByWindows = IsManagedByWindows(model, klid),
                 });
             }
             return result;
@@ -123,11 +159,23 @@ namespace CyrFlip
         /// <summary>Ordered effective KLIDs: Preload entries with any Substitutes redirection applied.</summary>
         public static List<string> EffectiveKlids()
         {
-            var result = new List<string>();
+            TryReadEffectiveKlids(out List<string> klids);
+            return klids;
+        }
+
+        /// <summary>
+        /// The effective KLIDs, and whether that list is <b>whole</b>: false when Preload is missing,
+        /// empty, unreadable, or holds an entry that does not resolve to a KLID. Every edit is built on
+        /// this list and rewrites Preload from it, so an edit on a partial read would delete every
+        /// layout the read missed - an edit refuses instead (ticket S0007, WL-10).
+        /// </summary>
+        internal static bool TryReadEffectiveKlids(out List<string> result)
+        {
+            result = new List<string>();
             try
             {
                 using RegistryKey? preload = Registry.CurrentUser.OpenSubKey(PreloadPath);
-                if (preload == null) return result;
+                if (preload == null) return false;
                 using RegistryKey? subs = Registry.CurrentUser.OpenSubKey(SubstitutesPath);
 
                 // Preload entries are named "1".."N"; honour their numeric order, not string order.
@@ -139,45 +187,64 @@ namespace CyrFlip
                     return string.Compare(a, b, StringComparison.OrdinalIgnoreCase);
                 });
 
+                bool whole = true;
                 foreach (string name in names)
                 {
-                    if (!(preload.GetValue(name) is string raw) || raw.Length == 0) continue;
+                    if (!(preload.GetValue(name) is string raw) || raw.Length == 0) { whole = false; continue; }
                     string effective = subs?.GetValue(raw) as string ?? raw;
-                    if (effective.Length == 8) result.Add(effective.ToLowerInvariant());
+                    if (IsKlid(effective)) result.Add(effective.ToLowerInvariant());
+                    else whole = false;
                 }
+                return whole && result.Count > 0;
             }
-            catch { }
-            return result;
+            catch { return false; }
         }
+
+        private static bool IsKlid(string text)
+            => text.Length == 8 && uint.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out _);
 
         // ---- Writing ----
 
         /// <summary>
-        /// Add <paramref name="klid"/> to the input list (idempotent) and activate it now. Returns false
-        /// only if the live load failed; the registry is still made consistent so persistence holds.
+        /// Add <paramref name="klid"/> to the input list (idempotent) and activate it now. The registry is
+        /// made consistent even when the live load fails, so persistence holds.
         /// </summary>
-        public static bool Add(string klid)
+        public static EditResult Add(string klid)
         {
             klid = klid.ToLowerInvariant();
-            List<string> klids = EffectiveKlids();
-            if (!klids.Contains(klid)) klids.Add(klid);
-            Persist(klids, added: klid);
+            if (!TryReadEffectiveKlids(out List<string> klids)) return EditResult.Unreadable;
+            if (InputLayoutApi.Add(InputLayoutApi.Current, klid) == EditResult.Ok)
+                ReconcileLegacy(list => { if (!list.Contains(klid)) list.Add(klid); });
+            else
+            {
+                if (!klids.Contains(klid)) klids.Add(klid);
+                Persist(klids, added: klid);
+            }
 
-            IntPtr hkl = LoadKeyboardLayout(klid, KLF_ACTIVATE | KLF_SUBSTITUTE_OK);
-            return hkl != IntPtr.Zero;
+            LoadKeyboardLayout(klid, KLF_ACTIVATE | KLF_SUBSTITUTE_OK);
+            return EditResult.Ok;
         }
 
         /// <summary>
         /// Remove <paramref name="klid"/> from the input list and unload it live. Refuses to drop the
-        /// last remaining layout - Windows must always keep one - reporting that via the return value.
+        /// last remaining layout - Windows must always keep one - and a row that stands for an IME,
+        /// which Windows would put back at the next sign-in (WL-9).
         /// </summary>
-        public static bool Remove(string klid)
+        public static EditResult Remove(string klid)
         {
             klid = klid.ToLowerInvariant();
-            List<string> klids = EffectiveKlids();
-            if (klids.Count <= 1) return false;
-            klids.RemoveAll(k => k == klid);
-            Persist(klids);
+            if (!TryReadEffectiveKlids(out List<string> klids)) return EditResult.Unreadable;
+            if (klids.Count <= 1) return EditResult.LastLayout;
+            if (IsManagedByWindows(ReadProfileModelOrEmpty(), klid)) return EditResult.ManagedByWindows;
+            EditResult? viaApi = InputLayoutApi.Remove(InputLayoutApi.Current, klid);
+            if (viaApi == EditResult.LastLayout) return EditResult.LastLayout;
+            if (viaApi == EditResult.Ok)
+                ReconcileLegacy(list => list.RemoveAll(k => k == klid));
+            else
+            {
+                klids.RemoveAll(k => k == klid);
+                Persist(klids, removed: klid);
+            }
 
             // A layout can't be unloaded while it's the active one, so make sure something else is active.
             foreach (IntPtr hkl in HklsToUnload(InstalledLayoutsLive(), klid, LayoutIdentity.KlidForHkl))
@@ -185,45 +252,98 @@ namespace CyrFlip
                 ActivateAnyOther(hkl);
                 UnloadKeyboardLayout(hkl);
             }
-            return true;
+            return EditResult.Ok;
         }
 
         /// <summary>
         /// Make <paramref name="klid"/> the default input method. The legacy list puts it first; the
         /// modern store records it as <c>InputMethodOverride</c>, which is what Windows' own "default
         /// input method" setting writes - never by reordering <c>Languages</c>, the user's preferred
-        /// language list for apps and web sites (ticket S0007, WL-2).
+        /// language list for apps and web sites (ticket S0007, WL-2). <paramref name="writtenOverride"/>
+        /// is the value written, so restoring a backup that never captured it can take it back (WL-13).
         /// </summary>
-        public static void MakeDefault(string klid)
+        public static EditResult MakeDefault(string klid, out string? writtenOverride)
         {
+            writtenOverride = null;
             klid = klid.ToLowerInvariant();
-            List<string> klids = EffectiveKlids();
-            if (!klids.Remove(klid)) return;
+            if (!TryReadEffectiveKlids(out List<string> klids)) return EditResult.Unreadable;
+            if (!klids.Contains(klid)) return EditResult.Ok;
+            string? overrideBefore = ReadInputMethodOverride();
+            if (InputLayoutApi.MakeDefault(InputLayoutApi.Current, klid) == EditResult.Ok)
+            {
+                ReconcileLegacy(list => { if (list.Remove(klid)) list.Insert(0, klid); });
+                string? overrideAfter = ReadInputMethodOverride();
+                if (overrideAfter != null && !string.Equals(overrideAfter, overrideBefore, StringComparison.OrdinalIgnoreCase))
+                    writtenOverride = overrideAfter;
+                return EditResult.Ok;
+            }
+            klids.Remove(klid);
             klids.Insert(0, klid);
-            Persist(klids, makeDefault: klid);
+            writtenOverride = Persist(klids, makeDefault: klid);
+            return EditResult.Ok;
         }
 
-        /// <summary>Shift <paramref name="klid"/> one place up (-1) or down (+1) in the list.</summary>
-        public static void Move(string klid, int delta)
+        /// <summary>
+        /// After an edit the input-profile API made, bring the legacy Preload in line only where Windows
+        /// left it behind - the list the tab shows and the default it marks are read from there. A
+        /// Preload that does not read whole is Windows' to settle at sign-in, never ours to rebuild.
+        /// </summary>
+        private static void ReconcileLegacy(Action<List<string>> edit)
+        {
+            if (!TryReadEffectiveKlids(out List<string> klids)) return;
+            var edited = new List<string>(klids);
+            edit(edited);
+            if (edited.Count > 0 && !SameSequence(klids, edited)) WriteLegacy(edited);
+        }
+
+        private static string? ReadInputMethodOverride()
+        {
+            try
+            {
+                using RegistryKey? profile = Registry.CurrentUser.OpenSubKey(ProfilePath);
+                return profile?.GetValue("InputMethodOverride") as string;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>
+        /// Shift <paramref name="klid"/> one place up (-1) or down (+1), <b>within its language</b>: the
+        /// order of the languages is the modern store's <c>Languages</c> list, which rebuilds Preload at
+        /// sign-in, so a move across languages would only be undone there (WL-8).
+        /// </summary>
+        public static EditResult Move(string klid, int delta)
         {
             klid = klid.ToLowerInvariant();
-            List<string> klids = EffectiveKlids();
+            if (!TryReadEffectiveKlids(out List<string> klids)) return EditResult.Unreadable;
             int i = klids.IndexOf(klid);
-            if (i < 0) return;
+            if (i < 0) return EditResult.Ok;
             int j = i + delta;
-            if (j < 0 || j >= klids.Count) return;
+            if (j < 0 || j >= klids.Count) return EditResult.Ok;
+            ProfileModel model = ReadProfileModelOrEmpty();
+            if (!string.Equals(GroupOf(model, klids[i]), GroupOf(model, klids[j]), StringComparison.OrdinalIgnoreCase))
+                return EditResult.CrossLanguage;
             (klids[i], klids[j]) = (klids[j], klids[i]);
             Persist(klids);
+            return EditResult.Ok;
+        }
+
+        /// <summary>May the row at <paramref name="index"/> move by <paramref name="delta"/>? Only onto a neighbour of its own language (WL-8).</summary>
+        internal static bool CanMove(IList<Installed> rows, int index, int delta)
+        {
+            int j = index + delta;
+            if (index < 0 || index >= rows.Count || j < 0 || j >= rows.Count) return false;
+            return string.Equals(rows[index].Group, rows[j].Group, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
         /// Rewrites the legacy store from one canonical ordered KLID list and brings the modern store in
         /// line with it <b>without touching anything it does not model</b> (see <see cref="ApplyLayouts"/>).
+        /// Returns the <c>InputMethodOverride</c> it wrote, if it wrote one.
         /// </summary>
-        public static void Persist(List<string> klids, string? added = null, string? makeDefault = null)
+        public static string? Persist(List<string> klids, string? added = null, string? makeDefault = null, string? removed = null)
         {
             WriteLegacy(klids);
-            WriteModern(klids, added, makeDefault);
+            return WriteModern(klids, added, makeDefault, removed);
         }
 
         private static void WriteLegacy(List<string> klids)
@@ -249,18 +369,20 @@ namespace CyrFlip
             catch { }
         }
 
-        private static void WriteModern(List<string> klids, string? added, string? makeDefault)
+        private static string? WriteModern(List<string> klids, string? added, string? makeDefault, string? removed)
         {
             try
             {
                 using RegistryKey? profile = Registry.CurrentUser.CreateSubKey(ProfilePath);
-                if (profile == null) return;
+                if (profile == null) return null;
                 ProfileModel before = ReadProfileModel(profile);
                 ProfileModel after = before.Clone();
-                ApplyLayouts(after, klids, added, makeDefault, Bcp47ForLangId);
+                ApplyLayouts(after, klids, added, makeDefault, Bcp47ForLangId, removed);
                 WriteProfileDiff(profile, before, after);
+                return after.InputMethodOverride != null && after.InputMethodOverride != before.InputMethodOverride
+                    ? after.InputMethodOverride : null;
             }
-            catch { }
+            catch { return null; }
         }
 
         /// <summary>
@@ -296,16 +418,19 @@ namespace CyrFlip
         internal static bool IsTipValue(string name) => name.Length > 5 && name[4] == ':' && name[5] == '{';
 
         /// <summary>
-        /// Brings the modern profile in line with an ordered KLID list. <b>Only plain layout values are
-        /// ever removed</b>: a TIP (Microsoft Pinyin, the Japanese and Korean IMEs, every third-party
+        /// Brings the modern profile in line with an ordered KLID list. <b>Only the plain layout values of
+        /// <paramref name="removed"/> are ever removed</b> - a layout the profile lists and the KLID list
+        /// does not is kept, so a list that came back short can never cost a keyboard (WL-10) - and a TIP
+        /// (Microsoft Pinyin, the Japanese and Korean IMEs, every third-party
         /// input method) is outside what CyrFlip models and survives every edit (ticket S0007, WL-1).
         /// A keyboard stays under the language it already lives in (Russian with a US keyboard keeps
         /// <c>0419:00000409</c> under <c>ru</c>); a new one goes under its own language; a language
         /// subkey is dropped only when this pass removed its last layout and it holds no TIP; and the
         /// order of <c>Languages</c> is kept, with new tags appended (WL-2).
         /// </summary>
-        internal static void ApplyLayouts(ProfileModel model, IList<string> klids, string? added, string? makeDefault, Func<ushort, string> tagFor)
+        internal static void ApplyLayouts(ProfileModel model, IList<string> klids, string? added, string? makeDefault, Func<ushort, string> tagFor, string? removed = null)
         {
+            removed = removed?.ToLowerInvariant();
             var wanted = new List<string>();
             foreach (string k in klids)
             {
@@ -325,7 +450,7 @@ namespace CyrFlip
                     hadLayout = true;
                     string klid = name.Substring(5).ToLowerInvariant();
                     if (wanted.Contains(klid)) { placed.Add(klid); return false; }
-                    return true;
+                    return klid == removed;
                 });
                 if (hadLayout && !sub.Value.Exists(IsLayoutValue) && !sub.Value.Exists(IsTipValue))
                     emptied.Add(sub.Key);
@@ -398,6 +523,55 @@ namespace CyrFlip
         private static bool IsPrimaryKlid(string klid)
             => klid.Length == 8 && klid.StartsWith("0000", StringComparison.Ordinal);
 
+        /// <summary>
+        /// The Preload row <paramref name="klid"/> is an IME/TIP rather than a keyboard: a primary KLID
+        /// with no plain layout value anywhere in the profile and a TIP of its language beside it
+        /// (Pinyin shows up in Preload as <c>00000804</c>). Phase A never deletes a TIP value, so
+        /// removing such a row would only be undone at the next sign-in (WL-9).
+        /// </summary>
+        internal static bool IsManagedByWindows(ProfileModel model, string klid)
+        {
+            if (!IsPrimaryKlid(klid.ToLowerInvariant())) return false;
+            string prefix = LangIdOf(klid).ToString("X4", CultureInfo.InvariantCulture) + ":";
+            bool tip = false;
+            foreach (List<string> values in model.Subkeys.Values)
+                foreach (string v in values)
+                {
+                    if (IsLayoutValue(v) && v.Substring(5).Equals(klid, StringComparison.OrdinalIgnoreCase)) return false;
+                    if (IsTipValue(v) && v.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) tip = true;
+                }
+            return tip;
+        }
+
+        /// <summary>
+        /// The language subkey a KLID lives under in the modern store - where its plain layout value is,
+        /// else where the TIP it stands for is - or, for a layout the profile does not list, its own
+        /// language id (WL-8).
+        /// </summary>
+        internal static string GroupOf(ProfileModel model, string klid)
+        {
+            foreach (KeyValuePair<string, List<string>> sub in model.Subkeys)
+                if (sub.Value.Exists(v => IsLayoutValue(v) && v.Substring(5).Equals(klid, StringComparison.OrdinalIgnoreCase)))
+                    return sub.Key;
+            string prefix = LangIdOf(klid).ToString("X4", CultureInfo.InvariantCulture) + ":";
+            if (IsPrimaryKlid(klid.ToLowerInvariant()))
+                foreach (KeyValuePair<string, List<string>> sub in model.Subkeys)
+                    if (sub.Value.Exists(v => IsTipValue(v) && v.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+                        return sub.Key;
+            return "0x" + LangIdOf(klid).ToString("x4", CultureInfo.InvariantCulture);
+        }
+
+        private static ProfileModel ReadProfileModelOrEmpty()
+        {
+            try
+            {
+                using RegistryKey? profile = Registry.CurrentUser.OpenSubKey(ProfilePath);
+                if (profile != null) return ReadProfileModel(profile);
+            }
+            catch { }
+            return new ProfileModel();
+        }
+
         private static ProfileModel ReadProfileModel(RegistryKey profile)
         {
             var model = new ProfileModel();
@@ -460,14 +634,39 @@ namespace CyrFlip
         /// </summary>
         public static string BackupAll()
         {
-            var snap = new Dictionary<string, object>
+            // All or nothing (WL-11): a partial dump saved as the one-time backup would, on restore,
+            // delete every language subkey and recreate none. "" leaves the next edit to try again.
+            try
             {
-                ["format"] = 2,
-                ["preload"] = DumpValues(Registry.CurrentUser, PreloadPath),
-                ["substitutes"] = DumpValues(Registry.CurrentUser, SubstitutesPath),
-                ["profile"] = DumpProfile(),
-            };
-            try { return new JavaScriptSerializer().Serialize(snap); } catch { return ""; }
+                Dictionary<string, string> preload = DumpValues(Registry.CurrentUser, PreloadPath);
+                Dictionary<string, object> profile = DumpProfile();
+                var snap = new Dictionary<string, object>
+                {
+                    ["format"] = 2,
+                    ["preload"] = preload,
+                    ["substitutes"] = DumpValues(Registry.CurrentUser, SubstitutesPath),
+                    ["profile"] = profile,
+                };
+                string json = new JavaScriptSerializer().Serialize(snap);
+                return TryParseSnapshot(json, out _) ? json : "";
+            }
+            catch { return ""; }
+        }
+
+        /// <summary>
+        /// Reads a snapshot and says whether restoring it can only put things back: it must name at least
+        /// one Preload entry and at least one profile language subkey - the restore deletes the live ones
+        /// of both before it writes the captured ones (WL-11). Either format.
+        /// </summary>
+        internal static bool TryParseSnapshot(string json, out Dictionary<string, object> snap)
+        {
+            snap = new Dictionary<string, object>();
+            if (string.IsNullOrWhiteSpace(json)) return false;
+            try { snap = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(json) ?? snap; }
+            catch { return false; }
+            return snap.TryGetValue("preload", out object? preload) && preload is Dictionary<string, object> entries && entries.Count > 0
+                && snap.TryGetValue("profile", out object? profile) && profile is Dictionary<string, object> p
+                && p.TryGetValue("subkeys", out object? subs) && subs is Dictionary<string, object> tags && tags.Count > 0;
         }
 
         /// <summary>
@@ -475,15 +674,14 @@ namespace CyrFlip
         /// subkeys of the profile exactly, the profile root values that were captured with their own
         /// kinds - the root itself is never deleted, so values the snapshot did not capture
         /// (<c>HttpAcceptLanguageOptOut</c>, the text-prediction switches..) stay. Then the live session
-        /// is brought in line with the restored list.
+        /// is brought in line with the restored list. False, with nothing written, for a snapshot that
+        /// does not read or would not put a layout back (CF-4, WL-11).
+        /// <paramref name="overrideWrittenByCyrFlip"/> is the <c>InputMethodOverride</c> CyrFlip last
+        /// wrote: a format-1 snapshot never captured that value, so it is removed when it is still ours (WL-13).
         /// </summary>
-        public static void RestoreAll(string json)
+        public static bool RestoreAll(string json, string? overrideWrittenByCyrFlip = null)
         {
-            if (string.IsNullOrWhiteSpace(json)) return;
-            Dictionary<string, object>? snap;
-            try { snap = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(json); }
-            catch { return; }
-            if (snap == null) return;
+            if (!TryParseSnapshot(json, out Dictionary<string, object> snap)) return false;
 
             try
             {
@@ -503,11 +701,21 @@ namespace CyrFlip
                         foreach (string tag in profile.GetSubKeyNames())
                             profile.DeleteSubKeyTree(tag, throwOnMissingSubKey: false);
                         RestoreProfile(profile, snap);
+                        if (!snap.ContainsKey("format") && ShouldDropOverride(profile.GetValue("InputMethodOverride") as string, overrideWrittenByCyrFlip))
+                            profile.DeleteValue("InputMethodOverride", throwOnMissingValue: false);
                     }
             }
             catch { }
             SyncLiveSession();
+            return true;
         }
+
+        /// <summary>
+        /// A format-1 restore removes <c>InputMethodOverride</c> only when it still holds exactly the
+        /// value CyrFlip wrote - one the user set in Windows since is theirs (WL-13).
+        /// </summary>
+        internal static bool ShouldDropOverride(string? current, string? writtenByCyrFlip)
+            => !string.IsNullOrEmpty(writtenByCyrFlip) && string.Equals(current, writtenByCyrFlip, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Load every layout the legacy list now names and unload the live ones it no longer does, so a
@@ -714,38 +922,32 @@ namespace CyrFlip
 
         // ---- Registry snapshot primitives ----
 
+        // The dumps throw rather than return what they managed to read: BackupAll turns any failure
+        // into "no backup yet", never into a partial one (WL-11).
         private static Dictionary<string, string> DumpValues(RegistryKey root, string path)
         {
             var map = new Dictionary<string, string>();
-            try
-            {
-                using RegistryKey? key = root.OpenSubKey(path);
-                if (key != null)
-                    foreach (string name in key.GetValueNames())
-                        if (key.GetValue(name) is string s) map[name] = s;
-            }
-            catch { }
+            using RegistryKey? key = root.OpenSubKey(path);
+            if (key != null)
+                foreach (string name in key.GetValueNames())
+                    map[name] = key.GetValue(name) as string ?? throw new InvalidOperationException(path + "\\" + name);
             return map;
         }
 
         private static Dictionary<string, object> DumpProfile()
         {
             var profileDump = new Dictionary<string, object>();
-            try
-            {
-                using RegistryKey? profile = Registry.CurrentUser.OpenSubKey(ProfilePath);
-                if (profile == null) return profileDump;
+            using RegistryKey? profile = Registry.CurrentUser.OpenSubKey(ProfilePath);
+            if (profile == null) return profileDump;
 
-                profileDump["root"] = DumpTyped(profile);
-                var subs = new Dictionary<string, object>();
-                foreach (string tag in profile.GetSubKeyNames())
-                {
-                    using RegistryKey? langKey = profile.OpenSubKey(tag);
-                    if (langKey != null) subs[tag] = DumpTyped(langKey);
-                }
-                profileDump["subkeys"] = subs;
+            profileDump["root"] = DumpTyped(profile);
+            var subs = new Dictionary<string, object>();
+            foreach (string tag in profile.GetSubKeyNames())
+            {
+                using RegistryKey? langKey = profile.OpenSubKey(tag) ?? throw new InvalidOperationException(ProfilePath + "\\" + tag);
+                subs[tag] = DumpTyped(langKey);
             }
-            catch { }
+            profileDump["subkeys"] = subs;
             return profileDump;
         }
 

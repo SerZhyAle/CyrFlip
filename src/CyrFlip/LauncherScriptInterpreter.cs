@@ -39,7 +39,10 @@ namespace CyrFlip
 
                 case ".bat":
                 case ".cmd":
-                    interpreter = "cmd.exe";
+                    // By its System32 path (S0034 LS2-7): a bare "cmd.exe" is found by ShellExecute's
+                    // own search, which starts in the current directory - and with RunAsAdmin that
+                    // search, not a validated path, would pick what is elevated.
+                    interpreter = LauncherExecution.CmdPath;
                     // The one cmd quoting form that survives BOTH a path with spaces and quoted
                     // arguments: /s makes cmd strip the outer pair and run the remainder verbatim.
                     // Without /s, arguments containing quotes push the line over cmd's two-quote rule
@@ -91,7 +94,8 @@ namespace CyrFlip
         /// <summary>
         /// PowerShell 7 when it is installed, Windows PowerShell otherwise. 7 is preferred because a
         /// script written for it can fail under 5.1, and its installer does not always put it on PATH,
-        /// so its default location is probed too.
+        /// so its default location is probed too. Every answer is a full path; Windows PowerShell is
+        /// taken from System32, where every supported Windows has it (S0034 LS2-7).
         /// </summary>
         internal static string PowerShellHost()
         {
@@ -104,7 +108,11 @@ namespace CyrFlip
             if (File.Exists(installed))
                 return installed;
 
-            return LauncherExecution.ResolveOnPath("powershell.exe") ?? "powershell.exe";
+            return WindowsPowerShellPath;
         }
+
+        /// <summary>Windows PowerShell 5.1, by its System32 path.</summary>
+        internal static string WindowsPowerShellPath
+            => Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
     }
 }

@@ -1,4 +1,4 @@
-namespace CyrFlip
+﻿namespace CyrFlip
 {
     /// <summary>General / Indicators / About tabs of the settings window.</summary>
     internal static partial class Localization
@@ -13,6 +13,14 @@ namespace CyrFlip
             Add("Общие",
                 en: "General", uk: "Загальні", de: "Allgemein", it: "Generale", es: "General", fr: "Général",
                 pt: "Geral", ar: "عام", hi: "सामान्य", bn: "সাধারণ", ur: "عام", zh: "常规");
+
+            Add("Вверх",
+                en: "Up", uk: "Вгору", de: "Nach oben", it: "Su", es: "Arriba", fr: "Haut",
+                pt: "Para cima", ar: "أعلى", hi: "ऊपर", bn: "উপরে", ur: "اوپر", zh: "向上");
+
+            Add("Вниз",
+                en: "Down", uk: "Вниз", de: "Nach unten", it: "Giù", es: "Abajo", fr: "Bas",
+                pt: "Para baixo", ar: "أسفل", hi: "नीचे", bn: "নিচে", ur: "نیچے", zh: "向下");
 
             Add("Основные параметры приложения. Все изменения применяются сразу.",
                 en: "Core app settings. Changes take effect immediately.",
@@ -49,6 +57,50 @@ namespace CyrFlip
                 bn: "শুধু বর্তমান Windows ব্যবহারকারীর স্টার্টআপে CyrFlip যোগ করে। পরের বার সাইন ইন করলে এটি ব্যাকগ্রাউন্ডে চালু হয়ে নোটিফিকেশন এলাকায় দেখা যাবে।",
                 ur: "CyrFlip کو صرف موجودہ Windows صارف کے اسٹارٹ اپ میں شامل کرتا ہے۔ اگلی بار سائن اِن پر یہ پس منظر میں چلے گا اور نوٹیفکیشن ایریا میں نظر آئے گا۔",
                 zh: "仅为当前 Windows 用户添加开机启动。下次登录时程序将在后台运行并出现在通知区域。");
+
+            Add("Ярлык CyrFlip в меню «Пуск»",
+                en: "CyrFlip shortcut in the Start menu", uk: "Ярлик CyrFlip у меню «Пуск»",
+                de: "CyrFlip-Verknüpfung im Startmenü", it: "Collegamento a CyrFlip nel menu Start",
+                es: "Acceso directo de CyrFlip en el menú Inicio", fr: "Raccourci CyrFlip dans le menu Démarrer",
+                pt: "Atalho do CyrFlip no menu Iniciar", ar: "اختصار CyrFlip في قائمة «ابدأ»",
+                hi: "Start मेनू में CyrFlip शॉर्टकट", bn: "Start মেনুতে CyrFlip শর্টকাট",
+                ur: "Start مینو میں CyrFlip شارٹ کٹ", zh: "“开始”菜单中的 CyrFlip 快捷方式");
+
+            Add("Ярлык CyrFlip на рабочем столе",
+                en: "CyrFlip shortcut on the desktop", uk: "Ярлик CyrFlip на робочому столі",
+                de: "CyrFlip-Verknüpfung auf dem Desktop", it: "Collegamento a CyrFlip sul desktop",
+                es: "Acceso directo de CyrFlip en el escritorio", fr: "Raccourci CyrFlip sur le bureau",
+                pt: "Atalho do CyrFlip na área de trabalho", ar: "اختصار CyrFlip على سطح المكتب",
+                hi: "डेस्कटॉप पर CyrFlip शॉर्टकट", bn: "ডেস্কটপে CyrFlip শর্টকাট",
+                ur: "ڈیسک ٹاپ پر CyrFlip شارٹ کٹ", zh: "桌面上的 CyrFlip 快捷方式");
+
+            Add("CyrFlip ставится без установщика, поэтому ярлыки в меню «Пуск» и на рабочем столе создаёт он сам при первом запуске. Если перенести папку с программой, ярлыки при следующем запуске сами укажут на новое место.",
+                en: "CyrFlip has no installer, so it creates its Start menu and desktop shortcuts itself on the first run. If you move the program's folder, the shortcuts follow it on the next start.",
+                uk: "CyrFlip не має інсталятора, тому ярлики в меню «Пуск» і на робочому столі створює сам під час першого запуску. Якщо перенести теку з програмою, ярлики під час наступного запуску самі вкажуть на нове місце.",
+                de: "CyrFlip hat kein Installationsprogramm und legt die Verknüpfungen im Startmenü und auf dem Desktop beim ersten Start selbst an. Wird der Programmordner verschoben, zeigen sie beim nächsten Start auf den neuen Ort.",
+                it: "CyrFlip non ha un programma di installazione, quindi crea da sé i collegamenti nel menu Start e sul desktop al primo avvio. Se sposti la cartella del programma, al successivo avvio i collegamenti puntano alla nuova posizione.",
+                es: "CyrFlip no tiene instalador, así que crea por sí mismo los accesos directos del menú Inicio y del escritorio en el primer inicio. Si mueves la carpeta del programa, en el siguiente inicio apuntarán a la nueva ubicación.",
+                fr: "CyrFlip n'a pas de programme d'installation : il crée lui-même ses raccourcis dans le menu Démarrer et sur le bureau au premier lancement. Si vous déplacez son dossier, les raccourcis suivent au lancement suivant.",
+                pt: "O CyrFlip não tem instalador, por isso cria sozinho os atalhos no menu Iniciar e na área de trabalho na primeira execução. Se você mover a pasta do programa, os atalhos passam a apontar para o novo local na próxima inicialização.",
+                ar: "لا يملك CyrFlip برنامج تثبيت، لذلك ينشئ اختصاريه في قائمة «ابدأ» وعلى سطح المكتب بنفسه عند التشغيل الأول. إذا نقلت مجلد البرنامج، تشير الاختصارات إلى الموقع الجديد عند التشغيل التالي.",
+                hi: "CyrFlip का कोई इंस्टॉलर नहीं है, इसलिए पहली बार चलने पर यह Start मेनू और डेस्कटॉप के शॉर्टकट खुद बनाता है। प्रोग्राम का फ़ोल्डर दूसरी जगह ले जाने पर अगली बार शुरू होते ही शॉर्टकट नई जगह की ओर इशारा करेंगे।",
+                bn: "CyrFlip-এর কোনো ইনস্টলার নেই, তাই প্রথমবার চালু হলে এটি নিজেই Start মেনু ও ডেস্কটপের শর্টকাট তৈরি করে। প্রোগ্রামের ফোল্ডার সরালে পরের বার চালু হলে শর্টকাটগুলো নতুন জায়গা দেখাবে।",
+                ur: "CyrFlip کا کوئی انسٹالر نہیں، اس لیے پہلی بار چلنے پر یہ Start مینو اور ڈیسک ٹاپ کے شارٹ کٹ خود بناتا ہے۔ پروگرام کا فولڈر منتقل کرنے پر اگلی بار شروع ہوتے ہی شارٹ کٹ نئی جگہ کی طرف اشارہ کریں گے۔",
+                zh: "CyrFlip 没有安装程序，因此首次运行时会自行创建“开始”菜单和桌面快捷方式。移动程序文件夹后，下次启动时快捷方式会自动指向新位置。");
+
+            Add("Удалённый ярлык CyrFlip сам больше не создаёт - вернуть его можно только этим флажком.",
+                en: "A shortcut you delete is never recreated by CyrFlip on its own - only this checkbox brings it back.",
+                uk: "Видалений ярлик CyrFlip сам більше не створює - повернути його можна лише цим прапорцем.",
+                de: "Eine gelöschte Verknüpfung legt CyrFlip nicht von selbst wieder an - nur dieses Kästchen stellt sie wieder her.",
+                it: "CyrFlip non ricrea da sé un collegamento eliminato: lo riporta solo questa casella.",
+                es: "CyrFlip no vuelve a crear por sí mismo un acceso directo eliminado: solo esta casilla lo recupera.",
+                fr: "CyrFlip ne recrée jamais de lui-même un raccourci supprimé : seule cette case le rétablit.",
+                pt: "O CyrFlip nunca recria sozinho um atalho excluído - só esta caixa o traz de volta.",
+                ar: "لا يعيد CyrFlip إنشاء اختصار حذفته من تلقاء نفسه - هذا المربع وحده يعيده.",
+                hi: "हटाया गया शॉर्टकट CyrFlip खुद दोबारा नहीं बनाता - उसे केवल यह चेकबॉक्स वापस लाता है।",
+                bn: "মুছে ফেলা শর্টকাট CyrFlip নিজে আর তৈরি করে না - কেবল এই চেকবক্সই সেটি ফিরিয়ে আনে।",
+                ur: "حذف کیا گیا شارٹ کٹ CyrFlip خود دوبارہ نہیں بناتا - اسے صرف یہ چیک باکس واپس لاتا ہے۔",
+                zh: "已删除的快捷方式 CyrFlip 不会自行重新创建，只有此复选框能恢复它。");
 
             Add("Автозапуском версии из Microsoft Store управляет сама Windows. Флажок показывает текущее состояние, а нажатие открывает «Параметры ▸ Приложения ▸ Автозагрузка», где автозапуск включается и выключается.",
                 en: "Windows itself owns autostart for the Microsoft Store build. The checkbox shows the current state, and clicking it opens Settings ▸ Apps ▸ Startup, where autostart is turned on or off.",
@@ -344,6 +396,14 @@ namespace CyrFlip
                 hi: "ऐप की वेबसाइट: serzhyale.github.io/CyrFlip", bn: "অ্যাপের ওয়েবসাইট: serzhyale.github.io/CyrFlip",
                 ur: "ایپ کی ویب سائٹ: serzhyale.github.io/CyrFlip", zh: "程序网站：serzhyale.github.io/CyrFlip");
 
+            Add("Сторонние компоненты: значки Material Icons (Apache-2.0)",
+                en: "Third-party notices: Material Icons glyphs (Apache-2.0)", uk: "Сторонні компоненти: значки Material Icons (Apache-2.0)",
+                de: "Drittanbieter-Hinweise: Material-Icons-Symbole (Apache-2.0)", it: "Componenti di terze parti: icone Material Icons (Apache-2.0)",
+                es: "Componentes de terceros: iconos Material Icons (Apache-2.0)", fr: "Composants tiers : icônes Material Icons (Apache-2.0)",
+                pt: "Componentes de terceiros: ícones Material Icons (Apache-2.0)", ar: "مكوّنات الجهات الخارجية: أيقونات Material Icons (Apache-2.0)",
+                hi: "तृतीय-पक्ष घटक: Material Icons के चिह्न (Apache-2.0)", bn: "তৃতীয় পক্ষের উপাদান: Material Icons-এর চিহ্ন (Apache-2.0)",
+                ur: "تھرڈ پارٹی اجزا: Material Icons کے نشانات (Apache-2.0)", zh: "第三方组件：Material Icons 图标 (Apache-2.0)");
+
             Add("Сайт разработчика: sza.od.ua",
                 en: "Developer website: sza.od.ua", uk: "Сайт розробника: sza.od.ua",
                 de: "Website des Entwicklers: sza.od.ua", it: "Sito dello sviluppatore: sza.od.ua",
@@ -458,6 +518,76 @@ namespace CyrFlip
                 bn: "শান্ত হোন — একটি নির্ণয় ইতিমধ্যেই চলছে।",
                 ur: "آرام سے — ایک تشخیص پہلے ہی جاری ہے۔",
                 zh: "别急——已经有一次诊断在进行了。");
+
+            Add("Нет доступа к файлу или папке.",
+                en: "Access to file or folder is denied.",
+                uk: "Немає доступу до файлу або папки.",
+                de: "Zugriff auf Datei oder Ordner verweigert.",
+                it: "Accesso a file o cartella negato.",
+                es: "Acceso denegado al archivo o carpeta.",
+                fr: "Accès refusé au fichier ou au dossier.",
+                pt: "Acesso negado ao arquivo ou pasta.",
+                ar: "تم رفض الوصول إلى الملف أو المجلد.",
+                hi: "फ़ाइल या फ़ोल्डर तक पहुँच अस्वीकृत है।",
+                bn: "ফাইল বা ফোল্ডারে প্রবেশাধিকার অস্বীকৃত।",
+                ur: "فائل یا فولڈر تک رسائی مسترد کر دی گئی۔",
+                zh: "无法访问文件或文件夹。");
+
+            Add("Ошибка чтения или записи на диск.",
+                en: "Disk read or write error.",
+                uk: "Помилка читання або запису на диск.",
+                de: "Fehler beim Lesen oder Schreiben auf den Datenträger.",
+                it: "Errore di lettura o scrittura sul disco.",
+                es: "Error de lectura o escritura en el disco.",
+                fr: "Erreur de lecture ou d'écriture sur le disque.",
+                pt: "Erro de leitura ou gravação no disco.",
+                ar: "خطأ في القراءة أو الكتابة على القرص.",
+                hi: "डिस्क पढ़ने या लिखने में त्रुटि।",
+                bn: "ডিস্ক পড়া বা লেখার ত্রুটি।",
+                ur: "ڈسک پڑھنے یا لکھنے میں خرابی۔",
+                zh: "磁盘读取或写入错误。");
+
+            Add("Сетевая ошибка или сервер недоступен.",
+                en: "Network error or server is unavailable.",
+                uk: "Мережева помилка або сервер недоступний.",
+                de: "Netzwerkfehler oder Server nicht erreichbar.",
+                it: "Errore di rete o server non disponibile.",
+                es: "Error de red o servidor no disponible.",
+                fr: "Erreur réseau ou serveur indisponible.",
+                pt: "Erro de rede ou servidor indisponível.",
+                ar: "خطأ في الشبكة أو الخادم غير متوفر.",
+                hi: "नेटवर्क त्रुटि या सर्वर अनुपलब्ध है।",
+                bn: "নেটওয়ার্ক ত্রুটি বা সার্ভার অনুপলব্ধ।",
+                ur: "نیٹ ورک کی خرابی یا سرور دستیاب نہیں ہے۔",
+                zh: "网络错误或服务器不可用。");
+
+            Add("Не удалось запустить процесс.",
+                en: "Could not start process.",
+                uk: "Не вдалося запустити процес.",
+                de: "Prozess konnte nicht gestartet werden.",
+                it: "Impossibile avviare il processo.",
+                es: "No se pudo iniciar el proceso.",
+                fr: "Impossible de démarrer le processus.",
+                pt: "Não foi possível iniciar o processo.",
+                ar: "تعذر بدء العملية.",
+                hi: "प्रक्रिया शुरू नहीं की जा सकी।",
+                bn: "প্রক্রিয়া শুরু করা যায়নি।",
+                ur: "عمل شروع نہیں کیا جا سکا۔",
+                zh: "无法启动进程。");
+
+            Add("Произошла непредвиденная ошибка.",
+                en: "An unexpected error occurred.",
+                uk: "Сталася непередбачена помилка.",
+                de: "Ein unerwarteter Fehler ist aufgetreten.",
+                it: "Si è verificato un errore imprevisto.",
+                es: "Se produjo un error inesperado.",
+                fr: "Une erreur inattendue s'est produite.",
+                pt: "Ocorreu um erro inesperado.",
+                ar: "حدث خطأ غير متوقع.",
+                hi: "एक अप्रत्याशित त्रुटि हुई।",
+                bn: "একটি অপ্রত্যাশিত ত্রুটি ঘটেছে।",
+                ur: "ایک غیر متوقع خرابی پیش آگئی۔",
+                zh: "发生意外错误。");
         }
     }
 }

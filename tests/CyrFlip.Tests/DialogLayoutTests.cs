@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
@@ -71,6 +72,8 @@ namespace CyrFlip.Tests
                     new YtDlpLinkDialog("English"),
                     new TranslationDialog(null, "English"),
                     new SupportBundleDialog(Bundle, "English"),
+                    new ExchangeExportDialog("English", notesAvailable: true, notesWarningOff: false),
+                    new ClipboardHistorySearchWindow(new ClipboardHistoryService(enabled: false, paused: false, Path.Combine(Path.GetTempPath(), "cyrflip-test-" + Guid.NewGuid().ToString("N"))), "English"),
                     new ConfirmDialog("English", "?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, false, owned: true),
                 };
                 foreach (Form dialog in dialogs)
@@ -132,8 +135,20 @@ namespace CyrFlip.Tests
                         inspected += Check(window, language, "TranslationResultWindow", problems);
                     // The log bundle dialog: three buttons in a row plus two wrapped paragraphs, in
                     // 13 languages - the exact shape that used to clip.
+                    // The exchange export (ticket S0023): every row visible, then the notes-only shape.
+                    using (var dialog = new ExchangeExportDialog(language, notesAvailable: true, notesWarningOff: false))
+                        inspected += Check(dialog, language, "ExchangeExportDialog", problems);
+                    using (var dialog = new ExchangeExportDialog(language, notesAvailable: false, notesWarningOff: true))
+                        inspected += Check(dialog, language, "ExchangeExportDialog(no notes)", problems);
                     using (var dialog = new SupportBundleDialog(Bundle, language))
                         inspected += Check(dialog, language, "SupportBundleDialog", problems);
+                    using (var search = new ClipboardHistorySearchWindow(new ClipboardHistoryService(enabled: false, paused: false, Path.Combine(Path.GetTempPath(), "cyrflip-test-" + Guid.NewGuid().ToString("N"))), language))
+                        inspected += Check(search, language, "ClipboardHistorySearchWindow", problems);
+                    using (var search = new ClipboardHistorySearchWindow(new ClipboardHistoryService(enabled: false, paused: false, Path.Combine(Path.GetTempPath(), "cyrflip-test-" + Guid.NewGuid().ToString("N"))), language, (_, _) => { }))
+                        inspected += Check(search, language, "ClipboardHistorySearchWindow(exchange)", problems);
+                    // The "please wait" window of the off-thread imports and exports (ticket S0030 HT-2).
+                    using (var dialog = new BusyDialog(language, System.Threading.Tasks.Task.CompletedTask))
+                        inspected += Check(dialog, language, "BusyDialog", problems);
                     // CyrFlip's own message box (ticket S0020): every button set it is asked for, the
                     // destructive one included - "Отмена" / "Abbrechen" / "إلغاء" measured, not assumed.
                     foreach (MessageBoxButtons buttons in new[] { MessageBoxButtons.OK, MessageBoxButtons.YesNo, MessageBoxButtons.OKCancel })

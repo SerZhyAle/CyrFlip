@@ -3,14 +3,24 @@
 | | |
 | --- | --- |
 | **Id** | `CLIPBOARD-GUARD` |
-| **Version** | 0.9.1, draft |
+| **Version** | 0.10, draft (0.9.1 was never a valid version; section 7 of the contract, the owner amendment of 2026-09-26, binds where it and section 2 disagree) |
 | **Home** | `clipboard-guard/README.md` in the shared contracts catalog |
-| **Role here** | Owner, Producer and Consumer - direct Win32 clipboard access, atomic multi-format backup/restore, in-place transform sequence verification, and DPAPI history exclusion |
+| **Role here** | Owner, Producer and Consumer - Win32 clipboard access, backup and restore, the in-place pipeline, the privacy markers |
 
-## What this repository implements and guarantees
+## What this repository must keep true
 
-- **Pump-free raw Win32 access** (`Win32Clipboard.cs:17-98`): Bypasses COM/OLE on background threads to prevent UI deadlocks with Chromium/Electron windows.
-- **Bounded retry loop on open** (`Win32Clipboard.cs:199-207`): 12 attempts with 15 ms delay on `OpenClipboard` to tolerate transient locks.
-- **Multi-format atomic backup and single-pass restore** (`ClipboardHandler.cs:217-260`, `Win32Clipboard.cs:172-187`): Preserves `CF_UNICODETEXT`, `CF_DIB` (capped at 64 MB), and `CF_HDROP`. Restores all formats in a single `OpenClipboard` -> `EmptyClipboard` -> `SetClipboardData` pass.
-- **Sequence tracking and modifier state preservation** (`ClipboardHandler.cs:45-59, 267-295`): Synthesizes `Ctrl+C`, polls `GetClipboardSequenceNumber` with 480 ms timeout, verifies foreground window, and preserves physical modifier key states across transformations.
-- **DPAPI encryption & diagnostic archive exclusion** (`SupportBundle.cs:57-71`, `SupportBundleTests.cs:44-61`): Encrypts local clipboard history with DPAPI and strictly excludes history and notes from support ZIP archives via an explicit whitelist.
+- **Rules 1-3, items A-C** - raw Win32 on the clipboard worker (`Win32Clipboard`), 12 x 15 ms open, the
+  `GlobalSize` bound and the cap checked before marshalling; a transformed selection keeps its own line endings.
+- **Rule 4, item D** - the backup (`ClipboardHandler.BackupClipboard`): three contents plus companions in one
+  open, the sequence number after the reads; only the text can make it unreadable.
+- **Rule 5, items E-F** - the pipeline (`ClipboardHandler.Run`), refusal before any key, line-copy markers
+  (`LineCopyMarkers`).
+- **Items G-H** - the delay-rendered paste and its wait (`ClipboardOwner`, `PasteWait`), `CF_LOCALE` beside
+  every pasted text.
+- **Rule 6, item I** - markers written by `TransientMarks`, honoured by `ClipboardPrivacy.ShouldSkip`; the log
+  bundle's whitelist (`SupportBundle.ExcludedFiles`).
+- **Items J-K** - the in-open restore decision (`ClipboardRestore.Plan`), own traffic excluded by sequence
+  (`ClipboardHistoryGate`).
+
+A change to any of these is a change to the contract first: CyrFlip owns it, so the owner amends it in the
+catalog (a dated section, a version) and then the code follows.

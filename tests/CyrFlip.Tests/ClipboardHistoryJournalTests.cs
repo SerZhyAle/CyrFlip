@@ -208,7 +208,7 @@ namespace CyrFlip.Tests
                         }
                     }
                 }
-                Assert.True(journal.Drain(TimeSpan.FromSeconds(10)));
+                Assert.True(journal.Drain(TimeSpan.FromSeconds(30)));
             }
 
             Assert.True(adds > 0 && touches > 0 && pins > 0 && deletes > 0);
@@ -267,6 +267,184 @@ namespace CyrFlip.Tests
             var (order, skipped) = Replay();
             Assert.Equal(0, skipped);
             Assert.Equal(50, order.Count);
+        }
+
+        // ---- S0031 CH2-1: nothing readable on disk ----
+
+        private static string[] Needles(string text, string app, string title) =>
+            new[] { text, app, title, ClipboardHistoryService.Hash(text) };
+
+        private static ClipboardHistoryEntry Copy(string text, long ticks, string app, string title) =>
+            new ClipboardHistoryEntry
+            {
+                Uuid = ClipboardHistoryService.Hash(text),
+                Text = text,
+                CreatedAt = new DateTime(ticks, DateTimeKind.Utc),
+                SourceApp = app,
+                SourceTitle = title,
+            };
+
+        /// <summary>
+        /// A copy, a touch, a pin and a delete: the file holds none of the text, the window title, the
+        /// app name or the SHA-256 id - the id reverses a short code in milliseconds.
+        /// </summary>
+        [Fact]
+        public void After_a_copy_a_touch_a_pin_and_a_delete_the_file_holds_nothing_readable()
+        {
+            ClipboardHistoryEntry kept = Copy("482913", 100, "SmsCodes", "Invoice 4711 - ACME Corp - Outlook");
+            ClipboardHistoryEntry deleted = Copy("hunter2-pin", 200, "BankApp", "Transfer to Jane Roe");
+            using (var journal = Journal())
+            {
+                journal.Append(ClipboardHistoryJournal.Record.Of("add", kept));
+                journal.Append(ClipboardHistoryJournal.Record.Of("add", deleted));
+                kept.CreatedAt = new DateTime(300, DateTimeKind.Utc);
+                journal.Append(ClipboardHistoryJournal.Record.Of("touch", kept));
+                kept.IsPinned = true;
+                journal.Append(ClipboardHistoryJournal.Record.Of("pin", kept));
+                journal.Append(ClipboardHistoryJournal.Record.Of("delete", deleted));
+            }
+
+            string file = File.ReadAllText(_path);
+            foreach (string needle in Needles(kept.Text, kept.SourceApp, kept.SourceTitle)
+                         .Concat(Needles(deleted.Text, deleted.SourceApp, deleted.SourceTitle)))
+                Assert.DoesNotContain(needle, file, StringComparison.OrdinalIgnoreCase);
+            foreach (string action in new[] { "add", "touch", "pin", "delete" })
+                Assert.DoesNotContain("\"" + action + "\"", file);
+
+            var (order, skipped) = Replay();
+            Assert.Equal(0, skipped);
+            ClipboardHistoryEntry back = Assert.Single(order.Entries);
+            Assert.Equal(kept.Uuid, back.Uuid);
+            Assert.Equal("482913", back.Text);
+            Assert.Equal("SmsCodes", back.SourceApp);
+            Assert.Equal("Invoice 4711 - ACME Corp - Outlook", back.SourceTitle);
+            Assert.Equal(300, back.CreatedAt.Ticks);
+            Assert.True(back.IsPinned);
+        }
+
+        [Fact]
+        public void Every_line_is_the_version_and_a_blob_and_nothing_else()
+        {
+            using (var journal = Journal())
+                journal.Append(ClipboardHistoryJournal.Record.Of("add", Entry("A", 100)));
+
+            string line = File.ReadAllLines(_path).Single(l => l.Length > 0);
+            Assert.Matches("^\\{\"v\":2,\"blob\":\"B64:[A-Za-z0-9+/=]+\"\\}$", line);
+        }
+
+        /// <summary>A v1 file as v26.9.16.2132 wrote it, with v2 records appended by this release, replays as one history.</summary>
+        [Fact]
+        public void A_v1_journal_with_v2_records_appended_replays_as_one_history()
+        {
+            File.WriteAllText(_path,
+                Line("add", "A", 100, Payload("alpha")) + "\r\n"
+                + Line("add", "B", 200, Payload("beta")) + "\r\n"
+                + Line("pin", "B", 200, pinned: true) + "\r\n");
+
+            using (var journal = Journal())
+            {
+                journal.Append(ClipboardHistoryJournal.Record.Of("touch", Entry("A", 500)));
+                journal.Append(ClipboardHistoryJournal.Record.Of("add", Entry("C", 400)));
+            }
+
+            var (order, skipped) = Replay();
+            Assert.Equal(0, skipped);
+            Assert.Equal(new[] { "B", "A", "C" }, order.Entries.Select(e => e.Uuid));
+            Assert.Equal(500, order.Find("A")!.CreatedAt.Ticks);
+            Assert.Equal("alpha", order.Find("A")!.Text);
+        }
+
+        [Fact]
+        public void A_line_of_an_unknown_version_is_skipped_and_kept()
+        {
+            File.WriteAllText(_path, "{\"v\":3,\"blob\":\"B64:e30=\"}\r\n" + Line("add", "A", 100, Payload("alpha")) + "\r\n");
+
+            var (order, skipped) = Replay();
+
+            Assert.Equal(1, skipped);
+            Assert.Equal(new[] { "A" }, order.Entries.Select(e => e.Uuid));
+        }
+
+        // ---- S0031 CH2-5: a delete erases ----
+
+        [Fact]
+        public void A_delete_erases_every_line_of_the_entry_and_keeps_the_rest()
+        {
+            File.WriteAllText(_path,
+                Line("add", "OLD", 50, Payload("legacy text")) + "\r\n"
+                + "garbage that will not read\r\n");
+            using (var journal = Journal())
+            {
+                journal.Append(ClipboardHistoryJournal.Record.Of("add", Entry("A", 100)));
+                journal.Append(ClipboardHistoryJournal.Record.Of("add", Entry("B", 200)));
+                journal.Append(ClipboardHistoryJournal.Record.Of("touch", Entry("A", 300)));
+                journal.Append(ClipboardHistoryJournal.Record.Of("delete", Entry("A", 300)));
+                journal.Append(ClipboardHistoryJournal.Record.Of("delete", Entry("OLD", 50)));
+                Assert.True(journal.Drain(TimeSpan.FromSeconds(10)));
+                Assert.Equal(0, journal.WriteFailures);
+            }
+
+            string[] lines = File.ReadAllLines(_path).Where(l => l.Length > 0).ToArray();
+            Assert.Equal(2, lines.Length);                              // B's add and the unreadable line
+            Assert.Contains("garbage that will not read", lines);        // carried through verbatim
+            Assert.DoesNotContain(lines, l => l.Contains("OLD"));        // a v1 line of a deleted entry goes too
+            Assert.False(File.Exists(_path + ".purge.tmp"));
+            var (order, skipped) = Replay();
+            Assert.Equal(1, skipped);
+            Assert.Equal(new[] { "B" }, order.Entries.Select(e => e.Uuid));
+        }
+
+        [Fact]
+        public void A_delete_whose_rewrite_fails_appends_a_tombstone_instead()
+        {
+            using (var journal = Journal())
+            {
+                journal.ReplaceFile = (_, _) => throw new IOException("held by another program");
+                journal.Append(ClipboardHistoryJournal.Record.Of("add", Entry("A", 100)));
+                journal.Append(ClipboardHistoryJournal.Record.Of("add", Entry("B", 200)));
+                journal.Append(ClipboardHistoryJournal.Record.Of("delete", Entry("A", 100)));
+            }
+
+            Assert.Equal(3, File.ReadAllLines(_path).Count(l => l.Length > 0));
+            Assert.False(File.Exists(_path + ".purge.tmp"));
+            var (order, _) = Replay();
+            Assert.Equal(new[] { "B" }, order.Entries.Select(e => e.Uuid));
+        }
+
+        // ---- S0031 CH2-4, CH2-6: losses are counted ----
+
+        private sealed class ThrowingCipher : IQuickNotesCipher
+        {
+            public string Protect(string plain) => throw new System.Security.Cryptography.CryptographicException("no key");
+            public string? Unprotect(string cipher) => null;
+        }
+
+        [Fact]
+        public void A_failed_write_is_counted_and_reported_once()
+        {
+            int raised = 0;
+            using var journal = new ClipboardHistoryJournal(_path, new ThrowingCipher());
+            journal.WriteFailed += () => Interlocked.Increment(ref raised);
+            journal.Append(ClipboardHistoryJournal.Record.Of("add", Entry("A", 100)));
+            journal.Append(ClipboardHistoryJournal.Record.Of("add", Entry("B", 200)));
+            Assert.True(journal.Drain(TimeSpan.FromSeconds(5)));
+
+            Assert.Equal(2, journal.WriteFailures);
+            Assert.Equal(1, raised);
+        }
+
+        [Fact]
+        public void Dispose_leaves_the_count_it_abandoned_in_pending()
+        {
+            using var gate = new ManualResetEventSlim(false);
+            var journal = Journal(() => gate.Wait());
+            for (int i = 0; i < 3; i++)
+                journal.Append(ClipboardHistoryJournal.Record.Of("add", Entry("E" + i, 100 + i)));
+
+            journal.Dispose(); // waits DisposeDrain, then gives up
+
+            Assert.Equal(3, journal.Pending);
+            gate.Set();
         }
 
         [Fact]

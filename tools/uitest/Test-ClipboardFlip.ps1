@@ -340,7 +340,10 @@ if (-not $InteropOnly) {
     @(
         'RDP: copy a distinctive word locally, flip a word in Notepad inside the remote session - the converted word appears, never the copied one.',
         'Word with a large document still loading: the same - the converted word, never the old clipboard.',
-        'Excel: copy cells, press the chord in Notepad with nothing selected, paste into Excel - the cells paste as cells (marching ants intact).',
+        'Excel: copy cells, press the chord in Notepad with nothing selected, paste into Excel - the cells paste as cells (marching ants intact). clipboard-flip.log shows no restore (S0032 FP2-1).',
+        'Excel, a huge range (hundreds of thousands of cells): copy it, flip a word in Notepad - the flip goes through; clipboard-flip.log may say the picture was not carried (S0032 FP2-2).',
+        'Ditto or CopyQ running (a monitor that ignores the markers): flip a word in a busy Word - the converted word appears, never the old clipboard; clipboard-flip.log names the monitor as an early render (S0032 FP2-3).',
+        'Empty clipboard (Win+V > Clear all): flip a word in Notepad, then open Win+V / paste elsewhere - the clipboard is empty again (S0032 FP2-4).',
         'VS Code: caret in a line, no selection, the conversion chord - nothing changes (no duplicated line). Same in Notepad++ and Visual Studio.',
         'KeePass: copy a password, flip a word in Notepad, open Win+V - the password is not listed.',
         'Explorer: cut a file, flip a word, paste in another folder - the file moves, the original is gone.',

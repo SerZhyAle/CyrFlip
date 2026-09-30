@@ -3,7 +3,7 @@
 Every file in this folder is a **pointer**, never a copy. The contracts themselves live in the shared
 catalog, whose location is named in exactly one file in this repository - [`CLAUDE.md`](../../CLAUDE.md),
 the line under the title. Everything else, here and in the source, cites a contract by its **id** and a
-rule or section number: `LAYOUT-SIGNAL rule 2`, `LAYOUT-PALETTE rule 5`, `APP-ACTIVATION rule 3`, `CLIPBOARD-GUARD rule 4`. Never a
+rule or section number: `LAYOUT-SIGNAL rule 2`, `LAYOUT-PALETTE rule 5`, `APP-ACTIVATION rule 3`, `CLIPBOARD-GUARD rule 4`, `INPUT-CHORD rule 6`. Never a
 path, because whoever clones this repository does not have the drive the catalog sits on.
 
 A pointer that grows a second page has become a copy. If this repository ever disagrees with a contract,
@@ -16,8 +16,11 @@ not a local edit and not a local copy kept "in sync".
 | [`LAYOUT-PALETTE.md`](LAYOUT-PALETTE.md) | `LAYOUT-PALETTE` | Owner & Producer (`LayoutStyle.cs`); VS Code extension ships copy |
 | [`APP-ACTIVATION.md`](APP-ACTIVATION.md) | `APP-ACTIVATION` | Owner, Producer and Consumer - single instance mutex, Jump List IPC pipe, foreground activation |
 | [`CLIPBOARD-GUARD.md`](CLIPBOARD-GUARD.md) | `CLIPBOARD-GUARD` | Owner, Producer and Consumer - Win32 pump-free clipboard access, atomic multi-format backup/restore, DPAPI isolation |
+| [`INPUT-CHORD.md`](INPUT-CHORD.md) | `INPUT-CHORD` | Owner, Producer and Consumer - chord token, refusals, chord ownership, global hooks |
+| [`INPUT-PARITY.md`](INPUT-PARITY.md) | `INPUT-PARITY` | Producer; steward of the keyboard and mouse columns of a shared device table; rules 1-2 held in the code since S0045, live walk owed |
 | [`SCENARIO-FILE.md`](SCENARIO-FILE.md) | `SCENARIO-FILE` | Producer and Consumer - launcher store, export and OneClickRunner import |
 | [`DIAGNOSTIC-REPORT.md`](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | Producer / Implementer - session log rotation, count-only environment report, support bundle ZIP |
+| [`APP-SETTINGS.md`](APP-SETTINGS.md) | `APP-SETTINGS` | Owner, Producer and reference implementation - the persistent settings surface |
 | [`APP-BEHAVIOUR.md`](APP-BEHAVIOUR.md) | `APP-BEHAVIOUR` | Consumer - the shared desktop-app moments; partly conformant |
 | [`APP-STYLE.md`](APP-STYLE.md) | `APP-STYLE` | Consumer - no theme yet; the layout marker is out of theme |
 | [`ICON-SET.md`](ICON-SET.md) | `ICON-SET` | Consumer - glyphs and names map to the vocabulary; meanings it lacks are proposed |

@@ -215,6 +215,11 @@ namespace CyrFlip
                 en: "Source", uk: "Джерело", de: "Quelle", it: "Origine", es: "Origen", fr: "Source",
                 pt: "Origem", ar: "المصدر", hi: "स्रोत", bn: "উৎস", ur: "ماخذ", zh: "来源");
 
+            // The vocabulary's name for the pin (ICON-SET action.pin): the accessible name of the history
+            // strip's pin toggle, whose pinned state is carried by the control's state, not by a second word.
+            Add("Закрепить",
+                en: "Pin", uk: "Закріпити", de: "Anheften", it: "Fissa", es: "Fijar", fr: "Épingler",
+                pt: "Fixar", ar: "تثبيت", hi: "पिन करें", bn: "পিন করুন", ur: "پن کریں", zh: "固定");
             Add("Закрыть",
                 en: "Close", uk: "Закрити", de: "Schließen", it: "Chiudi", es: "Cerrar", fr: "Fermer",
                 pt: "Fechar", ar: "إغلاق", hi: "बंद करें", bn: "বন্ধ করুন", ur: "بند کریں", zh: "关闭");
@@ -311,6 +316,34 @@ namespace CyrFlip
                 ur: "کلپ بورڈ کی تاریخ کی فائل کسی دوسرے پروگرام کے استعمال میں ہے اور حذف نہیں ہوئی۔ دوبارہ صاف کریں۔",
                 zh: "剪贴板历史文件正被其他程序占用，未能删除。请再清除一次。");
 
+            Add("Запись в файл истории буфера не удалась - новые записи могут не сохраниться после перезапуска.",
+                en: "Writing to the clipboard history file failed - new entries may not survive a restart.",
+                uk: "Запис у файл історії буфера не вдався - нові записи можуть не зберегтися після перезапуску.",
+                de: "Das Schreiben in die Verlaufsdatei der Zwischenablage ist fehlgeschlagen - neue Einträge überstehen einen Neustart möglicherweise nicht.",
+                it: "La scrittura nel file della cronologia degli appunti non è riuscita - le nuove voci potrebbero non sopravvivere a un riavvio.",
+                es: "No se pudo escribir en el archivo del historial del portapapeles: es posible que las entradas nuevas no se conserven tras reiniciar.",
+                fr: "L'écriture dans le fichier de l'historique du presse-papiers a échoué - les nouvelles entrées risquent de ne pas survivre à un redémarrage.",
+                pt: "Falha ao gravar no arquivo do histórico da área de transferência - as novas entradas podem não sobreviver a uma reinicialização.",
+                ar: "تعذّرت الكتابة في ملف سجل الحافظة - قد لا تبقى الإدخالات الجديدة بعد إعادة التشغيل.",
+                hi: "क्लिपबोर्ड इतिहास फ़ाइल में लिखना विफल रहा - नई प्रविष्टियाँ पुनः आरंभ के बाद शायद न बचें।",
+                bn: "ক্লিপবোর্ড ইতিহাসের ফাইলে লেখা যায়নি - নতুন এন্ট্রিগুলো আবার চালু করার পরে না-ও থাকতে পারে।",
+                ur: "کلپ بورڈ کی تاریخ کی فائل میں لکھنا ناکام رہا - نئے اندراجات دوبارہ شروع کرنے کے بعد شاید باقی نہ رہیں۔",
+                zh: "写入剪贴板历史文件失败 - 新记录在重启后可能不会保留。");
+
+            Add("Записей истории ещё не записано на диск: {0}. Они будут дописаны, пока CyrFlip работает.",
+                en: "History entries not yet written to disk: {0}. They will be written while CyrFlip keeps running.",
+                uk: "Записів історії ще не записано на диск: {0}. Їх буде дописано, поки CyrFlip працює.",
+                de: "Noch nicht auf den Datenträger geschriebene Verlaufseinträge: {0}. Sie werden geschrieben, solange CyrFlip läuft.",
+                it: "Voci della cronologia non ancora scritte su disco: {0}. Verranno scritte finché CyrFlip resta in esecuzione.",
+                es: "Entradas del historial aún no escritas en el disco: {0}. Se escribirán mientras CyrFlip siga en ejecución.",
+                fr: "Entrées de l'historique pas encore écrites sur le disque : {0}. Elles le seront tant que CyrFlip reste lancé.",
+                pt: "Entradas do histórico ainda não gravadas no disco: {0}. Elas serão gravadas enquanto o CyrFlip estiver em execução.",
+                ar: "إدخالات السجل التي لم تُكتب على القرص بعد: {0}. ستُكتب ما دام CyrFlip قيد التشغيل.",
+                hi: "इतिहास की प्रविष्टियाँ जो अभी डिस्क पर नहीं लिखी गईं: {0}. CyrFlip चलते रहने तक वे लिख दी जाएँगी।",
+                bn: "ইতিহাসের যে এন্ট্রিগুলো এখনও ডিস্কে লেখা হয়নি: {0}। CyrFlip চালু থাকলে সেগুলো লেখা হবে।",
+                ur: "تاریخ کے اندراجات جو ابھی ڈسک پر نہیں لکھے گئے: {0}۔ CyrFlip چلتا رہا تو یہ لکھ دیے جائیں گے۔",
+                zh: "尚未写入磁盘的历史记录：{0} 条。CyrFlip 运行期间会继续写入。");
+
             Add("Не удалось изменить автозапуск Windows:",
                 en: "Couldn't update Windows startup:", uk: "Не вдалося змінити автозапуск Windows:",
                 de: "Der Windows-Autostart konnte nicht geändert werden:",
@@ -321,6 +354,20 @@ namespace CyrFlip
                 ar: "تعذّر تغيير بدء تشغيل Windows:", hi: "Windows स्टार्टअप बदला नहीं जा सका:",
                 bn: "Windows স্টার্টআপ পরিবর্তন করা গেল না:", ur: "Windows اسٹارٹ اپ تبدیل نہیں ہو سکا:",
                 zh: "无法修改 Windows 开机启动：");
+
+            Add("История пуста.",
+                en: "History is empty.",
+                uk: "Історія порожня.",
+                de: "Verlauf ist leer.",
+                it: "La cronologia è vuota.",
+                es: "El historial está vacío.",
+                fr: "L'historique est vide.",
+                pt: "O histórico está vazio.",
+                ar: "السجل فارغ.",
+                hi: "इतिहास खाली है।",
+                bn: "ইতিহাস খালি।",
+                ur: "تاریخچہ خالی ہے۔",
+                zh: "历史记录为空。");
         }
     }
 }

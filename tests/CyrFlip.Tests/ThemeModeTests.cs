@@ -102,5 +102,13 @@ namespace CyrFlip.Tests
             Assert.False(ThemeManager.IsInitialized);
             Assert.Same(ThemePalette.Light, ThemeManager.Palette);
         }
+
+        /// <summary>
+        /// S0036 UI-2: the flag is asked of Windows directly rather than through the framework's cache.
+        /// With nothing toggling it the two answers agree - which proves the direct read is wired.
+        /// </summary>
+        [Fact]
+        public void TheDirectHighContrastReadAgreesWithTheSystemOnAQuietMachine()
+            => Assert.Equal(System.Windows.Forms.SystemInformation.HighContrast, ThemeManager.SystemHighContrast());
     }
 }

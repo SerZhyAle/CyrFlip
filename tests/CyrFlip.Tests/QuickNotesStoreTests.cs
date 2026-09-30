@@ -343,7 +343,9 @@ namespace CyrFlip.Tests
         [Fact]
         public void UnreadableRecordsSurviveTwoCompactionsVerbatim()
         {
-            const string unreadable = "UNREADABLE-RECORD-KEPT-VERBATIM";
+            // Whole base64 that this cipher opens but that is no record - a later format, or a
+            // ciphertext that may open again. A fragment is another matter (QN2-2, below).
+            string unreadable = Convert.ToBase64String(Encoding.UTF8.GetBytes("UNREADABLE-RECORD-KEPT-VERBATIM"));
             QuickNotesStore store = Store();
             QuickNote note = Note("readable");
             store.Create(note);
@@ -367,14 +369,162 @@ namespace CyrFlip.Tests
         {
             QuickNotesStore store = Store();
             store.Create(Note("x"));
-            File.AppendAllText(_path, Environment.NewLine + "UNREADABLE");
+            File.AppendAllText(_path, Environment.NewLine + Convert.ToBase64String(Encoding.UTF8.GetBytes("UNREADABLE")));
             QuickNotesStore reopened = Store();
             reopened.Load();
 
             reopened.DeleteEverything();
             reopened.Compact(new List<QuickNote> { Note("new") });
 
-            Assert.DoesNotContain("UNREADABLE", File.ReadAllText(_path));
+            Assert.DoesNotContain(Convert.ToBase64String(Encoding.UTF8.GetBytes("UNREADABLE")), File.ReadAllText(_path));
+        }
+
+        // ---- Ticket S0035 ----
+
+        /// <summary>
+        /// A cipher that knows its own shape: "W:" + base64 + "#". "W:LOST#" is whole but will not
+        /// open (a DPAPI key lost to a password reset); anything without the closing "#" is a fragment.
+        /// </summary>
+        private sealed class ShapedCipher : IQuickNotesCipher, IQuickNotesCipherShape
+        {
+            public string Protect(string plain) => "W:" + Convert.ToBase64String(Encoding.UTF8.GetBytes(plain)) + "#";
+
+            public string? Unprotect(string cipher)
+            {
+                if (!IsWhole(cipher) || !cipher.StartsWith("W:", StringComparison.Ordinal) || cipher == "W:LOST#") return null;
+                try { return Encoding.UTF8.GetString(Convert.FromBase64String(cipher.Substring(2, cipher.Length - 3))); }
+                catch { return null; }
+            }
+
+            public bool IsWhole(string cipher) => cipher.EndsWith("#", StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// QN2-2: a kill mid-append leaves a fragment that can never be read. Carried verbatim like a
+        /// record whose key is lost, it made every start warn "not read: 1" for good. A whole record
+        /// that does not open is still carried; the fragment goes with the next compaction - which
+        /// the load itself asks for.
+        /// </summary>
+        [Fact]
+        public void AFragmentIsDroppedAtTheNextCompactionWhileAWholeUnreadableRecordIsKept()
+        {
+            string path = _path;
+            var writer = new QuickNotesStore(path, new ShapedCipher());
+            writer.Create(Note("readable"));
+            File.AppendAllText(path, Environment.NewLine + "W:LOST#" + Environment.NewLine + "W:eyJBY3Rpb24iOiJ1cG");
+
+            var reopened = new QuickNotesStore(path, new ShapedCipher());
+            List<QuickNote> notes = reopened.Load();
+            Assert.Equal(2, reopened.SkippedRecords);
+            Assert.Equal(1, reopened.TornRecords);
+            Assert.True(reopened.NeedsCompaction, "a load that met a fragment asks for the compaction that drops it");
+
+            reopened.Compact(notes);
+
+            string[] lines = File.ReadAllLines(path);
+            Assert.Contains("W:LOST#", lines);
+            Assert.DoesNotContain("W:eyJBY3Rpb24iOiJ1cG", lines);
+            var reader = new QuickNotesStore(path, new ShapedCipher());
+            Assert.Equal("readable", Assert.Single(reader.Load()).RawText);
+            Assert.Equal(1, reader.SkippedRecords);
+            Assert.Equal(0, reader.TornRecords);
+            Assert.False(reader.NeedsCompaction);
+        }
+
+        /// <summary>A cipher that does not know its shape: a line that is not base64 at all is a fragment.</summary>
+        [Fact]
+        public void WithoutAShapeALineThatIsNotBase64IsAFragment()
+        {
+            Store().Create(Note("x"));
+            File.AppendAllText(_path, Environment.NewLine + "eyJBY3Rpb24iOiJ1cGRhd");
+
+            QuickNotesStore reopened = Store();
+            reopened.Load();
+
+            Assert.Equal(1, reopened.TornRecords);
+        }
+
+        /// <summary>
+        /// QN2-2: one real <c>CryptProtectData</c> blob, captured once (it is never decrypted here, so
+        /// the test needs no DPAPI and no account): whole it is whole, and every prefix of it is a
+        /// fragment - the structure walk runs out of bytes on the way.
+        /// </summary>
+        [Fact]
+        public void TheDpapiBlobWalkTellsAWholeBlobFromEveryPrefixOfIt()
+        {
+            byte[] blob = Convert.FromBase64String(
+                "AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAqjviM3qfSUS2RdX6ycOGTwAAAAACAAAAAAAQZgAAAAEAACAAAABrl2V3a6yL6dIBq/bE8Yd8tL50QPbjo1KdL6cUkUzbhAAAAAAOgAAAAAIAACAAAACDGP5gEH0Hxs0W/mlL1W/uELqFO8oOz033/2cSLgFOvSAAAAD+UC8RSF3t4XS2KIxoUHrmCG/keX2qYEsLhTcN4+//gkAAAADhMYMyDYC6pz3AVR2A9m4+pulDcUCvx/DdwYK0oKHAll04K89ibUlnOQxrpEEQELbmRkC3HdSFkchHEUAHTMA0");
+
+            Assert.True(QuickNotesCipher.IsWholeBlob(blob));
+            for (int length = 0; length < blob.Length; length++)
+            {
+                byte[] prefix = new byte[length];
+                Array.Copy(blob, prefix, length);
+                Assert.False(QuickNotesCipher.IsWholeBlob(prefix), "a prefix of " + length + " bytes read as whole");
+            }
+            // As journal lines: the whole one, and a cut one whose base64 happens to stay valid.
+            Assert.True(QuickNotesCipher.Dpapi.IsWhole(Convert.ToBase64String(blob)));
+            Assert.False(QuickNotesCipher.Dpapi.IsWhole(Convert.ToBase64String(blob).Substring(0, 200)));
+            Assert.False(QuickNotesCipher.Dpapi.IsWhole("AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAqjviM3q"));
+        }
+
+        /// <summary>QN2-3: "delete every note" also takes the crash-left snapshot and the migration's kept journals.</summary>
+        [Fact]
+        public void DeletingEverythingTakesTheTempSnapshotAndTheMigratedJournalsToo()
+        {
+            QuickNotesStore store = Store();
+            store.Create(Note("secret"));
+            string folder = Path.GetDirectoryName(_path)!;
+            string[] others =
+            {
+                _path + ".tmp",
+                Path.Combine(folder, "quick-notes.migrated-20260926.log"),
+                Path.Combine(folder, "quick-notes.migrated-20260926.log.bak"),
+                Path.Combine(folder, "quick-notes.migrated-20260926.log.merged"),
+                Path.Combine(folder, "quick-notes.migrated-20260927-2.log"),
+            };
+            foreach (string other in others) File.WriteAllText(other, "secret");
+            string unrelated = Path.Combine(folder, "quick-notes-diagnostics.log");
+            File.WriteAllText(unrelated, "counts");
+
+            store.DeleteEverything();
+
+            foreach (string other in others) Assert.False(File.Exists(other), other + " survived");
+            Assert.True(File.Exists(unrelated));
+        }
+
+        /// <summary>
+        /// QN2-8: a compaction that failed is not tried again on the next save - only after another
+        /// CompactAfterOperations records. And a journal whose snapshot alone is past the threshold
+        /// (500 notes) is not compacted on every save either.
+        /// </summary>
+        [Fact]
+        public void AFailedCompactionBacksOffAndABigSnapshotIsNotRecompactedOnEverySave()
+        {
+            QuickNotesStore store = Store();
+            QuickNote note = Note("x");
+            store.Create(note);
+            for (int i = 0; i < QuickNotesStore.CompactAfterOperations; i++) store.Update(note);
+            Assert.True(store.NeedsCompaction);
+
+            store.ReplaceFile = (_, _, _) => throw new IOException("held without delete sharing");
+            store.Compact(new List<QuickNote> { note });
+            Assert.False(store.NeedsCompaction);
+            store.Update(note);
+            Assert.False(store.NeedsCompaction);
+            for (int i = 0; i < QuickNotesStore.CompactAfterOperations; i++) store.Update(note);
+            Assert.True(store.NeedsCompaction);
+
+            store.ReplaceFile = File.Replace;
+            var many = new List<QuickNote>();
+            for (int i = 0; i < QuickNotesStore.CompactAfterOperations + 100; i++) many.Add(Note("n" + i));
+            store.Compact(many);
+            store.Update(many[0]);
+            Assert.False(store.NeedsCompaction);
+
+            QuickNotesStore reopened = Store();
+            reopened.Load();
+            Assert.False(reopened.NeedsCompaction);
         }
 
         /// <summary>

@@ -62,6 +62,26 @@ namespace CyrFlip.Tests
             "Сначала задайте комбинацию клавиш.", "Комбинация «{0}» не распознана.",
             "Часть настроек CyrFlip не удалось прочитать - они оставлены как есть.",
             "Введите не менее 3 символов:", "Текст", "Дата", "Источник", "Закрыть", "Вернуть в буфер",
+            // The exchange file (ticket S0023): the flow's dialogs and its import report.
+            "Экспорт в файл обмена", "Импорт из файла обмена", "Файл обмена CyrFlip", "Все файлы",
+            "Перенос...", "Экспортировать...", "Импортировать...",
+            "Экспортировано заметок: {0}, записей истории: {1}.", "Не удалось прочитать файл: {0}",
+            "В файле нет ни одной заметки или записи истории, которую можно импортировать.",
+            "Заметок без Id в файле: {0} - похоже, они написаны вручную. Импортировать их как новые заметки?",
+            "Найдено заметок: {0}, записей истории: {1}.",
+            "Быстрые заметки выключены - заметки из файла будут пропущены.",
+            "История буфера выключена - записи истории будут пропущены.",
+            "Будет добавлено: заметок {0}, записей истории {1}.",
+            "Будет обновлено заметок (в файле более новая версия): {0}.",
+            "Уже есть: заметок {0}, записей истории {1}.", "Не удалось прочитать блоков: {0}.", "Импортировать нечего.",
+            "Импорт только добавляет и обновляет - ничего из текущих данных не удаляется. Импортировать?",
+            "Импорт завершён: добавлено заметок {0}, обновлено {1}, добавлено записей истории {2}.",
+            "Файл записан другой версией формата обмена CyrFlip. Обновите CyrFlip, чтобы его импортировать.",
+            "Файл больше {0} МБ - такой файл не импортируется.", "Не найден маркер «{0}» - это не файл обмена CyrFlip.",
+            "Строка {0}: {1}", "и ещё {0}", "у блока нет текста в ограждении из обратных кавычек",
+            "ограждение текста не закрыто - остаток файла не прочитан", "поле «{0}» отсутствует или записано неверно",
+            "текст не совпадает со своим Id - он изменён или повреждён", "текст больше допустимого размера",
+            "строка метаданных длиннее {0} символов", "больше {0} объектов - остальные не импортированы",
             "Введите минимум 3 символа для поиска по части текста.", "Совпадений не найдено.", "Найдено: {0}",
             "Ничего не выделено. Я переворачиваю текст, а не воздух — сначала выделите что-нибудь.",
             "Не удалось прочитать или заменить выделение. У буфера обмена были другие планы.",
@@ -208,38 +228,28 @@ namespace CyrFlip.Tests
         public void EveryUserFacingStringTranslatesOutOfRussian()
         {
             var problems = new List<string>();
+            Exception? failure = null;
             var t = new Thread(() =>
             {
                 try { foreach (string language in Localization.Names) Run(language, problems); }
-                catch (Exception ex) { problems.Add("EXCEPTION: " + ex); }
+                catch (Exception ex) { failure = ex; }
             });
             t.SetApartmentState(ApartmentState.STA);
             t.Start();
             t.Join();
 
+            // A window that could not be built is not an untranslated one (S0029 RB-1): say so under
+            // its own heading, or the report sends the reader hunting for a missing translation.
+            Assert.True(failure == null, "The settings window could not be built or walked:\n" + failure);
             Assert.True(problems.Count == 0, "Untranslated user-facing strings:\n" + string.Join("\n", problems));
         }
 
         private static void Run(string language, List<string> problems)
         {
             bool cyrillicScript = CyrillicUi.Contains(language);
-            Type type = typeof(AppConfig).Assembly.GetType("CyrFlip.SettingsForm", true)!;
-            var config = new AppConfig { UiLanguage = language };
-            Action<bool> b = _ => { };
-            Action noop = () => { };
-            Action<int> i = _ => { };
-            Action<string> s = _ => { };
-            // A store over a per-run temp folder: never the developer's real scenario data, and the
-            // folder is only created if something writes (nothing does here).
-            var launcherStore = new LauncherScenarioStore(System.IO.Path.Combine(
-                System.IO.Path.GetTempPath(), "CyrFlipTests", Guid.NewGuid().ToString("N")));
-            Func<string, bool, string> export = (_, _) => "";
-            object form = Activator.CreateInstance(type, new object[]
-            {
-                config, b, b, b, b, b, b, b, b, b, i, s, noop, noop, noop, noop, noop, b, b, b, b, b, b,
-                launcherStore, b,
-                noop, noop, noop, export,
-            })!;
+            Type type = typeof(SettingsForm);
+            // With the exchange rows, so the walk sees their captions (ticket S0023).
+            object form = TestForms.NewSettings(new AppConfig { UiLanguage = language }, withExchange: true);
             try
             {
                 MethodInfo translate = type.GetMethod("Translate", BindingFlags.NonPublic | BindingFlags.Instance)!;
@@ -255,13 +265,28 @@ namespace CyrFlip.Tests
                 if (!cyrillicScript)
                 {
                     var skip = new HashSet<object>();
-                    foreach (string field in new[] { "_layoutRows", "_languageRows", "_uiLanguage" })
+                    // The screenshot folder box shows a path - the user's data, whatever script it is in (S0026).
+                    foreach (string field in new[] { "_layoutRows", "_languageRows", "_uiLanguage", "_screenshotFolderBox" })
                         if (type.GetField(field, BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(form) is object c)
                             skip.Add(c);
                     Walk(language, form, skip, problems);
                 }
+                MnemonicWalk(language, (System.Windows.Forms.Control)form, problems);
             }
             finally { (form as IDisposable)?.Dispose(); }
+        }
+
+        /// <summary>
+        /// S0036 UI-9: a label that reads mnemonics turns a lone "&amp;" into an underline - English
+        /// "Language &amp; region" read "Language region". Every label in every language either shows
+        /// its text as written or has no lone ampersand in it.
+        /// </summary>
+        private static void MnemonicWalk(string language, System.Windows.Forms.Control control, List<string> problems)
+        {
+            if (control is System.Windows.Forms.Label label && label.UseMnemonic
+                && label.Text.Replace("&&", "").IndexOf('&') >= 0)
+                problems.Add($"[{language}] a label eats its ampersand: \"{Trim(label.Text)}\"");
+            foreach (System.Windows.Forms.Control child in control.Controls) MnemonicWalk(language, child, problems);
         }
 
         private static void Walk(string language, object control, HashSet<object> skip, List<string> problems)

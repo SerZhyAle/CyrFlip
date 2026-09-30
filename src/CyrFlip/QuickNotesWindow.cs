@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -76,6 +76,7 @@ namespace CyrFlip
         private readonly Button _removeItem = new Button { AutoSize = true, Margin = new Padding(3, 3, 3, 3) };
         private readonly Button _itemUp = new Button { AutoSize = true, Width = 34, Margin = new Padding(3, 3, 3, 3) };
         private readonly Button _itemDown = new Button { AutoSize = true, Width = 34, Margin = new Padding(3, 3, 3, 3) };
+        private Bitmap? _upImage, _downImage;   // the move glyphs, redrawn when the theme changes
         // SplitterDistance is deliberately not set here. A SplitContainer that has not been laid out
         // yet is 150 px wide, and it silently clamps the value to what fits - so a distance set in
         // the initializer does not throw, it just quietly becomes something else. It is applied in
@@ -163,15 +164,17 @@ namespace CyrFlip
             _service.Imported += OnServiceImported;
             _service.Loaded += OnServiceLoaded;
             _service.SaveFailed += OnSaveFailed;
+            _service.SaveRecovered += OnSaveRecovered;
 
             KeyDown += OnKeyDown;
             ResizeEnd += (_, _) => SaveBounds();
-            Move += (_, _) => { if (_boundsRestored && WindowState == FormWindowState.Normal) SaveBounds(); };
+            VisibleChanged += (_, _) => { if (!Visible) SaveBounds(); };
             FormClosing += (_, e) =>
             {
                 if (e.CloseReason != CloseReason.UserClosing) return;
                 e.Cancel = true;
                 CommitCurrent();
+                SaveBounds();
                 Hide();
             };
 
@@ -240,8 +243,11 @@ namespace CyrFlip
             UpdateButtons();
         });
 
-        private void OnSaveFailed(object? sender, EventArgs e) => OnUi(() =>
-            _dates.Text = T("Заметка не сохранена на диск - подробности в журнале диагностики."));
+        // Both only repaint: RefreshDates itself shows the failure for as long as the service still
+        // holds an unsaved write, so no later repaint can hide it (S0035 QN2-1).
+        private void OnSaveFailed(object? sender, EventArgs e) => OnUi(RefreshDates);
+
+        private void OnSaveRecovered(object? sender, EventArgs e) => OnUi(RefreshDates);
 
         /// <summary>Let go of the open note and empty every editor.</summary>
         private void ClearEditor()
@@ -385,6 +391,7 @@ namespace CyrFlip
             Text = T("Быстрые заметки");
             RightToLeft = Localization.IsRightToLeft(language) ? RightToLeft.Yes : RightToLeft.No;
             RightToLeftLayout = RightToLeft == RightToLeft.Yes;
+            _transferMenu.RightToLeft = RightToLeft;
             // Not "null means leave it alone": switching from Hindi back to English has to switch the
             // family back too, or Nirmala UI stayed for good (ticket S0006, QN-10) - the same rule as
             // TranslationResultWindow and SettingsForm.
@@ -414,8 +421,9 @@ namespace CyrFlip
             _kindList.Text = T("Список");
             _addItem.Text = T("Добавить пункт");
             _removeItem.Text = T("Удалить пункт");
-            _itemUp.Text = "↑";
-            _itemDown.Text = "↓";
+            _itemUp.AccessibleName = T("Вверх");
+            _itemDown.AccessibleName = T("Вниз");
+            ApplyMoveGlyphs();
             _copy.Text = T("Копировать");
             _keep.Text = T("Копировать для Google Keep");
             _export.Text = T("Экспорт...");
@@ -516,11 +524,11 @@ namespace CyrFlip
             if (_boundsRestored) return;
             _boundsRestored = true;
             var saved = new Rectangle(_config.QuickNotesX, _config.QuickNotesY, Width, Height);
-            // A monitor that is no longer there would put the window off-screen for good, so the
-            // saved position only counts while some screen still covers it.
-            if (_config.QuickNotesX != int.MinValue && Screen.AllScreens.Any(s => s.WorkingArea.IntersectsWith(saved)))
+            if (_config.QuickNotesX != int.MinValue && _config.QuickNotesY != int.MinValue)
             {
-                Location = saved.Location;
+                Rectangle clamped = ScreenPlacement.Clamp(saved, Screen.AllScreens.Select(s => s.WorkingArea));
+                Location = clamped.Location;
+                Size = clamped.Size;
                 return;
             }
             Rectangle area = Screen.PrimaryScreen.WorkingArea;
@@ -806,6 +814,11 @@ namespace CyrFlip
 
         private void RefreshDates()
         {
+            if (_service.SaveFailing)
+            {
+                _dates.Text = T("Заметка не сохранена на диск - подробности в журнале диагностики.");
+                return;
+            }
             if (_current == null || _current.CreatedAtUtc == default)
             {
                 _dates.Text = T("Новая заметка");
@@ -922,7 +935,7 @@ namespace CyrFlip
             }
             catch (Exception ex)
             {
-                ConfirmDialog.Show(this, _language, string.Format(T("Не удалось сохранить файл: {0}"), ex.Message),
+                ConfirmDialog.Show(this, _language, string.Format(T("Не удалось сохранить файл: {0}"), FailureCause.Describe(ex, _language)),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
@@ -977,6 +990,32 @@ namespace CyrFlip
             e.Handled = e.SuppressKeyPress = true;
         }
 
+        /// <summary>
+        /// The two glyph-only buttons carry the vocabulary's move-up and move-down (ticket S0022 A4) in the
+        /// theme's text colour, at tier 20, with no caption - the accessible name set with the captions is
+        /// what names them. A glyph that cannot be drawn leaves the arrow character it used to be.
+        /// </summary>
+        private void ApplyMoveGlyphs()
+        {
+            ThemePalette palette = ThemeApply.PaletteOf(this) ?? ThemePalette.Light;
+            SetMoveGlyph(_itemUp, ref _upImage, AppGlyphs.MoveUp, "↑", palette);
+            SetMoveGlyph(_itemDown, ref _downImage, AppGlyphs.MoveDown, "↓", palette);
+        }
+
+        private static void SetMoveGlyph(Button button, ref Bitmap? current, string id, string fallbackText, ThemePalette palette)
+        {
+            Bitmap? image = GlyphRenderer.Render(id, HistoryStripGlyphs.Size, palette.TextPrimary);
+            button.Image = image;
+            button.ImageAlign = ContentAlignment.MiddleCenter;
+            button.Text = image == null ? fallbackText : "";
+            button.AutoSize = image == null;
+            if (image != null) button.Size = new Size(34, 30);
+            current?.Dispose();   // after the button let go of it
+            current = image;
+        }
+
+        protected override void OnThemeApplied(ThemePalette palette) => ApplyMoveGlyphs();
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -987,12 +1026,15 @@ namespace CyrFlip
                 _transferMenu.Dispose();
                 _service.Loaded -= OnServiceLoaded;
                 _service.SaveFailed -= OnSaveFailed;
+                _service.SaveRecovered -= OnSaveRecovered;
                 _searchTimer.Stop();
                 _searchTimer.Dispose();
             }
             base.Dispose(disposing); // the control tree first: it is still drawing with our fonts
             if (disposing)
             {
+                _upImage?.Dispose();
+                _downImage?.Dispose();
                 _ownFont?.Dispose();
                 _editorFont?.Dispose();
                 _ownIcon?.Dispose();

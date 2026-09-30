@@ -5,7 +5,7 @@
 | **Id** | `CHECK-PLACEMENT` |
 | **Version** | 0.9, draft |
 | **Home** | `automated-checks/README.md` in the shared contracts catalog, section 4 |
-| **Role here** | producer - **not yet conformant**: placement is stated in prose only |
+| **Role here** | producer - **conformant (0.9)**: placement declared in `tools/checks/check-placement.jsonl` |
 
 ## What this repository must do to stay conformant
 
@@ -15,4 +15,4 @@
 - **Each check has one declared runner class** - per-change local (`build.ps1`), CI, release preflight
   (`release.ps1`), release tag (`release.yml`) or operator-typed (`tools/uitest`) - checked both ways.
 
-The placement registry and its both-way checker do not exist yet. Plan in `PLAN/` (local, not published).
+Verified by `tools/checks/Test-CheckPlacement.ps1`, executed from `build.ps1` and `release.ps1`.

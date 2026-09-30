@@ -181,7 +181,25 @@ namespace CyrFlip
         }
 
         private static ThemeKind ResolveNow(bool forceRead)
-            => ThemeModes.Resolve(_mode, SystemPrefersDark(forceRead), SystemInformation.HighContrast);
+            => ThemeModes.Resolve(_mode, SystemPrefersDark(forceRead), SystemHighContrast());
+
+        /// <summary>
+        /// Windows' high-contrast flag, asked each time (S0036 UI-2). <c>SystemInformation.HighContrast</c>
+        /// is cached on net48 until the framework's own <c>UserPreferenceChanged</c> handler marks it
+        /// stale - and ours is subscribed first, so a toggle resolved against the old value and nothing
+        /// was repainted until some unrelated signal came along.
+        /// </summary>
+        internal static bool SystemHighContrast()
+        {
+            try
+            {
+                var info = new WindowInterop.HIGHCONTRAST { cbSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(WindowInterop.HIGHCONTRAST)) };
+                if (WindowInterop.SystemParametersInfo(WindowInterop.SPI_GETHIGHCONTRAST, info.cbSize, ref info, 0))
+                    return (info.dwFlags & WindowInterop.HCF_HIGHCONTRASTON) != 0;
+            }
+            catch { }
+            return SystemInformation.HighContrast;
+        }
 
         private static void Refresh(bool forceRead)
         {

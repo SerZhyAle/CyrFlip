@@ -248,15 +248,88 @@ namespace CyrFlip.Tests
             Assert.False(backup.HasContent);
         }
 
+        [Fact]
+        public void Text_whose_owner_cannot_render_it_is_unreadable()
+        {
+            var clip = new FakeClipboard().With(Dib, new byte[] { 1, 2, 3 }).Failing(Text);
+
+            Assert.True(ClipboardHandler.BackupClipboard(clip).Unreadable);
+        }
+
+        /// <summary>
+        /// S0032 FP2-2: a picture or a file list its owner fails to render (a huge Excel range) is not
+        /// carried, but no longer blocks every flip until the next copy - the text still goes back.
+        /// </summary>
         [Theory]
-        [InlineData(WindowInterop.CF_UNICODETEXT)]
         [InlineData(WindowInterop.CF_DIB)]
         [InlineData(WindowInterop.CF_HDROP)]
-        public void Content_whose_owner_cannot_render_it_is_unreadable(uint format)
+        public void A_picture_or_file_list_that_will_not_render_is_dropped_not_fatal(uint format)
         {
             var clip = new FakeClipboard().With(Text, Unicode("mine")).Failing(format);
 
-            Assert.True(ClipboardHandler.BackupClipboard(clip).Unreadable);
+            ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard(clip);
+
+            Assert.False(backup.Unreadable);
+            Assert.Equal("mine", backup.Text);
+            Assert.Null(backup.Image);
+            Assert.Null(backup.Files);
+            Assert.True(backup.HasContent);
+        }
+
+        [Fact]
+        public void Text_over_the_cap_is_unreadable_rather_than_marshalled()
+        {
+            var clip = new FakeClipboard().With(Text, new byte[ClipboardHandler.MaxBackupTextBytes + 2]);
+
+            ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard(clip);
+
+            Assert.True(backup.Unreadable);
+            Assert.Null(backup.TextBytes);
+        }
+
+        /// <summary>
+        /// S0032 FP2-1: reading a delay-rendered format makes its owner render it, which moves the
+        /// sequence. The backup keeps the number after its own reads, so the chord with nothing selected
+        /// still sees "unchanged" and leaves Excel's live copy alone.
+        /// </summary>
+        [Fact]
+        public void The_sequence_is_the_one_after_the_backups_own_reads()
+        {
+            var clip = new FakeClipboard { BumpSequenceOnRead = true }
+                .With(Text, Unicode("cells"))
+                .With(Dib, new byte[] { 1, 2, 3 });
+
+            ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard(clip);
+
+            Assert.True(clip.SequenceNumber > 100);
+            Assert.Equal(clip.SequenceNumber, backup.Sequence);
+            Assert.Equal(RestoreAction.Unchanged,
+                ClipboardRestore.Plan(backup.Sequence, backup.Restorable, clip.SequenceNumber, stillOurs: null));
+        }
+
+        /// <summary>S0032 FP2-4: an empty clipboard is handed back empty, not left holding the selection.</summary>
+        [Fact]
+        public void An_empty_clipboard_is_restorable_as_empty()
+        {
+            ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard(new FakeClipboard());
+
+            Assert.False(backup.HasContent);
+            Assert.True(backup.WasEmpty);
+            Assert.True(backup.Restorable);
+            Assert.Empty(ClipboardHandler.RestorePayloads(backup));
+            Assert.Equal(RestoreAction.Restore, ClipboardRestore.Plan(backup.Sequence, backup.Restorable, backup.Sequence + 2, stillOurs: true));
+            Assert.Equal(RestoreAction.TakenOver, ClipboardRestore.Plan(backup.Sequence, backup.Restorable, backup.Sequence + 2, stillOurs: false));
+        }
+
+        [Fact]
+        public void Markers_alone_are_neither_content_nor_empty()
+        {
+            var clip = new FakeClipboard().With(ClipboardFormats.ExcludeFromMonitor, new byte[] { 0 });
+
+            ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard(clip);
+
+            Assert.False(backup.WasEmpty);
+            Assert.False(backup.Restorable);
         }
 
         [Fact]

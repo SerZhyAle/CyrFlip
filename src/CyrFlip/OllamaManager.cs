@@ -92,11 +92,25 @@ namespace CyrFlip
             Untrusted,
         }
 
-        internal sealed class InstallerDownload
+        internal sealed class InstallerDownload : IDisposable
         {
             public InstallerStatus Status = InstallerStatus.DownloadFailed;
             /// <summary>The verified installer; "" unless <see cref="Status"/> is Ok.</summary>
             public string Path = "";
+
+            /// <summary>
+            /// The verified file held open from before the signature check until the installer runs
+            /// (S0037 TR-4): read sharing only, so no other process can rewrite, rename or delete it
+            /// between <see cref="AuthenticodeCheck.IsSignedBy"/> and the launch - each of which opens
+            /// it by name again. Released by <see cref="RunInstaller"/> or <see cref="Dispose"/>.
+            /// </summary>
+            internal FileStream? Guard;
+
+            public void Dispose()
+            {
+                Guard?.Dispose();
+                Guard = null;
+            }
         }
 
         /// <summary>
@@ -133,30 +147,27 @@ namespace CyrFlip
                     total = response.Content.Headers.ContentLength ?? -1L;
                     using Stream source = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
                     using var file = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-                    var buffer = new byte[81920];
-                    read = 0;
                     int lastPercent = -1;
-                    while (true)
+                    read = await CopyAsync(source, file, DownloadIdleTimeoutMs, done =>
                     {
-                        int count = await source.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
-                        if (count <= 0) break;
-                        await file.WriteAsync(buffer, 0, count, ct).ConfigureAwait(false);
-                        read += count;
-                        if (progress == null) continue;
+                        if (progress == null) return;
                         if (total > 0)
                         {
-                            int percent = (int)(read * 100L / total);
-                            if (percent == lastPercent) continue;
+                            int percent = (int)(done * 100L / total);
+                            if (percent == lastPercent) return;
                             lastPercent = percent;
-                            progress.Report(percent + "% (" + Mb(read) + "/" + Mb(total) + " MB)");
+                            progress.Report(percent + "% (" + Mb(done) + "/" + Mb(total) + " MB)");
                         }
-                        else progress.Report(Mb(read) + " MB");
-                    }
+                        else progress.Report(Mb(done) + " MB");
+                    }, ct).ConfigureAwait(false);
                 }
 
                 if (!IsComplete(read, total)) return result;
+                // Held from here to the launch, so what is verified is what runs (TR-4).
+                result.Guard = new FileStream(destination, FileMode.Open, FileAccess.Read, FileShare.Read);
                 if (!AuthenticodeCheck.IsSignedBy(destination, AuthenticodeCheck.OllamaPublisher))
                 {
+                    result.Dispose();
                     result.Status = InstallerStatus.Untrusted;
                     return result;
                 }
@@ -165,12 +176,60 @@ namespace CyrFlip
                 result.Path = destination;
                 return result;
             }
-            catch (OperationCanceledException) { throw; }
-            catch { return result; }
+            catch (OperationCanceledException) { result.Dispose(); throw; }
+            catch { result.Dispose(); return result; }
             finally
             {
                 if (!keep) TryDeleteFolder(folder);
             }
+        }
+
+        /// <summary>How long the installer download may go silent before it is given up (S0037 TR-1).</summary>
+        internal const int DownloadIdleTimeoutMs = 60_000;
+
+        /// <summary>
+        /// Copy <paramref name="source"/> to <paramref name="destination"/>, ending on the caller's
+        /// cancel <b>and</b> on silence (S0037 TR-1). On net48 a read pending on a response stream does
+        /// not look at its token, and the client's timeout is infinite: a connection that went quiet
+        /// after the headers (a Wi-Fi drop, a captive proxy) hung the download for good, and every
+        /// translator button in the settings stayed disabled until CyrFlip was restarted. Disposing the
+        /// stream is the one thing that ends such a read, so the token and an idle timer re-armed per
+        /// chunk both do that - queued to the pool, the way <c>OllamaClient</c> ends a cancelled answer
+        /// stream. A cancel comes back as <see cref="OperationCanceledException"/>, silence as
+        /// <see cref="TimeoutException"/>.
+        /// </summary>
+        internal static async Task<long> CopyAsync(Stream source, Stream destination, int idleTimeoutMs,
+            Action<long>? onChunk, CancellationToken ct)
+        {
+            using var idle = new CancellationTokenSource();
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, idle.Token);
+            using CancellationTokenRegistration abort = linked.Token.Register(() =>
+                ThreadPool.QueueUserWorkItem(_ =>
+                {
+                    try { source.Dispose(); }
+                    catch { /* already closed */ }
+                }));
+            var buffer = new byte[81920];
+            long read = 0;
+            while (true)
+            {
+                idle.CancelAfter(idleTimeoutMs);   // re-armed for every chunk: silence, not a total
+                int count;
+                try
+                {
+                    count = await source.ReadAsync(buffer, 0, buffer.Length, linked.Token).ConfigureAwait(false);
+                }
+                catch (Exception) when (linked.IsCancellationRequested)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    throw new TimeoutException("The download went silent for " + idleTimeoutMs + " ms.");
+                }
+                if (count <= 0) break;
+                await destination.WriteAsync(buffer, 0, count, ct).ConfigureAwait(false);
+                read += count;
+                onChunk?.Invoke(read);
+            }
+            return read;
         }
 
         /// <summary>
@@ -182,19 +241,30 @@ namespace CyrFlip
         private const string DownloadFolderPrefix = "CyrFlip-ollama-";
 
         /// <summary>
-        /// Earlier downloads: the installer has to outlive <see cref="RunInstaller"/> (ShellExecute
-        /// returns before it has read its own file), so its folder is cleared on the next download
-        /// once it is a day old.
+        /// Earlier downloads - a few hundred MB each. <see cref="RunInstaller"/> removes its own folder
+        /// once the installer exits (S0037 TR-5); what is left (a CyrFlip closed meanwhile, an installer
+        /// still holding it) goes here: on the next download, and when the translator page is shown.
+        /// A folder younger than a day may belong to an installer running right now, so it is kept -
+        /// unless Ollama is installed already, when nothing in them is needed any more (a folder whose
+        /// installer still runs fails to delete and simply stays for the next time).
         /// </summary>
-        private static void PruneStaleDownloads()
+        /// <param name="tempFolder">The folder to look in; the user's %TEMP% when null (tests pass their own).</param>
+        internal static void PruneStaleDownloads(bool evenRecent = false, string? tempFolder = null)
         {
             try
             {
-                foreach (string dir in Directory.GetDirectories(Path.GetTempPath(), DownloadFolderPrefix + "*"))
-                    if (DateTime.UtcNow - Directory.GetCreationTimeUtc(dir) > TimeSpan.FromDays(1))
+                foreach (string dir in Directory.GetDirectories(tempFolder ?? Path.GetTempPath(), DownloadFolderPrefix + "*"))
+                    if (evenRecent || DateTime.UtcNow - Directory.GetCreationTimeUtc(dir) > TimeSpan.FromDays(1))
                         TryDeleteFolder(dir);
             }
             catch { /* housekeeping only */ }
+        }
+
+        /// <summary>The translator page was shown: clear old installer downloads, off the caller's thread.</summary>
+        public static void PruneDownloadsInBackground()
+        {
+            if (!CanInstallInPlace) return;
+            Task.Run(() => PruneStaleDownloads(evenRecent: IsInstalled()));
         }
 
         private static void TryDeleteFolder(string folder)
@@ -203,10 +273,31 @@ namespace CyrFlip
             catch { /* still open (an installer running from it) - the next prune gets it */ }
         }
 
-        public static void RunInstaller(string installerPath)
+        /// <summary>
+        /// Start the verified installer, then let go of the file it was held by (TR-4), and remove its
+        /// folder once the installer has exited (TR-5) - it used to stay in %TEMP% for good, since a
+        /// user who has installed Ollama never downloads again.
+        /// </summary>
+        public static void RunInstaller(InstallerDownload download)
         {
-            if (!CanInstallInPlace) return;
-            Open(installerPath);
+            try
+            {
+                if (!CanInstallInPlace || download.Status != InstallerStatus.Ok) return;
+                Process? installer = null;
+                try { installer = Process.Start(new ProcessStartInfo(download.Path) { UseShellExecute = true }); }
+                catch { /* declined at the UAC prompt, or blocked - the folder is pruned later */ }
+                download.Dispose();   // the process exists (or never will): the file may be released now
+                string? folder = Path.GetDirectoryName(download.Path);
+                if (installer == null || folder == null) return;
+                Task.Run(() =>
+                {
+                    try { installer.WaitForExit(); }
+                    catch { return; }
+                    finally { installer.Dispose(); }
+                    TryDeleteFolder(folder);
+                });
+            }
+            finally { download.Dispose(); }
         }
 
         public static void OpenWebPage() => Open(WebPage);

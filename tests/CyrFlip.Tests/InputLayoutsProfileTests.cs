@@ -68,7 +68,7 @@ namespace CyrFlip.Tests
                 ("ru", new[] { "0419:00000419" }));
 
             // Japanese shows up in Preload as its primary KLID; Russian is removed.
-            InputLayouts.ApplyLayouts(model, new List<string> { "00000409", "00000411" }, null, null, Tag);
+            InputLayouts.ApplyLayouts(model, new List<string> { "00000409", "00000411" }, null, null, Tag, removed: "00000419");
 
             Assert.Equal(new[] { JapaneseIme }, model.Subkeys["ja"]);
             Assert.False(model.Subkeys.ContainsKey("ru"));
@@ -125,7 +125,7 @@ namespace CyrFlip.Tests
         {
             var model = Model(("en-US", new[] { "0409:00000409" }), ("uk", new[] { "0422:00000422", "CachedLanguageName" }));
 
-            InputLayouts.ApplyLayouts(model, new List<string> { "00000409" }, null, null, Tag);
+            InputLayouts.ApplyLayouts(model, new List<string> { "00000409" }, null, null, Tag, removed: "00000422");
 
             Assert.False(model.Subkeys.ContainsKey("uk"));
             Assert.Equal(new[] { "en-US" }, model.Languages);
@@ -243,6 +243,105 @@ namespace CyrFlip.Tests
         {
             Assert.False(InputLayouts.TryDecodeValue("1", out _, out _));
             Assert.False(InputLayouts.TryDecodeValue(new Dictionary<string, object> { ["k"] = "Nonsense", ["v"] = 1 }, out _, out _));
+        }
+
+        // ---- S0007 section 21: WL-8..WL-11, WL-13 ----
+
+        [Fact]
+        public void AShortListNeverCostsAKeyboardItDidNotName()
+        {
+            // WL-10: Preload came back with only US; the add must not wipe Russian and Ukrainian.
+            var model = Model(
+                ("en-US", new[] { "0409:00000409" }),
+                ("ru", new[] { "0419:00000419", "0419:00010419" }),
+                ("uk", new[] { "0422:00000422" }));
+
+            InputLayouts.ApplyLayouts(model, new List<string> { "00000409", "00000407" }, "00000407", null, Tag);
+
+            Assert.Equal(new[] { "0419:00000419", "0419:00010419" }, model.Subkeys["ru"]);
+            Assert.Equal(new[] { "0422:00000422" }, model.Subkeys["uk"]);
+            Assert.Contains("0407:00000407", model.Subkeys["x-0407"]);
+        }
+
+        [Fact]
+        public void ARemovalTakesOnlyTheLayoutItNames()
+        {
+            var model = Model(
+                ("en-US", new[] { "0409:00000409" }),
+                ("ru", new[] { "0419:00000419", "0419:00010419" }));
+
+            // The list also misses Russian Typewriter; only standard Russian was asked for.
+            InputLayouts.ApplyLayouts(model, new List<string> { "00000409" }, null, null, Tag, removed: "00000419");
+
+            Assert.Equal(new[] { "0419:00010419" }, model.Subkeys["ru"]);
+            Assert.Equal(new[] { "en-US", "ru" }, model.Languages);
+        }
+
+        [Fact]
+        public void APrimaryKlidBackedOnlyByATipIsManagedByWindows()
+        {
+            var tipOnly = Model(("en-US", new[] { "0409:00000409" }), ("zh-Hans-CN", new[] { Pinyin }));
+            Assert.True(InputLayouts.IsManagedByWindows(tipOnly, "00000804"));
+            Assert.False(InputLayouts.IsManagedByWindows(tipOnly, "00000409"));
+
+            var withKeyboard = Model(("zh-Hans-CN", new[] { Pinyin, "0804:00000804" }));
+            Assert.False(InputLayouts.IsManagedByWindows(withKeyboard, "00000804"));
+
+            // An alternate layout is never a TIP's stand-in.
+            Assert.False(InputLayouts.IsManagedByWindows(tipOnly, "00010804"));
+        }
+
+        [Fact]
+        public void TheArrowsStayInsideOneLanguage()
+        {
+            // Russian holding a US keyboard, then Ukrainian: US and Russian are one group.
+            var model = Model(
+                ("ru", new[] { "0419:00000419", "0419:00000409" }),
+                ("uk", new[] { "0422:00000422" }),
+                ("zh-Hans-CN", new[] { Pinyin }));
+            Assert.Equal("ru", InputLayouts.GroupOf(model, "00000409"));
+            Assert.Equal("zh-Hans-CN", InputLayouts.GroupOf(model, "00000804"));
+            Assert.Equal("0x0407", InputLayouts.GroupOf(model, "00000407"));
+
+            var rows = new List<InputLayouts.Installed>();
+            foreach (string klid in new[] { "00000419", "00000409", "00000422", "00000804" })
+                rows.Add(new InputLayouts.Installed { Klid = klid, Group = InputLayouts.GroupOf(model, klid) });
+
+            Assert.False(InputLayouts.CanMove(rows, 0, -1));
+            Assert.True(InputLayouts.CanMove(rows, 0, +1));
+            Assert.True(InputLayouts.CanMove(rows, 1, -1));
+            Assert.False(InputLayouts.CanMove(rows, 1, +1));
+            Assert.False(InputLayouts.CanMove(rows, 2, -1));
+            Assert.False(InputLayouts.CanMove(rows, 3, +1));
+        }
+
+        [Fact]
+        public void OnlyASnapshotThatCanPutLayoutsBackIsRestorable()
+        {
+            const string whole = "{\"format\":2,\"preload\":{\"1\":\"00000409\"},\"substitutes\":{},\"profile\":{\"root\":{},\"subkeys\":{\"en-US\":{}}}}";
+            Assert.True(InputLayouts.TryParseSnapshot(whole, out _));
+
+            // WL-11: a dump that lost Preload or the language subkeys would delete and recreate nothing.
+            Assert.False(InputLayouts.TryParseSnapshot(whole.Replace("{\"1\":\"00000409\"}", "{}"), out _));
+            Assert.False(InputLayouts.TryParseSnapshot("{\"format\":2,\"preload\":{\"1\":\"00000409\"},\"profile\":{}}", out _));
+            Assert.False(InputLayouts.TryParseSnapshot(whole.Replace("{\"en-US\":{}}", "{}"), out _));
+            // CF-4: unreadable text is not a backup.
+            Assert.False(InputLayouts.TryParseSnapshot("", out _));
+            Assert.False(InputLayouts.TryParseSnapshot("not json", out _));
+
+            // Format 1, as releases before S0007 wrote it.
+            Assert.True(InputLayouts.TryParseSnapshot("{\"preload\":{\"1\":\"00000419\"},\"substitutes\":{},\"profile\":{\"Languages\":[\"ru\"],\"subkeys\":{\"ru\":{\"0419:00000419\":1}}}}", out _));
+        }
+
+        [Fact]
+        public void AFormatOneRestoreDropsOnlyTheOverrideCyrFlipWrote()
+        {
+            Assert.True(InputLayouts.ShouldDropOverride("0419:00000419", "0419:00000419"));
+            // The user picked another default in Windows since - theirs, kept.
+            Assert.False(InputLayouts.ShouldDropOverride("0409:00000409", "0419:00000419"));
+            // CyrFlip never wrote one.
+            Assert.False(InputLayouts.ShouldDropOverride("0419:00000419", ""));
+            Assert.False(InputLayouts.ShouldDropOverride(null, "0419:00000419"));
         }
     }
 }

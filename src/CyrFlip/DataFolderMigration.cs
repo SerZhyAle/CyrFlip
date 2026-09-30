@@ -102,13 +102,19 @@ namespace CyrFlip
         internal Result Run()
         {
             var result = new Result();
-            if (string.Equals(Path.GetFullPath(_legacy), Path.GetFullPath(_current), StringComparison.OrdinalIgnoreCase)
-                || !Directory.Exists(_legacy))
+            if (string.Equals(Path.GetFullPath(_legacy), Path.GetFullPath(_current), StringComparison.OrdinalIgnoreCase))
                 return result;
 
-            MigrateJournal(result);
-            DeleteOwnLogs(result);
-            MoveReports(result);
+            if (Directory.Exists(_legacy))
+            {
+                MigrateJournal(result);
+                DeleteOwnLogs(result);
+                MoveReports(result);
+            }
+            // Every pass, not only the one that kept the journal (S0035 QN2-4): a merge that failed once
+            // (the live journal locked by a scan, a full disk) is retried like every other step, instead
+            // of leaving those notes in a file nothing reads again.
+            MergePending(result);
             return result;
         }
 
@@ -147,16 +153,29 @@ namespace CyrFlip
                 else
                     TryMove(sourceBak, (kept ?? MigratedName(QuickNotesStore.FileName)) + ".bak", result);
             }
+        }
 
-            if (kept != null)
-                Merge(kept, target, result);
+        /// <summary>The marker written beside a kept journal once its merge went through - "merged, do not replay again".</summary>
+        internal const string MergedMarker = ".merged";
+
+        /// <summary>Merge every kept journal in the new folder that has no <see cref="MergedMarker"/> yet.</summary>
+        private void MergePending(Result result)
+        {
+            string target = Path.Combine(_current, QuickNotesStore.FileName);
+            string[] kept = QuickNotesStore.MigratedJournals(_current, "*.log");
+            Array.Sort(kept, StringComparer.OrdinalIgnoreCase);
+            foreach (string journal in kept)
+                if (!File.Exists(journal + MergedMarker))
+                    Merge(journal, target, result);
         }
 
         /// <summary>Replay the kept journal into the live one, once: a note is written when it is new there
         /// or newer than the live copy. Deletes come along as recorded - a note the kept journal deleted is
-        /// simply absent from its replay.</summary>
+        /// simply absent from its replay, and a note the <b>live</b> journal deleted is not brought back
+        /// (S0016 open decision 2, S0035 QN2-7). Only a merge with no failure is marked done.</summary>
         private void Merge(string kept, string target, Result result)
         {
+            int failures = result.Failures;
             try
             {
                 List<QuickNote> incoming = new QuickNotesStore(kept, _cipher).Load();
@@ -164,17 +183,27 @@ namespace CyrFlip
                 var byId = new Dictionary<Guid, QuickNote>();
                 foreach (QuickNote note in live.Load())
                     byId[note.Id] = note;
+                var deleted = new HashSet<Guid>(live.DeletedIds);
 
                 foreach (QuickNote note in incoming)
                 {
+                    if (deleted.Contains(note.Id))
+                        continue;
                     if (byId.TryGetValue(note.Id, out QuickNote? existing) && existing.UpdatedAtUtc >= note.UpdatedAtUtc)
                         continue;
                     if (live.Update(note))
+                    {
                         result.NotesMerged++;
+                        byId[note.Id] = note;
+                    }
                     else
                         result.Failures++;
                 }
-                result.MergedJournal = kept;
+                if (result.Failures == failures)
+                {
+                    File.WriteAllText(kept + MergedMarker, "");
+                    result.MergedJournal = kept;
+                }
             }
             catch
             {
@@ -265,12 +294,37 @@ namespace CyrFlip
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
                 File.Move(source, destination);
-                return true;
             }
             catch
             {
                 result.Failures++;
                 return false;
+            }
+            InheritFromNewParent(destination);
+            return true;
+        }
+
+        /// <summary>
+        /// A same-volume <c>File.Move</c> keeps the file's security descriptor - including the ACEs it
+        /// inherited from <c>%ProgramData%\CyrFlip</c>, where <c>BUILTIN\Users</c> may read. A moved
+        /// report archive would stay readable by every local account, by path, inside the user's own
+        /// profile: the exposure S0016 exists to end (S0035 QN2-5). So the inherited ACEs are
+        /// discarded and the DACL is written back unprotected, which makes Windows fill in what the
+        /// new parent passes down - <c>icacls /reset</c>, keeping any explicit ACE. A failure is only
+        /// logged: the file itself has arrived.
+        /// </summary>
+        internal static void InheritFromNewParent(string path)
+        {
+            try
+            {
+                FileSecurity security = File.GetAccessControl(path, AccessControlSections.Access);
+                security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+                security.SetAccessRuleProtection(isProtected: false, preserveInheritance: false);
+                File.SetAccessControl(path, security);
+            }
+            catch (Exception ex)
+            {
+                QuickNotesLog.Log("data folder migration: ACL reset failed: " + ex.GetType().Name);
             }
         }
 

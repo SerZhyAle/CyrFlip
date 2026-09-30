@@ -246,8 +246,37 @@ namespace CyrFlip.Tests
         [InlineData("C:\\t\\invoice\u202Efdp.exe")]
         [InlineData("https://example.com/\u200Fx")]
         [InlineData("https://exa\u2066mple.com/")]
+        // S0034 LS2-1: percent-encoded, the override only appears once LocalPath unescapes it.
+        [InlineData("file://attacker.test/s/invoice%E2%80%AEfdp.exe")]
+        [InlineData("file:///C:/t/invoice%E2%80%AEfdp.exe")]
         public void ABidiControlCharacterRefusesTheCandidate(string selection)
             => Refused(selection, Disk("C:\\t\\invoice\u202Efdp.exe"));
+
+        /// <summary>A file whose real on-disk name reads backwards is refused like the text that spells one.</summary>
+        [Fact]
+        public void ABidiControlInTheRealOnDiskNameRefusesTheCandidate()
+        {
+            LaunchProbes probes = Probes(Disk(@"C:\t\INVOIC~1.EXE"));
+            probes.RealName = _ => "invoice\u202Efdp.exe";
+            Assert.False(LaunchTargets.TryParse(@"C:\t\INVOIC~1.EXE", out _, probes));
+        }
+
+        /// <summary>
+        /// S0034 LS2-4: a remote path is never probed, so the prose after it must not become part of
+        /// the target - the word pass finds the path instead.
+        /// </summary>
+        [Theory]
+        [InlineData(@"\\server\share\x.txt for details", @"\\server\share\x.txt")]
+        [InlineData(@"Z:\plan.docx is final", @"Z:\plan.docx")]
+        public void ProseAfterARemotePathIsNotPartOfTheTarget(string selection, string expected)
+            => Assert.Equal(expected, Parse(selection, Probes(MustNotProbe, remoteDrives: "Z")).Target);
+
+        /// <summary>...while spaces inside a share's folder or file names still make one path.</summary>
+        [Theory]
+        [InlineData(@"\\nas\My Videos\a.mp4")]
+        [InlineData(@"\\nas\share\My File.docx")]
+        public void SpacesInsideARemotePathKeepItWhole(string selection)
+            => Assert.Equal(selection, Parse(selection, Probes(MustNotProbe)).Target);
 
         [Fact]
         public void AFileUrlBecomesThePathItNames()

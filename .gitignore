@@ -66,3 +66,6 @@ universal_agent_pack.zip
 
 # Planning documents (specs, contract sync audits, the production plan) - local only, never published.
 PLAN/
+
+# dotnet test --logger trx output (build.ps1 / CI, S0029 RB-6)
+TestResults/

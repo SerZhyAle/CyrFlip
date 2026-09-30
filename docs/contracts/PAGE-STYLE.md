@@ -18,5 +18,4 @@
 - **The pre-paint theme resolver runs before any stylesheet**, RU/EN/UA come first on every page, no
   emoji, monochrome marks only.
 
-Not yet held on the secondary pages (guides, privacy, standalone locales): resolver order, the colour mark
-in the header, expand/collapse-all, the copy fallback. Plan in `PLAN/` (local, not published).
+Held across all 40 rendered HTML pages.

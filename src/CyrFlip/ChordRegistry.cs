@@ -13,6 +13,10 @@ namespace CyrFlip
         Conversion,
         Translation,
         Launcher,
+        /// <summary>The Graphics module's region capture (S0026).</summary>
+        Screenshot,
+        /// <summary>The keyboard chord that opens the text context menu at the caret (S0045 K2).</summary>
+        TextMenu,
         /// <summary>A Windows direct-language hotkey (<see cref="LanguageHotkeys"/>) - read-only here.</summary>
         WindowsLanguage,
     }
@@ -77,6 +81,8 @@ namespace CyrFlip
             Add(ChordKind.Case, "", config.CaseHotkey, null);
             Add(ChordKind.History, "", config.ClipboardHistoryHotkey, null);
             Add(ChordKind.QuickNotes, "", config.QuickNotesHotkey, null);
+            Add(ChordKind.Screenshot, "", config.ScreenshotHotkey, null);
+            Add(ChordKind.TextMenu, "", config.TextMenuHotkey, null);
             foreach (LayoutConversionProfile profile in config.LayoutConversionProfiles)
                 if (profile != null) Add(ChordKind.Conversion, profile.Id, profile.Hotkey, profile);
             foreach (TranslationProfile profile in config.TranslateProfiles)
@@ -151,6 +157,8 @@ namespace CyrFlip
                 case ChordKind.Case: return T("Исправить CapsLock");
                 case ChordKind.History: return T("Менеджер буфера");
                 case ChordKind.QuickNotes: return T("Быстрые заметки");
+                case ChordKind.Screenshot: return T("Снимок области экрана");
+                case ChordKind.TextMenu: return T("Открыть меню с клавиатуры");
                 case ChordKind.Conversion:
                     var conversion = (LayoutConversionProfile)owner.Source!;
                     return layoutName(conversion.SourceKlid) + " ⇄ " + layoutName(conversion.TargetKlid);

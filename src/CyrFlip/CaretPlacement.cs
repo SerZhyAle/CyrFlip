@@ -38,11 +38,17 @@ namespace CyrFlip
     /// </summary>
     internal static class CaretPlacement
     {
-        /// <summary>Gap between the caret and the marker, horizontally.</summary>
-        internal const int GapX = 2;
+        /// <summary>Gap between the caret and the marker, horizontally. Negative: the badge's left edge
+        /// starts a pixel left of the caret, pressed against it - it is below the line, so it covers
+        /// no part of the caret itself.</summary>
+        internal const int GapX = -1;
 
         /// <summary>Gap between the line and the marker, vertically.</summary>
         internal const int GapY = 1;
+
+        /// <summary>How far past the line the badge drops beyond <see cref="GapY"/>: half its own height,
+        /// so it clears the text right after the caret instead of sitting against it.</summary>
+        internal static int Drop(Size marker) => marker.Height / 2;
 
         /// <summary>
         /// Top-left of a <paramref name="marker"/>-sized badge for <paramref name="caret"/> on the
@@ -53,12 +59,12 @@ namespace CyrFlip
         public static Point Place(CaretRect caret, Size marker, Rectangle monitor)
         {
             int x = caret.X + GapX;
-            int y = caret.Bottom + GapY;
+            int y = caret.Bottom + GapY + Drop(marker);
 
             if (x + marker.Width > monitor.Right)
-                x = caret.X - GapX - marker.Width;
+                x = caret.X - marker.Width; // mirrored: its right edge against the caret
             if (y + marker.Height > monitor.Bottom)
-                y = caret.Top - GapY - marker.Height;
+                y = caret.Top - GapY - Drop(marker) - marker.Height;
 
             x = Clamp(x, monitor.Left, monitor.Right - marker.Width);
             y = Clamp(y, monitor.Top, monitor.Bottom - marker.Height);

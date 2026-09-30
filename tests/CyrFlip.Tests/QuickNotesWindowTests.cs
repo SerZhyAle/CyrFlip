@@ -59,6 +59,39 @@ namespace CyrFlip.Tests
                 Path.Combine(_root, name + "-" + QuickNotesStore.FileName), new FakeCipher()));
 
         [Fact]
+        public void AGlyphOnlyButtonCarriesTheRecordsNameInEveryLanguage()
+        {
+            // ICON-RENDER rule 8 (ticket S0022 A4/A5): the two move buttons show the vocabulary glyph and no
+            // text, so what a screen reader says is the accessible name - never empty, in the UI language.
+            var problems = new List<string>();
+            OnUiThread(() =>
+            {
+                for (int i = 0; i < Localization.Names.Length; i++)
+                {
+                    using QuickNotesService service = Service("glyph" + i);
+                    using var window = new QuickNotesWindow(service, new AppConfig { UiLanguage = Localization.Names[i] }, () => { }, exchange: (_, _) => { });
+                    int found = 0;
+                    foreach (Control control in All(window))
+                    {
+                        if (!(control is ButtonBase button) || button.Image == null || button.Text.Length > 0) continue;
+                        found++;
+                        if (string.IsNullOrWhiteSpace(button.AccessibleName)) problems.Add(Localization.Names[i] + ": an image-only button has no accessible name");
+                    }
+                    if (found != 2) problems.Add(Localization.Names[i] + ": expected the 2 move buttons to be image-only, found " + found);
+                }
+            });
+            Assert.Empty(problems);
+        }
+
+        private static IEnumerable<Control> All(Control root)
+        {
+            foreach (Control child in root.Controls)
+            {
+                yield return child;
+                foreach (Control deeper in All(child)) yield return deeper;
+            }
+        }
+        [Fact]
         public void TheWindowBuildsInEveryLanguageWithNoCyrillicLeftInALatinBuild()
         {
             var problems = new List<string>();
@@ -70,28 +103,51 @@ namespace CyrFlip.Tests
                     string code = Localization.Codes[i];
                     var config = new AppConfig { UiLanguage = language };
                     using QuickNotesService service = Service("lang" + i);
-                    using var window = new QuickNotesWindow(service, config, () => { });
+                    using var window = new QuickNotesWindow(service, config, () => { }, exchange: (_, _) => { });
 
                     // Russian and Ukrainian are written in Cyrillic, so surviving Cyrillic proves
                     // nothing there - the same exemption the settings-window walk makes.
                     if (code == "ru" || code == "uk") continue;
-                    Walk(window, language, problems);
+                    var seen = new HashSet<object>();
+                    Walk(window, language, problems, seen);
+                    // Menus that live in a field and are only shown on a click (S0029 RB-4): they are
+                    // in no control tree, so the walk above would never reach them.
+                    foreach (FieldInfo field in typeof(QuickNotesWindow).GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
+                        if (field.GetValue(window) is ToolStrip strip)
+                            WalkItems(strip.Items, language, problems, seen);
                 }
             });
 
             Assert.True(problems.Count == 0, "Untranslated captions:\n" + string.Join("\n", problems));
         }
 
-        private static void Walk(Control control, string language, List<string> problems)
+        private static void Walk(Control control, string language, List<string> problems, HashSet<object> seen)
         {
-            string text = control.Text ?? "";
-            foreach (char c in text)
+            if (!seen.Add(control)) return;
+            Report(control.GetType().Name, control.Text, language, problems);
+            if (control is ToolStrip strip) WalkItems(strip.Items, language, problems, seen);
+            if (control.ContextMenuStrip != null) WalkItems(control.ContextMenuStrip.Items, language, problems, seen);
+            foreach (Control child in control.Controls) Walk(child, language, problems, seen);
+        }
+
+        private static void WalkItems(ToolStripItemCollection items, string language, List<string> problems, HashSet<object> seen)
+        {
+            foreach (ToolStripItem item in items)
+            {
+                if (!seen.Add(item)) continue;
+                Report(item.GetType().Name, item.Text, language, problems);
+                if (item is ToolStripDropDownItem drop) WalkItems(drop.DropDownItems, language, problems, seen);
+            }
+        }
+
+        private static void Report(string kind, string? text, string language, List<string> problems)
+        {
+            foreach (char c in text ?? "")
                 if (c >= 'Ѐ' && c <= 'ӿ')
                 {
-                    problems.Add("[" + language + "] " + control.GetType().Name + ": \"" + text + "\"");
+                    problems.Add("[" + language + "] " + kind + ": \"" + text + "\"");
                     break;
                 }
-            foreach (Control child in control.Controls) Walk(child, language, problems);
         }
 
         /// <summary>
@@ -154,7 +210,7 @@ namespace CyrFlip.Tests
                     // The stored size a fresh install carries - the minimum has to win over it.
                     var config = new AppConfig { UiLanguage = language };
                     using QuickNotesService service = Service("min" + i);
-                    using var window = new QuickNotesWindow(service, config, () => { });
+                    using var window = new QuickNotesWindow(service, config, () => { }, exchange: (_, _) => { });
 
                     var bottom = (FlowLayoutPanel)typeof(QuickNotesWindow)
                         .GetField("_bottomRow", BindingFlags.NonPublic | BindingFlags.Instance)!

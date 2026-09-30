@@ -79,6 +79,9 @@ namespace CyrFlip
         public static readonly uint PreferredDropEffect = RegisterClipboardFormat("Preferred DropEffect");
         public static readonly uint ShellIdListArray = RegisterClipboardFormat("Shell IDList Array");
 
+        // The format Chromium, Electron, Telegram and Office read first for an image (S0026 5.2).
+        public static readonly uint Png = RegisterClipboardFormat("PNG");
+
         /// <summary>Registers any other name, for the line-copy markers.</summary>
         public static uint Register(string name) => RegisterClipboardFormat(name);
     }
@@ -150,8 +153,8 @@ namespace CyrFlip
                 sequence = GetClipboardSequenceNumber();
                 markers.ExcludeFromMonitor = ClipboardFormats.ExcludeFromMonitor != 0 && IsClipboardFormatAvailable(ClipboardFormats.ExcludeFromMonitor);
                 markers.ViewerIgnore = ClipboardFormats.ViewerIgnore != 0 && IsClipboardFormatAvailable(ClipboardFormats.ViewerIgnore);
-                markers.CanIncludeInHistory = ReadDword(ClipboardFormats.CanIncludeInHistory);
-                markers.CanUploadToCloud = ReadDword(ClipboardFormats.CanUploadToCloud);
+                markers.CanIncludeInHistory = ReadMarkerDword(ClipboardFormats.CanIncludeInHistory);
+                markers.CanUploadToCloud = ReadMarkerDword(ClipboardFormats.CanUploadToCloud);
                 if (ClipboardPrivacy.ShouldSkip(markers))
                     return true;
                 text = ReadOpenText(maxBytes / sizeof(char), out tooLarge) ?? string.Empty;
@@ -195,6 +198,13 @@ namespace CyrFlip
             finally { CloseClipboard(); }
         }
 
+        /// <summary>
+        /// A "do not record" DWORD marker on the already open clipboard: null only when absent. One that is
+        /// present but unreadable - delay-rendered, shorter than a DWORD - reads as 0, "do not record", the
+        /// rule the flip's backup already applies to the same marker (S0031 CH2-3).
+        /// </summary>
+        private static uint? ReadMarkerDword(uint format) =>
+            ClipboardPrivacy.MarkerValue(format != 0 && IsClipboardFormatAvailable(format), ReadDword(format));
         /// <summary>A DWORD-valued format on the already open clipboard; null when absent or unreadable.</summary>
         private static uint? ReadDword(uint format)
         {
@@ -428,6 +438,19 @@ namespace CyrFlip
                 return all;
             }
             finally { CloseClipboard(); }
+        }
+
+        /// <summary>
+        /// Replace the clipboard with one image as <c>PNG</c> and <c>CF_DIB</c> of the same pixels -
+        /// one open, one empty, both formats (S0026 5.1). Writing them in two passes cannot work: each
+        /// pass empties the clipboard again. True only when both formats landed.
+        /// </summary>
+        public static bool TrySetImage(byte[] png, byte[] dib)
+        {
+            var payloads = new List<KeyValuePair<uint, byte[]>>(2);
+            if (ClipboardFormats.Png != 0) payloads.Add(new KeyValuePair<uint, byte[]>(ClipboardFormats.Png, png));
+            payloads.Add(new KeyValuePair<uint, byte[]>(CF_DIB, dib));
+            return Restore(payloads) && ClipboardFormats.Png != 0;
         }
 
         public static bool TryClear()

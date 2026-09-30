@@ -168,5 +168,25 @@ namespace CyrFlip.Tests
 
             Assert.False(mustSave);
         }
+
+        [Fact]
+        public void UnparsableFixedHotkeyFallsBackToDefaultAndRecordsUnreadable()
+        {
+            var key = new FakeKey();
+            key.Values["CaseHotkey"] = "invalid_chord";
+            key.Values["ClipboardHistoryHotkey"] = "";
+            key.Values["QuickNotesHotkey"] = "Ctrl+Shift+UnknownKey";
+
+            AppConfig cfg = Load(key);
+
+            Assert.Equal(Hotkey.CaseDefault.Display, cfg.CaseHotkey);
+            Assert.Equal("Ctrl+Shift+F10", cfg.ClipboardHistoryHotkey);
+            Assert.Equal(AppConfig.DefaultQuickNotesHotkey, cfg.QuickNotesHotkey);
+
+            Assert.Contains("CaseHotkey", cfg.UnreadableValues);
+            Assert.Contains("ClipboardHistoryHotkey", cfg.UnreadableValues);
+            Assert.Contains("QuickNotesHotkey", cfg.UnreadableValues);
+        }
     }
 }
+

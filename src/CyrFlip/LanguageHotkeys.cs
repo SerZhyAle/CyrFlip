@@ -161,12 +161,12 @@ namespace CyrFlip
 
             List<Entry> entries = ReadAll();
             var used = new List<int>(entries.Count);
-            int? existing = null;
+            List<int> own = SlotsFor(entries, hkl);
 
             foreach (Entry e in entries)
             {
                 used.Add(e.Id);
-                if (HklEquals(e.TargetHkl, hkl)) { existing = e.Id; continue; }
+                if (HklEquals(e.TargetHkl, hkl)) continue;
                 if (SameChord(e.Modifiers, e.VirtualKey, modifiers, vk))
                 {
                     conflictingLanguage = LanguageName(e.TargetHkl);
@@ -174,26 +174,45 @@ namespace CyrFlip
                 }
             }
 
-            int slot = PickSlot(used, existing);
+            // The lowest of the layout's slots - the one FindFor reads (WL-12).
+            int slot = PickSlot(used, own.Count > 0 ? own[0] : (int?)null);
             if (slot < 0) return AssignStatus.NoFreeSlot;
 
             try
             {
-                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(HotKeysPath + "\\" + slot.ToString("X8", CultureInfo.InvariantCulture));
-                if (key == null) return AssignStatus.Failed;
-                WriteDword(key, "Key Modifiers", modifiers);
-                WriteDword(key, "Virtual Key", vk);
-                WriteDword(key, "Target IME", unchecked((uint)(long)hkl));
+                using (RegistryKey? key = Registry.CurrentUser.CreateSubKey(HotKeysPath + "\\" + slot.ToString("X8", CultureInfo.InvariantCulture)))
+                {
+                    if (key == null) return AssignStatus.Failed;
+                    WriteDword(key, "Key Modifiers", modifiers);
+                    WriteDword(key, "Virtual Key", vk);
+                    WriteDword(key, "Target IME", unchecked((uint)(long)hkl));
+                }
+                foreach (int duplicate in own)
+                    if (duplicate != slot) Remove(duplicate);
                 return AssignStatus.Ok;
             }
             catch { return AssignStatus.Failed; }
         }
 
-        /// <summary>Drop the assignment for <paramref name="hkl"/>, if any.</summary>
+        /// <summary>
+        /// Every slot pointing at <paramref name="hkl"/>, lowest first. A build before WL-4 could not
+        /// match an alternate layout's own record and wrote a second one beside it; all of them are the
+        /// one assignment - <see cref="Assign"/> keeps the lowest, <see cref="Clear"/> drops them all
+        /// (ticket S0007, WL-12).
+        /// </summary>
+        internal static List<int> SlotsFor(IEnumerable<Entry> entries, IntPtr hkl)
+        {
+            var ids = new List<int>();
+            foreach (Entry e in entries)
+                if (HklEquals(e.TargetHkl, hkl)) ids.Add(e.Id);
+            ids.Sort();
+            return ids;
+        }
+
+        /// <summary>Drop every assignment for <paramref name="hkl"/>.</summary>
         public static void Clear(IntPtr hkl)
         {
-            Entry? entry = FindFor(hkl);
-            if (entry != null) Remove(entry.Id);
+            foreach (int id in SlotsFor(ReadAll(), hkl)) Remove(id);
         }
 
         /// <summary>Delete one slot by id. Ignores ids outside the direct-switch range.</summary>
@@ -284,12 +303,13 @@ namespace CyrFlip
 
         /// <summary>
         /// Restore a <see cref="BackupAll"/> snapshot: clears the direct-switch range, then rewrites
-        /// exactly what was captured. An empty snapshot legitimately means "there was nothing here".
+        /// exactly what was captured. An empty row list legitimately means "there was nothing here"; a
+        /// snapshot that does not read returns false with nothing written (CF-4).
         /// </summary>
-        public static void RestoreAll(string json)
+        public static bool RestoreAll(string json)
         {
-            if (string.IsNullOrWhiteSpace(json)) return;
-            if (!TryParseBackup(json, out List<Dictionary<string, object>> rows, out Dictionary<string, object>? toggle)) return;
+            if (string.IsNullOrWhiteSpace(json)) return false;
+            if (!TryParseBackup(json, out List<Dictionary<string, object>> rows, out Dictionary<string, object>? toggle)) return false;
 
             if (toggle != null)
             {
@@ -325,6 +345,7 @@ namespace CyrFlip
                 catch { /* skip the malformed row, restore the rest */ }
             }
             ApplyToWindows();
+            return true;
         }
 
         // ---- Naming ----

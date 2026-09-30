@@ -13,9 +13,9 @@ namespace CyrFlip
     /// Tracks the active window's keyboard layout and surfaces it as a two-letter code - any layout
     /// Windows knows, not a fixed set. (spec §2.3 - layout detection + label rendering.)
     ///
-    /// Note: the spec describes replacing the mouse cursor globally. That requires
-    /// SetSystemCursor (system-wide, must be restored on crash) and is intentionally avoided
-    /// in v1. The same label is instead rendered into the tray icon via <see cref="RenderIcon"/>.
+    /// Note: replacing the mouse cursor globally requires SetSystemCursor (system-wide,
+    /// restored on exit/crash) and is handled by <see cref="LayoutCursor"/>. The same label
+    /// is also rendered into the tray icon via <see cref="RenderIcon"/>.
     /// </summary>
     internal sealed class CursorIndicator : IDisposable
     {
@@ -67,6 +67,10 @@ namespace CyrFlip
                 _lastKlid = klid;
                 _lastCaps = caps;
                 LayoutChanged?.Invoke(code, klid, caps);
+            }
+            else
+            {
+                LayoutPublisher.RetryIfPending();
             }
         }
 
@@ -127,9 +131,9 @@ namespace CyrFlip
             IntPtr hwnd = InputWindow(GetForegroundWindow());
             uint threadId = GetWindowThreadProcessId(hwnd, out _);
             IntPtr hkl = GetKeyboardLayout(threadId);
-            int langId = (int)((long)hkl & 0xFFFF);
             klid = LayoutIdentity.KlidForHkl(hkl);
-            return WorldLayouts.CodeForLangId(langId);
+            // One decode for letters and colour: a curated layout reads as its table code (S0036 UI-3).
+            return LayoutIdentity.CodeFor(unchecked((uint)(long)hkl), klid);
         }
 
         /// <summary>

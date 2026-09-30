@@ -16,10 +16,30 @@ namespace CyrFlip.Tests
         private static readonly Hotkey CtrlShiftF12 = Hotkey.Parse("Ctrl+Shift+F12");
         private static readonly Hotkey CtrlAltN = Hotkey.Parse("Ctrl+Alt+N");
 
+        /// <summary>What <c>GetAsyncKeyState</c> would say - the system's view, which a test moves by hand.</summary>
+        private sealed class SystemKeys
+        {
+            private readonly System.Collections.Generic.HashSet<int> _down = new System.Collections.Generic.HashSet<int>();
+
+            public SystemKeys(params uint[] down) { foreach (uint vk in down) _down.Add((int)vk); }
+
+            public bool IsDown(int vk) { lock (_down) return _down.Contains(vk); }
+            public void Down(uint vk) { lock (_down) _down.Add((int)vk); }
+            public void Up(uint vk) { lock (_down) _down.Remove((int)vk); }
+        }
+
         private sealed class Keyboard
         {
-            public readonly ChordMatcher Matcher = new ChordMatcher(new PhysicalModifiers());
+            public readonly ChordMatcher Matcher;
             private uint _time = 1000;
+
+            public Keyboard(Func<int, bool>? isDown = null, uint? repeatWindowMs = null)
+            {
+                Matcher = new ChordMatcher(new PhysicalModifiers(isDown), repeatWindowMs);
+            }
+
+            /// <summary>The time of the last event, in the hook's tick base.</summary>
+            public uint Now => _time;
 
             public ChordMatcher.Verdict Physical(uint vk, bool down, uint scan = 0, uint gap = 30)
             {
@@ -150,7 +170,7 @@ namespace CyrFlip.Tests
             kb.Physical(LShift, true);
             Assert.True(kb.Press(F12, CtrlShiftF12));
             // The up went to an elevated window and never reached the hook; much later, a new press.
-            Assert.True(kb.Press(F12, CtrlShiftF12, gap: ChordMatcher.RepeatWindowMs + 500));
+            Assert.True(kb.Press(F12, CtrlShiftF12, gap: kb.Matcher.RepeatWindowMs + 500));
         }
 
         [Fact]
@@ -211,21 +231,212 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void ResetForgetsAFiredTrigger()
-        {
-            var kb = new Keyboard();
-            kb.Physical(LCtrl, true);
-            kb.Physical(LShift, true);
-            Assert.True(kb.Press(F12, CtrlShiftF12));
-            kb.Matcher.Reset();
-            Assert.Equal(ChordMatcher.Verdict.Pass, kb.Physical(F12, false));
-        }
-
-        [Fact]
         public void RightCtrlCountsAsCtrl()
         {
             Assert.True(ChordMatcher.Matches(CtrlShiftF12, SideModifiers.RCtrl | SideModifiers.RShift, altGr: false));
             Assert.False(ChordMatcher.Matches(CtrlShiftF12, SideModifiers.RCtrl | SideModifiers.RShift, altGr: true));
         }
+
+        [Fact]
+        public void ReconcileDownwardsClearsStaleModifiersWhenAsyncStateIsUp()
+        {
+            bool lctrlDown = false;
+            var table = new PhysicalModifiers(vk => vk == 0xA2 && lctrlDown);
+            table.Track(LCtrl, 0x1D, 0, true);
+            Assert.Equal(SideModifiers.LCtrl, table.Held);
+
+            // GetAsyncKeyState says LCtrl is up -> Snapshot clears the stale bit
+            Assert.Equal(SideModifiers.None, table.Snapshot());
+            Assert.Equal(SideModifiers.None, table.Held);
+        }
+
+        [Fact]
+        public void StaleModifiersDoNotLetBareTriggerFire()
+        {
+            // Table recorded LCtrl + LShift, but key-ups happened on secure desktop (isDown returns false).
+            var kb = new Keyboard(isDown: _ => false);
+            kb.Physical(LCtrl, true);
+            kb.Physical(LShift, true);
+
+            // Lone F12 press must reconcile downwards and NOT fire Ctrl+Shift+F12
+            Assert.False(kb.Press(F12, CtrlShiftF12));
+            Assert.Equal(SideModifiers.None, kb.Matcher.Modifiers.Held);
+        }
+
+        [Theory]
+        [InlineData(0, 750u)]
+        [InlineData(1, 1000u)]
+        [InlineData(2, 1250u)]
+        [InlineData(3, 1500u)]
+        public void CalculateRepeatWindowMsMatchesKeyboardDelaySetting(int delay, uint expected)
+        {
+            Assert.Equal(expected, ChordMatcher.CalculateRepeatWindowMs(delay, marginMs: 500));
+        }
+
+        [Fact]
+        public void AutoRepeatAtOneSecondIsSwallowedUnderLongDelayWindow()
+        {
+            var kb = new Keyboard(repeatWindowMs: 1500);
+            kb.Physical(LCtrl, true);
+            kb.Physical(LShift, true);
+            Assert.True(kb.Press(F12, CtrlShiftF12));
+
+            // With KeyboardDelay=3 (1000 ms), the first repeat arrives at ~1050 ms.
+            // Under a 1500 ms window it must be swallowed rather than treated as a fresh press.
+            Assert.Equal(ChordMatcher.Verdict.Swallow, kb.Physical(F12, true, gap: 1050));
+        }
+
+        [Fact]
+        public void ResetKeepsATriggerHeldAcrossTheRearm()
+        {
+            // The system never saw the swallowed F12, so it reports it up throughout - the rule
+            // cannot ask the system, and must not.
+            var system = new SystemKeys(LCtrl, LShift);
+            var kb = new Keyboard(system.IsDown, repeatWindowMs: 1500);
+            kb.Physical(LCtrl, true);
+            kb.Physical(LShift, true);
+            Assert.True(kb.Press(F12, CtrlShiftF12));
+
+            // The watchdog re-arms during the keyboard's initial repeat delay.
+            kb.Matcher.Reset(kb.Now + 900);
+
+            Assert.Equal(ChordMatcher.Verdict.Swallow, kb.Physical(F12, true, gap: 1000)); // first repeat
+            Assert.Equal(ChordMatcher.Verdict.Swallow, kb.Physical(F12, false));           // the release
+        }
+
+        [Fact]
+        public void ResetForgetsATriggerWhoseUpWasLost()
+        {
+            var kb = new Keyboard(repeatWindowMs: 1500);
+            kb.Physical(LCtrl, true);
+            kb.Physical(LShift, true);
+            Assert.True(kb.Press(F12, CtrlShiftF12));
+
+            // No event for longer than the window: the up went somewhere the hook cannot see.
+            kb.Matcher.Reset(kb.Now + 1600);
+
+            Assert.True(kb.Press(F12, CtrlShiftF12, gap: 1700));
+        }
+
+        [Fact]
+        public void OurOwnReleaseOfAHeldKeyIsNotReconciledAway()
+        {
+            var system = new SystemKeys(LCtrl, LShift);
+            var kb = new Keyboard(system.IsDown);
+            kb.Physical(LCtrl, true);
+            kb.Physical(LShift, true);
+
+            // The plan releases the held Shift before its Ctrl+C: the hook sees our up first, then
+            // the system reports the key up although the user still holds it.
+            kb.Ours(LShift, false);
+            system.Up(LShift);
+
+            Assert.Equal(SideModifiers.LCtrl | SideModifiers.LShift, kb.Matcher.Modifiers.Snapshot());
+            // The second tap of the held chord still fires (KC-1 must not come back through KC2-1).
+            Assert.True(kb.Press(F12, CtrlShiftF12));
+
+            // The restore: our down, then the system agrees again, and the mark is gone - a later
+            // lost up of that key is reconciled like any other.
+            kb.Ours(LShift, true);
+            system.Down(LShift);
+            Assert.Equal(SideModifiers.LCtrl | SideModifiers.LShift, kb.Matcher.Modifiers.Snapshot());
+            system.Up(LShift);
+            Assert.Equal(SideModifiers.LCtrl, kb.Matcher.Modifiers.Snapshot());
+        }
+
+        [Fact]
+        public void TheUsersOwnReleaseEndsOurMark()
+        {
+            var system = new SystemKeys(LCtrl, LShift);
+            var kb = new Keyboard(system.IsDown);
+            kb.Physical(LCtrl, true);
+            kb.Physical(LShift, true);
+            kb.Ours(LShift, false);
+            system.Up(LShift);
+
+            kb.Physical(LShift, false); // the user lets go while the key was released by us
+            Assert.Equal(SideModifiers.LCtrl, kb.Matcher.Modifiers.Snapshot());
+
+            // Pressed again for real, then its up lost: reconciled, not protected by an old mark.
+            kb.Physical(LShift, true);
+            Assert.Equal(SideModifiers.LCtrl, kb.Matcher.Modifiers.Snapshot());
+        }
+
+        [Fact]
+        public void AStaleCtrlIsNotReusedByTheInjectionPlan()
+        {
+            // Ctrl+Alt+Del -> Cancel: the table still holds LCtrl, the system knows it is up.
+            var system = new SystemKeys();
+            var table = new PhysicalModifiers(system.IsDown);
+            table.Track(LCtrl, 0x1D, 0, true);
+
+            var plan = KeyInjection.CtrlChord(table.Snapshot(), 'C', out _);
+
+            // The plan presses its own Ctrl and lets it go - never a Ctrl down with no up.
+            Assert.Equal(PhysicalModifiers.VK_LCONTROL, plan[plan.Count - 1].Vk);
+            Assert.True(plan[plan.Count - 1].Up);
+        }
+
+        [Fact]
+        public void AnAltGrGuessIsReconciledAway()
+        {
+            var system = new SystemKeys(LCtrl, RAlt);
+            var table = new PhysicalModifiers(system.IsDown);
+            table.Refresh(system.IsDown);
+            Assert.True(table.AltGr);
+
+            system.Up(RAlt);
+            table.Snapshot();
+            Assert.False(table.AltGr);
+        }
+
+        [Fact]
+        public void ConcurrentTrackAndReconcileNeverLoseAKeyTheHookRecorded()
+        {
+            // The hook thread records presses while the clipboard worker reconciles: a key that is
+            // down in both the table and the system must survive every interleaving.
+            var system = new SystemKeys(LCtrl, LShift, RAlt);
+            var table = new PhysicalModifiers(system.IsDown);
+            table.Track(LCtrl, 0x1D, 0, true);
+            var worker = new System.Threading.Thread(() =>
+            {
+                for (int i = 0; i < 20000; i++) table.Snapshot();
+            });
+            worker.Start();
+            for (int i = 0; i < 20000; i++)
+            {
+                table.Track(LShift, 0x2A, 0, true);
+                table.Track(LShift, 0x2A, 0, false);
+            }
+            table.Track(LShift, 0x2A, 0, true);
+            worker.Join();
+
+            Assert.Equal(SideModifiers.LCtrl | SideModifiers.LShift, table.Snapshot());
+        }
+
+        [Fact]
+        public void RealLCtrlUpClearsAltGrSetByRefresh()
+        {
+            var table = new PhysicalModifiers();
+            table.Refresh(vk => vk == 0xA2 || vk == 0xA5); // LCtrl + RAlt -> AltGr flag set
+            Assert.True(table.AltGr);
+
+            // A real (non-0x21D) LCtrl up arrives
+            table.Track(LCtrl, 0x1D, 0, false);
+            Assert.False(table.AltGr);
+        }
+
+        [Fact]
+        public void RAltUpClearsAltGrSetByRefresh()
+        {
+            var table = new PhysicalModifiers();
+            table.Refresh(vk => vk == 0xA2 || vk == 0xA5); // LCtrl + RAlt -> AltGr flag set
+            Assert.True(table.AltGr);
+
+            // RAlt up arrives
+            table.Track(RAlt, 0x38, LLKHF_EXTENDED, false);
+            Assert.False(table.AltGr);
+        }
     }
 }
+

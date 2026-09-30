@@ -333,6 +333,67 @@ namespace CyrFlip.Tests
             Assert.Equal(1, Volatile.Read(ref created));
         }
 
+        /// <summary>
+        /// S0035 QN2-1: a write that fails (a full disk, a locked journal) keeps the note unsaved and
+        /// the failure showing until a write succeeds - it used to be cleared as saved and never
+        /// retried, and the edit was gone after a restart.
+        /// </summary>
+        [Fact]
+        public void AFailedWriteStaysPendingAndIsRetriedUntilItReachesTheJournal()
+        {
+            // A folder where the journal should be: every append fails until it is gone.
+            Directory.CreateDirectory(_path);
+            using QuickNotesService service = Service();
+            int failed = 0, recovered = 0;
+            service.SaveFailed += (_, _) => failed++;
+            service.SaveRecovered += (_, _) => recovered++;
+
+            QuickNote note = service.CreateDraft(QuickNoteKind.Text);
+            note.RawText = "must not be lost";
+            Assert.True(service.Commit(note));
+
+            Assert.Equal(1, failed);
+            Assert.True(service.SaveFailing, "the failure outlives the next repaint");
+            service.Flush();                        // still failing: still pending, still showing
+            Assert.True(service.SaveFailing);
+            Assert.Equal(0, recovered);
+
+            Directory.Delete(_path);
+            service.Flush();                        // the retry the debounce would make
+
+            Assert.False(service.SaveFailing);
+            Assert.Equal(1, recovered);
+            service.Dispose();
+            using QuickNotesService reopened = Service();
+            Assert.Equal("must not be lost", Assert.Single(reopened.Notes).RawText);
+        }
+
+        /// <summary>QN2-1: a delete that did not reach the journal is retried too - or the note comes back.</summary>
+        [Fact]
+        public void AFailedDeleteIsRetried()
+        {
+            using (QuickNotesService seed = Service())
+            {
+                QuickNote draft = seed.CreateDraft(QuickNoteKind.Text);
+                draft.RawText = "to be deleted";
+                seed.Commit(draft);
+            }
+            using QuickNotesService service = Service();
+            QuickNote note = Assert.Single(service.Notes);
+
+            using (new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                service.Delete(note);
+                Assert.True(service.SaveFailing);
+            }
+            service.Flush();
+
+            Assert.False(service.SaveFailing);
+            service.Dispose();
+            using QuickNotesService reopened = Service();
+            Assert.Empty(reopened.Notes);
+        }
+
         /// <summary>QN-2: the journal is compacted once it is due, not only at a clean exit.</summary>
         [Fact]
         public void SixHundredCommitsCompactTheJournalWithoutADispose()
@@ -369,8 +430,9 @@ namespace CyrFlip.Tests
 
         /// <summary>QN-2: the replay does not run on the thread that asked for it.</summary>
         [Fact]
-        public void ReplayingALargeJournalRunsOffTheCallingThread()
+        public async Task ReplayingALargeJournalRunsOffTheCallingThread()
         {
+            int callingThread = Thread.CurrentThread.ManagedThreadId;
             var seed = new QuickNotesStore(_path, new FakeCipher());
             for (int i = 0; i < 5000; i++)
                 seed.Create(new QuickNote { RawText = "note " + i, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(i) });
@@ -381,11 +443,13 @@ namespace CyrFlip.Tests
             Assert.Empty(service.Notes);
 
             Task loading = service.LoadAsync();
-            Assert.True(loading.Wait(TimeSpan.FromSeconds(30)));
+            Assert.Same(loading, await Task.WhenAny(loading, Task.Delay(TimeSpan.FromSeconds(30))));
+            await loading;
 
             Assert.True(service.IsLoaded);
             Assert.Equal(5000, service.Notes.Count);
-            Assert.DoesNotContain(Thread.CurrentThread.ManagedThreadId, cipher.Threads);
+            // The thread that asked, captured before the await - the continuation may run elsewhere.
+            Assert.DoesNotContain(callingThread, cipher.Threads);
             service.Dispose();
         }
 

@@ -16,12 +16,16 @@ namespace CyrFlip
         private bool _armed, _renderedEarly, _consumed, _lost;
         private long _consumedAt;
 
-        public PasteOffer(string text, uint locale, TransientMarks marks)
+        public PasteOffer(string text, uint locale, TransientMarks marks, uint targetProcessId = 0)
         {
             Text = text;
             Locale = locale;
             Marks = marks;
+            TargetProcessId = targetProcessId;
         }
+
+        /// <summary>The process of the window the Ctrl+V goes to; 0 when unknown.</summary>
+        public uint TargetProcessId { get; }
 
         public string Text { get; }
         public uint Locale { get; }
@@ -46,15 +50,30 @@ namespace CyrFlip
         /// </summary>
         public void Arm() { lock (_lock) _armed = true; }
 
-        internal void MarkRendered()
+        /// <param name="byTarget">
+        /// Whether the process that asked is the target (<see cref="IsTargetRead"/>). A render by
+        /// anyone else - a clipboard manager that ignores the markers, fetching the text 30-200 ms after
+        /// the update - is not the proof the restore waits for, and since rendered text is never asked
+        /// for again, the target's own later read is unobservable: the fixed wait takes over (S0032 FP2-3).
+        /// </param>
+        internal void MarkRendered(bool byTarget = true)
         {
             lock (_lock)
             {
-                if (!_armed) _renderedEarly = true;
+                if (!_armed || (!byTarget && !_consumed)) _renderedEarly = true;
                 else if (!_consumed) { _consumed = true; _consumedAt = PasteWait.NowMs(); }
                 Monitor.PulseAll(_lock);
             }
         }
+
+        /// <summary>
+        /// Is a read by <paramref name="requesterProcessId"/> the target's own? Yes for the target's
+        /// process and for a known remote/VM clipboard bridge; also yes when either side is unknown
+        /// (0) - a requester that opens the clipboard without a window is most likely the app that was
+        /// just told to paste, and "unknown" must not turn every such paste into the fixed wait.
+        /// </summary>
+        internal static bool IsTargetRead(uint requesterProcessId, uint targetProcessId, bool requesterIsBridge)
+            => requesterProcessId == 0 || targetProcessId == 0 || requesterProcessId == targetProcessId || requesterIsBridge;
 
         internal void MarkLost()
         {
@@ -135,11 +154,15 @@ namespace CyrFlip
 
         private static readonly object SharedLock = new object();
         private static ClipboardOwner? _shared;
-        private static bool _unavailable;
+        private static bool _shutDown;
+        private static long _retryAfterMs = long.MinValue;
+        private static int _failedStarts;
 
         /// <summary>
         /// The process-wide owner, started on first use; null when it could not be started, in which
-        /// case the caller falls back to the plain write. A failed start is not retried every flip.
+        /// case the caller falls back to the plain write. A failed start is retried after a back-off
+        /// (<see cref="RetryDelayMs"/>) rather than never again (S0032 FP2-6): one slow window creation
+        /// on a loaded machine used to put every later flip back on the fixed 140 ms race until restart.
         /// </summary>
         public static ClipboardOwner? Shared
         {
@@ -147,16 +170,31 @@ namespace CyrFlip
             {
                 lock (SharedLock)
                 {
-                    if (_shared != null || _unavailable) return _shared;
-                    try { _shared = new ClipboardOwner(); }
+                    if (_shared != null || _shutDown) return _shared;
+                    long now = PasteWait.NowMs();
+                    if (now < _retryAfterMs) return null;
+                    try
+                    {
+                        _shared = new ClipboardOwner();
+                        _failedStarts = 0;
+                    }
                     catch (Exception ex)
                     {
-                        _unavailable = true;
-                        ClipboardFlipLog.Log("clipboard owner unavailable: " + ex.GetType().Name);
+                        _failedStarts++;
+                        _retryAfterMs = now + RetryDelayMs(_failedStarts);
+                        ClipboardFlipLog.Log("clipboard owner unavailable (" + _failedStarts + "): " + ex.GetType().Name);
                     }
                     return _shared;
                 }
             }
+        }
+
+        /// <summary>The back-off after the n-th failed start in a row: 30 s, 1, 2, 4 .. capped at 30 minutes.</summary>
+        internal static long RetryDelayMs(int failedStarts)
+        {
+            if (failedStarts <= 0) return 0;
+            long delay = 30000L << Math.Min(failedStarts - 1, 6);
+            return Math.Min(delay, 30L * 60 * 1000);
         }
 
         /// <summary>Stop the shared owner if one was ever started (application exit).</summary>
@@ -167,7 +205,7 @@ namespace CyrFlip
             {
                 owner = _shared;
                 _shared = null;
-                _unavailable = true;
+                _shutDown = true;
             }
             owner?.Dispose();
         }
@@ -188,9 +226,21 @@ namespace CyrFlip
             _thread = new Thread(Pump) { IsBackground = true, Name = "CyrFlip clipboard owner" };
             _thread.SetApartmentState(ApartmentState.STA);
             _thread.Start();
-            if (!_ready.Wait(3000) || _hwnd == IntPtr.Zero)
+            if (!_ready.Wait(3000))
+            {
+                // The thread is still creating its window. Mark this instance abandoned, so the window
+                // it creates later stops its own loop instead of pumping, unreferenced, for the rest of
+                // the process's life (S0032 FP2-6).
+                _abandoned = true;
+                if (_ready.IsSet && _hwnd != IntPtr.Zero)
+                    PostMessage(_hwnd, WM_APP_STOP, IntPtr.Zero, IntPtr.Zero);
+                throw new InvalidOperationException("The clipboard owner window was not created in time.");
+            }
+            if (_hwnd == IntPtr.Zero)
                 throw new InvalidOperationException("The clipboard owner window was not created.");
         }
+
+        private volatile bool _abandoned;
 
         /// <summary>
         /// Put <paramref name="text"/> on the clipboard as a delayed-rendered paste. Returns null when
@@ -201,9 +251,12 @@ namespace CyrFlip
         /// Win+V and - the point here - keeps a well-behaved clipboard monitor from fetching it before
         /// the target does, which would hide the target's own read from us.
         /// </param>
-        public PasteOffer? Offer(string text, uint locale, TransientMarks marks)
+        /// <param name="target">The window the Ctrl+V goes to - whose read counts as the paste (S0032 FP2-3).</param>
+        public PasteOffer? Offer(string text, uint locale, TransientMarks marks, IntPtr target = default)
         {
-            var offer = new PasteOffer(text, locale, marks);
+            uint targetPid = 0;
+            if (target != IntPtr.Zero) GetWindowThreadProcessId(target, out targetPid);
+            var offer = new PasteOffer(text, locale, marks, targetPid);
             lock (_requestLock) _request = offer;
             try
             {
@@ -236,6 +289,12 @@ namespace CyrFlip
             catch { _hwnd = IntPtr.Zero; }
             finally { _ready.Set(); }
             if (_hwnd == IntPtr.Zero) return;
+            if (_abandoned)
+            {
+                // Created after the constructor gave up on it: nobody holds this instance.
+                try { window.DestroyHandle(); } catch { }
+                return;
+            }
 
             while (GetMessage(out MSG msg, IntPtr.Zero, 0, 0) > 0)
             {
@@ -299,15 +358,19 @@ namespace CyrFlip
                 if (!OpenClipboard(_hwnd)) return;
                 try
                 {
-                    if (GetClipboardOwner() == _hwnd) SetText(offer);
+                    if (GetClipboardOwner() == _hwnd) SetText(offer, byTarget: true);
                 }
                 finally { CloseClipboard(); }
                 return;
             }
             // Inside WM_RENDERFORMAT the requester holds the clipboard open - usually with a window of
             // its own, which names the process that asked.
-            if (offer.RenderedBy.Length == 0) offer.RenderedBy = ProcessOf(GetOpenClipboardWindow());
-            SetText(offer);
+            IntPtr requester = GetOpenClipboardWindow();
+            if (offer.RenderedBy.Length == 0) offer.RenderedBy = ProcessOf(requester);
+            uint requesterPid = 0;
+            if (requester != IntPtr.Zero) GetWindowThreadProcessId(requester, out requesterPid);
+            bool bridge = requester != IntPtr.Zero && RemoteDesktop.IsSlowClipboardTarget(requester);
+            SetText(offer, PasteOffer.IsTargetRead(requesterPid, offer.TargetProcessId, bridge));
         }
 
         private static string ProcessOf(IntPtr hwnd)
@@ -322,7 +385,8 @@ namespace CyrFlip
             catch { return "(unknown)"; }
         }
 
-        private static void SetText(PasteOffer offer)
+        /// <param name="byTarget">Whether this render is the target taking the paste (see <see cref="PasteOffer.MarkRendered"/>).</param>
+        private static void SetText(PasteOffer offer, bool byTarget)
         {
             IntPtr hMem = Win32Clipboard.AllocBytes(Win32Clipboard.UnicodeBytes(offer.Text));
             if (hMem == IntPtr.Zero) return;
@@ -331,7 +395,7 @@ namespace CyrFlip
                 Win32Clipboard.FreeBytes(hMem); // ownership not transferred on failure
                 return;
             }
-            offer.MarkRendered();
+            offer.MarkRendered(byTarget);
         }
 
         private bool WndProc(ref Message m)

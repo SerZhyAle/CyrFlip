@@ -288,6 +288,20 @@ namespace CyrFlip
                 bn: "{0} একসঙ্গে দুটি কাজে নির্ধারিত: «{1}» ও «{2}»। শুধু একটি চলবে - একটি সংমিশ্রণ বদলান।",
                 ur: "{0} ایک ساتھ دو کاموں کو دیا گیا ہے: «{1}» اور «{2}»۔ صرف ایک چلے گا - کسی ایک مجموعے کو بدلیں۔",
                 zh: "{0} 同时分配给了两个操作：「{1}」和「{2}」。只有一个会生效 - 请更改其中一个组合键。");
+
+            Add("Удалить сохранённое сочетание для неустановленной раскладки?",
+                en: "Delete saved shortcut for the uninstalled layout?",
+                uk: "Видалити збережену комбінацію для невстановленої розкладки?",
+                de: "Gespeicherte Tastenkombination für die nicht installierte Tastaturbelegung löschen?",
+                it: "Eliminare la scorciatoia salvata per il layout non installato?",
+                es: "¿Eliminar el acceso directo guardado para la distribución no instalada?",
+                fr: "Supprimer le raccourci enregistré pour la disposition non installée ?",
+                pt: "Excluir o atalho salvo para o layout não instalado?",
+                ar: "هل تريد حذف الاختصار المحفوظ للتخطيط غير المثبت؟",
+                hi: "क्या अनइंस्टॉल किए गए लेआउट के लिए सहेजा गया शॉर्टकट हटाएं?",
+                bn: "আনইনস্টল করা লেআউটের সংরক্ষিত শর্টকাট কি মুছবেন?",
+                ur: "کیا ان انسٹال شدہ لے آؤٹ کے لیے محفوظ کردہ شارٹ کٹ کو حذف کریں؟",
+                zh: "是否删除未安装键盘布局的已保存快捷键？");
         }
     }
 }

@@ -17,6 +17,12 @@ namespace CyrFlip.Tests
         public bool Locked { get; set; }
         public uint SequenceNumber { get; set; } = 100;
         public int Opens { get; private set; }
+
+        /// <summary>
+        /// Every read of a content format moves the sequence - a delay-rendering owner (Excel) rendering
+        /// on demand (S0032 FP2-1).
+        /// </summary>
+        public bool BumpSequenceOnRead { get; set; }
         public bool IsOpen { get; private set; }
 
         /// <summary>Put a format on the clipboard; null data is an announced format with nothing in it.</summary>
@@ -53,6 +59,8 @@ namespace CyrFlip.Tests
         public ClipboardRead Read(uint format, int maxBytes, out byte[]? data)
         {
             data = null;
+            if (BumpSequenceOnRead && (format == WindowInterop.CF_UNICODETEXT || format == WindowInterop.CF_DIB || format == WindowInterop.CF_HDROP))
+                SequenceNumber++;
             if (_failing.Contains(format) || !_formats.TryGetValue(format, out byte[]? stored)) return ClipboardRead.Failed;
             if (stored == null || stored.Length == 0) return ClipboardRead.Empty;
             if (stored.Length > maxBytes) return ClipboardRead.TooLarge;

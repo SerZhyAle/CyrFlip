@@ -42,8 +42,16 @@ GitHub-минуты **не тратятся**.
 
 ```powershell
 .\release.ps1            # PREFLIGHT: проверки + локальный build/test + печать чек-листа. Без изменений в git.
+.\release.ps1 -Offline   # PREFLIGHT без сетевых проверок (если origin недоступен)
 .\release.ps1 -Push      # после зелёного preflight: создать тег vX и запустить сборку на GitHub
 ```
+
+### Коды возврата preflight (`CHECK-VERDICT`)
+- `0`: PASS — все проверки пройдены, локальный билд и тесты зелёные, чек-лист распечатан.
+- `1`: FAIL — дефект (упали тесты, не сошлись зеркала описания в Store или CSV).
+- `2`: NOT VERIFIED — проверка не смогла завершиться (отсутствует `dotnet`, недоступен `origin` без флага `-Offline`, etc.).
+- Последней строкой в stdout всегда выводится строка вердикта: `release-preflight <ver>: PASS|FAIL (n)|NOT VERIFIED (n)`.
+
 
 ### Что делает `-Push`
 1. Создаёт **пустой коммит** `release: vX.Y.Z` (якорь без `[skip ci]`).
@@ -68,7 +76,8 @@ GitHub-минуты **не тратятся**.
    `winget install --manifest <dir>` и `wingetcreate submit --prtitle "SerZhyAle.CyrFlip version <ver>"`.
    **Тело PR заполнить руками** (`gh pr edit`): `wingetcreate` отправляет шаблон Microsoft нетронутым,
    с пустым описанием и снятыми галочками, и такой PR читается как «ничего не проверено».
-4. **Microsoft Store (MSIX)** - `msix\build-msix.ps1` с реальной identity (Store ID `9NB4W41NGQJ4`),
+4. **Microsoft Store (MSIX)** - `msix\build-msix.ps1 -ReleaseZip <ZIP релиза> -Version <версия>` (identity
+   Store - его значение по умолчанию; Store ID `9NB4W41NGQJ4`),
    затем Partner Center → Create new submission → заменить `.msix` → *Store listings → Import* из
    `msix/store-listing-export.csv` (источник истины, все 13 языков; `msix/store-listings.md` и
    `store/listing-*.txt` **генерируются** из него скриптом `msix/render-listing-mirrors.ps1` и годятся

@@ -175,7 +175,7 @@ namespace CyrFlip
 
         /// <summary>
         /// Ask the real sources about the focused element and about the element under
-        /// (<paramref name="x"/>, <paramref name="y"/>). Must run on an MTA thread - see <see cref="Start"/>.
+        /// (<paramref name="x"/>, <paramref name="y"/>). Must run on an MTA thread - see <see cref="Worker"/>.
         /// </summary>
         public static SelectionSnapshot Probe(int x, int y) => Decide(Sources(x, y));
 
@@ -197,41 +197,118 @@ namespace CyrFlip
             yield return () => FromUia(AutomationElement.FocusedElement);
         }
 
+        private static LaunchTarget? ParseLaunchTarget(string text)
+            => LaunchTargets.TryParse(text, out LaunchTarget? launch) ? launch : null;
+
         /// <summary>
-        /// Start probing in the background and hand back a handle to collect the answer from. Called
-        /// when the chord goes <b>down</b> and read when it comes <b>up</b>, so the 80-150 ms a user
-        /// spends holding the button pays for the cross-process calls - no artificial delay.
+        /// The one thread every probe runs on, created with the mouse hook and stopped with it
+        /// (ticket S0030 HT-3). The hook callback used to <b>create and start</b> a thread per chord
+        /// press - usually sub-millisecond, but thread creation is exactly what stalls under memory
+        /// pressure, inside a callback Windows drops after ~300 ms. Now the callback only stamps the
+        /// request (<see cref="Request"/>: time, position) and sets an event; this worker, already
+        /// running, does the probing. A request that is overtaken before the worker reaches it - the
+        /// fast second click of a double click - is answered Unknown at once instead of being probed
+        /// by a second thread nobody reads any more.
         /// </summary>
-        public static Run Start(int x, int y)
+        internal sealed class Worker : IDisposable
         {
-            var run = new Run(x, y);
-            var thread = new Thread(run.Execute) { IsBackground = true };
-            // COM here is cross-process UIA/IAccessible2, exactly as in CaretOverlay's tracker.
-            thread.SetApartmentState(ApartmentState.MTA);
-            thread.Start();
-            return run;
+            private readonly AutoResetEvent _signal = new AutoResetEvent(false);
+            private readonly Func<int, int, SelectionSnapshot> _probe;
+            private readonly Func<string, LaunchTarget?> _parse;
+            private readonly object _gate = new object();
+            private Run? _pending;
+            private volatile bool _stopped;
+
+            /// <param name="probe">Replaces the real <see cref="Probe"/> in tests.</param>
+            /// <param name="parse">Replaces the real launch-target parse in tests.</param>
+            internal Worker(Func<int, int, SelectionSnapshot>? probe = null, Func<string, LaunchTarget?>? parse = null)
+            {
+                _probe = probe ?? Probe;
+                _parse = parse ?? ParseLaunchTarget;
+                var thread = new Thread(Loop) { IsBackground = true, Name = "CyrFlip selection probe" };
+                // COM here is cross-process UIA/IAccessible2, exactly as in CaretOverlay's tracker.
+                thread.SetApartmentState(ApartmentState.MTA);
+                thread.Start();
+            }
+
+            /// <summary>
+            /// Called from the hook callback when the chord goes <b>down</b>, read with
+            /// <see cref="Run.Collect"/> when it comes <b>up</b>, so the 80-150 ms a user spends
+            /// holding the button pays for the cross-process calls. Stamps and signals - nothing else.
+            /// </summary>
+            internal Run Request(int x, int y)
+            {
+                var run = new Run(x, y, _probe, _parse);
+                Run? overtaken;
+                lock (_gate)
+                {
+                    overtaken = _pending;
+                    _pending = run;
+                }
+                overtaken?.Abandon();
+                if (_stopped) run.Abandon();
+                else _signal.Set();
+                return run;
+            }
+
+            private void Loop()
+            {
+                while (!_stopped)
+                {
+                    _signal.WaitOne();
+                    Run? run;
+                    lock (_gate)
+                    {
+                        run = _pending;
+                        _pending = null;
+                    }
+                    if (_stopped) { run?.Abandon(); return; }
+                    run?.Execute();
+                }
+            }
+
+            public void Dispose()
+            {
+                _stopped = true;
+                try { _signal.Set(); } catch (ObjectDisposedException) { }
+            }
         }
 
-        /// <summary>A probe in flight; <see cref="Collect"/> takes whatever it has by the deadline.</summary>
+        /// <summary>A probe requested; <see cref="Collect"/> takes whatever it has by the deadline.</summary>
         internal sealed class Run
         {
             private readonly ManualResetEventSlim _done = new ManualResetEventSlim(false);
             private readonly int _startedAt = Environment.TickCount;
             private readonly int _x, _y;
+            private readonly Func<int, int, SelectionSnapshot> _probe;
+            private readonly Func<string, LaunchTarget?> _parse;
             private SelectionSnapshot _snapshot = SelectionSnapshot.Unknown;
 
-            internal Run(int x, int y) { _x = x; _y = y; }
+            internal Run(int x, int y, Func<int, int, SelectionSnapshot> probe, Func<string, LaunchTarget?>? parse = null)
+            {
+                _x = x; _y = y; _probe = probe; _parse = parse ?? ParseLaunchTarget;
+            }
+
+            /// <summary>Never probed (overtaken, or the worker stopped): Unknown, at once.</summary>
+            internal void Abandon() => _done.Set();
+
+            /// <summary>Test seam: wait for the answer without the UI thread's cap.</summary>
+            internal bool WaitDone(int milliseconds) => _done.Wait(milliseconds);
 
             internal void Execute()
             {
                 try
                 {
-                    SelectionSnapshot snapshot = Probe(_x, _y);
+                    SelectionSnapshot snapshot = _probe(_x, _y);
+                    // Published before the parse (S0034 LS2-5): a parse still asking a slow disk
+                    // when Collect gives up must cost only the launch item, not the verdict and the
+                    // counts the probe already has.
+                    Volatile.Write(ref _snapshot, snapshot);
                     // Here, not when the menu is built: the parse may ask the disk whether a path
                     // exists, and that must never happen on the hooks' thread.
-                    if (snapshot.Text != null && LaunchTargets.TryParse(snapshot.Text, out LaunchTarget? launch))
-                        snapshot = snapshot.WithLaunch(launch);
-                    Volatile.Write(ref _snapshot, snapshot);
+                    LaunchTarget? launch = snapshot.Text != null ? _parse(snapshot.Text) : null;
+                    if (launch != null)
+                        Volatile.Write(ref _snapshot, snapshot.WithLaunch(launch));
                 }
                 catch { /* stays Unknown - the menu shows everything enabled */ }
                 finally { _done.Set(); }

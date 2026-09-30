@@ -20,10 +20,73 @@ namespace CyrFlip
         string? Unprotect(string cipher);
     }
 
+    /// <summary>
+    /// A cipher that can tell a whole ciphertext it cannot open from a <b>fragment</b> of one (S0035
+    /// QN2-2). The first may open again - a DPAPI key lost to an admin password reset comes back when
+    /// that is undone - and is carried; the second, a record a kill cut off mid-append, never will.
+    /// Optional: a cipher without it is judged by whether the line is base64 at all.
+    /// </summary>
+    internal interface IQuickNotesCipherShape
+    {
+        bool IsWhole(string cipher);
+    }
+
     /// <summary>DPAPI, scoped to the current Windows user (spec §5.3).</summary>
-    internal sealed class QuickNotesCipher : IQuickNotesCipher
+    internal sealed class QuickNotesCipher : IQuickNotesCipher, IQuickNotesCipherShape
     {
         public static readonly QuickNotesCipher Dpapi = new QuickNotesCipher();
+
+        /// <summary>The DPAPI provider every <c>CryptProtectData</c> blob names: df9d8cd0-1501-11d1-8c7a-00c04fc297eb.</summary>
+        private static readonly Guid DpapiProvider = new Guid("df9d8cd0-1501-11d1-8c7a-00c04fc297eb");
+
+        public bool IsWhole(string cipher)
+        {
+            byte[] blob;
+            try { blob = Convert.FromBase64String(cipher); }
+            catch { return false; } // not even base64 - a fragment cut mid-character
+            return IsWholeBlob(blob);
+        }
+
+        /// <summary>
+        /// Walks the blob <c>CryptProtectData</c> writes - version, provider, master key version and id,
+        /// flags, then the description, cipher, salt, HMAC key, hash, second HMAC key, data and
+        /// signature, each length-prefixed - and says whether every field is all there. A fragment of a
+        /// blob runs out of bytes on the way; a whole one does not. Anything that does not start like a
+        /// DPAPI blob is called whole: the rule only ever drops what it is sure of.
+        /// </summary>
+        internal static bool IsWholeBlob(byte[] blob)
+        {
+            int at = 0;
+            bool Take(int count)
+            {
+                if (count < 0 || blob.Length - at < count) return false;
+                at += count;
+                return true;
+            }
+            bool Sized()
+            {
+                if (blob.Length - at < 4) return false;
+                int length = BitConverter.ToInt32(blob, at);
+                at += 4;
+                return Take(length);
+            }
+
+            if (blob.Length < 20) return false;
+            if (BitConverter.ToInt32(blob, 0) != 1) return true;
+            var provider = new byte[16];
+            Array.Copy(blob, 4, provider, 0, 16);
+            if (new Guid(provider) != DpapiProvider) return true;
+            at = 20;
+            return Take(4 + 16 + 4)         // master key version, master key id, flags
+                && Sized()                  // description
+                && Take(4 + 4)              // cipher algorithm, its key length
+                && Sized()                  // salt
+                && Sized()                  // HMAC key
+                && Take(4 + 4)              // hash algorithm, its length
+                && Sized()                  // second HMAC key
+                && Sized()                  // the data
+                && Sized();                 // the signature
+        }
 
         public string Protect(string plain)
             => Convert.ToBase64String(ProtectedData.Protect(
@@ -85,6 +148,17 @@ namespace CyrFlip
         // thread pool thread while the UI thread may be committing an edit of its own.
         private readonly object _gate = new object();
         private int _operations;
+        // The operation count at which the next compaction is due: the size of a fresh snapshot plus
+        // CompactAfterOperations, i.e. once that many records are more than the notes need (S0035
+        // QN2-8). A plain ">= 500 records" rewrote every note on every save for anyone with 500 notes,
+        // and after a failed compaction the same again every 750 ms of typing.
+        private int _compactAt = CompactAfterOperations;
+        // The last Load met fragments of records (a kill mid-append): one compaction drops them, so
+        // the next start does not warn about them again (S0035 QN2-2).
+        private bool _dropFragments;
+        // Ids whose last record in the replayed journal is a delete - what a merge must not bring back
+        // (S0035 QN2-7).
+        private readonly HashSet<Guid> _deleted = new HashSet<Guid>();
         // The last Load stopped part way through the file (locked, an I/O error). What it replayed is
         // only the head of the journal, so a snapshot of it must never replace the journal.
         private bool _readFailed;
@@ -118,6 +192,18 @@ namespace CyrFlip
         public int SkippedRecords { get; private set; }
 
         /// <summary>
+        /// Of <see cref="SkippedRecords"/>, the fragments of records cut off mid-append - never
+        /// readable, so not carried by a compaction (S0035 QN2-2).
+        /// </summary>
+        public int TornRecords { get; private set; }
+
+        /// <summary>Ids the last <see cref="Load"/> saw deleted and not created again.</summary>
+        public IReadOnlyCollection<Guid> DeletedIds
+        {
+            get { lock (_gate) return new List<Guid>(_deleted); }
+        }
+
+        /// <summary>
         /// True when the last <see cref="Load"/> found no journal but a <c>.bak</c>, and brought the
         /// notes back from it. Said once, by the caller - a silent empty list is the failure it avoids.
         /// </summary>
@@ -126,8 +212,11 @@ namespace CyrFlip
         /// <summary>Operations appended since the journal was last written whole.</summary>
         public int PendingOperations => _operations;
 
-        /// <summary>True once enough has been appended that a snapshot would pay for itself.</summary>
-        public bool NeedsCompaction => !_readFailed && _operations >= CompactAfterOperations;
+        /// <summary>
+        /// True once enough has been appended that a snapshot would pay for itself, or when the last
+        /// load met fragments a snapshot would drop.
+        /// </summary>
+        public bool NeedsCompaction => !_readFailed && (_operations >= _compactAt || _dropFragments);
 
         /// <summary>
         /// Replay the journal into the live set of notes, newest first. A missing file is an empty
@@ -136,6 +225,7 @@ namespace CyrFlip
         public List<QuickNote> Load()
         {
             SkippedRecords = 0;
+            TornRecords = 0;
             RecoveredFromBackup = false;
             var byId = new Dictionary<Guid, QuickNote>();
             var order = new List<Guid>();
@@ -143,7 +233,10 @@ namespace CyrFlip
             {
                 _operations = 0;
                 _readFailed = false;
+                _dropFragments = false;
+                _compactAt = CompactAfterOperations;
                 _unreadable.Clear();
+                _deleted.Clear();
                 if (!File.Exists(_path) && !TryRestoreBackup()) return new List<QuickNote>();
                 try
                 {
@@ -151,22 +244,27 @@ namespace CyrFlip
                     {
                         if (line.Length == 0) continue;
                         _operations++;
-                        Record? record = ReadRecord(line);
+                        Record? record = ReadRecord(line, out bool opened);
                         if (record == null || !Guid.TryParse(record.Id, out Guid id))
                         {
                             SkippedRecords++;
-                            _unreadable.Add(line);
+                            // What opens but is no record may be a later format; a whole ciphertext
+                            // may open again. Only a fragment is let go of (QN2-2).
+                            if (opened || IsWhole(line)) _unreadable.Add(line);
+                            else TornRecords++;
                             continue;
                         }
 
                         if (record.Action == ActionDelete)
                         {
                             if (byId.Remove(id)) order.Remove(id);
+                            _deleted.Add(id);
                             continue;
                         }
                         QuickNote note = ToNote(record, id);
                         if (!byId.ContainsKey(id)) order.Add(id);
                         byId[id] = note;
+                        _deleted.Remove(id);
                     }
                 }
                 catch (Exception ex)
@@ -176,10 +274,13 @@ namespace CyrFlip
                     _readFailed = true;
                     QuickNotesLog.Log("journal read failed: " + ex.GetType().Name + " " + ex.Message);
                 }
+                _compactAt = byId.Count + _unreadable.Count + CompactAfterOperations;
+                _dropFragments = TornRecords > 0;
             }
 
             if (SkippedRecords > 0)
-                QuickNotesLog.Log("replay skipped " + SkippedRecords + " unreadable record(s) of " + _operations);
+                QuickNotesLog.Log("replay skipped " + SkippedRecords + " unreadable record(s) of " + _operations
+                    + (TornRecords > 0 ? ", " + TornRecords + " of them fragments dropped at the next compaction" : ""));
 
             var notes = new List<QuickNote>(byId.Count);
             foreach (Guid id in order)
@@ -226,6 +327,41 @@ namespace CyrFlip
         {
             var record = new Record { Action = ActionDelete, Id = id.ToString("D") };
             return WriteLine(record);
+        }
+
+        /// <summary>
+        /// Record many creations and updates in <b>one</b> append - an import of a few thousand notes
+        /// (ticket S0030 HT-2). Each record is encrypted on the calling thread, which the caller makes
+        /// a worker; the file is opened once. The notes must not change while this runs. False when
+        /// nothing was written; the records are then in memory only, as with a failed single append.
+        /// </summary>
+        public bool AppendBatch(IEnumerable<KeyValuePair<bool, QuickNote>> createdAndNotes)
+        {
+            try
+            {
+                lock (_gate) // the serializer is shared with every other write, all of them under this lock
+                {
+                    var text = new StringBuilder();
+                    int count = 0;
+                    foreach (KeyValuePair<bool, QuickNote> pair in createdAndNotes)
+                    {
+                        // Leading line break, as in WriteLine (QN-7).
+                        text.Append(Environment.NewLine)
+                            .Append(_cipher.Protect(_json.Serialize(ToRecord(pair.Key ? ActionCreate : ActionUpdate, pair.Value))));
+                        count++;
+                    }
+                    if (count == 0) return true;
+                    Directory.CreateDirectory(System.IO.Path.GetDirectoryName(_path)!);
+                    File.AppendAllText(_path, text.ToString(), Encoding.UTF8);
+                    _operations += count;
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                QuickNotesLog.Log("batch append failed: " + ex.GetType().Name + " " + ex.Message);
+                return false;
+            }
         }
 
         private bool Append(string action, QuickNote note)
@@ -308,10 +444,17 @@ namespace CyrFlip
                     if (File.Exists(_path)) ReplaceFile(temp, _path, BackupPath);
                     else File.Move(temp, _path);
                     _operations = count;
+                    _compactAt = count + CompactAfterOperations;
+                    _dropFragments = false;
                 }
                 catch (Exception ex)
                 {
                     QuickNotesLog.Log("compaction failed: " + ex.GetType().Name + " " + ex.Message);
+                    // Not again on the next save (QN2-8): a replace that fails once - a backup tool
+                    // holding the journal without delete sharing - tends to fail every time, and each
+                    // try re-encrypts and rewrites every note.
+                    _compactAt = _operations + CompactAfterOperations;
+                    _dropFragments = false;
                     // File.Replace can fail half way: the journal already renamed to .bak and the
                     // replacement not moved in (an antivirus holding the .tmp). Deleting the .tmp
                     // then left no journal at all, and the next start showed an empty list without
@@ -335,7 +478,10 @@ namespace CyrFlip
 
         /// <summary>
         /// "Delete every quick note": the journal and its backup both go (spec §5.3). Leaving the
-        /// <c>.bak</c> behind would mean the notes the user just destroyed are still on disk.
+        /// <c>.bak</c> behind would mean the notes the user just destroyed are still on disk - and so
+        /// would the <c>.tmp</c> a crash mid-compaction leaves (a whole snapshot) and the journals the
+        /// S0016 migration kept beside this one, <c>quick-notes.migrated-&lt;date&gt;.log</c> with their
+        /// <c>.bak</c> and merge marker (S0035 QN2-3).
         /// </summary>
         public void DeleteEverything()
         {
@@ -343,20 +489,54 @@ namespace CyrFlip
             {
                 try { if (File.Exists(_path)) File.Delete(_path); } catch { }
                 try { if (File.Exists(BackupPath)) File.Delete(BackupPath); } catch { }
+                try { if (File.Exists(_path + ".tmp")) File.Delete(_path + ".tmp"); } catch { }
+                foreach (string kept in MigratedJournals(System.IO.Path.GetDirectoryName(_path) ?? "", "*"))
+                    try { File.Delete(kept); } catch { }
                 _operations = 0;
+                _compactAt = CompactAfterOperations;
                 _readFailed = false;
+                _dropFragments = false;
                 // "Everything" includes what could not be read: carrying it into the next journal
                 // would keep on disk exactly what the user asked to destroy.
                 _unreadable.Clear();
+                _deleted.Clear();
             }
         }
 
-        private Record? ReadRecord(string line)
+        /// <summary>The name the S0016 migration gives a journal it keeps: <c>quick-notes.migrated-yyyyMMdd[-n].log</c>.</summary>
+        internal static string MigratedPrefix => System.IO.Path.GetFileNameWithoutExtension(FileName) + ".migrated-";
+
+        /// <summary>
+        /// The migration's kept journals in <paramref name="folder"/>, by <paramref name="suffix"/>
+        /// (<c>*.log</c> for the journals themselves, <c>*</c> for them and everything beside them).
+        /// </summary>
+        internal static string[] MigratedJournals(string folder, string suffix)
         {
+            try
+            {
+                return Directory.Exists(folder)
+                    ? Directory.GetFiles(folder, MigratedPrefix + suffix)
+                    : new string[0];
+            }
+            catch { return new string[0]; }
+        }
+
+        /// <summary>A line the cipher cannot open: whole (may open later) or a fragment (never will)?</summary>
+        private bool IsWhole(string line)
+        {
+            if (_cipher is IQuickNotesCipherShape shape) return shape.IsWhole(line);
+            try { Convert.FromBase64String(line); return true; }
+            catch { return false; }
+        }
+
+        private Record? ReadRecord(string line, out bool opened)
+        {
+            opened = false;
             try
             {
                 string? plain = _cipher.Unprotect(line);
                 if (plain == null) return null;
+                opened = true;
                 Record? record = _json.Deserialize<Record>(plain);
                 if (record == null || string.IsNullOrEmpty(record.Id) || string.IsNullOrEmpty(record.Action))
                     return null;

@@ -93,6 +93,16 @@ if ($running) {
         ForEach-Object { Join-Path $legacy $_ } | Where-Object { Test-Path $_ } |
         Where-Object { (Get-Acl $_).GetOwner([System.Security.Principal.SecurityIdentifier]) -eq $me }
     Check 'no file of this user left in %ProgramData%\CyrFlip after the migration' (-not $leftovers) ($leftovers -join ', ')
+
+    # S0035 QN2-5: a moved file carries its new folder's ACL, not the Users-read ACE of %ProgramData%.
+    $users = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinUsersSid, $null)
+    $moved = @(Join-Path $folder 'quick-notes.log') + @(Get-ChildItem (Join-Path $folder 'reports') -File -ErrorAction SilentlyContinue |
+        ForEach-Object FullName) | Where-Object { Test-Path $_ }
+    foreach ($file in $moved) {
+        $usersAce = (Get-Acl $file).Access | Where-Object {
+            $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]) -eq $users }
+        Check "no BUILTIN\Users ACE on $(Split-Path $file -Leaf) (QN2-5)" (-not $usersAce) (icacls $file | Out-String)
+    }
 }
 else {
     Write-Host 'SKIP  live-app checks - start the Store CyrFlip and rerun to include them' -ForegroundColor Yellow
@@ -104,6 +114,7 @@ Write-Host '  [ ] A and B each switch layout: each one''s VS Code extension show
 Write-Host '  [ ] B with the quick notes on: a note survives a CyrFlip restart; no "records could not be read" balloon.'
 Write-Host '  [ ] B cannot open A''s ...\Packages\<family>\LocalCache\Local\CyrFlip\launcher.log (access denied).'
 Write-Host '  [ ] A pre-S0016 journal of A in %ProgramData%\CyrFlip moved to A''s folder on A''s first start; B''s untouched.'
+Write-Host '  [ ] QN2-5: signed in as B, `type` A''s moved ...\LocalCache\Local\CyrFlip\reports\CyrFlip-logs-*.zip by its full path: access denied.'
 
 if ($failures.Count) { throw "$($failures.Count) check(s) failed: $($failures -join '; ')" }
 Write-Host 'All automated checks passed.' -ForegroundColor Green

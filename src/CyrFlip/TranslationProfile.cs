@@ -34,21 +34,6 @@ namespace CyrFlip
     }
 
     /// <summary>
-    /// Where one press of a translation chord sends the selection: the language to translate into and,
-    /// for a fixed pair, the language the text is expected to be in (null = let the model work it out).
-    /// </summary>
-    internal readonly struct TranslationDirection
-    {
-        public readonly string TargetCode;
-        public readonly string? SourceCode;
-
-        public TranslationDirection(string targetCode, string? sourceCode)
-        {
-            TargetCode = targetCode; SourceCode = sourceCode;
-        }
-    }
-
-    /// <summary>
     /// The languages a translation row can point at: the 13 CyrFlip UI languages plus two tokens that
     /// resolve at the moment the chord fires. The English name is what goes into the prompt (models
     /// follow "translate into German" far better than "translate into de"), the label is what the user
@@ -56,20 +41,11 @@ namespace CyrFlip
     /// </summary>
     internal static class TranslationLanguages
     {
-        /// <summary>Auto-detect the source, translate into the CyrFlip UI language (option 1).</summary>
+        /// <summary>Auto-detect the source, translate into the CyrFlip UI language.</summary>
         public const string UiToken = "ui";
 
         /// <summary>Follow the keyboard layout that is active in the target window right now.</summary>
         public const string ActiveToken = "active";
-
-        /// <summary>Auto-detect the source, translate into the configured target language (option 2).</summary>
-        public const string TargetToken = "target";
-
-        /// <summary>Configured source → configured target (option 3).</summary>
-        public const string SourceToTargetToken = "src>tgt";
-
-        /// <summary>Configured target → configured source (option 4) - the other half of the pair.</summary>
-        public const string TargetToSourceToken = "tgt>src";
 
         private static readonly Dictionary<string, string> EnglishNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -161,38 +137,6 @@ namespace CyrFlip
             return value.ToLowerInvariant();
         }
 
-        /// <summary>
-        /// The full direction a row means right now: what to translate <b>into</b>, and - for the two
-        /// fixed-pair rows - what the text is <b>expected</b> to be in.
-        ///
-        /// The expectation is a hint for the prompt, never an assertion: a user who presses the other
-        /// half of the pair by mistake must still get a translation rather than a model solemnly
-        /// translating from a language that is not there.
-        /// </summary>
-        public static TranslationDirection ResolveDirection(string? targetLang, string? uiLanguage,
-            string? activeCode, string? sourceSetting, string? targetSetting)
-        {
-            string value = (targetLang ?? "").Trim();
-            string source = SettingCode(sourceSetting, uiLanguage);
-            string target = SettingCode(targetSetting, "English");
-
-            if (string.Equals(value, TargetToken, StringComparison.OrdinalIgnoreCase))
-                return new TranslationDirection(target, null);
-            if (string.Equals(value, SourceToTargetToken, StringComparison.OrdinalIgnoreCase))
-                return new TranslationDirection(target, source);
-            if (string.Equals(value, TargetToSourceToken, StringComparison.OrdinalIgnoreCase))
-                return new TranslationDirection(source, target);
-
-            return new TranslationDirection(Resolve(value, uiLanguage, activeCode), null);
-        }
-
-        /// <summary>A configured code, or the fallback language's code when it was never set.</summary>
-        private static string SettingCode(string? code, string? fallbackLanguage)
-        {
-            string value = (code ?? "").Trim().ToLowerInvariant();
-            return value.Length >= 2 ? value : UiCode(fallbackLanguage);
-        }
-
         /// <summary>The language name to put in the prompt, in English.</summary>
         public static string EnglishName(string? code)
         {
@@ -241,12 +185,6 @@ namespace CyrFlip
                 return Localization.Translate(uiLanguage, "Язык интерфейса");
             if (string.Equals(value, ActiveToken, StringComparison.OrdinalIgnoreCase))
                 return Localization.Translate(uiLanguage, "Язык активной раскладки");
-            if (string.Equals(value, TargetToken, StringComparison.OrdinalIgnoreCase))
-                return Localization.Translate(uiLanguage, "Автоопределение → язык перевода");
-            if (string.Equals(value, SourceToTargetToken, StringComparison.OrdinalIgnoreCase))
-                return Localization.Translate(uiLanguage, "Мой язык → язык перевода");
-            if (string.Equals(value, TargetToSourceToken, StringComparison.OrdinalIgnoreCase))
-                return Localization.Translate(uiLanguage, "Язык перевода → мой язык");
 
             int index = Array.IndexOf(Localization.Codes, value.ToLowerInvariant());
             // The endonym is the label everywhere else in CyrFlip's language pickers.

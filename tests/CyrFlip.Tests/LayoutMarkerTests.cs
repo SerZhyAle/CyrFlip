@@ -152,6 +152,34 @@ namespace CyrFlip.Tests
             Assert.True(clear > 0, "the badge is filled edge to edge - a plate is drawn behind the letters");
         }
 
+        /// <summary>The mouse badge sits tight against the I-beam and hangs below it from three quarters
+        /// of its height, so the text right after the pointer stays visible; the
+        /// hotspot stays on the beam's middle, not the (now taller) bitmap's.</summary>
+        [Fact]
+        public void TheMouseBadgeIsTightAgainstTheBeamAndDroppedHalfItsHeight()
+        {
+            const int beam = 40;
+            using Bitmap bmp = LayoutCursor.RenderCaret("EN", "00000409", beam, 24, capsOn: false, out int hotX, out int hotY);
+
+            // Beam column: its top and bottom rows give the beam's middle.
+            int beamTop = -1, beamBottom = -1;
+            for (int y = 0; y < bmp.Height; y++)
+                if (bmp.GetPixel(hotX, y).A == 255) { if (beamTop < 0) beamTop = y; beamBottom = y; }
+            Assert.True(beamTop >= 0, "no I-beam drawn at the hotspot column");
+            Assert.InRange(hotY, (beamTop + beamBottom) / 2 - 1, (beamTop + beamBottom) / 2 + 1);
+
+            // The badge: every translucent pixel right of the serifs.
+            int serifRight = hotX + (int)Math.Ceiling(beam * 0.21) + 2;
+            int left = bmp.Width, top = bmp.Height;
+            for (int y = 0; y < bmp.Height; y++)
+                for (int x = serifRight; x < bmp.Width; x++)
+                    if (bmp.GetPixel(x, y).A > 0) { left = Math.Min(left, x); top = Math.Min(top, y); }
+            Assert.True(left < bmp.Width, "no badge drawn");
+            Assert.True(left - serifRight <= 4, "the badge is not pressed against the I-beam (gap " + (left - serifRight) + ")");
+            Assert.True(top >= hotY + beam / 4 - 1, "the badge reaches above three quarters of the beam (top " + top + ", middle " + hotY + ")");
+            Assert.True(bmp.Height - 1 > beamBottom + 2, "the badge does not hang below the I-beam");
+        }
+
         /// <summary>LAYOUT-PALETTE rule 5 fixes the number. Every other opacity test compares with the
         /// constant, so only this one notices the constant itself moving.</summary>
         [Fact]

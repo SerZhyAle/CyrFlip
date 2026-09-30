@@ -100,10 +100,12 @@ function decorationFor(code: string, klid: string): vscode.TextEditorDecorationT
   }
   // The CSS in `textDecoration` is injected onto the ::after pseudo-element:
   //   - position: absolute  → taken out of flow, so it never shifts the document text
-  //   - transform           → drop it diagonally below-right of the caret
+  //   - transform           → drop it below-right of the caret, pressed against it (-1px) and half
+  //                           its own height lower than the next line's top (1.5em), so it clears
+  //                           the text right after the caret - the rule the desktop overlay follows
   //   - text-shadow         → the black outline
   const css =
-    'none; position: absolute; transform: translate(3px, 1em); font-size: 0.82em; ' +
+    'none; position: absolute; transform: translate(-1px, 1.5em); font-size: 0.82em; ' +
     `font-weight: bold; text-shadow: ${OUTLINE}; pointer-events: none; ` +
     `opacity: ${OPACITY}; white-space: nowrap; z-index: 1;`;
 
@@ -275,7 +277,10 @@ export function activate(context: vscode.ExtensionContext): void {
       }
       render();
     }),
-    vscode.window.onDidChangeActiveTextEditor(() => { noteEditorActivity(); render(); }),
+    // Not activity: an editor also becomes active when an agent or a command opens a file while the
+    // user types in the chat box, and renewing the claim then hid the app's marker there. The user's
+    // first click or key in the editor is a selection change with a kind, and that renews it.
+    vscode.window.onDidChangeActiveTextEditor(() => { render(); }),
     vscode.workspace.onDidChangeTextDocument((e) => {
       if (e.document === vscode.window.activeTextEditor?.document && e.contentChanges.length > 0) {
         noteEditorActivity();

@@ -252,6 +252,10 @@ namespace CyrFlip
             while (value.EndsWith("/", StringComparison.Ordinal)) value = value.Substring(0, value.Length - 1);
             if (value.EndsWith("/api", StringComparison.OrdinalIgnoreCase)) value = value.Substring(0, value.Length - 4);
             if (value.Length == 0) return DefaultEndpoint;
+            // "127.0.0.1:11434" and "localhost:11434" are Ollama's own OLLAMA_HOST shape. Without a
+            // scheme, Uri reads the host as one, every request failed, and the local default server
+            // was reported as an unreachable remote one and never auto-started (S0037 TR-2).
+            if (value.IndexOf("://", StringComparison.Ordinal) < 0) value = "http://" + value;
             return value;
         }
 

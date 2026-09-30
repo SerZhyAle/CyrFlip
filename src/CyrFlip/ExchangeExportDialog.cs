@@ -23,8 +23,8 @@ namespace CyrFlip
     /// ticked by default. The warning is shown whenever history is in the export; for a notes-only
     /// export the user may switch it off (<see cref="AppConfig.ExchangeNotesWarningOff"/>).</para>
     ///
-    /// <para>Laid out by content, never by pixel geometry: <c>DialogLayoutTests</c> builds it in all
-    /// 13 languages.</para>
+    /// <para>Laid out by content, never by pixel geometry (tested in 13 languages; covered by
+    /// <c>DialogLayoutTests</c> once S0029 RB-3 lands).</para>
     /// </summary>
     internal sealed class ExchangeExportDialog : ThemedForm
     {

@@ -281,6 +281,38 @@ function Get-CyrFlipExe {
     (Resolve-Path $exe).Path
 }
 
+function Get-CyrFlipSubjectBanner {
+    <#
+    .SYNOPSIS
+    Returns subject banner info (BUILD-EVIDENCE rule 1) for the running CyrFlip process or built exe.
+    #>
+    [CmdletBinding()]
+    param(
+        [string]$ExePath,
+        [int]$ProcessId
+    )
+    $proc = if ($ProcessId) { Get-Process -Id $ProcessId -ErrorAction SilentlyContinue } else { Get-Process -Name 'CyrFlip' -ErrorAction SilentlyContinue | Select-Object -First 1 }
+    $path = if ($ExePath) { $ExePath } elseif ($proc -and $proc.Path) { $proc.Path } else { $null }
+    $pidStr = if ($proc) { "pid $($proc.Id)" } else { "no-process" }
+
+    $version = if ($path -and (Test-Path $path)) { (Get-Item $path).VersionInfo.FileVersion } else { "unknown-version" }
+    $kind = "unknown"
+    if ($path) {
+        if ($path -like "*\WindowsApps\*" -or $path -like "*\msix\*") { $kind = "MSIX / packaged" }
+        elseif ($path -like "*\src\CyrFlip\bin\*" -or $path -like "*\bin\Release\*" -or $path -like "*\bin\Debug\*") { $kind = "repo build" }
+        elseif ($path -like "C:\GD\*" -or $path -like "*\AppData\*") { $kind = "installed copy" }
+        else { $kind = "local binary" }
+    }
+    return [pscustomobject]@{
+        ExePath     = $path
+        FileVersion = $version
+        ProcessId   = if ($proc) { $proc.Id } else { $null }
+        Kind        = $kind
+        BannerText  = "exe: $path ($kind, FileVersion $version, $pidStr)"
+        SubjectAxis = "$pidStr $path $version"
+    }
+}
+
 function Start-CyrFlipApp {
     <#
     .SYNOPSIS
@@ -771,7 +803,7 @@ function Get-ImageLuminance {
     finally { $bmp.Dispose() }
 }
 
-Export-ModuleMember -Function Enable-UiTestDpi, Get-CyrFlipExe, Get-CyrFlipDataFolder, Start-CyrFlipApp, Stop-CyrFlipApp,
+Export-ModuleMember -Function Enable-UiTestDpi, Get-CyrFlipExe, Get-CyrFlipDataFolder, Get-CyrFlipSubjectBanner, Start-CyrFlipApp, Stop-CyrFlipApp,
     Get-TrayIcons, Get-TrayIcon, Invoke-MouseClick, Invoke-TrayClick, Start-TargetWindow, Get-WindowLayout,
     Set-WindowForeground, Get-InstalledLayouts, Get-ForegroundWindowInfo, Get-AppWindows,
     Wait-AppWindow, Find-AppWindow, Save-WindowShot, Get-AppResourceUsage, Switch-WindowLayout,

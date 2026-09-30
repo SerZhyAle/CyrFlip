@@ -1,0 +1,23 @@
+{
+  "concepts": ["layout", "conversion", "case flip", "CapsLock", "quick notes"],
+  "locales": {
+    "en": ["Layout", "Layout conversion", "Case flip", "CapsLock", "Quick notes"],
+    "ru": ["Раскладка", "Конвертация раскладки", "Исправление регистра", "CapsLock", "Быстрые заметки"],
+    "uk": ["Розкладка", "Конвертація розкладки", "Виправлення регістру", "CapsLock", "Швидкі нотатки"],
+    "de": ["Tastaturlayout", "Layoutumwandlung", "Groß- und Kleinschreibung ändern", "CapsLock", "Schnellnotizen"],
+    "it": ["Layout di tastiera", "Conversione del layout", "Invertire maiuscole e minuscole", "CapsLock", "Note rapide"],
+    "es": ["Distribución de teclado", "Conversión de distribución", "Invertir mayúsculas y minúsculas", "CapsLock", "Notas rápidas"],
+    "fr": ["Disposition de clavier", "Conversion de disposition", "Inverser la casse", "CapsLock", "Notes rapides"],
+    "pt": ["Layout de teclado", "Conversão de layout", "Inversão de maiúsculas e minúsculas", "CapsLock", "Notas rápidas"],
+    "ar": ["تخطيط لوحة المفاتيح", "تحويل التخطيط", "عكس حالة الأحرف", "CapsLock", "ملاحظات سريعة"],
+    "hi": ["कीबोर्ड लेआउट", "लेआउट रूपांतरण", "अक्षर केस बदलना", "CapsLock", "त्वरित नोट्स"],
+    "bn": ["কীবোর্ড লেআউট", "লেআউট রূপান্তর", "অক্ষরের কেস পরিবর্তন", "CapsLock", "দ্রুত নোট"],
+    "ur": ["کی بورڈ لے آؤٹ", "لے آؤٹ کی تبدیلی", "حروف کی حالت بدلنا", "CapsLock", "فوری نوٹس"],
+    "zh": ["键盘布局", "布局转换", "大小写切换", "CapsLock", "速记"]
+  },
+  "forbidden": {
+    "en": ["keyboard language conversion"],
+    "ru": ["транслит раскладки"],
+    "uk": ["трансліт розкладки"]
+  }
+}

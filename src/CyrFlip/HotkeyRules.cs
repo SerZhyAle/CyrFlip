@@ -44,10 +44,15 @@ namespace CyrFlip
             public bool Refused => Refusal != Refusal.None;
         }
 
-        private const int VK_INSERT = 0x2D, VK_DELETE = 0x2E, VK_F1 = 0x70, VK_F24 = 0x87;
+        private const int VK_BACK = 0x08, VK_SPACE = 0x20, VK_END = 0x23, VK_HOME = 0x24,
+            VK_INSERT = 0x2D, VK_DELETE = 0x2E, VK_F1 = 0x70, VK_F4 = 0x73, VK_F24 = 0x87;
 
-        // Ctrl + one of these is an editing command in practically every application.
-        private static readonly int[] EditingLetters = { 'C', 'V', 'X', 'Z', 'Y', 'A', 'S' };
+        // Ctrl + one of these is an editing or system command in practically every application (KC-5, KC2-7).
+        private static readonly int[] EditingKeysCtrl =
+        {
+            'C', 'V', 'X', 'Z', 'Y', 'A', 'S',
+            VK_INSERT, VK_DELETE, VK_BACK, VK_SPACE, VK_HOME, VK_END
+        };
 
         /// <summary>The rules against the live system: every installed layout, asked through <c>ToUnicodeEx</c>.</summary>
         public static Verdict Check(Hotkey hotkey) => Check(hotkey, InstalledLayouts(), CharacterTyped);
@@ -61,6 +66,7 @@ namespace CyrFlip
 
             bool shiftOnly = hotkey.Shift && !hotkey.Ctrl && !hotkey.Alt;
             bool ctrlOnly = hotkey.Ctrl && !hotkey.Shift && !hotkey.Alt;
+            bool altOnly = hotkey.Alt && !hotkey.Ctrl && !hotkey.Shift;
 
             if (shiftOnly && (hotkey.Vk == VK_INSERT || hotkey.Vk == VK_DELETE))
                 return new Verdict(Refusal.EditingChord);
@@ -68,12 +74,13 @@ namespace CyrFlip
             // or navigate, so Shift alone is only safe on the function keys.
             if (shiftOnly && (hotkey.Vk < VK_F1 || hotkey.Vk > VK_F24))
                 return new Verdict(Refusal.ShiftOnly);
-            if (ctrlOnly && (hotkey.Vk == VK_INSERT || Array.IndexOf(EditingLetters, hotkey.Vk) >= 0))
+            if (ctrlOnly && Array.IndexOf(EditingKeysCtrl, hotkey.Vk) >= 0)
+                return new Verdict(Refusal.EditingChord);
+            if (altOnly && (hotkey.Vk == VK_F4 || hotkey.Vk == VK_SPACE))
                 return new Verdict(Refusal.EditingChord);
 
             // Ctrl+Alt is how Windows spells AltGr, so that is the chord that reaches a layout's third
-            // and fourth characters. Alt alone is a menu accelerator; Ctrl alone yields control
-            // characters (and a space for Ctrl+Space, which nobody means as typing).
+            // and fourth characters. Alt alone is a menu accelerator; Ctrl alone yields control characters.
             if (hotkey.Ctrl && hotkey.Alt)
                 foreach (IntPtr layout in layouts)
                 {

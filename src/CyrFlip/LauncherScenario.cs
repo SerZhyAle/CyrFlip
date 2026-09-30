@@ -31,7 +31,22 @@ namespace CyrFlip
         /// <summary>Legacy magic path kept working for scenarios created before the yt-dlp type existed.</summary>
         public const string LegacyYtDlpSentinel = "SPECIAL_YTDLP";
 
+        /// <summary>
+        /// The highest <c>schemaVersion</c> MAJOR this build reads (<c>SCENARIO-FILE</c>, S0014 B1). A file
+        /// that names a higher one is refused whole, counted and named under rule 9, never read partially.
+        /// </summary>
+        internal const int SupportedSchemaMajor = 1;
+
         private Guid _id = Guid.NewGuid();
+
+        /// <summary>
+        /// The format version carrier: an attribute on the root, absent = 1. Kept as the raw text so an
+        /// absent attribute is not written back (writers omit it until the contract's 1.0 says otherwise)
+        /// and a malformed one can be refused instead of guessed at. Checked in
+        /// <see cref="LauncherScenarioStore.TryRead"/>.
+        /// </summary>
+        [XmlAttribute("schemaVersion")]
+        public string? SchemaVersion { get; set; }
 
         /// <summary>
         /// The scenario's identity. A file without the element gets a fresh one on every read
@@ -67,7 +82,7 @@ namespace CyrFlip
         /// <summary>yt-dlp output folder. Empty =&gt; the user's Downloads folder.</summary>
         public string YtDlpOutputFolder { get; set; } = string.Empty;
 
-        /// <summary>Optional extra yt-dlp arguments (e.g. <c>-f bestvideo+bestaudio</c>). Shown and passed verbatim.</summary>
+        /// <summary>Optional extra yt-dlp arguments (e.g. <c>-f bestvideo+bestaudio</c>). Passed only when whitelisted, each token quoted.</summary>
         public string YtDlpFormat { get; set; } = string.Empty;
 
         /// <summary>Optional global hotkey ("Ctrl+Alt+F5"); empty = none. CyrFlip extension, see class doc.</summary>
@@ -95,6 +110,7 @@ namespace CyrFlip
             YtDlpOutputFolder = YtDlpOutputFolder,
             YtDlpFormat = YtDlpFormat,
             Hotkey = Hotkey,
+            SchemaVersion = SchemaVersion,
         };
     }
 }

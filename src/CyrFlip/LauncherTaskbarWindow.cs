@@ -57,7 +57,17 @@ namespace CyrFlip
 
         /// <summary>The taskbar tooltip, refreshed whenever the UI language changes.</summary>
         public void ApplyLanguage(Func<string, string> translate)
-            => Text = "CyrFlip — " + translate("Быстрый запуск");
+        {
+            Text = "CyrFlip — " + translate("Быстрый запуск");
+            _menu.RightToLeft = RightToLeft;
+        }
+
+        public void ApplyLanguage(string language)
+        {
+            Text = "CyrFlip — " + Localization.Translate(language, "Быстрый запуск");
+            RightToLeft = Localization.IsRightToLeft(language) ? RightToLeft.Yes : RightToLeft.No;
+            _menu.RightToLeft = RightToLeft;
+        }
 
         protected override void WndProc(ref Message m)
         {
@@ -88,7 +98,29 @@ namespace CyrFlip
             // The classic tray-menu trick: without a foreground owner the menu would not close on
             // the first click outside it.
             WindowInterop.SetForegroundWindow(Handle);
-            _menu.Show(Control.MousePosition);
+            Screen pointerScreen = Screen.FromPoint(Control.MousePosition);
+            _menu.Show(MenuAnchor(Control.MousePosition, pointerScreen.Bounds, pointerScreen.WorkingArea,
+                Screen.PrimaryScreen.Bounds, Screen.PrimaryScreen.WorkingArea));
+        }
+
+        /// <summary>
+        /// Where the menu opens (S0045 K9). A click leaves the pointer on the taskbar, and the menu opens
+        /// there as it always did. A keyboard user (Win+T, arrows, Enter) leaves the pointer anywhere, and
+        /// a menu at the pointer lands in the middle of the screen, far from the button they chose - so
+        /// then it opens on the primary taskbar's inner edge, centred, the nearest honest guess without
+        /// asking the shell where the button is.
+        /// </summary>
+        internal static Point MenuAnchor(Point pointer, Rectangle pointerBounds, Rectangle pointerWorking,
+            Rectangle primaryBounds, Rectangle primaryWorking)
+        {
+            if (pointerBounds.Contains(pointer) && !pointerWorking.Contains(pointer)) return pointer;
+            int centreX = primaryWorking.Left + primaryWorking.Width / 2;
+            int centreY = primaryWorking.Top + primaryWorking.Height / 2;
+            if (primaryWorking.Top > primaryBounds.Top) return new Point(centreX, primaryWorking.Top);
+            if (primaryWorking.Left > primaryBounds.Left) return new Point(primaryWorking.Left, centreY);
+            if (primaryWorking.Right < primaryBounds.Right) return new Point(primaryWorking.Right - 1, centreY);
+            // A bottom taskbar, or one that hides itself: the bottom edge.
+            return new Point(centreX, primaryWorking.Bottom - 1);
         }
 
         /// <summary>Back to the resting state: no focus held, and the next click opens the menu again.</summary>

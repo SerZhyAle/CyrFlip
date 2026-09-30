@@ -145,6 +145,23 @@ namespace CyrFlip.Tests
             Assert.Equal("Привет, мир", result.Text);
         }
 
+        /// <summary>
+        /// S0037 TR-3: a retry that times out is a bad retry too - it keeps the first answer instead of
+        /// ending as a Timeout with nothing to show. The user's own cancel still ends it.
+        /// </summary>
+        [Fact]
+        public async Task ARetryThatTimesOutKeepsTheFirstAnswer()
+        {
+            var transport = new OllamaClientTests.FakeTransport { Body = Tags("qwen2.5:3b"), ThrowFromPost = 2 };
+            transport.Lines.Enqueue(Answer("Привет, мир"));   // an echo, so a retry is made - and it times out
+            TranslationService service = Service(transport, new AppConfig());
+
+            TranslationResult result = await service.TranslateAsync("Привет, мир", "en", null, CancellationToken.None);
+
+            Assert.Equal(TranslationStatus.Ok, result.Status);
+            Assert.Equal("Привет, мир", result.Text);
+        }
+
         [Fact]
         public async Task AnInstalledModelIsUsedWhenTheConfiguredOneIsMissing()
         {

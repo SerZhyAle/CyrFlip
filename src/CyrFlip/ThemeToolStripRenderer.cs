@@ -9,7 +9,7 @@ namespace CyrFlip
     /// taskbar button's menu and the launcher list's menu (S0020 section 3). A colour table alone does not
     /// reach the text, the check mark or the submenu arrow, hence the overrides.
     ///
-    /// <para>Installed <b>process-wide</b> through <see cref="ToolStripManager.Renderer"/> rather than
+    /// <para>Installed on the UI thread (<c>[ThreadStatic]</c> in net48) through <see cref="ToolStripManager.Renderer"/> rather than
     /// assigned per menu: every strip left in manager render mode - all of CyrFlip's - draws with it, so a
     /// menu built next year cannot forget the theme, and <see cref="TextContextMenu"/> stays a pure
     /// builder that knows nothing about colour. Light and high contrast put the stock renderer back, so

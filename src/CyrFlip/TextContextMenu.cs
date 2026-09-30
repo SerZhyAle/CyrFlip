@@ -55,8 +55,8 @@ namespace CyrFlip
     ///
     /// It is an ordinary <see cref="ContextMenuStrip"/> on purpose. <c>ToolStripDropDown</c> already
     /// overrides <c>ShowWithoutActivation</c> to true, so the drop-down <b>never takes the focus</b> -
-    /// the user's window stays active and, crucially, keeps its selection, which is the whole point.
-    /// Sub-menus, icons, DPI scaling and RightToLeft for Arabic/Urdu come for free.
+    /// Sub-menus, icons and DPI scaling come for free; RightToLeft for Arabic/Urdu is explicitly
+    /// applied by the caller (unparented context menus do not inherit it automatically).
     ///
     /// Two rules govern the shape (spec §7.3): a module that is switched off contributes <b>no items
     /// at all</b>, and a command that needs a selection is <b>greyed, not hidden</b>, when there is

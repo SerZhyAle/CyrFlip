@@ -201,11 +201,18 @@ namespace CyrFlip
         /// <summary>The live transport: Simple MAPI, then the shell.</summary>
         internal sealed class WindowsMailTransport : IMailTransport
         {
-            private readonly IntPtr _owner;
-
-            /// <param name="owner">Window the MAPI compose dialog belongs to; <c>IntPtr.Zero</c> is fine.</param>
-            public WindowsMailTransport(IntPtr owner) => _owner = owner;
-
+            /// <summary>
+            /// The compose window gets <b>no owner</b> (S0036 UI-8). It is created on the STA thread this
+            /// runs on, and an owner on the UI thread - the settings window, where both low-level hooks
+            /// live - attached the two threads' input queues for as long as the user kept it open.
+            ///
+            /// <para>And a faulty Simple MAPI provider may fault inside this call: an access violation
+            /// is a corrupted-state exception that a plain <c>catch</c> does not see on net4+, and it
+            /// took the whole tray process down - hooks gone, the system cursor never restored. The
+            /// attributes let the catch below turn it into "this rung is unavailable", as
+            /// <see cref="UiaCaretCom"/> and <see cref="Ia2Caret"/> do for their COM calls.</para>
+            /// </summary>
+            [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions, System.Security.SecurityCritical]
             public uint SendWithAttachment(SupportMail mail)
             {
                 string? path = AnsiSafePath(mail.AttachmentPath);
@@ -241,12 +248,12 @@ namespace CyrFlip
                         nFileCount = 1,
                         lpFiles = files,
                     };
-                    return MAPISendMail(IntPtr.Zero, _owner, ref message, MAPI_DIALOG | MAPI_LOGON_UI, 0);
+                    return MAPISendMail(IntPtr.Zero, IntPtr.Zero, ref message, MAPI_DIALOG | MAPI_LOGON_UI, 0);
                 }
                 catch (Exception)
                 {
-                    // No mapi32.dll, no registered client, a bitness mismatch: all the same answer -
-                    // this rung is unavailable, take the next one.
+                    // No mapi32.dll, no registered client, a bitness mismatch, a provider that faults:
+                    // all the same answer - this rung is unavailable, take the next one.
                     return MAPI_E_FAILURE;
                 }
                 finally

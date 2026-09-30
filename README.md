@@ -22,9 +22,15 @@ CyrFlip is a tiny Windows tray tool with a few modest jobs:
 
 ![CyrFlip's layout-aware text cursor showing EN, RU, ZH and AR](assets/cursor-preview.png)
 
+## Install
+
+1. **[Microsoft Store](https://apps.microsoft.com/detail/9NB4W41NGQJ4)** - the recommended way: Microsoft signs the package, so there is no SmartScreen warning, and the Store keeps it updated.
+2. **winget** - `winget install SerZhyAle.CyrFlip` (the portable build, same as the ZIP below).
+3. **Portable ZIP** from [GitHub Releases](https://github.com/SerZhyAle/CyrFlip/releases/latest) - unpack it to a permanent folder and run `CyrFlip.exe`. The ZIP is unsigned, so Windows may warn - see [Windows or antivirus warnings](#windows-or-antivirus-warnings).
+
 ## Status
 
-Early development - which here means "it works, but we reserve the right to be humble about it." See
+Early development - which here means "it works, but we reserve the right to be humble about it." CyrFlip is made and supported by one person, so an answer to an issue may not be instant. See
 [CLAUDE.md](CLAUDE.md) for the architecture and conventions.
 
 ## How it works
@@ -42,7 +48,7 @@ Early development - which here means "it works, but we reserve the right to be h
 - **Convert text** - select the `ghbdtn` you meant as «привет», press **Ctrl+Shift+F12**, and it's replaced in place. Works in any app (Notepad, Word, browsers, ..). That chord is simply the EN ⇄ RU row the conversion table starts with; add rows for any other pair of installed layouts, each with its own chord.
 - **Fix CapsLock** - select the `hELLO` you meant as `Hello` and press **Ctrl+Shift+F11**.
 - **Keep a fragment** - press **Ctrl+Shift+Alt+N**, paste the code or type the thought, close the window. It is saved without a name if you don't give it one, and found later by any part of its text.
-- **Tray menu** (right-click the icon) keeps the frequent switches: show/hide history, clipboard history on/off, pause capture, the three indicator toggles, the two keep-awake switches, the **Quick launch** submenu, **Translate clipboard** and **Quick notes** (each shown only while its module is enabled), **Settings…** and **Exit**. Double-clicking the icon opens Settings.
+- **Tray menu** (right-click the icon) keeps the frequent switches: show/hide history, clipboard history on/off, pause capture, the three indicator toggles, the two keep-awake switches, the **Quick launch** submenu, **Translate clipboard** and **Quick notes** (each shown only while its module is enabled), **Settings...** and **Exit**. Double-clicking the icon opens Settings.
 - **Settings** (ten tabs, every change applied at once, no restart):
   - **General** - start with Windows, keep the computer awake, keep the screen on (both remembered across restarts), the interface language (13 to choose from) and the **theme** - same as Windows (the default), light or dark. Every window, dialog and menu follows it at once, and in "same as Windows" it follows Windows switching while CyrFlip runs.
   - **Indicators** - the I-beam cursor marker (off by default), the caret marker (on by default), the compact dot style, "change the layout after converting text", and "synchronize CapsLock after the case fix".
@@ -64,7 +70,7 @@ An optional module that absorbs [OneClickRunner](https://github.com/SerZhyAle/On
 - **Four ways to run one:** the tray **Quick launch** submenu, the settings table (double-click / Enter), an optional **global hotkey per scenario**, and the taskbar **Jump List** - right-click the CyrFlip icon on the taskbar (pin it to have the list handy even when CyrFlip isn't running: a Jump List click then does a one-shot launch without starting the tray).
 - **Storage:** one XML per scenario in `%APPDATA%\CyrFlip\Scenarios`, format-compatible with OneClickRunner. Disabling the module clears the tray/Jump List surfaces but keeps the files.
 - **Migration:** on first enable CyrFlip offers to copy your existing OneClickRunner scenarios (`%APPDATA%\OneClickRunner\Scenarios`); the originals are never modified, and the "Import from OneClickRunner..." button repeats the import any time. `.ps1` runs via PowerShell with a one-off `-ExecutionPolicy Bypass`, `.bat`/`.cmd` via `cmd.exe`; elevation is asked only for scenarios marked "run as administrator".
-- **Scenario files:** the copy keeps OneClickRunner's order and each scenario's identity; a file that cannot be read is skipped and named, never fatal. Running the import again adds a second copy of every scenario under a new identity - import once, or delete the duplicates. The per-scenario hotkey is CyrFlip's own field: OneClickRunner ignores it and drops it if it saves that file. An exported scenario is a plain XML file carrying its path and arguments as written, so never put a password in the arguments.
+- **Scenario files:** the copy keeps OneClickRunner's order and each scenario's identity; a file that cannot be read is skipped and named, never fatal. Running the import again skips the scenarios already copied (same identity and content) and says how many; one you have edited since arrives as a separate copy under a new identity. The per-scenario hotkey is CyrFlip's own field: OneClickRunner ignores it and drops it if it saves that file. An exported scenario is a plain XML file carrying its path and arguments as written, so never put a password in the arguments.
 
 ### Interface languages
 
@@ -197,13 +203,17 @@ Windows SmartScreen ("Windows protected your PC") or an antivirus may stop `CyrF
 - **Behaviour heuristics are a second reason, and signing would not cure them.** Some engines - notably **Avast / AVG**, as `IDP.Generic` (Behavior Shield) - flag it because a layout indicator does exactly what they watch for: a global keyboard hook (`WH_KEYBOARD_LL`), synthesized keystrokes (`SendInput`), clipboard access, a system I-beam cursor swap. CyrFlip is open source - read what it does in [src/CyrFlip/](src/CyrFlip/). Static scanners agreed on an earlier build - [0/71 on VirusTotal](https://www.virustotal.com/gui/file/faa7534b168147a00854227c0787fbe0847d47ae82a70ab13327159b5b026dbc/detection) - but that report covers that one file only; scan your own download to check the build you have.
 - **Unpack the ZIP to a permanent folder** such as `%LOCALAPPDATA%\Programs\CyrFlip\` and run it from there, never from inside the archive or `%TEMP%` - a temporary extraction path is itself a reputation flag.
 - **Report a false positive** so the vendor clears the file: [Avast form](https://www.avast.com/false-positive-file-form.php) · [AVG form](https://www.avg.com/en-ww/report-false-positive). Check the SHA-256 against the `.sha256` published beside each release.
-## Related project
 
-- [Universal Agent Kit](https://serzhyale.github.io/universal-agent-kit/) - a companion toolkit by the same author.
+## FAQ
+
+- **Is it a keylogger?** No. The keyboard hook looks at each key only to see whether it is one of your chords; nothing is recorded, nothing is sent anywhere, and there is no telemetry. The only text CyrFlip keeps is what you switch on yourself - the clipboard history and the quick notes (both off by default, both encrypted with Windows DPAPI). The [privacy policy](https://serzhyale.github.io/CyrFlip/privacy.html) is published in all 13 interface languages.
+- **Does it switch the layout by itself?** No, and on purpose. It acts only on your chord, so it cannot misfire in an IDE, a terminal, a game or a password field, and there is no exclusion list to maintain. The one automatic thing is the indicator, which only shows the layout.
+- **Why does the translator need Ollama?** It does not, unless you turn the translator on. It is off by default and, while it is off, CyrFlip opens no network socket. When on, CyrFlip hands the selected text to [Ollama](https://ollama.com) running on your own computer and the **model** translates it - CyrFlip sends the text, it does not translate, and it makes no promise about which languages a given model handles. No account, no key, nothing goes to the developer or to a cloud service.
+- **Why does Windows warn about the ZIP?** See [Windows or antivirus warnings](#windows-or-antivirus-warnings). The Microsoft Store build avoids it.
 
 ## Author
 
-**SerZhyAle** - [sza.od.ua](https://sza.od.ua) · [sza@ukr.net](mailto:sza@ukr.net)
+**SerZhyAle** - [sza.od.ua](https://sza.od.ua) (more tools by the author) · [sza@ukr.net](mailto:sza@ukr.net)
 
 ## License
 

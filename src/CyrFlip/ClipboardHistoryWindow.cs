@@ -13,6 +13,8 @@ namespace CyrFlip
         private const int CellHeight = 84;
         private const int ResizeGrip = 6;
         private const int CellButtonWidth = 36;
+        // The pin answers the top of the button column, delete the rest of the cell.
+        private const int PinZoneHeight = 36;
         private const int SearchButtonLeft = 8;
         private const int HideButtonLeft = 38;
         private const int HeaderTextLeft = 70;
@@ -39,14 +41,17 @@ namespace CyrFlip
         private readonly Action _openSearch;
         private bool _dragging;
         private Point _dragStart;
+        // The keyboard cursor over the visible cells; -1 until a key moves it, and again after a click.
+        private int _cursor = -1;
         // Built once instead of per paint - and the strip repaints on every copy. They follow the
         // window's own Font, so OnFontChanged drops them and the next paint rebuilds them.
-        private Font? _titleFont, _hotkeyFont, _bigFont, _smallFont, _buttonFont;
+        private Font? _titleFont, _hotkeyFont, _bigFont, _smallFont;
 
         public ClipboardHistoryWindow(ClipboardHistoryService service, AppConfig config, Action openSearch)
         {
             _service = service; _config = config; _openSearch = openSearch;
             Text = Localization.Translate(config.UiLanguage, "Менеджер буфера"); TopMost = true; ShowInTaskbar = false;
+            RightToLeft = Localization.IsRightToLeft(config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
             // WinForms otherwise paints a second, native title bar above our owner-drawn header.
             FormBorderStyle = FormBorderStyle.None; StartPosition = FormStartPosition.Manual;
             MinimumSize = new Size(100, HeaderHeight + 3 * CellHeight);
@@ -83,14 +88,50 @@ namespace CyrFlip
         public void ApplyLanguage()
         {
             Text = Localization.Translate(_config.UiLanguage, "Менеджер буфера");
+            RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
             RefreshHeader();
         }
 
+        /// <summary>
+        /// INPUT-PARITY rules 1-2: every click on the strip has a key. Up/Down/Home/End move a keyboard
+        /// cursor over the visible cells (drawn only once a key moved it, so a mouse user never sees it),
+        /// Enter restores that entry, Space pins or unpins it, Delete removes it, Ctrl+F opens the search.
+        /// </summary>
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             if (keyData == Keys.Escape) { Hide(); return true; }
+            if (keyData == (Keys.Control | Keys.F)) { _openSearch(); return true; }
+            List<ClipboardHistoryEntry> items = VisibleItems();
+            switch (keyData)
+            {
+                case Keys.Down: MoveCursor(_cursor < 0 ? 0 : _cursor + 1, items.Count); return true;
+                case Keys.Up: MoveCursor(_cursor < 0 ? 0 : _cursor - 1, items.Count); return true;
+                case Keys.Home: MoveCursor(0, items.Count); return true;
+                case Keys.End: MoveCursor(items.Count - 1, items.Count); return true;
+            }
+            if (_cursor >= 0 && _cursor < items.Count)
+            {
+                ClipboardHistoryEntry item = items[_cursor];
+                switch (keyData)
+                {
+                    case Keys.Enter: _service.Restore(item); return true;
+                    case Keys.Space: _service.TogglePin(item); return true;
+                    case Keys.Delete: _service.Delete(item); return true;
+                }
+            }
             return base.ProcessCmdKey(ref msg, keyData);
         }
+
+        private void MoveCursor(int index, int count)
+        {
+            if (count == 0) { _cursor = -1; return; }
+            _cursor = Math.Max(0, Math.Min(count - 1, index));
+            Invalidate();
+        }
+
+        /// <summary>The cells the strip has room for - the same slice the painter and the mouse use.</summary>
+        private List<ClipboardHistoryEntry> VisibleItems()
+            => _service.Entries.Take(Math.Max(3, (ClientSize.Height - HeaderHeight) / CellHeight)).ToList();
 
         private void OnFormClosing(object? sender, FormClosingEventArgs e) { if (CloseToHide.Intercept(e)) Hide(); }
 
@@ -135,11 +176,10 @@ namespace CyrFlip
             // paint consistent (the caption count and the cells can't disagree).
             IReadOnlyList<ClipboardHistoryEntry> entries = _service.Entries;
             string caption = Localization.Translate(_config.UiLanguage, "Менеджер буфера") + " (" + entries.Count + ")";
-            using var iconPen = new Pen(palette.TextPrimary, 1.5f);
             // Keep the two actions before the caption: they remain reachable at every allowed width.
-            e.Graphics.DrawEllipse(iconPen, SearchButtonLeft, 13, 10, 10);
-            e.Graphics.DrawLine(iconPen, SearchButtonLeft + 9, 22, SearchButtonLeft + 13, 26);
-            e.Graphics.DrawLine(iconPen, HideButtonLeft + 1, 22, HideButtonLeft + 11, 22);
+            // Vocabulary glyphs (ICON-SET), each centred in the zone the mouse hit test uses.
+            HistoryStripGlyphs.DrawSearch(e.Graphics, SearchZone, palette);
+            HistoryStripGlyphs.DrawClose(e.Graphics, HideZone, palette);
             e.Graphics.DrawString(caption, title, headerForeground, HeaderTextLeft, 11);
             float captionWidth = e.Graphics.MeasureString(caption, title).Width;
             e.Graphics.DrawString(_config.ClipboardHistoryHotkey, hotkeyFont, hotkeyBrush,
@@ -147,6 +187,14 @@ namespace CyrFlip
                 SingleLineFormat);
             var items = entries.Take(Math.Max(3, (ClientSize.Height - HeaderHeight) / CellHeight)).ToList();
             for (int i = 0; i < items.Count; i++) DrawCell(e.Graphics, items[i], i, new Rectangle(0, HeaderHeight + i * CellHeight, ClientSize.Width, CellHeight), palette);
+            if (_cursor >= items.Count) _cursor = items.Count - 1;
+            if (_cursor >= 0)
+            {
+                // INPUT-PARITY rule 2: the keyboard cursor is visible, and apart from the accent frame
+                // that marks what the clipboard holds now.
+                using var focusPen = new Pen(palette.TextPrimary, 1) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dot };
+                e.Graphics.DrawRectangle(focusPen, 4, HeaderHeight + _cursor * CellHeight + 4, ClientSize.Width - 9, CellHeight - 9);
+            }
         }
 
         private void DrawCell(Graphics g, ClipboardHistoryEntry entry, int index, Rectangle r, ThemePalette palette)
@@ -166,7 +214,6 @@ namespace CyrFlip
             string rest = normalized.Length > 15 ? normalized.Substring(15) : "";
             Font big = _bigFont!;      // built by OnPaint before any cell is drawn
             Font small = _smallFont!;
-            Font buttons = _buttonFont!;
             using var anchorBrush = new SolidBrush(palette.TextPrimary);
             using var restBrush = new SolidBrush(palette.TextMuted);
             using var timeBrush = new SolidBrush(palette.Info);
@@ -187,8 +234,8 @@ namespace CyrFlip
             g.Restore(clip);
             float bodyTop = r.Y + firstLineTopOffset + big.GetHeight(g) + 2;
             g.DrawString(remainingRest, small, restBrush, new RectangleF(6, bodyTop, textRight - 6, r.Bottom - 24 - bodyTop), BodyFormat);
-            DrawPin(g, r.Right - 18, r.Y + 13, entry.IsPinned, palette);
-            g.DrawString("×", buttons, anchorBrush, r.Right - 23, r.Bottom - 29);
+            HistoryStripGlyphs.DrawPin(g, PinZone(r), entry.IsPinned, palette);
+            HistoryStripGlyphs.DrawDelete(g, DeleteZone(r), palette);
             g.DrawString(entry.CreatedAt.ToLocalTime().ToString("MM-dd:HH:mm"), small, timeBrush, 6, r.Bottom - 19);
             if (entry.SourceApp.Length > 0)
             {
@@ -200,6 +247,7 @@ namespace CyrFlip
 
         private void OnMouseDown(object? sender, MouseEventArgs e)
         {
+            if (_cursor >= 0) { _cursor = -1; Invalidate(); }
             if (e.Y < HeaderHeight)
             {
                 if (e.X >= HideButtonLeft && e.X < HeaderTextLeft) Hide();
@@ -208,10 +256,10 @@ namespace CyrFlip
                 return;
             }
             int index = (e.Y - HeaderHeight) / CellHeight;
-            var items = _service.Entries.Take(Math.Max(3, (ClientSize.Height - HeaderHeight) / CellHeight)).ToList();
+            var items = VisibleItems();
             if (index < 0 || index >= items.Count) return;
             ClipboardHistoryEntry item = items[index];
-            if (e.X >= ClientSize.Width - CellButtonWidth) { if (e.Y - HeaderHeight - index * CellHeight < 36) _service.TogglePin(item); else _service.Delete(item); }
+            if (e.X >= ClientSize.Width - CellButtonWidth) { if (e.Y - HeaderHeight - index * CellHeight < PinZoneHeight) _service.TogglePin(item); else _service.Delete(item); }
             else if (e.Button == MouseButtons.Right) _service.TogglePin(item);
             else if (e.Button == MouseButtons.Left) _service.Restore(item);
         }
@@ -225,7 +273,12 @@ namespace CyrFlip
         private void RestorePlacement()
         {
             Rectangle saved = new Rectangle(_config.ClipboardHistoryX, _config.ClipboardHistoryY, Width, Height);
-            if (_config.ClipboardHistoryX != int.MinValue && Screen.AllScreens.Any(s => s.WorkingArea.IntersectsWith(saved))) Location = saved.Location;
+            if (_config.ClipboardHistoryX != int.MinValue && _config.ClipboardHistoryY != int.MinValue)
+            {
+                Rectangle clamped = ScreenPlacement.Clamp(saved, Screen.AllScreens.Select(s => s.WorkingArea));
+                Location = clamped.Location;
+                Size = clamped.Size;
+            }
             else { Rectangle area = Screen.PrimaryScreen.WorkingArea; Location = new Point(area.Right - Width - 12, area.Bottom - Height - 12); }
         }
         private void SaveBounds() { _config.ClipboardHistoryX = Left; _config.ClipboardHistoryY = Top; _config.ClipboardHistoryWidth = Width; _config.ClipboardHistoryHeight = Height; _config.Save(); }
@@ -243,24 +296,87 @@ namespace CyrFlip
             return low;
         }
 
-        private static void DrawPin(Graphics g, int x, int y, bool pinned, ThemePalette palette)
+        // ---- accessibility (ICON-RENDER rule 8) ----------------------------------------------------------
+        // The strip is one owner-drawn surface with no child controls, so a screen reader would find a
+        // single unnamed window. It exposes what a click can do as children instead: search and close in
+        // the header, then pin and delete for every visible cell - each named by the record's name in the
+        // UI language, the two that act on a row describing it by its preview.
+
+        private sealed class StripPart
         {
-            // Pinned: the danger red, filled. Unpinned: a muted outline - it used to be white, which on the
-            // light strip drew nothing at all.
-            Color color = pinned ? palette.Danger : palette.TextMuted;
-            using var pen = new Pen(color, 1.8f);
-            using var brush = new SolidBrush(color);
-            var state = g.Save();
-            g.TranslateTransform(x, y);
-            if (!pinned) g.RotateTransform(-25); // unpinned: visibly tilted outline
-            if (pinned) g.FillEllipse(brush, -4, -7, 8, 8);
-            else g.DrawEllipse(pen, -4, -7, 8, 8);
-            g.DrawLine(pen, 0, 1, 0, 10);
-            g.DrawLine(pen, -5, 4, 5, 4);
-            g.Restore(state);
+            public string Name = "";
+            public string Description = "";
+            public AccessibleRole Role = AccessibleRole.PushButton;
+            public bool Checked;
+            public Rectangle Client;
+            public Action Invoke = () => { };
         }
 
-        /// <summary>The five fonts the strip paints with, derived from the window's own <see cref="Control.Font"/>.</summary>
+        private List<StripPart> AccessibleParts()
+        {
+            string language = _config.UiLanguage;
+            var parts = new List<StripPart>
+            {
+                new StripPart { Name = Localization.Translate(language, "Поиск по истории"), Client = SearchZone, Invoke = _openSearch },
+                new StripPart { Name = Localization.Translate(language, "Закрыть"), Client = HideZone, Invoke = Hide },
+            };
+            List<ClipboardHistoryEntry> items = VisibleItems();
+            for (int i = 0; i < items.Count; i++)
+            {
+                ClipboardHistoryEntry item = items[i];
+                var cell = new Rectangle(0, HeaderHeight + i * CellHeight, ClientSize.Width, CellHeight);
+                string preview = item.Preview.Length <= 80 ? item.Preview : item.Preview.Substring(0, 80);
+                parts.Add(new StripPart
+                {
+                    Name = Localization.Translate(language, "Закрепить"), Description = preview, Role = AccessibleRole.CheckButton,
+                    Checked = item.IsPinned, Client = PinZone(cell), Invoke = () => _service.TogglePin(item),
+                });
+                parts.Add(new StripPart
+                {
+                    Name = Localization.Translate(language, "Удалить"), Description = preview,
+                    Client = DeleteZone(cell), Invoke = () => _service.Delete(item),
+                });
+            }
+            return parts;
+        }
+
+        protected override AccessibleObject CreateAccessibilityInstance() => new StripAccessibleObject(this);
+
+        private sealed class StripAccessibleObject : ControlAccessibleObject
+        {
+            private readonly ClipboardHistoryWindow _window;
+            public StripAccessibleObject(ClipboardHistoryWindow window) : base(window) { _window = window; }
+            public override int GetChildCount() => _window.AccessibleParts().Count;
+            public override AccessibleObject? GetChild(int index)
+            {
+                List<StripPart> parts = _window.AccessibleParts();
+                return index >= 0 && index < parts.Count ? new StripPartObject(this, _window, parts[index]) : null;
+            }
+        }
+
+        private sealed class StripPartObject : AccessibleObject
+        {
+            private readonly StripAccessibleObject _parent;
+            private readonly ClipboardHistoryWindow _window;
+            private readonly StripPart _part;
+            public StripPartObject(StripAccessibleObject parent, ClipboardHistoryWindow window, StripPart part) { _parent = parent; _window = window; _part = part; }
+            public override AccessibleObject Parent => _parent;
+            public override string Name { get => _part.Name; set { } }
+            public override string Description => _part.Description;
+            public override AccessibleRole Role => _part.Role;
+            public override AccessibleStates State => AccessibleStates.Focusable | (_part.Checked ? AccessibleStates.Checked : AccessibleStates.None);
+            public override Rectangle Bounds => _window.RectangleToScreen(_part.Client);
+            public override string DefaultAction => _part.Name;
+            public override void DoDefaultAction() => _part.Invoke();
+        }
+
+        /// <summary>The click zones, in client coordinates: what is painted and what answers a click is one rectangle.</summary>
+        private static Rectangle SearchZone => new Rectangle(SearchButtonLeft, 0, HideButtonLeft - SearchButtonLeft, HeaderHeight);
+        private static Rectangle HideZone => new Rectangle(HideButtonLeft, 0, HeaderTextLeft - HideButtonLeft, HeaderHeight);
+        private static Rectangle PinZone(Rectangle cell) => new Rectangle(cell.Right - CellButtonWidth, cell.Y, CellButtonWidth, PinZoneHeight);
+        private static Rectangle DeleteZone(Rectangle cell) => new Rectangle(cell.Right - CellButtonWidth, cell.Y + PinZoneHeight, CellButtonWidth, cell.Height - PinZoneHeight);
+
+        /// <summary>The four fonts the strip paints with, derived from the window's own <see cref="Control.Font"/>.</summary>
         private void EnsureFonts()
         {
             if (_titleFont != null) return;
@@ -268,7 +384,6 @@ namespace CyrFlip
             _hotkeyFont = new Font(Font.FontFamily, 7);
             _bigFont = new Font(Font.FontFamily, 10, FontStyle.Bold);
             _smallFont = new Font(Font.FontFamily, 7.5f);
-            _buttonFont = new Font(Font.FontFamily, 15);
         }
 
         private void DisposeFonts()
@@ -277,8 +392,7 @@ namespace CyrFlip
             _hotkeyFont?.Dispose();
             _bigFont?.Dispose();
             _smallFont?.Dispose();
-            _buttonFont?.Dispose();
-            _titleFont = _hotkeyFont = _bigFont = _smallFont = _buttonFont = null;
+            _titleFont = _hotkeyFont = _bigFont = _smallFont = null;
         }
 
         protected override void OnFontChanged(EventArgs e)

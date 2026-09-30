@@ -38,22 +38,28 @@ namespace CyrFlip
 
         /// <summary>
         /// The full ordered task list for the current scenarios: one task per scenario in stored
-        /// order, then Manage scenarios and Exit (spec §8.2). Pure - no COM, no shell.
+        /// order, then Manage scenarios and Exit (spec §8.2). No COM, no shell - but the icon lookup
+        /// probes the file system, so the caller runs this on the pool and applies the result on the
+        /// UI thread (ticket S0030 HT-1). <paramref name="probes"/> replaces the real ones in tests.
         /// </summary>
         internal static List<TaskSpec> BuildTasks(IEnumerable<LauncherScenario> scenarios,
-            string exePath, Func<string, string> translate)
+            string exePath, Func<string, string> translate, LauncherPathProbes? probes = null)
         {
+            probes ??= LauncherPathProbes.Real();
             var tasks = new List<TaskSpec>();
             foreach (LauncherScenario scenario in scenarios)
             {
-                LauncherIcon icon = LauncherIconResolver.Resolve(scenario);
+                LauncherIcon icon = LauncherIconResolver.Resolve(scenario, probes);
                 tasks.Add(new TaskSpec(scenario.Name, LauncherIpc.RunPrefix + scenario.Id.ToString("D"),
                     scenario.Name, icon.Path, icon.Index));
             }
+            // The two fixed tasks stand for their meanings - settings and exit - on a plate, never for the
+            // app's own mark (ICON-SET rule 7, S0022 A6). exePath stays in the signature: it is what the
+            // link launches, which is Apply's business.
             tasks.Add(new TaskSpec(translate("Управление сценариями..."), LauncherIpc.SettingsCommand,
-                translate("Управление сценариями..."), exePath, 0));
+                translate("Управление сценариями..."), probes.VocabularyIcon(AppGlyphs.Settings) ?? "", 0));
             tasks.Add(new TaskSpec(translate("Выход из CyrFlip"), LauncherIpc.ExitCommand,
-                translate("Выход из CyrFlip"), exePath, 0));
+                translate("Выход из CyrFlip"), probes.VocabularyIcon(AppGlyphs.Exit) ?? "", 0));
             return tasks;
         }
 
