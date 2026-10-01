@@ -30,6 +30,9 @@ docs/assets/sza-kit.css -text
 *.js       text eol=crlf
 *.vscodeignore text eol=crlf
 
+# The contract's test vectors are a byte-exact copy of the catalog's: LF on every checkout, or the file-versus-parser test fails on a CRLF one.
+tests/CyrFlip.Tests/Fixtures/InputChord/*.jsonl text eol=lf
+
 # Binary assets.
 *.ico  binary
 *.png  binary

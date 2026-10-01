@@ -81,6 +81,8 @@ namespace CyrFlip.Tests
                         if (file.EndsWith(".md")) continue;
                         resolved = Path.Combine(resolved, "index.html");
                     }
+                    // PLAN/ is the local-only ticket store (gitignored): a clean clone or a CI checkout has none, so a link into it cannot be judged there.
+                    if (!File.Exists(resolved) && resolved.StartsWith(Path.Combine(Repo, "PLAN") + Path.DirectorySeparatorChar) && !Directory.Exists(Path.Combine(Repo, "PLAN"))) continue;
                     if (!File.Exists(resolved)) { errors.Add(Relative(file) + ": missing " + link); continue; }
                     if (pieces.Length == 2 && pieces[1].Length > 0 && (resolved.EndsWith(".md") || resolved.EndsWith(".html")))
                     {
@@ -126,7 +128,7 @@ namespace CyrFlip.Tests
             {
                 string source = File.ReadAllText(Page(group.Key, "en"));
                 string body = Regex.Match(source, @"<body\b[^>]*>(.*)</body>", RegexOptions.Singleline | RegexOptions.IgnoreCase).Groups[1].Value;
-                body = Regex.Split(body, @"<footer\b", RegexOptions.IgnoreCase)[0];
+                body = Regex.Split(body, @"<footer\b", RegexOptions.IgnoreCase)[0].Replace("\r\n", "\n"); // the digest is of the LF form, whatever the checkout's line endings are
                 string digest;
                 using (var sha = SHA256.Create()) digest = BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(body))).Replace("-", "").ToLowerInvariant();
                 foreach (string locale in group.Value)
