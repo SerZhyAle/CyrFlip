@@ -180,7 +180,9 @@ if ($Check) {
     }
     $rendered = Format-Csv
     $existing = [System.IO.File]::ReadAllText($Dest, $encoding)
-    if ($rendered -ne $existing) {
+    # Line endings are not content: the index stores this file with LF only, and a clean checkout hands
+    # back CRLF inside the quoted cells too, where the renderer keeps the export's LF.
+    if (($rendered -replace "`r`n", "`n") -ne ($existing -replace "`r`n", "`n")) {
         Write-Host "DRIFT: $Dest does not match re-rendered export + language copy" -ForegroundColor Red
         Write-Host 'Run .\msix\build-store-listing-csv.ps1 to regenerate it.' -ForegroundColor Yellow
         exit 1
