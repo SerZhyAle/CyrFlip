@@ -414,7 +414,8 @@ namespace CyrFlip
         /// What the author needs first and no log holds: version, OS, layouts, which features are on,
         /// the usage counters and the settings themselves. The registry block goes in whole - it is
         /// the state that explains the behaviour - which is why the dialog says outright that paths
-        /// (and with them the Windows account name) can appear inside, and lets the user open the
+        /// can appear inside, the usual ones with the Windows account name already replaced but a
+        /// path in an unusual shape still carrying it, and lets the user open the
         /// archive before any message exists.
         /// </summary>
         public static string BuildReport(AppConfig config, string version, DateTime stamp)

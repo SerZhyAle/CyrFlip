@@ -592,8 +592,9 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   (an owner on the hooks' UI thread attached the two threads' input queues while it was open), and
   `SendWithAttachment` carries `[HandleProcessCorruptedStateExceptions]` so a Simple MAPI provider that
   faults drops a rung instead of taking the tray process down (S0036 UI-8). **The dialog
-  is the consent step** - file list, sizes, path, an "open the folder" button and the plain statement that the
-  logs contain paths carrying the Windows account name - so there are no checkboxes and, deliberately, **no
+  is the consent step** - file list, sizes, path, an "open the folder" button and the plain statement about
+  file paths (the usual ones no longer carry the Windows account name, one in an unusual shape still can) - so
+  there are no checkboxes and, deliberately, **no
   new registry values**: the feature has no state. Since S0040 (`DIAGNOSTIC-REPORT` rules 1-4) every text in
   the archive passes **`DiagnosticRedactor`** (the data folders become `<APP_DATA>`, the profile and any
   `X:\Users\<name>` `<USER>`, a URL loses its userinfo), `environment.txt` (`key=value`, counts and platform

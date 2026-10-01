@@ -186,7 +186,8 @@ configuration report into one ZIP under `reports`, next to the layout file, and 
   program, and the Send button is yours. Nothing happens without the button being pressed.
 - **Clipboard history is never in the archive.** Before anything is sent you get the file list, the
   sizes and the archive's path, and can open the folder to read it - that, not a row of checkboxes,
-  is the consent step. The logs do contain file paths, so they carry your Windows account name.
+  is the consent step. The logs do contain file paths; the usual ones no longer carry your Windows
+  account name, but one in an unusual shape still can.
 - **If your mail client can't take an attachment from a link** - webmail and the new Outlook can't,
   because `mailto:` has no attachment field at all - CyrFlip opens the message anyway and selects the
   archive in Explorer so you can drag it in. Classic Outlook and Thunderbird attach it directly.
