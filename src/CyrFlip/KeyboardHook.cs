@@ -278,7 +278,9 @@ namespace CyrFlip
                 return false;
 
             // From here the key is swallowed, and with it its repeats and its release.
-            _matcher.Fired(vk, data.time);
+            // (Only a key-down is owned: a trigger that arrived as its own release - PrintScreen -
+            // has nothing left to swallow, and owning it would eat the next press.)
+            if (down) _matcher.Fired(vk, data.time);
             ChordFired?.Invoke(_matcher.Modifiers.Held);
 
             if (caseMatch) CaseHotkeyPressed?.Invoke(this, EventArgs.Empty);

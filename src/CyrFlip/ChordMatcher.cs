@@ -309,6 +309,9 @@ namespace CyrFlip
         // Whether the table was reconciled for the current candidate key-down, so a key bound in
         // several rows costs one reconcile, not one per row.
         private bool _reconciled;
+        // A PrintScreen key-down was delivered since its last up (see Observe).
+        private bool _snapshotDownSeen;
+        private const uint VK_SNAPSHOT = 0x2C;
 
         public ChordMatcher(PhysicalModifiers modifiers, uint? repeatWindowMs = null)
         {
@@ -379,6 +382,20 @@ namespace CyrFlip
                     return Verdict.Swallow;
                 }
                 _firedVk = 0; // the up was lost; this is a fresh press
+            }
+
+            // PrintScreen reaches a low-level hook as a key-UP only (Windows keeps its key-down for
+            // itself), so a chord on it can never see a press. An up with no down before it is the
+            // press; the caller must not own the trigger afterwards (the up is already the release).
+            if (vk == VK_SNAPSHOT)
+            {
+                bool downSeen = _snapshotDownSeen;
+                _snapshotDownSeen = down;
+                if (!down && !downSeen)
+                {
+                    _reconciled = false;
+                    return Verdict.Candidate;
+                }
             }
 
             if (!down) return Verdict.Pass;
