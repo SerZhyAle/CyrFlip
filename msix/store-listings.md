@@ -75,17 +75,19 @@ Light, dark or same as Windows: every window, dialog and menu follows the theme,
 
 **What's new in this version**
 ```
-The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+CyrFlip now has a dark theme, a screen-region capture, local quick notes and a much sturdier clipboard flip.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+Theme: "Like Windows", Light or Dark on the General tab - every window, dialog and menu follows at once, no restart.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+Screen capture: Ctrl+Shift+PrintScreen (or the tray item), drag a region - the picture lands on the clipboard as PNG and can also be saved to a folder.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so "ghbdtnпривет" comes back as "приветghbdtn" instead of doubling the first half.
+Quick notes (opt-in): Ctrl+Shift+Alt+N opens a local notepad, encrypted on disk; the text menu can save a selection into it. Notes and clipboard history move to another PC or phone as one plain-text exchange file.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so "Convert punctuation along with the text" can be switched off: "/ghbdtn" then keeps its slash instead of starting with a full stop.
+The flip now hands your clipboard back exactly: images, copied files, a Cut and password-manager markers survive, and a slow target (RDP, a VM, a busy Word) no longer pastes your old clipboard over the fix. Clipboard history is encrypted whole on disk, and "×" really erases an entry.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.
+More works from the keyboard: Ctrl+Shift+Alt+M opens CyrFlip's menu at the caret, and the history strip, the capture and the settings lists take the arrow keys.
+
+Steadier: hotkeys never wait on a disk or a network share, CyrFlip closes cleanly at sign-out, the Store build keeps each Windows user's files apart, and the portable build adds Start menu and desktop shortcuts. "Send logs to the author" masks account names and never includes the clipboard history.
 ```
 
 ---
@@ -144,17 +146,19 @@ CyrFlip — крошечная утилита Windows в системном тр
 
 **Что нового в этой версии**
 ```
-Цвет маркера теперь называет раскладку, а не только язык: у каждой из 25 раскладок 13 отобранных языков свой оттенок цвета её языка - русский всегда красный, но «Русская (машинопись)» уже другой красный, - а все остальные раскладки Windows получили один нейтральный цвет. В стиле «точка» этот цвет и есть весь маркер.
+В CyrFlip появились тёмная тема, снимок области экрана, локальные быстрые заметки и куда более надёжный разворот выделенного текста.
 
-Рядом с кареткой и на указателе мыши маркер стал полупрозрачным, так что текст под ним остаётся читаемым, а его буквы вписаны в значок с одним пикселем поля. Текстовый курсор и значок в трее остаются непрозрачными.
+Тема: «Как в Windows», «Светлая» или «Тёмная» на вкладке «Общие» - все окна, диалоги и меню переключаются сразу, без перезапуска.
 
-Двойного маркера в VS Code больше нет: пока рисует расширение, CyrFlip прячет свой. В панели чата, в терминале и в полях поиска, где расширение рисовать не может, маркер возвращается.
+Снимок экрана: Ctrl+Shift+PrintScreen (или пункт в трее), выделите область - картинка попадает в буфер обмена как PNG и по желанию сохраняется в папку.
 
-Смешанный текст исправляется одним нажатием: направление выбирается теперь для каждого символа, поэтому «ghbdtnпривет» превращается в «приветghbdtn», а не удваивает первую половину.
+Быстрые заметки (по желанию): Ctrl+Shift+Alt+N открывает локальный блокнот, зашифрованный на диске; выделенное можно сохранить в него из текстового меню. Заметки и историю буфера можно перенести на другой ПК одним текстовым файлом.
 
-Знаки препинания теперь ваш выбор. Клавиша, дающая знак в обеих раскладках, не говорит о том, в какой из них её нажали, поэтому «Конвертировать знаки препинания вместе с текстом» можно выключить: тогда «/ghbdtn» сохранит свой слеш вместо того, чтобы начаться с точки.
+Конвертация теперь возвращает буфер обмена в точности: картинки, скопированные файлы, «Вырезать» и пометки менеджеров паролей сохраняются, а медленная цель (RDP, виртуальная машина) больше не вставляет старый буфер поверх правки. История буфера шифруется на диске целиком, а «×» действительно стирает запись.
 
-Синхронизация CapsLock после исправления регистра задаёт состояние клавиши, а не переключает его, поэтому повторное исправление того же текста больше не оставляет её в обратном положении. А на вкладке «О программе» показана версия сборки.
+Больше возможностей с клавиатуры: Ctrl+Shift+Alt+M открывает меню CyrFlip у каретки, а полоса истории, снимок области и списки настроек управляются стрелками.
+
+Стабильнее: горячие клавиши не ждут диск или сетевую папку, CyrFlip корректно закрывается при выходе из системы, сборка из Store хранит файлы каждого пользователя Windows отдельно, а портативная сборка добавляет ярлыки в меню «Пуск» и на рабочий стол. «Отправить логи автору» скрывает имена учётных записей и никогда не включает историю буфера.
 ```
 
 ---
@@ -213,17 +217,19 @@ CyrFlip — це крихітна утиліта в системному тре�
 
 **Що нового в цій версії**
 ```
-Колір маркера тепер називає розкладку, а не лише мову: кожна з 25 розкладок 13 відібраних мов має власний відтінок кольору своєї мови - російська завжди червона, але «Російська (друкарська машинка)» вже інший червоний, - а всі інші розкладки Windows дістали один нейтральний колір. У стилі «крапка» цей колір і є весь маркер.
+У CyrFlip з'явилися темна тема, знімок області екрана, локальні швидкі нотатки та значно надійніше перетворення виділеного тексту.
 
-Поруч із кареткою та на вказівнику миші маркер став напівпрозорим, тож текст під ним лишається читабельним, а його літери вписані у значок з одним пікселем поля. Текстовий курсор і піктограма в треї лишаються непрозорими.
+Тема: «Як у Windows», «Світла» або «Темна» на вкладці «Загальні» - усі вікна, діалоги й меню перемикаються одразу, без перезапуску.
 
-Подвійного маркера у VS Code більше немає: поки малює розширення, CyrFlip ховає свій. У панелі чату, в терміналі та в полях пошуку, де розширення малювати не може, маркер повертається.
+Знімок екрана: Ctrl+Shift+PrintScreen (або пункт у треї), виділіть область - картинка потрапляє в буфер обміну як PNG і за бажанням зберігається в теку.
 
-Змішаний текст виправляється одним натисканням: напрям обирається тепер для кожного символу, тому «ghbdtnпривет» перетворюється на «приветghbdtn», а не подвоює першу половину.
+Швидкі нотатки (за бажанням): Ctrl+Shift+Alt+N відкриває локальний блокнот, зашифрований на диску; виділене можна зберегти в нього з текстового меню. Нотатки й історію буфера можна перенести на інший ПК одним текстовим файлом.
 
-Розділові знаки тепер ваш вибір. Клавіша, що дає знак в обох розкладках, не каже, в якій із них її натиснули, тому «Перетворювати розділові знаки разом із текстом» можна вимкнути: тоді «/ghbdtn» збереже свій слеш замість того, щоб початися з крапки.
+Перетворення тепер повертає буфер обміну достеменно: картинки, скопійовані файли, «Вирізати» та позначки менеджерів паролів зберігаються, а повільна ціль (RDP, віртуальна машина) більше не вставляє старий буфер поверх правки. Історія буфера шифрується на диску цілком, а «×» справді стирає запис.
 
-Синхронізація CapsLock після виправлення регістру задає стан клавіші, а не перемикає його, тож повторне виправлення того самого тексту більше не лишає її у зворотному положенні. А на вкладці «Про програму» показано версію збірки.
+Більше можливостей із клавіатури: Ctrl+Shift+Alt+M відкриває меню CyrFlip біля каретки, а смуга історії, знімок області та списки налаштувань керуються стрілками.
+
+Стабільніше: гарячі клавіші не чекають диск чи мережеву теку, CyrFlip коректно закривається під час виходу із системи, збірка зі Store зберігає файли кожного користувача Windows окремо, а портативна збірка додає ярлики в меню «Пуск» і на робочий стіл. «Надіслати логи автору» приховує імена облікових записів і ніколи не включає історію буфера.
 ```
 
 ---
