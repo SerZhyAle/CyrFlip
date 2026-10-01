@@ -20,9 +20,10 @@ not a local edit and not a local copy kept "in sync".
 | [`INPUT-PARITY.md`](INPUT-PARITY.md) | `INPUT-PARITY` | Producer; steward of the keyboard and mouse columns of a shared device table; rules 1-2 held in the code since S0045, live walk owed |
 | [`SCENARIO-FILE.md`](SCENARIO-FILE.md) | `SCENARIO-FILE` | Producer and Consumer - launcher store, export and OneClickRunner import |
 | [`DIAGNOSTIC-REPORT.md`](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | Producer / Implementer - session log rotation, count-only environment report, support bundle ZIP |
-| [`APP-SETTINGS.md`](APP-SETTINGS.md) | `APP-SETTINGS` | Owner, Producer and reference implementation - the persistent settings surface |
-| [`APP-BEHAVIOUR.md`](APP-BEHAVIOUR.md) | `APP-BEHAVIOUR` | Consumer - the shared desktop-app moments; partly conformant |
-| [`APP-STYLE.md`](APP-STYLE.md) | `APP-STYLE` | Consumer - no theme yet; the layout marker is out of theme |
+| [`APP-BEHAVIOUR.md`](APP-BEHAVIOUR.md) | `APP-BEHAVIOUR` | Consumer - the shared desktop-app moments; the tray tool windows ask the rule-1 exemption (proposal filed) |
+| [`APP-STYLE.md`](APP-STYLE.md) | `APP-STYLE` | Consumer - the app theme (sections 2-5; in the working tree, not yet in a release); the layout marker is out of theme |
+| [`APP-SETTINGS.md`](APP-SETTINGS.md) | `APP-SETTINGS` | Owner, Producer and reference implementation - the persistent settings surface; the contract itself awaits the founding proposal (filed 2026-10-01) |
+| [`CAPTURE-OUTPUT.md`](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | Producer of the `screenshot` kind - the region capture's file name, folder chain and PNG `tIME` carrier |
 | [`ICON-SET.md`](ICON-SET.md) | `ICON-SET` | Consumer - glyphs and names map to the vocabulary; meanings it lacks are proposed |
 | [`ICON-RENDER.md`](ICON-RENDER.md) | `ICON-RENDER` | Consumer - how glyphs are drawn and coloured; the layout badge is out |
 | [`ICON-EXTERNAL.md`](ICON-EXTERNAL.md) | `ICON-EXTERNAL` | Consumer - launcher scenario icons and their fallbacks |
@@ -34,8 +35,8 @@ not a local edit and not a local copy kept "in sync".
 | [`CHECK-BASELINE.md`](CHECK-BASELINE.md) | `CHECK-BASELINE` | None - no accepted-debt file, declared |
 | [`CHECK-PLACEMENT.md`](CHECK-PLACEMENT.md) | `CHECK-PLACEMENT` | Producer - where each check runs |
 | [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md) | `BUILD-EVIDENCE` | Producer - the release ZIP carries its build's version and commit |
-| [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-INTERNAL-QUALITY` | Consumer - internal docs; partly conformant |
-| [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-EXTERNAL-QUALITY` | Consumer - the `docs/` site in 13 languages; partly conformant |
+| [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-INTERNAL-QUALITY` | Consumer - internal docs; held (most rules gated), ticket `S0028` |
+| [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-EXTERNAL-QUALITY` | Consumer - the `docs/` site in 13 languages; held and gated, ticket `S0028` |
 | [`UPDATE-MANIFEST.md`](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | Not bound - CyrFlip has no update check |
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `REPO-STAMP` | Producer - `.sza-canon.json`, written only by the adoption run |
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `REPO-LAYOUT` | Producer - the names tools address |

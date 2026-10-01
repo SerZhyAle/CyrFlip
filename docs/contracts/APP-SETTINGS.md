@@ -3,21 +3,18 @@
 | | |
 | --- | --- |
 | **Id** | `APP-SETTINGS` |
-| **Version** | 0.1, draft |
-| **Home** | `desktop-app-ux/APP-SETTINGS.md` in the shared contracts catalog |
+| **Version** | - none yet: no catalog contract carries this id |
+| **Home** | asked: `desktop-app-ux/APP-SETTINGS.md` in the shared contracts catalog |
 | **Role here** | Owner, Producer and reference implementation - the persistent settings surface |
 
-## What this repository must keep true
+## State
 
-- **Rule 1 - One instance, found where the user is.** Single instance; opens on the active monitor and restores the last selected page (`_config.SettingsTab`).
-- **Rule 2 - Navigation.** Vertical page list with icons and measured captions; unselected and selected tabs rendered cleanly across all 13 scripts; "About" is the last page.
-- **Rule 3 - Page anatomy.** Short description followed by settings blocks; each setting has a caption, control, and muted hint line.
-- **Rule 4 - Live-apply commit model.** Changes apply immediately without Save/Cancel; irreversible operations are confirmed individually via `ConfirmDialog` with `danger` role.
-- **Rule 5 - Language selector on first page.** 13 languages with endonyms; live switch across all windows and menus without restart; right-to-left layout for Arabic and Urdu.
-- **Rule 6 - Theme selector on first page.** Three modes (`system`, `light`, `dark`); dynamic palette references; high contrast wins over custom themes.
-- **Rule 7 - Scaling & per-monitor DPI.** Font-derived measurements, no clipped captions or dropdowns across 100%, 150%, 175%, 200% DPI scales.
-- **Rule 8 - Compactness.** Sized to content with defined minimums and margins.
-- **Rule 9 - OS cooperation.** System fonts with script fallbacks; dark title bar via DWM; Escape key closes/hides the window; deep links to Windows Settings (`ms-settings:keyboard`).
-- **Rule 10 - Accessibility.** Tab navigation, focus rectangles on keyboard focus, and `AccessibleName` on glyph-only controls.
-- **Rule 11 - Documentation.** Every setting inventoried and kept aligned with user documentation and guides.
-- **Rule 12 - About page.** Version line, copy details, support bundle log diagnostic exporter, and privacy policy link.
+The catalog has no `APP-SETTINGS` contract yet. CyrFlip filed the founding proposal -
+`PROPOSAL-2026-10-01-cyrflip-found-app-settings.md` beside the contracts in the catalog's
+`desktop-app-ux/` folder (twelve rules drafted from this repository's settings window, tickets S0019
+and S0020; the commit-model rule defers to `APP-BEHAVIOUR` rule 12 and
+`PROPOSAL-2026-09-28-autosave-settings-surface.md`). This file carried the twelve rules until
+2026-10-01; a pointer that lists rules is a copy, so they live only in the proposal now.
+
+Until the owner founds the contract, this repository's conformance state is tracked in its registry
+row as `pending` and in the conformance backlog - not here.

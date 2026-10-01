@@ -327,6 +327,48 @@ namespace CyrFlip.Tests
             Assert.Equal(Png, fs.Files[result.FilePath!]);
         }
 
+        /// <summary>CAPTURE-OUTPUT rule 16: the saved file carries a tIME chunk holding the same local
+        /// wall-clock second the name was formed from, and the decorated PNG still decodes.</summary>
+        [Fact]
+        public void TheSavedFileCarriesTheCaptureTimeAndStillDecodes()
+        {
+            using Bitmap image = ScreenCaptureTests.Pattern(9, 5);
+            byte[] clipboard = ClipboardImage.EncodePng(image);
+            var fs = new FakeFs();
+            ScreenshotSaver.Result result = Saver(fs).Save(clipboard, Instant, "");
+            byte[] saved = fs.Files[result.FilePath!];
+
+            Assert.Equal(PngTime.Inject(clipboard, Instant), saved);
+            using var decoded = new Bitmap(new MemoryStream(saved));
+            Assert.Equal(image.Size, decoded.Size);
+
+            // The chunk sits right after the whole IHDR chunk (the 33-byte head): 4-byte length 7,
+            // type "tIME", then year (BE), month, day, hour, minute, second - the name's own 14:05:33.
+            Assert.Equal(0, saved[33]);
+            Assert.Equal(0, saved[34]);
+            Assert.Equal(0, saved[35]);
+            Assert.Equal(7, saved[36]);
+            Assert.Equal((byte)'t', saved[37]);
+            Assert.Equal((byte)'I', saved[38]);
+            Assert.Equal((byte)'M', saved[39]);
+            Assert.Equal((byte)'E', saved[40]);
+            Assert.Equal(0x07, saved[41]);
+            Assert.Equal(0xEA, saved[42]); // 2026
+            Assert.Equal(9, saved[43]);
+            Assert.Equal(26, saved[44]);
+            Assert.Equal(14, saved[45]);
+            Assert.Equal(5, saved[46]);
+            Assert.Equal(33, saved[47]);
+            uint crc = (uint)((saved[48] << 24) | (saved[49] << 16) | (saved[50] << 8) | saved[51]);
+            Assert.Equal(PngTime.Crc32(saved, 37, 11), crc);
+        }
+
+        /// <summary>Decoration never fails a capture: bytes that are not a PNG with an IHDR come back
+        /// unchanged (the byte-equality test above rides on that with its deliberately fake PNG).</summary>
+        [Fact]
+        public void BytesThatAreNotAPngComeBackUnchanged()
+            => Assert.Same(Png, PngTime.Inject(Png, Instant));
+
         [Fact]
         public void AFailedWriteLeavesNoTemporaryAndNoFinalFile()
         {

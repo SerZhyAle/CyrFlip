@@ -5,7 +5,7 @@
 | **Ids** | `DOC-INTERNAL-QUALITY`, `DOC-EXTERNAL-QUALITY` |
 | **Version** | 0.9, draft (both) |
 | **Home** | `documentation-quality/README.md` in the shared contracts catalog |
-| **Role here** | consumer of both - adopted 2026-09-26; all rules held and gated as of 2026-10-01 (ticket `S0028`) |
+| **Role here** | consumer of both - adopted 2026-09-26; held as of 2026-10-01 (ticket `S0028`), most rules gated by tests - internal 5 (house style) and 6-7 (asset orphans, embedded third-party assets) are held by the cleanup and by reading, not gated |
 
 ## Why both
 

@@ -1048,12 +1048,12 @@ namespace CyrFlip
             row.Controls.Add(nameLabel);
 
             var up = Button("↑", () => MoveLayout(layout.Klid, -1));
-            up.AccessibleName = Translate("Вверх");
+            up.AccessibleName = Translate("Переместить вверх");
             // Only within one language: the order of the languages is Windows' own and is put back at
             // sign-in (ticket S0007, WL-8) - the hint under the table says so.
             up.Width = 32; up.Height = RowHeight; up.AutoSize = false; up.Margin = new Padding(3, 4, 3, 4); up.Enabled = InputLayouts.CanMove(all, index, -1);
             var down = Button("↓", () => MoveLayout(layout.Klid, +1));
-            down.AccessibleName = Translate("Вниз");
+            down.AccessibleName = Translate("Переместить вниз");
             down.Width = 32; down.Height = RowHeight; down.AutoSize = false; down.Margin = new Padding(3, 4, 3, 4); down.Enabled = InputLayouts.CanMove(all, index, +1);
             row.Controls.Add(up);
             row.Controls.Add(down);
@@ -2159,9 +2159,9 @@ namespace CyrFlip
             row1.Controls.Add(LauncherButton("Клонировать", LauncherClone));
             row1.Controls.Add(LauncherButton("Удалить", LauncherRemove));
             var up = LauncherButton("↑", () => LauncherMove(-1));
-            up.AccessibleName = Translate("Вверх");
+            up.AccessibleName = Translate("Переместить вверх");
             var down = LauncherButton("↓", () => LauncherMove(+1));
-            down.AccessibleName = Translate("Вниз");
+            down.AccessibleName = Translate("Переместить вниз");
             // Sized by their content, never below 32 px wide: built here, before the window takes its real font,
             // a fixed RowHeight was the old small font's and cut the lower half of "↓" (S0019 audit A-16).
             // GrowOnly (a button's default) grows from the current size, so it starts from 32 x 0, not 75 x 23.

@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string] $Manifest = (Join-Path $PSScriptRoot '../../PLAN/S0027_full-code-audit-pre-release/slices.json'))
+param([string] $Manifest = (Join-Path $PSScriptRoot '../../PLAN/S0042_code-re-audit-before-release/slices.json'))
 
 $ErrorActionPreference = 'Stop'
 $data = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json

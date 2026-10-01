@@ -19,6 +19,7 @@
 {"file": "docs/contracts/APP-SETTINGS.md", "topic": "APP SETTINGS", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/APP-STYLE.md", "topic": "APP STYLE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/BUILD-EVIDENCE.md", "topic": "BUILD EVIDENCE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/CAPTURE-OUTPUT.md", "topic": "CAPTURE OUTPUT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/CHECK-BASELINE.md", "topic": "CHECK BASELINE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/CHECK-PLACEMENT.md", "topic": "CHECK PLACEMENT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/CHECK-VERDICT.md", "topic": "CHECK VERDICT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}

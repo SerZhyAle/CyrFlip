@@ -217,7 +217,7 @@ try {
             $preflightFails.Add('Store listing mirrors drifted from msix/store-listing-export.csv. Run msix\render-listing-mirrors.ps1, review the diff, commit.')
         }
         elseif ($LASTEXITCODE -eq 2) {
-            $preflightNotVerified.Add('Could not read msix/store-listing-export.csv or listing mirrors.')
+            $preflightUnverified.Add('Could not read msix/store-listing-export.csv or listing mirrors.')
         }
         elseif ($LASTEXITCODE -ne 0) {
             $preflightFails.Add("Store listing mirror check failed (exit $LASTEXITCODE).")
@@ -229,7 +229,7 @@ try {
             $preflightFails.Add('Store listing import CSV drifted from export + language copy. Run msix\build-store-listing-csv.ps1, review the diff, commit.')
         }
         elseif ($LASTEXITCODE -eq 2) {
-            $preflightNotVerified.Add('Could not read msix/store-listing-export.csv or language files.')
+            $preflightUnverified.Add('Could not read msix/store-listing-export.csv or language files.')
         }
         elseif ($LASTEXITCODE -ne 0) {
             $preflightFails.Add("Store listing import CSV check failed (exit $LASTEXITCODE).")
@@ -251,14 +251,14 @@ finally {
     }
 }
 
-if ($preflightFails.Count -gt 0 -or $preflightNotVerified.Count -gt 0) {
+if ($preflightFails.Count -gt 0 -or $preflightUnverified.Count -gt 0) {
     if ($Push) {
         Write-Host "Cannot push release tag $Tag because preflight checks did not pass." -ForegroundColor Red
     }
 }
 
 # --- Trigger the GitHub build (only with -Push and clean preflight) -----------
-if ($Push -and $preflightFails.Count -eq 0 -and $preflightNotVerified.Count -eq 0) {
+if ($Push -and $preflightFails.Count -eq 0 -and $preflightUnverified.Count -eq 0) {
     Step "Tag + push $Tag (triggers paid GitHub release build)"
     # The anchor gets precisely HEAD's tree, regardless of what the user staged. `git commit` would
     # consume the index; commit-tree does not. Move the current branch only after the object exists.
@@ -335,10 +335,10 @@ if ($preflightFails.Count -gt 0) {
     Write-Host "$($subjectName): FAIL ($($preflightFails.Count))" -ForegroundColor Red
     exit 1
 }
-elseif ($preflightNotVerified.Count -gt 0) {
+elseif ($preflightUnverified.Count -gt 0) {
     Write-Host "`nPREFLIGHT UNVERIFIED:" -ForegroundColor Yellow
-    foreach ($u in $preflightNotVerified) { Write-Host "  - $u" -ForegroundColor Yellow }
-    Write-Host "$($subjectName): NOT VERIFIED ($($preflightNotVerified.Count))" -ForegroundColor Yellow
+    foreach ($u in $preflightUnverified) { Write-Host "  - $u" -ForegroundColor Yellow }
+    Write-Host "$($subjectName): NOT VERIFIED ($($preflightUnverified.Count))" -ForegroundColor Yellow
     exit 2
 }
 else {

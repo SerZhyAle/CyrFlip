@@ -186,6 +186,16 @@ namespace CyrFlip.Tests
         public void TheMarkerOpacityIsTheContractsValue()
             => Assert.Equal(0.6f, LayoutStyle.MarkerOpacity);
 
+        /// <summary>LAYOUT-PALETTE rules 4 and 8: the letters sit on a black outline and the dot-mode
+        /// CapsLock ring is near-black - the two decorations that keep the marker legible. Pinned so a
+        /// palette edit that moves either turns a test red instead of passing silently.</summary>
+        [Fact]
+        public void TheOutlineAndTheDotCapsRingAreTheContractsColours()
+        {
+            Assert.Equal(Color.Black, LayoutStyle.OutlineColor);
+            Assert.Equal(Color.FromArgb(235, Color.Black), LayoutStyle.CapsRingColor);
+        }
+
         [Fact]
         public void TheCaretOverlayWindowIsTranslucentToo()
         {

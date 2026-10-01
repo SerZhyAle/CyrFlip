@@ -134,12 +134,15 @@ namespace CyrFlip
         /// </summary>
         public Result Save(byte[] png, DateTime started, string configured)
         {
+            // CAPTURE-OUTPUT rule 16: the capture time inside the file equals the time in its name -
+            // the tIME chunk carries the same local second the stem was formed from (PngTime).
+            byte[] payload = PngTime.Inject(png, started);
             string stem = Stem(started);
             string? shown = DisplayFolder(configured);
             var reasons = new List<string>();
             foreach (string folder in Chain(configured))
             {
-                string? path = TryFolderWithinBudget(folder, stem, png, out string reason);
+                string? path = TryFolderWithinBudget(folder, stem, payload, out string reason);
                 if (path != null)
                 {
                     bool asShown = shown != null && string.Equals(folder, shown, StringComparison.OrdinalIgnoreCase);

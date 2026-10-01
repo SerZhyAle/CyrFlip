@@ -1096,8 +1096,13 @@ namespace CyrFlip
                     _ui?.Post(_ => ShowInfoBalloon(5000,
                         string.Format(T("Папка для снимков недоступна - снимок сохранён сюда: {0}"), result.Folder)), null);
                 else if (result.Outcome == ScreenshotSaver.Outcome.Failed)
+                {
+                    // The failure kinds outlive the balloon (ticket S0026); the reason names exception
+                    // types and timeouts, never a path.
+                    ScreenshotLog.Log("save failed: " + result.Reason);
                     _ui?.Post(_ => ShowWarningBalloon(5000,
                         T("Снимок в буфере обмена, но сохранить файл не удалось ни в одну папку.")), null);
+                }
             })
             { IsBackground = true, Name = "CyrFlip screenshot" };
             try { worker.Start(); }

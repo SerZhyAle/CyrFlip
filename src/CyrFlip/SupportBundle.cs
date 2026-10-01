@@ -70,7 +70,8 @@ namespace CyrFlip
         public static readonly string[] LogFiles =
         {
             "launcher.log", "context-menu.log", "translate.log", "quick-notes-diagnostics.log",
-            "clipboard-history-diagnostics.log", "clipboard-flip.log", "caret-diagnostics.txt", "layout.txt",
+            "clipboard-history-diagnostics.log", "clipboard-flip.log", "screenshot.log",
+            "caret-diagnostics.txt", "layout.txt",
         };
 
         /// <summary>
@@ -102,6 +103,7 @@ namespace CyrFlip
             ["quick-notes-diagnostics.log"] = "быстрые заметки: только счётчики",
             ["clipboard-history-diagnostics.log"] = "история буфера: только счётчики",
             ["clipboard-flip.log"] = "конвертации выделения: длины и имена процессов - без текста",
+            ["screenshot.log"] = "снимки экрана: исход сохранения файла - без путей",
             ["caret-diagnostics.txt"] = "диагностика каретки: классы окон и процессы - заголовки только длиной",
             ["layout.txt"] = "код текущей раскладки",
         };

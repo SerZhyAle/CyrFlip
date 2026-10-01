@@ -124,6 +124,19 @@ namespace CyrFlip
         /// <summary>The black outline's width, as a fraction of the badge height.</summary>
         internal const float OutlineFraction = 0.12f;
 
+        /// <summary>
+        /// The letters' outline colour - <c>LAYOUT-PALETTE</c> rule 4's black outline that keeps the
+        /// glyphs legible at the marker's 0.6 opacity. Pinned by <c>LayoutMarkerTests</c>.
+        /// </summary>
+        internal static readonly Color OutlineColor = Color.Black;
+
+        /// <summary>
+        /// The dot-mode CapsLock ring - <c>LAYOUT-PALETTE</c> rule 8's dark ring drawn where the layout
+        /// colour is the whole marker and a coloured frame would vanish into it. Pinned by
+        /// <c>LayoutMarkerTests</c>.
+        /// </summary>
+        internal static readonly Color CapsRingColor = Color.FromArgb(235, Color.Black);
+
         /// <summary>How far antialiasing spreads an edge beyond the geometry it was drawn from.</summary>
         internal const float AntiAliasBleed = 0.5f;
 
@@ -191,7 +204,7 @@ namespace CyrFlip
 
             SmoothingMode prev = g.SmoothingMode;
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            using (var pen = new Pen(Color.Black, outline) { LineJoin = LineJoin.Round })
+            using (var pen = new Pen(OutlineColor, outline) { LineJoin = LineJoin.Round })
                 g.DrawPath(pen, path);
             using (var fill = new SolidBrush(ColorForLayout(klid, code)))
                 g.FillPath(fill, path);

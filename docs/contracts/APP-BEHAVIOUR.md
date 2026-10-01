@@ -22,6 +22,9 @@
 - **Window geometry is saved at the end of a gesture** and clamped to a live display (rule 10).
 - **Every outward feature is opt-in** (rule 11); settings apply live (rule 12).
 
-Not yet held: accessible names on glyph-only controls, raw exception text in several dialogs, and Escape
-in Yes/No confirmations. The audit and the plan are in `PLAN/` (local, not published); the deviations
-belong in the catalog's registry as dated exceptions.
+The four tool windows (settings, history, notes, search) and the translation popup are the tray-app
+exemption class of rule 1 - hide on close, never steal the focus - asked as
+`PROPOSAL-2026-10-01-cyrflip-tray-app-tool-windows.md` in the catalog; rule 12's live-apply model is
+the shape `PROPOSAL-2026-09-28-autosave-settings-surface.md` asks rule 12 to permit. The audit and the
+plan are in `PLAN/` (local, not published); the deviations belong in the catalog's registry as dated
+exceptions.

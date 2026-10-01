@@ -18,8 +18,10 @@
   over every open window on a change (`ThemeApply`, `ThemeCoverageTests`).
 - **Section 4 - the role vocabulary.** The role names are the contract's, plus the proposed `warning`,
   `danger` and `success` - `danger` is on the destructive answer of the app's own confirmation dialog - and
-  one CyrFlip proposal, `surface.alternate` (the alternate list row). Contrast is measured per text/surface
-  pair (`ThemePaletteTests`, 4.5:1; 3:1 for disabled text).
+  one CyrFlip ask, `surface.alternate` (the alternate list row), filed 2026-10-01 as
+  `PROPOSAL-2026-10-01-cyrflip-state-roles-and-alternate-surface.md` in the catalog together with the
+  promotion of the three state roles. Contrast is measured per text/surface pair
+  (`ThemePaletteTests`, 4.5:1; 3:1 for disabled text).
 - **Section 5 - declared out of theme.** The layout marker: its colours are `LAYOUT-PALETTE`'s and never
   follow the window theme - the marker names a layout. Declared at `LayoutStyle.cs` and `CaretOverlay.cs`.
 - **Section 8, answered here rather than left open:** Windows' high contrast wins over every mode (system

@@ -421,8 +421,8 @@ namespace CyrFlip
             _kindList.Text = T("Список");
             _addItem.Text = T("Добавить пункт");
             _removeItem.Text = T("Удалить пункт");
-            _itemUp.AccessibleName = T("Вверх");
-            _itemDown.AccessibleName = T("Вниз");
+            _itemUp.AccessibleName = T("Переместить вверх");
+            _itemDown.AccessibleName = T("Переместить вниз");
             ApplyMoveGlyphs();
             _copy.Text = T("Копировать");
             _keep.Text = T("Копировать для Google Keep");

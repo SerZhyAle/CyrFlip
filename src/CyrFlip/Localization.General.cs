@@ -14,13 +14,13 @@
                 en: "General", uk: "Загальні", de: "Allgemein", it: "Generale", es: "General", fr: "Général",
                 pt: "Geral", ar: "عام", hi: "सामान्य", bn: "সাধারণ", ur: "عام", zh: "常规");
 
-            Add("Вверх",
-                en: "Up", uk: "Вгору", de: "Nach oben", it: "Su", es: "Arriba", fr: "Haut",
-                pt: "Para cima", ar: "أعلى", hi: "ऊपर", bn: "উপরে", ur: "اوپر", zh: "向上");
+            Add("Переместить вверх",
+                en: "Move up", uk: "Перемістити вгору", de: "Nach oben verschieben", it: "Sposta su", es: "Mover arriba", fr: "Monter",
+                pt: "Mover para cima", ar: "نقل لأعلى", hi: "ऊपर ले जाएँ", bn: "উপরে সরান", ur: "اوپر منتقل کریں", zh: "上移");
 
-            Add("Вниз",
-                en: "Down", uk: "Вниз", de: "Nach unten", it: "Giù", es: "Abajo", fr: "Bas",
-                pt: "Para baixo", ar: "أسفل", hi: "नीचे", bn: "নিচে", ur: "نیچے", zh: "向下");
+            Add("Переместить вниз",
+                en: "Move down", uk: "Перемістити вниз", de: "Nach unten verschieben", it: "Sposta giù", es: "Mover abajo", fr: "Descendre",
+                pt: "Mover para baixo", ar: "نقل لأسفل", hi: "नीचे ले जाएँ", bn: "নিচে সরান", ur: "نیچے منتقل کریں", zh: "下移");
 
             Add("Основные параметры приложения. Все изменения применяются сразу.",
                 en: "Core app settings. Changes take effect immediately.",

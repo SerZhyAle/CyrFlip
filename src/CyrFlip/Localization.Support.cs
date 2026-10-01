@@ -158,6 +158,20 @@ namespace CyrFlip
                 ur: "انتخاب کی تبدیلیاں: لمبائیاں اور پروسیس کے نام - کوئی متن نہیں",
                 zh: "选区转换：长度和进程名 - 不含文本");
 
+            Add("снимки экрана: исход сохранения файла - без путей",
+                en: "screen captures: the file save outcome - no paths",
+                uk: "знімки екрана: підсумок збереження файлу - без шляхів",
+                de: "Bildschirmaufnahmen: Ausgang des Dateispeicherns - keine Pfade",
+                it: "acquisizioni dello schermo: esito del salvataggio del file - nessun percorso",
+                es: "capturas de pantalla: resultado del guardado del archivo - sin rutas",
+                fr: "captures d'écran : issue de l'enregistrement du fichier - sans chemins",
+                pt: "capturas de tela: resultado do salvamento do arquivo - sem caminhos",
+                ar: "لقاطات الشاشة: نتيجة حفظ الملف - بلا مسارات",
+                hi: "स्क्रीन कैप्चर: फ़ाइल सहेजने का परिणाम - पथ नहीं",
+                bn: "স্ক্রিন ক্যাপচার: ফাইল সংরক্ষণের ফল - পথ নেই",
+                ur: "اسکرین کیپچر: فائل محفوظ کرنے کا نتیجہ - راستے نہیں",
+                zh: "屏幕捕获：文件保存结果 - 不含路径");
+
             Add("диагностика каретки: классы окон и процессы - заголовки только длиной",
                 en: "caret diagnostics: window classes and processes - titles only as a length",
                 uk: "діагностика каретки: класи вікон і процеси - заголовки лише довжиною",

@@ -674,7 +674,7 @@ namespace CyrFlip
 
                     // CapsLock: a 1px contrasting ring just inside the dot.
                     if (_caps)
-                        using (var pen = new Pen(Color.FromArgb(235, Color.Black), 1f))
+                        using (var pen = new Pen(LayoutStyle.CapsRingColor, 1f))
                             g.DrawEllipse(pen, 0.5f, 0.5f, Width - 1.5f, Height - 1.5f);
                 }
                 else

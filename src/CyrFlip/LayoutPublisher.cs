@@ -57,9 +57,10 @@ namespace CyrFlip
         public static void RetryIfPending() => Default.RetryIfPending();
 
         /// <summary>
-        /// Deletes both files on a clean exit (rule 6). Called only by the primary instance's context -
-        /// never from <c>Program</c>, where the <c>/launcher-run</c> forwarding process and the one-shot
-        /// launch would delete the live instance's files. Idempotent; later publishes are ignored.
+        /// Deletes both files on a clean exit (rule 6). Only the primary instance gets here: the
+        /// context's session-end sequence and <c>Program.Fatal</c> - the <c>/launcher-run</c> forwarding
+        /// process and the one-shot launch return before those handlers are installed, so neither can
+        /// delete the live instance's files. Idempotent; later publishes are ignored.
         /// </summary>
         public static void Retract() => Default.Retract();
 
