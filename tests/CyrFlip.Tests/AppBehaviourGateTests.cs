@@ -99,6 +99,56 @@ namespace CyrFlip.Tests
             return violations;
         }
 
+        // APP-BEHAVIOUR rule 7: a translated template is formatted by Localization.Format, which survives a
+        // broken placeholder, never by string.Format, which throws inside whatever event handler asked.
+        // Scanned over the whole text, not line by line - the template often sits on the line after the call.
+        private static readonly Regex RawFormatOfATranslation = new Regex(
+            @"\b[Ss]tring\.Format\(\s*(?:T|Translate|translate|Localize|Localization\.Translate)\(", RegexOptions.Compiled);
+
+        [Fact]
+        public void NoTranslatedTemplateIsFormattedRaw()
+        {
+            var violations = new List<string>();
+            foreach (string file in Directory.GetFiles(SourceFolder, "*.cs"))
+            {
+                string name = Path.GetFileName(file);
+                if (name.StartsWith("Localization", StringComparison.Ordinal)) continue;
+                violations.AddRange(ScanForRawFormat(name, File.ReadAllText(file)));
+            }
+            Assert.True(violations.Count == 0,
+                "A translated template formatted with string.Format - use Localization.Format (APP-BEHAVIOUR rule 7):\n"
+                + string.Join("\n", violations));
+        }
+
+        [Fact]
+        public void TheRawFormatGateSeesEveryShapeItClaimsTo()
+        {
+            string[] shapes =
+            {
+                "x = string.Format(T(\"a {0}\"), 1);",
+                "x = string.Format(Translate(\"a {0}\"), 1);",
+                "x = string.Format(translate(\"a {0}\"), 1);",
+                "x = string.Format(Localize(\"a {0}\"), 1);",
+                "x = String.Format(Localization.Translate(lang, \"a {0}\"), 1);",
+                "x = string.Format(\r\n    T(\"a {0}\"), 1);",
+            };
+            foreach (string shape in shapes)
+                Assert.Single(ScanForRawFormat("Fake.cs", shape));
+
+            Assert.Empty(ScanForRawFormat("Fake.cs", "x = Localization.Format(T, \"a {0}\", 1); y = string.Format(\"{0}\", 1);"));
+        }
+
+        private static List<string> ScanForRawFormat(string fileName, string text)
+        {
+            var found = new List<string>();
+            foreach (Match m in RawFormatOfATranslation.Matches(text))
+            {
+                int line = 1 + text.Take(m.Index).Count(c => c == '\n');
+                found.Add($"{fileName}:{line}");
+            }
+            return found;
+        }
+
         [Fact]
         public void LocalizationFormatSafelyHandlesBrokenTemplates()
         {
@@ -110,6 +160,23 @@ namespace CyrFlip.Tests
             Assert.Equal("Index out of bounds {99}", Localization.Format("English", "Index out of bounds {99}", "arg"));
             Assert.Equal("Broken {notanumber}", Localization.Format("English", "Broken {notanumber}", "arg"));
             Assert.Equal("", Localization.Format("English", null!, "arg"));
+        }
+
+        [Fact]
+        public void TheTranslatingFunctionOverloadHandlesBrokenTemplatesToo()
+        {
+            Func<string, string> broken = ru => "Unclosed {0 bracket";
+            Func<string, string> same = ru => ru;
+            Func<string, string> empty = ru => "";
+            Func<string, string> wrongIndex = ru => "Hallo {9}";
+
+            Assert.Equal("Hello World", Localization.Format(same, "Hello {0}", "World"));
+            // A translation whose placeholder is broken falls back to the source template, then to the template itself.
+            Assert.Equal("Hello World", Localization.Format(wrongIndex, "Hello {0}", "World"));
+            Assert.Equal("Unclosed {0 bracket", Localization.Format(broken, "Unclosed {0 bracket", "arg"));
+            // A function that gives nothing back shows the source, never an empty sentence.
+            Assert.Equal("Hello World", Localization.Format(empty, "Hello {0}", "World"));
+            Assert.Equal("", Localization.Format(same, null!, "arg"));
         }
 
         [Fact]
@@ -181,6 +248,24 @@ namespace CyrFlip.Tests
             Assert.Contains("DummyForm", problems[0]);
         }
 
+        [Fact]
+        public void APictureOnlyButtonIsInspectedAndOneWithACaptionIsNot()
+        {
+            // The order buttons draw a vocabulary glyph and have no caption (S0022 A4): a missing name must still be found.
+            var problems = new List<string>();
+            using var dummyForm = new Form();
+            using var picture = new Bitmap(4, 4);
+            dummyForm.Controls.Add(new Button { Text = "", Image = picture, AccessibleName = "" });
+            dummyForm.Controls.Add(new Button { Text = "", Image = picture, AccessibleName = "Move up" });
+            dummyForm.Controls.Add(new Button { Text = "Save", AccessibleName = "" });
+
+            int inspected = InspectGlyphButtons(dummyForm, "English", "DummyForm", problems);
+
+            Assert.Equal(2, inspected);
+            Assert.Single(problems);
+            Assert.Contains("(picture)", problems[0]);
+        }
+
         private static int InspectGlyphButtons(Control parent, string language, string formName, List<string> problems)
         {
             int inspected = 0;
@@ -189,13 +274,15 @@ namespace CyrFlip.Tests
                 if (control is Button btn)
                 {
                     string text = btn.Text?.Trim() ?? string.Empty;
-                    // Button has only glyphs/symbols and no letters or digits
-                    bool isGlyphOnly = text.Length > 0 && !text.Any(char.IsLetterOrDigit);
+                    // A glyph-only button: its caption is symbols with no letter or digit (the arrow character a
+                    // glyph that cannot be drawn falls back to), or it has no caption at all and carries a picture.
+                    bool isGlyphOnly = (text.Length > 0 && !text.Any(char.IsLetterOrDigit))
+                        || (text.Length == 0 && btn.Image != null);
                     if (isGlyphOnly)
                     {
                         inspected++;
                         if (string.IsNullOrWhiteSpace(btn.AccessibleName))
-                            problems.Add($"{formName}[{language}]: button '{text}' has no AccessibleName");
+                            problems.Add($"{formName}[{language}]: button '{(text.Length > 0 ? text : "(picture)")}' has no AccessibleName");
                     }
                 }
                 inspected += InspectGlyphButtons(control, language, formName, problems);

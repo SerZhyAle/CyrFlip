@@ -34,7 +34,7 @@ namespace CyrFlip
             {
                 if (!Parsed.TryGetValue(id, out GraphicsPath? path))
                 {
-                    path = Records.TryGetValue(id, out GlyphRecord? record) ? GlyphPath.Parse(record.PathData, record.Transform) : null;
+                    path = Records.TryGetValue(id, out GlyphRecord? record) ? GlyphPath.Parse(record.PathData, record.Transform, record.EvenOdd) : null;
                     Parsed[id] = path;
                 }
                 return path == null ? null : (GraphicsPath)path.Clone();

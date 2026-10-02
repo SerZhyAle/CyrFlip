@@ -133,9 +133,9 @@ namespace CyrFlip
             var items = new List<ToolStripItem>();
             if (state.SelectionChars <= 0) return items;
 
-            items.Add(Caption(string.Format(translate("Выделено строк: {0}"),
+            items.Add(Caption(Localization.Format(translate, "Выделено строк: {0}",
                 SelectionStats.Format(state.SelectionLines, state.SelectionTruncated))));
-            items.Add(Caption(string.Format(translate("символов: {0}"),
+            items.Add(Caption(Localization.Format(translate, "символов: {0}",
                 SelectionStats.Format(state.SelectionChars, state.SelectionTruncated))));
             return items;
         }
@@ -170,7 +170,7 @@ namespace CyrFlip
 
             // "&" would be read as a mnemonic and vanish from the caption - "?a=1&b=2" would show as
             // "?a=1b=2" - and the caption is the user's only view of what is about to open (S0008 LS-5).
-            items.Add(Command(string.Format(translate("Запустить «{0}»"), EscapeMnemonics(target.Display)), "", true,
+            items.Add(Command(Localization.Format(translate, "Запустить «{0}»", EscapeMnemonics(target.Display)), "", true,
                 () => launch(target)));
             return items;
         }
@@ -194,7 +194,7 @@ namespace CyrFlip
             {
                 string id = row.Id;
                 items.Add(Command(
-                    string.Format(translate("Перевести на {0}"), row.Label),
+                    Localization.Format(translate, "Перевести на {0}", row.Label),
                     row.Shortcut, hasSelection, () => translateSelection(id)));
             }
 

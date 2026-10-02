@@ -734,6 +734,7 @@ namespace CyrFlip
         /// </summary>
         protected override void OnThemeApplied(ThemePalette palette)
         {
+            foreach (Button button in _moveButtons.ToArray()) ApplyMoveGlyph(button, palette);
             if (_tabs == null || _tabIcons == null || _tabIconsInk == palette.TextPrimary) return;
             ImageList previous = _tabIcons;
             _tabIcons = CreateTabIcons(palette.TextPrimary);
@@ -741,6 +742,31 @@ namespace CyrFlip
             _tabs.ImageList = _tabIcons;
             previous.Dispose();
             _tabs.Invalidate();
+        }
+
+        // The buttons that move a row. Each carries the vocabulary's move-up or move-down (S0022 A4) in the
+        // theme's text colour with no caption; the accessible name set beside it is what names it. A glyph
+        // that cannot be drawn leaves the arrow character it used to be. The button's Tag is the glyph id.
+        private readonly List<Button> _moveButtons = new List<Button>();
+
+        private void AsMoveGlyph(Button button, string glyphId)
+        {
+            button.Tag = glyphId;
+            _moveButtons.Add(button);
+            // Rows are rebuilt on every change: a button that goes away takes its picture and its place in the list with it.
+            button.Disposed += (_, _) => { _moveButtons.Remove(button); button.Image?.Dispose(); button.Image = null; };
+            ApplyMoveGlyph(button, ThemeApply.PaletteOf(this) ?? ThemePalette.Light);
+        }
+
+        private static void ApplyMoveGlyph(Button button, ThemePalette palette)
+        {
+            string id = (string)button.Tag!;
+            Image? previous = button.Image;
+            Bitmap? image = GlyphRenderer.Render(id, HistoryStripGlyphs.Size, palette.TextPrimary);
+            button.Image = image;
+            button.ImageAlign = ContentAlignment.MiddleCenter;
+            button.Text = image == null ? (id == AppGlyphs.MoveUp ? "↑" : "↓") : "";
+            previous?.Dispose();   // after the button let go of it
         }
 
         /// <summary>The settings window closes (hides) on Escape per APP-BEHAVIOUR rule 1 and APP-SETTINGS rule 9.</summary>
@@ -877,6 +903,10 @@ namespace CyrFlip
         // font grew because of display scaling or because the language needs a taller family (Devanagari,
         // Bengali, Chinese). A constant 26 px was chopping the header line in half on a scaled display.
         private int RowHeight => Math.Max(26, Font.Height + 9);
+
+        /// <summary>The pointer floor of a glyph-only target in logical pixels (ICON-RENDER section 3 rule 5: 28 under a mouse or a pen).</summary>
+        private const int MinTarget = 28;
+
         private Label ColumnLabel(string text, int width, bool ellipsis = true)
             => new Label
             {
@@ -1049,12 +1079,14 @@ namespace CyrFlip
 
             var up = Button("↑", () => MoveLayout(layout.Klid, -1));
             up.AccessibleName = Translate("Переместить вверх");
+            AsMoveGlyph(up, AppGlyphs.MoveUp);
             // Only within one language: the order of the languages is Windows' own and is put back at
             // sign-in (ticket S0007, WL-8) - the hint under the table says so.
-            up.Width = 32; up.Height = RowHeight; up.AutoSize = false; up.Margin = new Padding(3, 4, 3, 4); up.Enabled = InputLayouts.CanMove(all, index, -1);
+            up.Width = 32; up.Height = Math.Max(MinTarget, RowHeight); up.AutoSize = false; up.Margin = new Padding(3, 4, 3, 4); up.Enabled = InputLayouts.CanMove(all, index, -1);
             var down = Button("↓", () => MoveLayout(layout.Klid, +1));
             down.AccessibleName = Translate("Переместить вниз");
-            down.Width = 32; down.Height = RowHeight; down.AutoSize = false; down.Margin = new Padding(3, 4, 3, 4); down.Enabled = InputLayouts.CanMove(all, index, +1);
+            AsMoveGlyph(down, AppGlyphs.MoveDown);
+            down.Width = 32; down.Height = Math.Max(MinTarget, RowHeight); down.AutoSize = false; down.Margin = new Padding(3, 4, 3, 4); down.Enabled = InputLayouts.CanMove(all, index, +1);
             row.Controls.Add(up);
             row.Controls.Add(down);
 
@@ -1161,7 +1193,7 @@ namespace CyrFlip
         {
             // Said before the question, not after it (ticket S0007, WL-9).
             if (layout.ManagedByWindows) { ReportLayoutEdit(InputLayouts.EditResult.ManagedByWindows); return; }
-            if (ConfirmDialog.Show(this, _config.UiLanguage, string.Format(Translate("Удалить раскладку «{0}» из Windows?"), layout.LanguageName + " — " + layout.DisplayName), MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
+            if (ConfirmDialog.Show(this, _config.UiLanguage, Localization.Format(Translate, "Удалить раскладку «{0}» из Windows?", layout.LanguageName + " — " + layout.DisplayName), MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
             if (!EnsureSystemBackups()) return;
             if (!ReportLayoutEdit(InputLayouts.Remove(layout.Klid))) return;
@@ -1321,7 +1353,7 @@ namespace CyrFlip
         private Control OrphanHotkeyRow(LanguageHotkeys.Entry entry)
         {
             var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 2, 3, 2) };
-            Label orphanLabel = ColumnLabel(string.Format(Translate("{0} → раскладка {1} (не установлена)"), entry.Display, LanguageHotkeys.HklText(entry.TargetHkl)), Column(455));
+            Label orphanLabel = ColumnLabel(Localization.Format(Translate, "{0} → раскладка {1} (не установлена)", entry.Display, LanguageHotkeys.HklText(entry.TargetHkl)), Column(455));
             orphanLabel.ForeColor = ThemePalette.Light.TextMuted;
             row.Controls.Add(orphanLabel);
             row.Controls.Add(Button(Translate("Удалить"), () => RemoveOrphanHotkey(entry.Id)));
@@ -1376,7 +1408,7 @@ namespace CyrFlip
             string? taken = owner == null ? null : OwnerLabel(owner);
             if (taken != null)
             {
-                Warn(string.Format(Translate("Комбинация {0} уже занята горячей клавишей CyrFlip «{1}» — Windows её не получит."), chord.Display, taken));
+                Warn(Localization.Format(Translate, "Комбинация {0} уже занята горячей клавишей CyrFlip «{1}» — Windows её не получит.", chord.Display, taken));
                 return;
             }
 
@@ -1387,7 +1419,7 @@ namespace CyrFlip
             switch (status)
             {
                 case LanguageHotkeys.AssignStatus.ChordTaken:
-                    Warn(string.Format(Translate("Комбинация {0} уже назначена языку «{1}»."), chord.Display, conflict));
+                    Warn(Localization.Format(Translate, "Комбинация {0} уже назначена языку «{1}».", chord.Display, conflict));
                     return;
                 case LanguageHotkeys.AssignStatus.NoFreeSlot:
                     Warn(Translate("В Windows не осталось свободных слотов для языковых сочетаний."));
@@ -1556,13 +1588,13 @@ namespace CyrFlip
                 string path = _exportQuickNotes(dialog.FileName, _quickNotesExportMeta.Checked);
                 if (path.Length == 0) return;
                 ConfirmDialog.Show(this, _config.UiLanguage,
-                    string.Format(Translate("Заметки сохранены: {0}"), path) + "\n\n"
+                    Localization.Format(Translate, "Заметки сохранены: {0}", path) + "\n\n"
                     + Translate("Этот файл не защищён DPAPI — его прочитает любой, у кого есть доступ к папке."),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                Warn(string.Format(Translate("Не удалось сохранить файл: {0}"), FailureCause.Describe(ex, _config.UiLanguage)));
+                Warn(Localization.Format(Translate, "Не удалось сохранить файл: {0}", FailureCause.Describe(ex, _config.UiLanguage)));
             }
         }
 
@@ -2160,12 +2192,15 @@ namespace CyrFlip
             row1.Controls.Add(LauncherButton("Удалить", LauncherRemove));
             var up = LauncherButton("↑", () => LauncherMove(-1));
             up.AccessibleName = Translate("Переместить вверх");
+            AsMoveGlyph(up, AppGlyphs.MoveUp);
             var down = LauncherButton("↓", () => LauncherMove(+1));
             down.AccessibleName = Translate("Переместить вниз");
-            // Sized by their content, never below 32 px wide: built here, before the window takes its real font,
-            // a fixed RowHeight was the old small font's and cut the lower half of "↓" (S0019 audit A-16).
+            AsMoveGlyph(down, AppGlyphs.MoveDown);
+            // Sized by their content, never below 32 px wide (the pointer floor of ICON-RENDER rule 5 is 28):
+            // built here, before the window takes its real font, a fixed RowHeight was the old small font's
+            // and cut the lower half of the arrow (S0019 audit A-16).
             // GrowOnly (a button's default) grows from the current size, so it starts from 32 x 0, not 75 x 23.
-            up.AutoSize = down.AutoSize = true; up.MinimumSize = down.MinimumSize = up.Size = down.Size = new Size(32, 0);
+            up.AutoSize = down.AutoSize = true; up.MinimumSize = down.MinimumSize = up.Size = down.Size = new Size(32, MinTarget);
             row1.Controls.Add(up); row1.Controls.Add(down);
             panel.Controls.Add(row1);
 
@@ -2336,7 +2371,7 @@ namespace CyrFlip
 
             _launcherLoadErrors.Visible = _launcherStore.LoadErrors.Count > 0;
             if (_launcherLoadErrors.Visible)
-                _launcherLoadErrors.Text = string.Format(Translate("Не прочитано файлов: {0}"), _launcherStore.LoadErrors.Count)
+                _launcherLoadErrors.Text = Localization.Format(Translate, "Не прочитано файлов: {0}", _launcherStore.LoadErrors.Count)
                     + " — " + string.Join(", ", _launcherStore.LoadErrors);
 
             ApplyLauncherEnabledState();
@@ -2440,7 +2475,7 @@ namespace CyrFlip
             clone.Id = Guid.NewGuid();
             clone.Filename = string.Empty; // the store assigns a fresh file and appends the order
             clone.Hotkey = string.Empty;   // one chord cannot trigger two scenarios
-            clone.Name = string.Format(Translate("{0} (копия)"), selected.Name);
+            clone.Name = Localization.Format(Translate, "{0} (копия)", selected.Name);
             _launcherStore.Add(clone);
             LauncherNotifyChanged();
             LauncherReselect(clone.Id);
@@ -2450,13 +2485,13 @@ namespace CyrFlip
         {
             LauncherScenario? selected = SelectedLauncherScenario();
             if (selected == null) return;
-            if (ConfirmDialog.Show(this, _config.UiLanguage, string.Format(Translate("Удалить сценарий «{0}»?"), selected.Name),
+            if (ConfirmDialog.Show(this, _config.UiLanguage, Localization.Format(Translate, "Удалить сценарий «{0}»?", selected.Name),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
             string? failure = _launcherStore.Remove(selected.Id);
             if (failure != null)
             {
-                Warn(string.Format(Translate("Не удалось удалить сценарий «{0}»: {1}"), selected.Name, failure));
+                Warn(Localization.Format(Translate, "Не удалось удалить сценарий «{0}»: {1}", selected.Name, failure));
                 return;
             }
             LauncherNotifyChanged();
@@ -2488,7 +2523,7 @@ namespace CyrFlip
                     ? task.Result
                     : LauncherLaunchResult.Fail(FailureCause.Describe(task.Exception?.GetBaseException(), _config.UiLanguage));
                 if (!result.Success && !result.Cancelled && !IsDisposed)
-                    Warn(string.Format(Translate("Не удалось запустить «{0}»: {1}"), name, result.ErrorMessage));
+                    Warn(Localization.Format(Translate, "Не удалось запустить «{0}»: {1}", name, result.ErrorMessage));
             }, System.Threading.Tasks.TaskScheduler.FromCurrentSynchronizationContext());
         }
 
@@ -2507,12 +2542,12 @@ namespace CyrFlip
             try
             {
                 _launcherStore.Export(selected, dialog.FileName);
-                ConfirmDialog.Show(this, _config.UiLanguage, string.Format(Translate("Сценарий «{0}» экспортирован."), selected.Name),
+                ConfirmDialog.Show(this, _config.UiLanguage, Localization.Format(Translate, "Сценарий «{0}» экспортирован.", selected.Name),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                Warn(string.Format(Translate("Не удалось экспортировать: {0}"), FailureCause.Describe(ex, _config.UiLanguage)));
+                Warn(Localization.Format(Translate, "Не удалось экспортировать: {0}", FailureCause.Describe(ex, _config.UiLanguage)));
             }
         }
 
@@ -2526,7 +2561,7 @@ namespace CyrFlip
                 // A renamed root or a newer schemaVersion is not damage - say what to do, not the serializer's text.
                 Warn(error is ScenarioFormatException
                     ? Translate("Файл не является сценарием в формате, который понимает эта версия CyrFlip. Возможно, он создан более новой версией - обновите CyrFlip.")
-                    : string.Format(Translate("Не удалось импортировать: {0}"), FailureCause.Describe(error, _config.UiLanguage)));
+                    : Localization.Format(Translate, "Не удалось импортировать: {0}", FailureCause.Describe(error, _config.UiLanguage)));
                 return;
             }
             // A file exported on another machine can carry a chord that is taken here. One chord
@@ -2534,7 +2569,7 @@ namespace CyrFlip
             bool chordDropped = StripClashingHotkey(imported);
             LauncherNotifyChanged();
             LauncherReselect(imported.Id);
-            string message = string.Format(Translate("Импортирован сценарий «{0}»."), imported.Name);
+            string message = Localization.Format(Translate, "Импортирован сценарий «{0}».", imported.Name);
             if (chordDropped) message += "\n" + Translate("Его комбинация уже занята, поэтому не перенесена.");
             ConfirmDialog.Show(this, _config.UiLanguage, message, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -2550,16 +2585,16 @@ namespace CyrFlip
             }
             LauncherMigration.Result result = LauncherMigration.Import(_launcherStore, chords: Chords);
             LauncherNotifyChanged();
-            string summary = string.Format(Translate("Перенесено сценариев: {0}."), result.Imported);
+            string summary = Localization.Format(Translate, "Перенесено сценариев: {0}.", result.Imported);
             if (result.AlreadyPresent > 0)
-                summary += "\n" + string.Format(Translate("Уже перенесены ранее: {0}."), result.AlreadyPresent);
+                summary += "\n" + Localization.Format(Translate, "Уже перенесены ранее: {0}.", result.AlreadyPresent);
             if (result.Skipped.Count > 0)
-                summary += "\n" + string.Format(Translate("Пропущено повреждённых файлов: {0}."), result.Skipped.Count)
+                summary += "\n" + Localization.Format(Translate, "Пропущено повреждённых файлов: {0}.", result.Skipped.Count)
                     + "\n" + string.Join(", ", result.Skipped);
             if (result.NewIds > 0)
-                summary += "\n" + string.Format(Translate("Из-за совпадения идентификаторов назначены новые: {0}."), result.NewIds);
+                summary += "\n" + Localization.Format(Translate, "Из-за совпадения идентификаторов назначены новые: {0}.", result.NewIds);
             if (result.ChordsDropped > 0)
-                summary += "\n" + string.Format(Translate("Комбинации уже заняты, поэтому не перенесены: {0}."), result.ChordsDropped);
+                summary += "\n" + Localization.Format(Translate, "Комбинации уже заняты, поэтому не перенесены: {0}.", result.ChordsDropped);
             ConfirmDialog.Show(this, _config.UiLanguage, summary, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -2578,18 +2613,26 @@ namespace CyrFlip
         internal static int IconIndex(int kind) => kind > 4 ? kind - 1 : kind;
 
         /// <summary>
-        /// The vocabulary glyph a tab stands for (ICON-SET). Only the meanings that have a record are here:
-        /// Settings, About and Translate. The other pages wait for theirs (catalog proposal
-        /// PROPOSAL-2026-09-26-cyrflip-windows-tray-app) and keep the private drawing meanwhile - the
-        /// registry exception X1 - rather than borrow another meaning's picture.
+        /// The vocabulary glyph a tab stands for (ICON-SET). Only the meanings that have a record are here.
+        /// Two pages still wait for theirs - Conversions (<c>action.convert-layout</c>) and Languages
+        /// (<c>system.input-language</c>), both asked for in PROPOSAL-2026-09-26-cyrflip-windows-tray-app and
+        /// still open in the catalog - and keep the private drawing meanwhile (the registry exception X1)
+        /// rather than borrow another meaning's picture. The Graphics page takes <c>system.screenshot</c>:
+        /// its one tool today is the region capture, and the record says "capture the screen as an image".
         /// </summary>
         internal static string? TabGlyphId(int kind)
         {
             switch (kind)
             {
                 case 0: return AppGlyphs.Settings;
+                case 1: return AppGlyphs.LayoutIndicator;
+                case 2: return AppGlyphs.Shortcuts;
+                case 3: return AppGlyphs.ClipboardHistory;
                 case 5: return AppGlyphs.Info;
+                case 8: return AppGlyphs.QuickLaunch;
                 case 9: return AppGlyphs.Translate;
+                case 10: return AppGlyphs.Note;
+                case 11: return AppGlyphs.Screenshot;
                 default: return null;
             }
         }
@@ -2633,35 +2676,17 @@ namespace CyrFlip
         private static Bitmap LegacyTabIcon(int kind, Color accent)
         {
             var image = new Bitmap(18, 18); using var g = Graphics.FromImage(image); g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            using var pen = new Pen(accent, 1.8f); using var brush = new SolidBrush(accent);
+            using var pen = new Pen(accent, 1.8f);
             switch (kind)
             {
-                case 1: g.DrawEllipse(pen, 2, 5, 14, 8); g.FillEllipse(brush, 7, 7, 4, 4); break;
-                case 2: g.DrawRectangle(pen, 2, 4, 14, 10); for (int x = 4; x <= 12; x += 4) for (int y = 6; y <= 10; y += 4) g.FillRectangle(brush, x, y, 2, 2); break;
-                case 3: g.DrawRectangle(pen, 4, 3, 10, 13); g.DrawLine(pen, 6, 6, 12, 6); g.DrawLine(pen, 6, 9, 12, 9); g.DrawLine(pen, 6, 12, 10, 12); break;
+                // The two pages whose meaning has no vocabulary record yet (registry exception X1): Languages
+                // draws a globe, Conversions two opposite arrows. Each goes when its record arrives.
                 case 6: g.DrawEllipse(pen, 2, 2, 14, 14); g.DrawEllipse(pen, 6.5f, 2, 5, 14); g.DrawLine(pen, 2.5f, 9, 15.5f, 9); break;
-                // Two opposite arrows: the layout-to-layout conversion table.
                 case 7:
                     g.DrawLine(pen, 3, 6, 14, 6); g.DrawLine(pen, 11, 3, 14, 6); g.DrawLine(pen, 11, 9, 14, 6);
                     g.DrawLine(pen, 15, 12, 4, 12); g.DrawLine(pen, 7, 9, 4, 12); g.DrawLine(pen, 7, 15, 4, 12);
                     break;
-                // The absorbed OneClickRunner's own mark, as line art: a list of commands under the
-                // pointer. Same shape as the full-colour icon in the page header and on the taskbar.
-                case 8: LauncherBrand.DrawGlyph(g, 18, pen, brush); break;
-                // A sheet with a turned-down corner and two lines of writing: the quick notes.
-                case 10:
-                    g.DrawLine(pen, 3, 2, 11, 2); g.DrawLine(pen, 3, 2, 3, 16); g.DrawLine(pen, 3, 16, 15, 16);
-                    g.DrawLine(pen, 15, 16, 15, 6); g.DrawLine(pen, 11, 2, 15, 6); g.DrawLine(pen, 11, 2, 11, 6);
-                    g.DrawLine(pen, 11, 6, 15, 6);
-                    g.FillRectangle(brush, 6, 9, 6, 1); g.FillRectangle(brush, 6, 12, 5, 1);
-                    break;
-                // A dashed selection rectangle with a corner handle: the Graphics module (S0026).
-                case 11:
-                    using (var dashed = new Pen(accent, 1.6f) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash })
-                        g.DrawRectangle(dashed, 2, 3, 11, 10);
-                    g.FillRectangle(brush, 11, 11, 5, 5);
-                    break;
-                // Settings, About and Translate are drawn from the vocabulary (TabGlyphId); a page whose glyph
+                // Every other page is drawn from the vocabulary (TabGlyphId); a page whose glyph
                 // cannot be drawn shows its caption alone rather than another meaning's picture.
                 default: break;
             }
@@ -2720,7 +2745,7 @@ namespace CyrFlip
         /// </summary>
         private string VersionLine()
         {
-            string line = string.Format(Translate("Версия {0}"), SupportBundle.AppVersion());
+            string line = Localization.Format(Translate, "Версия {0}", SupportBundle.AppVersion());
             return PackageInfo.IsPackaged ? line + " (Microsoft Store)" : line;
         }
 

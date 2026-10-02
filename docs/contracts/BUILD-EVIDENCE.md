@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `BUILD-EVIDENCE` |
-| **Version** | 0.9, draft |
+| **Version** | 0.10, draft |
 | **Home** | `automated-checks/README.md` in the shared contracts catalog, section 5 |
 | **Role here** | producer - the release ZIP (and the MSIX) carry the version of the build that produced them |
 

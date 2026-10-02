@@ -16,7 +16,9 @@ namespace CyrFlip
     /// borrow foreign branding). Only the two surfaces that exist because of the launcher carry this
     /// one - the header of the "Быстрый запуск" settings page and the taskbar button
     /// (<see cref="LauncherTaskbarWindow"/>) - so the absorbed feature stays recognisable to anyone
-    /// who used it as a separate program.
+    /// who used it as a separate program. The page's tab in the strip is not the mark: a logo on a tab
+    /// stands for a meaning (ICON-SET rule 7), so the tab draws the vocabulary's
+    /// <c>feature.quick-launch</c> (S0022 A2, A7).
     ///
     /// Everything is best-effort: a missing or unreadable resource yields null and each caller simply
     /// draws nothing extra. Instances are cached for the life of the process (a handful of small
@@ -79,35 +81,6 @@ namespace CyrFlip
             }
             ImageCache[size] = image;
             return image;
-        }
-
-        /// <summary>
-        /// The same mark as line art, for the settings tab strip: three "chevron + bar" rows (a list
-        /// of commands) with the pointer arrow over the last one. The strip is monochrome by design,
-        /// so this repeats the icon's shape rather than its colours - a full-colour tile among nine
-        /// line-drawn tabs would read as a foreign object rather than as one of them.
-        /// </summary>
-        public static void DrawGlyph(Graphics g, float size, Pen pen, Brush brush)
-        {
-            float k = size / 18f;
-            float[] rows = { 3.5f, 9f, 14.5f };
-            for (int i = 0; i < rows.Length; i++)
-            {
-                float y = rows[i] * k;
-                g.DrawLines(pen, new[]
-                {
-                    new PointF(2f * k, y - 2.4f * k), new PointF(5f * k, y), new PointF(2f * k, y + 2.4f * k),
-                });
-                // The arrow covers the right end of the bottom row, exactly as in the icon.
-                float barEnd = (i == rows.Length - 1 ? 10f : 15.5f) * k;
-                g.DrawLine(pen, 7.5f * k, y, barEnd, y);
-            }
-            g.FillPolygon(brush, new[]
-            {
-                new PointF(10.6f * k, 7.2f * k), new PointF(10.6f * k, 16.6f * k), new PointF(12.7f * k, 14.4f * k),
-                new PointF(13.9f * k, 17.2f * k), new PointF(15.2f * k, 16.6f * k), new PointF(14.0f * k, 13.9f * k),
-                new PointF(16.8f * k, 13.7f * k),
-            });
         }
 
         private static byte[]? Bytes()

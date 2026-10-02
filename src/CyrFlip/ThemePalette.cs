@@ -19,7 +19,7 @@ namespace CyrFlip
         SurfaceSunken,
         /// <summary><c>surface.selected</c> - the raised surface, selected.</summary>
         SurfaceSelected,
-        /// <summary><c>surface.alternate</c> (proposed, S0021 P4) - the alternate row of a list.</summary>
+        /// <summary><c>surface.alternate</c> (APP-STYLE 0.11) - the alternate row of a list.</summary>
         SurfaceAlternate,
         /// <summary><c>control</c> - an interactive control's own face.</summary>
         Control,
@@ -43,11 +43,11 @@ namespace CyrFlip
         Link,
         /// <summary><c>info</c> - a neutral informational mark (the history strip's timestamp).</summary>
         Info,
-        /// <summary><c>warning</c> (proposed) - "this may not do what you expect".</summary>
+        /// <summary><c>warning</c> (APP-STYLE 0.11) - "this may not do what you expect".</summary>
         Warning,
-        /// <summary><c>danger</c> (proposed) - an irreversible action, a refusal.</summary>
+        /// <summary><c>danger</c> (APP-STYLE 0.11) - an irreversible action, a refusal.</summary>
         Danger,
-        /// <summary><c>success</c> (proposed) - a positive mark (the history strip's source app).</summary>
+        /// <summary><c>success</c> (APP-STYLE 0.11) - a positive mark (the history strip's source app).</summary>
         Success,
     }
 
@@ -155,7 +155,7 @@ namespace CyrFlip
             [ThemeRole.AccentInk] = Color.White,
             [ThemeRole.Link] = Color.FromArgb(0, 102, 204),
             [ThemeRole.Info] = Color.FromArgb(130, 90, 0),
-            [ThemeRole.Warning] = Color.FromArgb(150, 60, 0),
+            [ThemeRole.Warning] = Color.FromArgb(150, 60, 0),  // Dark warning ink meets 4.5:1 on light surfaces.
             [ThemeRole.Danger] = Color.Firebrick,
             [ThemeRole.Success] = Color.FromArgb(30, 120, 70),
         });

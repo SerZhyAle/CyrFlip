@@ -115,7 +115,7 @@ namespace CyrFlip
                     return prompt.ShowDialog() == DialogResult.OK ? prompt.Link : null;
                 });
                 if (!result.Success && !result.Cancelled)
-                    ConfirmDialog.Show(config.UiLanguage, string.Format(T("Не удалось запустить «{0}»: {1}"), scenario.Name, result.ErrorMessage),
+                    ConfirmDialog.Show(config.UiLanguage, Localization.Format(T, "Не удалось запустить «{0}»: {1}", scenario.Name, result.ErrorMessage),
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)

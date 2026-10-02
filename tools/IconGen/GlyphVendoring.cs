@@ -65,7 +65,7 @@ namespace IconGen
                 if (!vocabulary.TryGetValue(baseId, out Dictionary<string, object>? record))
                     return Fail(Contract + ": no vocabulary record for '" + baseId + "'; nothing written");
 
-                if (!TryReadSvg(File.ReadAllText(svgPath), out string d, out float[]? matrix, out string problem))
+                if (!TryReadSvg(File.ReadAllText(svgPath), out string d, out float[]? matrix, out bool evenOdd, out string problem))
                     return Fail(Contract + ": " + id + ".svg: " + problem);
 
                 string status = EnumValue(record, "status", new[] { "active", "proposed" }, "proposed", id);
@@ -78,7 +78,9 @@ namespace IconGen
                 builder.Append("            new GlyphRecord(\"").Append(id).Append("\", \"").Append(Escape(d)).Append("\", ");
                 if (matrix == null) builder.Append("null");
                 else builder.Append("new float[] { ").Append(string.Join(", ", matrix.Select(v => v.ToString("R", CultureInfo.InvariantCulture) + "f"))).Append(" }");
-                builder.Append(", \"").Append(status).Append("\", \"").Append(rtl).Append("\", \"").Append(Escape(source)).Append("\"),\n");
+                builder.Append(", \"").Append(status).Append("\", \"").Append(rtl).Append("\", \"").Append(Escape(source)).Append("\"");
+                if (evenOdd) builder.Append(", evenOdd: true");
+                builder.Append("),\n");
             }
             builder.Append("        };\n    }\n}\n");
 
@@ -133,12 +135,15 @@ namespace IconGen
 
         /// <summary>
         /// One <c>&lt;path d&gt;</c>, optionally inside a <c>&lt;g transform&gt;</c> made of translate and scale
-        /// (the two files the exporter normalised into the ink box). Anything else is refused by name, so a
-        /// glyph the renderer could draw wrongly is a generator failure rather than a silent misdrawing.
+        /// (the two files the exporter normalised into the ink box). The one rendering attribute honoured is
+        /// <c>fill-rule</c> (<c>nonzero</c>, SVG's default, or <c>evenodd</c>), read from the path or, failing
+        /// that, an element above it: a glyph drawn with the wrong rule fills or punches its overlaps the wrong
+        /// way round, and nothing in the build would say so. Anything else is refused by name, so a glyph the
+        /// renderer could draw wrongly is a generator failure rather than a silent misdrawing.
         /// </summary>
-        internal static bool TryReadSvg(string svg, out string pathData, out float[]? matrix, out string problem)
+        internal static bool TryReadSvg(string svg, out string pathData, out float[]? matrix, out bool evenOdd, out string problem)
         {
-            pathData = ""; matrix = null; problem = "";
+            pathData = ""; matrix = null; evenOdd = false; problem = "";
             foreach (Match tag in Regex.Matches(svg, @"<\s*([A-Za-z][A-Za-z0-9]*)"))
             {
                 string name = tag.Groups[1].Value;
@@ -146,7 +151,14 @@ namespace IconGen
             }
             MatchCollection paths = Regex.Matches(svg, @"<path\b[^>]*?\bd\s*=\s*""([^""]*)""", RegexOptions.Singleline);
             if (paths.Count != 1) { problem = "expected exactly one <path>, found " + paths.Count; return false; }
-            if (Regex.IsMatch(svg, @"fill-rule|opacity|<path[^>]*transform")) { problem = "fill-rule, opacity or a path transform is not supported"; return false; }
+            if (Regex.IsMatch(svg, @"opacity|<path[^>]*transform")) { problem = "opacity or a path transform is not supported"; return false; }
+            foreach (Match rule in Regex.Matches(svg, @"fill-rule\s*=\s*""([^""]*)"""))
+                if (rule.Groups[1].Value != "evenodd" && rule.Groups[1].Value != "nonzero")
+                { problem = "fill-rule '" + rule.Groups[1].Value + "' is not supported"; return false; }
+            Match own = Regex.Match(Regex.Match(svg, @"<path\b[^>]*>", RegexOptions.Singleline).Value, @"fill-rule\s*=\s*""([^""]*)""");
+            Match inherited = Regex.Match(svg, @"fill-rule\s*=\s*""([^""]*)""");
+            Match chosen = own.Success ? own : inherited;
+            evenOdd = chosen.Success && chosen.Groups[1].Value == "evenodd";
             pathData = Regex.Replace(paths[0].Groups[1].Value.Trim(), @"\s+", " ");
 
             Match group = Regex.Match(svg, @"<g\b[^>]*\btransform\s*=\s*""([^""]*)""");

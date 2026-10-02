@@ -154,6 +154,15 @@ namespace CyrFlip
         internal static string TruncatedMarker(long droppedBytes, long keptTailBytes) =>
             MarkerLine("LOG TRUNCATED", droppedBytes, keptTailBytes);
 
+        /// <summary>
+        /// A source too large to be redacted before it is cut, left out whole (<c>DIAGNOSTIC-REPORT</c>
+        /// section 8 C): cutting it first could begin its tail inside a multi-line secret and defeat every
+        /// line-based pattern, so what cannot be redacted first is not packed at all.
+        /// </summary>
+        internal static string OmittedMarker(long sourceBytes) =>
+            MarkerPrefix + "LOG OMITTED | reason=oversized_untrusted | source_bytes="
+            + sourceBytes.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
         /// <summary>What every marker line starts with, old or new, so a scrub can let it through.</summary>
         internal const string MarkerPrefix = "[Diag] ";
 

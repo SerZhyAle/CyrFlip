@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<AppItem xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Id>0f3b6c1e-8a42-4d97-b5e0-6c1d9a7f2e84</Id>
+  <Name>Calculator</Name>
+  <Path>calc.exe</Path>
+  <Arguments />
+  <WorkingDirectory />
+  <Filename>0f3b6c1e-8a42-4d97-b5e0-6c1d9a7f2e84.xml</Filename>
+  <RunAsAdmin>false</RunAsAdmin>
+  <Order>0</Order>
+  <Type>Executable</Type>
+  <YtDlpOutputFolder />
+  <YtDlpFormat />
+  <Hotkey />
+</AppItem>

@@ -1,8 +1,9 @@
 {
   "canon": {
-    "version": "2026.09.24.1",
+    "version": "2026.10.02.1",
     "coreDigest": "sha256:79ee333369303df6fc85335bd67c08029f28356497c63b91e257d7e7b3f14d68",
     "adoptedOn": "2026-08-18",
+    "reconciledOn": "2026-10-02",
     "model": "reference",
     "contribRecord": "contrib/cyrflip.md"
   },

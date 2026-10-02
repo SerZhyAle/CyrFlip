@@ -31,7 +31,12 @@ namespace CyrFlip
     /// 3. <b>A personal directory never goes out by name</b> (<c>DIAGNOSTIC-REPORT</c> rule 3,
     ///    ticket S0040): the report and every collected file pass through
     ///    <see cref="DiagnosticRedactor"/> - the profile becomes <c>&lt;USER&gt;</c>, CyrFlip's data
-    ///    folders <c>&lt;APP_DATA&gt;</c>, a URL loses its userinfo.
+    ///    folders <c>&lt;APP_DATA&gt;</c>, a URL loses its userinfo, and a secret - a query parameter, a
+    ///    credential pair, a JSON field, an auth header, a private key block - becomes <c>[REDACTED]</c>
+    ///    by its value's shape whatever it sits under (<c>DIAGNOSTIC-REPORT</c> section 8 C). **Redaction
+    ///    precedes truncation**: a file is read whole, redacted, and only then cut to its tail, so a tail
+    ///    can never begin inside a multi-line secret; one too large to read that way is omitted whole
+    ///    with a marker.
     ///
     /// The file work is deliberately separable from the live machine: <see cref="Create"/> takes the
     /// directories and the report text as arguments, so the tests run in a temp folder and never
@@ -61,6 +66,13 @@ namespace CyrFlip
         /// <see cref="ReportName"/> stays beside it as the human-readable report.
         /// </summary>
         public const string EnvironmentName = "environment.txt";
+
+        /// <summary>
+        /// The version of <c>environment.txt</c>'s own shape, written as <c>schema_version=</c> since
+        /// <c>DIAGNOSTIC-REPORT</c> 0.12 named the key (absent means 1, so every earlier archive stays valid).
+        /// Raised only when a key changes its meaning or goes; a key added is not a new version.
+        /// </summary>
+        public const int EnvironmentSchemaVersion = 1;
 
         /// <summary>
         /// The whitelist, in the order a file is dropped when the total budget runs out: last entry
@@ -296,7 +308,8 @@ namespace CyrFlip
         /// </param>
         public static Result Create(string logDir, string reportsDir, string reportText, string version,
             DateTime stamp, int maxFileBytes = MaxFileBytes, long maxTotalBytes = MaxTotalBytes,
-            int keepArchives = KeepArchives, DiagnosticRedactor? redactor = null, string? environmentText = null)
+            int keepArchives = KeepArchives, DiagnosticRedactor? redactor = null, string? environmentText = null,
+            long maxRedactableBytes = MaxRedactableBytes)
         {
             redactor ??= DiagnosticRedactor.Generic;
             reportText = redactor.Redact(reportText);
@@ -314,10 +327,10 @@ namespace CyrFlip
             foreach (string name in LogFiles)
             {
                 string path = Path.Combine(logDir, name);
-                byte[]? bytes = ReadTail(path, maxFileBytes, out long omitted);
+                // Redaction precedes truncation (DIAGNOSTIC-REPORT section 8 C): the file is read whole,
+                // scrubbed and redacted, and only then cut to its tail.
+                byte[]? bytes = Collect(path, name, maxFileBytes, redactor, maxRedactableBytes, out long omitted);
                 if (bytes == null) continue;                       // absent file is not an error
-                if (name == LauncherLogName) bytes = ScrubLauncherLog(bytes);
-                bytes = redactor.Redact(bytes);
                 if (total + bytes.Length > maxTotalBytes)
                 {
                     result.Dropped.Add(name);
@@ -370,6 +383,7 @@ namespace CyrFlip
         {
             var pairs = new List<KeyValuePair<string, string>>
             {
+                Pair("schema_version", EnvironmentSchemaVersion.ToString(CultureInfo.InvariantCulture)),
                 Pair("generated_utc", stamp.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture)),
                 Pair("app_id", "cyrflip"),
                 Pair("app_version", version),
@@ -506,53 +520,75 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// The last <paramref name="maxBytes"/> of a file, or null when it does not exist. Two details
-        /// that are not optional here:
+        /// A source above this is not read into memory to be redacted: it is left out whole and the entry
+        /// says so (<see cref="DiagnosticLog.OmittedMarker"/>). Our own logs are cut to 512 KB long before
+        /// that, so this is the guard against a file that is not what it should be.
+        /// </summary>
+        public const long MaxRedactableBytes = 16L * 1024 * 1024;
+
+        /// <summary>
+        /// One whitelisted file as the archive carries it, or null when it does not exist: read <b>whole</b>,
+        /// the launcher log scrubbed to its record shapes, every text <b>redacted</b>, and only then cut to its
+        /// last <paramref name="maxBytes"/> (<c>DIAGNOSTIC-REPORT</c> section 8 C). Cutting first would let a tail
+        /// begin inside a multi-line secret - a private key block, a quoted credential - and defeat every
+        /// line-based pattern. Two details that are not optional here:
         ///
         /// - <c>FileShare.ReadWrite | FileShare.Delete</c> (<c>DIAGNOSTIC-REPORT</c> rule 4): these are
         ///   our own logs and we hold them open for append, so a plain <c>File.ReadAllBytes</c> would
         ///   throw on the file we most want - and a writer that removes one must not fail because an
         ///   archive is being built from it;
-        /// - after seeking to the tail we skip to just past the first newline, so the archive never
-        ///   opens on half a line, and the marker states how much was left out.
+        /// - the tail starts just past the first newline, so the archive never opens on half a line, and
+        ///   the marker states how much was left out.
         /// </summary>
-        private static byte[]? ReadTail(string path, int maxBytes, out long omitted)
+        private static byte[]? Collect(string path, string name, int maxBytes, DiagnosticRedactor redactor, long maxRedactable, out long omitted)
         {
             omitted = 0;
             try
             {
                 if (!File.Exists(path)) return null;
+                byte[] source;
                 using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 {
                     long length = stream.Length;
-                    if (length <= maxBytes)
+                    if (length > maxRedactable)
                     {
-                        var whole = new byte[length];
-                        ReadFully(stream, whole);
-                        return whole;
+                        omitted = length;
+                        return Encoding.UTF8.GetBytes(DiagnosticLog.OmittedMarker(length) + Environment.NewLine);
                     }
-
-                    stream.Seek(length - maxBytes, SeekOrigin.Begin);
-                    var tail = new byte[maxBytes];
-                    ReadFully(stream, tail);
-
-                    int start = Array.IndexOf(tail, (byte)'\n');
-                    start = start < 0 ? 0 : start + 1;
-                    omitted = length - (maxBytes - start);
-
-                    byte[] marker = Encoding.UTF8.GetBytes(
-                        DiagnosticLog.TruncatedMarker(omitted, maxBytes - start) + Environment.NewLine);
-                    var result = new byte[marker.Length + (maxBytes - start)];
-                    Buffer.BlockCopy(marker, 0, result, 0, marker.Length);
-                    Buffer.BlockCopy(tail, start, result, marker.Length, maxBytes - start);
-                    return result;
+                    source = new byte[length];
+                    ReadFully(stream, source);
                 }
+                if (name == LauncherLogName) source = ScrubLauncherLog(source);
+                return KeepTail(redactor.Redact(source), maxBytes, out omitted);
             }
             catch
             {
                 // An unreadable log must not cost the user the rest of the archive.
                 return null;
             }
+        }
+
+        /// <summary>
+        /// <paramref name="text"/> itself when it fits, else a <see cref="DiagnosticLog.TruncatedMarker"/> line and
+        /// its last <paramref name="maxBytes"/>, starting on a line boundary. <paramref name="omitted"/> counts the
+        /// bytes of the (redacted) text that were left out.
+        /// </summary>
+        internal static byte[] KeepTail(byte[] text, int maxBytes, out long omitted)
+        {
+            omitted = 0;
+            if (text.Length <= maxBytes) return text;
+
+            int from = text.Length - maxBytes;
+            int newline = Array.IndexOf(text, (byte)'\n', from);
+            int start = newline < 0 ? from : newline + 1;
+            int kept = text.Length - start;
+            omitted = start;
+
+            byte[] marker = Encoding.UTF8.GetBytes(DiagnosticLog.TruncatedMarker(omitted, kept) + Environment.NewLine);
+            var result = new byte[marker.Length + kept];
+            Buffer.BlockCopy(marker, 0, result, 0, marker.Length);
+            Buffer.BlockCopy(text, start, result, marker.Length, kept);
+            return result;
         }
 
         private static void ReadFully(Stream stream, byte[] buffer)

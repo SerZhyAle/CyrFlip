@@ -73,6 +73,12 @@ namespace CyrFlip
                 pt: "área de transferência", ar: "مدير الحافظة", hi: "क्लिपबोर्ड प्रबंधक",
                 bn: "ক্লিপবোর্ড ম্যানেজার", ur: "کلپ بورڈ مینیجر", zh: "剪贴板管理器");
 
+            Add("контекстное меню текста",
+                en: "text context menu", uk: "контекстне меню тексту", de: "Textkontextmenü",
+                it: "menu contestuale del testo", es: "menú contextual de texto", fr: "menu contextuel du texte",
+                pt: "menu de contexto de texto", ar: "قائمة السياق النصية", hi: "पाठ संदर्भ मेनू",
+                bn: "টেক্সট প্রেক্ষিত মেনু", ur: "ٹیکسٹ سیاقتی مینو", zh: "文本上下文菜单");
+
             Add("экран не гаснет",
                 en: "screen stays on", uk: "екран не гасне", de: "Bildschirm bleibt an",
                 it: "schermo sempre acceso", es: "pantalla siempre encendida", fr: "écran maintenu allumé",

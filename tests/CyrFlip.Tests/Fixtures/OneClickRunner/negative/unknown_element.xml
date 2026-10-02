@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>a4d70b92-6e38-4c15-b9f0-3e8c1d5a7062</Id>
+  <Name>Calculator</Name>
+  <Path>calc.exe</Path>
+  <Arguments></Arguments>
+  <WorkingDirectory></WorkingDirectory>
+  <FutureField>kept by a newer product</FutureField>
+</AppItem>

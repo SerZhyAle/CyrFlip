@@ -273,6 +273,8 @@ namespace CyrFlip
                 _historyPauseItem.Enabled = _historyEnabledItem.Checked;
                 // The chord is shown only while it would actually fire.
                 _screenshotItem.ShortcutKeyDisplayString = _config.EnableHotkeys && ScreenshotChordLive ? _screenshotHotkey.Display : null;
+                _showHistoryItem.ShortcutKeyDisplayString = _config.EnableHotkeys && _config.EnableHistoryHotkey ? _clipboardHistoryHotkey.Display : null;
+                _quickNotesItem.ShortcutKeyDisplayString = _config.EnableHotkeys && QuickNotesChordLive ? _quickNotesHotkey.Display : null;
             };
 
             Icon initialIcon = TryGetAppIcon();
@@ -415,7 +417,7 @@ namespace CyrFlip
             // Once per session, like the quick notes: a damaged line now costs only itself (S0005 CH-2).
             if (_config.EnableClipboardHistory && _clipboardHistory.SkippedRecords > 0)
                 _tray.ShowBalloonTip(4000, "CyrFlip",
-                    string.Format(T("Не прочитано записей истории буфера: {0}. Остальная история на месте."),
+                    Localization.Format(T, "Не прочитано записей истории буфера: {0}. Остальная история на месте.",
                         _clipboardHistory.SkippedRecords), ToolTipIcon.Warning);
             // Once per start while any stored value is unreadable (S0007 CF-1): each fell back to its
             // own default, and the tables and snapshots among them stay untouched on disk.
@@ -956,7 +958,7 @@ namespace CyrFlip
         {
             if (target.Kind == LaunchKind.Program
                 && ConfirmDialog.Show(_config.UiLanguage,
-                    string.Format(T("Запустить программу из выделенного текста?\n\n{0}\n\nCyrFlip не проверяет, что это за файл."),
+                    Localization.Format(T, "Запустить программу из выделенного текста?\n\n{0}\n\nCyrFlip не проверяет, что это за файл.",
                         target.Target),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
             {
@@ -980,7 +982,7 @@ namespace CyrFlip
                 {
                     TextMenuLog.Log("launch failed: " + ex.Message);
                     _ui?.Post(_ => ShowWarningBalloon(3000,
-                        string.Format(T("Не удалось запустить «{0}»: {1}"), target.Display, FailureCause.Describe(ex, _config.UiLanguage))), null);
+                        Localization.Format(T, "Не удалось запустить «{0}»: {1}", target.Display, FailureCause.Describe(ex, _config.UiLanguage))), null);
                 }
             });
         }
@@ -1094,7 +1096,7 @@ namespace CyrFlip
                 // CAPTURE-OUTPUT rule 11: a fallback is told in the same moment, naming where it went.
                 if (result.Outcome == ScreenshotSaver.Outcome.SavedToFallback)
                     _ui?.Post(_ => ShowInfoBalloon(5000,
-                        string.Format(T("Папка для снимков недоступна - снимок сохранён сюда: {0}"), result.Folder)), null);
+                        Localization.Format(T, "Папка для снимков недоступна - снимок сохранён сюда: {0}", result.Folder)), null);
                 else if (result.Outcome == ScreenshotSaver.Outcome.Failed)
                 {
                     // The failure kinds outlive the balloon (ticket S0026); the reason names exception
@@ -1215,7 +1217,7 @@ namespace CyrFlip
                     if (service.RecoveredFromBackup)
                         lines.Add(T("Журнал быстрых заметок не найден - заметки восстановлены из резервной копии."));
                     if (service.SkippedRecords > 0)
-                        lines.Add(string.Format(T("Не прочитано записей быстрых заметок: {0}. Остальные заметки на месте."),
+                        lines.Add(Localization.Format(T, "Не прочитано записей быстрых заметок: {0}. Остальные заметки на месте.",
                             service.SkippedRecords));
                     if (lines.Count > 0 && ReferenceEquals(service, _quickNotes))
                         _tray.ShowBalloonTip(4000, "CyrFlip", string.Join("\n", lines), ToolTipIcon.Warning);
@@ -1733,7 +1735,7 @@ namespace CyrFlip
             if (result.Partial)
                 note += " — " + T("модель перестала отвечать - перевод может быть неполным");
             if (result.Truncated)
-                note += " — " + string.Format(T("переведены первые {0} из {1} символов"),
+                note += " — " + Localization.Format(T, "переведены первые {0} из {1} символов",
                     TranslationService.MaxChars, result.SourceLength);
             // Only worth saying when it isn't the model the settings promise.
             if (result.Model.Length > 0 && !TranslationService.ModelMatches(result.Model, (_config.TranslateModel ?? "").Trim()))
@@ -1753,7 +1755,7 @@ namespace CyrFlip
                 case TranslationStatus.StartFailed: return T("Не удалось запустить Ollama.");
                 // A server on another machine: CyrFlip does not start it and says whose it is (S0010 TD-6).
                 case TranslationStatus.Unreachable:
-                    return string.Format(T("Сервер {0} не отвечает. Проверьте адрес в настройках и что Ollama там запущен."), error);
+                    return Localization.Format(T, "Сервер {0} не отвечает. Проверьте адрес в настройках и что Ollama там запущен.", error);
                 case TranslationStatus.NoModel: return T("Не установлена ни одна модель. Рекомендуем aya-expanse:8b (~4,7 ГБ) — загрузите её в настройках.");
                 case TranslationStatus.Timeout: return T("Модель не ответила вовремя. Возможно, она слишком велика для этого компьютера.");
                 // The server's own words, when it gave any: "model not found" is worth reading verbatim.
@@ -1980,6 +1982,8 @@ namespace CyrFlip
                     lines.Add(_quickNotesHotkey.Display + " - " + T("быстрые заметки"));
                 if (ScreenshotChordLive)
                     lines.Add(_screenshotHotkey.Display + " - " + T("снимок области экрана"));
+                if (TextMenuChordLive)
+                    lines.Add(ParsedTextMenuHotkey().Display + " - " + T("контекстное меню текста"));
                 foreach (LayoutConversionProfile profile in _config.LayoutConversionProfiles)
                     if (profile.Enabled && profile.IsUsable)
                         lines.Add(profile.Hotkey + " - " + WorldLayouts.CodeForKlid(profile.SourceKlid)
@@ -2273,7 +2277,7 @@ namespace CyrFlip
                 if (_launcherStore.Count == 0 && LauncherMigration.SourceExists())
                 {
                     if (ConfirmDialog.Show(_config.UiLanguage,
-                            string.Format(T("Найдены сценарии OneClickRunner ({0} шт.). Перенести их в CyrFlip? Исходные файлы останутся без изменений."),
+                            Localization.Format(T, "Найдены сценарии OneClickRunner ({0} шт.). Перенести их в CyrFlip? Исходные файлы останутся без изменений.",
                                 LauncherMigration.SourceCount()),
                             MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                         ShowMigrationSummary(LauncherMigration.Import(_launcherStore, chords: Chords));
@@ -2302,16 +2306,16 @@ namespace CyrFlip
 
         private void ShowMigrationSummary(LauncherMigration.Result result)
         {
-            string summary = string.Format(T("Перенесено сценариев: {0}."), result.Imported);
+            string summary = Localization.Format(T, "Перенесено сценариев: {0}.", result.Imported);
             if (result.AlreadyPresent > 0)
-                summary += "\n" + string.Format(T("Уже перенесены ранее: {0}."), result.AlreadyPresent);
+                summary += "\n" + Localization.Format(T, "Уже перенесены ранее: {0}.", result.AlreadyPresent);
             if (result.Skipped.Count > 0)
-                summary += "\n" + string.Format(T("Пропущено повреждённых файлов: {0}."), result.Skipped.Count)
+                summary += "\n" + Localization.Format(T, "Пропущено повреждённых файлов: {0}.", result.Skipped.Count)
                     + "\n" + string.Join(", ", result.Skipped);
             if (result.NewIds > 0)
-                summary += "\n" + string.Format(T("Из-за совпадения идентификаторов назначены новые: {0}."), result.NewIds);
+                summary += "\n" + Localization.Format(T, "Из-за совпадения идентификаторов назначены новые: {0}.", result.NewIds);
             if (result.ChordsDropped > 0)
-                summary += "\n" + string.Format(T("Комбинации уже заняты, поэтому не перенесены: {0}."), result.ChordsDropped);
+                summary += "\n" + Localization.Format(T, "Комбинации уже заняты, поэтому не перенесены: {0}.", result.ChordsDropped);
             ConfirmDialog.Show(_config.UiLanguage, summary, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -2459,7 +2463,7 @@ namespace CyrFlip
                     : LauncherLaunchResult.Fail(task.Exception != null ? FailureCause.Describe(task.Exception.GetBaseException(), _config.UiLanguage) : "");
                 if (!result.Success && !result.Cancelled)
                     _ui?.Post(_ => ShowWarningBalloon(4000,
-                        string.Format(T("Не удалось запустить «{0}»: {1}"), name, result.ErrorMessage)), null);
+                        Localization.Format(T, "Не удалось запустить «{0}»: {1}", name, result.ErrorMessage)), null);
             }, System.Threading.Tasks.TaskScheduler.Default);
         }
 

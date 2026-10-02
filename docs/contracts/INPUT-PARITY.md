@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `INPUT-PARITY` |
-| **Version** | 0.2, draft |
+| **Version** | 0.3, draft |
 | **Home** | `input-controls/README.md` in the shared contracts catalog (section 3 the actions, section 4 the device table) |
 | **Role here** | Producer; steward of the **keyboard** and **mouse** columns. The other columns belong to other products |
 

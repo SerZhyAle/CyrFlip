@@ -221,8 +221,8 @@ namespace CyrFlip
             }
             catch (Exception ex)
             {
-                return LauncherLaunchResult.Fail(string.Format(
-                    translate("Не удалось использовать папку загрузки «{0}»: {1}"), outputFolder, FailureCause.Describe(ex, "Русский")));
+                return LauncherLaunchResult.Fail(Localization.Format(translate,
+                    "Не удалось использовать папку загрузки «{0}»: {1}", outputFolder, FailureCause.Describe(ex, "Русский")));
             }
 
             try
@@ -438,7 +438,7 @@ namespace CyrFlip
             {
                 if (TryFullPathOfFile(path, out resolved)) return true;
                 // A rooted path that does not exist is definitely broken.
-                error = string.Format(translate("Файл не найден: {0}"), path);
+                error = Localization.Format(translate, "Файл не найден: {0}", path);
                 return false;
             }
 
@@ -460,7 +460,7 @@ namespace CyrFlip
             if (resolved != null)
                 return true;
 
-            error = string.Format(translate("«{0}» не найден ни как файл, ни в PATH."), path);
+            error = Localization.Format(translate, "«{0}» не найден ни как файл, ни в PATH.", path);
             return false;
         }
 

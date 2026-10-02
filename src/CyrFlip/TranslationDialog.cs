@@ -134,7 +134,7 @@ namespace CyrFlip
             if (!unassigned && !Hotkey.TryParse(chord, out _))
             {
                 // Every refused OK says why (ticket S0007, DL-4).
-                ConfirmDialog.Show(this, _uiLanguage, string.Format(T("Комбинация «{0}» не распознана."), chord),
+                ConfirmDialog.Show(this, _uiLanguage, Localization.Format(T, "Комбинация «{0}» не распознана.", chord),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 DialogResult = DialogResult.None;
                 return;

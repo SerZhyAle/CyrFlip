@@ -21,5 +21,11 @@ namespace CyrFlip
         public const string MoveDown = "action.move-down";
         public const string Download = "action.download";
         public const string Apps = "content.apps";
+        public const string LayoutIndicator = "feature.layout-indicator";
+        public const string Shortcuts = "app.shortcuts";
+        public const string ClipboardHistory = "feature.clipboard-history";
+        public const string QuickLaunch = "feature.quick-launch";
+        public const string Note = "content.note";
+        public const string Screenshot = "system.screenshot";
     }
 }

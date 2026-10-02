@@ -116,6 +116,31 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
+        public void AnEvenOddRecordPunchesItsOverlapAndTheDefaultDoesNot()
+        {
+            // The one SVG rendering attribute the generator carries is fill-rule="evenodd": the same two
+            // squares, drawn the other way, leave the overlap hollow.
+            using GraphicsPath? path = GlyphPath.Parse("M0 0H10V10H0Z M5 5H15V15H5Z", null, evenOdd: true);
+            Assert.NotNull(path);
+            Assert.Equal(FillMode.Alternate, path!.FillMode);
+            Assert.False(path.IsVisible(7, 7));
+            Assert.True(path.IsVisible(2, 2));
+            Assert.True(path.IsVisible(12, 12));
+        }
+
+        [Fact]
+        public void TheShortcutsGlyphIsDrawnEvenOddAndItsKeyCapsAreHollow()
+        {
+            // app.shortcuts is the first vendored glyph whose SVG says fill-rule="evenodd".
+            using GraphicsPath? path = GlyphRenderer.CreatePath("app.shortcuts");
+            Assert.NotNull(path);
+            Assert.Equal(FillMode.Alternate, path!.FillMode);
+            Assert.True(path.IsVisible(3, 12));       // the left key cap's wall (x 2..4)
+            Assert.False(path.IsVisible(5.5f, 12));   // inside it
+            Assert.True(path.IsVisible(12, 11.6f));   // the plus between the caps
+        }
+
+        [Fact]
         public void ATransformIsAppliedToTheWholePath()
         {
             // translate(12 12) scale(0.5 0.5) translate(-12 -12) of a 24-square: a 12-square centred on (12,12).

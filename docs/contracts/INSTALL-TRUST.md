@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `INSTALL-TRUST` |
-| **Version** | 1.0, active |
+| **Version** | 1.1, active |
 | **Home** | `install-trust/README.md` in the shared contracts catalog, with the reference rendering beside it |
 | **Role here** | producer - **adopted** |
 

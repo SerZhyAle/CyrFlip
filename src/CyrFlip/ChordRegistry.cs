@@ -191,7 +191,7 @@ namespace CyrFlip
             ChordOwner? owner = registry.CyrFlipOwnerOf(chord, kind, id);
             if (owner != null)
             {
-                ConfirmDialog.Show(parent, uiLanguage, string.Format(T("Комбинация {0} уже занята действием «{1}»."),
+                ConfirmDialog.Show(parent, uiLanguage, Localization.Format(T, "Комбинация {0} уже занята действием «{1}».",
                     chord.Display, ChordRegistry.Label(owner, uiLanguage, layoutName)),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
@@ -200,9 +200,9 @@ namespace CyrFlip
             if (!askAboutWindows) return true;
             ChordOwner? windows = registry.WindowsOwnerOf(chord);
             if (windows == null) return true;
-            return ConfirmDialog.Show(parent, uiLanguage, string.Format(T("Комбинация {0} назначена в Windows для переключения на язык «{1}». Если её займёт CyrFlip, Windows её больше не получит. Всё равно назначить?"),
+            return ConfirmDialog.Show(parent, uiLanguage, Localization.Format(T, "Комбинация {0} назначена в Windows для переключения на язык «{1}». Если её займёт CyrFlip, Windows её больше не получит. Всё равно назначить?",
                     chord.Display, ChordRegistry.Label(windows, uiLanguage, layoutName)),
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question, danger: true) == DialogResult.Yes;
         }
 
         /// <summary>
@@ -216,8 +216,8 @@ namespace CyrFlip
             List<KeyValuePair<ChordOwner, ChordOwner>> pairs = registry.Duplicates();
             if (pairs.Count == 0) return;
             KeyValuePair<ChordOwner, ChordOwner> first = pairs[0];
-            ConfirmDialog.Show(parent, uiLanguage, string.Format(
-                    Localization.Translate(uiLanguage, "Комбинация {0} назначена сразу двум действиям: «{1}» и «{2}». Сработает только одно - смените одну из них."),
+            ConfirmDialog.Show(parent, uiLanguage, Localization.Format(uiLanguage,
+                    "Комбинация {0} назначена сразу двум действиям: «{1}» и «{2}». Сработает только одно - смените одну из них.",
                     first.Key.Chord.Display, ChordRegistry.Label(first.Key, uiLanguage, layoutName),
                     ChordRegistry.Label(first.Value, uiLanguage, layoutName)),
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);

@@ -89,14 +89,30 @@ namespace CyrFlip
         public static string Format(string language, string? ru, params object?[] args)
         {
             if (string.IsNullOrEmpty(ru)) return string.Empty;
-            string template = Translate(language, ru!);
+            return FormatTemplate(Translate(language, ru!), ru!, args);
+        }
+
+        /// <summary>
+        /// The same safe formatting for a caller that holds a translating function rather than a language -
+        /// the <c>T</c> helper of a window, or the <c>translate</c> seam the launcher and the menu builder
+        /// take so a test can run them without a UI language.
+        /// </summary>
+        public static string Format(Func<string, string> translate, string? ru, params object?[] args)
+        {
+            if (string.IsNullOrEmpty(ru)) return string.Empty;
+            string template = translate(ru!);
+            return FormatTemplate(string.IsNullOrEmpty(template) ? ru! : template, ru!, args);
+        }
+
+        private static string FormatTemplate(string template, string ru, object?[] args)
+        {
             try
             {
                 return string.Format(template, args);
             }
             catch (FormatException)
             {
-                try { return string.Format(ru!, args); }
+                try { return string.Format(ru, args); }
                 catch { return template; }
             }
         }

@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `UPDATE-MANIFEST` |
-| **Version** | 0.9, draft |
+| **Version** | 0.10, draft |
 | **Home** | `app-update-feed/README.md` in the shared contracts catalog |
 | **Role here** | **Not bound** - CyrFlip has no update check |
 

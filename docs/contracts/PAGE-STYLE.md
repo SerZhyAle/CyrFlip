@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `PAGE-STYLE` |
-| **Version** | 1.0, active |
+| **Version** | 1.2, active |
 | **Home** | `product-web-pages/PAGE-STYLE.md` in the shared contracts catalog, with `reference/sza-kit.css` |
 | **Role here** | consumer, role *App - small* - the vendored kit and the page scripts |
 

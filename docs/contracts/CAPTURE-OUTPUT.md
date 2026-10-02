@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CAPTURE-OUTPUT` |
-| **Version** | 0.2, draft |
+| **Version** | 0.3, draft |
 | **Home** | `capture-output/README.md` in the shared contracts catalog |
 | **Role here** | Producer of the `screenshot` kind (ticket S0026's screen region capture); no other kind is produced or consumed |
 

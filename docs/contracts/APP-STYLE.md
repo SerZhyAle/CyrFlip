@@ -3,9 +3,9 @@
 | | |
 | --- | --- |
 | **Id** | `APP-STYLE` |
-| **Version** | 0.10, draft |
+| **Version** | 0.11, draft |
 | **Home** | `desktop-app-ux/APP-STYLE.md` in the shared contracts catalog |
-| **Role here** | consumer - sections 2-5 implemented in the working tree (the app theme), **not yet in a release** |
+| **Role here** | consumer - sections 2-5 implemented and shipped (the app theme, since v26.10.1) |
 
 ## What this repository does to stay conformant
 
@@ -16,12 +16,11 @@
   `ThemePalette.cs`; WinForms has no resource scope, so the rule is held by a source gate (no colour
   literal outside that file and the layout marker's files - `ThemeSourceGateTests`) plus a re-apply walk
   over every open window on a change (`ThemeApply`, `ThemeCoverageTests`).
-- **Section 4 - the role vocabulary.** The role names are the contract's, plus the proposed `warning`,
-  `danger` and `success` - `danger` is on the destructive answer of the app's own confirmation dialog - and
-  one CyrFlip ask, `surface.alternate` (the alternate list row), filed 2026-10-01 as
-  `PROPOSAL-2026-10-01-cyrflip-state-roles-and-alternate-surface.md` in the catalog together with the
-  promotion of the three state roles. Contrast is measured per text/surface pair
-  (`ThemePaletteTests`, 4.5:1; 3:1 for disabled text).
+- **Section 4 - the role vocabulary.** The role names are the contract's, including `danger`, `warning` and
+  `success` (promoted to contract in 0.11) and `surface.alternate` (added in 0.11 from CyrFlip's own
+  proposal). `danger` is on the destructive answer of the app's own confirmation dialog, whose safe answer
+  holds the default focus. Contrast is measured per text/surface pair (`ThemePaletteTests`, 4.5:1; 3:1 for
+  disabled text).
 - **Section 5 - declared out of theme.** The layout marker: its colours are `LAYOUT-PALETTE`'s and never
   follow the window theme - the marker names a layout. Declared at `LayoutStyle.cs` and `CaretOverlay.cs`.
 - **Section 8, answered here rather than left open:** Windows' high contrast wins over every mode (system

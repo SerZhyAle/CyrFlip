@@ -354,6 +354,89 @@ namespace CyrFlip.Tests
             Assert.Contains("TranslateEndpoint = http://host:11434", text);
         }
 
+        /// <summary>
+        /// DIAGNOSTIC-REPORT 0.12 section 8 C: redaction precedes truncation. The key block sits across the
+        /// point where the file is cut, so a tail cut first would open in the middle of it - past its BEGIN
+        /// line, where no pattern can see it was a key - and carry the body into the archive.
+        /// </summary>
+        [Fact]
+        public void ALogIsRedactedBeforeItIsCutSoATailNeverOpensInsideASecret()
+        {
+            var text = new StringBuilder();
+            for (int i = 0; i < 400; i++) text.AppendLine("filler line " + i);
+            text.AppendLine("-----BEGIN PRIVATE KEY-----");
+            for (int i = 0; i < 20; i++) text.AppendLine("SECRET-KEY-LINE-" + i.ToString("D2"));
+            text.AppendLine("-----END PRIVATE KEY-----");
+            for (int i = 0; i < 5; i++) text.AppendLine("after " + i);
+            Write("context-menu.log", text.ToString());
+
+            // 300 bytes of the original reach back ten lines into the key body.
+            SupportBundle.Result result = Create(maxFileBytes: 300);
+
+            string content = ReadEntry(result.ArchivePath, "context-menu.log");
+            Assert.DoesNotContain("SECRET-KEY-LINE", content);
+            Assert.Contains("[REDACTED]", content);
+            Assert.Contains("after 4", content);
+            Assert.StartsWith("[Diag] LOG TRUNCATED | ", content);
+        }
+
+        [Fact]
+        public void ASourceTooLargeToBeRedactedFirstIsOmittedWholeAndTheEntrySaysSo()
+        {
+            Write("context-menu.log", new string('x', 200) + "\n");
+
+            SupportBundle.Result result = SupportBundle.Create(_logs, _reports, "REPORT-BODY", "26.7.29.2340",
+                new DateTime(2026, 7, 29, 23, 40, 0), maxRedactableBytes: 100);
+
+            string content = ReadEntry(result.ArchivePath, "context-menu.log");
+            Assert.Equal("[Diag] LOG OMITTED | reason=oversized_untrusted | source_bytes=201" + Environment.NewLine, content);
+            Assert.True(result.Entries.Single(e => e.Name == "context-menu.log").Truncated);
+        }
+
+        [Fact]
+        public void ASecretInACollectedLogNeverReachesTheArchiveWhateverTheFileIsCalled()
+        {
+            Write("translate.log", "2026-10-02 12:00:01 - model=aya-expanse:8b url=http://h.example:11434/api?token=abc123&x=1\n");
+
+            SupportBundle.Result result = Create();
+
+            string content = ReadEntry(result.ArchivePath, "translate.log");
+            Assert.DoesNotContain("abc123", content);
+            Assert.Contains("model=aya-expanse:8b", content);   // what is not a secret stays
+            Assert.Contains("token=[REDACTED]", content);
+        }
+
+        /// <summary>
+        /// DIAGNOSTIC-REPORT 0.12 section 8 B: the version of the summary's own shape is named
+        /// <c>schema_version</c>. It leads the file, so a reader that stops at the first line has it.
+        /// </summary>
+        [Fact]
+        public void TheEnvironmentSummaryLeadsWithItsSchemaVersion()
+        {
+            string text = SupportBundle.BuildEnvironment(new AppConfig(), "26.7.29.2340", new DateTime(2026, 7, 29, 23, 40, 0));
+
+            Assert.StartsWith("schema_version=" + SupportBundle.EnvironmentSchemaVersion + "\n", text);
+            Assert.Equal(1, SupportBundle.EnvironmentSchemaVersion);
+            Assert.Single(text.Split('\n'), line => line.StartsWith("schema_version=", StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public void KeepTailStartsOnALineBoundaryAndCountsWhatItDropped()
+        {
+            byte[] text = Encoding.UTF8.GetBytes("one\ntwo\nthree\nfour\n");
+
+            // The last 12 bytes open on the newline that ended "two": the tail starts just past it.
+            byte[] kept = SupportBundle.KeepTail(text, 12, out long omitted);
+
+            string result = Encoding.UTF8.GetString(kept);
+            Assert.EndsWith("three\nfour\n", result);
+            Assert.DoesNotContain("two\n", result);
+            Assert.Equal(8, omitted);   // "one\ntwo\n"
+            Assert.StartsWith("[Diag] LOG TRUNCATED | dropped_middle_bytes=8 | kept_head_bytes=0 | kept_tail_bytes=11", result);
+            Assert.Same(text, SupportBundle.KeepTail(text, 100, out long none));
+            Assert.Equal(0, none);
+        }
+
         private SupportBundle.Result Create(int maxFileBytes = SupportBundle.MaxFileBytes,
             long maxTotalBytes = SupportBundle.MaxTotalBytes) =>
             SupportBundle.Create(_logs, _reports, "REPORT-BODY", "26.7.29.2340",

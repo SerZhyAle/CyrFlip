@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CHECK-PLACEMENT` |
-| **Version** | 0.9, draft |
+| **Version** | 0.11, draft |
 | **Home** | `automated-checks/README.md` in the shared contracts catalog, section 4 |
 | **Role here** | producer - **conformant (0.9)**: placement declared in `tools/checks/check-placement.jsonl` |
 

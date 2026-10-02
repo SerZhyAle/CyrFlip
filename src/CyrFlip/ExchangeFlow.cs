@@ -114,12 +114,12 @@ namespace CyrFlip
             }
             catch (Exception ex)
             {
-                ConfirmDialog.Show(owner, _config.UiLanguage, string.Format(T("Не удалось сохранить файл: {0}"), FailureCause.Describe(ex, _config.UiLanguage)),
+                ConfirmDialog.Show(owner, _config.UiLanguage, Localization.Format(T, "Не удалось сохранить файл: {0}", FailureCause.Describe(ex, _config.UiLanguage)),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             ConfirmDialog.Show(owner, _config.UiLanguage,
-                string.Format(T("Экспортировано заметок: {0}, записей истории: {1}."), noteList?.Count ?? 0, entries?.Count ?? 0)
+                Localization.Format(T, "Экспортировано заметок: {0}, записей истории: {1}.", noteList?.Count ?? 0, entries?.Count ?? 0)
                 + "\n\n" + path,
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -148,7 +148,7 @@ namespace CyrFlip
             }
             catch (Exception ex)
             {
-                Tell(owner, string.Format(T("Не удалось прочитать файл: {0}"), FailureCause.Describe(ex, _config.UiLanguage)), MessageBoxIcon.Warning);
+                Tell(owner, Localization.Format(T, "Не удалось прочитать файл: {0}", FailureCause.Describe(ex, _config.UiLanguage)), MessageBoxIcon.Warning);
                 return;
             }
 
@@ -169,7 +169,7 @@ namespace CyrFlip
             bool includeNew = false;
             if (notes != null && read.NotesWithoutId > 0)
                 includeNew = ConfirmDialog.Show(owner, _config.UiLanguage,
-                    string.Format(T("Заметок без Id в файле: {0} - похоже, они написаны вручную. Импортировать их как новые заметки?"), read.NotesWithoutId),
+                    Localization.Format(T, "Заметок без Id в файле: {0} - похоже, они написаны вручную. Импортировать их как новые заметки?", read.NotesWithoutId),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
 
             if (notes != null)
@@ -181,18 +181,18 @@ namespace CyrFlip
             ExchangeMergeReport historyplan = history ? _history.PlanImport(read.Clipboard) : new ExchangeMergeReport();
 
             var preview = new StringBuilder();
-            preview.Append(string.Format(T("Найдено заметок: {0}, записей истории: {1}."), read.Notes.Count, read.Clipboard.Count));
+            preview.Append(Localization.Format(T, "Найдено заметок: {0}, записей истории: {1}.", read.Notes.Count, read.Clipboard.Count));
             if (notes == null && read.Notes.Count > 0)
                 preview.Append('\n').Append(T("Быстрые заметки выключены - заметки из файла будут пропущены."));
             if (!history && read.Clipboard.Count > 0)
                 preview.Append('\n').Append(T("История буфера выключена - записи истории будут пропущены."));
-            preview.Append("\n\n").Append(string.Format(T("Будет добавлено: заметок {0}, записей истории {1}."),
+            preview.Append("\n\n").Append(Localization.Format(T, "Будет добавлено: заметок {0}, записей истории {1}.",
                 noteplan.NotesAdded + noteplan.NotesNew, historyplan.ClipboardAdded));
-            preview.Append('\n').Append(string.Format(T("Будет обновлено заметок (в файле более новая версия): {0}."), noteplan.NotesUpdated));
-            preview.Append('\n').Append(string.Format(T("Уже есть: заметок {0}, записей истории {1}."),
+            preview.Append('\n').Append(Localization.Format(T, "Будет обновлено заметок (в файле более новая версия): {0}.", noteplan.NotesUpdated));
+            preview.Append('\n').Append(Localization.Format(T, "Уже есть: заметок {0}, записей истории {1}.",
                 noteplan.NotesSkipped, historyplan.ClipboardExisting));
             if (read.Problems.Count > 0)
-                preview.Append('\n').Append(string.Format(T("Не удалось прочитать блоков: {0}."), read.Problems.Count))
+                preview.Append('\n').Append(Localization.Format(T, "Не удалось прочитать блоков: {0}.", read.Problems.Count))
                     .Append(Problems(read.Problems));
 
             int changes = noteplan.NotesAdded + noteplan.NotesNew + noteplan.NotesUpdated + historyplan.ClipboardAdded + historyplan.ClipboardRaised;
@@ -215,10 +215,10 @@ namespace CyrFlip
             int unwritten = history && doneHistory.ClipboardAdded + doneHistory.ClipboardExisting > 0
                 ? BusyDialog.Run(owner, _config.UiLanguage, () => _history.FlushJournal(HistoryImportFlush))
                 : 0;
-            string message = string.Format(T("Импорт завершён: добавлено заметок {0}, обновлено {1}, добавлено записей истории {2}."),
+            string message = Localization.Format(T, "Импорт завершён: добавлено заметок {0}, обновлено {1}, добавлено записей истории {2}.",
                 done.NotesAdded + done.NotesNew, done.NotesUpdated, doneHistory.ClipboardAdded);
             if (unwritten > 0)
-                message += "\n\n" + string.Format(T("Записей истории ещё не записано на диск: {0}. Они будут дописаны, пока CyrFlip работает."), unwritten);
+                message += "\n\n" + Localization.Format(T, "Записей истории ещё не записано на диск: {0}. Они будут дописаны, пока CyrFlip работает.", unwritten);
             Tell(owner, message, unwritten > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
         }
 
@@ -246,9 +246,9 @@ namespace CyrFlip
                 case ExchangeProblemKind.UnknownVersion:
                     return T("Файл записан другой версией формата обмена CyrFlip. Обновите CyrFlip, чтобы его импортировать.");
                 case ExchangeProblemKind.FileTooLarge:
-                    return string.Format(T("Файл больше {0} МБ - такой файл не импортируется."), CyrFlipExchange.MaxFileBytes / (1024 * 1024));
+                    return Localization.Format(T, "Файл больше {0} МБ - такой файл не импортируется.", CyrFlipExchange.MaxFileBytes / (1024 * 1024));
                 default:
-                    return string.Format(T("Не найден маркер «{0}» - это не файл обмена CyrFlip."), CyrFlipExchange.Marker);
+                    return Localization.Format(T, "Не найден маркер «{0}» - это не файл обмена CyrFlip.", CyrFlipExchange.Marker);
             }
         }
 
@@ -258,9 +258,9 @@ namespace CyrFlip
             if (problems.Count == 0) return "";
             var text = new StringBuilder();
             for (int i = 0; i < problems.Count && i < ProblemLinesShown; i++)
-                text.Append('\n').Append(string.Format(T("Строка {0}: {1}"), problems[i].Line, Reason(problems[i])));
+                text.Append('\n').Append(Localization.Format(T, "Строка {0}: {1}", problems[i].Line, Reason(problems[i])));
             if (problems.Count > ProblemLinesShown)
-                text.Append('\n').Append(string.Format(T("и ещё {0}"), problems.Count - ProblemLinesShown));
+                text.Append('\n').Append(Localization.Format(T, "и ещё {0}", problems.Count - ProblemLinesShown));
             return text.ToString();
         }
 
@@ -270,11 +270,11 @@ namespace CyrFlip
             {
                 case ExchangeProblemKind.NoBody: return T("у блока нет текста в ограждении из обратных кавычек");
                 case ExchangeProblemKind.UnclosedFence: return T("ограждение текста не закрыто - остаток файла не прочитан");
-                case ExchangeProblemKind.BadField: return string.Format(T("поле «{0}» отсутствует или записано неверно"), problem.Detail);
+                case ExchangeProblemKind.BadField: return Localization.Format(T, "поле «{0}» отсутствует или записано неверно", problem.Detail);
                 case ExchangeProblemKind.HashMismatch: return T("текст не совпадает со своим Id - он изменён или повреждён");
                 case ExchangeProblemKind.TooLarge: return T("текст больше допустимого размера");
-                case ExchangeProblemKind.MetadataTooLong: return string.Format(T("строка метаданных длиннее {0} символов"), CyrFlipExchange.MaxMetadataChars);
-                case ExchangeProblemKind.TooManyObjects: return string.Format(T("больше {0} объектов - остальные не импортированы"), CyrFlipExchange.MaxObjects);
+                case ExchangeProblemKind.MetadataTooLong: return Localization.Format(T, "строка метаданных длиннее {0} символов", CyrFlipExchange.MaxMetadataChars);
+                case ExchangeProblemKind.TooManyObjects: return Localization.Format(T, "больше {0} объектов - остальные не импортированы", CyrFlipExchange.MaxObjects);
                 default: return FatalText(problem.Kind);
             }
         }

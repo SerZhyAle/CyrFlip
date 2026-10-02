@@ -36,24 +36,5 @@ namespace CyrFlip.Tests
             Assert.Same(LauncherBrand.GetIcon(32), LauncherBrand.GetIcon(32));
             Assert.Same(LauncherBrand.GetImage(32), LauncherBrand.GetImage(32));
         }
-
-        [Fact]
-        public void TheLineArtGlyphDrawsWithinItsBox()
-        {
-            // The tab strip hands the glyph an 18x18 bitmap: anything drawn outside is clipped away
-            // silently, so this proves the shape actually lands on the tile.
-            using var image = new Bitmap(18, 18);
-            using (var g = Graphics.FromImage(image))
-            using (var pen = new Pen(Color.Black, 1.8f))
-            using (var brush = new SolidBrush(Color.Black))
-                LauncherBrand.DrawGlyph(g, 18, pen, brush);
-
-            int painted = 0;
-            for (int x = 0; x < image.Width; x++)
-                for (int y = 0; y < image.Height; y++)
-                    if (image.GetPixel(x, y).A > 0) painted++;
-
-            Assert.True(painted > 40, "the glyph painted almost nothing: " + painted + " pixels");
-        }
     }
 }

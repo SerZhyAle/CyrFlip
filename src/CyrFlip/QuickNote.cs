@@ -298,5 +298,30 @@ namespace CyrFlip
         /// <summary>Split on CRLF, LF or a lone CR without touching anything else in the text.</summary>
         internal static string[] SplitLines(string raw)
             => raw.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+
+        /// <summary>Returns the number of lines in the note body.</summary>
+        public int LineCount
+        {
+            get
+            {
+                if (Kind == QuickNoteKind.Text)
+                    return SplitLines(RawText).Length;
+                return Items.Count;
+            }
+        }
+
+        /// <summary>Returns the total number of characters in the note body.</summary>
+        public int CharacterCount
+        {
+            get
+            {
+                if (Kind == QuickNoteKind.Text)
+                    return RawText.Length;
+                int count = 0;
+                foreach (QuickNoteItem item in Items)
+                    count += item.Text.Length;
+                return count;
+            }
+        }
     }
 }

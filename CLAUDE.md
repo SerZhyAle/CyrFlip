@@ -396,17 +396,26 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   literal path): SVG path data on the 24 grid, read by key from the catalog, a MAJOR other than 0 or a
   missing id fails the run and leaves the previous file. `GlyphPath` reads SVG path data into a
   `GraphicsPath` (all of M L H V C S Q T A Z, **`FillMode.Winding`** - GDI+'s Alternate punches holes in
-  overlapping glyphs; a path that does not parse yields null, never an exception). `GlyphRenderer` fills
+  overlapping glyphs; a record whose SVG says `fill-rule="evenodd"` - `app.shortcuts`, `GlyphRecord.EvenOdd` -
+  is the one case that asks for Alternate, and the generator refuses any other rendering attribute, an opacity
+  or a path transform rather than draw a glyph wrongly; a path that does not parse yields null, never an
+  exception). `GlyphRenderer` fills
   it at draw time in the **caller's theme colour** - nothing is baked, one path serves every size and DPI -
   plus the decorated look on a round plate (glyph 0.6 of the plate) for shortcuts. `AppGlyphs` is the one
   place an id is spelled (a test fails on a literal id handed to the renderer elsewhere). Held: the
   clipboard strip's search / close / pin / delete (`HistoryStripGlyphs`, exposed to a screen reader as an
-  `AccessibleObject` with four kinds of child), the notes window's move buttons, the Settings / About /
-  Translate tabs, and the Jump List's Manage / Exit / yt-dlp / unreadable-program icons - written as
+  `AccessibleObject` with four kinds of child), the order buttons of the layout list, the launcher list and
+  the notes window (`action.move-up` / `action.move-down` in the theme's text colour, drawn again when the
+  theme changes), nine of the eleven settings tabs (`SettingsForm.TabGlyphId`; the guides show the same glyph
+  beside the tab's name), and the Jump List's Manage / Exit / yt-dlp / unreadable-program icons - written as
   `.ico` files into `icons\` beside `layout.txt` (`LauncherShortcutIcons`, the MSIX-aware folder; the name
   carries a revision), because the shell wants a file location and an SDK-style net48 project embeds one
-  icon. **A meaning the vocabulary lacks does not get a private picture** - eight tabs and the launcher's
-  mark still do until their records exist (catalog proposal of 2026-09-26). The layout badge is not a glyph.
+  icon. **A meaning the vocabulary lacks does not get a private picture** - Conversions and Languages are
+  the two tabs that still draw their own until the catalog records `action.convert-layout` and
+  `system.input-language` (asked for in the 2026-09-26 proposal, still open); the launcher's page header and
+  taskbar button keep OneClickRunner's mark, its tab is `feature.quick-launch`. The vocabulary records of five
+  of those tabs are `proposed` (`ICON-SET` rule 6: the first product to ship one turns it `active`). The
+  layout badge is not a glyph.
   The licence notice for the vendored Material glyphs is `THIRD-PARTY-NOTICES.md` (release ZIP, MSIX, About).- **BusyDialog.cs** - the small modal "please wait" window behind every job that is too long for the
   hooks' thread (ticket S0030 HT-2/HT-6): the exchange file's read, parse and write, the notes import's
   batched journal append (`QuickNotesStore.AppendBatch`), the Markdown export, and waiting for the notes
@@ -598,8 +607,15 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   new registry values**: the feature has no state. Since S0040 (`DIAGNOSTIC-REPORT` rules 1-4) every text in
   the archive passes **`DiagnosticRedactor`** (the data folders become `<APP_DATA>`, the profile and any
   `X:\Users\<name>` `<USER>`, a URL loses its userinfo), `environment.txt` (`key=value`, counts and platform
-  facts only) sits beside `report.txt`, the name carries seconds, and the markers are the contract's
-  `[Diag] LOG COMPACTED | ...` / `[Diag] LOG TRUNCATED | ...`. Long logs are kept by their **tail** with a marker line
+  facts only, led by `schema_version=1`) sits beside `report.txt`, the name carries seconds, and the markers are the contract's
+  `[Diag] LOG COMPACTED | ...` / `[Diag] LOG TRUNCATED | ...`. Since 0.12 (S0040 A7-A9) a **secret is redacted by
+  its value's shape, whatever it sits under** - a secret query parameter, a credential `name=value` pair or JSON
+  field, an auth header, a Bearer token, a PEM private key block, the account segments of `/live/user/pass/id`, a
+  URL password holding `/ ? #` - each becomes `[REDACTED]`, name kept; the pass runs line by line under a
+  250 ms budget (a line that overruns is replaced by `[Diag] PATH REDACTION TIMEOUT | dropped_line_bytes=<n>`);
+  and **redaction precedes truncation** (`SupportBundle.Collect`: read whole, scrub, redact, only then
+  `KeepTail`), a file above 16 MB being omitted whole with `[Diag] LOG OMITTED | reason=oversized_untrusted |
+  source_bytes=<n>`. Long logs are kept by their **tail** with a marker line
   (512 KB per file, 3 MB of collected bytes), archives live in `reports\` beside `layout.txt` (the MSIX-aware
   folder, because a mail client is a foreign process) and the five newest are kept. Subject and body are
   **English whatever the UI language is** - the artefact is addressed to the author - and the address is
@@ -747,7 +763,11 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   `WidthScale`/`Scaled` (the tables' fixed pixel columns were measured against Russian, and German or
   Devanagari overflow them). `SettingsForm.ApplyScript` applies all three on every language change, and
   `RefreshBoldFonts` re-derives the section headers, whose explicit **bold** font would otherwise not
-  inherit the new family.
+  inherit the new family. **A translated template is formatted by `Localization.Format`** (a language, or the
+  window's own `T` function) and never by `string.Format`: a translation with a broken `{n}` would otherwise
+  throw inside whatever event handler asked, so a broken one shows the source sentence instead
+  (`APP-BEHAVIOUR` rule 7; gated by `AppBehaviourGateTests.NoTranslatedTemplateIsFormattedRaw`, and the
+  placeholder parity of every translation by `LocalizationSourceGateTests`).
 
 **Never lay a dialog out by pixel coordinates.** Captions exist in 13 languages and are drawn at whatever
 display scaling makes of the UI font, so fixed geometry clips them - the bug that had "Assign" rendering as
@@ -931,7 +951,7 @@ guards it.
   - **LauncherTrayMenu.cs** - builds the tray submenu **and** the taskbar button's left-click menu (scenarios → separator → Manage → optional Import) from one `Fill`, so the two lists can never drift apart. It is its own file for one load-bearing reason: `ToolStripItem.Dispose` **removes the item from its owner's collection**, so disposing while enumerating `DropDownItems` throws *"Collection was modified"* - verified on net48, and invisible until the *second* rebuild (the first starts from an empty menu). Copy out → clear → dispose, exactly as the settings window does in every `Reload*Rows`. Being a static seam it is covered directly by `LauncherTrayMenuTests`.
   - **LauncherScenarioDialog.cs / YtDlpLinkDialog.cs** - content-sized modal dialogs (no pixel geometry). The scenario dialog swaps the type-specific section **out of the control tree** (not `Visible=false`) so `DialogLayoutTests` measures only what is laid out.
   - **LauncherTaskbarWindow.cs** - the taskbar button: a 1x1, `Opacity=0`, permanently **minimized** form (`ShowInTaskbar`) that exists only while the launcher is on. It rests minimized on purpose - a taskbar click on the *active* window minimizes it, so a window that stayed restored would answer only every second click; the restore raises `WM_SIZE`/`SIZE_RESTORED` (the one notification every shell path ends in - `SC_RESTORE` is not always sent), the menu is shown there and the window minimizes again on close, which also hands focus straight back to the user's editor. The `SIZE_RESTORED` of window creation is ignored (only a restore *out of* the minimized resting state counts). A shell "Close window" is cancelled - the launcher switch owns its lifetime, exactly as the tray icon's.
-  - **LauncherBrand.cs** - OneClickRunner's `app.ico`, embedded (`EmbeddedResource` + `LogicalName=CyrFlip.launcher.ico`, so the single exe still ships alone) and handed out cached/shared - callers must not dispose it. Marks the *feature* (settings page header, taskbar button), never the app. `DrawGlyph` repeats the same shape as line art for the settings tab strip, where a full-colour tile among nine line-drawn tabs would read as a foreign object.
+  - **LauncherBrand.cs** - OneClickRunner's `app.ico`, embedded (`EmbeddedResource` + `LogicalName=CyrFlip.launcher.ico`, so the single exe still ships alone) and handed out cached/shared - callers must not dispose it. Marks the *feature* (settings page header, taskbar button), never the app - and not its tab in the strip: a logo on a tab stands for a meaning (`ICON-SET` rule 7), so the tab draws the vocabulary's `feature.quick-launch`.
   - **LauncherLog.cs** - `launcher.log` in the same MSIX-aware folder as `layout.txt`; never logs the yt-dlp link. Like `TranslateLog` and `TextMenuLog` it is a one-line wrapper over **`DiagnosticLog`**, which owns the folder, the **rotation** and - since ticket S0030 HT-4 - **the write itself**: `Append` only queues the line and returns, and one background writer drains the queue in order, one open per file per batch (most callers are on the hooks' thread, and a synchronous open/append/close behind one process-wide lock let another log's rotation or an antivirus scan stall the next context-menu line). `DiagnosticLog.Flush(timeout)` is called by `SupportBundle.CreateDefault` before it reads the logs, by the session end, by `CyrFlipContext.Dispose` and by `Program` on its way out. On a file's first write of the session and again every 1000 lines, a file over 2 MB is cut to its last 512 KB, starting on a line boundary and behind a marker line saying how much was dropped - "once per session" alone was no cap for an autostarted tray session that lasts weeks. Without it these three files grew forever (`context-menu.log` writes a line per menu opening *and* per click). The rewrite is **in place, not via a temp file that replaces it** - replacing means deleting, and a file another process holds open cannot be deleted, which is exactly the case that matters since `SupportBundle` reads these logs to build its archive.
   - Integration: `CyrFlipContext.RefreshLauncherSurfaces()` rebuilds tray submenu + Jump List + hook snapshot on every change (enable/disable, CRUD, language change); `KeyboardHook.UpdateLauncherHotkeys` mirrors the conversion-table snapshot discipline; the chord conflict check covers every owner through `ChordRegistry`.
 

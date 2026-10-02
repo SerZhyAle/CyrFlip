@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Ids** | `REPO-STAMP`, `REPO-LAYOUT`, `RULE-DELIVERY`, `HARNESS-PROFILE` |
-| **Version** | 0.9, draft |
+| **Version** | `REPO-STAMP` 0.11, `REPO-LAYOUT` 0.10, `RULE-DELIVERY` 0.11, `HARNESS-PROFILE` not bound |
 | **Home** | `rule-adoption/README.md` in the shared contracts catalog |
 | **Owner** | sza-unified-rules |
 | **Role here** | producer of the stamp and of the names tools address; consumer of the rule delivery; not bound by the harness profile |
@@ -17,11 +17,12 @@
 - **The stamp must be true of the tree**: every value it declares (channels, ledger shape, tag prefixes)
   describes something that exists here.
 - **Names tools address stay where they are** (`REPO-LAYOUT`): `CLAUDE.md`, `README.md` and `LICENSE` at
-  the root, one pointer per contract in this folder with its index, `PLAN/done/` frozen.
+  the root, one pointer per contract in this folder with its index, `PLAN/done/` frozen. A spec-id scheme
+  named in the rules file is allowed.
 - **No `.sza-profile.json`** while no harness tool runs here (`HARNESS-PROFILE` does not bind). If one is
   ever adopted, the profile comes first - the harness defaults (`dev/CHANGELOG.md`, `PLAN/archive`) are
   wrong for this repository.
+- **`.sza-canon.json` supports optional `canon.reconciledOn`** (`REPO-STAMP` 0.11); age counts from
+  `reconciledOn` when present.
 
-Open: `PLAN/` keeps its own ticket scheme (`Sxxxx_<slug>.md`) rather than the type-first prefix of
-`REPO-LAYOUT` rule 3 - a dated registry exception, pending the catalog's answer to the spec-scheme proposal
-this product seconded (backlog C7).
+Note: `PLAN/` keeps its own ticket scheme (`Sxxxx_<slug>.md`), now explicitly allowed by `REPO-LAYOUT` 0.10.

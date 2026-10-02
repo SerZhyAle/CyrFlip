@@ -34,10 +34,10 @@ move the mouse and steal focus), so they are run deliberately, on a machine some
 All uitest test scripts adhere to the `CHECK-VERDICT` and `BUILD-EVIDENCE` contracts:
 - **Subject Banner:** Every test prints the target exe path, FileVersion, PID, and environment info before testing.
 - **Exit Codes:**
-  - `0`: PASS — check succeeded.
-  - `1`: FAIL — defect or regression detected.
-  - `2`: NOT VERIFIED — could not verify (e.g. app not running, required log/fixture absent, target window never foreground, UAC prompt declined, human chord interaction omitted).
-  - `3`: PASS WITH ADVISORIES — check passed with non-fatal advisories (e.g. `-SkipHookCheck`).
+  - `0`: PASS - check succeeded.
+  - `1`: FAIL - defect or regression detected.
+  - `2`: NOT VERIFIED - could not verify (e.g. app not running, required log/fixture absent, target window never foreground, UAC prompt declined, human chord interaction omitted).
+  - `3`: PASS WITH ADVISORIES - check passed with non-fatal advisories (e.g. `-SkipHookCheck`).
 - **Verdict Line:** The last line on stdout is always machine-readable:
   `<subject>: PASS|FAIL (n)|NOT VERIFIED (n)|PASS WITH ADVISORIES (n)`.
 

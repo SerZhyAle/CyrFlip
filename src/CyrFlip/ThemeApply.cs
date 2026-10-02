@@ -401,7 +401,13 @@ namespace CyrFlip
             TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font ?? owner.Font, text, palette.TextPrimary, flags);
         }
 
-        private static void OnDrawItem(object? sender, DrawListViewItemEventArgs e) => e.DrawDefault = true;
+        private static void OnDrawItem(object? sender, DrawListViewItemEventArgs e)
+        {
+            // Default item drawing skips DrawSubItem, letting the native dark theme use black
+            // text for selected/hot rows. Details rows must reach our subitem painter instead.
+            e.DrawDefault = !(sender is ListView list && list.View == View.Details
+                && PaletteOf(list)?.IsDark == true);
+        }
 
         /// <summary>
         /// In dark a row is drawn here, not by the list: under <c>DarkMode_Explorer</c> the list paints the

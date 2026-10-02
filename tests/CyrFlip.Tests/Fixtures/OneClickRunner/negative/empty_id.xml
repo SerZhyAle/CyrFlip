@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id></Id>
+  <Name>Calculator</Name>
+  <Path>calc.exe</Path>
+  <Arguments></Arguments>
+  <WorkingDirectory></WorkingDirectory>
+</AppItem>

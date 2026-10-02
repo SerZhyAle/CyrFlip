@@ -154,7 +154,7 @@ namespace CyrFlip
                         if (IsDisposed || !ReferenceEquals(_search, search)) return;
                         ShowMatches(matches, matches.Length == 0
                             ? Localize("Совпадений не найдено.")
-                            : string.Format(Localize("Найдено: {0}"), matches.Length));
+                            : Localization.Format(Localize, "Найдено: {0}", matches.Length));
                     }));
                 }
                 catch (InvalidOperationException) { /* the window went away in between */ }

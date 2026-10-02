@@ -115,9 +115,9 @@ namespace CyrFlip
         public static string Describe(Verdict verdict, string uiLanguage)
         {
             if (!verdict.Refused) return "";
-            string text = Localization.Translate(uiLanguage, ReasonKey(verdict.Refusal));
-            if (verdict.Refusal != Refusal.TypesCharacter) return text;
-            return string.Format(text, verdict.Character, LanguageHotkeys.LanguageName(verdict.Layout));
+            string key = ReasonKey(verdict.Refusal);
+            if (verdict.Refusal != Refusal.TypesCharacter) return Localization.Translate(uiLanguage, key);
+            return Localization.Format(uiLanguage, key, verdict.Character, LanguageHotkeys.LanguageName(verdict.Layout));
         }
 
         private static IntPtr[] InstalledLayouts()

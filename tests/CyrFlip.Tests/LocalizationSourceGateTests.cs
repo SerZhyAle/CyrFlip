@@ -24,8 +24,10 @@ namespace CyrFlip.Tests
         // A translating call whose first argument - or second, after a language argument, as in
         // Localization.Translate(language, "...") - is a whole string literal (a literal followed by
         // "+" is only part of the key, and an interpolated one is not a key at all; both are skipped).
+        // Localization.Format(T, "...", args) and Localization.Format(language, "...", args) translate
+        // their template too, so a key passed that way is held to the table like any other.
         private static readonly Regex TranslatingCall = new Regex(
-            @"\b(?:T|Translate|translate|Localize|TranslateButton)\(\s*(?:[A-Za-z_][\w.]*\s*,\s*)?""((?:[^""\\\r\n]|\\.)*)""(?=\s*[,)])",
+            @"\b(?:T|Translate|translate|Localize|TranslateButton|Format)\(\s*(?:[A-Za-z_][\w.]*\s*,\s*)?""((?:[^""\\\r\n]|\\.)*)""(?=\s*[,)])",
             RegexOptions.Compiled);
 
         /// <summary>
@@ -80,6 +82,8 @@ namespace CyrFlip.Tests
                 "x = Localization.Translate(_language, \"Привет\");",
                 "x = translate(\"Привет\\nмир\");",
                 "x = Localize(\"Привет\");",
+                "x = Localization.Format(T, \"Привет {0}\", 1);",
+                "x = Localization.Format(_config.UiLanguage, \"Привет {0}\", 1);",
             };
             foreach (string shape in shapes)
             {

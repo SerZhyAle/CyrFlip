@@ -158,6 +158,60 @@ namespace CyrFlip.Tests
             Assert.True(problems.Count == 0, string.Join("\n", problems));
         }
 
+        [Fact]
+        public void ASelectedDarkListRowPaintsReadableTextInEveryColumn()
+        {
+            var problems = new List<string>();
+            OnUiThread(() =>
+            {
+                using var form = new Form { ClientSize = new Size(320, 100) };
+                var list = new ListView
+                {
+                    Dock = DockStyle.Fill, View = View.Details,
+                    FullRowSelect = true, HideSelection = false,
+                };
+                list.Columns.Add("Note", 160);
+                list.Columns.Add("Created", 150);
+                list.Items.Add(new ListViewItem(new[] { "WWW", "2026" }));
+                form.Controls.Add(list);
+                ThemeApply.Apply(form, ThemePalette.Dark);
+                form.CreateControl();
+                _ = list.Handle;
+                list.Items[0].Selected = true;
+
+                using var bitmap = new Bitmap(list.Width, list.Height);
+                using (Graphics graphics = Graphics.FromImage(bitmap))
+                {
+                    var args = new DrawListViewItemEventArgs(graphics, list.Items[0],
+                        list.Items[0].Bounds, 0, ListViewItemStates.Selected);
+                    typeof(ListView).GetMethod("OnDrawItem", System.Reflection.BindingFlags.NonPublic
+                        | System.Reflection.BindingFlags.Instance)!.Invoke(list, new object[] { args });
+                    Assert.False(args.DrawDefault, "Native item drawing bypasses the dark subitem painter");
+                }
+                list.DrawToBitmap(bitmap, list.ClientRectangle);
+                Rectangle row = list.Items[0].Bounds;
+                for (int column = 0; column < 2; column++)
+                {
+                    int left = column == 0 ? 0 : list.Columns[0].Width;
+                    int right = Math.Min(bitmap.Width, left + list.Columns[column].Width);
+                    int readablePixels = 0;
+                    for (int y = Math.Max(0, row.Top + 2); y < Math.Min(bitmap.Height, row.Bottom - 2); y++)
+                        for (int x = left + 4; x < right - 4; x++)
+                        {
+                            Color pixel = bitmap.GetPixel(x, y);
+                            if (pixel.R > 160 && pixel.G > 160 && pixel.B > 160) readablePixels++;
+                        }
+                    Assert.True(readablePixels > 10, "Selected column " + column + " has no readable text");
+                }
+                foreach (ThemePalette palette in new[] { ThemePalette.Light, ThemePalette.HighContrast })
+                {
+                    ThemeApply.Apply(form, palette);
+                    Assert.False(list.OwnerDraw);
+                }
+            }, problems);
+            Assert.True(problems.Count == 0, string.Join("\n", problems));
+        }
+
         // ---- The windows ----
 
         private IEnumerable<(string, Func<Form>)> Windows()

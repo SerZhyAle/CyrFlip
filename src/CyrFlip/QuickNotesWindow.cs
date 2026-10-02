@@ -59,7 +59,6 @@ namespace CyrFlip
         private readonly RadioButton _kindText = new RadioButton { AutoSize = true, Checked = true, Margin = new Padding(3, 4, 12, 3) };
         private readonly RadioButton _kindList = new RadioButton { AutoSize = true, Margin = new Padding(3, 4, 3, 3) };
         private readonly Label _dates = new Label { AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Padding = new Padding(3, 8, 12, 0) };
-        private readonly Label _hint = new Label { AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Padding = new Padding(3, 4, 3, 4) };
         private readonly Button _copy = new Button { AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
         private readonly Button _keep = new Button { AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
         private readonly Button _export = new Button { AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
@@ -179,7 +178,7 @@ namespace CyrFlip
             };
 
             RefreshList();
-            if (_service.IsLoaded) SelectRemembered();
+            if (_service.IsLoaded && !SelectRemembered()) NewNote(QuickNoteKind.Text);
             else ShowLoadingState(true);
         }
 
@@ -211,7 +210,7 @@ namespace CyrFlip
             _pendingStartNew = false;
             if (text != null) StartNoteWithText(text);
             else if (startNew) { NewNote(QuickNoteKind.Text); if (Visible) FocusBody(); }
-            else if (_current == null) SelectRemembered();
+            else if (_current == null && !SelectRemembered()) NewNote(QuickNoteKind.Text);
         });
 
         /// <summary>
@@ -324,13 +323,11 @@ namespace CyrFlip
             _split.Panel2.Controls.Add(right);
             Controls.Add(_split);
             Controls.Add(top);
-            Controls.Add(_hint);
-            _hint.Dock = DockStyle.Bottom;
         }
 
         /// <summary>
         /// The smallest size at which every caption is still drawn in full - <b>measured, never a pair
-        /// of constants</b>. The buttons, the two kind captions and the privacy hint are translated into
+        /// of constants</b>. The buttons and the two kind captions are translated into
         /// 13 languages and drawn at whatever the display's scaling makes of the UI font, so the
         /// hard-coded 640x420 that used to stand here clipped the bottom row in most of them. It is
         /// also the size the window opens at the first time, since a stored size is only ever grown to
@@ -342,15 +339,11 @@ namespace CyrFlip
             if (_topRow == null || _kindRow == null || _bottomRow == null || _rightPanel == null) return;
 
             int rightWidth = _bottomRow.PreferredSize.Width + _rightPanel.Padding.Horizontal;
-            // The hint is a docked AutoSize label, and a docked label's PreferredSize is already
-            // clamped to the width it has - asking it would only ever confirm the current size, so
-            // the text is measured directly. It does not wrap, so a narrower window truncates it.
-            int hintWidth = TextRenderer.MeasureText(_hint.Text, _hint.Font).Width + _hint.Padding.Horizontal;
             int clientWidth = Math.Max(
-                Math.Max(_topRow.PreferredSize.Width, hintWidth),
+                _topRow.PreferredSize.Width,
                 ListWidth + _split.SplitterWidth + rightWidth);
 
-            int clientHeight = _topRow.PreferredSize.Height + _hint.PreferredSize.Height
+            int clientHeight = _topRow.PreferredSize.Height
                 + _title.PreferredSize.Height + _kindRow.PreferredSize.Height
                 + _bottomRow.PreferredSize.Height + _rightPanel.Padding.Vertical
                 + Font.Height * MinEditorRows;
@@ -388,7 +381,7 @@ namespace CyrFlip
         public void ApplyLanguage(string language)
         {
             _language = language;
-            Text = T("Быстрые заметки");
+            Text = T("Быстрые заметки") + " (" + _config.QuickNotesHotkey + ")";
             RightToLeft = Localization.IsRightToLeft(language) ? RightToLeft.Yes : RightToLeft.No;
             RightToLeftLayout = RightToLeft == RightToLeft.Yes;
             _transferMenu.RightToLeft = RightToLeft;
@@ -431,7 +424,6 @@ namespace CyrFlip
             _list.Columns[0].Text = T("Заметка");
             _list.Columns[1].Text = T("Создана");
             _items.Columns[0].Text = T("Пункт");
-            _hint.Text = T("Заметки хранятся только на этом компьютере и шифруются DPAPI. Не храните здесь пароли, боевые токены и приватные ключи.");
             RefreshList();
             RefreshDates();
             // Every caption above just changed length, so the floor has to be measured again.
@@ -466,7 +458,7 @@ namespace CyrFlip
                 return;
             }
             if (startNew) NewNote(QuickNoteKind.Text);
-            else if (_current == null) SelectRemembered();
+            else if (_current == null && !SelectRemembered()) NewNote(QuickNoteKind.Text);
             FocusBody();
         }
 
@@ -491,7 +483,7 @@ namespace CyrFlip
             if (QuickNote.ExceedsLimit(text))
             {
                 ConfirmDialog.Show(this, _language,
-                    string.Format(T("Фрагмент больше {0} КБ и в заметку не помещается."), QuickNote.MaxBytes / 1024),
+                    Localization.Format(T, "Фрагмент больше {0} КБ и в заметку не помещается.", QuickNote.MaxBytes / 1024),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
@@ -574,8 +566,8 @@ namespace CyrFlip
             _loading = loading;
             _count.Text = !_service.IsLoaded ? T("Загрузка заметок..")
                 : _search.Text.Trim().Length == 0
-                ? string.Format(T("Заметок: {0}"), found.Count)
-                : string.Format(T("Найдено: {0}"), found.Count);
+                ? Localization.Format(T, "Заметок: {0}", found.Count)
+                : Localization.Format(T, "Найдено: {0}", found.Count);
         }
 
         /// <summary>
@@ -599,13 +591,14 @@ namespace CyrFlip
             LoadNote(note);
         }
 
-        private void SelectRemembered()
+        private bool SelectRemembered()
         {
-            if (!Guid.TryParse(_config.QuickNotesSelected, out Guid id)) return;
+            if (!Guid.TryParse(_config.QuickNotesSelected, out Guid id)) return false;
             QuickNote? note = _service.Find(id);
-            if (note == null) return;
+            if (note == null) return false;
             LoadNote(note);
             SelectRow(note);
+            return true;
         }
 
         private void SelectRow(QuickNote note)
@@ -684,7 +677,7 @@ namespace CyrFlip
                 if (QuickNote.ExceedsLimit(_editor.Text))
                 {
                     ConfirmDialog.Show(this, _language,
-                        string.Format(T("Фрагмент больше {0} КБ и в заметку не помещается."), QuickNote.MaxBytes / 1024),
+                        Localization.Format(T, "Фрагмент больше {0} КБ и в заметку не помещается.", QuickNote.MaxBytes / 1024),
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _loading = true;
                     _editor.Text = _editorOriginal;
@@ -732,7 +725,7 @@ namespace CyrFlip
             {
                 e.CancelEdit = true;
                 ConfirmDialog.Show(this, _language,
-                    string.Format(T("Фрагмент больше {0} КБ и в заметку не помещается."), QuickNote.MaxBytes / 1024),
+                    Localization.Format(T, "Фрагмент больше {0} КБ и в заметку не помещается.", QuickNote.MaxBytes / 1024),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
@@ -824,9 +817,11 @@ namespace CyrFlip
                 _dates.Text = T("Новая заметка");
                 return;
             }
-            _dates.Text = string.Format(T("Создана {0}, изменена {1}"),
+            _dates.Text = Localization.Format(T, "Создана {0}, изменена {1} | Строк: {2}, символов: {3}",
                 _current.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
-                _current.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm"));
+                _current.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
+                _current.LineCount,
+                _current.CharacterCount);
         }
 
         private void UpdateButtons()
@@ -929,13 +924,13 @@ namespace CyrFlip
                     markdown ? _current.ToMarkdown() : _current.ToPlainText(), System.Text.Encoding.UTF8);
                 // The one thing worth saying about an export: what leaves here is no longer encrypted.
                 ConfirmDialog.Show(this, _language,
-                    string.Format(T("Заметка сохранена: {0}"), dialog.FileName) + "\n\n"
+                    Localization.Format(T, "Заметка сохранена: {0}", dialog.FileName) + "\n\n"
                     + T("Этот файл не защищён DPAPI — его прочитает любой, у кого есть доступ к папке."),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                ConfirmDialog.Show(this, _language, string.Format(T("Не удалось сохранить файл: {0}"), FailureCause.Describe(ex, _language)),
+                ConfirmDialog.Show(this, _language, Localization.Format(T, "Не удалось сохранить файл: {0}", FailureCause.Describe(ex, _language)),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }

@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CHECK-BASELINE` |
-| **Version** | 0.9, draft |
+| **Version** | 0.10, draft |
 | **Home** | `automated-checks/README.md` in the shared contracts catalog, section 3 |
 | **Role here** | none - **no accepted-debt file, by design** |
 

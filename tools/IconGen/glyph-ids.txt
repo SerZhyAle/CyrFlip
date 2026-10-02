@@ -1,6 +1,8 @@
 # Vocabulary glyphs CyrFlip draws (ICON-SET). One id per line; `glyphs` vendors exactly these into
-# src/CyrFlip/Glyphs.g.cs. A meaning that is not in the vocabulary yet (PROPOSAL-2026-09-26-cyrflip-
-# windows-tray-app in the catalog) does not get a private picture here - it waits for its record.
+# src/CyrFlip/Glyphs.g.cs. A meaning that is not in the vocabulary yet does not get a private picture
+# here - it waits for its record. Still waiting (catalog PROPOSAL-2026-09-26-cyrflip-windows-tray-app,
+# decision 2026-10-02): action.convert-layout (the Conversions tab) and system.input-language (the
+# Languages tab); those two tabs keep their own drawing meanwhile (registry exception X1).
 action.confirm
 action.delete
 action.download
@@ -12,6 +14,12 @@ action.search
 action.translate
 app.info
 app.settings
+app.shortcuts
 content.apps
+content.note
+feature.clipboard-history
+feature.layout-indicator
+feature.quick-launch
 nav.close
 nav.exit
+system.screenshot

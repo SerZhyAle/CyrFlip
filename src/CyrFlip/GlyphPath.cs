@@ -21,10 +21,12 @@ namespace CyrFlip
         /// <summary><c>fixed</c> or <c>mirror</c>: mirrored in a right-to-left layout only when the record says so.</summary>
         public string Rtl { get; }
         public string Source { get; }
+        /// <summary>The SVG <c>fill-rule</c> was <c>evenodd</c>; false is the nonzero default.</summary>
+        public bool EvenOdd { get; }
 
-        public GlyphRecord(string id, string pathData, float[]? transform, string status, string rtl, string source)
+        public GlyphRecord(string id, string pathData, float[]? transform, string status, string rtl, string source, bool evenOdd = false)
         {
-            Id = id; PathData = pathData; Transform = transform; Status = status; Rtl = rtl; Source = source;
+            Id = id; PathData = pathData; Transform = transform; Status = status; Rtl = rtl; Source = source; EvenOdd = evenOdd;
         }
     }
 
@@ -33,18 +35,21 @@ namespace CyrFlip
     /// app takes no NuGet dependency, so this reads the commands the vocabulary uses - and the rest of the
     /// grammar, since a catalog MINOR may bring any of it: M L H V C S Q T A Z, absolute and relative.
     /// The fill mode is <b>Winding</b>, SVG's nonzero default: GDI+'s own Alternate punches holes into
-    /// glyphs whose sub-paths overlap.
+    /// glyphs whose sub-paths overlap. A glyph whose SVG says <c>fill-rule="evenodd"</c> is the one case
+    /// that asks for Alternate (<paramref name="evenOdd"/>) - the key caps of "app.shortcuts" are hollow
+    /// because of it.
     /// A path that does not parse yields null, never an exception (the control keeps its text caption).
     /// </summary>
     internal static class GlyphPath
     {
-        public static GraphicsPath? Parse(string data, float[]? transform = null)
+        public static GraphicsPath? Parse(string data, float[]? transform = null, bool evenOdd = false)
         {
             if (string.IsNullOrWhiteSpace(data)) return null;
             try
             {
                 GraphicsPath? path = ParseCore(data);
                 if (path == null) return null;
+                path.FillMode = evenOdd ? FillMode.Alternate : FillMode.Winding;
                 if (transform != null && transform.Length == 6)
                     using (var matrix = new Matrix(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5]))
                         path.Transform(matrix);

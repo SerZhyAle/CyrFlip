@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-ACTIVATION` |
-| **Version** | 0.9.1, draft |
+| **Version** | 0.11, draft |
 | **Home** | `app-activation/README.md` in the shared contracts catalog |
 | **Role here** | Owner, Producer and Consumer - single-instance mutex, Jump List named pipe IPC, and foreground window activation |
 

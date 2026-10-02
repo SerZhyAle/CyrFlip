@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `INPUT-CHORD` |
-| **Version** | 0.2, draft |
+| **Version** | 0.3, draft |
 | **Home** | `input-controls/README.md` in the shared contracts catalog |
 | **Role here** | Owner, Producer and Consumer - the stored chord token, the refusals, chord ownership, the global hooks |
 
