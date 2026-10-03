@@ -16,5 +16,5 @@
   `action.download` for a yt-dlp scenario - never CyrFlip's own mark and never a blank task.
 - **A language is marked by its endonym, never by a flag** (rule 6): the interface-language selector and the
   translation target list show "Русский", "Deutsch", "中文", never a flag.
-- **Any vendored third-party glyph ships with its licence notice** (`THIRD-PARTY-NOTICES.md` in the
+- **Any vendored third-party glyph ships with its licence notice** (`THIRD-PARTY-NOTICES.txt` in the
   release ZIP and the MSIX).

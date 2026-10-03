@@ -33,6 +33,13 @@ docs/assets/sza-kit.css -text
 # The contract's test vectors are a byte-exact copy of the catalog's: LF on every checkout, or the file-versus-parser test fails on a CRLF one.
 tests/CyrFlip.Tests/Fixtures/InputChord/*.jsonl text eol=lf
 
+# WINDOWS-STORE rules 8 and 13: the listing export, the emptied round-trip fixture and the built
+# import CSV are compared as bytes - CRLF inside quoted cells included. Git must never normalise
+# their line endings, or a fresh checkout no longer matches what Partner Center receives.
+msix/store-listing-export.csv -text
+msix/store-listing-export.sample.csv -text
+msix/store-listing-import-13-languages.csv -text
+
 # Binary assets.
 *.ico  binary
 *.png  binary

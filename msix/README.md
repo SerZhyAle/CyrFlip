@@ -12,10 +12,11 @@ Store-distributed build is also the most effective answer to the Avast/AVG `IDP.
 | File | Purpose |
 | --- | --- |
 | [AppxManifest.xml](AppxManifest.xml) | Package manifest (full-trust app, `runFullTrust`, `startupTask`). Has `__PLACEHOLDERS__`. |
-| [build-msix.ps1](build-msix.ps1) | Builds Release, stages payload, generates logo PNGs, fills the manifest, packs the `.msix`. |
-| [store-listing-export.csv](store-listing-export.csv) | **The source of truth for every word of the listing**, in all 14 listing languages (the app's 13 plus `pt`): Partner Center's bulk export/import format (Description, ReleaseNotes, Product features, Search terms). Edit here, then re-import via *Store listings → Import* in Partner Center - keeps the listing content under version control instead of only living in the Partner Center UI. Screenshot/logo asset rows are Partner-Center-hosted URLs, left as-is. |
+| [build-msix.ps1](build-msix.ps1) | Builds Release, stages payload, generates logo PNGs, fills the manifest, packs the `.msix`, then reads `<Identity>`, `PublisherDisplayName`, the version and the file list back **out of the packed archive** and compares them with the reserved Store anchors (WINDOWS-STORE rules 1-4) - a bare build can no longer produce a Store-invalid package silently. |
+| [store-listing-export.csv](store-listing-export.csv) | **The source of truth for every word of the listing**, in the app's 13 listing languages (a fresh export may carry more or fewer columns - Partner Center reorders and drops them between submissions; a shipped language with no column fails the builder's run): Partner Center's bulk export/import format (Description, ReleaseNotes, Product features, Search terms). Replace it with a **fresh export before every import** (WINDOWS-STORE rule 6 - a held export goes stale the moment any import changes the submission). Edit here, then re-import via *Store listings → Import* in Partner Center - keeps the listing content under version control instead of only living in the Partner Center UI. Screenshot/logo asset rows are Partner-Center-hosted URLs, left as-is. |
 | [store-listing-import-13-languages.csv](store-listing-import-13-languages.csv) | **Generated** - the export above with every empty cell filled, ready for *Store listings → Import*. Do not hand-edit; run `build-store-listing-csv.ps1`. |
-| [build-store-listing-csv.ps1](build-store-listing-csv.ps1) | Fills the gaps in the export from `listing/`. It **only writes empty cells** and never reorders columns, so asset URLs and anything Partner Center already holds survive untouched. `-Check` renders in memory and compares against the committed CSV (exit 0 on match, 1 on drift, 2 on missing inputs). `-FillNothing` proves the writer is lossless: the output must come back byte-identical to the export. `-ScreenshotOnlyMissing` stages a screenshot only where the language has none - the flag every import after the first needs. |
+| [store-listing-export.sample.csv](store-listing-export.sample.csv) | The emptied fixture (WINDOWS-STORE rule 13): the export with every copy cell emptied and every language column present, marked `-text` in `.gitattributes` so git never touches its bytes. `-FillNothing` must write it back byte for byte. Regenerate with `-WriteSample` after every fresh export. |
+| [build-store-listing-csv.ps1](build-store-listing-csv.ps1) | Fills the gaps in the export from `listing/`. It **only writes empty cells** and never reorders columns, so asset URLs and anything Partner Center already holds survive untouched. `-Check` renders in memory and compares **as bytes** with the committed CSV (exit 0 on match, 1 on drift, 2 on missing inputs). `-FillNothing` proves the writer is lossless: it renders the sample fixture and fails unless the result is byte-identical. Every cell is checked against its Partner Center cap before anything is written - Feature 200, ShortDescription 1000, Description 10000, ReleaseNotes 1500 after CRLF, at most 7 search terms with no duplicate in a language's set (rule 9); a language missing its column fails the run instead of being dropped silently (rule 7). The output is UTF-8 without BOM with CRLF as the only line break - inside quoted cells as much as between records - and the writer refuses to produce anything else (rule 8). `-ScreenshotOnlyMissing` stages a screenshot only where the language has none - the flag every import after the first needs. |
 | [listing/](listing/) | One `@@Field / value` text file per language, written when the export did not yet carry those 11 languages. Plain text on purpose: this is prose to be proofread, not code. Keep it in step with the CSV - the merge above only fills **empty** cells, so a change made here alone never reaches the Store. |
 | [render-listing-mirrors.ps1](render-listing-mirrors.ps1) | Rewrites the two human-readable mirrors - `store-listings.md` and `store/listing-*.txt` - from the export. `-Check` renders in memory and exits 0 on match, 1 on drift, 2 on missing inputs (the release preflight runs it). Both mirrors were a release behind in three languages before this existed. |
 
@@ -81,7 +82,11 @@ The identity above is the script's default - it never defaults to anything else 
 it refuses an exe whose `ProductVersion` is not `<version>+<tag commit>`, i.e. one not built from the
 tag (RP-3).
 
-Output: `msix/dist/CyrFlip-<version>-x64.msix`, **unsigned** - that's correct, upload it as-is.
+Output: `msix/dist/CyrFlip-<version>-x64.msix`, **unsigned** - that's correct, upload it as-is. A
+`-SelfSign` build writes `CyrFlip-<version>-x64-selfsigned.msix` instead: the two never share one
+name, so a locally signed package cannot be mistaken for (or overwrite) the Store upload
+(WINDOWS-STORE rule 2). The read-back then also asserts the signed package *has* its
+`AppxSignature.p7x`, and the unsigned one has none.
 The internal package version is derived from the exe's `YY.M.D.HHmm` stamp and remapped to a
 Store-legal `Major.Minor.Build.0` (the revision must be 0; the build script handles this), so each
 build is monotonically newer than the last - no manual version bump needed.
@@ -153,13 +158,16 @@ For an existing app you only create a new submission - the identity above is unc
    > UTF-8 **with** BOM and then refuses that same file - *"We couldn't process this .csv file"* -
    > until the BOM is stripped, a long-standing report on
    > [Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/960287/partner-center-import-csv-listings-stop-working-wi).
-   > So the script writes **UTF-8 without BOM** by default; `-KeepBom` restores it. It also quotes
+   > So the script writes **UTF-8 without BOM** - there is no switch to put one back, the writer
+   > refuses it (WINDOWS-STORE rule 8). Every line break is CRLF, inside quoted cells as much as
+   > between records, and there is no trailing newline. It also quotes
    > every field, which is what the one upload Partner Center did accept looked like.
 
    Screenshots and logos are **not** in the import (their rows are asset URLs tied to an existing
    listing id): upload them per language, or leave the default listing's images to stand.
-   "What's new" is filled for **en-us/ru/uk only** - by decision, release notes are not translated
-   into all 13.
+   "What's new" is authored for **en-us/ru/uk only** - the languages CyrFlip proofreads - and every
+   machine-translated column carries the English text (WINDOWS-STORE rule 16), folded to the
+   1500-character cap.
 5. **Submit**. Certification typically takes a few business days; a keyboard-hook app can draw extra
    review - the runFullTrust justification in `store-listings.md` pre-empts most questions.
 

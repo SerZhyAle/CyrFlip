@@ -4,9 +4,11 @@
     What it does:
       1. Takes CyrFlip.exe from the released ZIP, or from an explicitly pre-built output (-NoBuild).
       2. Derives a Store-legal 4-part version (revision forced to 0) from the exe's YY.M.D.HHmm stamp.
-      3. Stages the exe + config.json + THIRD-PARTY-NOTICES.md, generates the required logo PNGs from assets/icon-256.png.
+      3. Stages the exe + config.json + THIRD-PARTY-NOTICES.txt, generates the required logo PNGs from assets/icon-256.png.
       4. Fills the AppxManifest.xml placeholders (Identity Name / Publisher / version).
-      5. Packs it into msix/dist/CyrFlip-<version>-x64.msix with makeappx.
+      5. Packs it into msix/dist/CyrFlip-<version>-x64.msix with makeappx (-SelfSign: ...-selfsigned.msix).
+      6. Reads <Identity>, PublisherDisplayName, the version and the file list back OUT of the packed
+         archive and compares them with the values the build reserved (WINDOWS-STORE rules 1-4).
 
     For the STORE you submit the UNSIGNED .msix - Microsoft re-signs it during certification, so
     you don't need a paid code-signing certificate. The identity defaults ARE the frozen Store anchors
@@ -41,6 +43,14 @@ param(
     [switch] $TestIdentity
 )
 $ErrorActionPreference = 'Stop'
+
+# The reserved Store anchors, held independently of the parameters: whatever a caller passes, the
+# package CyrFlip offers to Partner Center is compared against THESE (WINDOWS-STORE rule 1 - a
+# change orphans every installed copy). Only -TestIdentity, a local sideload family of its own,
+# may differ.
+$ReservedIdentityName         = 'SZA.CyrFlip'
+$ReservedPublisher            = 'CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD'
+$ReservedPublisherDisplayName = 'SZA'
 
 if ($TestIdentity) {
     if (-not $SelfSign) { throw '-TestIdentity is for a self-signed local sideload only - add -SelfSign.' }
@@ -124,9 +134,9 @@ $cfg = Join-Path $PayloadFolder 'config.json'
 if (Test-Path $cfg) { Copy-Item $cfg $Stage -Force }
 # Apache-2.0 notice for the vendored Material Icons glyphs (ICON-EXTERNAL rule 5): the copy inside the
 # release ZIP when building from one, else the repository's own. Missing = a failed build.
-$notices = Join-Path $PayloadFolder 'THIRD-PARTY-NOTICES.md'
-if (-not (Test-Path $notices)) { $notices = Join-Path $RepoRoot 'THIRD-PARTY-NOTICES.md' }
-if (-not (Test-Path $notices)) { throw 'THIRD-PARTY-NOTICES.md not found in the release payload or the repository root.' }
+$notices = Join-Path $PayloadFolder 'THIRD-PARTY-NOTICES.txt'
+if (-not (Test-Path $notices)) { $notices = Join-Path $RepoRoot 'THIRD-PARTY-NOTICES.txt' }
+if (-not (Test-Path $notices)) { throw 'THIRD-PARTY-NOTICES.txt not found in the release payload or the repository root.' }
 Copy-Item $notices $Stage -Force
 if ($ExtractedRelease) {
     try { Remove-Item $ExtractedRelease -Recurse -Force -ErrorAction Stop } catch { Write-Warning "Could not remove temporary release extraction: $ExtractedRelease" }
@@ -170,7 +180,10 @@ Set-Content -Path (Join-Path $Stage 'AppxManifest.xml') -Value $xml -Encoding UT
 
 # --- 5. Pack ----------------------------------------------------------------
 New-Item -ItemType Directory -Path $Dist -Force | Out-Null
-$MsixPath = Join-Path $Dist "CyrFlip-$MsixVersion-x64.msix"
+# WINDOWS-STORE rule 2: the unsigned Store upload and the locally self-signed package never share
+# one output name - sharing is how a signed build overwrites, or gets mistaken for, the upload.
+$MsixName = "CyrFlip-$MsixVersion-x64$(if ($SelfSign) { '-selfsigned' }).msix"
+$MsixPath = Join-Path $Dist $MsixName
 $makeappx = Find-SdkTool 'makeappx.exe'
 & $makeappx pack /d $Stage /p $MsixPath /o
 if ($LASTEXITCODE -ne 0) { throw "makeappx failed (exit $LASTEXITCODE)." }
@@ -204,3 +217,51 @@ else {
     Write-Host 'Unsigned package ready for the Store (Microsoft re-signs on certification).' -ForegroundColor Yellow
     Write-Host 'For a LOCAL test build instead, re-run with -SelfSign.'
 }
+
+# --- 7. Read the packed archive back (WINDOWS-STORE rules 1-4, conformance rung 3) -----------
+# The package is proven Store-valid out of the packed file, not out of the values that were
+# substituted into the manifest: the archive is what Partner Center receives. Any mismatch
+# throws, so a bare build can no longer produce a Store-invalid package silently.
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$archive = [System.IO.Compression.ZipFile]::OpenRead($MsixPath)
+try {
+    $entryNames = @($archive.Entries | ForEach-Object { $_.FullName })
+    if ($SelfSign) {
+        if ($entryNames -notcontains 'AppxSignature.p7x') {
+            throw "Read-back: the self-signed package carries no AppxSignature.p7x - signtool did not sign it."
+        }
+    }
+    elseif ($entryNames -contains 'AppxSignature.p7x') {
+        throw "Read-back: $MsixName carries AppxSignature.p7x - the Store upload must be unsigned (Microsoft signs at certification)."
+    }
+    if ($entryNames -notcontains 'THIRD-PARTY-NOTICES.txt') {
+        throw 'Read-back: THIRD-PARTY-NOTICES.txt is not in the packed archive (WINDOWS-STORE rule 4).'
+    }
+    $manifestEntry = $archive.GetEntry('AppxManifest.xml')
+    if (-not $manifestEntry) { throw 'Read-back: no AppxManifest.xml in the packed archive.' }
+    $reader = New-Object System.IO.StreamReader($manifestEntry.Open(), [System.Text.Encoding]::UTF8)
+    try { $packedManifest = [xml] $reader.ReadToEnd() } finally { $reader.Dispose() }
+    $identity = $packedManifest.Package.Identity
+    # Reserved values, not the parameter values: the bare-build trap was a script defaulting to a
+    # self-sign placeholder publisher and producing a Store-invalid package that agreed with itself.
+    $wantName         = if ($TestIdentity) { $IdentityName }         else { $ReservedIdentityName }
+    $wantPublisher    = if ($TestIdentity) { $Publisher }            else { $ReservedPublisher }
+    $wantDisplayName  = if ($TestIdentity) { $PublisherDisplayName } else { $ReservedPublisherDisplayName }
+    if ($identity.Name -ne $wantName) {
+        throw "Read-back: packed Identity Name '$($identity.Name)' is not the reserved '$wantName'."
+    }
+    if ($identity.Publisher -ne $wantPublisher) {
+        throw "Read-back: packed Identity Publisher '$($identity.Publisher)' is not the reserved '$wantPublisher'."
+    }
+    if ($identity.Version -ne $MsixVersion) {
+        throw "Read-back: packed Identity Version '$($identity.Version)' is not the derived '$MsixVersion'."
+    }
+    $displayName = $packedManifest.Package.Properties.PublisherDisplayName
+    if ($displayName -ne $wantDisplayName) {
+        throw "Read-back: packed PublisherDisplayName '$displayName' is not the reserved '$wantDisplayName'."
+    }
+}
+finally { $archive.Dispose() }
+$signatureState = if ($SelfSign) { 'AppxSignature.p7x present (signed - local test only)' } else { 'no AppxSignature.p7x (unsigned, Store-ready)' }
+Write-Host "Read-back OK: Identity $wantName / $wantPublisher / $MsixVersion, PublisherDisplayName '$wantDisplayName', THIRD-PARTY-NOTICES.txt packed, $signatureState." -ForegroundColor Green

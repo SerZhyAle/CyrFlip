@@ -7,7 +7,7 @@
 {"file": "README_UK.md", "topic": "README UK", "area": "product", "triggers": ["feature, setup, configuration or release changes"], "role": "source"}
 {"file": "RELEASE.md", "topic": "RELEASE", "area": "product", "triggers": ["feature, setup, configuration or release changes"], "role": "source"}
 {"file": "STORE_PUBLISHING.md", "topic": "STORE PUBLISHING", "area": "product", "triggers": ["feature, setup, configuration or release changes"], "role": "source"}
-{"file": "THIRD-PARTY-NOTICES.md", "topic": "THIRD PARTY NOTICES", "area": "product", "triggers": ["feature, setup, configuration or release changes"], "role": "source"}
+{"file": "THIRD-PARTY-NOTICES.txt", "topic": "THIRD PARTY NOTICES", "area": "product", "triggers": ["feature, setup, configuration or release changes"], "role": "source"}
 {"file": "docs/ar/index.html", "topic": "index", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/ar/privacy.html", "topic": "privacy", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/ar/trust.html", "topic": "trust", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
@@ -41,6 +41,7 @@
 {"file": "docs/contracts/SCENARIO-FILE.md", "topic": "SCENARIO FILE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/SITE-FAMILY-MAP.md", "topic": "SITE FAMILY MAP", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/UPDATE-MANIFEST.md", "topic": "UPDATE MANIFEST", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/WINDOWS-STORE.md", "topic": "WINDOWS STORE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/de/index.html", "topic": "index", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/de/privacy.html", "topic": "privacy", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/de/trust.html", "topic": "trust", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}

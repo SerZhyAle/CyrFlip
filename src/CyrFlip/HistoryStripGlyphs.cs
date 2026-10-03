@@ -24,19 +24,19 @@ namespace CyrFlip
 
         public static string PinId(bool pinned) => pinned ? AppGlyphs.Pin : AppGlyphs.PinOff;
 
-        public static Rectangle Centered(Rectangle zone)
-            => new Rectangle(zone.X + (zone.Width - Size) / 2, zone.Y + (zone.Height - Size) / 2, Size, Size);
+        public static Rectangle Centered(Rectangle zone, int size = Size)
+            => new Rectangle(zone.X + (zone.Width - size) / 2, zone.Y + (zone.Height - size) / 2, size, size);
 
-        public static bool DrawSearch(Graphics g, Rectangle zone, ThemePalette palette)
-            => GlyphRenderer.Draw(g, AppGlyphs.Search, Centered(zone), ActionColor(palette));
+        public static bool DrawSearch(Graphics g, Rectangle zone, ThemePalette palette, int size = Size)
+            => GlyphRenderer.Draw(g, AppGlyphs.Search, Centered(zone, size), ActionColor(palette));
 
-        public static bool DrawClose(Graphics g, Rectangle zone, ThemePalette palette)
-            => GlyphRenderer.Draw(g, AppGlyphs.Close, Centered(zone), ActionColor(palette));
+        public static bool DrawClose(Graphics g, Rectangle zone, ThemePalette palette, int size = Size)
+            => GlyphRenderer.Draw(g, AppGlyphs.Close, Centered(zone, size), ActionColor(palette));
 
-        public static bool DrawDelete(Graphics g, Rectangle zone, ThemePalette palette)
-            => GlyphRenderer.Draw(g, AppGlyphs.Delete, Centered(zone), ActionColor(palette));
+        public static bool DrawDelete(Graphics g, Rectangle zone, ThemePalette palette, int size = Size)
+            => GlyphRenderer.Draw(g, AppGlyphs.Delete, Centered(zone, size), ActionColor(palette));
 
-        public static bool DrawPin(Graphics g, Rectangle zone, bool pinned, ThemePalette palette)
-            => GlyphRenderer.Draw(g, PinId(pinned), Centered(zone), PinColor(pinned, palette));
+        public static bool DrawPin(Graphics g, Rectangle zone, bool pinned, ThemePalette palette, int size = Size)
+            => GlyphRenderer.Draw(g, PinId(pinned), Centered(zone, size), PinColor(pinned, palette));
     }
 }

@@ -5,31 +5,54 @@
                                       Its columns, row order and asset URLs are the contract - this
                                       script never reorders or renames anything.
       msix/listing/<lang>.txt         our copy per language, as "@@Field / value" blocks.
+      msix/store-listing-export.sample.csv   the committed emptied fixture (WINDOWS-STORE rule 13):
+                                      the export with every copy cell emptied and every language
+                                      column present, marked -text so git never touches its bytes.
       msix/store-listing-import-13-languages.csv   the result, ready for Store listings -> Import.
 
     Only EMPTY cells are filled. Anything Partner Center already holds - including the listing-asset
     URLs, which are tied to the current submission id - is copied through untouched, so re-running
     this after a fresh export can never overwrite the live listing with stale text.
 
-    Two rules worth knowing:
+    Three rules worth knowing:
       * A language must already exist on the submission. Partner Center exports one column per
         listing language, and a column it does not know is ignored on import - which is exactly how
         the Urdu copy went missing on the first attempt: `ur` had not been added yet, so that column
-        was dropped without a word while the other twelve went in.
-      * "What's new" (ReleaseNotes) is deliberately en-us/ru/uk only. The other language files carry
-        no @@ReleaseNotes block, so those cells stay empty by design, not by omission.
+        was dropped without a word while the other twelve went in. The script now refuses to run
+        when a shipped language has no column, naming it.
+      * "What's new" (ReleaseNotes) is authored in the languages CyrFlip proofreads (en-us, ru, uk);
+        every machine-translated column carries the English text (WINDOWS-STORE rule 16), folded to
+        the 1500-character cap before the file is written.
+      * Every cell is checked against its Partner Center cap before anything is written - Feature
+        200, ShortDescription 1000, Description 10000, ReleaseNotes 1500 after CRLF, at most 7 search
+        terms with no duplicate in a language's set (WINDOWS-STORE rule 9). One cell over its cap
+        loses the whole language, so the builder names language, field, length and source and exits
+        non-zero without writing.
 
-    Fidelity is testable: run with -FillNothing and the output must be byte-identical to the export.
+    The output is UTF-8 without a BOM, every line break is CRLF - inside quoted cells as much as
+    between records - with no trailing newline, and the writer refuses to produce anything else
+    (WINDOWS-STORE rule 8).
+
+    Fidelity is testable:
+      * -FillNothing renders the committed sample back and fails unless the result is byte-identical
+        to it (rule 13).
+      * -Check renders export + copy and compares BYTES with the committed import CSV - line
+        endings included, never normalised away.
+      * -WriteSample regenerates the sample fixture from the current export, copy cells emptied.
 #>
 [CmdletBinding()]
 param(
-    # Do not write: render in memory, compare with the committed import CSV, and fail if they differ.
+    # Do not write: render in memory, compare BYTES with the committed import CSV, and fail if they
+    # differ - line endings included.
     [switch] $Check,
 
-    # Emit a pure round trip of the export. Any difference from the source file is a bug in the
-    # writer below, not in the copy - which is the point of having the switch. Implies -Faithful,
-    # since byte-identity is only meaningful against the export's own quoting.
+    # Prove the writer on the committed sample export (WINDOWS-STORE rule 13): render it with
+    # nothing filled and fail unless the result is byte-identical to the file on disk.
     [switch] $FillNothing,
+
+    # Regenerate msix/store-listing-export.sample.csv from the current export: every copy cell
+    # emptied, every language column present, written in the builder's canonical shape.
+    [switch] $WriteSample,
 
     # Quote a field only where CSV requires it, exactly as the export does. Produces a readable
     # diff - and a file Partner Center has so far refused with "We couldn't process this .csv file".
@@ -37,12 +60,6 @@ param(
     # through (PowerShell's Export-Csv wrote it that way). Not a theory worth defending, just the
     # one difference between the attempt that worked and the one that did not.
     [switch] $Faithful,
-
-    # Write the byte-order mark the export itself carries. Off by default: Partner Center exports
-    # UTF-8 *with* BOM but its importer is widely reported to choke on it, and re-saving the same
-    # file without the BOM is the fix people land on. -FillNothing turns it back on, since a byte
-    # comparison against the export is meaningless without it.
-    [switch] $KeepBom,
 
     # Leave these Field rows empty even when we have copy for them, and write the result somewhere
     # else. For bisecting an import Partner Center swallows without applying: it accepts the file
@@ -74,6 +91,7 @@ $ErrorActionPreference = 'Stop'
 
 $MsixDir = $PSScriptRoot
 $Export  = Join-Path $MsixDir 'store-listing-export.csv'
+$Sample  = Join-Path $MsixDir 'store-listing-export.sample.csv'
 $LangDir = Join-Path $MsixDir 'listing'
 if ($LogoFlagOnly -and -not $OutFile) { $OutFile = 'store-listing-fix-logo-flag.csv' }
 $Dest    = if ($OutFile) { if ([System.IO.Path]::IsPathRooted($OutFile)) { $OutFile } else { Join-Path $MsixDir $OutFile } }
@@ -84,6 +102,22 @@ $FileForCode = @{ 'pt-br' = 'pt'; 'pt-pt' = 'pt'; 'zh-hans' = 'zh'; 'zh-hant' = 
 
 # Rows that are not prose: the same value serves every language.
 $SharedRows = @('Title', 'CopyrightTrademarkInformation')
+
+# The thirteen UI languages CyrFlip ships (pt-br is the Store's Portuguese column; an extra `pt`
+# column, when the submission holds one, is left exactly as exported).
+$ExpectedLanguages = @('en-us','ru','ar','bn','zh-hans','fr','de','hi','it','pt-br','es','uk','ur')
+
+# WINDOWS-STORE rule 9: the caps Partner Center enforces per field. The numbers are those observed;
+# Partner Center's own message is the authority. ReleaseNotes is counted after CRLF normalisation -
+# the unit of the line breaks the file will actually carry.
+$CapByField       = @{ ShortDescription = 1000; Description = 10000; ReleaseNotes = 1500 }
+$FeatureCap       = 200
+$MaxSearchTerms   = 7
+
+# The copy rows this builder owns - what -WriteSample empties.
+$ProseExact = @('Description', 'ReleaseNotes', 'ShortDescription', 'Title', 'CopyrightTrademarkInformation')
+
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Read-LangFile([string] $path) {
     $map = @{}
@@ -101,34 +135,107 @@ function Read-LangFile([string] $path) {
     $map
 }
 
-$quoteEverything = -not ($Faithful -or $FillNothing)
+# WINDOWS-STORE rule 8: CRLF is the only line break the file may carry - inside a quoted cell as
+# much as between records. The decks are LF files, and a git checkout may have normalised the
+# export; the writer canonicalises every cell to CRLF and refuses to emit anything else.
+function Normalize-CellBreaks([string] $value) {
+    if ($null -eq $value) { return '' }
+    $value.Replace("`r`n", "`n").Replace("`n", "`r`n")
+}
+
+# WINDOWS-STORE rule 16: the machine-translated "What's new" columns carry the English text, folded
+# to the rule 9 cap. Whole sentences first, then the last word, then a hard cut.
+function Fold-ToCap([string] $text, [int] $cap) {
+    $t = Normalize-CellBreaks $text
+    if ($t.Length -le $cap) { return $t }
+    $room = $t.Substring(0, $cap)
+    $breaks = [regex]::Matches($room, '(?:\.\s|!\s|\?\s|\r\n)')
+    if ($breaks.Count -gt 0) { return $t.Substring(0, $breaks[$breaks.Count - 1].Index + $breaks[$breaks.Count - 1].Length).TrimEnd() }
+    $space = $room.LastIndexOf(' ')
+    if ($space -gt 0) { return $t.Substring(0, $space).TrimEnd() }
+    $room
+}
+
+# The writer's gate: refuse an output that carries a BOM (never emitted - UTF8Encoding($false) is the
+# only encoding this script writes with) or a bare LF anywhere, cells included.
+function Assert-Writable([string] $content, [string] $what) {
+    if ([regex]::Matches($content, '(?<!\r)\n').Count -gt 0) {
+        throw "Refusing to write $what with a bare LF in it (WINDOWS-STORE rule 8): the writer emits CRLF only, inside quoted cells as much as between records."
+    }
+}
+
+$quoteEverything = -not $Faithful
 
 function Quote([string] $value) {
     if ($null -eq $value) { $value = '' }
+    $value = Normalize-CellBreaks $value
     if ($quoteEverything) { return '"' + $value.Replace('"', '""') + '"' }
     if ($value.IndexOfAny([char[]] @(',', '"', "`r", "`n")) -ge 0) { return '"' + $value.Replace('"', '""') + '"' }
     $value
 }
 
-if (-not (Test-Path $Export)) {
-    Write-Host "Export file not found: $Export" -ForegroundColor Red
+$InputPath = if ($FillNothing) { $Sample } else { $Export }
+if (-not (Test-Path $InputPath)) {
+    Write-Host "Input file not found: $InputPath" -ForegroundColor Red
     exit 2
 }
 
-$rows    = Import-Csv $Export
+$rows    = Import-Csv $InputPath
 $columns = $rows[0].PSObject.Properties.Name
 $langs   = $columns | Select-Object -Skip 4          # Field, ID, Type (Type), default, then languages
 
+# WINDOWS-STORE rule 7: every language the product ships exists as a column before the import. A
+# column an import cannot find is dropped silently - the Urdu lesson - so its absence fails the run.
+$absentLanguages = @($ExpectedLanguages | Where-Object { $langs -notcontains $_ })
+if ($absentLanguages.Count -gt 0) {
+    Write-Host "The export has no column for: $($absentLanguages -join ', ')." -ForegroundColor Red
+    Write-Host 'Add each language in Partner Center (Store listings -> Manage additional languages), re-export and run again - an import cannot create a column, and a language with no column has its copy dropped without an error.' -ForegroundColor Red
+    exit 2
+}
+
+$capFailures = New-Object System.Collections.Generic.List[string]
+
 $copy = @{}
-if (-not ($FillNothing -or $LogoFlagOnly)) {
+if (-not ($FillNothing -or $LogoFlagOnly -or $WriteSample)) {
     foreach ($code in $langs) {
         $name = if ($FileForCode.ContainsKey($code)) { $FileForCode[$code] } else { $code }
         $path = Join-Path $LangDir "$name.txt"
-        if (Test-Path $path) { $copy[$code] = Read-LangFile $path }
+        if (-not (Test-Path $path)) { continue }
+        $deck = Read-LangFile $path
+        $copy[$code] = $deck
+        # WINDOWS-STORE rule 9: check the deck itself, not only what lands in the table. A fresh
+        # export (the only one an import may be built from) has empty cells, so every deck value is
+        # a cell about to be written. One cell over its cap loses the whole language, and the deck
+        # file is where the fix belongs.
+        foreach ($field in @($deck.Keys)) {
+            $limit = if ($field -match '^Feature\d+$') { $FeatureCap }
+                     elseif ($CapByField.ContainsKey($field)) { $CapByField[$field] }
+                     else { 0 }
+            if ($limit -gt 0) {
+                $length = (Normalize-CellBreaks $deck[$field]).Length
+                if ($length -gt $limit) {
+                    $capFailures.Add("$code ${field}: $length characters; Partner Center allows $limit (source: msix/listing/$name.txt)")
+                }
+            }
+        }
+        $deckTerms = @($deck.Keys | Where-Object { $_ -match '^SearchTerm\d+$' } | ForEach-Object { [string] $deck[$_] } | Where-Object { $_ -ne '' })
+        if ($deckTerms.Count -gt $MaxSearchTerms) {
+            $capFailures.Add("$code search terms: $($deckTerms.Count) in msix/listing/$name.txt; Partner Center accepts at most $MaxSearchTerms")
+        }
+        $deckDuplicates = @($deckTerms | Group-Object { $_.ToLowerInvariant() } | Where-Object Count -gt 1 | ForEach-Object { $_.Name })
+        if ($deckDuplicates.Count -gt 0) {
+            $capFailures.Add("$code search terms repeat in msix/listing/$name.txt: $($deckDuplicates -join ', ')")
+        }
     }
 }
 
+# The English "What's new" every machine-translated column carries (rule 16). It comes from the
+# export's own en-us cell, so a fresh export is always the accumulated text the Store has not seen.
+$releaseRow = $rows | Where-Object Field -eq 'ReleaseNotes'
+$englishReleaseNotes = if ($releaseRow) { $releaseRow.'en-us' } else { '' }
+
 $filled = @{}
+$sourceOf = @{}     # "<lang>|<Field>" -> where the value came from, for the cap-check message
 foreach ($row in $rows) {
     foreach ($code in $langs) {
         if ($row.$code -ne '') { continue }                       # never overwrite Partner Center
@@ -136,9 +243,13 @@ foreach ($row in $rows) {
         if ($SkipFields -contains $row.Field) { continue }
         $value = if ($SharedRows -contains $row.Field) { $row.'en-us' }
                  elseif ($copy[$code].ContainsKey($row.Field)) { $copy[$code][$row.Field] }
+                 elseif ($row.Field -eq 'ReleaseNotes' -and $englishReleaseNotes) { Fold-ToCap $englishReleaseNotes $CapByField['ReleaseNotes'] }
                  else { '' }
         if ($value -eq '') { continue }
         $row.$code = $value
+        $sourceOf["$code|$($row.Field)"] = if ($copy[$code].ContainsKey($row.Field)) { "msix/listing/$(if ($FileForCode.ContainsKey($code)) { $FileForCode[$code] } else { $code }).txt" }
+                                            elseif ($SharedRows -contains $row.Field) { "the export's en-us column" }
+                                            else { "the English release notes (rule 16)" }
         if (-not $filled.ContainsKey($code)) { $filled[$code] = 0 }
         $filled[$code]++
     }
@@ -170,30 +281,98 @@ function Format-Csv {
     $lines -join "`r`n"
 }
 
-$bom = [bool] ($KeepBom -or $FillNothing)
-$encoding = New-Object System.Text.UTF8Encoding($bom)
+# --- -WriteSample: the rule 13 fixture ---------------------------------------------------------
+if ($WriteSample) {
+    foreach ($row in $rows) {
+        if ($ProseExact -contains $row.Field -or $row.Field -match '^(Feature|SearchTerm)\d+$') {
+            foreach ($code in $langs) { $row.$code = '' }
+        }
+    }
+    $content = Format-Csv
+    Assert-Writable $content 'the sample export'
+    [System.IO.File]::WriteAllText($Sample, $content, $Utf8NoBom)
+    Write-Host "Wrote the emptied sample export: $Sample ($($rows.Count) rows, $($langs.Count) language columns, copy cells emptied)." -ForegroundColor Green
+    Write-Host "Prove it:  .\msix\build-store-listing-csv.ps1 -FillNothing" -ForegroundColor DarkGray
+    exit 0
+}
+
+# --- WINDOWS-STORE rule 9: cap every cell before anything is written ---------------------------
+# The deck was checked at load; this pass covers every cell that reaches the file - copy the
+# export already holds, the shared rows and the rule-16 fallback included.
+foreach ($row in $rows) {
+    $field = [string] $row.Field
+    $limit = if ($field -match '^Feature\d+$') { $FeatureCap }
+             elseif ($CapByField.ContainsKey($field)) { $CapByField[$field] }
+             else { 0 }
+    if ($limit -le 0) { continue }
+    foreach ($code in $langs) {
+        $cell = [string] $row.$code
+        if ($cell -eq '') { continue }
+        $length = (Normalize-CellBreaks $cell).Length
+        if ($length -gt $limit) {
+            $source = if ($sourceOf.ContainsKey("$code|$field")) { $sourceOf["$code|$field"] } else { 'the export' }
+            $capFailures.Add("$code ${field}: $length characters; Partner Center allows $limit (source: $source)")
+        }
+    }
+}
+# Rule 15: at most 7 search terms per language and no duplicate within a language's set - Store
+# search matches literally, and a repeated term is a wasted slot at best.
+$searchRows = @($rows | Where-Object { $_.Field -match '^SearchTerm\d+$' })
+foreach ($code in $langs) {
+    $terms = @($searchRows | ForEach-Object { [string] $_.$code } | Where-Object { $_ -ne '' })
+    $deckName = "msix/listing/$(if ($FileForCode.ContainsKey($code)) { $FileForCode[$code] } else { $code }).txt"
+    if ($terms.Count -gt $MaxSearchTerms) {
+        $capFailures.Add("$code search terms: $($terms.Count); Partner Center accepts at most $MaxSearchTerms (source: $deckName)")
+    }
+    $duplicates = @($terms | Group-Object { $_.ToLowerInvariant() } | Where-Object Count -gt 1 | ForEach-Object { $_.Name })
+    if ($duplicates.Count -gt 0) {
+        $capFailures.Add("$code search terms repeat: $($duplicates -join ', ') (source: $deckName)")
+    }
+}
+if ($capFailures.Count -gt 0) {
+    Write-Host ''
+    $capFailures | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+    Write-Host ''
+    Write-Host "The listing cannot be built: $($capFailures.Count) cell(s) over their Partner Center cap. Nothing was written." -ForegroundColor Red
+    exit 1
+}
 
 if ($Check) {
     if (-not (Test-Path $Dest)) {
         Write-Host "Target import CSV not found: $Dest" -ForegroundColor Red
         exit 2
     }
-    $rendered = Format-Csv
-    $existing = [System.IO.File]::ReadAllText($Dest, $encoding)
-    # Line endings are not content: the index stores this file with LF only, and a clean checkout hands
-    # back CRLF inside the quoted cells too, where the renderer keeps the export's LF.
-    if (($rendered -replace "`r`n", "`n") -ne ($existing -replace "`r`n", "`n")) {
-        Write-Host "DRIFT: $Dest does not match re-rendered export + language copy" -ForegroundColor Red
+    $content = Format-Csv
+    Assert-Writable $content 'the import CSV'
+    $rendered = [System.Text.Encoding]::UTF8.GetBytes($content)
+    $existing = [System.IO.File]::ReadAllBytes($Dest)
+    if (-not [System.Linq.Enumerable]::SequenceEqual([byte[]] $rendered, [byte[]] $existing)) {
+        Write-Host "DRIFT: $Dest does not match re-rendered export + language copy (byte comparison - line endings included)." -ForegroundColor Red
         Write-Host 'Run .\msix\build-store-listing-csv.ps1 to regenerate it.' -ForegroundColor Yellow
         exit 1
     }
-    Write-Host 'Store listing import CSV matches export and language sources.' -ForegroundColor Green
+    Write-Host 'Store listing import CSV matches export and language sources (byte-identical).' -ForegroundColor Green
     exit 0
+}
+
+if ($FillNothing) {
+    $content = Format-Csv
+    Assert-Writable $content 'the round trip'
+    $rendered = [System.Text.Encoding]::UTF8.GetBytes($content)
+    $expected = [System.IO.File]::ReadAllBytes($Sample)
+    if ([System.Linq.Enumerable]::SequenceEqual([byte[]] $rendered, [byte[]] $expected)) {
+        Write-Host ("Round trip is byte-identical: {0} bytes, {1} rows, nothing filled." -f $expected.Length, $rows.Count) -ForegroundColor Green
+        exit 0
+    }
+    Write-Host ("Round trip differs: the sample is {0} bytes, the render is {1} bytes - a bug in the writer, not in the copy." -f $expected.Length, $rendered.Length) -ForegroundColor Red
+    exit 1
 }
 
 # The plain CSV carries text only. A relative image path in it would be rejected outright - Partner
 # Center resolves such a path only against a folder upload, and "Import .csv" has nowhere to look.
-[System.IO.File]::WriteAllText($Dest, (Format-Csv), $encoding)
+$content = Format-Csv
+Assert-Writable $content 'the import CSV'
+[System.IO.File]::WriteAllText($Dest, $content, $Utf8NoBom)
 
 # --- screenshots -------------------------------------------------------------------------------
 # One shot per language, produced by tools/uitest/Save-StoreScreenshots.ps1, staged into its own
@@ -218,13 +397,9 @@ if ($ImportFolder) {
         $staged += [pscustomobject]@{ Language = $code; Slot = "DesktopScreenshot$slot"; File = "settings-$code.png" }
     }
     # Exactly one .csv in the folder - Partner Center refuses a folder holding more than one.
-    [System.IO.File]::WriteAllText((Join-Path $stageDir 'listings.csv'), (Format-Csv), $encoding)
-}
-
-if ($FillNothing) {
-    $same = [System.Linq.Enumerable]::SequenceEqual([byte[]] [System.IO.File]::ReadAllBytes($Export), [byte[]] [System.IO.File]::ReadAllBytes($Dest))
-    Write-Host ("Round trip byte-identical to the export: {0}" -f $same) -ForegroundColor $(if ($same) { 'Green' } else { 'Red' })
-    return
+    $folderContent = Format-Csv
+    Assert-Writable $folderContent 'the import folder CSV'
+    [System.IO.File]::WriteAllText((Join-Path $stageDir 'listings.csv'), $folderContent, $Utf8NoBom)
 }
 
 $required = @('Description', 'ShortDescription', 'Title') + (1..17 | ForEach-Object { "Feature$_" }) + (1..7 | ForEach-Object { "SearchTerm$_" })
@@ -243,6 +418,7 @@ if ($ImportFolder) {
 }
 if ($cleared.Count -gt 0) {
     Write-Host ''
-    Write-Host ("OverrideLogosForWin10 cleared (claimed logos it does not have): {0}" -f ($cleared -join ', ')) -ForegroundColor Yellow
+    Write-Host ("OverrideLogosForWin10 cleared (claimed logos it does not have): {0}" -f ($cleared -join ', '))
+    Write-Host ''
 }
 Write-Host "Wrote $Dest" -ForegroundColor Green

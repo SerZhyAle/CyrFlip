@@ -2764,7 +2764,7 @@ namespace CyrFlip
             panel.Controls.Add(Link("Сайт разработчика: sza.od.ua", "https://sza.od.ua/"));
             // The licence notice of the vendored vocabulary glyphs (ICON-EXTERNAL rule 5, ticket S0022 A10);
             // the file itself also ships beside the exe and inside the MSIX.
-            panel.Controls.Add(Link("Сторонние компоненты: значки Material Icons (Apache-2.0)", "https://github.com/SerZhyAle/CyrFlip/blob/main/THIRD-PARTY-NOTICES.md"));
+            panel.Controls.Add(Link("Сторонние компоненты: значки Material Icons (Apache-2.0)", "https://github.com/SerZhyAle/CyrFlip/blob/main/THIRD-PARTY-NOTICES.txt"));
             panel.Controls.Add(new Label { Text = "CyrFlip работает локально, без телеметрии и сетевой синхронизации истории буфера.", AutoSize = true, MaximumSize = new Size(690, 0), Padding = new Padding(0, 14, 0, 0), ForeColor = ThemePalette.Light.TextMuted });
             panel.Controls.Add(Setting(Button("Диагностика положения каретки...", _diagnoseCaret), "Создаёт локальный отчёт о том, как Windows и UI Automation видят каретку. Нужен только если метка не появляется или рисуется не там в конкретной программе."));
             _sendLogs = Button("Отправить логи автору..", SendLogsToAuthor);

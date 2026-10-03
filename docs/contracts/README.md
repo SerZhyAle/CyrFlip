@@ -27,6 +27,7 @@ not a local edit and not a local copy kept "in sync".
 | [`ICON-SET.md`](ICON-SET.md) | `ICON-SET` | Consumer - glyphs and names map to the vocabulary (nine of eleven tabs); two tab meanings still lack a record |
 | [`ICON-RENDER.md`](ICON-RENDER.md) | `ICON-RENDER` | Consumer - how glyphs are drawn and coloured; the layout badge is out |
 | [`ICON-EXTERNAL.md`](ICON-EXTERNAL.md) | `ICON-EXTERNAL` | Consumer - launcher scenario icons and their fallbacks |
+| [`WINDOWS-STORE.md`](WINDOWS-STORE.md) | `WINDOWS-STORE` | Producer - the MSIX and the Partner Center listing import; adopted 2026-10-03, the six exceptions closed the same day (ticket `S0047`); rules 15 and 18 still await their artifacts |
 | [`INSTALL-TRUST.md`](INSTALL-TRUST.md) | `INSTALL-TRUST` | Producer - adopted: `docs/trust.html` in 13 languages |
 | [`PAGE-CONTENT.md`](PAGE-CONTENT.md) | `PAGE-CONTENT` | Consumer - the landing page's content order and copy |
 | [`PAGE-STYLE.md`](PAGE-STYLE.md) | `PAGE-STYLE` | Consumer, *App - small* - the vendored kit and the page scripts |

@@ -181,8 +181,8 @@ jobs:
           if (Test-Path LICENSE)   { Copy-Item LICENSE   $stage }
           # The Apache-2.0 notice for the vendored Material Icons glyphs (ICON-EXTERNAL rule 5) ships
           # next to the exe, so its absence is a failed release, not a quiet omission.
-          if (-not (Test-Path THIRD-PARTY-NOTICES.md)) { throw "THIRD-PARTY-NOTICES.md is missing from the repository root." }
-          Copy-Item THIRD-PARTY-NOTICES.md $stage
+          if (-not (Test-Path THIRD-PARTY-NOTICES.txt)) { throw "THIRD-PARTY-NOTICES.txt is missing from the repository root." }
+          Copy-Item THIRD-PARTY-NOTICES.txt $stage
 
           "stage=$stage" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           Get-ChildItem $stage | Format-Table -AutoSize

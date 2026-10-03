@@ -416,7 +416,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   taskbar button keep OneClickRunner's mark, its tab is `feature.quick-launch`. The vocabulary records of five
   of those tabs are `proposed` (`ICON-SET` rule 6: the first product to ship one turns it `active`). The
   layout badge is not a glyph.
-  The licence notice for the vendored Material glyphs is `THIRD-PARTY-NOTICES.md` (release ZIP, MSIX, About).- **BusyDialog.cs** - the small modal "please wait" window behind every job that is too long for the
+  The licence notice for the vendored Material glyphs is `THIRD-PARTY-NOTICES.txt` (release ZIP, MSIX, About).- **BusyDialog.cs** - the small modal "please wait" window behind every job that is too long for the
   hooks' thread (ticket S0030 HT-2/HT-6): the exchange file's read, parse and write, the notes import's
   batched journal append (`QuickNotesStore.AppendBatch`), the Markdown export, and waiting for the notes
   replay before "delete all" / "export everything" (`LoadAsync`, never `EnsureLoaded`'s `Wait`, in the
@@ -1076,7 +1076,7 @@ dotnet test  CyrFlip.sln                      # run xUnit tests
 dotnet run --project tools/IconGen            # regenerate icon/banner assets
 ```
 
-The `net48` build output *is* the distributable: a single `CyrFlip.exe` plus `config.json`, no runtime to install. (The spec's `dotnet publish .. --self-contained false` line assumed a .NET 6+ target and does not apply to the net48 choice.) Releases are cut by pushing a `vYY.M.D.HHmm` tag (`.github/workflows/release.yml` builds the ZIP + sha256, carrying `CyrFlip.exe`, `CyrFlip.exe.config`, `README.md`, `LICENSE`, and `THIRD-PARTY-NOTICES.md`). winget manifests in `winget/` are filled per release (see `winget/README.md`).
+The `net48` build output *is* the distributable: a single `CyrFlip.exe` plus `config.json`, no runtime to install. (The spec's `dotnet publish .. --self-contained false` line assumed a .NET 6+ target and does not apply to the net48 choice.) Releases are cut by pushing a `vYY.M.D.HHmm` tag (`.github/workflows/release.yml` builds the ZIP + sha256, carrying `CyrFlip.exe`, `CyrFlip.exe.config`, `README.md`, `LICENSE`, and `THIRD-PARTY-NOTICES.txt`). winget manifests in `winget/` are filled per release (see `winget/README.md`).
 
 Version is stamped at build time as `YY.M.D.HHmm` via a `<Version>` property in the csproj (verified: e.g. `26.6.11.1649`).
 
