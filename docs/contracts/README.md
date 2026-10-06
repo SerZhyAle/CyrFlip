@@ -22,7 +22,8 @@ not a local edit and not a local copy kept "in sync".
 | [`DIAGNOSTIC-REPORT.md`](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | Producer / Implementer - session log rotation, count-only environment report, support bundle ZIP |
 | [`APP-BEHAVIOUR.md`](APP-BEHAVIOUR.md) | `APP-BEHAVIOUR` | Consumer - the shared desktop-app moments; the tray tool windows are the rule-1 companion-surface class (0.11); one owner decision open (row deletes, rule 5) |
 | [`APP-STYLE.md`](APP-STYLE.md) | `APP-STYLE` | Consumer - the app theme (sections 2-5, shipped since v26.10.1); the layout marker is out of theme |
-| [`APP-SETTINGS.md`](APP-SETTINGS.md) | `APP-SETTINGS` | Owner, Producer and reference implementation - the persistent settings surface; founded 2026-10-02 at 0.1, rung 1 (file and line pins) owed |
+| [`APP-SETTINGS.md`](APP-SETTINGS.md) | `APP-SETTINGS` | Owner, Producer and reference implementation - the persistent settings surface; founded 2026-10-02 at 0.2, sections 1-8 held (S0048 walk 2026-10-06), rung 1 (file and line pins) owed |
+| [`WINDOWS-UI.md`](WINDOWS-UI.md) | `WINDOWS-UI` | Consumer - the shared Windows UI profile; sections 2-7 implemented 2026-10-06 (ticket `S0048`), section 8 not applicable; open items in the pointer |
 | [`CAPTURE-OUTPUT.md`](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | Producer of the `screenshot` kind - the region capture's file name, folder chain and PNG `tIME` carrier |
 | [`ICON-SET.md`](ICON-SET.md) | `ICON-SET` | Consumer - glyphs and names map to the vocabulary (nine of eleven tabs); two tab meanings still lack a record |
 | [`ICON-RENDER.md`](ICON-RENDER.md) | `ICON-RENDER` | Consumer - how glyphs are drawn and coloured; the layout badge is out |

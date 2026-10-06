@@ -65,14 +65,18 @@ namespace CyrFlip.Tests
         [Fact]
         public void DpiChangeUsesWindowsSuggestedBoundsAndScalesThePaintedSurface() => WithWindow((window, service) =>
         {
-            var bounds = new WindowInterop.RECT { Left = 100, Top = 100, Right = 616, Bottom = 1254 };
+            // The OS never sizes a window past MaxWindowTrackSize (screen + borders): a rect
+            // written for a tall monitor bottoms out there on a short one. Ask for the largest
+            // rect this session accepts; the assertion is that the window took the suggestion.
+            int suggestedBottom = Math.Min(1254, SystemInformation.MaxWindowTrackSize.Height);
+            var bounds = new WindowInterop.RECT { Left = 100, Top = 100, Right = 616, Bottom = suggestedBottom };
             IntPtr pointer = Marshal.AllocHGlobal(Marshal.SizeOf(bounds));
             try
             {
                 Marshal.StructureToPtr(bounds, pointer, false);
                 Message message = Message.Create(window.Handle, 0x02E0, (IntPtr)((192 << 16) | 192), pointer);
                 typeof(ClipboardHistoryWindow).GetMethod("WndProc", Private)!.Invoke(window, new object[] { message });
-                Assert.Equal(new Rectangle(100, 100, 516, 1154), window.Bounds);
+                Assert.Equal(new Rectangle(100, 100, 516, suggestedBottom - 100), window.Bounds);
                 Assert.Equal(168, Property(window, "CellHeight"));
                 Assert.Equal(72, Property(window, "HeaderHeight"));
                 Key(window, Keys.End);

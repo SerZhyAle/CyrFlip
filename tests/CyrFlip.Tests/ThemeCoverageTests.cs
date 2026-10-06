@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -236,6 +237,13 @@ namespace CyrFlip.Tests
             Directory.CreateDirectory(_root);
 
             yield return ("SettingsForm", () => NewSettings(config));
+            // The settings search dialog is a nested class built over a live owner (S0048).
+            yield return ("SettingsSearchDialog", () =>
+            {
+                SettingsForm owner = NewSettings(config);
+                Own(owner);
+                return new SettingsForm.SettingsSearchDialog(owner);
+            });
             yield return ("HotkeyDialog", () => new HotkeyDialog("Ctrl+Shift+F12", "T", "English"));
             yield return ("LayoutPickerDialog", () => new LayoutPickerDialog(new string[0], "English", available));
             yield return ("LayoutConversionDialog", () => new LayoutConversionDialog(layouts, null, "English"));

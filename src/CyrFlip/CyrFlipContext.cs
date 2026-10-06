@@ -2086,6 +2086,24 @@ namespace CyrFlip
         private void ShowSettings()
         {
             _settings.Reload();
+            // The surface comes to the monitor the user is working on (APP-SETTINGS rule 1): opened
+            // from the tray or the text menu while working on a second screen, the window would
+            // otherwise appear on the one it was left on.
+            try
+            {
+                Screen current = Screen.FromControl(_settings);
+                Screen wanted = Screen.FromPoint(Cursor.Position);
+                if (!Equals(current, wanted))
+                {
+                    Rectangle work = wanted.WorkingArea;
+                    _settings.Bounds = ScreenPlacement.Clamp(
+                        new Rectangle(work.Left + Math.Max(0, (work.Width - _settings.Width) / 2),
+                                      work.Top + Math.Max(0, (work.Height - _settings.Height) / 2),
+                                      _settings.Width, _settings.Height),
+                        new[] { work });
+                }
+            }
+            catch { }
             if (!_settings.Visible) _settings.Show();
             _settings.WindowState = FormWindowState.Normal;
             // Not _settings.Activate(): opened from the text context menu this process holds no

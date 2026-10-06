@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 
 namespace CyrFlip
 {
@@ -21,23 +22,33 @@ namespace CyrFlip
     /// <c>feature.quick-launch</c> (S0022 A2, A7).
     ///
     /// Everything is best-effort: a missing or unreadable resource yields null and each caller simply
-    /// draws nothing extra. Instances are cached for the life of the process (a handful of small
-    /// images) and handed out shared - callers must not dispose them. UI thread only.
+    /// draws nothing extra. Instances are cached per thread for the life of the process (a handful of
+    /// small images) and handed out shared within that thread - callers must not dispose them. The app
+    /// has one UI thread and every caller sits on it; the per-thread split exists so the test runner,
+    /// which builds windows on many threads at once, never shares a GDI+ object between them.
     /// </summary>
     internal static class LauncherBrand
     {
         /// <summary>Must match the <c>LogicalName</c> of the EmbeddedResource in CyrFlip.csproj.</summary>
         private const string ResourceName = "CyrFlip.launcher.ico";
 
+        private static readonly object ResourceGate = new object();
         private static byte[]? _ico;
         private static bool _read;
-        private static readonly Dictionary<int, Icon?> IconCache = new Dictionary<int, Icon?>();
-        private static readonly Dictionary<int, Bitmap?> ImageCache = new Dictionary<int, Bitmap?>();
+        // Per-thread caches: within one thread this is the plain "same instance every time" cache it
+        // always was, and GDI+ objects are never handed across threads. The app has a single UI
+        // thread, so there it behaves exactly as before; the test runner builds windows on many
+        // threads at once and was the reason this class needed to say "UI thread only".
+        private static readonly ThreadLocal<Dictionary<int, Icon?>> IconCache =
+            new ThreadLocal<Dictionary<int, Icon?>>(() => new Dictionary<int, Icon?>());
+        private static readonly ThreadLocal<Dictionary<int, Bitmap?>> ImageCache =
+            new ThreadLocal<Dictionary<int, Bitmap?>>(() => new Dictionary<int, Bitmap?>());
 
         /// <summary>The mark as an <see cref="Icon"/> at (or nearest to) the requested square size.</summary>
         public static Icon? GetIcon(int size)
         {
-            if (IconCache.TryGetValue(size, out Icon? cached))
+            Dictionary<int, Icon?> cache = IconCache.Value!;
+            if (cache.TryGetValue(size, out Icon? cached))
                 return cached;
 
             Icon? icon = null;
@@ -51,14 +62,15 @@ namespace CyrFlip
                 }
                 catch { /* corrupt or missing frame - the caller degrades to no icon */ }
             }
-            IconCache[size] = icon;
+            cache[size] = icon;
             return icon;
         }
 
         /// <summary>The mark as a bitmap, for controls that take an <see cref="Image"/>.</summary>
         public static Bitmap? GetImage(int size)
         {
-            if (ImageCache.TryGetValue(size, out Bitmap? cached))
+            Dictionary<int, Bitmap?> cache = ImageCache.Value!;
+            if (cache.TryGetValue(size, out Bitmap? cached))
                 return cached;
 
             Bitmap? image = null;
@@ -79,32 +91,35 @@ namespace CyrFlip
                 }
                 catch { /* display-only */ }
             }
-            ImageCache[size] = image;
+            cache[size] = image;
             return image;
         }
 
         private static byte[]? Bytes()
         {
-            if (_read) return _ico;
-            _read = true;
-            try
+            lock (ResourceGate)
             {
-                using Stream? stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(ResourceName);
-                if (stream != null)
+                if (_read) return _ico;
+                _read = true;
+                try
                 {
-                    var buffer = new byte[stream.Length];
-                    int read = 0;
-                    while (read < buffer.Length)
+                    using Stream? stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(ResourceName);
+                    if (stream != null)
                     {
-                        int chunk = stream.Read(buffer, read, buffer.Length - read);
-                        if (chunk <= 0) break;
-                        read += chunk;
+                        var buffer = new byte[stream.Length];
+                        int read = 0;
+                        while (read < buffer.Length)
+                        {
+                            int chunk = stream.Read(buffer, read, buffer.Length - read);
+                            if (chunk <= 0) break;
+                            read += chunk;
+                        }
+                        if (read == buffer.Length) _ico = buffer;
                     }
-                    if (read == buffer.Length) _ico = buffer;
                 }
+                catch { /* the feature simply shows no mark */ }
+                return _ico;
             }
-            catch { /* the feature simply shows no mark */ }
-            return _ico;
         }
     }
 }

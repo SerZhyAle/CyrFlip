@@ -631,6 +631,28 @@ namespace CyrFlip
             using (var back = new SolidBrush(button.BackColor)) g.FillRectangle(back, client);
             using (var border = new Pen(palette.Border))
                 g.DrawRectangle(border, client.X, client.Y, client.Width - 1, client.Height - 1);
+            // The glyph a disabled button carries (the settings list's arrows) is part of what the
+            // user must still identify: without this the base disabled paint - a dimmed image - is
+            // wiped by the fill above and the button renders blank in dark (WINDOWS-UI section 6.3).
+            if (button.Image != null)
+            {
+                int x = client.X, y = client.Y;
+                switch (button.ImageAlign)
+                {
+                    case System.Drawing.ContentAlignment.TopCenter: case System.Drawing.ContentAlignment.MiddleCenter: case System.Drawing.ContentAlignment.BottomCenter:
+                        x += (client.Width - button.Image.Width) / 2; break;
+                    case System.Drawing.ContentAlignment.TopRight: case System.Drawing.ContentAlignment.MiddleRight: case System.Drawing.ContentAlignment.BottomRight:
+                        x += client.Width - button.Image.Width - button.Padding.Right; break;
+                }
+                switch (button.ImageAlign)
+                {
+                    case System.Drawing.ContentAlignment.MiddleLeft: case System.Drawing.ContentAlignment.MiddleCenter: case System.Drawing.ContentAlignment.MiddleRight:
+                        y += (client.Height - button.Image.Height) / 2; break;
+                    case System.Drawing.ContentAlignment.BottomLeft: case System.Drawing.ContentAlignment.BottomCenter: case System.Drawing.ContentAlignment.BottomRight:
+                        y += client.Height - button.Image.Height - button.Padding.Bottom; break;
+                }
+                g.DrawImage(button.Image, x, y, button.Image.Width, button.Image.Height);
+            }
             // SingleLine: DrawText centres vertically only on a single line, and a tall glyph in a short
             // button (the arrow buttons) otherwise loses its lower half. No button here wraps.
             TextFormatFlags flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter

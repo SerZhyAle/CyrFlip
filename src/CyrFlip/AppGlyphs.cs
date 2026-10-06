@@ -27,5 +27,9 @@ namespace CyrFlip
         public const string QuickLaunch = "feature.quick-launch";
         public const string Note = "content.note";
         public const string Screenshot = "system.screenshot";
+        // Disclosure chevrons (WINDOWS-UI section 3: a collapsed group shows nav.expand, an open one
+        // nav.collapse - the glyph names the action a click performs). Both records are rtl: fixed.
+        public const string Expand = "nav.expand";
+        public const string Collapse = "nav.collapse";
     }
 }

@@ -42,6 +42,7 @@
 {"file": "docs/contracts/SITE-FAMILY-MAP.md", "topic": "SITE FAMILY MAP", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/UPDATE-MANIFEST.md", "topic": "UPDATE MANIFEST", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/WINDOWS-STORE.md", "topic": "WINDOWS STORE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/WINDOWS-UI.md", "topic": "WINDOWS UI", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/de/index.html", "topic": "index", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/de/privacy.html", "topic": "privacy", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/de/trust.html", "topic": "trust", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}

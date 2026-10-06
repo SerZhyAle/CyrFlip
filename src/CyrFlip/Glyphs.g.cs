@@ -29,7 +29,9 @@ namespace CyrFlip
             new GlyphRecord("feature.layout-indicator", "M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z", null, "proposed", "fixed", ""),
             new GlyphRecord("feature.quick-launch", "M19 9H2v2h17V9zm0-4H2v2h17V5zM2 15h13v-2H2v2zm15-2v6l5-3-5-3z", null, "proposed", "fixed", ""),
             new GlyphRecord("nav.close", "M19,6.41L17.59,5 12,10.59 6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 12,13.41 17.59,19 19,17.59 13.41,12z", null, "active", "fixed", ""),
+            new GlyphRecord("nav.collapse", "M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z", null, "active", "fixed", "Material Icons 'expand_less' (Apache-2.0)"),
             new GlyphRecord("nav.exit", "M10.09,15.59L11.5,17l5,-5 -5,-5 -1.41,1.41L12.67,11H3v2h9.67l-2.58,2.59zM19,3H5c-1.11,0 -2,0.9 -2,2v4h2V5h14v14H5v-4H3v4c0,1.1 0.89,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2z", null, "active", "mirror", ""),
+            new GlyphRecord("nav.expand", "M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z", null, "active", "fixed", "Material Icons 'expand_more' (Apache-2.0)"),
             new GlyphRecord("system.screenshot", "M3,5v4h2V5h4V3H5c-1.1,0 -2,0.9 -2,2zM3,15v4c0,1.1 0.9,2 2,2h4v-2H5v-4H3zM19,19h-4v2h4c1.1,0 2,-0.9 2,-2v-4h-2v4zM19,3h-4v2h4v4h2V5c0,-1.1 -0.9,-2 -2,-2zM8,8h8v8h-8z", null, "active", "fixed", ""),
         };
     }

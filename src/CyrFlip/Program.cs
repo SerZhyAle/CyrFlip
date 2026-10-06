@@ -131,6 +131,16 @@ namespace CyrFlip
 
         private static void Fatal(Exception? ex)
         {
+            // The exception itself goes to the log before anything else runs: a crash report that
+            // names only the log folder but not the failure makes every crash undiagnosable
+            // (APP-BEHAVIOUR rule 6 - the raw exception belongs to the log, never to the user).
+            try
+            {
+                DiagnosticLog.Append(DiagnosticLog.Path("crash.log"),
+                    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture) + " - fatal: "
+                    + (ex?.ToString() ?? "null"));
+            }
+            catch { /* diagnostics must never affect the app */ }
             LayoutCursor.ForceRestore(); // never leave the system cursor replaced
             // Nor the layout files: the VS Code extension would keep drawing the last layout until
             // CyrFlip ran again (LAYOUT-SIGNAL rule 6). Only the primary instance gets here - the

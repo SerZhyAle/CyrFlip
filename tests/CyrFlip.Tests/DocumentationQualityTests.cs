@@ -28,6 +28,9 @@ namespace CyrFlip.Tests
             foreach (string file in Directory.GetFiles(Path.Combine(Repo, ".claude/skills"), "*.md", SearchOption.AllDirectories)) yield return file;
             foreach (string file in Directory.GetFiles(Docs, "*.html", SearchOption.AllDirectories)) yield return file;
             foreach (string file in Directory.GetFiles(Path.Combine(Repo, "store"), "listing-*.txt")) yield return file;
+            // The registry tracks this one as a release-affecting source file (ICON-EXTERNAL rule 5
+            // ships its content beside the exe), so the corpus has to see it for the two-way check.
+            yield return Path.Combine(Repo, "THIRD-PARTY-NOTICES.txt");
             yield return Path.Combine(Docs, "sitemap.xml");
             yield return Path.Combine(Docs, "search-index.json");
             yield return Path.Combine(Docs, "termbase.json");

@@ -273,5 +273,21 @@ namespace CyrFlip
             double la = Luminance(a), lb = Luminance(b);
             return (Math.Max(la, lb) + 0.05) / (Math.Min(la, lb) + 0.05);
         }
+
+        /// <summary>
+        /// A blend of two palette colours, <c>amount</c> of the way from <paramref name="a"/> toward
+        /// <paramref name="b"/> (0 = a, 1 = b, clamped). The one place derived fills are allowed to do
+        /// colour arithmetic (WINDOWS-UI section 6: a soft selected fill and a group-header band are
+        /// mixes of existing roles, never literals), so a theme switch re-mixes from the current palette.
+        /// </summary>
+        public static Color Mix(Color a, Color b, float amount)
+        {
+            amount = Math.Max(0f, Math.Min(1f, amount));
+            return Color.FromArgb(
+                a.A + (int)Math.Round((b.A - a.A) * amount),
+                a.R + (int)Math.Round((b.R - a.R) * amount),
+                a.G + (int)Math.Round((b.G - a.G) * amount),
+                a.B + (int)Math.Round((b.B - a.B) * amount));
+        }
     }
 }

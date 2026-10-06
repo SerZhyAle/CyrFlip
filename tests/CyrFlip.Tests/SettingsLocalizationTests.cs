@@ -293,12 +293,25 @@ namespace CyrFlip.Tests
         {
             if (skip.Contains(control)) return;
             Type ct = control.GetType();
-            string? text = ct.GetProperty("Text")?.GetValue(control) as string;
+            string? text = Property(ct, "Text")?.GetValue(control) as string;
             if (!string.IsNullOrEmpty(text) && Cyrillic.IsMatch(StripAllowed(text!)))
                 problems.Add($"[{language}] static {ct.Name}: \"{Trim(text!)}\"");
 
-            if (ct.GetProperty("Controls")?.GetValue(control) is IEnumerable children)
+            // Property, not GetProperty: TableLayoutPanel shadows Controls with `new`, and a plain
+            // GetProperty throws AmbiguousMatchException on exactly such types (found via the
+            // settings header the WINDOWS-UI ticket added). The most derived declaration wins.
+            if (Property(ct, "Controls")?.GetValue(control) is IEnumerable children)
                 foreach (object child in children) Walk(language, child, skip, problems);
+        }
+
+        private static PropertyInfo? Property(Type type, string name)
+        {
+            for (Type? t = type; t != null && t != typeof(object); t = t.BaseType)
+            {
+                PropertyInfo? p = t.GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                if (p != null) return p;
+            }
+            return null;
         }
 
         // ЙЦУКЕН is the Cyrillic layout name and legitimately appears verbatim in any language.

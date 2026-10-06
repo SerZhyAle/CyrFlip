@@ -54,6 +54,14 @@ namespace CyrFlip
             base.OnRenderItemText(e);
         }
 
+        protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
+        {
+            // Filled directly from the palette, not through the colour table: the professional base
+            // consulted the session's system colours first and came back white on a session whose
+            // display had been re-attached - a dark menu painted white. The palette is the truth.
+            e.Graphics.Clear(_palette.SurfaceRaised);
+        }
+
         protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e)
         {
             e.ArrowColor = e.Item?.Enabled == false ? _palette.TextDisabled : _palette.TextPrimary;

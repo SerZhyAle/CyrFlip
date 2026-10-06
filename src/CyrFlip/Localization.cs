@@ -51,6 +51,7 @@ namespace CyrFlip
             AddThemeStrings();
             AddExchangeStrings();
             AddGraphicsStrings();
+            AddSettingsStrings();
         }
 
         /// <summary>Every registered source string with its translations - used by the localization test.</summary>

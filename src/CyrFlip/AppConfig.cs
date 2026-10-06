@@ -66,6 +66,29 @@ namespace CyrFlip
         /// count when applied - the tab strip grows between versions.
         /// </summary>
         public int SettingsTab { get; set; } = 0;
+        /// <summary>
+        /// Expansion of the settings window's collapsible groups (WINDOWS-UI section 3): "id=0|1" pairs
+        /// joined by ";", the id being the group's stable internal string - never a translated caption.
+        /// Unknown ids are dropped on read, so a page that retired a group leaves nothing behind.
+        /// </summary>
+        public string SettingsGroupsState { get; set; } = "";
+        /// <summary>
+        /// Where each settings page was scrolled to, as "pageIndex|anchorId|offsetLogical": the anchor
+        /// is a group id or a stable row ordinal inside that page, the offset the distance from the
+        /// anchor's top to the viewport top in logical (96-DPI) pixels, so a DPI change does not lose
+        /// the place. One row per remembered page, rows joined by ";".
+        /// </summary>
+        public string SettingsViewport { get; set; } = "";
+        /// <summary>
+        /// The settings window's own rectangle (WINDOWS-UI section 5: retain the user's normal window
+        /// rectangle; APP-BEHAVIOUR rule 10: written on close, restored clamped to a work area, never
+        /// overwritten by a maximized state). Width/Height 0 = never user-sized; X/Y
+        /// <see cref="int.MinValue"/> = never placed.
+        /// </summary>
+        public int SettingsWindowX { get; set; } = int.MinValue;
+        public int SettingsWindowY { get; set; } = int.MinValue;
+        public int SettingsWindowWidth { get; set; } = 0;
+        public int SettingsWindowHeight { get; set; } = 0;
         public bool EnableClipboardHistory { get; set; } = false;
         public bool PauseClipboardHistory { get; set; } = false;
         public bool ShowClipboardHistoryOnStartup { get; set; } = true;
@@ -300,8 +323,18 @@ namespace CyrFlip
                 cfg.Save();
                 DropLegacyFlipValues();
             }
+            cfg.FromRegistry = true;
             return cfg;
         }
+
+        /// <summary>
+        /// True for the config <see cref="Load"/> produced, i.e. the user's own. The settings window's
+        /// UI-context write (<see cref="SaveSettingsUiState"/>) is the one save a window makes by
+        /// itself on hide and on every group toggle, so it goes to the registry only from this
+        /// instance: a test that shows a settings window over a config of its own must not leave its
+        /// window rectangle and group states in the developer's real settings.
+        /// </summary>
+        internal bool FromRegistry { get; private set; }
 
         /// <summary>
         /// Registry values that were present but could not be read - wrong kind, unparsable number,
@@ -338,6 +371,12 @@ namespace CyrFlip
                     cfg.ClipboardHistoryHotkey = cfg.ReadHotkey(key, "ClipboardHistoryHotkey", cfg.ClipboardHistoryHotkey);
                     cfg.UiLanguage = cfg.ReadString(key, "UiLanguage", cfg.UiLanguage);
                     cfg.SettingsTab = Math.Max(0, cfg.ReadInt(key, "SettingsTab", cfg.SettingsTab));
+                    cfg.SettingsGroupsState = SanitizeGroupState(cfg.ReadString(key, "SettingsGroupsState", ""));
+                    cfg.SettingsViewport = SanitizeViewport(cfg.ReadString(key, "SettingsViewport", ""));
+                    cfg.SettingsWindowX = cfg.ReadInt(key, "SettingsWindowX", cfg.SettingsWindowX);
+                    cfg.SettingsWindowY = cfg.ReadInt(key, "SettingsWindowY", cfg.SettingsWindowY);
+                    cfg.SettingsWindowWidth = Math.Max(0, Math.Min(10000, cfg.ReadInt(key, "SettingsWindowWidth", cfg.SettingsWindowWidth)));
+                    cfg.SettingsWindowHeight = Math.Max(0, Math.Min(10000, cfg.ReadInt(key, "SettingsWindowHeight", cfg.SettingsWindowHeight)));
                     cfg.EnableClipboardHistory = cfg.ReadBool(key, "EnableClipboardHistory", cfg.EnableClipboardHistory);
                     cfg.PauseClipboardHistory = cfg.ReadBool(key, "PauseClipboardHistory", cfg.PauseClipboardHistory);
                     cfg.ShowClipboardHistoryOnStartup = cfg.ReadBool(key, "ShowClipboardHistoryOnStartup", cfg.ShowClipboardHistoryOnStartup);
@@ -453,6 +492,12 @@ namespace CyrFlip
                 key.SetValue("ClipboardHistoryHotkey", ClipboardHistoryHotkey, RegistryValueKind.String);
                 key.SetValue("UiLanguage", UiLanguage, RegistryValueKind.String);
                 key.SetValue("SettingsTab", SettingsTab, RegistryValueKind.DWord);
+                key.SetValue("SettingsGroupsState", SettingsGroupsState, RegistryValueKind.String);
+                key.SetValue("SettingsViewport", SettingsViewport, RegistryValueKind.String);
+                key.SetValue("SettingsWindowX", SettingsWindowX, RegistryValueKind.DWord);
+                key.SetValue("SettingsWindowY", SettingsWindowY, RegistryValueKind.DWord);
+                key.SetValue("SettingsWindowWidth", SettingsWindowWidth, RegistryValueKind.DWord);
+                key.SetValue("SettingsWindowHeight", SettingsWindowHeight, RegistryValueKind.DWord);
                 key.SetValue("EnableClipboardHistory", EnableClipboardHistory ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("PauseClipboardHistory", PauseClipboardHistory ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ShowClipboardHistoryOnStartup", ShowClipboardHistoryOnStartup ? 1 : 0, RegistryValueKind.DWord);
@@ -539,6 +584,65 @@ namespace CyrFlip
                 key?.SetValue("SettingsTab", SettingsTab, RegistryValueKind.DWord);
             }
             catch { }
+        }
+
+        /// <summary>
+        /// Persist the settings window's UI context - group expansion, page viewports and the window
+        /// rectangle - in one cheap write, the way <see cref="SaveSettingsTab"/> does for the page
+        /// index (WINDOWS-UI section 3 rule 3: UI context is private navigation state, saved as the
+        /// user moves, not folded into every settings save).
+        /// </summary>
+        public void SaveSettingsUiState()
+        {
+            if (!FromRegistry) return;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                if (key == null) return;
+                key.SetValue("SettingsGroupsState", SettingsGroupsState, RegistryValueKind.String);
+                key.SetValue("SettingsViewport", SettingsViewport, RegistryValueKind.String);
+                key.SetValue("SettingsWindowX", SettingsWindowX, RegistryValueKind.DWord);
+                key.SetValue("SettingsWindowY", SettingsWindowY, RegistryValueKind.DWord);
+                key.SetValue("SettingsWindowWidth", SettingsWindowWidth, RegistryValueKind.DWord);
+                key.SetValue("SettingsWindowHeight", SettingsWindowHeight, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
+        /// <summary>Keeps only well-formed "id=0|1" pairs, at most 64 of them with ids of at most 64 characters.</summary>
+        internal static string SanitizeGroupState(string raw)
+        {
+            if (string.IsNullOrEmpty(raw)) return "";
+            var kept = new List<string>();
+            foreach (string part in raw.Split(';'))
+            {
+                int eq = part.IndexOf('=');
+                if (eq <= 0 || eq > 64 || part.Length - eq != 2) continue;
+                char flag = part[eq + 1];
+                if (flag != '0' && flag != '1') continue;
+                kept.Add(part);
+                if (kept.Count >= 64) break;
+            }
+            return string.Join(";", kept);
+        }
+
+        /// <summary>Keeps only well-formed "page|anchor|offset" rows, at most 64 of them.</summary>
+        internal static string SanitizeViewport(string raw)
+        {
+            if (string.IsNullOrEmpty(raw)) return "";
+            var kept = new List<string>();
+            foreach (string part in raw.Split(';'))
+            {
+                string[] fields = part.Split('|');
+                if (fields.Length != 3 || fields[1].Length == 0 || fields[1].Length > 64) continue;
+                if (fields[0].Length == 0 || fields[0].Length > 8) continue;
+                if (!int.TryParse(fields[0], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int page)
+                    || !int.TryParse(fields[2], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int offset)) continue;
+                if (page < 0 || offset < -100000 || offset > 100000) continue;
+                kept.Add(part);
+                if (kept.Count >= 64) break;
+            }
+            return string.Join(";", kept);
         }
 
         /// <summary>Set the one-time <see cref="DataFolderMigrated"/> marker, writing only that value.</summary>

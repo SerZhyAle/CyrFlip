@@ -289,6 +289,9 @@ if ($Theme) {
 }
 $inkIsLight = $Theme -and "$($asm.GetType('CyrFlip.ThemeManager', $true).GetProperty('Kind').GetValue($null))" -eq 'Dark'
 $export = [Func[string, bool, string]] { param($a, $b) '' }
+# The exchange-file rows (S0023) are built only when the delegate is present; a null left those
+# two buttons off every audited page since the feature shipped.
+$exchange = [Action[System.Windows.Forms.IWin32Window, bool]] { param($owner, $import) }
 $started = Get-Date
 
 try {
@@ -308,9 +311,11 @@ try {
         else { $storePath = Join-Path ([IO.Path]::GetTempPath()) ('CyrFlipAudit\' + [guid]::NewGuid().ToString('N')) }
         $store = [Activator]::CreateInstance($T.Store, [object[]]@([string]$storePath, $false))   # [string]: a PSObject-wrapped path matches no constructor
 
+        # Every parameter, including the two optional Func<int> counters at the end: Activator's
+        # default binder does not fill optional parameters, so a shorter array finds no constructor.
         $form = [Activator]::CreateInstance($T.Form, [object[]]@(
                 $cfg, $noB, $noB, $noB, $noB, $noB, $noB, $noB, $noB, $noB, $noI, $noS, $no, $no, $no, $no, $no,
-                $noB, $noB, $noB, $noB, $noB, $noB, $store, $noB, $no, $no, $no, $export))
+                $noB, $noB, $noB, $noB, $noB, $noB, $store, $noB, $no, $no, $no, $export, $exchange, $null, $null))
         try {
             $form.ShowInTaskbar = $false
             $form.StartPosition = [System.Windows.Forms.FormStartPosition]::Manual
