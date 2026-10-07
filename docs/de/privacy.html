@@ -28,7 +28,7 @@
   <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/CyrFlip/ur/privacy.html">
   <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/privacy.html">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","headline":"CyrFlip - Datenschutzerklärung","url":"https://serzhyale.github.io/CyrFlip/de/privacy.html","description":"CyrFlip erhebt, speichert, protokolliert und überträgt keine personenbezogenen Daten. Alles läuft auf Ihrem eigenen Gerät.","inLanguage":"de","about":{"@type":"SoftwareApplication","name":"CyrFlip","operatingSystem":"Windows"}}</script>
-  <meta name="source-sha256" content="6e4df70b2df0cc021d1dc39372f03ed5cc5c899be662ff8609b6d36c6e0aae08">
+  <meta name="source-sha256" content="f0acc1a5f07b080c192c226b9aaf38f81e83a96769c20f54e5b77b2aeb99c0a5">
   <!-- /doc-quality metadata -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -36,22 +36,24 @@
   <link rel="icon" type="image/png" href="../assets/favicon.png" />
   <!-- pre-paint: resolve theme before the stylesheet, so nothing flashes -->
   <script>
-  (function(){try{
-    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
-    document.documentElement.setAttribute('data-theme',t);
-  }catch(e){}})();
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+(function(){try{
+  var t=localStorage.getItem('sza-theme');
+  if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  var l=localStorage.getItem('sza-lang');
+  if(l==='uk')l='ua';
+  if(l!=='ru'&&l!=='en'&&l!=='ua'){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+  document.documentElement.setAttribute('data-lang',l);
+}catch(e){}})();
+</script>
   <link rel="stylesheet" href="../style.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Zum Hauptinhalt springen</a>
   <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
   <header class="site-header">
     <div class="container">
       <span class="brand">CyrFlip<span class="dot">.</span></span>
-      <nav class="langbar" aria-label="Language"><a href="../ru/privacy.html">RU</a><a href="../privacy.html">EN</a><a href="../uk/privacy.html">UA</a><a href="privacy.html" class="active" aria-current="page">DE</a><a href="../it/privacy.html">IT</a><a href="../es/privacy.html">ES</a><a href="../fr/privacy.html">FR</a><a href="../pt/privacy.html">PT</a><a href="../ar/privacy.html">AR</a><a href="../hi/privacy.html">HI</a><a href="../bn/privacy.html">BN</a><a href="../ur/privacy.html">UR</a><a href="../zh/privacy.html">ZH</a></nav>
       <button class="theme-btn" id="themeBtn" aria-label="Design wechseln">◐</button>
       <div class="cta">
         <a class="btn btn-ghost btn-sm" href="./">← Startseite</a>
@@ -59,10 +61,11 @@
       </div>
     </div>
   </header>
-  <div class="wrap">
+  <main class="wrap" id="main-content" tabindex="-1">
+    <nav class="langbar" aria-label="Sprache"><a href="../ru/privacy.html" data-sza-lang="ru" lang="ru" hreflang="ru"><span class="code">RU</span><span class="endonym">Русский</span></a><a href="../privacy.html" data-sza-lang="en" lang="en" hreflang="en"><span class="code">EN</span><span class="endonym">English</span></a><a href="../uk/privacy.html" data-sza-lang="ua" lang="uk" hreflang="uk"><span class="code">UA</span><span class="endonym">Українська</span></a><a href="privacy.html" class="active" aria-current="page" lang="de" hreflang="de"><span class="code">DE</span><span class="endonym">Deutsch</span></a><a href="../it/privacy.html" lang="it" hreflang="it"><span class="code">IT</span><span class="endonym">Italiano</span></a><a href="../es/privacy.html" lang="es" hreflang="es"><span class="code">ES</span><span class="endonym">Español</span></a><a href="../fr/privacy.html" lang="fr" hreflang="fr"><span class="code">FR</span><span class="endonym">Français</span></a><a href="../pt/privacy.html" lang="pt" hreflang="pt"><span class="code">PT</span><span class="endonym">Português</span></a><a href="../ar/privacy.html" lang="ar" hreflang="ar"><span class="code">AR</span><span class="endonym" dir="rtl">العربية</span></a><a href="../hi/privacy.html" lang="hi" hreflang="hi"><span class="code">HI</span><span class="endonym">हिन्दी</span></a><a href="../bn/privacy.html" lang="bn" hreflang="bn"><span class="code">BN</span><span class="endonym">বাংলা</span></a><a href="../ur/privacy.html" lang="ur" hreflang="ur"><span class="code">UR</span><span class="endonym" dir="rtl">اردو</span></a><a href="../zh/privacy.html" lang="zh" hreflang="zh"><span class="code">ZH</span><span class="endonym">中文</span></a></nav>
     <section>
       <h1>Datenschutzerklärung</h1>
-      <p class="note">Stand: 26. September 2026 · <a href="../privacy.html">English (Original)</a></p>
+      <p class="note">Stand: 7. Oktober 2026 · <a href="../privacy.html">English (Original)</a></p>
 
       <p><strong>CyrFlip erhebt, speichert, protokolliert und überträgt keinerlei personenbezogene
       Daten.</strong> Die App läuft vollständig auf Ihrem eigenen Gerät. Sie hat keine eigenen Server,
@@ -236,6 +239,13 @@
       Übersetzer-Adresse - standardmäßig ein Programm auf Ihrem eigenen Computer - und nur solange diese
       optionale Funktion eingeschaltet ist. Der Knopf <em>Protokolle an den Autor senden</em> ist keine Ausnahme: Er bereitet eine Nachricht in Ihrem eigenen Mailprogramm vor, das Archiv können Sie vorher ansehen, und senden können nur Sie.</p>
 
+      <h2>Diese Website</h2>
+      <p>Dieser Abschnitt betrifft die Seiten, die Sie gerade lesen, nicht die App. Die App nimmt keinen Kontakt zu dieser Website auf, und die Website erhält nichts von der App.</p>
+
+      <p>Die Website ist statisch und wird über GitHub Pages ausgeliefert, das - wie jeder Webhoster - die Adresse jedes Besuchers in seinen eigenen Protokollen sieht. Sie hat keine Analyse, keine Werbung, keine Formulare und keine Konten, und ihre Seiten setzen keine Cookies. Die Schriften kommen von der Website selbst, sodass kein Schriftanbieter Ihren Besuch sieht. Ihr Browser speichert auf Ihrem eigenen Gerät zwei Einstellungen - Design und Sprache (unter den Schlüsseln <code dir="ltr">sza-theme</code> und <code dir="ltr">sza-lang</code>) - und sendet sie nirgendwohin.</p>
+
+      <p>Genau eine Anfrage geht an einen Dritten, und zwar nur von der Startseite: Sie fragt <code dir="ltr">api.github.com</code> (die öffentliche API von GitHub, Adresse <code dir="ltr">/repos/SerZhyAle/CyrFlip/releases/latest</code>), welche Version die neueste ist, damit die Download-Schaltfläche darauf verweisen kann. Wie jede Webanfrage enthält sie Ihre IP-Adresse und die üblichen Browserangaben, etwa den User-Agent; sonst wird nichts gesendet, und CyrFlip speichert nichts. Schlägt die Anfrage fehl oder wird sie blockiert, behält die Schaltfläche ihren Ersatzlink zur Seite der neuesten Version, und sonst ändert sich nichts. Was GitHub mit einer solchen Anfrage macht, steht in der eigenen Datenschutzerklärung von GitHub. Links zu anderen Websites (Microsoft Store, GitHub) laden nichts, bis Sie ihnen folgen.</p>
+
       <h2>Datenschutz für Kinder</h2>
       <p>CyrFlip erhebt von niemandem Daten, auch nicht von Kindern.</p>
 
@@ -257,7 +267,7 @@
       <a href="https://github.com/SerZhyAle/CyrFlip">Quellcode auf GitHub</a><br />
       <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
     </footer>
-  </div>
+  </main>
 
   <script>
   (function(){
@@ -276,6 +286,11 @@
     });
     applyThemeMeta();
   })();
+  </script>
+  <script>
+  (function(){var n=document.querySelectorAll('.langbar a[data-sza-lang]');
+  function w(e){try{localStorage.setItem('sza-lang',e.currentTarget.getAttribute('data-sza-lang'));}catch(x){}}
+  for(var i=0;i<n.length;i++){n[i].addEventListener('click',w);n[i].addEventListener('auxclick',w);}})();
   </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-EXTERNAL` |
-| **Version** | 0.11, draft |
+| **Version** | 0.12, draft (read 2026-10-07; 0.11 added rule 6 on languages, 0.12 the images inside a document - which does not arise here) |
 | **Home** | `iconography/README.md` in the shared contracts catalog, section 4 |
 | **Role here** | consumer - launcher scenario icons and their fallbacks |
 
@@ -18,3 +18,6 @@
   translation target list show "Русский", "Deutsch", "中文", never a flag.
 - **Any vendored third-party glyph ships with its licence notice** (`THIRD-PARTY-NOTICES.txt` in the
   release ZIP and the MSIX).
+- **Not an `ICON-EXTERNAL` matter, noted here because it is the same icons:** the vocabulary fallbacks are
+  drawn in the decorated look, where `ICON-RENDER` rule 9 asks a Jump List task for the one-tone mono look - see
+  that pointer's open deviation.

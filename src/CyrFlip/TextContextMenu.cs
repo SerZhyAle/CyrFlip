@@ -46,6 +46,8 @@ namespace CyrFlip
         public bool ShowHistory { get; set; }
         /// <summary>True while the quick notes are on - the "save the selection" item's own switch.</summary>
         public bool ShowQuickNotes { get; set; }
+        /// <summary>True while the symbols module is on (S0056 Q8).</summary>
+        public bool ShowSymbols { get; set; }
     }
 
     /// <summary>
@@ -82,7 +84,8 @@ namespace CyrFlip
             Action saveToQuickNotes,
             Action<ToolStripMenuItem>? fillLauncher,
             Action showHistory,
-            Action showSettings)
+            Action showSettings,
+            Action? showSymbols = null)
         {
             Clear(menu.Items);
 
@@ -95,7 +98,7 @@ namespace CyrFlip
                 EditGroup(state, translate, edit, hasSelection),
                 OpenSelectionGroup(state, translate, launch),
                 TextGroup(state, translate, convert, caseFlip, translateSelection, saveToQuickNotes, hasSelection),
-                LaunchGroup(state, translate, fillLauncher, showHistory),
+                LaunchGroup(state, translate, fillLauncher, showHistory, showSymbols),
                 new List<ToolStripItem>
                 {
                     new ToolStripMenuItem(translate("Настройки"), null, (_, _) => showSettings()),
@@ -170,7 +173,7 @@ namespace CyrFlip
 
             // "&" would be read as a mnemonic and vanish from the caption - "?a=1&b=2" would show as
             // "?a=1b=2" - and the caption is the user's only view of what is about to open (S0008 LS-5).
-            items.Add(Command(Localization.Format(translate, "Запустить «{0}»", EscapeMnemonics(target.Display)), "", true,
+            items.Add(Command(Localization.Format(translate, "Открыть «{0}»", EscapeMnemonics(target.Display)), "", true,
                 () => launch(target)));
             return items;
         }
@@ -209,7 +212,8 @@ namespace CyrFlip
 
         private static List<ToolStripItem> LaunchGroup(
             TextContextMenuState state, Func<string, string> translate,
-            Action<ToolStripMenuItem>? fillLauncher, Action showHistory)
+            Action<ToolStripMenuItem>? fillLauncher, Action showHistory,
+            Action? showSymbols)
         {
             var items = new List<ToolStripItem>();
 
@@ -224,6 +228,9 @@ namespace CyrFlip
 
             if (state.ShowHistory)
                 items.Add(new ToolStripMenuItem(translate("Менеджер буфера"), null, (_, _) => showHistory()));
+
+            if (state.ShowSymbols && showSymbols != null)
+                items.Add(new ToolStripMenuItem(translate("Символы"), null, (_, _) => showSymbols()));
 
             return items;
         }

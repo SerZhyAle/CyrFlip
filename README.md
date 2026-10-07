@@ -1,4 +1,4 @@
-![CyrFlip - fix text typed on the wrong keyboard layout](assets/banner.png)
+![CyrFlip - a tray toolkit for your keyboard and desktop](assets/banner.png)
 
 # CyrFlip
 
@@ -8,19 +8,36 @@
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/SerZhyAle.cyrflip-vscode)](https://marketplace.visualstudio.com/items?itemName=SerZhyAle.cyrflip-vscode)
 [![License: MIT](https://img.shields.io/github/license/SerZhyAle/CyrFlip)](LICENSE)
 
-CyrFlip is a tiny Windows tray tool with a few modest jobs:
+**CyrFlip is a tray toolkit for your keyboard and desktop on Windows.** Out of the box it keeps you in the right layout and fixes text typed in the wrong one; everything else is an optional module you switch on when you need it, and by default nothing leaves your computer.
 
-1. **A live layout indicator where you type (the main feature).** The marker follows both the I-beam and blinking caret. The curated set covers EN, ZH, HI, ES, FR, AR, BN, PT, RU, UR, DE, IT and UK, while any Windows layout still gets its own live two-letter code.
+**Type in the right layout** - on from the first start:
+
+1. **A live layout indicator where you type.** The marker follows both the I-beam and the blinking caret. The curated set covers EN, ZH, HI, ES, FR, AR, BN, PT, RU, UR, DE, IT and UK, while any Windows layout still gets its own live two-letter code.
 2. **A table of layout conversions.** Keep the familiar EN ⇄ RU flip or add as many "from layout ⇄ to layout" rows as you like, each with its own global hotkey. Conversion follows **physical key positions** (so AZERTY and QWERTZ are handled correctly), works **in both directions** - if the pair's second layout is already active, the same chord converts back - and switches to the matching layout afterwards.
 3. **Fix CapsLock.** A second hotkey (**Ctrl+Shift+F11**) inverts the case of the selection, optionally setting the physical CapsLock key to match the corrected text.
 4. **A settings window that also replaces the Windows language pane.** Install, reorder and remove keyboard layouts, pick the whole-cycle switch chord, and assign per-language switch shortcuts that **Windows** handles (so they keep working when CyrFlip is closed). Nothing is downloaded - the layouts already ship with Windows.
-5. **An opt-in quick-launch module (the absorbed [OneClickRunner](https://github.com/SerZhyAle/OneClickRunner)).** Your programs, scripts and yt-dlp downloads as scenarios, launched from the tray, the settings table, an optional per-scenario global hotkey, or the taskbar **Jump List**. Off by default - until you enable it, CyrFlip behaves exactly as before.
-6. **An opt-in translator that runs on your own computer.** Select text anywhere in Windows, press a chord, and the translation appears in a small window next to the mouse pointer, filling in as the model writes it. It runs on [Ollama](https://ollama.com), a free program you install once yourself - no account, no key, and no text sent to the developer or to a cloud service. Off by default.
-7. **An opt-in context menu of CyrFlip's own.** Hold **Ctrl** and right-click a selection: Copy/Cut/Paste, your layout conversions, the case fix, your translation rows, Quick launch and the clipboard history, all at the pointer. The menu never takes the focus, so the selection survives it. Off by default - and while it is off, the mouse hook is not installed at all.
-8. **Opt-in quick notes.** Press **Ctrl+Shift+Alt+N**, type or paste, close. The text is kept exactly as it is - no Markdown, no highlighting, no auto-formatting - so a fragment of code pastes back into the editor without a single change, and search looks inside the body, because most notes never get a name. Stored only on your machine, encrypted with Windows DPAPI. Off by default.
-9. **Extras that fit a tray tool:** an opt-in encrypted clipboard history with search, two keep-awake switches, and a UI available in **13 languages**.
+
+**Act on what you selected** - opt-in, off by default:
+
+5. **A context menu of CyrFlip's own.** Hold **Ctrl** and right-click a selection: Copy/Cut/Paste, your layout conversions, the case fix, your translation rows, Quick launch and the clipboard history, all at the pointer. The menu never takes the focus, so the selection survives it; **Ctrl+Shift+Alt+M** opens the same menu at the caret. While it is off, the mouse hook is not installed at all.
+6. **A translator that runs on your own computer.** Select text anywhere in Windows, press a chord, and the translation appears in a small window next to the mouse pointer, filling in as the model writes it. It runs on [Ollama](https://ollama.com), a free program you install once yourself - no account, no key, and no text sent to the developer or to a cloud service.
+
+**Keep what you copy and write** - opt-in, off by default:
+
+7. **An encrypted clipboard history** with search, pins and a compact strip on **Ctrl+Shift+F10**.
+8. **Quick notes.** Press **Ctrl+Shift+Alt+N**, type or paste, close. The text is kept exactly as it is - no Markdown, no highlighting, no auto-formatting - so a fragment of code pastes back into the editor without a single change, and search looks inside the body, because most notes never get a name. Stored only on your machine, encrypted with Windows DPAPI. Notes and clipboard history move to another computer as one plain-text exchange file you export yourself.
+
+**Launch and capture:**
+
+9. **Screen-region capture.** **Ctrl+Shift+PrintScreen** (or the tray item) freezes the screen, you drag a region, and the picture goes to the clipboard - optionally also saved as a PNG into a folder. While saving is on, **Ctrl+Shift+Alt+PrintScreen** opens that folder.
+10. **A quick-launch module (the absorbed [OneClickRunner](https://github.com/SerZhyAle/OneClickRunner)), opt-in.** Your programs, scripts and yt-dlp downloads as scenarios, launched from the tray, the settings table, an optional per-scenario global hotkey, or the taskbar **Jump List**. Until you enable it, CyrFlip behaves exactly as before.
+11. **Two keep-awake switches** - no sleep, no screen blanking - remembered across restarts.
+
+**Yours alone:** no account, no telemetry, nothing sent to the developer; a UI in **13 languages**, right-to-left included; a light, dark or Windows-matching theme; one portable exe with nothing to install. How the product is introduced everywhere is set in [POSITIONING.md](POSITIONING.md).
 
 ![CyrFlip's layout-aware text cursor showing EN, RU, ZH and AR](assets/cursor-preview.png)
+
+On your first launch, a five-step welcome tour introduces CyrFlip and offers to open Settings on General for initial setup. Skip or close it to keep the defaults. Updates do not show it again; replay it from About. Start CyrFlip with Windows stays off until you choose it.
 
 ## Install
 
@@ -49,15 +66,16 @@ Early development - which here means "it works, but we reserve the right to be h
 - **Fix CapsLock** - select the `hELLO` you meant as `Hello` and press **Ctrl+Shift+F11**.
 - **Keep a fragment** - press **Ctrl+Shift+Alt+N**, paste the code or type the thought, close the window. It is saved without a name if you don't give it one, and found later by any part of its text.
 - **Tray menu** (right-click the icon) keeps the frequent switches: show/hide history, clipboard history on/off, pause capture, the three indicator toggles, the two keep-awake switches, the **Quick launch** submenu, **Translate clipboard** and **Quick notes** (each shown only while its module is enabled), **Settings...** and **Exit**. Double-clicking the icon opens Settings.
-- **Settings** (eleven tabs, every change applied at once, no restart). Each page opens with its title and what it is for, and its sections fold away one by one. **Find a setting..** (or **Ctrl+F**) searches every setting by its name and its description and takes you straight to it; **Expand all** / **Collapse all** act on the current page. The window remembers its size and position, which sections you left open and where each page was scrolled, and it opens on the monitor you are working on. The mouse wheel over a dropdown or a number field scrolls the page instead of changing the value:
+- **Settings** (eleven tabs, every change applied at once, no restart). Each page opens with its title and what it is for, and its sections fold away one by one. **Find a setting...** (or **Ctrl+F**) searches every setting by its name and its description and takes you straight to it; **Expand all** / **Collapse all** act on the current page. The window remembers its size and position, which sections you left open and where each page was scrolled, and it opens on the monitor you are working on. The mouse wheel over a dropdown or a number field scrolls the page instead of changing the value:
+  On General, export CyrFlip settings to JSON, preview changes before importing, or restore settings before the last import. The three newest snapshots stay locally. The file excludes notes, clipboard history, launcher scenarios, machine paths and Windows system settings. Enabling history or notes and sending selections to another translation server require separate consent.
   - **General** - start with Windows, keep the computer awake, keep the screen on (both remembered across restarts), the interface language (13 to choose from) and the **theme** - same as Windows (the default), light or dark. Every window, dialog and menu follows it at once, and in "same as Windows" it follows Windows switching while CyrFlip runs.
-  - **Indicators** - the I-beam cursor marker (off by default), the caret marker (on by default), the compact dot style, "change the layout after converting text", and "synchronize CapsLock after the case fix".
+  - **Indicators** - the I-beam cursor marker (off by default), the caret marker (on by default), the compact dot style, "change layout after converting text", and "synchronize CapsLock after case correction".
   - **Hotkeys** - the master switch plus a separate on/off and chord for the case fix and the clipboard manager, the option to yield the chords to a focused remote-desktop client, and the **context menu** switch with the mouse chord that opens it.
   - **Layout conversions** - one table holding **every** chord that converts text between layouts, EN ⇄ RU included. Each row is a pair of installed layouts plus its own combination and on/off switch, and each works in both directions.
   - **Windows languages** - install / reorder / remove Windows keyboard layouts, choose the cycle chord (Alt+Shift, Ctrl+Shift, `` ` `` or off), and assign direct per-language shortcuts that Windows itself handles. Both sections take a one-time backup of your pre-CyrFlip state with a one-click restore.
   - **Quick launch** - the scenario launcher (see below).
   - **Quick notes** - the local notepad (see below): the switch, its chord, whether the editor wraps long lines, the export of every note to one Markdown file, and the button that destroys the lot.
-  - **Graphics** - the **screen region capture**: its chord (**Ctrl+Shift+PrintScreen** by default), a **Capture a region** button, and the optional saving of every capture as a PNG into a folder you choose. The capture always goes to the clipboard; the same command is in the tray menu.
+  - **Graphics** - the **screen region capture**: its chord (**Ctrl+Shift+PrintScreen** by default), a **Capture a region** button, and the optional saving of every capture as a PNG into a folder you choose; the folder opens on its own chord (**Ctrl+Shift+Alt+PrintScreen** by default), bound only while saving is on. The capture always goes to the clipboard; the same command is in the tray menu.
   - **Translation** - the local translator (see below): the Ollama address and model, the buttons that install, start and check it, the table of translation directions, and what to do with the result.
   - **Clipboard** and **About & Advanced** - history options, its transparency and search, the **build version** (the same `YY.M.D.HHmm` stamp the release ZIP carries, so you can tell at a glance whether a fix is in your copy), links to the MIT licence and the privacy policy, plus the caret-position diagnostics and **Send logs to the author..** (see below).
 

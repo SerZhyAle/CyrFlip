@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using CyrFlip;
@@ -172,7 +172,7 @@ namespace CyrFlip.Tests
             // launcher protocol's exact commands.
             Assert.Equal("T:Управление сценариями...", tasks[2].Title);
             Assert.Equal(LauncherIpc.SettingsCommand, tasks[2].Arguments);
-            Assert.Equal("T:Выход из CyrFlip", tasks[3].Title);
+            Assert.Equal("T:Выйти из CyrFlip", tasks[3].Title);
             Assert.Equal(LauncherIpc.ExitCommand, tasks[3].Arguments);
         }
 

@@ -10,26 +10,27 @@ PackageUrl: https://github.com/SerZhyAle/CyrFlip
 License: MIT
 LicenseUrl: https://github.com/SerZhyAle/CyrFlip/blob/main/LICENSE
 Copyright: Copyright (c) 2026 SerZhyAle
-ShortDescription: Live keyboard-layout indicator at the caret, plus one-key conversion between any two installed layouts.
+ShortDescription: A tray toolkit for your keyboard and desktop: the live layout at the caret, one-key fixes for wrong-layout text, screen capture and optional text tools.
 Description: >-
-  CyrFlip is a tiny Windows tray utility. It shows the active keyboard layout right next to the
-  blinking text caret - on the mouse I-beam and the tray icon too - so you always know which
-  layout you are typing in, with its own colour for each of the 13 curated languages and a frame
-  when CapsLock is on. A global hotkey transliterates a selection between QWERTY and JCUKEN in
-  place, a second one fixes an accidental CapsLock, and a table of layout pairs adds as many
-  "from layout to layout" conversions as you need, each with its own chord and each working in
-  both directions. A settings window replaces the Windows language pane: install, reorder and
-  remove keyboard layouts, choose the switch chord, and assign per-language shortcuts that
-  Windows itself handles. An optional Quick launch module turns your programs, scripts and yt-dlp
-  downloads into scenarios started from the tray, from a global hotkey of their own, or from the
-  taskbar Jump List. A built-in translator, optional as well, sends a selection to Ollama - a free
-  program you install separately on your own computer - and shows the translation in a small
-  window at the mouse pointer; it stays off until you enable it and by default talks only to
-  localhost, so no text leaves your machine. Extras: an optional context menu of CyrFlip's own,
-  opened over a selection by Ctrl and a right click; an optional DPAPI-encrypted clipboard history
-  with search; two keep-awake switches; an interface available in 13 languages; and a Send logs to
-  the author button that packs CyrFlip's own logs into one archive for a report you send yourself.
-  Ships as a single portable exe with no installer and no runtime dependencies.
+  CyrFlip is a tray toolkit for your keyboard and desktop on Windows. Out of the box it shows the
+  active keyboard layout right next to the blinking text caret - on the mouse I-beam and the tray
+  icon too - with its own colour for each of the 13 curated languages and a frame when CapsLock is
+  on, and a hotkey fixes a selection typed in the wrong layout, in place and in both directions. A
+  table of layout pairs adds as many "from layout to layout" conversions as you need, each with its
+  own chord, a second hotkey fixes an accidental CapsLock, and a settings window replaces the
+  Windows language pane: install, reorder and remove keyboard layouts, choose the switch chord, and
+  assign per-language shortcuts that Windows itself handles. Ctrl+Shift+PrintScreen puts any screen
+  region on the clipboard. The rest are optional modules, off until you switch them on: CyrFlip's
+  own menu over a selection, opened by Ctrl and a right click; a translator that sends a selection
+  to Ollama - a free program you install separately on your own computer - and shows the translation
+  in a small window at the mouse pointer, talking only to localhost by default, so no text leaves
+  your machine; a DPAPI-encrypted clipboard history with search; local encrypted quick notes that
+  keep code exactly as typed; a plain-text exchange file that moves notes and history to another
+  computer; and Quick launch, which turns your programs, scripts and yt-dlp downloads into scenarios
+  started from the tray, a global hotkey of their own or the taskbar Jump List. Extras: two
+  keep-awake switches, a light or dark theme, an interface in 13 languages, and a Send logs to the
+  author button that packs CyrFlip's own logs into one archive for a report you send yourself. Ships
+  as a single portable exe with no installer and no runtime dependencies.
 ReleaseNotes: |-
   This release brings a dark theme, a screen-region capture, local quick notes and a much sturdier clipboard flip.
   - Theme: choose "Like Windows", Light or Dark on the General tab; every window, dialog and menu follows at once, with no restart.
@@ -56,5 +57,8 @@ Tags:
   - punto-switcher-alternative
   - tray-utility
   - productivity
+  - toolkit
+  - clipboard-manager
+  - screenshot
 ManifestType: defaultLocale
 ManifestVersion: 1.12.0

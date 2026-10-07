@@ -308,10 +308,10 @@ namespace CyrFlip
                 pt: "Gerenciar cenários...", ar: "إدارة السيناريوهات...", hi: "परिदृश्य प्रबंधित करें...",
                 bn: "দৃশ্যপট পরিচালনা...", ur: "منظرناموں کا نظم...", zh: "管理场景...");
 
-            Add("Выход из CyrFlip",
-                en: "Exit CyrFlip", uk: "Вихід з CyrFlip", de: "CyrFlip beenden", it: "Esci da CyrFlip",
+            Add("Выйти из CyrFlip",
+                en: "Exit CyrFlip", uk: "Вийти з CyrFlip", de: "CyrFlip beenden", it: "Esci da CyrFlip",
                 es: "Salir de CyrFlip", fr: "Quitter CyrFlip", pt: "Sair do CyrFlip", ar: "إنهاء CyrFlip",
-                hi: "CyrFlip से बाहर निकलें", bn: "CyrFlip থেকে প্রস্থান", ur: "CyrFlip بند کریں", zh: "退出 CyrFlip");
+                hi: "CyrFlip से बाहर निकलें", bn: "CyrFlip থেকে প্রস্থান করুন", ur: "CyrFlip بند کریں", zh: "退出 CyrFlip");
 
             Add("сценарием быстрого запуска",
                 en: "a quick-launch scenario", uk: "сценарієм швидкого запуску",

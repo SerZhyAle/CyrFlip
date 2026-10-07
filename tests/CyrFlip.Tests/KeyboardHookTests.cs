@@ -149,6 +149,82 @@ namespace CyrFlip.Tests
             Assert.Equal(1, fired);
         }
 
+        // ---- The screenshots folder chord (S0057) ----
+
+        [Fact]
+        public void TheScreenshotFolderChordFiresWhileEnabledAndPassesThroughWhileDisabled()
+        {
+            const uint PrintScreen = 0x2C;
+            KeyboardHook hook = new FakeHooks().Create();
+            Install(hook);
+            hook.UpdateScreenshotFolderHotkey(Hotkey.Parse(AppConfig.DefaultScreenshotFolderHotkey));
+            int fired = 0;
+            hook.ScreenshotFolderHotkeyPressed += (_, _) => fired++;
+
+            // Not bound: saving is off, the keystroke belongs to whatever else wants it (S0057 D2).
+            Assert.False(hook.Decide(Key(0xA2, 10), down: true));
+            Assert.False(hook.Decide(Key(0xA0, 20), down: true));
+            Assert.False(hook.Decide(Key(0xA4, 30), down: true));
+            Assert.False(hook.Decide(Key(PrintScreen, 40), down: false)); // the lone event Windows sends
+            Assert.Equal(0, fired);
+
+            // Live: the lone key-up fires and is swallowed.
+            hook.UpdateScreenshotFolderEnabled(true);
+            Assert.True(hook.Decide(Key(PrintScreen, 100), down: false));
+            Assert.Equal(1, fired);
+            Assert.True(hook.Decide(Key(PrintScreen, 300), down: false)); // every press, none eaten as a "release"
+            Assert.Equal(2, fired);
+        }
+
+        [Fact]
+        public void TheScreenshotFolderChordOwnsItsRepeatsAndItsRelease()
+        {
+            KeyboardHook hook = new FakeHooks().Create();
+            Install(hook);
+            hook.UpdateScreenshotFolderHotkey(Hotkey.Parse("Ctrl+Shift+Alt+F7"));
+            hook.UpdateScreenshotFolderEnabled(true);
+            int fired = 0;
+            hook.ScreenshotFolderHotkeyPressed += (_, _) => fired++;
+
+            const uint F7 = 0x76;
+            Assert.False(hook.Decide(Key(0xA2, 10), down: true));
+            Assert.False(hook.Decide(Key(0xA0, 20), down: true));
+            Assert.False(hook.Decide(Key(0xA4, 30), down: true));
+            Assert.True(hook.Decide(Key(F7, 40), down: true));   // fires
+            Assert.True(hook.Decide(Key(F7, 60), down: true));   // auto-repeat: swallowed, no event
+            Assert.True(hook.Decide(Key(F7, 80), down: false)); // release: swallowed, no event
+            Assert.Equal(1, fired);
+            Assert.True(hook.Decide(Key(F7, 200), down: true));  // the next press fires again
+            Assert.Equal(2, fired);
+        }
+
+        [Fact]
+        public void TheFolderChordDoesNotFireOnTheCaptureChordsFewerModifiers()
+        {
+            // Both chords live on PrintScreen; exact matching (INPUT-CHORD rule 9) tells them apart.
+            const uint PrintScreen = 0x2C;
+            KeyboardHook hook = new FakeHooks().Create();
+            Install(hook);
+            hook.UpdateScreenshotHotkey(Hotkey.Parse("Ctrl+Shift+PrintScreen"));
+            hook.UpdateScreenshotEnabled(true);
+            hook.UpdateScreenshotFolderHotkey(Hotkey.Parse(AppConfig.DefaultScreenshotFolderHotkey));
+            hook.UpdateScreenshotFolderEnabled(true);
+            int capture = 0, folder = 0;
+            hook.ScreenshotHotkeyPressed += (_, _) => capture++;
+            hook.ScreenshotFolderHotkeyPressed += (_, _) => folder++;
+
+            Assert.False(hook.Decide(Key(0xA2, 10), down: true));
+            Assert.False(hook.Decide(Key(0xA0, 20), down: true));
+            Assert.True(hook.Decide(Key(PrintScreen, 30), down: false)); // Ctrl+Shift: the capture's
+            Assert.Equal(1, capture);
+            Assert.Equal(0, folder);
+
+            Assert.False(hook.Decide(Key(0xA4, 60), down: true));
+            Assert.True(hook.Decide(Key(PrintScreen, 70), down: false)); // plus Alt: the folder's
+            Assert.Equal(1, capture);
+            Assert.Equal(1, folder);
+        }
+
         [Fact]
         public void EscapeCancelsATranslationWithTheMasterSwitchOff()
         {

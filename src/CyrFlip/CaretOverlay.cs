@@ -489,6 +489,7 @@ namespace CyrFlip
             private string _klid = "";
             private bool _dotMode;
             private bool _caps;
+            private Size _slot;
 
             public OverlayForm(int size, bool dotMode = false)
             {
@@ -610,7 +611,10 @@ namespace CyrFlip
                     ApplyDpi(MarkerSize.MonitorDpi(monitor));
                 }
 
-                Point at = CaretPlacement.Place(caret, Size, Screen.FromPoint(probe).Bounds);
+                // The dot is placed as if it were the lettered badge and then centred in that badge's
+                // box, so switching the style never moves the marker: it sits where the letters would.
+                Point at = CaretPlacement.Place(caret, _slot, Screen.FromPoint(probe).Bounds);
+                at.Offset((_slot.Width - Width) / 2, (_slot.Height - Height) / 2);
                 Location = at;
                 if (!Visible)
                     Show(); // ShowWithoutActivation => doesn't steal focus from the text field
@@ -626,6 +630,16 @@ namespace CyrFlip
 
             private void ResizeToContent()
             {
+                // The lettered badge's size is the marker's slot in both styles (see ShowAt).
+                using (var bmp = new Bitmap(1, 1))
+                using (var g = Graphics.FromImage(bmp))
+                {
+                    SizeF s = g.MeasureString(_code.Length == 0 ? "EN" : _code, _font);
+                    int padX = (int)Math.Round(_h * 0.20);
+                    int padY = (int)Math.Round(_h * 0.12);
+                    _slot = new Size((int)Math.Ceiling(s.Width) + padX * 2, (int)Math.Ceiling(s.Height) + padY * 2);
+                }
+
                 if (_dotMode)
                 {
                     int d = Math.Max(6, _h / 3);
@@ -638,12 +652,7 @@ namespace CyrFlip
                 }
                 else
                 {
-                    using var bmp = new Bitmap(1, 1);
-                    using var g = Graphics.FromImage(bmp);
-                    SizeF s = g.MeasureString(_code.Length == 0 ? "EN" : _code, _font);
-                    int padX = (int)Math.Round(_h * 0.20);
-                    int padY = (int)Math.Round(_h * 0.12);
-                    Size = new Size((int)Math.Ceiling(s.Width) + padX * 2, (int)Math.Ceiling(s.Height) + padY * 2);
+                    Size = _slot;
 
                     using var path = new GraphicsPath();
                     int r = Math.Max(3, _h / 4);

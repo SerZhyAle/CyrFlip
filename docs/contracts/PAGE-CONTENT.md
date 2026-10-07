@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `PAGE-CONTENT` |
-| **Version** | 1.2, active |
+| **Version** | 1.4, active |
 | **Home** | `product-web-pages/PAGE-CONTENT.md` in the shared contracts catalog |
 | **Role here** | consumer - the landing page (`docs/index.html` and the 10 standalone locale pages) |
 
@@ -17,3 +17,17 @@
 - **Never state a channel, platform or claim the release does not have.**
 
 Held across all 13 landing locales.
+
+
+## Conformance state
+
+Read at 1.4 on 2026-10-07 (ticket S0050), against the landing and its ten standalone locale pages. **Held:**
+the page order of 1.2 (the order is unchanged by 1.3 and 1.4); item 2 of "The landing always carries" (the
+RU EN UA control in the header and the secondary row of further locales); item 3 (Microsoft Store, GitHub
+Releases, the winget copy box; no channel the release lacks); item 6 (the grid, with the label gap below);
+the 1.4 label rule does not apply (CyrFlip has installable channels, not a ZIP-only kit page). **Not held,
+1.3 additions, none yet a registry exception for this contract:** item 1 (no identity block: no application icon
+and no display-type full name in the hero); item 4 (the header carries no link to the documentation); item 5
+(the footer credit "Serhii Zhyhunenko" is not a link to the hub); item 7 and the layout contract (the vendored kit
+caps the container at 1100px - the same gap as `SITE-EXPERIENCE` rule 1, tracked in S0052 item B1). The
+acceptance test at 1280 and 360 was not run in a browser by this pass.

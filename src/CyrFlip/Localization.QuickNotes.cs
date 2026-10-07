@@ -20,10 +20,10 @@ namespace CyrFlip
                 es: "Nota", fr: "Note", pt: "Nota",
                 ar: "ملاحظة", hi: "नोट", bn: "নোট", ur: "نوٹ", zh: "笔记");
 
-            Add("Список",
-                en: "List", uk: "Список", de: "Liste", it: "Elenco",
-                es: "Lista", fr: "Liste", pt: "Lista",
-                ar: "قائمة", hi: "सूची", bn: "তালিকা", ur: "فہرست", zh: "清单");
+            Add("Чек-лист",
+                en: "Checklist", uk: "Чек-лист", de: "Checkliste", it: "Lista di controllo",
+                es: "Lista de verificación", fr: "Liste de contrôle", pt: "Lista de verificação",
+                ar: "قائمة مراجعة", hi: "चेकलिस्ट", bn: "চেকলিস্ট", ur: "چیک لسٹ", zh: "待办清单");
 
             Add("Пункт",
                 en: "Item", uk: "Пункт", de: "Eintrag", it: "Voce",

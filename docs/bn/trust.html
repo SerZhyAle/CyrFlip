@@ -28,25 +28,28 @@
   <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/CyrFlip/ur/trust.html">
   <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/trust.html">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","headline":"CyrFlip - কেন Windows বা অ্যান্টিভাইরাস সতর্ক করতে পারে","url":"https://serzhyale.github.io/CyrFlip/bn/trust.html","description":"CyrFlip সম্পর্কে Windows SmartScreen বা অ্যান্টিভাইরাসের সতর্কবার্তার মানে কী, কেন তা দেখা দেয়, ঠিক কোথায় ক্লিক করবেন, এবং CyrFlip কখনও কী করে না।","inLanguage":"bn","about":{"@type":"SoftwareApplication","name":"CyrFlip","operatingSystem":"Windows"}}</script>
-  <meta name="source-sha256" content="275285dda6e5b9416d55da9446c2336a2f274e58adb6440ecf7a6eacbf514234">
+  <meta name="source-sha256" content="45ea9d631b8f7733d4a0bafd61e98be21de1aff440fdbda877b8556b3a1aabd7">
   <!-- /doc-quality metadata -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0a0f0a" />
   <link rel="icon" type="image/png" href="../assets/favicon.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <!-- pre-paint: resolve theme before the stylesheet, so nothing flashes -->
   <script>
-  (function(){try{
-    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
-    document.documentElement.setAttribute('data-theme',t);
-  }catch(e){}})();
-  </script>
+(function(){try{
+  var t=localStorage.getItem('sza-theme');
+  if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  var l=localStorage.getItem('sza-lang');
+  if(l==='uk')l='ua';
+  if(l!=='ru'&&l!=='en'&&l!=='ua'){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+  document.documentElement.setAttribute('data-lang',l);
+}catch(e){}})();
+</script>
   <link rel="stylesheet" href="../style.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main-content">মূল বিষয়বস্তুতে যান</a>
   <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
   <header class="site-header">
     <div class="container">
@@ -58,7 +61,8 @@
       </div>
     </div>
   </header>
-  <div class="wrap">
+  <main class="wrap" id="main-content" tabindex="-1">
+    <nav class="langbar" aria-label="ভাষা"><a href="../ru/trust.html" data-sza-lang="ru" lang="ru" hreflang="ru"><span class="code">RU</span><span class="endonym">Русский</span></a><a href="../trust.html" data-sza-lang="en" lang="en" hreflang="en"><span class="code">EN</span><span class="endonym">English</span></a><a href="../uk/trust.html" data-sza-lang="ua" lang="uk" hreflang="uk"><span class="code">UA</span><span class="endonym">Українська</span></a><a href="../de/trust.html" lang="de" hreflang="de"><span class="code">DE</span><span class="endonym">Deutsch</span></a><a href="../it/trust.html" lang="it" hreflang="it"><span class="code">IT</span><span class="endonym">Italiano</span></a><a href="../es/trust.html" lang="es" hreflang="es"><span class="code">ES</span><span class="endonym">Español</span></a><a href="../fr/trust.html" lang="fr" hreflang="fr"><span class="code">FR</span><span class="endonym">Français</span></a><a href="../pt/trust.html" lang="pt" hreflang="pt"><span class="code">PT</span><span class="endonym">Português</span></a><a href="../ar/trust.html" lang="ar" hreflang="ar"><span class="code">AR</span><span class="endonym" dir="rtl">العربية</span></a><a href="../hi/trust.html" lang="hi" hreflang="hi"><span class="code">HI</span><span class="endonym">हिन्दी</span></a><a href="trust.html" class="active" aria-current="page" lang="bn" hreflang="bn"><span class="code">BN</span><span class="endonym">বাংলা</span></a><a href="../ur/trust.html" lang="ur" hreflang="ur"><span class="code">UR</span><span class="endonym" dir="rtl">اردو</span></a><a href="../zh/trust.html" lang="zh" hreflang="zh"><span class="code">ZH</span><span class="endonym">中文</span></a></nav>
     <section>
       <h1>কেন Windows বা কোনো অ্যান্টিভাইরাস CyrFlip সম্পর্কে সতর্ক করতে পারে</h1>
       <p class="note">সর্বশেষ হালনাগাদ: ২৪ সেপ্টেম্বর ২০২৬ · <a href="../trust.html">English (মূল)</a></p>
@@ -176,7 +180,7 @@
       <a href="https://github.com/SerZhyAle/CyrFlip">GitHub-এ উৎস</a><br />
       <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
     </footer>
-  </div>
+  </main>
 
   <script>
   (function(){
@@ -195,6 +199,11 @@
     });
     applyThemeMeta();
   })();
+  </script>
+  <script>
+  (function(){var n=document.querySelectorAll('.langbar a[data-sza-lang]');
+  function w(e){try{localStorage.setItem('sza-lang',e.currentTarget.getAttribute('data-sza-lang'));}catch(x){}}
+  for(var i=0;i<n.length;i++){n[i].addEventListener('click',w);n[i].addEventListener('auxclick',w);}})();
   </script>
 </body>
 </html>

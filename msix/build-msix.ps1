@@ -4,7 +4,7 @@
     What it does:
       1. Takes CyrFlip.exe from the released ZIP, or from an explicitly pre-built output (-NoBuild).
       2. Derives a Store-legal 4-part version (revision forced to 0) from the exe's YY.M.D.HHmm stamp.
-      3. Stages the exe + config.json + THIRD-PARTY-NOTICES.txt, generates the required logo PNGs from assets/icon-256.png.
+      3. Stages the exe + THIRD-PARTY-NOTICES.txt, generates the required logo PNGs from assets/icon-256.png.
       4. Fills the AppxManifest.xml placeholders (Identity Name / Publisher / version).
       5. Packs it into msix/dist/CyrFlip-<version>-x64.msix with makeappx (-SelfSign: ...-selfsigned.msix).
       6. Reads <Identity>, PublisherDisplayName, the version and the file list back OUT of the packed
@@ -130,8 +130,6 @@ Write-Host "Exe version $fileVer  ->  MSIX version $MsixVersion" -ForegroundColo
 if (Test-Path $Stage) { Remove-Item $Stage -Recurse -Force }
 New-Item -ItemType Directory -Path (Join-Path $Stage 'Assets') -Force | Out-Null
 Copy-Item $Exe $Stage -Force
-$cfg = Join-Path $PayloadFolder 'config.json'
-if (Test-Path $cfg) { Copy-Item $cfg $Stage -Force }
 # Apache-2.0 notice for the vendored Material Icons glyphs (ICON-EXTERNAL rule 5): the copy inside the
 # release ZIP when building from one, else the repository's own. Missing = a failed build.
 $notices = Join-Path $PayloadFolder 'THIRD-PARTY-NOTICES.txt'

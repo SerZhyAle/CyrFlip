@@ -58,8 +58,8 @@ namespace CyrFlip
             // link launches, which is Apply's business.
             tasks.Add(new TaskSpec(translate("Управление сценариями..."), LauncherIpc.SettingsCommand,
                 translate("Управление сценариями..."), probes.VocabularyIcon(AppGlyphs.Settings) ?? "", 0));
-            tasks.Add(new TaskSpec(translate("Выход из CyrFlip"), LauncherIpc.ExitCommand,
-                translate("Выход из CyrFlip"), probes.VocabularyIcon(AppGlyphs.Exit) ?? "", 0));
+            tasks.Add(new TaskSpec(translate("Выйти из CyrFlip"), LauncherIpc.ExitCommand,
+                translate("Выйти из CyrFlip"), probes.VocabularyIcon(AppGlyphs.Exit) ?? "", 0));
             return tasks;
         }
 

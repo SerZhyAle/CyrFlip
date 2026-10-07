@@ -17,7 +17,7 @@ namespace CyrFlip
     /// The tray stays intentionally short: frequent display/history controls, Settings and Exit.
     /// Less frequent configuration, privacy actions and diagnostics live in <see cref="SettingsForm"/>.
     /// </summary>
-    internal sealed class CyrFlipContext : ApplicationContext
+    internal sealed partial class CyrFlipContext : ApplicationContext
     {
         private readonly AppConfig _config;
         private Hotkey _caseHotkey;
@@ -59,12 +59,33 @@ namespace CyrFlip
         private QuickNotesService? _quickNotes;
         private QuickNotesWindow? _quickNotesWindow;
         private readonly ToolStripMenuItem _quickNotesItem;
+        // ---- Symbols palette (S0056) ----
+        private Hotkey _symbolsHotkey;
+        private SymbolsWindow? _symbolsWindow;
+        private readonly ToolStripMenuItem _symbolsItem;
+        private bool _symbolsChordWasLive;
+        private bool SymbolsChordLive => _config.EnableSymbols && _config.EnableSymbolsHotkey;
+        // ---- Tray hotkeys hover popup (S0059) ----
+        private readonly ToolStripMenuItem _hotkeysOverviewItem;
+        private TrayHotkeysPopup? _trayPopup;
+        private readonly TrayHoverStateMachine _trayHover = new TrayHoverStateMachine();
+        private readonly System.Windows.Forms.Timer _trayHoverTimer = new System.Windows.Forms.Timer { Interval = 50 };
         // ---- Screen region capture (S0026) ----
         private Hotkey _screenshotHotkey;
         // A top-level item, always there: one click from the tray, no module switch (owner, 2026-09-26).
         private readonly ToolStripMenuItem _screenshotItem;
         private RegionSelectionOverlay? _regionOverlay;
         private bool _screenshotChordWasLive;
+        // ---- The screenshots folder chord (S0057) ----
+        private Hotkey _screenshotFolderHotkey;
+        private bool _screenshotFolderChordWasLive;
+        /// <summary>
+        /// The folder of this session's last fallback save (Screenshots or Downloads, wherever the
+        /// capture actually landed - S0057 D4). In memory only: a restart forgets it, which is
+        /// right, because the configured folder may be back by then.
+        /// </summary>
+        private volatile string? _lastScreenshotFolder;
+        private ScreenshotFolderOpener? _screenshotFolderOpener;
         private bool _textMenuChordWasLive;
         // A start from the tray or the settings button waits for the menu to finish closing, or the
         // closing menu would be frozen into the picture.
@@ -106,6 +127,9 @@ namespace CyrFlip
 
         private readonly SynchronizationContext? _ui;
         private Icon? _trayIcon;
+        private readonly EventHandler? _processExitTrayCleanup;
+        private readonly UnhandledExceptionEventHandler? _unhandledTrayCleanup;
+        private readonly EventHandler? _appExitTrayCleanup;
         private int _busy; // 0 = idle, 1 = a clipboard op (flip or case-flip) is in progress
         // Last seen state of the two switches that bring chords to life from a settings-tab event, so
         // the chord-ownership check runs on the transition to on and not on every change of the tab.
@@ -131,10 +155,14 @@ namespace CyrFlip
             if (_clipboardHistoryHotkey.SameChord(_caseHotkey))
                 _clipboardHistoryHotkey = new Hotkey(true, true, false, false, 0x79, "F10");
             _quickNotesHotkey = Hotkey.TryParse(_config.QuickNotesHotkey, out Hotkey notesChord) ? notesChord : Hotkey.Parse(AppConfig.DefaultQuickNotesHotkey);
+            _symbolsHotkey = Hotkey.TryParse(_config.SymbolsHotkey, out Hotkey symChord) ? symChord : Hotkey.Parse(AppConfig.DefaultSymbolsHotkey);
             _screenshotHotkey = Hotkey.TryParse(_config.ScreenshotHotkey, out Hotkey shotChord) ? shotChord : Hotkey.Parse(AppConfig.DefaultScreenshotHotkey);
+            _screenshotFolderHotkey = Hotkey.TryParse(_config.ScreenshotFolderHotkey, out Hotkey folderChord) ? folderChord : Hotkey.Parse(AppConfig.DefaultScreenshotFolderHotkey);
             _translateWasOn = _config.EnableTranslate;
             _quickNotesChordWasLive = QuickNotesChordLive;
+            _symbolsChordWasLive = SymbolsChordLive;
             _screenshotChordWasLive = ScreenshotChordLive;
+            _screenshotFolderChordWasLive = ScreenshotFolderChordLive;
             _clipboardHistory = new ClipboardHistoryService(_config.EnableClipboardHistory, _config.PauseClipboardHistory);
             _clipboardHistoryWindow = new ClipboardHistoryWindow(_clipboardHistory, _config, ShowHistorySearch);
             _exchange = new ExchangeFlow(_config, _clipboardHistory,
@@ -233,8 +261,13 @@ namespace CyrFlip
             {
                 Visible = _config.EnableQuickNotes,
             };
+            _symbolsItem = new ToolStripMenuItem(null, null, (_, _) => ToggleSymbols())
+            {
+                Visible = _config.EnableSymbols,
+            };
             _screenshotItem = new ToolStripMenuItem(null, null, (_, _) => StartRegionCaptureDeferred());
             _screenshotDelay.Tick += (_, _) => { _screenshotDelay.Stop(); StartRegionCapture(); };
+            _hotkeysOverviewItem = new ToolStripMenuItem(null, null, (_, _) => ShowTrayHotkeysFromKeyboard());
             _settingsItem = new ToolStripMenuItem(null, null, (_, _) => ShowSettings());
             _exitItem = new ToolStripMenuItem(null, null, (_, _) => ExitThread());
 
@@ -258,7 +291,9 @@ namespace CyrFlip
             menu.Items.Add(_launcherMenu);
             menu.Items.Add(_translateClipboardItem);
             menu.Items.Add(_quickNotesItem);
+            menu.Items.Add(_symbolsItem);
             menu.Items.Add(_screenshotItem);
+            menu.Items.Add(_hotkeysOverviewItem);
             menu.Items.Add(_settingsItem);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(_exitItem);
@@ -266,6 +301,7 @@ namespace CyrFlip
             // Keep dynamic state in sync when the menu opens.
             menu.Opening += (_, _) =>
             {
+                _trayHover.OnUserActionDismiss();
                 // Both builds can now answer this truthfully: the packaged one reads the startupTask.
                 _autostartItem.Checked = Autostart.IsEnabled;
                 // Dot style only makes sense when the caret overlay is on.
@@ -275,6 +311,7 @@ namespace CyrFlip
                 _screenshotItem.ShortcutKeyDisplayString = _config.EnableHotkeys && ScreenshotChordLive ? _screenshotHotkey.Display : null;
                 _showHistoryItem.ShortcutKeyDisplayString = _config.EnableHotkeys && _config.EnableHistoryHotkey ? _clipboardHistoryHotkey.Display : null;
                 _quickNotesItem.ShortcutKeyDisplayString = _config.EnableHotkeys && QuickNotesChordLive ? _quickNotesHotkey.Display : null;
+                _symbolsItem.ShortcutKeyDisplayString = _config.EnableHotkeys && SymbolsChordLive ? _symbolsHotkey.Display : null;
             };
 
             Icon initialIcon = TryGetAppIcon();
@@ -285,10 +322,35 @@ namespace CyrFlip
                 Visible = true,
                 ContextMenuStrip = menu,
             };
+
+            // ---- Tray hover popup wiring (S0059) ----
+            _trayHover.HoverDwellTimeMs = Math.Max(200, SystemInformation.MouseHoverTime);
+            _trayHover.ShowPopupRequested += anchor => _ui?.Post(_ => RenderTrayPopup(anchor), null);
+            _trayHover.DismissPopupRequested += () => _ui?.Post(_ => HideTrayPopup(), null);
+            _trayHover.HideNativeTipRequested += () => _ui?.Post(_ => SetTrayText(""), null);
+            _trayHover.RestoreNativeTipRequested += () => _ui?.Post(_ => UpdateTrayTooltip(), null);
+            _trayHoverTimer.Tick += (_, _) =>
+            {
+                _trayHover.OnDwellTimerTick(Environment.TickCount, Cursor.Position);
+                if (_trayHover.State == TrayHoverState.Idle)
+                    _trayHoverTimer.Stop();
+            };
+            _tray.MouseMove += (_, _) =>
+            {
+                _trayHoverTimer.Start();
+                _trayHover.OnPointerMove(Cursor.Position, Environment.TickCount);
+            };
             // Track it for disposal when the first layout icon replaces it - but never dispose
             // the shared SystemIcons.Application.
             if (initialIcon != SystemIcons.Application)
                 _trayIcon = initialIcon;
+
+            _processExitTrayCleanup = (_, _) => CleanupTray();
+            _unhandledTrayCleanup = (_, _) => CleanupTray();
+            _appExitTrayCleanup = (_, _) => CleanupTray();
+            AppDomain.CurrentDomain.ProcessExit += _processExitTrayCleanup;
+            AppDomain.CurrentDomain.UnhandledException += _unhandledTrayCleanup;
+            Application.ApplicationExit += _appExitTrayCleanup;
 
             _settings = new SettingsForm(_config,
                 SetAutostartFromSettings,
@@ -303,10 +365,17 @@ namespace CyrFlip
                 _launcherStore, SetLauncherEnabled,
                 OnSetQuickNotesHotkey, () => ShowQuickNotes(startNew: false), ClearQuickNotes, ExportQuickNotes, RunExchange,
                 () => _clipboardHistory.Entries.Count, () => _quickNotes?.Notes.Count ?? 0);
+            _settings.SettingsTransferRequested += TransferSettings;
             _settings.ConversionProfilesChanged += (_, _) => OnConversionProfilesChanged();
             _settings.QuickNotesChanged += (_, _) => OnQuickNotesChanged();
+            _settings.SymbolsChanged += (_, _) => OnSymbolsChanged();
+            _settings.SymbolsHotkeyChangeRequested += (_, _) => OnSetSymbolsHotkey();
+            _settings.OpenSymbolsRequested += (_, _) => ToggleSymbols();
+            _settings.ClearSymbolsRecentRequested += (_, _) => _symbolsWindow?.ClearRecent();
             _settings.GraphicsChanged += (_, _) => OnGraphicsChanged();
             _settings.ScreenshotHotkeyChangeRequested += (_, _) => OnSetScreenshotHotkey();
+            _settings.ScreenshotFolderHotkeyChangeRequested += (_, _) => OnSetScreenshotFolderHotkey();
+            _settings.ScreenshotFolderOpenRequested += (_, _) => OpenScreenshotFolder();
             _settings.TextMenuHotkeyChangeRequested += (_, _) => OnSetTextMenuHotkey();
             _settings.ScreenshotRequested += (_, _) => StartRegionCaptureDeferred();
             _settings.LauncherScenariosChanged += (_, _) => RefreshLauncherSurfaces();
@@ -326,12 +395,14 @@ namespace CyrFlip
             _trayClickTimer.Tick += (_, _) => { _trayClickTimer.Stop(); SwitchLayoutFromTray(); };
             _tray.MouseClick += (_, e) =>
             {
+                _trayHover.OnUserActionDismiss();
                 if (e.Button != MouseButtons.Left) return;
                 _trayClickTimer.Stop();
                 _trayClickTimer.Start();
             };
             _tray.MouseDoubleClick += (_, e) =>
             {
+                _trayHover.OnUserActionDismiss();
                 if (e.Button != MouseButtons.Left) return;
                 _trayClickTimer.Stop();
                 ShowSettings();
@@ -339,6 +410,7 @@ namespace CyrFlip
             _clipboardHistoryWindow.VisibleChanged += (_, _) =>
             {
                 UpdateTrayTexts();
+                if (_applyingSettings) return;
                 // Remember whether the manager window is open so the next launch restores that
                 // state: if you closed it, it stays closed instead of always reopening.
                 if (_config.ShowClipboardHistoryOnStartup != _clipboardHistoryWindow.Visible)
@@ -363,8 +435,10 @@ namespace CyrFlip
             _hook.CaseHotkeyPressed += (_, _) => _ui?.Post(_ => OnCaseHotkeyPressed(null, EventArgs.Empty), null);
             _hook.ClipboardHistoryHotkeyPressed += (_, _) => _ui?.Post(_ => _clipboardHistoryWindow.ToggleVisible(), null);
             _hook.QuickNotesHotkeyPressed += (_, _) => _ui?.Post(_ => ShowQuickNotes(startNew: true), null);
+            _hook.SymbolsHotkeyPressed += (_, _) => _ui?.Post(_ => OnSymbolsHotkeyPressed(), null);
             // The chord starts the grab at once - that is what freezes a tooltip or an open menu (S0026 scenario 2).
             _hook.ScreenshotHotkeyPressed += (_, _) => _ui?.Post(_ => StartRegionCapture(), null);
+            _hook.ScreenshotFolderHotkeyPressed += (_, _) => _ui?.Post(_ => OpenScreenshotFolder(), null);
             _hook.LayoutConversionHotkeyPressed += id => _ui?.Post(_ => OnLayoutConversionHotkeyPressed(id), null);
             _hook.LauncherHotkeyPressed += OnLauncherHotkeyPressed; // already posts, and re-checks the switch there
             _hook.TranslateHotkeyPressed += id => _ui?.Post(_ => OnTranslateHotkeyPressed(id), null);
@@ -444,8 +518,32 @@ namespace CyrFlip
             _hook.Install(_caseHotkey, _clipboardHistoryHotkey, _quickNotesHotkey,
                 _config.DeferToRemoteDesktop, _config.EnableHotkeys,
                 _config.EnableCaseHotkey, _config.EnableHistoryHotkey, QuickNotesChordLive);
+            _hook.UpdateSymbolsHotkey(_symbolsHotkey);
             _hook.UpdateScreenshotHotkey(_screenshotHotkey);
             _hook.UpdateScreenshotEnabled(ScreenshotChordLive);
+            _hook.UpdateScreenshotFolderHotkey(_screenshotFolderHotkey);
+            // Going live is checked like assigning it (S0057 3.1, the S0045 K2 discipline): a
+            // chord the user had already given to something else stays theirs, and this one is
+            // switched off rather than bound twice.
+            if (ScreenshotFolderChordLive && Chords().CyrFlipOwnerOf(ParsedScreenshotFolderHotkey(), ChordKind.ScreenshotFolder) != null)
+            {
+                _config.EnableScreenshotFolderHotkey = false;
+                _config.Save();
+            }
+            _hook.UpdateScreenshotFolderEnabled(ScreenshotFolderChordLive);
+            _screenshotFolderChordWasLive = ScreenshotFolderChordLive;
+            // The one opener behind the chord and the settings button (S0057): the probe runs on
+            // a pool worker, never on this - the keyboard hook's - thread.
+            _screenshotFolderOpener = new ScreenshotFolderOpener(
+                () => _config.ScreenshotFolder,
+                () => _lastScreenshotFolder,
+                _ui,
+                T,
+                (timeout, text, icon) =>
+                {
+                    if (icon == ToolTipIcon.Warning) ShowWarningBalloon(timeout, text);
+                    else ShowInfoBalloon(timeout, text);
+                });
             // The chord arrived with an update (S0045 K2): a chord the user had already given to something
             // else stays theirs, and this one is switched off rather than bound twice.
             if (TextMenuChordLive && Chords().CyrFlipOwnerOf(ParsedTextMenuHotkey(), ChordKind.TextMenu) != null)
@@ -488,7 +586,14 @@ namespace CyrFlip
             // Windows switched light/dark, high contrast or its colours: every open window follows (S0020).
             _sessionEnd.ThemeSignal += (_, _) => ThemeManager.OnSystemSignal();
 
-            if (openSettingsOnStart)
+            _settings.WelcomeRequested += (_, _) => Defer(ShowWelcome);
+            if (FirstRun.ShouldShow(_config.IsFirstRun, _config.WelcomeShown))
+            {
+                _welcomePending = true;
+                if (openSettingsOnStart) { _settingsQueued = true; _queuedSettingsPage = SettingsPageKey.General; }
+                _ui?.Post(_ => ShowWelcome(), null);
+            }
+            else if (openSettingsOnStart)
                 _ui?.Post(_ => ShowSettings(), null);
         }
 
@@ -754,7 +859,8 @@ namespace CyrFlip
                 () => { TextMenuLog.Log("click: quick note"); DeferOnTarget(CaptureSelectionIntoQuickNote); },
                 _config.EnableScenarioLauncher ? (Action<ToolStripMenuItem>)FillLauncherSubmenu : null,
                 () => { TextMenuLog.Log("click: history"); Defer(() => _clipboardHistoryWindow.ToggleVisible()); },
-                () => { TextMenuLog.Log("click: settings"); Defer(ShowSettings); });
+                () => { TextMenuLog.Log("click: settings"); Defer(ShowSettings); },
+                () => { TextMenuLog.Log("click: symbols"); Defer(ToggleSymbols); });
 
             if (_textMenu.Items.Count == 0) return;
             // The selected text itself is deliberately absent from the log - only its shape.
@@ -865,6 +971,7 @@ namespace CyrFlip
                 ShowLauncher = _config.EnableScenarioLauncher,
                 ShowHistory = _config.EnableClipboardHistory,
                 ShowQuickNotes = _config.EnableQuickNotes,
+                ShowSymbols = _config.EnableSymbols,
             };
 
             foreach (LayoutConversionProfile profile in _config.LayoutConversionProfiles)
@@ -992,6 +1099,16 @@ namespace CyrFlip
         /// <summary>The chord has only its own switch - there is no module switch (owner, 2026-09-26).</summary>
         private bool ScreenshotChordLive => _config.EnableScreenshotHotkey;
 
+        /// <summary>
+        /// The folder chord is bound only while saving is on and its own switch is (S0057 3.1):
+        /// with saving off there is no folder worth opening and the keystroke belongs to whatever
+        /// else wants it.
+        /// </summary>
+        private bool ScreenshotFolderChordLive => _config.ScreenshotSaveEnabled && _config.EnableScreenshotFolderHotkey;
+
+        private Hotkey ParsedScreenshotFolderHotkey()
+            => Hotkey.TryParse(_config.ScreenshotFolderHotkey, out Hotkey chord) ? chord : Hotkey.Parse(AppConfig.DefaultScreenshotFolderHotkey);
+
         /// <summary>How long the image write may wait for another clipboard operation to finish.</summary>
         private const int ScreenshotClipboardWaitMs = 3000;
 
@@ -1095,8 +1212,12 @@ namespace CyrFlip
                 ScreenshotSaver.Result result = new ScreenshotSaver().Save(png, started, folder);
                 // CAPTURE-OUTPUT rule 11: a fallback is told in the same moment, naming where it went.
                 if (result.Outcome == ScreenshotSaver.Outcome.SavedToFallback)
+                {
+                    // Where the folder chord opens when the configured folder is gone (S0057 3.2, D4).
+                    _lastScreenshotFolder = result.Folder;
                     _ui?.Post(_ => ShowInfoBalloon(5000,
                         Localization.Format(T, "Папка для снимков недоступна - снимок сохранён сюда: {0}", result.Folder)), null);
+                }
                 else if (result.Outcome == ScreenshotSaver.Outcome.Failed)
                 {
                     // The failure kinds outlive the balloon (ticket S0026); the reason names exception
@@ -1151,10 +1272,22 @@ namespace CyrFlip
             }
             _screenshotChordWasLive = ScreenshotChordLive;
 
+            // The folder chord going live is checked the same way (S0057 3.1).
+            if (ScreenshotFolderChordLive && !_screenshotFolderChordWasLive
+                && Hotkey.TryParse(_config.ScreenshotFolderHotkey, out Hotkey folderChord)
+                && !ChordIsFree(folderChord, ChordKind.ScreenshotFolder, askAboutWindows: false))
+            {
+                _config.EnableScreenshotFolderHotkey = false;
+                _ui?.Post(_ => _settings.Reload(), null);
+            }
+            _screenshotFolderChordWasLive = ScreenshotFolderChordLive;
+
             _config.Save();
             _screenshotHotkey = Hotkey.TryParse(_config.ScreenshotHotkey, out Hotkey parsed) ? parsed : Hotkey.Parse(AppConfig.DefaultScreenshotHotkey);
             _hook.UpdateScreenshotHotkey(_screenshotHotkey);
             _hook.UpdateScreenshotEnabled(ScreenshotChordLive);
+            _hook.UpdateScreenshotFolderHotkey(ParsedScreenshotFolderHotkey());
+            _hook.UpdateScreenshotFolderEnabled(ScreenshotFolderChordLive);
             UpdateTrayTexts();
         }
 
@@ -1190,6 +1323,32 @@ namespace CyrFlip
             _hook.UpdateScreenshotHotkey(next);
             UpdateTrayTexts();
             _settings.Reload();
+        }
+
+        /// <summary>The folder-opening chord, set from the settings tab and checked against every other owner (S0057).</summary>
+        private void OnSetScreenshotFolderHotkey()
+        {
+            using var dlg = new HotkeyDialog(ParsedScreenshotFolderHotkey().Display, T("Задать хоткей папки со снимками"), _config.UiLanguage);
+            if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
+            if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.ScreenshotFolder)) return;
+
+            _screenshotFolderHotkey = next;
+            _config.ScreenshotFolderHotkey = next.Display;
+            _config.Save();
+            _hook.UpdateScreenshotFolderHotkey(next);
+            _settings.Reload();
+        }
+
+        /// <summary>
+        /// The chord (S0057 3.1) and the settings button (section 5) both land here, so they can
+        /// never disagree about the target. The probe and the open are the opener's.
+        /// </summary>
+        private void OpenScreenshotFolder()
+        {
+            // While a region capture is in progress the overlay owns the keyboard: a folder window
+            // popping up over a frozen frame would be a surprise (section 3.6).
+            if (_disposed || _regionOverlay != null) return;
+            _screenshotFolderOpener?.Open();
         }
 
         // ---- Quick notes (spec: PLAN/QuickNotes_Spec_Idea_v0.1.md) ----
@@ -1313,6 +1472,11 @@ namespace CyrFlip
             _quickNotesHotkey = Hotkey.TryParse(_config.QuickNotesHotkey, out Hotkey parsedNotes) ? parsedNotes : Hotkey.Parse(AppConfig.DefaultQuickNotesHotkey);
             _hook.UpdateQuickNotesHotkey(_quickNotesHotkey);
             _hook.UpdateQuickNotesEnabled(QuickNotesChordLive);
+            RefreshQuickNotesSettings();
+        }
+
+        private void RefreshQuickNotesSettings()
+        {
             _quickNotesItem.Visible = _config.EnableQuickNotes;
 
             if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed)
@@ -1877,6 +2041,99 @@ namespace CyrFlip
             _settings.Reload();
         }
 
+        private void OnSetSymbolsHotkey()
+        {
+            using var dlg = new HotkeyDialog(_symbolsHotkey.Display, T("Задать хоткей окна символов"), _config.UiLanguage);
+            if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
+            if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.Symbols)) return;
+
+            _symbolsHotkey = next;
+            _config.SymbolsHotkey = next.Display;
+            _config.Save();
+            _hook.UpdateSymbolsHotkey(next);
+            UpdateTrayTooltip();
+            _settings.Reload();
+        }
+
+        private SymbolsWindow? EnsureSymbolsWindow()
+        {
+            if (!_config.EnableSymbols) return null;
+            if (_symbolsWindow == null || _symbolsWindow.IsDisposed)
+            {
+                _symbolsWindow = new SymbolsWindow(_config, _config.UiLanguage, CopySymbolToClipboard);
+            }
+            return _symbolsWindow;
+        }
+
+        private void ToggleSymbols()
+        {
+            if (!_config.EnableSymbols) return;
+            SymbolsWindow? window = EnsureSymbolsWindow();
+            if (window == null) return;
+            window.Toggle(_indicator.LastActiveWindow);
+        }
+
+        private void OnSymbolsHotkeyPressed()
+        {
+            if (!SymbolsChordLive) return;
+            ToggleSymbols();
+        }
+
+        private void CopySymbolToClipboard(string text, Action<bool> onResult)
+        {
+            if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
+            {
+                onResult(false);
+                return;
+            }
+
+            StartClipboardWorker(() =>
+            {
+                bool ok = false;
+                try
+                {
+                    uint locale = string.IsNullOrEmpty(_currentKlid) ? 0u : (uint)InputLayouts.LangIdOf(_currentKlid);
+                    ok = Win32Clipboard.TrySetText(text, locale, TransientMarks.None);
+                    if (ok)
+                    {
+                        _config.IncrementSymbolsCount();
+                    }
+                }
+                catch { /* never let a clipboard op take the app down */ }
+                finally
+                {
+                    Interlocked.Exchange(ref _busy, 0);
+                }
+
+                _ui?.Post(_ => onResult(ok), null);
+            });
+        }
+
+        private void OnSymbolsChanged()
+        {
+            if (SymbolsChordLive && !_symbolsChordWasLive
+                && Hotkey.TryParse(_config.SymbolsHotkey, out Hotkey symChord)
+                && !ChordIsFree(symChord, ChordKind.Symbols, askAboutWindows: false))
+            {
+                _config.EnableSymbolsHotkey = false;
+                _ui?.Post(_ => _settings.Reload(), null);
+            }
+            _symbolsChordWasLive = SymbolsChordLive;
+
+            _config.Save();
+            _symbolsHotkey = Hotkey.TryParse(_config.SymbolsHotkey, out Hotkey parsedSym) ? parsedSym : Hotkey.Parse(AppConfig.DefaultSymbolsHotkey);
+            _hook.UpdateSymbolsHotkey(_symbolsHotkey);
+            _hook.UpdateSymbolsEnabled(_config.EnableHotkeys && SymbolsChordLive);
+
+            _symbolsItem.Visible = _config.EnableSymbols;
+            if (!_config.EnableSymbols && _symbolsWindow != null)
+            {
+                _symbolsWindow.Dispose();
+                _symbolsWindow = null;
+            }
+            UpdateTrayTooltip();
+        }
+
         private void OnHistoryEnabledToggle(object? sender, EventArgs e)
         {
             _config.EnableClipboardHistory = _historyEnabledItem.Checked;
@@ -1920,6 +2177,10 @@ namespace CyrFlip
             _config.Save();
             UpdateTrayTexts();
             _clipboardHistoryWindow.ApplyLanguage();
+            if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed)
+                _quickNotesWindow.ApplyLanguage(language);
+            if (_symbolsWindow != null && !_symbolsWindow.IsDisposed)
+                _symbolsWindow.ApplyLanguage(language);
             if (_translateWindow != null && !_translateWindow.IsDisposed)
                 _translateWindow.ApplyLanguage(language);
             // The launcher submenu title and the Jump List's Manage/Exit tasks carry localized text.
@@ -1941,15 +2202,23 @@ namespace CyrFlip
             _keepScreenItem.Text = T("Не блокировать экран (как при видео)");
             _translateClipboardItem.Text = T("Перевести буфер обмена");
             _quickNotesItem.Text = T("Быстрые заметки");
+            _symbolsItem.Text = T("Символы");
+            _symbolsItem.Visible = _config.EnableSymbols;
+            _symbolsItem.ShortcutKeyDisplayString = _config.EnableHotkeys && SymbolsChordLive ? _symbolsHotkey.Display : null;
             _screenshotItem.Text = T("Снимок области экрана");
             _screenshotItem.ShortcutKeyDisplayString = _config.EnableHotkeys && ScreenshotChordLive ? _screenshotHotkey.Display : null;
             if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed)
                 _quickNotesWindow.ApplyLanguage(_config.UiLanguage);
+            if (_symbolsWindow != null && !_symbolsWindow.IsDisposed)
+                _symbolsWindow.ApplyLanguage(_config.UiLanguage);
+            _hotkeysOverviewItem.Text = T("Комбинации клавиш");
             _settingsItem.Text = T("Настройки...");
-            _exitItem.Text = T("Выход");
+            _exitItem.Text = T("Выйти");
             if (_tray.ContextMenuStrip != null)
                 _tray.ContextMenuStrip.RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
             _textMenu.RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
+            if (_trayPopup != null && !_trayPopup.IsDisposed)
+                _trayPopup.ApplyLanguage(_config.UiLanguage);
             // Note: _autostartItem / _langSwitchItem / _capsAfterItem are state-holder items synced with
             // the settings checkboxes; they are not added to the tray menu, so their Text is never shown.
             UpdateTrayTooltip();
@@ -1967,37 +2236,7 @@ namespace CyrFlip
             if (_currentLayout.Length > 0) head.Append(" - ").Append(_currentLayout);
             if (_capsOn) head.Append(" (CAPS)");
 
-            var lines = new List<string>();
-            if (!_config.EnableHotkeys)
-            {
-                lines.Add(T("горячие клавиши выключены"));
-            }
-            else
-            {
-                if (_config.EnableCaseHotkey)
-                    lines.Add(_caseHotkey.Display + " - " + T("регистр"));
-                if (_config.EnableHistoryHotkey)
-                    lines.Add(_clipboardHistoryHotkey.Display + " - " + T("менеджер буфера"));
-                if (QuickNotesChordLive)
-                    lines.Add(_quickNotesHotkey.Display + " - " + T("быстрые заметки"));
-                if (ScreenshotChordLive)
-                    lines.Add(_screenshotHotkey.Display + " - " + T("снимок области экрана"));
-                if (TextMenuChordLive)
-                    lines.Add(ParsedTextMenuHotkey().Display + " - " + T("контекстное меню текста"));
-                foreach (LayoutConversionProfile profile in _config.LayoutConversionProfiles)
-                    if (profile.Enabled && profile.IsUsable)
-                        lines.Add(profile.Hotkey + " - " + WorldLayouts.CodeForKlid(profile.SourceKlid)
-                            + " ⇄ " + WorldLayouts.CodeForKlid(profile.TargetKlid));
-                if (_config.EnableScenarioLauncher)
-                    foreach (LauncherScenario scenario in _launcherStore.All)
-                        if (scenario.Hotkey.Length > 0)
-                            lines.Add(scenario.Hotkey + " - " + scenario.Name);
-                if (_config.EnableTranslate)
-                    foreach (TranslationProfile profile in _config.TranslateProfiles)
-                        if (profile.Enabled && profile.IsUsable)
-                            lines.Add(profile.Hotkey + " - "
-                                + TranslationLanguages.Label(profile.TargetLang, _config.UiLanguage));
-            }
+            var lines = TrayChordList.BuildTooltipLines(_config, _launcherStore?.All, _config.UiLanguage, WorldLayouts.CodeForKlid, T);
 
             // Keep-awake has no chord, so the tooltip is its only ambient
             // sign it's on. "Screen stays on" implies the system is awake too, so it wins when both.
@@ -2007,6 +2246,52 @@ namespace CyrFlip
                 lines.Add(T("не даёт засыпать"));
 
             SetTrayText(head.ToString(), lines);
+            if (_trayPopup != null && _trayPopup.Visible)
+                RenderTrayPopup();
+        }
+
+        private void ShowTrayHotkeysFromKeyboard()
+        {
+            Point anchor = Cursor.Position;
+            _trayHover.TriggerFromKeyboard(anchor, Environment.TickCount);
+        }
+
+        private void RenderTrayPopup(Point? anchor = null)
+        {
+            try
+            {
+                if (_trayPopup == null || _trayPopup.IsDisposed)
+                    _trayPopup = new TrayHotkeysPopup(_config.UiLanguage);
+
+                TrayChordList model = TrayChordList.Build(
+                    _config,
+                    _launcherStore?.All,
+                    LanguageHotkeys.ReadAll(),
+                    LanguageHotkeys.ToggleCode(),
+                    _config.UiLanguage,
+                    WorldLayouts.CodeForKlid,
+                    T);
+
+                _trayPopup.ApplyLanguage(_config.UiLanguage);
+                _trayPopup.SetModel(model, anchor);
+                if (!_trayPopup.Visible)
+                    _trayPopup.Show();
+            }
+            catch (Exception ex)
+            {
+                TrayLog.Log("failed to show: " + ex.GetType().Name);
+                UpdateTrayTooltip();
+            }
+        }
+
+        private void HideTrayPopup()
+        {
+            try
+            {
+                if (_trayPopup != null && _trayPopup.Visible)
+                    _trayPopup.Visible = false;
+            }
+            catch { }
         }
 
         private static readonly FieldInfo? TrayTextField =
@@ -2084,8 +2369,47 @@ namespace CyrFlip
         }
 
         private void ShowSettings()
+            => ShowSettings(null);
+
+        private bool _welcomePending, _settingsQueued;
+        private WelcomeDialog? _welcome;
+        private SettingsPageKey? _queuedSettingsPage;
+
+        private void ShowWelcome()
         {
+            if (_welcome != null) { ForegroundActivator.Activate(_welcome); return; }
+            bool markFirstRun = _welcomePending;
+            _welcomePending = false;
+            var facts = new WelcomeFacts(_config, InputLayouts.ListInstalled(), Autostart.ManagedByWindows,
+                AppShortcuts.IsTransientLocation(Application.ExecutablePath, System.IO.Path.GetTempPath()),
+                !AppShortcuts.ManagedByWindows && (AppShortcuts.Exists(ShortcutPlace.StartMenu) || AppShortcuts.Exists(ShortcutPlace.Desktop)));
+            using (var dialog = new WelcomeDialog(facts, SetUiLanguage, SetAutostartFromSettings, () => Autostart.IsEnabled))
+            {
+                _welcome = dialog;
+                if (markFirstRun) dialog.Shown += (_, _) => _config.SaveWelcomeShown();
+                try { dialog.ShowDialog(); }
+                finally { _welcome = null; }
+                if (dialog.RequestedPage.HasValue)
+                { _settingsQueued = true; _queuedSettingsPage = dialog.RequestedPage; }
+            }
+            if (_settingsQueued)
+            {
+                var page = _queuedSettingsPage;
+                _settingsQueued = false; _queuedSettingsPage = null;
+                Defer(() => ShowSettings(page));
+            }
+        }
+
+        private void ShowSettings(SettingsPageKey? page)
+        {
+            if (_welcomePending || _welcome != null)
+            {
+                _settingsQueued = true;
+                if (page.HasValue) _queuedSettingsPage = page;
+                return;
+            }
             _settings.Reload();
+            if (page.HasValue) _settings.SelectPage(page.Value);
             // The surface comes to the monitor the user is working on (APP-SETTINGS rule 1): opened
             // from the tray or the text menu while working on a second screen, the window would
             // otherwise appear on the one it was left on.
@@ -2545,6 +2869,21 @@ namespace CyrFlip
             }.Run(() => clock.Elapsed);
         }
 
+        private void CleanupTray()
+        {
+            try
+            {
+                if (_tray != null)
+                {
+                    _tray.Visible = false;
+                    _tray.Dispose();
+                }
+                _trayIcon?.Dispose();
+                _trayIcon = null;
+            }
+            catch { /* tray cleanup must never throw or affect teardown */ }
+        }
+
         protected override void Dispose(bool disposing)
         {
             // Runs twice on a normal exit: Program's `using`, and WinForms disposing the context when
@@ -2554,6 +2893,15 @@ namespace CyrFlip
             _disposed = true;
             if (disposing)
             {
+                if (_processExitTrayCleanup != null)
+                    AppDomain.CurrentDomain.ProcessExit -= _processExitTrayCleanup;
+                if (_unhandledTrayCleanup != null)
+                    AppDomain.CurrentDomain.UnhandledException -= _unhandledTrayCleanup;
+                if (_appExitTrayCleanup != null)
+                    Application.ApplicationExit -= _appExitTrayCleanup;
+
+                CleanupTray();
+
                 _sessionEnd.Dispose();
                 _launcherIpc.Dispose(); // stop the pipe listener before the UI it posts to goes away
                 _launcherTaskbar?.Dispose();
@@ -2564,6 +2912,10 @@ namespace CyrFlip
                 _translateWindow?.Dispose();
                 _trayClickTimer.Stop();
                 _trayClickTimer.Dispose();
+                _trayHoverTimer.Stop();
+                _trayHoverTimer.Dispose();
+                _trayPopup?.Dispose();
+                _trayPopup = null;
                 _screenshotDelay.Stop();
                 _screenshotDelay.Dispose();
                 _regionOverlay?.Cancel();
@@ -2593,12 +2945,12 @@ namespace CyrFlip
                     _quickNotesWindow.CommitCurrent();
                 _quickNotesWindow?.Dispose();
                 _quickNotes?.Dispose();
+                _symbolsWindow?.Dispose();
+                _symbolsWindow = null;
                 // A retirement still compacting on the pool finishes before the process goes (S0030 HT-6).
                 try { _quickNotesRetired?.Wait(2000); } catch { }
                 _settings.Dispose();
-                _tray.Visible = false;
-                _tray.Dispose();
-                _trayIcon?.Dispose();
+                CleanupTray();
                 ThemeManager.Shutdown();   // after every window: nothing left for it to hold
                 DiagnosticLog.Flush(SessionEndSequence.LogDrain); // last: everything above may still have logged
             }

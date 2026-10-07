@@ -15,8 +15,12 @@ namespace CyrFlip
         Launcher,
         /// <summary>The Graphics module's region capture (S0026).</summary>
         Screenshot,
+        /// <summary>The chord that opens the screenshots folder (S0057).</summary>
+        ScreenshotFolder,
         /// <summary>The keyboard chord that opens the text context menu at the caret (S0045 K2).</summary>
         TextMenu,
+        /// <summary>The symbols window palette chord (S0056).</summary>
+        Symbols,
         /// <summary>A Windows direct-language hotkey (<see cref="LanguageHotkeys"/>) - read-only here.</summary>
         WindowsLanguage,
     }
@@ -82,7 +86,9 @@ namespace CyrFlip
             Add(ChordKind.History, "", config.ClipboardHistoryHotkey, null);
             Add(ChordKind.QuickNotes, "", config.QuickNotesHotkey, null);
             Add(ChordKind.Screenshot, "", config.ScreenshotHotkey, null);
+            Add(ChordKind.ScreenshotFolder, "", config.ScreenshotFolderHotkey, null);
             Add(ChordKind.TextMenu, "", config.TextMenuHotkey, null);
+            Add(ChordKind.Symbols, "", config.SymbolsHotkey, null);
             foreach (LayoutConversionProfile profile in config.LayoutConversionProfiles)
                 if (profile != null) Add(ChordKind.Conversion, profile.Id, profile.Hotkey, profile);
             foreach (TranslationProfile profile in config.TranslateProfiles)
@@ -158,7 +164,9 @@ namespace CyrFlip
                 case ChordKind.History: return T("Менеджер буфера");
                 case ChordKind.QuickNotes: return T("Быстрые заметки");
                 case ChordKind.Screenshot: return T("Снимок области экрана");
+                case ChordKind.ScreenshotFolder: return T("Открыть папку со снимками");
                 case ChordKind.TextMenu: return T("Открыть меню с клавиатуры");
+                case ChordKind.Symbols: return T("Окно символов");
                 case ChordKind.Conversion:
                     var conversion = (LayoutConversionProfile)owner.Source!;
                     return layoutName(conversion.SourceKlid) + " ⇄ " + layoutName(conversion.TargetKlid);

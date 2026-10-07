@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `LAYOUT-PALETTE` |
-| **Version** | 1.1, active (2026-09-26, S0012/S0013 - rules 2, 4, 6 and the new rule 8 in section 9 of the contract; the table did not change) |
+| **Version** | 1.1, active (2026-09-26, S0012/S0013 - rules 2, 4, 6 and the new rule 8 in section 9 of the contract; the table did not change; the catalog has had no later row, and the tree was re-read against it on 2026-10-07) |
 | **Home** | `layout-indicator/README.md` in the shared contracts catalog |
 | **Role here** | owner and source of truth - `src/CyrFlip/LayoutStyle.cs`; the VS Code extension ships the machine-readable copy |
 

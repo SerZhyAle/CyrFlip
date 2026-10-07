@@ -1,6 +1,6 @@
 # CyrFlip - keyboard layout at the caret (VS Code)
 
-Companion extension for the **[CyrFlip](https://github.com/SerZhyAle/CyrFlip)** Windows app.
+Companion extension for **[CyrFlip](https://github.com/SerZhyAle/CyrFlip)**, a Windows tray toolkit for your keyboard and desktop.
 It shows the active keyboard layout right at the **text caret** inside the editor - accurately,
 because the extension reads Monaco's real caret position (something the external CyrFlip overlay
 can't do reliably in VS Code / Electron). It displays the two-letter code of **any** layout the

@@ -59,6 +59,8 @@ namespace CyrFlip.Tests
         {
             "turn off smartscreen", "disable smartscreen", "turn smartscreen off",
             "disable your antivirus", "turn off your antivirus", "disable the antivirus", "turn off the antivirus",
+            // INSTALL-TRUST 1.2 rule 4 item K: the per-file Unblock checkbox is not a permitted instruction.
+            "unblock", "zone.identifier",
         };
 
         private static string? FirstForbidden(string text)
@@ -86,6 +88,7 @@ namespace CyrFlip.Tests
             surfaces.AddRange(Localization.Codes.Select(c => c == "en" ? Docs("privacy.html") : Docs(c, "privacy.html")));
             surfaces.AddRange(new[] { "README.md", "README_RU.md", "README_UK.md" }.Select(r => Path.Combine(Repo, r)));
 
+            surfaces.Add(Path.Combine(Repo, "src", "CyrFlip", "WelcomeDialog.cs"));
             foreach (string file in surfaces)
             {
                 Assert.True(File.Exists(file), "missing " + file);

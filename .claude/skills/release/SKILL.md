@@ -118,3 +118,5 @@ and the **SHA256** from the run log - the next steps need them.
 The GitHub Release is green and signed; "What's new in vXXX" is consistent across GitHub /
 Store / winget / (extension); winget PR opened, Store submission created, extension published
 where applicable; and the published artefact smoke-tested.
+
+The first-run welcome tour is also a ship-together surface: `WelcomeDialog` page 4 reads the live optional-module list. Keep its strings, README EN/RU/UK, guide EN/RU/UK, trilingual landing and ten standalone locale first pages, and all 13 Store listing sources in sync when that list or first-launch behavior changes (S0055).

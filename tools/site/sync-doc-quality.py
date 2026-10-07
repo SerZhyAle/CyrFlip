@@ -15,13 +15,9 @@ ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
 BASE = "https://serzhyale.github.io/CyrFlip/"
 LOCALES = ("en", "ru", "uk", "de", "it", "es", "fr", "pt", "ar", "hi", "bn", "ur", "zh")
-TRANSLATED = {"guide": ("en", "ru", "uk"), "privacy": LOCALES, "trust": LOCALES,
+TRANSLATED = {"guide": ("en", "ru", "uk"), "store": ("en", "ru", "uk"), "privacy": LOCALES, "trust": LOCALES,
               "index": ("en", "de", "it", "es", "fr", "pt", "ar", "hi", "bn", "ur", "zh")}
 SHORT_TITLES = {
-    ("index", "es"): "CyrFlip - corregir texto con otra distribución",
-    ("index", "fr"): "CyrFlip - corriger un texte saisi au mauvais clavier",
-    ("index", "it"): "CyrFlip - correggere il testo nel layout sbagliato",
-    ("index", "pt"): "CyrFlip - corrigir texto no layout errado",
     ("trust", "fr"): "CyrFlip - avertissement Windows ou antivirus",
     ("trust", "it"): "CyrFlip - avviso di Windows o antivirus",
     ("trust", "pt"): "CyrFlip - aviso do Windows ou antivírus",

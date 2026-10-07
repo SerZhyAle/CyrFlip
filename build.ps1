@@ -87,6 +87,16 @@ try {
     Write-Host 'Checking check placement..' -ForegroundColor Cyan
     & (Join-Path $PSScriptRoot 'tools\checks\Test-CheckPlacement.ps1')
     if ($LASTEXITCODE -ne 0) { throw "Placement checks failed (exit $LASTEXITCODE)." }
+
+    # POSITIONING.md (S0058): every public surface keeps the descriptor and the frozen anchors.
+    Write-Host 'Checking positioning..' -ForegroundColor Cyan
+    & (Join-Path $PSScriptRoot 'tools\site\Test-Positioning.ps1')
+    if ($LASTEXITCODE -ne 0) { throw "Positioning check failed (exit $LASTEXITCODE)." }
+
+    # site-facts.json (S0054 D2-D3): editions, channel names, Windows minimum, language count.
+    Write-Host 'Checking site facts..' -ForegroundColor Cyan
+    & (Join-Path $PSScriptRoot 'tools\site\Test-SiteFacts.ps1')
+    if ($LASTEXITCODE -ne 0) { throw "Site facts check failed (exit $LASTEXITCODE)." }
 }
 finally { Remove-Item -LiteralPath $testResults -Recurse -Force -ErrorAction SilentlyContinue }
 
@@ -118,11 +128,9 @@ if ($env:CYRFLIP_SIGN_PFX -and (Test-Path $env:CYRFLIP_SIGN_PFX)) {
     Write-Host 'Skipping code signing (set CYRFLIP_SIGN_PFX + CYRFLIP_SIGN_PASSWORD to enable).' -ForegroundColor DarkGray
 }
 
-# Stage the distributable (exe + default config.json).
+# Stage the distributable. config.json belongs only to legacy users, not new payloads (S0055).
 New-Item -ItemType Directory -Path $SingleDir -Force | Out-Null
 Copy-Item $ExePath (Join-Path $SingleDir $ExeName) -Force
-$cfg = Join-Path $OutDir 'config.json'
-if (Test-Path $cfg) { Copy-Item $cfg $SingleDir -Force }
 Write-Host "Staged single-file build at: $SingleDir"
 
 # Deploy to local sync folders.

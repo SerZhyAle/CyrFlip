@@ -833,7 +833,7 @@ namespace CyrFlip
             catch { return "0x" + langId.ToString("X4", CultureInfo.InvariantCulture); }
         }
 
-        private static string DisplayNameFor(string klid)
+        internal static string DisplayNameFor(string klid)
         {
             try
             {

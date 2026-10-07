@@ -367,6 +367,15 @@ namespace CyrFlip
             _autoClose.Start();
         }
 
+        internal void RefreshImportedTimeout()
+        {
+            bool running = _autoClose.Enabled;
+            _autoClose.Stop();
+            int seconds = Math.Max(0, _config.TranslateWindowTimeout);
+            if (seconds > 0 && (running || Visible && !_busy))
+            { _autoClose.Interval = seconds * 1000; _autoClose.Start(); }
+        }
+
         /// <summary>
         /// A window that never takes focus never gets <c>Deactivate</c>, so "close when the user goes
         /// somewhere else" is a poll: the popup lives as long as the window it opened over stays in

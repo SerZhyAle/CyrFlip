@@ -236,6 +236,7 @@ namespace CyrFlip.Tests
             var config = new AppConfig { UiLanguage = "English" };
             Directory.CreateDirectory(_root);
 
+            yield return ("SettingsTransferDialog", () => SettingsTransferDialogTests.Make("English"));
             yield return ("SettingsForm", () => NewSettings(config));
             // The settings search dialog is a nested class built over a live owner (S0048).
             yield return ("SettingsSearchDialog", () =>
@@ -255,9 +256,18 @@ namespace CyrFlip.Tests
             yield return ("ExchangeExportDialog", () => new ExchangeExportDialog("English", notesAvailable: true, notesWarningOff: false));
             yield return ("ConfirmDialog", () => new ConfirmDialog("English", "Delete?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true, owned: true));
             yield return ("BusyDialog", () => new BusyDialog("English", System.Threading.Tasks.Task.CompletedTask));
+            yield return ("WelcomeDialog", () => new WelcomeDialog(new WelcomeFacts(config,
+                Array.Empty<InputLayouts.Installed>(), false, false, false), _ => { }, _ => { }, () => false));
             yield return ("ClipboardHistoryWindow",() => new ClipboardHistoryWindow(History(), config, () => { }));
             yield return ("ClipboardHistorySearchWindow", () => new ClipboardHistorySearchWindow(History(), "English", (_, _) => { }));
             yield return ("QuickNotesWindow", () => new QuickNotesWindow(Notes(), config, () => { }, () => { }, (_, _) => { }));
+            yield return ("SymbolsWindow", () => new SymbolsWindow(config, "English", (_, _) => { }));
+            yield return ("TrayHotkeysPopup", () =>
+            {
+                var popup = new TrayHotkeysPopup("English");
+                popup.SetModel(TrayChordList.Build(config, null, null, "1", "English"));
+                return popup;
+            });
         }
 
         private ClipboardHistoryService History()

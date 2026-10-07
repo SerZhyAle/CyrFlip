@@ -21,6 +21,9 @@
     <Version>$([System.DateTime]::Now.ToString('yy.M.d.HHmm'))</Version>
     <Company>SerZhyAle</Company>
     <Product>CyrFlip</Product>
+    <!-- The descriptor of POSITIONING.md; lands in the file's Comments field. The file description and the
+         product name stay "CyrFlip" - Task Manager and the shell show those as the app's name. -->
+    <Description>CyrFlip - a tray toolkit for your keyboard and desktop</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -59,10 +62,7 @@
     <EmbeddedResource Include="..\..\assets\oneclickrunner-source\app.ico" LogicalName="CyrFlip.launcher.ico" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="config.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+  <!-- config.json is a legacy user migration source, never a new-install default (S0055).
+       Shipping the old sample would identify every new user as an existing profile. -->
 
 </Project>

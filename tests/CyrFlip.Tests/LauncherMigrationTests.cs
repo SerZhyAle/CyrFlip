@@ -80,6 +80,34 @@ namespace CyrFlip.Tests
             Assert.Equal(9, store.Count);
         }
 
+        /// <summary>
+        /// SCENARIO-FILE section 9 item H: "content" is Name, Path and Arguments only. A store entry the
+        /// user edited in any other element is still the scenario that arrived, so the migration skips the
+        /// source file, counts it as already migrated and keeps the user's entry - the source's difference
+        /// is not carried across.
+        /// </summary>
+        [Fact]
+        public void OnlyNamePathAndArgumentsDecideWhetherAScenarioIsAlreadyMigrated()
+        {
+            var store = new LauncherScenarioStore(_target);
+            LauncherMigration.Import(store, Fixtures);
+            LauncherScenario calc = Assert.Single(store.All, s => s.Id == Guid.Parse("12345678-1234-1234-1234-123456789abc"));
+            calc.WorkingDirectory = @"C:\Users\someone\work";
+            calc.RunAsAdmin = !calc.RunAsAdmin;
+            calc.Hotkey = "Ctrl+Alt+F8";
+            store.Update(calc);
+
+            LauncherMigration.Result second = LauncherMigration.Import(store, Fixtures);
+
+            Assert.Equal(0, second.Imported);
+            Assert.Equal(0, second.NewIds);
+            Assert.Equal(9, second.AlreadyPresent);
+            Assert.Equal(9, store.Count);
+            LauncherScenario kept = Assert.Single(store.All, s => s.Id == calc.Id);
+            Assert.Equal(@"C:\Users\someone\work", kept.WorkingDirectory);
+            Assert.Equal("Ctrl+Alt+F8", kept.Hotkey);
+        }
+
         [Fact]
         public void TheSameIdWithOtherContentIsStillACollisionNotAnAlreadyMigratedScenario()
         {

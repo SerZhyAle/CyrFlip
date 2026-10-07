@@ -59,7 +59,8 @@ namespace CyrFlip
                 Padding = new Padding(2, 6, 6, 6),
                 Margin = new Padding(0),
                 UseMnemonic = false,
-                AccessibleName = caption,
+                // No explicit AccessibleName: the button's own Text is its name, and Text is what the
+                // language pass re-assigns - a name set here once stayed in the build language (APP-BEHAVIOUR rule 9).
             };
             _header.FlatAppearance.BorderSize = 0;
             _header.Click += (_, _) => Toggle();

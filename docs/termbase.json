@@ -1,23 +1,187 @@
 {
-  "concepts": ["layout", "conversion", "case flip", "CapsLock", "quick notes"],
+  "concepts": [
+    "layout",
+    "conversion",
+    "case flip",
+    "CapsLock",
+    "quick notes"
+  ],
   "locales": {
-    "en": ["Layout", "Layout conversion", "Case flip", "CapsLock", "Quick notes"],
-    "ru": ["Раскладка", "Конвертация раскладки", "Исправление регистра", "CapsLock", "Быстрые заметки"],
-    "uk": ["Розкладка", "Конвертація розкладки", "Виправлення регістру", "CapsLock", "Швидкі нотатки"],
-    "de": ["Tastaturlayout", "Layoutumwandlung", "Groß- und Kleinschreibung ändern", "CapsLock", "Schnellnotizen"],
-    "it": ["Layout di tastiera", "Conversione del layout", "Invertire maiuscole e minuscole", "CapsLock", "Note rapide"],
-    "es": ["Distribución de teclado", "Conversión de distribución", "Invertir mayúsculas y minúsculas", "CapsLock", "Notas rápidas"],
-    "fr": ["Disposition de clavier", "Conversion de disposition", "Inverser la casse", "CapsLock", "Notes rapides"],
-    "pt": ["Layout de teclado", "Conversão de layout", "Inversão de maiúsculas e minúsculas", "CapsLock", "Notas rápidas"],
-    "ar": ["تخطيط لوحة المفاتيح", "تحويل التخطيط", "عكس حالة الأحرف", "CapsLock", "ملاحظات سريعة"],
-    "hi": ["कीबोर्ड लेआउट", "लेआउट रूपांतरण", "अक्षर केस बदलना", "CapsLock", "त्वरित नोट्स"],
-    "bn": ["কীবোর্ড লেআউট", "লেআউট রূপান্তর", "অক্ষরের কেস পরিবর্তন", "CapsLock", "দ্রুত নোট"],
-    "ur": ["کی بورڈ لے آؤٹ", "لے آؤٹ کی تبدیلی", "حروف کی حالت بدلنا", "CapsLock", "فوری نوٹس"],
-    "zh": ["键盘布局", "布局转换", "大小写切换", "CapsLock", "速记"]
+    "en": [
+      "Layout",
+      "Layout conversion",
+      "Case flip",
+      "CapsLock",
+      "Quick notes"
+    ],
+    "ru": [
+      "Раскладка",
+      "Конвертация раскладки",
+      "Исправление регистра",
+      "CapsLock",
+      "Быстрые заметки"
+    ],
+    "uk": [
+      "Розкладка",
+      "Конвертація розкладки",
+      "Виправлення регістру",
+      "CapsLock",
+      "Швидкі нотатки"
+    ],
+    "de": [
+      "Tastaturlayout",
+      "Layoutumwandlung",
+      "Groß- und Kleinschreibung ändern",
+      "CapsLock",
+      "Schnellnotizen"
+    ],
+    "it": [
+      "Layout di tastiera",
+      "Conversione del layout",
+      "Invertire maiuscole e minuscole",
+      "CapsLock",
+      "Note rapide"
+    ],
+    "es": [
+      "Distribución de teclado",
+      "Conversión de distribución",
+      "Invertir mayúsculas y minúsculas",
+      "CapsLock",
+      "Notas rápidas"
+    ],
+    "fr": [
+      "Disposition de clavier",
+      "Conversion de disposition",
+      "Inverser la casse",
+      "CapsLock",
+      "Notes rapides"
+    ],
+    "pt": [
+      "Layout de teclado",
+      "Conversão de layout",
+      "Inversão de maiúsculas e minúsculas",
+      "CapsLock",
+      "Notas rápidas"
+    ],
+    "ar": [
+      "تخطيط لوحة المفاتيح",
+      "تحويل التخطيط",
+      "عكس حالة الأحرف",
+      "CapsLock",
+      "ملاحظات سريعة"
+    ],
+    "hi": [
+      "कीबोर्ड लेआउट",
+      "लेआउट रूपांतरण",
+      "अक्षर केस बदलना",
+      "CapsLock",
+      "त्वरित नोट्स"
+    ],
+    "bn": [
+      "কীবোর্ড লেআউট",
+      "লেআউট রূপান্তর",
+      "অক্ষরের কেস পরিবর্তন",
+      "CapsLock",
+      "দ্রুত নোট"
+    ],
+    "ur": [
+      "کی بورڈ لے آؤٹ",
+      "لے آؤٹ کی تبدیلی",
+      "حروف کی حالت بدلنا",
+      "CapsLock",
+      "فوری نوٹس"
+    ],
+    "zh": [
+      "键盘布局",
+      "布局转换",
+      "大小写切换",
+      "CapsLock",
+      "速记"
+    ]
   },
   "forbidden": {
-    "en": ["keyboard language conversion"],
-    "ru": ["транслит раскладки"],
-    "uk": ["трансліт розкладки"]
+    "en": [
+      "keyboard language conversion"
+    ],
+    "ru": [
+      "транслит раскладки"
+    ],
+    "uk": [
+      "трансліт розкладки"
+    ]
+  },
+  "controls": {
+    "en": [
+      "Start CyrFlip with Windows",
+      "Keep the computer awake",
+      "Keep the screen on (like video)",
+      "Interface language",
+      "Find a setting...",
+      "Expand all",
+      "Collapse all",
+      "Settings...",
+      "Change layout after converting text",
+      "Synchronize CapsLock after case correction",
+      "Yield hotkeys to the remote desktop (mstsc/msrdc)",
+      "Direct per-language shortcuts",
+      "Windows languages",
+      "Layout conversions",
+      "Screen region capture",
+      "Capture a region",
+      "Quick launch",
+      "Quick notes",
+      "Translation",
+      "Save the selection to quick notes",
+      "Copy for Google Keep",
+      "Send logs to the author.."
+    ],
+    "ru": [
+      "Запускать CyrFlip вместе с Windows",
+      "Не давать компьютеру засыпать",
+      "Не блокировать экран (как при видео)",
+      "Язык интерфейса",
+      "Найти настройку...",
+      "Развернуть все",
+      "Свернуть все",
+      "Настройки...",
+      "Менять раскладку после конвертации текста",
+      "Синхронизировать CapsLock после исправления регистра",
+      "Уступать хоткеи удалённому рабочему столу (mstsc/msrdc)",
+      "Прямые сочетания на язык",
+      "Языки Windows",
+      "Конвертация раскладок",
+      "Снимок области экрана",
+      "Сделать снимок области",
+      "Быстрый запуск",
+      "Быстрые заметки",
+      "Перевод",
+      "Сохранить выделение в быстрые заметки",
+      "Копировать для Google Keep",
+      "Отправить логи автору.."
+    ],
+    "uk": [
+      "Запускати CyrFlip разом із Windows",
+      "Не давати комп'ютеру засинати",
+      "Не блокувати екран (як під час відео)",
+      "Мова інтерфейсу",
+      "Знайти налаштування...",
+      "Розгорнути все",
+      "Згорнути все",
+      "Налаштування...",
+      "Змінювати розкладку після перетворення тексту",
+      "Синхронізувати CapsLock після виправлення регістру",
+      "Поступатися хоткеями віддаленому робочому столу (mstsc/msrdc)",
+      "Прямі сполучення на мову",
+      "Мови Windows",
+      "Перетворення розкладок",
+      "Знімок області екрана",
+      "Зробити знімок області",
+      "Швидкий запуск",
+      "Швидкі нотатки",
+      "Переклад",
+      "Зберегти виділене у швидкі нотатки",
+      "Копіювати для Google Keep",
+      "Надіслати логи автору.."
+    ]
   }
 }

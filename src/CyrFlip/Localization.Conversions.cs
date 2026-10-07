@@ -216,6 +216,20 @@ namespace CyrFlip
                 bn: "CyrFlip-এর কিছু সেটিং পড়া যায়নি, সেগুলো যেমন ছিল তেমনই রাখা হয়েছে।",
                 ur: "CyrFlip کی کچھ ترتیبات پڑھی نہ جا سکیں اور انہیں جوں کا توں چھوڑ دیا گیا۔",
                 zh: "部分 CyrFlip 设置无法读取，已保持原样。");
+
+            Add("Удалить строку конвертации «{0}»? Отменить удаление нельзя.",
+                en: "Delete the conversion row \"{0}\"? This cannot be undone.",
+                uk: "Видалити рядок конвертації «{0}»? Скасувати видалення не можна.",
+                de: "Konvertierungszeile \"{0}\" löschen? Das lässt sich nicht rückgängig machen.",
+                it: "Eliminare la riga di conversione \"{0}\"? L'operazione non si può annullare.",
+                es: "¿Eliminar la fila de conversión \"{0}\"? No se puede deshacer.",
+                fr: "Supprimer la ligne de conversion « {0} » ? Cette action est irréversible.",
+                pt: "Excluir a linha de conversão \"{0}\"? Não é possível desfazer.",
+                ar: "هل تريد حذف صف التحويل «{0}»؟ لا يمكن التراجع عن ذلك.",
+                hi: "रूपांतरण पंक्ति \"{0}\" हटाएँ? इसे वापस नहीं किया जा सकता।",
+                bn: "রূপান্তর সারি \"{0}\" মুছবেন? এটি আর ফেরানো যাবে না।",
+                ur: "تبدیلی کی قطار «{0}» حذف کریں؟ اسے واپس نہیں کیا جا سکتا۔",
+                zh: "删除转换行“{0}”？此操作无法撤销。");
         }
     }
 }

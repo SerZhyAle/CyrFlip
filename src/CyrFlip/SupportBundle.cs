@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -83,7 +83,7 @@ namespace CyrFlip
         {
             "launcher.log", "context-menu.log", "translate.log", "quick-notes-diagnostics.log",
             "clipboard-history-diagnostics.log", "clipboard-flip.log", "screenshot.log",
-            "caret-diagnostics.txt", "layout.txt",
+            "settings-file.log", "caret-diagnostics.txt", "layout.txt",
         };
 
         /// <summary>
@@ -117,6 +117,7 @@ namespace CyrFlip
             ["clipboard-flip.log"] = "конвертации выделения: длины и имена процессов - без текста",
             ["screenshot.log"] = "снимки экрана: исход сохранения файла - без путей",
             ["caret-diagnostics.txt"] = "диагностика каретки: классы окон и процессы - заголовки только длиной",
+            ["settings-file.log"] = "перенос настроек: счётчики, имена ключей и коды причин - без значений",
             ["layout.txt"] = "код текущей раскладки",
         };
 

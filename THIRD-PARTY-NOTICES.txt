@@ -43,3 +43,23 @@ The path data was taken unchanged from the catalog's `iconography/glyphs/<id>.sv
 - `content.apps`
 
 The landing pages under `docs/` inline `action.confirm` (the check mark on the copy button).
+
+## Outfit and Plus Jakarta Sans (website typefaces)
+
+- **What:** the two typefaces of the GitHub Pages site (`docs/`), served from the site itself as WOFF2 files in
+  `docs/assets/fonts/` (`docs/style.css` `@font-face`), so a visit to the site contacts no font host. The app does not
+  use them.
+- **Authors:** Outfit - The Outfit Project Authors; Plus Jakarta Sans - The Plus Jakarta Sans Project Authors
+  (Tokotype)
+- **Source:** <https://github.com/Outfitio/Outfit-Fonts>, <https://github.com/tokotype/PlusJakartaSans>
+- **Licence:** SIL Open Font License, Version 1.1 - <https://openfontlicense.org>. The full licence texts are
+  `docs/assets/fonts/OFL-Outfit.txt` and `docs/assets/fonts/OFL-PlusJakartaSans.txt`. The files are the unmodified
+  subsets that the fonts' public distribution (Google Fonts) serves; the fonts are not sold on their own.
+
+## Unicode Character Database (UnicodeData.txt)
+
+- **What:** character names and code point data used at build time to generate the symbols palette (`src/CyrFlip/Symbols.g.cs`, ticket S0056).
+- **Author:** Unicode, Inc.
+- **Source:** <https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt>
+- **Licence:** Unicode License Agreement - Data Files and Software (<https://www.unicode.org/copyright.html>). Copyright © 1991-2024 Unicode, Inc. All rights reserved. Distributed under the Terms of Use in <https://www.unicode.org/copyright.html>.
+

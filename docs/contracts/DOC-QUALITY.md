@@ -5,7 +5,7 @@
 | **Ids** | `DOC-INTERNAL-QUALITY`, `DOC-EXTERNAL-QUALITY` |
 | **Version** | `DOC-INTERNAL-QUALITY` 0.9, `DOC-EXTERNAL-QUALITY` 0.10, draft |
 | **Home** | `documentation-quality/README.md` in the shared contracts catalog |
-| **Role here** | consumer of both - adopted 2026-09-26; held as of 2026-10-01 (ticket `S0028`), most rules gated by tests - internal 5 (house style) and 6-7 (asset orphans, embedded third-party assets) are held by the cleanup and by reading, not gated |
+| **Role here** | consumer of both - adopted 2026-09-26; held as of 2026-10-01 (ticket `S0028`), most rules gated by tests - internal 5 (house style) and 6-7 (asset orphans, embedded third-party assets) are held by the cleanup and by reading, not gated. `DOC-INTERNAL-QUALITY` is still 0.9 in the catalog; `DOC-EXTERNAL-QUALITY` 0.10 was read on 2026-10-07 and widens only what conforms (section 8 of the contract), see the last section |
 
 ## Why both
 
@@ -43,3 +43,20 @@ holds most of both contracts:
   JSON-LD are required on every indexable page.
 - **external 6** - the guide's multi-step sections carry per-locale captures
   (`docs/assets/guide-settings-*-<locale>.png`); their references are held by the link gate.
+
+## Read at `DOC-EXTERNAL-QUALITY` 0.10 (2026-10-07)
+
+The five points of section 8 each widen what conforms, so nothing above moved:
+
+- **A (rule 1):** the landing is a portal, the guide a task-ordered page with its own index and glossary - the
+  stricter form, which still conforms.
+- **B (rule 2):** 40 indexable pages is above the 25-page threshold, so a regenerated-or-verified search index
+  is owed and exists (`docs/search-index.json`, held against the pages with their titles and descriptions).
+- **C (rule 5):** the 60 and 160 limits count Unicode code points after entity decoding. The gate decodes
+  entities and counts UTF-16 units, which is never fewer than code points, so it is equal or stricter and
+  cannot pass what the contract would fail.
+- **D (rule 5):** not used - every locale has its own URL and its own `hreflang`.
+- **E (rule 6):** not used - every step in the guide is in the product's own UI and has its capture.
+
+The pages around the landing (which exist, how they look and behave, how they present the product) are
+`SITE-STRUCTURE`, `SITE-EXPERIENCE` and `SITE-REPRESENTATION`, which cite these rules and repeat none of them.

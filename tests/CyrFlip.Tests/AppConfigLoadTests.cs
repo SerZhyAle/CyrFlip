@@ -187,6 +187,38 @@ namespace CyrFlip.Tests
             Assert.Contains("ClipboardHistoryHotkey", cfg.UnreadableValues);
             Assert.Contains("QuickNotesHotkey", cfg.UnreadableValues);
         }
+
+        // ---- The screenshots folder chord (S0057): the same INPUT-CHORD rules as every fixed chord ----
+
+        [Fact]
+        public void TheScreenshotsFolderChordDefaultsRoundTripsAndFallsBackAlone()
+        {
+            Assert.Equal(AppConfig.DefaultScreenshotFolderHotkey, new AppConfig().ScreenshotFolderHotkey);
+            Assert.Equal("Ctrl+Shift+Alt+PrintScreen", AppConfig.DefaultScreenshotFolderHotkey);
+            Assert.True(new AppConfig().EnableScreenshotFolderHotkey);
+
+            // A non-canonical token comes back canonical and is written back that way (rule 2).
+            var key = new FakeKey();
+            key.Values["ScreenshotFolderHotkey"] = "control + shift + alt + printscreen";
+            key.Values["EnableScreenshotFolderHotkey"] = 0;
+            AppConfig cfg = Load(key);
+            Assert.Equal(AppConfig.DefaultScreenshotFolderHotkey, cfg.ScreenshotFolderHotkey);
+            Assert.False(cfg.EnableScreenshotFolderHotkey);
+            Assert.Empty(cfg.UnreadableValues);
+
+            cfg.ScreenshotFolderHotkey = "Ctrl+Shift+Alt+F12";
+            cfg.EnableScreenshotFolderHotkey = true;
+            cfg.SaveTo(key);
+            AppConfig reread = Load(key);
+            Assert.Equal("Ctrl+Shift+Alt+F12", reread.ScreenshotFolderHotkey);
+            Assert.True(reread.EnableScreenshotFolderHotkey);
+
+            // An unparsable token is inert, falls back to its own default and is recorded (rule 3).
+            key.Values["ScreenshotFolderHotkey"] = "invalid_chord";
+            AppConfig bad = Load(key);
+            Assert.Equal(AppConfig.DefaultScreenshotFolderHotkey, bad.ScreenshotFolderHotkey);
+            Assert.Contains("ScreenshotFolderHotkey", bad.UnreadableValues);
+        }
     }
 }
 

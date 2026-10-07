@@ -1,63 +1,68 @@
 @@ShortDescription
-Indicador de distribución de teclado junto al cursor de texto y conversión entre dos distribuciones instaladas con una sola tecla.
+Una caja de herramientas en la bandeja para el teclado y el escritorio: una marca de distribución en vivo junto al cursor de texto, corrección con una tecla del texto escrito con la distribución equivocada o con BLOQ MAYÚS y captura de una región de la pantalla - además de un menú sobre la selección, un traductor local, notas rápidas, historial del portapapeles e inicio rápido opcionales.
 @@Description
-CyrFlip es una pequeña aplicación de la bandeja de Windows que muestra la distribución de teclado activa justo donde escribes y convierte el texto entre distribuciones con una sola tecla.
+CyrFlip es una caja de herramientas en la bandeja para el teclado y el escritorio. Nada más instalarlo te mantiene en la distribución correcta y corrige el texto escrito con la equivocada; todo lo demás es un módulo opcional que activas cuando lo necesitas.
 
-Su función principal es un indicador de distribución en vivo fijado junto al cursor de texto parpadeante, para que siempre sepas en qué distribución vas a escribir - incluso en los navegadores y en el cuadro de chat de VS Code, adonde la mayoría de los indicadores no llega. La misma marca puede sustituir también el puntero de texto del ratón y aparece en el icono de la bandeja. Cada uno de los 13 idiomas seleccionados tiene su propio color, cualquier otra distribución de Windows recibe igualmente su código de dos letras, y BLOQ MAYÚS añade un fino marco alrededor de la marca.
+Escribe en la distribución correcta. Una marca de distribución en vivo se sitúa junto al cursor de texto parpadeante, para que siempre sepas en qué distribución vas a escribir - incluso en los navegadores y en el cuadro de chat de VS Code, adonde la mayoría de los indicadores no llega. La misma marca puede sustituir el puntero de texto del ratón y aparece en el icono de la bandeja. Cada uno de los 13 idiomas seleccionados tiene su propio color, cualquier otra distribución de Windows recibe igualmente su código de dos letras, y BLOQ MAYÚS añade un fino marco alrededor de la marca.
 
-Selecciona el texto escrito en la distribución equivocada y pulsa el atajo: CyrFlip lo translitera en el sitio entre QWERTY y ЙЦУКЕН, en ambos sentidos e incluso con texto mezclado. Un atajo aparte y configurable corrige del mismo modo un BLOQ MAYÚS olvidado.
+Selecciona el texto escrito con la distribución equivocada y pulsa Ctrl+Mayús+F12: CyrFlip lo convierte en el sitio, en ambos sentidos e incluso con texto mezclado. Añade tantos pares "de una distribución a otra" como quieras, cada uno con su propio atajo; el texto se convierte por la posición física de las teclas, así que AZERTY y QWERTZ se tratan correctamente. Un atajo aparte corrige un BLOQ MAYÚS olvidado. La pestaña "Idiomas de Windows" instala, reordena y quita distribuciones de teclado (no se descarga nada - vienen con Windows) y asigna atajos por idioma que gestiona el propio Windows, de modo que siguen funcionando aunque CyrFlip esté cerrado.
 
-¿Necesitas otros idiomas? Crea una tabla de conversiones de distribución: tantos pares "de una distribución a otra" como quieras, cada uno con su propio atajo global. El texto se convierte por la posición física de las teclas, así que las distribuciones AZERTY y QWERTZ se tratan correctamente, y cada par funciona en ambos sentidos: vuelve a pulsar la misma combinación mientras está activa la otra distribución del par y el texto se convierte de vuelta.
+Actúa sobre lo que seleccionas. Mantén pulsado Ctrl y haz clic derecho sobre una selección: el menú propio de CyrFlip se abre junto al puntero con copiar, cortar y pegar, tus conversiones de distribución, la inversión de mayúsculas y minúsculas, la traducción, el inicio rápido y el historial del portapapeles - sin quitar el foco, así que la selección se conserva. Una combinación de teclas abre el mismo menú junto al cursor de texto. Desactivado de forma predeterminada.
 
-Una ventana de ajustes sustituye además el panel de idiomas de Windows: instala, reordena y quita distribuciones de teclado (no se descarga nada - vienen con Windows), elige el atajo para recorrer los idiomas y asigna atajos directos por idioma que gestiona el propio Windows, de modo que siguen funcionando aunque CyrFlip esté cerrado. Ambas secciones guardan una copia de seguridad única de tu estado anterior.
+El traductor integrado también es opcional. Selecciona texto en cualquier parte de Windows, pulsa su atajo y la traducción aparece en una ventanita junto al puntero del ratón, rellenándose a medida que el modelo escribe. Funciona sobre Ollama, un programa gratuito que instalas una sola vez en tu propio ordenador: CyrFlip no lo incluye, no tiene cuenta ni clave y de forma predeterminada solo habla con http://localhost:11434 - tu propia máquina. Los idiomas de destino forman una tabla abierta, cada uno con su propio atajo, y el resultado se puede copiar al portapapeles o pegar sobre la selección. El modelo predeterminado es aya-expanse:8b (~4,7 GB). Aviso honesto: la calidad es la del modelo local, la primera traducción tras un arranque en frío tarda un poco y la memoria que usa el modelo pertenece al proceso de Ollama, no a CyrFlip.
 
-El historial del portapapeles es opcional y está desactivado de forma predeterminada. Al activarlo, guarda localmente el texto Unicode reciente, con búsqueda en su propia ventana; las entradas se pueden fijar, borrar, pausar o vaciar, y todo queda protegido con el cifrado DPAPI de Windows para el usuario actual.
+Guarda lo que copias y escribes. El historial opcional del portapapeles conserva localmente el texto reciente, con búsqueda en su propia ventana; las entradas se pueden fijar o borrar, el historial se puede pausar o vaciar, y cada registro se cifra con Windows DPAPI para tu cuenta de Windows. Las notas rápidas opcionales se abren con Ctrl+Mayús+Alt+N y conservan el texto tal cual - sin Markdown ni formato automático - para que un fragmento de código se pegue de vuelta sin cambios; la búsqueda mira dentro de cada nota, y las notas también se guardan cifradas en el disco. Las notas y el historial del portapapeles pasan a otro ordenador o a un teléfono en un único archivo de texto plano que exportas e importas tú mismo.
 
-El inicio rápido es un segundo módulo opcional, también apagado hasta que lo actives. Convierte tus programas, scripts y descargas de yt-dlp en escenarios que puedes lanzar desde el submenú de la bandeja, desde un atajo global propio o desde la Jump List de la barra de tareas - incluso mientras CyrFlip no se está ejecutando, si lo anclas. Los escenarios de la herramienta independiente OneClickRunner, que este módulo absorbe, se pueden importar en el primer arranque sin tocar los originales.
+Lanza y captura. Ctrl+Mayús+Impr Pant congela la pantalla, arrastras para marcar una región y la imagen llega al portapapeles - y, si quieres, también se guarda como PNG en una carpeta. El inicio rápido, un módulo opcional, convierte tus programas, scripts y descargas de yt-dlp en escenarios que lanzas desde la bandeja, con un atajo propio o desde la Jump List de la barra de tareas; los escenarios de la herramienta independiente OneClickRunner se pueden importar sin tocar los originales. Dos interruptores impiden que Windows se suspenda o apague la pantalla mientras trabajas.
 
-El traductor integrado también es opcional y está apagado hasta que lo actives. Selecciona texto en cualquier parte de Windows, pulsa su atajo y la traducción aparece en una ventanita junto al puntero del ratón, rellenándose a medida que el modelo escribe. Funciona sobre Ollama, un programa gratuito que instalas una sola vez en tu propio ordenador: CyrFlip no lo incluye, no tiene cuenta ni clave y de forma predeterminada solo habla con http://localhost:11434 - tu propia máquina - así que no se envía texto al desarrollador ni a ningún servicio en la nube. Las direcciones son una tabla abierta, como las conversiones de distribución: cada fila es un idioma de destino con su propio atajo global, y una fila puede seguir también el idioma de la interfaz o el de la distribución activa en la ventana desde la que traduces. El resultado se puede copiar al portapapeles, donde el historial opcional lo registra como cualquier otra copia, o pegar directamente sobre la selección: ambas opciones están desactivadas de forma predeterminada. La pestaña "Traducción" abre la página de descarga de Ollama, arranca el servidor, comprueba la conexión y descarga un modelo: aya-expanse:8b (~4,7 GB) es el predeterminado y el mejor de los probados, junto a gemma2:9b (~5 GB). Todos los modelos de menos de 4 GB fallaron la prueba en ruso y ucraniano, así que gemma2:2b (~1,5 GB) queda solo para equipos con poco espacio, y se equivocará. Aviso honesto: la calidad es la del modelo local, la primera traducción tras un arranque en frío tarda porque se carga el modelo, Ollama y un modelo son una descarga de varios gigabytes que haces una vez, y la memoria que usa el modelo pertenece al proceso de Ollama, no a CyrFlip. Las selecciones de más de 4000 caracteres se traducen hasta ese punto, y la ventana lo indica.
-
-Cada atajo se puede activar o desactivar por separado, CyrFlip puede cederlos a un cliente de Escritorio remoto en primer plano para que los gestione la copia que corre en la sesión remota, y dos interruptores impiden que Windows se suspenda o apague la pantalla mientras trabajas.
-
-La interfaz está disponible en 13 idiomas, incluidos los que se escriben de derecha a izquierda. Se ejecuta en la bandeja del sistema, usa poca memoria y no necesita nada más instalado en Windows 10/11.
+Solo tuyo. Los módulos opcionales siguen apagados hasta que los activas, cada atajo se puede desactivar por separado y CyrFlip puede ceder sus atajos a una ventana de Escritorio remoto en primer plano. La interfaz está disponible en 13 idiomas, incluidos los que se escriben de derecha a izquierda, con tema claro, oscuro o como el de Windows. CyrFlip se ejecuta en la bandeja del sistema, usa poca memoria y no necesita nada más instalado en Windows 10/11.
 
 Privacidad: CyrFlip usa un hook de teclado solo para reconocer sus propios atajos, el portapapeles solo para las acciones que tú inicias y - solo mientras tengas activado su menú contextual opcional - un hook de ratón para la única combinación que abre ese menú. No registra las pulsaciones y no abre ninguna conexión de red salvo que actives el traductor, que solo habla con el servidor Ollama que le indiques - tu propio ordenador de forma predeterminada. Si algo va mal, la ventana de ajustes reúne los registros de CyrFlip en un solo archivo comprimido y abre un mensaje al autor con ese adjunto. El mensaje lo envía usted - CyrFlip no transmite nada por la red y el historial del portapapeles nunca entra en el archivo. Código abierto: https://github.com/SerZhyAle/CyrFlip
+
+En el primer inicio, una bienvenida de cinco pasos presenta CyrFlip y ofrece abrir los ajustes generales para la configuración inicial. Omítela o ciérrala para mantener los valores predeterminados. No vuelve a aparecer tras actualizar; puedes repetirla en Acerca de. El inicio con Windows permanece desactivado hasta que lo elijas.
+
+En General, exporta la configuración de CyrFlip a JSON, revisa los cambios antes de importar o restaura la configuración anterior. Las tres copias más recientes se guardan localmente. No incluye notas, historial del portapapeles, escenarios, rutas locales ni ajustes de Windows. La grabación y otro servidor de traducción requieren consentimiento por separado.
+
 @@Feature1
-Marca de distribución junto al cursor de texto - funciona en navegadores y en el chat de VS Code
+Marca de distribución en vivo junto al cursor de texto - funciona en navegadores y en el chat de VS Code
 @@Feature2
-13 idiomas seleccionados, cada uno con su color; cualquier otra distribución recibe su código
+13 idiomas seleccionados, cada uno con su color; cualquier otra distribución de Windows recibe también su código
 @@Feature3
-Transliteración entre QWERTY y ЙЦУКЕН con una tecla, en el sitio, en ambos sentidos
+Una tecla corrige el texto escrito con la distribución equivocada, en el sitio y en ambos sentidos
 @@Feature4
-Tabla de conversiones: tantos pares como quieras, cada uno con su atajo, en los dos sentidos
+Tabla de conversiones de distribución: cualquier par, cada uno con su atajo, por la posición física de las teclas
 @@Feature5
-Convierte por la posición física de las teclas: AZERTY y QWERTZ se tratan correctamente
-@@Feature6
 Un atajo aparte corrige el BLOQ MAYÚS olvidado (intercambia MAYÚSCULAS y minúsculas)
+@@Feature6
+Instala, reordena y quita distribuciones de teclado de Windows; atajos por idioma que gestiona el propio Windows
 @@Feature7
-Instala, reordena y quita distribuciones de Windows sin abrir el panel de idiomas
+Menú opcional sobre la selección con Ctrl + clic derecho: copiar, convertir, invertir mayúsculas, traducir, lanzar
 @@Feature8
-Atajos por idioma que gestiona Windows: siguen funcionando con CyrFlip cerrado
+Traductor local opcional: la selección se traduce con un atajo en una ventana junto al puntero del ratón
 @@Feature9
-Historial del portapapeles opcional y cifrado, con búsqueda, anclaje y protección DPAPI
+La traducción funciona con Ollama, instalado aparte en tu propio ordenador - desactivada hasta que la activas
 @@Feature10
-Dos interruptores anti-suspensión: sin reposo y sin apagado de pantalla mientras trabajas
+Historial del portapapeles opcional y cifrado, con búsqueda, elementos fijados y protección DPAPI de Windows
 @@Feature11
-Interfaz en 13 idiomas, también de derecha a izquierda; sigue el idioma de Windows
+Notas rápidas opcionales que conservan el texto tal cual, para que el código se pegue sin cambios; cifradas en disco
 @@Feature12
-Funciona discreta en la bandeja, poca memoria, nada más que instalar
+Pasa las notas y el historial del portapapeles a otro ordenador en un único archivo de texto plano
 @@Feature13
-Código abierto - sin telemetría ni recogida de datos; la única red que usa es tu propio Ollama
+Captura de una región de la pantalla al portapapeles con Ctrl+Mayús+Impr Pant, y si quieres también como PNG
 @@Feature14
 Inicio rápido opcional: programas, scripts y descargas de yt-dlp como escenarios de un clic
 @@Feature15
-Lanza un escenario desde la bandeja, con su atajo global o desde la Jump List
+Lanza un escenario desde la bandeja, con su propio atajo global o desde la Jump List de la barra de tareas
 @@Feature16
-Traductor local opcional: la selección se traduce con un atajo, junto al puntero del ratón
+Dos interruptores anti-suspensión: sin reposo y sin apagado de pantalla mientras trabajas
 @@Feature17
-La traducción corre en Ollama en tu ordenador - se instala aparte y está apagada por defecto
+Tema claro, oscuro o como Windows en todas las ventanas, diálogos y menús
 @@Feature18
-Claro, oscuro o como Windows: ventanas, diálogos y menús siguen el tema, sin reiniciar
+Interfaz en 13 idiomas, también de derecha a izquierda; sigue el idioma de Windows
+@@Feature19
+Funciona discretamente en la bandeja, con poca memoria y nada más que instalar
+@@Feature20
+Código abierto - sin telemetría ni recogida de datos; la única red que usa es tu propio Ollama
 @@SearchTerm1
 cambiar distribución teclado
 @@SearchTerm2

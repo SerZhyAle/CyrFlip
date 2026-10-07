@@ -49,11 +49,18 @@ namespace CyrFlip
         /// </summary>
         public const string DefaultScreenshotHotkey = "Ctrl+Shift+PrintScreen";
         /// <summary>
+        /// Opens the folder the captures are saved into (S0057): the capture chord plus one modifier -
+        /// the same four-key shape the quick notes and the text menu use.
+        /// </summary>
+        public const string DefaultScreenshotFolderHotkey = "Ctrl+Shift+Alt+PrintScreen";
+        /// <summary>
         /// Opens the text context menu at the caret (S0045 K2): M for menu, in the quick notes' family
         /// (Ctrl+Shift+Alt+N) - Ctrl+Shift+F10, the Shift+F10 mnemonic, is the clipboard history's. Bound
         /// only while the context menu is on.
         /// </summary>
         public const string DefaultTextMenuHotkey = "Ctrl+Shift+Alt+M";
+        /// <summary>Default hotkey for the symbols palette (ticket S0056 section 9).</summary>
+        public const string DefaultSymbolsHotkey = "Ctrl+Shift+F9";
         private const string UsKlid = "00000409";
         private const string RussianKlid = "00000419";
 
@@ -205,6 +212,9 @@ namespace CyrFlip
         /// recreated by a later start.
         /// </summary>
         public bool ShortcutsCreated { get; set; } = false;
+        public bool WelcomeShown { get; set; } = false;
+        /// <summary>Load-time provenance only; never persisted.</summary>
+        public bool IsFirstRun { get; private set; }
         /// <summary>
         /// The built-in translator (a local Ollama server). Off by default: while false no chord is
         /// bound, the tray has no translate entry and CyrFlip never opens a socket.
@@ -285,11 +295,29 @@ namespace CyrFlip
         /// </summary>
         public string ScreenshotHotkey { get; set; } = DefaultScreenshotHotkey;
         public bool EnableScreenshotHotkey { get; set; } = true;
+        /// <summary>
+        /// The chord that opens <see cref="ScreenshotFolder"/> in Explorer (S0057). Bound only while
+        /// <see cref="ScreenshotSaveEnabled"/> and <see cref="EnableScreenshotFolderHotkey"/> are both on.
+        /// </summary>
+        public string ScreenshotFolderHotkey { get; set; } = DefaultScreenshotFolderHotkey;
+        public bool EnableScreenshotFolderHotkey { get; set; } = true;
         /// <summary>Also write each captured region as a PNG into <see cref="ScreenshotFolder"/> (CAPTURE-OUTPUT).</summary>
         public bool ScreenshotSaveEnabled { get; set; } = false;
         /// <summary>Empty = the <c>FOLDERID_Screenshots</c> known folder, resolved at save time (CAPTURE-OUTPUT rule 9).</summary>
         public string ScreenshotFolder { get; set; } = "";
         public int ScreenshotCount { get; set; } = 0;
+        /// <summary>The symbols window module switch (ticket S0056). Off by default.</summary>
+        public bool EnableSymbols { get; set; } = false;
+        public string SymbolsHotkey { get; set; } = DefaultSymbolsHotkey;
+        public bool EnableSymbolsHotkey { get; set; } = true;
+        public string SymbolsRecent { get; set; } = "";
+        public string SymbolsCategory { get; set; } = "recent";
+        public bool SymbolsHideTypable { get; set; } = false;
+        public int SymbolsX { get; set; } = int.MinValue;
+        public int SymbolsY { get; set; } = int.MinValue;
+        public int SymbolsWidth { get; set; } = 0;
+        public int SymbolsHeight { get; set; } = 0;
+        public int SymbolsCount { get; set; } = 0;
 
         /// <summary>
         /// UI language default for a fresh install (no saved value): follow the OS UI language when
@@ -354,7 +382,7 @@ namespace CyrFlip
         private readonly Dictionary<string, string> _preserveRaw = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>The whole read, against a registry seam (null = no key yet, i.e. a first run).</summary>
-        internal static AppConfig LoadFrom(IConfigKey? key, out bool mustSave)
+        internal static AppConfig LoadFrom(IConfigKey? key, out bool mustSave, string? legacyJsonPath = null)
         {
             var cfg = new AppConfig();
             bool seeded = false;
@@ -362,11 +390,17 @@ namespace CyrFlip
             {
                 if (key == null)
                 {
-                    cfg.LayoutConversionProfiles.Add(FlipRow(cfg.MigrateFromJson(), true));
+                    cfg.LayoutConversionProfiles.Add(FlipRow(cfg.MigrateFromJson(out bool legacyFound, legacyJsonPath), true));
+                    cfg.IsFirstRun = !legacyFound;
+                    cfg.WelcomeShown = legacyFound;
                     seeded = true;
                 }
                 else
                 {
+                    // Missing or corrupt markers on existing profiles must never nag after an update.
+                    object? welcomeMarker = cfg.Raw(key, "WelcomeShown");
+                    cfg.WelcomeShown = welcomeMarker == null || !(welcomeMarker is int) || cfg.ReadBool(key, "WelcomeShown", true);
+                    if (welcomeMarker != null && !(welcomeMarker is int)) cfg._unreadable.Add("WelcomeShown");
                     cfg.CaseHotkey = cfg.ReadHotkey(key, "CaseHotkey", cfg.CaseHotkey);
                     cfg.ClipboardHistoryHotkey = cfg.ReadHotkey(key, "ClipboardHistoryHotkey", cfg.ClipboardHistoryHotkey);
                     cfg.UiLanguage = cfg.ReadString(key, "UiLanguage", cfg.UiLanguage);
@@ -466,9 +500,23 @@ namespace CyrFlip
 
                     cfg.ScreenshotHotkey = cfg.ReadHotkey(key, "ScreenshotHotkey", cfg.ScreenshotHotkey);
                     cfg.EnableScreenshotHotkey = cfg.ReadBool(key, "EnableScreenshotHotkey", cfg.EnableScreenshotHotkey);
+                    cfg.ScreenshotFolderHotkey = cfg.ReadHotkey(key, "ScreenshotFolderHotkey", cfg.ScreenshotFolderHotkey);
+                    cfg.EnableScreenshotFolderHotkey = cfg.ReadBool(key, "EnableScreenshotFolderHotkey", cfg.EnableScreenshotFolderHotkey);
                     cfg.ScreenshotSaveEnabled = cfg.ReadBool(key, "ScreenshotSaveEnabled", cfg.ScreenshotSaveEnabled);
                     cfg.ScreenshotFolder = cfg.ReadString(key, "ScreenshotFolder", cfg.ScreenshotFolder);
                     cfg.ScreenshotCount = cfg.ReadInt(key, "ScreenshotCount", cfg.ScreenshotCount);
+
+                    cfg.EnableSymbols = cfg.ReadBool(key, "EnableSymbols", cfg.EnableSymbols);
+                    cfg.SymbolsHotkey = cfg.ReadHotkey(key, "SymbolsHotkey", cfg.SymbolsHotkey);
+                    cfg.EnableSymbolsHotkey = cfg.ReadBool(key, "EnableSymbolsHotkey", cfg.EnableSymbolsHotkey);
+                    cfg.SymbolsRecent = cfg.ReadString(key, "SymbolsRecent", cfg.SymbolsRecent);
+                    cfg.SymbolsCategory = cfg.ReadString(key, "SymbolsCategory", cfg.SymbolsCategory);
+                    cfg.SymbolsHideTypable = cfg.ReadBool(key, "SymbolsHideTypable", cfg.SymbolsHideTypable);
+                    cfg.SymbolsX = cfg.ReadInt(key, "SymbolsX", cfg.SymbolsX);
+                    cfg.SymbolsY = cfg.ReadInt(key, "SymbolsY", cfg.SymbolsY);
+                    cfg.SymbolsWidth = cfg.ReadInt(key, "SymbolsWidth", cfg.SymbolsWidth);
+                    cfg.SymbolsHeight = cfg.ReadInt(key, "SymbolsHeight", cfg.SymbolsHeight);
+                    cfg.SymbolsCount = cfg.ReadInt(key, "SymbolsCount", cfg.SymbolsCount);
                 }
             }
             mustSave = seeded || repaired;
@@ -531,6 +579,7 @@ namespace CyrFlip
                 key.SetValue("LauncherFirstEnableDone", LauncherFirstEnableDone ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("DataFolderMigrated", DataFolderMigrated ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ShortcutsCreated", ShortcutsCreated ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("WelcomeShown", WelcomeShown ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableTranslate", EnableTranslate ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("TranslateSeeded", TranslateSeeded ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("TranslateEndpoint", TranslateEndpoint, RegistryValueKind.String);
@@ -564,9 +613,26 @@ namespace CyrFlip
                 key.SetValue("QuickNoteCount", QuickNoteCount, RegistryValueKind.DWord);
                 key.SetValue("ScreenshotHotkey", ScreenshotHotkey, RegistryValueKind.String);
                 key.SetValue("EnableScreenshotHotkey", EnableScreenshotHotkey ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ScreenshotFolderHotkey", ScreenshotFolderHotkey, RegistryValueKind.String);
+                key.SetValue("EnableScreenshotFolderHotkey", EnableScreenshotFolderHotkey ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ScreenshotSaveEnabled", ScreenshotSaveEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ScreenshotFolder", ScreenshotFolder, RegistryValueKind.String);
                 key.SetValue("ScreenshotCount", ScreenshotCount, RegistryValueKind.DWord);
+
+                if (EnableSymbols || Has(key, "EnableSymbols"))
+                {
+                    key.SetValue("EnableSymbols", EnableSymbols ? 1 : 0, RegistryValueKind.DWord);
+                    key.SetValue("SymbolsHotkey", SymbolsHotkey, RegistryValueKind.String);
+                    key.SetValue("EnableSymbolsHotkey", EnableSymbolsHotkey ? 1 : 0, RegistryValueKind.DWord);
+                    key.SetValue("SymbolsRecent", SymbolsRecent, RegistryValueKind.String);
+                    key.SetValue("SymbolsCategory", SymbolsCategory, RegistryValueKind.String);
+                    key.SetValue("SymbolsHideTypable", SymbolsHideTypable ? 1 : 0, RegistryValueKind.DWord);
+                    key.SetValue("SymbolsX", SymbolsX, RegistryValueKind.DWord);
+                    key.SetValue("SymbolsY", SymbolsY, RegistryValueKind.DWord);
+                    key.SetValue("SymbolsWidth", SymbolsWidth, RegistryValueKind.DWord);
+                    key.SetValue("SymbolsHeight", SymbolsHeight, RegistryValueKind.DWord);
+                    key.SetValue("SymbolsCount", SymbolsCount, RegistryValueKind.DWord);
+                }
             }
         }
 
@@ -669,6 +735,18 @@ namespace CyrFlip
             catch { }
         }
 
+        /// <summary>Persist at display time, so closing or crashing cannot repeat the tour.</summary>
+        public void SaveWelcomeShown()
+        {
+            WelcomeShown = true;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("WelcomeShown", 1, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
         /// <summary>Increment the flip counter and persist only that value (cheap write).</summary>
         public void IncrementFlipCount()
         {
@@ -763,19 +841,68 @@ namespace CyrFlip
             catch { }
         }
 
+        public void IncrementSymbolsCount()
+        {
+            SymbolsCount++;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("SymbolsCount", SymbolsCount, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
+        public void SaveSymbolsRecent()
+        {
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("SymbolsRecent", SymbolsRecent, RegistryValueKind.String);
+            }
+            catch { }
+        }
+
+        public void SaveSymbolsCategory()
+        {
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("SymbolsCategory", SymbolsCategory, RegistryValueKind.String);
+            }
+            catch { }
+        }
+
+        public void SaveSymbolsWindow()
+        {
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                if (key == null) return;
+                key.SetValue("SymbolsX", SymbolsX, RegistryValueKind.DWord);
+                key.SetValue("SymbolsY", SymbolsY, RegistryValueKind.DWord);
+                key.SetValue("SymbolsWidth", SymbolsWidth, RegistryValueKind.DWord);
+                key.SetValue("SymbolsHeight", SymbolsHeight, RegistryValueKind.DWord);
+                key.SetValue("SymbolsCategory", SymbolsCategory, RegistryValueKind.String);
+            }
+            catch { }
+        }
+
         /// <summary>
         /// Pull what a legacy config.json still has to say (first run, no registry key yet) and return
         /// the flip chord it carried, so the caller can seed the conversion table with it. The caller
         /// persists - a migration that saved on its own would write before the seeding is applied.
         /// </summary>
-        private string MigrateFromJson()
+        private string MigrateFromJson(out bool legacyFound, string? legacyJsonPath = null)
         {
+            legacyFound = false;
             string hotkey = DefaultFlipHotkey;
             try
             {
-                string? path = ResolveJsonPath();
+                string? path = legacyJsonPath ?? ResolveJsonPath();
                 if (path == null || !File.Exists(path))
                     return hotkey;
+                // Even a damaged old file identifies an existing user.
+                legacyFound = true;
                 var data = new JavaScriptSerializer()
                     .Deserialize<Dictionary<string, object>>(File.ReadAllText(path));
                 if (data == null) return hotkey;

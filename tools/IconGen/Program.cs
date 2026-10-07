@@ -17,12 +17,12 @@ namespace IconGen
     /// </summary>
     internal static class Program
     {
-        // Palette (matches docs/style.css).
-        private static readonly Color Bg1 = ColorTranslator.FromHtml("#11161f");
-        private static readonly Color Bg2 = ColorTranslator.FromHtml("#1c2636");
-        private static readonly Color Accent = ColorTranslator.FromHtml("#4493f8");
-        private static readonly Color Ink = ColorTranslator.FromHtml("#e6edf3");
-        private static readonly Color Muted = ColorTranslator.FromHtml("#8b98a8");
+        // Palette (matches docs/style.css). Internal so the icon-variants verb draws with the same colours.
+        internal static readonly Color Bg1 = ColorTranslator.FromHtml("#11161f");
+        internal static readonly Color Bg2 = ColorTranslator.FromHtml("#1c2636");
+        internal static readonly Color Accent = ColorTranslator.FromHtml("#4493f8");
+        internal static readonly Color Ink = ColorTranslator.FromHtml("#e6edf3");
+        internal static readonly Color Muted = ColorTranslator.FromHtml("#8b98a8");
 
         private static int Main(string[] args)
         {
@@ -35,6 +35,13 @@ namespace IconGen
             // `-- glyphs -CatalogRoot <dir>` vendors the ICON-SET glyphs into src/CyrFlip/Glyphs.g.cs
             // (ticket S0022 A1) and touches no other asset.
             if (args.Length > 0 && args[0] == "glyphs") return GlyphVendoring.Run(root, args);
+
+            // `-- symbols -UcdPath <path>` generates src/CyrFlip/Symbols.g.cs from symbols.src and UnicodeData.txt (ticket S0056)
+            if (args.Length > 0 && args[0] == "symbols") return SymbolVendoring.Run(root, args);
+
+            // `-- icon-variants [-OutDir <dir>]` renders the candidate app marks of ticket S0058 (P1, decision O3)
+            // into a research folder and touches no asset: the owner has not picked one yet.
+            if (args.Length > 0 && args[0] == "icon-variants") return IconVariants.Run(root, args);
 
             // `dotnet run --project tools/IconGen -- store` generates ONLY the Microsoft Store
             // logos (into assets/store/), without rewriting the other assets.
@@ -74,7 +81,7 @@ namespace IconGen
 
         // ----------------------------------------------------------------- icon
 
-        private static Bitmap DrawIcon(int s)
+        internal static Bitmap DrawIcon(int s)
         {
             var bmp = new Bitmap(s, s, PixelFormat.Format32bppArgb);
             using var g = Graphics.FromImage(bmp);
@@ -422,7 +429,7 @@ namespace IconGen
             return new Font(family, size, style, GraphicsUnit.Pixel);
         }
 
-        private static GraphicsPath Rounded(RectangleF r, float radius)
+        internal static GraphicsPath Rounded(RectangleF r, float radius)
         {
             float d = radius * 2f;
             var path = new GraphicsPath();
@@ -434,12 +441,12 @@ namespace IconGen
             return path;
         }
 
-        private static void SavePng(Bitmap bmp, string path)
+        internal static void SavePng(Bitmap bmp, string path)
         {
             using (bmp) bmp.Save(path, ImageFormat.Png);
         }
 
-        private static void WriteIco(string path, int[] sizes, Func<int, Bitmap> render)
+        internal static void WriteIco(string path, int[] sizes, Func<int, Bitmap> render)
         {
             var images = new List<(int size, byte[] png)>();
             foreach (int s in sizes)

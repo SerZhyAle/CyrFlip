@@ -89,6 +89,15 @@ namespace CyrFlip.Tests
             GC.SuppressFinalize(context);
         }
 
+        [Fact]
+        public void Cleanup_tray_never_throws_on_uninitialized_context()
+        {
+            var context = (CyrFlipContext)FormatterServices.GetUninitializedObject(typeof(CyrFlipContext));
+            var cleanup = typeof(CyrFlipContext).GetMethod("CleanupTray", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.NotNull(cleanup);
+            cleanup!.Invoke(context, null);
+        }
+
         // ---- LC-6: the clipboard guard when a worker cannot start ----
 
         [Fact]

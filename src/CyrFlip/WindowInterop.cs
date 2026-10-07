@@ -814,5 +814,22 @@ namespace CyrFlip
         public static extern bool MoveFileEx(string existing, string target, uint flags);
 
         public const uint MOVEFILE_WRITE_THROUGH = 0x8;
+
+        // ---- Symbols palette and glyph probing (SymbolsWindow.cs / SymbolGrid.cs, S0056) ----
+        public const int WM_MOUSEACTIVATE = 0x0021;
+        public const int MA_ACTIVATE = 1;
+        public const int MA_ACTIVATEANDEAT = 2;
+        public const int MA_NOACTIVATE = 3;
+        public const int MA_NOACTIVATEANDEAT = 4;
+
+        public const uint GGI_MARK_NONEXISTING_GLYPHS = 0x0001;
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern uint GetGlyphIndices(IntPtr hdc, string lpstr, int c, [Out] ushort[] pgi, uint fl);
+
+        [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
+        public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
+
     }
 }
+

@@ -28,10 +28,10 @@ namespace CyrFlip
         private readonly ListView _results = new ListView { Dock = DockStyle.Fill, FullRowSelect = true, HideSelection = false, MultiSelect = false, View = View.Details, VirtualMode = true };
         private readonly Button _restore = new Button { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
         private readonly System.Windows.Forms.Timer _debounce = new System.Windows.Forms.Timer { Interval = DebounceMs };
-        private readonly string _language;
+        private string _language;
         // This window is built fresh on every search, and a Form disposes neither the font nor the icon
         // it was handed - only the small copy it derives from the icon itself. Both are ours to free.
-        private readonly Font? _ownFont;
+        private Font? _ownFont;
         private readonly System.Drawing.Icon? _ownIcon;
         private ClipboardHistoryEntry[] _matches = new ClipboardHistoryEntry[0];
         private CancellationTokenSource? _search;
@@ -97,6 +97,30 @@ namespace CyrFlip
             FormClosed += (_, _) => { _service.Changed -= OnHistoryChanged; _debounce.Stop(); _search?.Cancel(); };
             Shown += (_, _) => { _query.Focus(); RefreshResults(); };
             RefreshResults();
+        }
+
+        internal void ApplyLanguage(string language)
+        {
+            if (language == _language) return;
+            var captions = Localization.All.GroupBy(e => Localization.Translate(_language, e.Key))
+                .ToDictionary(g => g.Key, g => g.First().Key);
+            void Walk(Control control)
+            {
+                // Query and results are the user's text, not captions.
+                if ((control is Label || control is Button) && captions.TryGetValue(control.Text, out string? source))
+                    control.Text = Localization.Translate(language, source);
+                foreach (Control child in control.Controls) Walk(child);
+            }
+            Walk(this); _language = language; Text = Localize("Поиск по истории");
+            _results.Columns[0].Text = Localize("Текст"); _results.Columns[1].Text = Localize("Дата"); _results.Columns[2].Text = Localize("Источник");
+            RightToLeft = Localization.IsRightToLeft(language) ? RightToLeft.Yes : RightToLeft.No;
+            RightToLeftLayout = RightToLeft == RightToLeft.Yes;
+            using (Font system = SystemFonts.MessageBoxFont)
+            {
+                Font next = new Font(Localization.FontFamily(language) ?? system.FontFamily.Name, system.SizeInPoints);
+                Font? old = _ownFont; Font = _ownFont = next; old?.Dispose();
+            }
+            ScheduleRefresh();
         }
 
         protected override void Dispose(bool disposing)

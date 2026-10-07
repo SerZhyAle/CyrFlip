@@ -438,7 +438,7 @@ namespace CyrFlip.Tests
                 using var menu = new ContextMenuStrip();
                 Build(menu, FullState(SelectionState.Present));
 
-                Assert.DoesNotContain(Captions(menu), c => c.StartsWith("Запустить «"));
+                Assert.DoesNotContain(Captions(menu), c => c.StartsWith("Открыть «"));
                 Assert.Equal(12, menu.Items.Count);
             });
         }
@@ -457,7 +457,7 @@ namespace CyrFlip.Tests
                 {
                     "Копировать", "Вырезать", "Вставить",
                     "---",
-                    "Запустить «example.com»",
+                    "Открыть «example.com»",
                     "---",
                     "EN ⇄ RU", "Исправить CapsLock", "Перевести на English",
                     "---",
@@ -482,7 +482,7 @@ namespace CyrFlip.Tests
                 state.Launch = new LaunchTarget("https://example.com/?a=1&b=2", "example.com/?a=1&b=2", LaunchKind.Url);
                 Build(menu, state);
 
-                Assert.Contains("Запустить «example.com/?a=1&&b=2»", Captions(menu));
+                Assert.Contains("Открыть «example.com/?a=1&&b=2»", Captions(menu));
             });
         }
 
@@ -498,7 +498,7 @@ namespace CyrFlip.Tests
                 state.Launch = target;
                 Build(menu, state, launch: t => launched.Add(t.Target + "|" + t.Kind));
 
-                Item(menu, "Запустить «setup.exe»").PerformClick();
+                Item(menu, "Открыть «setup.exe»").PerformClick();
 
                 Assert.Equal(new[] { @"C:\tools\setup.exe|Program" }, launched);
             });
@@ -521,7 +521,7 @@ namespace CyrFlip.Tests
                     menuState.Launch = new LaunchTarget("https://example.com/", "example.com", LaunchKind.Url);
                     Build(menu, menuState);
 
-                    Assert.True(Item(menu, "Запустить «example.com»").Enabled);
+                    Assert.True(Item(menu, "Открыть «example.com»").Enabled);
                 }
             });
         }

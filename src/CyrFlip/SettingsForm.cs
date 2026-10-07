@@ -135,8 +135,16 @@ namespace CyrFlip
         private readonly CheckBox _screenshotHotkeyEnabled = Check("Снимок области экрана");
         private readonly Label _screenshotHotkeyValue = new Label { AutoSize = true };
         private readonly CheckBox _screenshotSave = Check("Также сохранять снимки в папку");
+        private readonly CheckBox _screenshotFolderHotkeyEnabled = Check("Открыть папку со снимками");
+        private readonly Label _screenshotFolderHotkeyValue = new Label { AutoSize = true };
         private readonly TextBox _screenshotFolderBox = new TextBox { ReadOnly = true, Width = 520, Margin = new Padding(3, 6, 3, 3) };
         private readonly List<Control> _screenshotFolderControls = new List<Control>();
+        // ---- Symbols palette (S0056) ----
+        private readonly CheckBox _symbolsEnabled = Check("Включить окно символов");
+        private readonly CheckBox _symbolsHotkeyEnabled = Check("Окно символов");
+        private readonly Label _symbolsHotkeyValue = new Label { AutoSize = true };
+        private readonly CheckBox _symbolsHideTypable = Check("Скрывать символы, которые есть на моих раскладках");
+        private readonly List<Control> _symbolsControls = new List<Control>();
         private readonly Dictionary<Control, string> _russianTexts = new Dictionary<Control, string>();
         // ---- WINDOWS-UI section 3: collapsible groups, remembered context, discovery ----
         // Every group this window built, in build order; the expansion of each is remembered under its
@@ -211,10 +219,22 @@ namespace CyrFlip
         public event EventHandler? GraphicsChanged;
         /// <summary>"Изменить..." beside the capture chord.</summary>
         public event EventHandler? ScreenshotHotkeyChangeRequested;
+        /// <summary>"Изменить..." beside the screenshots-folder chord (S0057).</summary>
+        public event EventHandler? ScreenshotFolderHotkeyChangeRequested;
+        /// <summary>"Открыть папку" - the one opener the chord uses too (S0057).</summary>
+        public event EventHandler? ScreenshotFolderOpenRequested;
         /// <summary>"Изменить..." beside the text context menu's keyboard chord (S0045 K2).</summary>
         public event EventHandler? TextMenuHotkeyChangeRequested;
         /// <summary>"Сделать снимок области" - the same action as the tray item.</summary>
         public event EventHandler? ScreenshotRequested;
+        /// <summary>Raised after anything on the Symbols tab changes (S0056).</summary>
+        public event EventHandler? SymbolsChanged;
+        /// <summary>"Изменить..." beside the symbols window chord.</summary>
+        public event EventHandler? SymbolsHotkeyChangeRequested;
+        /// <summary>"Открыть окно символов" button.</summary>
+        public event EventHandler? OpenSymbolsRequested;
+        /// <summary>"Очистить недавние" button.</summary>
+        public event EventHandler? ClearSymbolsRecentRequested;
 
         /// <summary>
         /// Raised after the marker size changes (the value is already in the config), so the context can
@@ -295,7 +315,11 @@ namespace CyrFlip
                 Setting(_keepAwake, "Пока включено, Windows не уходит в сон или гибернацию по простою — удобно для долгих загрузок, копирования или рендера. Состояние сохраняется: забытый включённым переключатель не даст компьютеру уснуть и после перезапуска - следить за вашей батареей CyrFlip не станет."),
                 Setting(_keepScreen, "Экран не гаснет и не блокируется по бездействию, как во время просмотра видео. Блокировку по паролю (Win+L или политику безопасности) это не отменяет. Состояние сохраняется: забытый включённым переключатель не даст экрану погаснуть и после перезапуска."),
                 Setting(LanguageRow(), "Выберите язык интерфейса CyrFlip. Значение сохраняется вместе с остальными настройками и применяется также к меню в трее."),
-                Setting(ThemeRow(), "«Как в Windows» - CyrFlip светлый или тёмный вместе с Windows и переключается вслед за ней без перезапуска. Контрастные темы Windows всегда важнее этой настройки. Метка раскладки у курсора и каретки от темы не зависит: её цвет обозначает раскладку.")), 0));
+                Setting(ThemeRow(), "«Как в Windows» - CyrFlip светлый или тёмный вместе с Windows и переключается вслед за ней без перезапуска. Контрастные темы Windows всегда важнее этой настройки. Метка раскладки у курсора и каретки от темы не зависит: её цвет обозначает раскладку."),
+                Group("general/transfer", "Перенос настроек",
+                    Button("Экспортировать настройки...", () => SettingsTransferRequested?.Invoke("export")),
+                    Button("Импортировать настройки...", () => SettingsTransferRequested?.Invoke("import")),
+                    _restoreSettings = Button("Вернуть настройки до импорта...", () => SettingsTransferRequested?.Invoke("restore")))), 0));
             tabs.TabPages.Add(WithIcon(Page("Индикаторы", "Параметры, которые помогают увидеть активную раскладку до ввода текста.",
                 Setting(_cursor, "Заменяет стандартный текстовый курсор I-beam на курсор с маленькой меткой текущей раскладки. Обычная стрелка мыши не меняется."),
                 Setting(_caret, "Рисует небольшую метку рядом с мигающей кареткой в поле ввода. Работает в приложениях, которые передают Windows положение каретки."),
@@ -321,6 +345,7 @@ namespace CyrFlip
             TabPage translatePage = WithIcon(TranslatePage(), 9);
             tabs.TabPages.Add(translatePage);
             tabs.TabPages.Add(WithIcon(LauncherPage(), 8));
+            tabs.TabPages.Add(WithIcon(SymbolsPage(), 12));
             tabs.TabPages.Add(WithIcon(AboutPage(), 5));
             Controls.Add(tabs);
             // The page header (WINDOWS-UI section 2 rule 3): commands that act on the content pane,
@@ -333,8 +358,12 @@ namespace CyrFlip
             if (_config.SettingsTab > 0 && _config.SettingsTab < tabs.TabPages.Count)
                 tabs.SelectedIndex = _config.SettingsTab;
             _lastPageIndex = tabs.SelectedIndex;
+            UpdateHeaderCommands();
+            // A TabControl reports no selected page before its handle exists, so the first state is taken then.
+            tabs.HandleCreated += (_, _) => UpdateHeaderCommands();
             tabs.SelectedIndexChanged += (_, _) =>
             {
+                UpdateHeaderCommands();
                 _config.SaveSettingsTab(tabs.SelectedIndex);
                 // The page being left keeps where it was scrolled to; the page being entered gets it
                 // back once it has laid out (WINDOWS-UI section 3 rule 3).
@@ -436,6 +465,15 @@ namespace CyrFlip
                 GraphicsSettingChanged(() => _config.EnableScreenshotHotkey = _screenshotHotkeyEnabled.Checked);
             _screenshotSave.CheckedChanged += (_, _) =>
                 GraphicsSettingChanged(() => _config.ScreenshotSaveEnabled = _screenshotSave.Checked, reload: true);
+            _screenshotFolderHotkeyEnabled.CheckedChanged += (_, _) =>
+                GraphicsSettingChanged(() => _config.EnableScreenshotFolderHotkey = _screenshotFolderHotkeyEnabled.Checked);
+
+            _symbolsEnabled.CheckedChanged += (_, _) =>
+                SymbolsSettingChanged(() => _config.EnableSymbols = _symbolsEnabled.Checked, reload: true);
+            _symbolsHotkeyEnabled.CheckedChanged += (_, _) =>
+                SymbolsSettingChanged(() => _config.EnableSymbolsHotkey = _symbolsHotkeyEnabled.Checked);
+            _symbolsHideTypable.CheckedChanged += (_, _) =>
+                SymbolsSettingChanged(() => _config.SymbolsHideTypable = _symbolsHideTypable.Checked);
 
             // The translator tab talks to the context through one event, so every handler here just
             // writes the value and says "something changed"; the context saves and rebinds.
@@ -456,6 +494,7 @@ namespace CyrFlip
             // value label filled there - a chord, the version, a size - was registered as a "Russian
             // original" and put back over the live value by every re-translation, the S0007 ST-4 bug
             // class. It only held because ApplyLanguage happened to set each of them again.
+            BuildTransferPreferenceGroups();
             RememberRussianTexts(this);
             // Saved context before the first Reload so the restores never count as user edits
             // (WINDOWS-UI section 3 rule 4): the groups come back as they were left, every page's
@@ -482,10 +521,11 @@ namespace CyrFlip
         /// second and third command end up clipped (found by the rendered audit).</summary>
         private Control BuildHeaderCommands()
         {
-            Button find = Button(Translate("Найти настройку..."), OpenSettingsSearch);
-            Button expandAll = Button(Translate("Развернуть все"), () => SetPageGroupsExpanded(true));
-            Button collapseAll = Button(Translate("Свернуть все"), () => SetPageGroupsExpanded(false));
+            Button find = Button("Найти настройку...", OpenSettingsSearch);
+            Button expandAll = Button("Развернуть все", () => SetPageGroupsExpanded(true));
+            Button collapseAll = Button("Свернуть все", () => SetPageGroupsExpanded(false));
             find.Name = "settingsSearch"; expandAll.Name = "settingsExpandAll"; collapseAll.Name = "settingsCollapseAll";
+            _expandAllButton = expandAll; _collapseAllButton = collapseAll;
             var commands = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, WrapContents = false, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(0), Padding = new Padding(0) };
             commands.Controls.Add(find);
             commands.Controls.Add(expandAll);
@@ -496,7 +536,27 @@ namespace CyrFlip
             header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             header.Controls.Add(new Label { Dock = DockStyle.Fill, Margin = new Padding(0) }, 0, 0);
             header.Controls.Add(commands, 1, 0);
+            // The commands sit above the pages, so the keyboard reaches them first (APP-SETTINGS rule 10:
+            // a sensible tab order). TabIndex is independent of the z-order the docking relies on.
+            header.TabIndex = 0;
+            if (_tabs != null) _tabs.TabIndex = 1;
             return header;
+        }
+
+        private Button? _expandAllButton, _collapseAllButton;
+
+        /// <summary>Expand all / Collapse all act on the groups of the current page; on a page with none they
+        /// would do nothing, so they are unavailable rather than silently inert (WINDOWS-UI section 2 rule 3).</summary>
+        private void UpdateHeaderCommands()
+        {
+            if (_tabs == null || _expandAllButton == null || _collapseAllButton == null) return;
+            // Before the strip has a selection (the window is built, not yet shown) the first page is the one on screen.
+            TabPage? page = _tabs.SelectedTab ?? (_tabs.TabCount > 0 ? _tabs.TabPages[0] : null);
+            if (page == null) return;
+            bool any = false;
+            foreach (Control child in ContentPanel(page).Controls)
+                if (child is CollapsibleGroup) { any = true; break; }
+            _expandAllButton.Enabled = _collapseAllButton.Enabled = any;
         }
 
         /// <summary>Every NumericUpDown the window built, so the logical metrics pass reaches them all.</summary>
@@ -916,6 +976,7 @@ namespace CyrFlip
         public void Reload()
         {
             _loading = true;
+            _restoreSettings.Enabled = SettingsSnapshot.Newest(SettingsSnapshot.Folder) != null;
             _startMenuShortcut.Checked = AppShortcuts.Exists(ShortcutPlace.StartMenu);
             _desktopShortcut.Checked = AppShortcuts.Exists(ShortcutPlace.Desktop);
             _autostart.Checked = Autostart.IsEnabled;
@@ -959,6 +1020,7 @@ namespace CyrFlip
             ReloadQuickNotesState();
             ReloadGraphicsState();
             ReloadTranslateState();
+            ReloadSymbolsState();
             _loading = false;
             ApplyLanguage();
         }
@@ -1047,6 +1109,7 @@ namespace CyrFlip
                 _quickNotesHotkeyValue.Text = _config.QuickNotesHotkey;
                 _textMenuHotkeyValue.Text = _config.TextMenuHotkey;
                 _screenshotHotkeyValue.Text = _config.ScreenshotHotkey;
+                _screenshotFolderHotkeyValue.Text = _config.ScreenshotFolderHotkey;
                 _screenshotFolderBox.Text = ScreenshotFolderShown();
                 _opacityValue.Text = _opacity.Value + "%";
                 _markerSizeValue.Text = MarkerSizeName(_markerSize.Value);
@@ -1074,6 +1137,65 @@ namespace CyrFlip
                 ReloadLauncherRows();
             else
                 ApplyLauncherEnabledState();
+            NameEditors(this);
+            NameFixedControls();
+            ApplyGlyphTooltips();
+        }
+
+        // Editors whose accessible name this class derived from the caption beside them, so a later
+        // language change may replace it without touching a name somebody set on purpose.
+        private readonly System.Runtime.CompilerServices.ConditionalWeakTable<Control, object> _derivedNames
+            = new System.Runtime.CompilerServices.ConditionalWeakTable<Control, object>();
+
+        /// <summary>
+        /// Names every editor after the caption that stands before it in its row (APP-SETTINGS rule 10: an
+        /// accessible name on every control). A combo box, a numeric editor, a track bar or a text box carries
+        /// no text of its own, so a screen reader would announce only its type and value; the caption label is
+        /// a separate control. Re-run after every language change, because the captions change.
+        /// </summary>
+        internal void NameEditors(Control root)
+        {
+            string? caption = null;
+            foreach (Control child in root.Controls)
+            {
+                if (child is Label label)
+                {
+                    if ("caption".Equals(label.Tag) && label.Text.Length > 0) caption = label.Text.TrimEnd(':', ' ');
+                    continue;
+                }
+                if (caption != null && child is ComboBox or NumericUpDown or TrackBar or TextBoxBase or ListView
+                    && (string.IsNullOrEmpty(child.AccessibleName) || _derivedNames.TryGetValue(child, out _)))
+                {
+                    child.AccessibleName = caption;
+                    if (!_derivedNames.TryGetValue(child, out _)) _derivedNames.Add(child, child);
+                }
+                if (child.HasChildren) NameEditors(child);
+            }
+        }
+
+        /// <summary>Names of the controls whose caption is not a sibling label, refreshed with the language.</summary>
+        private void NameFixedControls()
+        {
+            _launcherSearch.AccessibleName = Translate("Поиск:").TrimEnd(':', ' ');
+            if (_launcherUp != null) _launcherUp.AccessibleName = Translate("Переместить вверх");
+            if (_launcherDown != null) _launcherDown.AccessibleName = Translate("Переместить вниз");
+            _screenshotFolderBox.AccessibleName = Translate("Папка для снимков области экрана");
+            _launcherList.AccessibleName = Translate("Быстрый запуск");
+        }
+
+        private Button? _launcherUp, _launcherDown;
+
+        private readonly ToolTip _glyphTips = new ToolTip();
+
+        /// <summary>
+        /// A glyph-only command says what it does on hover as well as to a screen reader (WINDOWS-UI section 2
+        /// rule 3: glyph-only commands have localized tooltips). The tip is the accessible name, so the two
+        /// can never disagree. Native tooltips are a declared theme exception (APP-STYLE).
+        /// </summary>
+        private void ApplyGlyphTooltips()
+        {
+            foreach (Button button in _moveButtons)
+                if (!string.IsNullOrEmpty(button.AccessibleName)) _glyphTips.SetToolTip(button, button.AccessibleName);
         }
 
         /// <summary>What the scenario table depends on: the language, the store's content and the switch.</summary>
@@ -1329,6 +1451,9 @@ namespace CyrFlip
         {
             if (keyData == Keys.Escape)
             {
+                // An open drop-down list closes first: WinForms offers the key here before the combo box
+                // sees it, so without this a reflexive Escape would hide the window over a pending choice.
+                if (ActiveControl is ComboBox { DroppedDown: true }) return base.ProcessCmdKey(ref msg, keyData);
                 Close();
                 return true;
             }
@@ -1472,6 +1597,27 @@ namespace CyrFlip
         /// <summary>The pointer floor of a glyph-only target in logical pixels (ICON-RENDER section 3 rule 5: 28 under a mouse or a pen).</summary>
         private const int MinTarget = 28;
 
+        /// <summary>
+        /// Gives the controls of one table row names that say which row they act on (APP-SETTINGS rule 10,
+        /// APP-BEHAVIOUR rule 9): every row carries the same "Изменить..." / "Удалить" buttons and a
+        /// caption-less switch, which a screen reader would otherwise announce identically for all rows.
+        /// The rows are rebuilt in the current language, so the names are built from translated text.
+        /// </summary>
+        internal static void NameRow(Control row, string rowName)
+        {
+            foreach (Control control in row.Controls)
+            {
+                if (control is Button button)
+                {
+                    string verb = button.AccessibleName;
+                    if (string.IsNullOrEmpty(verb)) verb = button.Text;
+                    if (verb.Length > 0 && verb.Any(char.IsLetter)) button.AccessibleName = verb + " - " + rowName;
+                }
+                else if (control is CheckBox box && box.Text.Length == 0 && string.IsNullOrEmpty(box.AccessibleName))
+                    box.AccessibleName = rowName;
+            }
+        }
+
         private Label ColumnLabel(string text, int width, bool ellipsis = true)
             => new Label
             {
@@ -1587,8 +1733,23 @@ namespace CyrFlip
             row.Controls.Add(pair);
             row.Controls.Add(ColumnLabel(profile.Hotkey, _chordColumn, ellipsis: false));
             row.Controls.Add(Button(Translate("Изменить..."), () => EditConversionProfile(profile)));
-            row.Controls.Add(Button(Translate("Удалить"), () => { _config.LayoutConversionProfiles.Remove(profile); ConversionProfilesChanged?.Invoke(this, EventArgs.Empty); ReloadConversionRows(); }));
+            row.Controls.Add(Button(Translate("Удалить"), () => RemoveConversionProfile(profile)));
+            NameRow(row, LayoutName(profile.SourceKlid) + " ⇄ " + LayoutName(profile.TargetKlid) + " " + profile.Hotkey);
             return row;
+        }
+
+        // A row is a pair of layouts and a chord the user chose, and the window has no undo - so the
+        // delete is confirmed like every other irreversible one (APP-BEHAVIOUR rule 5, safe answer default).
+        private void RemoveConversionProfile(LayoutConversionProfile profile)
+        {
+            string pair = LayoutName(profile.SourceKlid) + " ⇄ " + LayoutName(profile.TargetKlid);
+            if (ConfirmDialog.Show(this, _config.UiLanguage,
+                    Localization.Format(Translate, "Удалить строку конвертации «{0}»? Отменить удаление нельзя.", pair),
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
+                return;
+            _config.LayoutConversionProfiles.Remove(profile);
+            ConversionProfilesChanged?.Invoke(this, EventArgs.Empty);
+            ReloadConversionRows();
         }
 
         /// <summary>
@@ -1664,6 +1825,7 @@ namespace CyrFlip
             row.Controls.Add(remove);
 
             row.Controls.Add(new Label { Text = layout.Klid, AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(8, 5, 0, 0), Padding = new Padding(0, 1, 0, 0) });
+            NameRow(row, layout.LanguageName + (layout.DisplayName.Length > 0 ? " - " + layout.DisplayName : ""));
             return row;
         }
 
@@ -1912,6 +2074,7 @@ namespace CyrFlip
 
             // The raw HKL is the only always-correct way to tell two layouts of one language apart.
             row.Controls.Add(new Label { Text = LanguageHotkeys.HklText(hkl), AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(8, 5, 0, 0), Padding = new Padding(0, 1, 0, 0) });
+            NameRow(row, LanguageHotkeys.LanguageName(hkl) + (layout.Length > 0 ? " - " + layout : ""));
             return row;
         }
 
@@ -1922,6 +2085,7 @@ namespace CyrFlip
             orphanLabel.ForeColor = ThemePalette.Light.TextMuted;
             row.Controls.Add(orphanLabel);
             row.Controls.Add(Button(Translate("Удалить"), () => RemoveOrphanHotkey(entry.Id)));
+            NameRow(row, entry.Display + " - " + LanguageHotkeys.HklText(entry.TargetHkl));
             return row;
         }
 
@@ -2051,7 +2215,7 @@ namespace CyrFlip
                 Setting(_historyStartup, "Запоминает, открыто ли окно менеджера буфера: если вы его закрыли, при следующем запуске оно останется закрытым (история всё равно ведётся в фоне)."));
             var panel = ContentPanel(page);
             var opacityLine = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Padding = new Padding(0, 7, 0, 0) };
-            opacityLine.Controls.Add(new Label { Text = "Прозрачность окна истории:", AutoSize = true, Padding = new Padding(0, 8, 5, 0) });
+            opacityLine.Controls.Add(new Label { Text = "Прозрачность окна истории:", AutoSize = true, Tag = "caption", Padding = new Padding(0, 8, 5, 0) });
             opacityLine.Controls.Add(_opacity); opacityLine.Controls.Add(_opacityValue);
             panel.Controls.Add(Setting(opacityLine, "Задаёт прозрачность плавающего окна истории от 30% до 100%. Значение применяется сразу."));
             panel.Controls.Add(Setting(Button("Поиск по истории", _openHistorySearch), "Открывает отдельное окно поиска по фрагменту текста. Для поиска нужно ввести не менее трёх символов."));
@@ -2213,6 +2377,7 @@ namespace CyrFlip
                 Setting(_screenshotSave,
                     "По умолчанию выключено: снимок попадает только в буфер обмена. С флажком каждый выделенный фрагмент также сохраняется как PNG в папку ниже."),
                 ScreenshotFolderRow(),
+                ScreenshotFolderHotkeyRow(),
                 new Label
                 {
                     Text = "Снимок всегда попадает в буфер обмена и не записывается в историю буфера. На диск он пишется, только если включено сохранение, и только выделенный фрагмент - в показанную папку (а если она недоступна - в «Изображения\\Снимки экрана» или «Загрузки», и CyrFlip сразу скажет, куда). Файлы не шифруются, CyrFlip их не удаляет и никуда не отправляет. Содержимое, которое защищает Windows (видео с DRM, окно UAC), получается чёрным.",
@@ -2225,6 +2390,11 @@ namespace CyrFlip
         private FlowLayoutPanel ScreenshotFolderRow()
         {
             var folderRow = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(28, 0, 3, 3) };
+            // The setting names itself: the box used to stand alone under the switch with no caption of its own
+            // (APP-SETTINGS rule 3: caption, control and hint for every setting).
+            var folderCaption = new Label { Text = "Папка для снимков области экрана", AutoSize = true, Tag = "caption", Padding = new Padding(0, 8, 6, 0) };
+            folderRow.Controls.Add(folderCaption);
+            _screenshotFolderControls.Add(folderCaption);
             folderRow.Controls.Add(_screenshotFolderBox);
             Button choose = Button("Выбрать...", ChooseScreenshotFolder);
             Button open = Button("Открыть папку", OpenScreenshotFolder);
@@ -2234,6 +2404,20 @@ namespace CyrFlip
             _screenshotFolderControls.Add(choose);
             _screenshotFolderControls.Add(open);
             return folderRow;
+        }
+
+        /// <summary>
+        /// The folder-opening chord's row (S0057), directly under the folder row and gated with it:
+        /// greyed while saving is off, so the user sees why the chord does nothing (D2).
+        /// </summary>
+        private Control ScreenshotFolderHotkeyRow()
+        {
+            Control row = HotkeyRow(_screenshotFolderHotkeyEnabled, _screenshotFolderHotkeyValue,
+                () => ScreenshotFolderHotkeyChangeRequested?.Invoke(this, EventArgs.Empty),
+                "Работает, пока включено сохранение снимков в папку. Открывает ту папку, в которую CyrFlip пишет снимки. Одну комбинацию нельзя отдать двум действиям CyrFlip.");
+            // The whole row follows the folder row's gate; disabling the block disables everything in it.
+            _screenshotFolderControls.Add(row);
+            return row;
         }
 
         /// <summary>The folder the settings show: the user's choice, else the Screenshots known folder.</summary>
@@ -2263,16 +2447,9 @@ namespace CyrFlip
 
         private void OpenScreenshotFolder()
         {
-            string folder = ScreenshotFolderShown();
-            // The folder is created on the first save, never earlier - so there may be nothing to open yet.
-            if (folder.Length == 0 || !System.IO.Directory.Exists(folder))
-            {
-                ConfirmDialog.Show(this, _config.UiLanguage,
-                    Translate("Этой папки пока нет - она появится при первом сохранённом снимке."),
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-            Open(folder);
+            // The chord and this button share the one opener (S0057), so they can never disagree
+            // about the target - and the probe never runs on this, the keyboard hook's, thread.
+            ScreenshotFolderOpenRequested?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>Apply one Graphics setting and tell the context; mirrors <see cref="QuickNotesSettingChanged"/>.</summary>
@@ -2290,6 +2467,8 @@ namespace CyrFlip
             _screenshotHotkeyEnabled.Checked = _config.EnableScreenshotHotkey;
             _screenshotHotkeyValue.Text = _config.ScreenshotHotkey;
             _screenshotSave.Checked = _config.ScreenshotSaveEnabled;
+            _screenshotFolderHotkeyEnabled.Checked = _config.EnableScreenshotFolderHotkey;
+            _screenshotFolderHotkeyValue.Text = _config.ScreenshotFolderHotkey;
             _screenshotFolderBox.Text = ScreenshotFolderShown();
             foreach (Control control in _screenshotFolderControls)
                 control.Enabled = _config.ScreenshotSaveEnabled;
@@ -2516,13 +2695,23 @@ namespace CyrFlip
             row.Controls.Add(ColumnLabel(profile.Hotkey.Length > 0 ? profile.Hotkey : Translate("Не назначено"),
                 _translateChordColumn, ellipsis: false));
             row.Controls.Add(Button(Translate("Изменить..."), () => EditTranslationProfile(profile)));
-            row.Controls.Add(Button(Translate("Удалить"), () =>
-            {
-                _config.TranslateProfiles.Remove(profile);
-                NotifyTranslationChanged();
-                ReloadTranslationRows();
-            }));
+            row.Controls.Add(Button(Translate("Удалить"), () => RemoveTranslationProfile(profile)));
+            NameRow(row, TranslationLanguages.Label(profile.TargetLang, _config.UiLanguage) + " " + profile.Hotkey);
             return row;
+        }
+
+        // A row of the table is a language and a chord the user chose, and the window has no undo - so the
+        // delete is confirmed like every other irreversible one (APP-BEHAVIOUR rule 5, safe answer default).
+        private void RemoveTranslationProfile(TranslationProfile profile)
+        {
+            string label = TranslationLanguages.Label(profile.TargetLang, _config.UiLanguage);
+            if (ConfirmDialog.Show(this, _config.UiLanguage,
+                    Localization.Format(Translate, "Удалить строку перевода «{0}»? Отменить удаление нельзя.", label),
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
+                return;
+            _config.TranslateProfiles.Remove(profile);
+            NotifyTranslationChanged();
+            ReloadTranslationRows();
         }
 
         private void AddTranslationProfile() => EditTranslationProfile(null);
@@ -2761,9 +2950,11 @@ namespace CyrFlip
             row1.Controls.Add(LauncherButton("Удалить", LauncherRemove));
             var up = LauncherButton("↑", () => LauncherMove(-1));
             up.AccessibleName = Translate("Переместить вверх");
+            _launcherUp = up;
             AsMoveGlyph(up, AppGlyphs.MoveUp);
             var down = LauncherButton("↓", () => LauncherMove(+1));
             down.AccessibleName = Translate("Переместить вниз");
+            _launcherDown = down;
             AsMoveGlyph(down, AppGlyphs.MoveDown);
             // Sized by their content, never below 32 px wide (the pointer floor of ICON-RENDER rule 5 is 28):
             // built here, before the window takes its real font, a fixed RowHeight was the old small font's
@@ -3173,18 +3364,58 @@ namespace CyrFlip
             page.Controls.Add(panel); return page;
         }
         private static FlowLayoutPanel ContentPanel(TabPage page) => (FlowLayoutPanel)page.Controls[0];
+        private void BuildTransferPreferenceGroups()
+        {
+            if (_tabs == null) return;
+            var ids = new Dictionary<string, string> {
+                ["Общие"] = "general/preferences", ["Индикаторы"] = "indicators/preferences",
+                ["Горячие клавиши"] = "hotkeys/preferences", ["Конвертация раскладок"] = "conversions/preferences",
+                ["Буфер обмена"] = "clipboard/preferences", ["Контекстное меню"] = "context/preferences"
+            };
+            foreach (TabPage page in _tabs.TabPages)
+            {
+                if (!ids.TryGetValue(page.Text, out string? id)) continue;
+                var panel = ContentPanel(page);
+                var rows = panel.Controls.Cast<Control>().Skip(2).Where(c => !(c is CollapsibleGroup)).ToArray();
+                if (rows.Length == 0) continue;
+                foreach (Control row in rows) panel.Controls.Remove(row);
+                var group = Group(id, page.Text, rows); panel.Controls.Add(group); panel.Controls.SetChildIndex(group, 2);
+            }
+        }
         // The kinds are the numbers the pages were always given; the list itself has no slot 4 (the unused
         // "advanced" picture), so the kinds above it sit one place lower.
-        private static TabPage WithIcon(TabPage page, int kind) { page.ImageIndex = IconIndex(kind); return page; }
+        public event EventHandler? WelcomeRequested;
+        internal event Action<string>? SettingsTransferRequested;
+        private Button _restoreSettings = null!;
+
+        internal void SelectPage(SettingsPageKey key)
+        {
+            if (_tabs == null) return;
+            foreach (TabPage page in _tabs.TabPages)
+                if (Equals(page.Tag, key)) { _tabs.SelectedTab = page; return; }
+        }
+
+        private static TabPage WithIcon(TabPage page, int kind)
+        {
+            page.ImageIndex = IconIndex(kind);
+            page.Tag = kind switch
+            {
+                0 => SettingsPageKey.General, 1 => SettingsPageKey.Indicators, 2 => SettingsPageKey.Hotkeys,
+                3 => SettingsPageKey.Clipboard, 5 => SettingsPageKey.About, 6 => SettingsPageKey.WindowsLanguages,
+                7 => SettingsPageKey.Conversions, 8 => SettingsPageKey.Launcher, 9 => SettingsPageKey.Translate,
+                10 => SettingsPageKey.QuickNotes, 11 => SettingsPageKey.Graphics, 12 => SettingsPageKey.Symbols,
+                _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+            };
+            return page;
+        }
         internal static int IconIndex(int kind) => kind > 4 ? kind - 1 : kind;
 
         /// <summary>
-        /// The vocabulary glyph a tab stands for (ICON-SET). Only the meanings that have a record are here.
-        /// Two pages still wait for theirs - Conversions (<c>action.convert-layout</c>) and Languages
-        /// (<c>system.input-language</c>), both asked for in PROPOSAL-2026-09-26-cyrflip-windows-tray-app and
-        /// still open in the catalog - and keep the private drawing meanwhile (the registry exception X1)
-        /// rather than borrow another meaning's picture. The Graphics page takes <c>system.screenshot</c>:
-        /// its one tool today is the region capture, and the record says "capture the screen as an image".
+        /// The vocabulary glyph a tab stands for (ICON-SET), one per page. Conversions is
+        /// <c>action.convert-layout</c> and Languages <c>system.input-language</c> (both recorded in the
+        /// catalog since 0.23 - the key cap with a globe, so it is not the globe of <c>system.internet</c>).
+        /// The Graphics page takes <c>system.screenshot</c>: its one tool today is the region capture, and
+        /// the record says "capture the screen as an image".
         /// </summary>
         internal static string? TabGlyphId(int kind)
         {
@@ -3195,6 +3426,8 @@ namespace CyrFlip
                 case 2: return AppGlyphs.Shortcuts;
                 case 3: return AppGlyphs.ClipboardHistory;
                 case 5: return AppGlyphs.Info;
+                case 6: return AppGlyphs.InputLanguage;
+                case 7: return AppGlyphs.ConvertLayout;
                 case 8: return AppGlyphs.QuickLaunch;
                 case 9: return AppGlyphs.Translate;
                 case 10: return AppGlyphs.Note;
@@ -3220,10 +3453,11 @@ namespace CyrFlip
             images.Images.Add("translate", TabIcon(9, ink));
             images.Images.Add("notes", TabIcon(10, ink));
             images.Images.Add("graphics", TabIcon(11, ink));
+            images.Images.Add("symbols", TabIcon(12, ink));
             return images;
         }
 
-        /// <summary>A vocabulary glyph where the page has one, else the private 18-grid drawing centred on the same 20 canvas (the pages whose meaning has no record yet - registry exception X1).</summary>
+        /// <summary>The page's vocabulary glyph. One that cannot be drawn leaves an empty canvas - the caption alone, never another meaning's picture (ICON-SET rule 1).</summary>
         internal static Bitmap TabIcon(int kind, Color ink)
         {
             string? id = TabGlyphId(kind);
@@ -3232,32 +3466,9 @@ namespace CyrFlip
                 Bitmap? glyph = GlyphRenderer.Render(id, TabIconSize, ink);
                 if (glyph != null) return glyph;
             }
-            var canvas = new Bitmap(TabIconSize, TabIconSize);
-            using (Graphics g = Graphics.FromImage(canvas))
-            using (Bitmap legacy = LegacyTabIcon(kind, ink))
-                g.DrawImage(legacy, (TabIconSize - 18) / 2, (TabIconSize - 18) / 2, 18, 18);
-            return canvas;
+            return new Bitmap(TabIconSize, TabIconSize);
         }
 
-        private static Bitmap LegacyTabIcon(int kind, Color accent)
-        {
-            var image = new Bitmap(18, 18); using var g = Graphics.FromImage(image); g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            using var pen = new Pen(accent, 1.8f);
-            switch (kind)
-            {
-                // The two pages whose meaning has no vocabulary record yet (registry exception X1): Languages
-                // draws a globe, Conversions two opposite arrows. Each goes when its record arrives.
-                case 6: g.DrawEllipse(pen, 2, 2, 14, 14); g.DrawEllipse(pen, 6.5f, 2, 5, 14); g.DrawLine(pen, 2.5f, 9, 15.5f, 9); break;
-                case 7:
-                    g.DrawLine(pen, 3, 6, 14, 6); g.DrawLine(pen, 11, 3, 14, 6); g.DrawLine(pen, 11, 9, 14, 6);
-                    g.DrawLine(pen, 15, 12, 4, 12); g.DrawLine(pen, 7, 9, 4, 12); g.DrawLine(pen, 7, 15, 4, 12);
-                    break;
-                // Every other page is drawn from the vocabulary (TabGlyphId); a page whose glyph
-                // cannot be drawn shows its caption alone rather than another meaning's picture.
-                default: break;
-            }
-            return image;
-        }
         private Control MarkerSizeRow()
         {
             var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 5, 3, 5) };
@@ -3315,10 +3526,61 @@ namespace CyrFlip
             return PackageInfo.IsPackaged ? line + " (Microsoft Store)" : line;
         }
 
+        // ---- Symbols tab (S0056) ----
+
+        private void SymbolsSettingChanged(Action apply, bool reload = false)
+        {
+            if (_loading) return;
+            apply();
+            SymbolsChanged?.Invoke(this, EventArgs.Empty);
+            if (reload) Reload();
+        }
+
+        private void ReloadSymbolsState()
+        {
+            _symbolsEnabled.Checked = _config.EnableSymbols;
+            _symbolsHotkeyEnabled.Checked = _config.EnableSymbolsHotkey;
+            _symbolsHotkeyValue.Text = _config.SymbolsHotkey;
+            _symbolsHideTypable.Checked = _config.SymbolsHideTypable;
+            foreach (Control control in _symbolsControls) control.Enabled = _config.EnableSymbols;
+        }
+
+        private Control TrackSymbols(Control control) { _symbolsControls.Add(control); return control; }
+
+        private TabPage SymbolsPage()
+        {
+            var page = Page("Символы",
+                "Палитра редких символов: клик копирует символ в буфер обмена; всё остаётся на этом компьютере.",
+                Setting(_symbolsEnabled, "Пока выключено, окно символов не создаётся, в трее и контекстном меню нет пункта символов и комбинация не назначена."));
+            var panel = ContentPanel(page);
+
+            panel.Controls.Add(Group("symbols/opening", "Как открывать",
+                TrackSymbols(HotkeyRow(_symbolsHotkeyEnabled, _symbolsHotkeyValue, () => SymbolsHotkeyChangeRequested?.Invoke(this, EventArgs.Empty),
+                    "Открывает окно с фокусом в строке поиска. Одну комбинацию нельзя отдать двум действиям CyrFlip.")),
+                TrackSymbols(Setting(Button("Открыть окно символов", () => OpenSymbolsRequested?.Invoke(this, EventArgs.Empty)),
+                    "То же, что пункт «Символы» в меню трея."))));
+
+            panel.Controls.Add(Group("symbols/options", "Настройки",
+                TrackSymbols(Setting(_symbolsHideTypable,
+                    "Скрывает из палитры символы, которые можно набрать одной клавишей или комбинацией с Shift или AltGr на установленных раскладках.")),
+                TrackSymbols(Setting(Button("Очистить недавние", () => ClearSymbolsRecentRequested?.Invoke(this, EventArgs.Empty)),
+                    "Очищает список недавних символов на первой вкладке палитры."))));
+
+            panel.Controls.Add(new Label
+            {
+                Text = "Символ заменяет текущее содержимое буфера обмена (история буфера, если включена, сохраняет предыдущее значение); данные не покидают компьютер.",
+                AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted,
+                Margin = new Padding(3, 10, 3, 4),
+            });
+            return page;
+        }
+
         private TabPage AboutPage()
         {
-            var page = Page("О программе и дополнительно", "CyrFlip — лёгкая утилита для Windows: показывает код текущей раскладки у текстового курсора и каретки, исправляет текст, набранный в неверной раскладке, и хранит необязательную локальную историю буфера.\n\nПриложение не передаёт историю буфера в сеть. Если история включена, записи защищены Windows DPAPI и читаются только той же учётной записью Windows.");
+            var page = Page("О программе и дополнительно", "CyrFlip - набор инструментов в трее для клавиатуры и рабочего стола: показывает активную раскладку у каретки, исправляет текст, набранный в неверной раскладке или с включённым CapsLock, и снимает область экрана; меню над выделением, локальный переводчик, быстрые заметки, история буфера и быстрый запуск - необязательные модули, которые вы включаете сами.\n\nПриложение не передаёт историю буфера в сеть. Если история включена, записи защищены Windows DPAPI и читаются только той же учётной записью Windows.");
             var panel = ContentPanel(page);
+            panel.Controls.Add(Setting(Button("Показать приветствие..", () => WelcomeRequested?.Invoke(this, EventArgs.Empty)),
+                "Знакомство с CyrFlip и первоначальная настройка."));
             // Filled by ApplyLanguage, not here: it carries the version number, so a text set at
             // build time would be captured by RememberRussianTexts as if it were a Russian caption
             // and then "translated" on every language change. Starting empty keeps it out of that map.
@@ -3330,8 +3592,8 @@ namespace CyrFlip
             panel.Controls.Add(Link("Сайт разработчика: sza.od.ua", "https://sza.od.ua/"));
             // APP-SETTINGS rule 12: the About page answers "what does the user need to ask for help" -
             // the licence of the application itself, and the privacy policy it keeps in 13 languages.
-            panel.Controls.Add(Link(Translate("Лицензия: MIT"), "https://github.com/SerZhyAle/CyrFlip/blob/main/LICENSE"));
-            panel.Controls.Add(Link(Translate("Политика конфиденциальности"), "https://serzhyale.github.io/CyrFlip/privacy.html"));
+            panel.Controls.Add(Link("Лицензия: MIT", "https://github.com/SerZhyAle/CyrFlip/blob/main/LICENSE"));
+            panel.Controls.Add(Link("Политика конфиденциальности", "https://serzhyale.github.io/CyrFlip/privacy.html"));
             // The licence notice of the vendored vocabulary glyphs (ICON-EXTERNAL rule 5, ticket S0022 A10);
             // the file itself also ships beside the exe and inside the MSIX.
             panel.Controls.Add(Link("Сторонние компоненты: значки Material Icons (Apache-2.0)", "https://github.com/SerZhyAle/CyrFlip/blob/main/THIRD-PARTY-NOTICES.txt"));
@@ -3586,6 +3848,7 @@ namespace CyrFlip
                 _launcherImages.Dispose();
                 foreach (Bitmap bitmap in _launcherBitmaps) bitmap.Dispose();
                 _tabIcons?.Dispose();   // assigned to the TabControl, which never owned it
+                _glyphTips.Dispose();
                 _boldFont?.Dispose();
                 _ownFont?.Dispose();
                 _ownIcon?.Dispose();

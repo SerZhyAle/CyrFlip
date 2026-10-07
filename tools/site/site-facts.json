@@ -1,0 +1,79 @@
+{
+  "$comment": "S0054 D2-D3 (SITE-REPRESENTATION rules 3 and 4; owner decision O4, 2026-10-07: one edition, one build, obtained through three channels, with the VS Code extension as a companion surface, each under one display name). The facts the site states, each with the file a program reads it from: the channel ids are the stamp's channels (.sza-canon.json), the Windows minimum is the MSIX MinVersion, the language count is the localization table's Codes. tools/site/Test-SiteFacts.ps1 compares the pages with this file; build.ps1 and release.ps1 run it. A page that types a fact by hand in another wording is a defect the check names.",
+
+  "editions": [
+    {
+      "id": "windows-x64",
+      "name": "CyrFlip",
+      "note": "one build - the same portable exe in every channel; the Store package wraps it, nothing is added or removed"
+    }
+  ],
+
+  "channels": [
+    {
+      "id": "msstore",
+      "display": { "en": "Microsoft Store", "ru": "Microsoft Store", "uk": "Microsoft Store" },
+      "evidence": [ "msix/AppxManifest.xml", "msix/build-msix.ps1" ],
+      "ownPage": "docs/store.html",
+      "namedOn": [
+        "docs/guide.html", "docs/ru/guide.html", "docs/uk/guide.html",
+        "README.md", "README_RU.md", "README_UK.md", "docs/index.html",
+        "docs/ar/index.html", "docs/bn/index.html", "docs/de/index.html", "docs/es/index.html",
+        "docs/fr/index.html", "docs/hi/index.html", "docs/it/index.html", "docs/pt/index.html",
+        "docs/ur/index.html", "docs/zh/index.html"
+      ]
+    },
+    {
+      "id": "winget",
+      "display": { "en": "winget", "ru": "winget", "uk": "winget" },
+      "evidence": [ "winget/SerZhyAle.CyrFlip.installer.yaml", "winget/SerZhyAle.CyrFlip.locale.en-US.yaml" ],
+      "namedOn": [
+        "docs/guide.html", "docs/ru/guide.html", "docs/uk/guide.html",
+        "README.md", "README_RU.md", "README_UK.md", "docs/index.html",
+        "docs/ar/index.html", "docs/bn/index.html", "docs/de/index.html", "docs/es/index.html",
+        "docs/fr/index.html", "docs/hi/index.html", "docs/it/index.html", "docs/pt/index.html",
+        "docs/ur/index.html", "docs/zh/index.html"
+      ]
+    },
+    {
+      "id": "github",
+      "display": { "en": "Portable ZIP", "ru": "Портативный ZIP", "uk": "Портативний ZIP" },
+      "landingName": "GitHub Releases",
+      "evidence": [ ".github/workflows/release.yml" ],
+      "namedOnByLocale": {
+        "en": [ "docs/guide.html", "README.md" ],
+        "ru": [ "docs/ru/guide.html", "README_RU.md" ],
+        "uk": [ "docs/uk/guide.html", "README_UK.md" ]
+      },
+      "landingNamedOn": [
+        "docs/index.html",
+        "docs/ar/index.html", "docs/bn/index.html", "docs/de/index.html", "docs/es/index.html",
+        "docs/fr/index.html", "docs/hi/index.html", "docs/it/index.html", "docs/pt/index.html",
+        "docs/ur/index.html", "docs/zh/index.html"
+      ],
+      "forbidden": [ "Переносимый ZIP", "переносимый ZIP", "Переносний ZIP", "переносний ZIP" ]
+    },
+    {
+      "id": "vscode",
+      "role": "companion - the extension adds the marker inside VS Code; it is not a channel the app is obtained through",
+      "display": { "en": "VS Code extension", "ru": "расширение для VS Code", "uk": "розширення для VS Code" },
+      "evidence": [ "vscode-extension/package.json", "vscode-extension/README.md" ],
+      "namedOnByLocale": {
+        "en": [ "docs/guide.html", "README.md" ],
+        "ru": [ "docs/ru/guide.html", "README_RU.md" ],
+        "uk": [ "docs/uk/guide.html", "README_UK.md" ]
+      }
+    }
+  ],
+
+  "windowsMinimum": {
+    "source": { "path": "msix/AppxManifest.xml", "pattern": "MinVersion=\"(\\d+)\\.(\\d+)" },
+    "agree": { "path": "winget/SerZhyAle.CyrFlip.installer.yaml", "pattern": "(?m)^MinimumOSVersion:\\s*(\\d+)\\.(\\d+)" },
+    "statedAs": [ "Windows 10/11", "Windows 10 / 11" ]
+  },
+
+  "interfaceLanguages": {
+    "source": "src/CyrFlip/Localization.cs - the Codes array; its length is the count every page states",
+    "countStatement": 13
+  }
+}

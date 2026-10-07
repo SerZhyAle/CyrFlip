@@ -51,9 +51,9 @@ namespace CyrFlip
                 es: "Configuración...", fr: "Paramètres...", pt: "Configurações...",
                 ar: "الإعدادات...", hi: "सेटिंग्स...", bn: "সেটিংস...", ur: "ترتیبات...", zh: "设置...");
 
-            Add("Выход",
-                en: "Exit", uk: "Вихід", de: "Beenden", it: "Esci", es: "Salir", fr: "Quitter",
-                pt: "Sair", ar: "خروج", hi: "बाहर निकलें", bn: "প্রস্থান", ur: "باہر نکلیں", zh: "退出");
+            Add("Выйти",
+                en: "Exit", uk: "Вийти", de: "Beenden", it: "Esci", es: "Salir", fr: "Quitter",
+                pt: "Sair", ar: "خروج", hi: "बाहर निकलें", bn: "প্রস্থান করুন", ur: "باہر نکلیں", zh: "退出");
 
             // ---- Tooltip fragments (kept short: the shell tooltip is capped at 127 characters) ----
             Add("горячие клавиши выключены",

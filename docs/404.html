@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CyrFlip - page not found</title>
+  <meta name="description" content="This address does not exist on the CyrFlip site. Go to the landing page, the guide or the privacy policy.">
+  <meta name="robots" content="noindex">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0f0a">
+  <link rel="icon" type="image/png" href="https://serzhyale.github.io/CyrFlip/assets/favicon.png">
+  <script>
+(function(){try{
+  var t=localStorage.getItem('sza-theme');
+  if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  var l=localStorage.getItem('sza-lang');
+  if(l==='uk')l='ua';
+  if(l!=='ru'&&l!=='en'&&l!=='ua'){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+  document.documentElement.setAttribute('data-lang',l);
+}catch(e){}})();
+</script>
+  <link rel="stylesheet" href="https://serzhyale.github.io/CyrFlip/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content"><span data-l="ru">Перейти к основному содержимому</span><span data-l="en">Skip to main content</span><span data-l="ua">Перейти до основного вмісту</span></a>
+  <div class="bg-blobs" aria-hidden="true"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+
+  <header class="site-header">
+    <a class="brand" href="https://serzhyale.github.io/CyrFlip/">CyrFlip<span class="dot">.</span></a>
+    <div class="seg" role="group" aria-label="Language">
+      <button data-lang="ru">RU</button><button data-lang="en">EN</button><button data-lang="ua">UA</button>
+    </div>
+    <button class="theme-btn" id="themeBtn" aria-label="Switch theme">◐</button>
+  </header>
+
+  <main class="wrap" id="main-content" tabindex="-1">
+    <section>
+      <h1><span data-l="ru">Такой страницы нет</span><span data-l="en">This page does not exist</span><span data-l="ua">Такої сторінки немає</span></h1>
+      <p><span data-l="ru">Адрес, который вы открыли, на сайте CyrFlip не отвечает: ссылка могла устареть или в адресе опечатка. Вот куда можно перейти отсюда.</span><span data-l="en">The address you opened does not exist on the CyrFlip site: the link may be old, or the address may have a typo. Here is where you can go from here.</span><span data-l="ua">Адреса, яку ви відкрили, на сайті CyrFlip не відповідає: посилання могло застаріти або в адресі є помилка. Ось куди можна перейти звідси.</span></p>
+      <p>
+        <a class="btn btn-primary" href="https://serzhyale.github.io/CyrFlip/"><span data-l="ru">Главная страница</span><span data-l="en">Landing page</span><span data-l="ua">Головна сторінка</span></a>
+        <a class="btn btn-ghost" href="https://serzhyale.github.io/CyrFlip/guide.html"><span data-l="ru">Руководство</span><span data-l="en">Guide</span><span data-l="ua">Посібник</span></a>
+        <a class="btn btn-ghost" href="https://serzhyale.github.io/CyrFlip/privacy.html"><span data-l="ru">Политика конфиденциальности</span><span data-l="en">Privacy policy</span><span data-l="ua">Політика конфіденційності</span></a>
+      </p>
+    </section>
+
+    <footer>
+      <p>MIT licensed · © 2026 <a href="https://github.com/SerZhyAle">SerZhyAle</a> ·
+      <a href="https://github.com/SerZhyAle/CyrFlip">Source on GitHub</a><br>
+      <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
+    </footer>
+  </main>
+
+  <script>
+  (function(){
+    var doc=document.documentElement, themeBtn=document.getElementById('themeBtn'), themeColor=document.querySelector('meta[name="theme-color"]');
+    var TITLE={ru:'CyrFlip - страница не найдена',en:'CyrFlip - page not found',ua:'CyrFlip - сторінку не знайдено'};
+    function setLang(l){
+      if(l==='uk')l='ua';
+      if(l!=='ru'&&l!=='en'&&l!=='ua')l='en';
+      doc.setAttribute('data-lang',l);
+      doc.setAttribute('lang',l==='ua'?'uk':l);
+      try{localStorage.setItem('sza-lang',l);}catch(e){}
+      document.title=TITLE[l];
+      document.querySelectorAll('.seg button[data-lang]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.lang===l?'true':'false');});
+    }
+    document.querySelectorAll('.seg button[data-lang]').forEach(function(b){b.addEventListener('click',function(){setLang(b.dataset.lang);});});
+    setLang(doc.getAttribute('data-lang')||'en');
+    function themeMeta(){var dark=doc.getAttribute('data-theme')!=='light';themeColor.content=dark?'#0a0f0a':'#eef3ea';themeBtn.setAttribute('aria-label',dark?'Switch to light theme':'Switch to dark theme');}
+    themeBtn.addEventListener('click',function(){var next=doc.getAttribute('data-theme')==='light'?'dark':'light';doc.setAttribute('data-theme',next);try{localStorage.setItem('sza-theme',next);}catch(e){}themeMeta();});
+    themeMeta();
+  })();
+  </script>
+</body>
+</html>

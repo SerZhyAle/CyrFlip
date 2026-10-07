@@ -1193,6 +1193,20 @@ namespace CyrFlip
                 bn: "মডেল কোন কোন ভাষা বোঝে তা তার নিজের বিবরণে লেখা আছে",
                 ur: "ماڈل کون سی زبانیں سمجھتا ہے، یہ اس کی تفصیل میں لکھا ہے",
                 zh: "模型支持哪些语言，写在它自己的说明里");
+
+            Add("Удалить строку перевода «{0}»? Отменить удаление нельзя.",
+                en: "Delete the translation row \"{0}\"? This cannot be undone.",
+                uk: "Видалити рядок перекладу «{0}»? Скасувати видалення не можна.",
+                de: "Übersetzungszeile \"{0}\" löschen? Das lässt sich nicht rückgängig machen.",
+                it: "Eliminare la riga di traduzione \"{0}\"? L'operazione non si può annullare.",
+                es: "¿Eliminar la fila de traducción \"{0}\"? No se puede deshacer.",
+                fr: "Supprimer la ligne de traduction « {0} » ? Cette action est irréversible.",
+                pt: "Excluir a linha de tradução \"{0}\"? Não é possível desfazer.",
+                ar: "هل تريد حذف صف الترجمة «{0}»؟ لا يمكن التراجع عن ذلك.",
+                hi: "अनुवाद पंक्ति \"{0}\" हटाएँ? इसे वापस नहीं किया जा सकता।",
+                bn: "অনুবাদ সারি \"{0}\" মুছবেন? এটি আর ফেরানো যাবে না।",
+                ur: "ترجمے کی قطار «{0}» حذف کریں؟ اسے واپس نہیں کیا جا سکتا۔",
+                zh: "删除翻译行“{0}”？此操作无法撤销。");
         }
     }
 }

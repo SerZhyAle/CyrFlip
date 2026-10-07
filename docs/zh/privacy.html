@@ -28,7 +28,7 @@
   <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/CyrFlip/ur/privacy.html">
   <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/privacy.html">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","headline":"CyrFlip - 隐私政策","url":"https://serzhyale.github.io/CyrFlip/zh/privacy.html","description":"CyrFlip 隐私政策：应用在你自己的设备上运行，不收集任何内容，也没有自己的服务器；可选的翻译功能只把你选中的文本发送到你指定的 Ollama 地址，默认就是你自己的电脑。","inLanguage":"zh","about":{"@type":"SoftwareApplication","name":"CyrFlip","operatingSystem":"Windows"}}</script>
-  <meta name="source-sha256" content="6e4df70b2df0cc021d1dc39372f03ed5cc5c899be662ff8609b6d36c6e0aae08">
+  <meta name="source-sha256" content="f0acc1a5f07b080c192c226b9aaf38f81e83a96769c20f54e5b77b2aeb99c0a5">
   <!-- /doc-quality metadata -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -36,22 +36,24 @@
   <link rel="icon" type="image/png" href="../assets/favicon.png" />
   <!-- pre-paint: resolve theme before the stylesheet, so nothing flashes -->
   <script>
-  (function(){try{
-    var t=localStorage.getItem('sza-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
-    document.documentElement.setAttribute('data-theme',t);
-  }catch(e){}})();
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+(function(){try{
+  var t=localStorage.getItem('sza-theme');
+  if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  var l=localStorage.getItem('sza-lang');
+  if(l==='uk')l='ua';
+  if(l!=='ru'&&l!=='en'&&l!=='ua'){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+  document.documentElement.setAttribute('data-lang',l);
+}catch(e){}})();
+</script>
   <link rel="stylesheet" href="../style.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main-content">跳转到主要内容</a>
   <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
   <header class="site-header">
     <div class="container">
       <span class="brand">CyrFlip<span class="dot">.</span></span>
-      <nav class="langbar" aria-label="Language"><a href="../ru/privacy.html">RU</a><a href="../privacy.html">EN</a><a href="../uk/privacy.html">UA</a><a href="../de/privacy.html">DE</a><a href="../it/privacy.html">IT</a><a href="../es/privacy.html">ES</a><a href="../fr/privacy.html">FR</a><a href="../pt/privacy.html">PT</a><a href="../ar/privacy.html">AR</a><a href="../hi/privacy.html">HI</a><a href="../bn/privacy.html">BN</a><a href="../ur/privacy.html">UR</a><a href="privacy.html" class="active" aria-current="page">ZH</a></nav>
       <button class="theme-btn" id="themeBtn" aria-label="切换主题">◐</button>
       <div class="cta">
         <a class="btn btn-ghost btn-sm" href="./">← 首页</a>
@@ -59,10 +61,11 @@
       </div>
     </div>
   </header>
-  <div class="wrap">
+  <main class="wrap" id="main-content" tabindex="-1">
+    <nav class="langbar" aria-label="语言"><a href="../ru/privacy.html" data-sza-lang="ru" lang="ru" hreflang="ru"><span class="code">RU</span><span class="endonym">Русский</span></a><a href="../privacy.html" data-sza-lang="en" lang="en" hreflang="en"><span class="code">EN</span><span class="endonym">English</span></a><a href="../uk/privacy.html" data-sza-lang="ua" lang="uk" hreflang="uk"><span class="code">UA</span><span class="endonym">Українська</span></a><a href="../de/privacy.html" lang="de" hreflang="de"><span class="code">DE</span><span class="endonym">Deutsch</span></a><a href="../it/privacy.html" lang="it" hreflang="it"><span class="code">IT</span><span class="endonym">Italiano</span></a><a href="../es/privacy.html" lang="es" hreflang="es"><span class="code">ES</span><span class="endonym">Español</span></a><a href="../fr/privacy.html" lang="fr" hreflang="fr"><span class="code">FR</span><span class="endonym">Français</span></a><a href="../pt/privacy.html" lang="pt" hreflang="pt"><span class="code">PT</span><span class="endonym">Português</span></a><a href="../ar/privacy.html" lang="ar" hreflang="ar"><span class="code">AR</span><span class="endonym" dir="rtl">العربية</span></a><a href="../hi/privacy.html" lang="hi" hreflang="hi"><span class="code">HI</span><span class="endonym">हिन्दी</span></a><a href="../bn/privacy.html" lang="bn" hreflang="bn"><span class="code">BN</span><span class="endonym">বাংলা</span></a><a href="../ur/privacy.html" lang="ur" hreflang="ur"><span class="code">UR</span><span class="endonym" dir="rtl">اردو</span></a><a href="privacy.html" class="active" aria-current="page" lang="zh" hreflang="zh"><span class="code">ZH</span><span class="endonym">中文</span></a></nav>
     <section>
       <h1>隐私政策</h1>
-      <p class="note">最后更新：2026 年 9 月 26 日 · <a href="../privacy.html">English（原文）</a></p>
+      <p class="note">最后更新：2026 年 10 月 7 日 · <a href="../privacy.html">English（原文）</a></p>
 
       <p><strong>CyrFlip 不收集、不存储、不记录、不传输任何个人数据。</strong>它完全在你自己的设备上运行。
       它没有自己的服务器，没有遥测、分析、广告、追踪，也没有用户账号。开发者不会获得任何关于你或你如何使用
@@ -182,6 +185,13 @@
       选定的翻译地址 - 默认是你自己电脑上的一个程序 - 而且仅在该可选功能处于开启状态时。
       <em>将日志发送给作者</em>按钮也不例外：它只是在你自己的邮件程序中准备一封邮件，压缩包你可以先打开查看，而且只有你才能发送它。</p>
 
+      <h2>本网站</h2>
+      <p>本节讲的是您正在阅读的这些页面，而不是应用本身。应用不会联系本网站，本网站也不会从应用收到任何东西。</p>
+
+      <p>本站是静态站点，由 GitHub Pages 提供服务；与任何网站托管方一样，GitHub Pages 会在自己的日志中看到每位访问者的地址。站内没有分析、广告、表单或账户，页面也不设置 Cookie。字体由本站自身提供，因此没有任何字体服务商会看到您的访问。您的浏览器在您自己的设备上保存两项偏好 - 主题和语言（键名为 <code dir="ltr">sza-theme</code> 和 <code dir="ltr">sza-lang</code>） - 它们不会被发送到任何地方。</p>
+
+      <p>只有一个请求会发往第三方，并且仅来自首页：它向 <code dir="ltr">api.github.com</code>（GitHub 的公共 API，地址为 <code dir="ltr">/repos/SerZhyAle/CyrFlip/releases/latest</code>）询问最新版本是哪一个，以便下载按钮指向它。与任何网络请求一样，它会携带您的 IP 地址和常见的浏览器信息（例如 user agent）；不会发送其他任何内容，CyrFlip 也不存储任何内容。如果请求失败或被拦截，按钮会保留其指向最新版本页面的备用链接，其他一切不变。GitHub 如何处理这类请求，见 GitHub 自己的隐私声明。指向其他网站（Microsoft Store、GitHub）的链接在您点击之前不会加载任何内容。</p>
+
       <h2>儿童隐私</h2>
       <p>CyrFlip 不向任何人收集数据，儿童也不例外。</p>
 
@@ -202,7 +212,7 @@
       <a href="https://github.com/SerZhyAle/CyrFlip">GitHub 上的源代码</a><br />
       <a href="https://sza.od.ua">sza.od.ua</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a></p>
     </footer>
-  </div>
+  </main>
 
   <script>
   (function(){
@@ -221,6 +231,11 @@
     });
     applyThemeMeta();
   })();
+  </script>
+  <script>
+  (function(){var n=document.querySelectorAll('.langbar a[data-sza-lang]');
+  function w(e){try{localStorage.setItem('sza-lang',e.currentTarget.getAttribute('data-sza-lang'));}catch(x){}}
+  for(var i=0;i<n.length;i++){n[i].addEventListener('click',w);n[i].addEventListener('auxclick',w);}})();
   </script>
 </body>
 </html>

@@ -1,0 +1,19 @@
+{
+  "format": "CyrFlip Settings",
+  "schemaVersion": 1,
+  "exportedAtUtc": "2026-10-07T10:15:00Z",
+  "app": "26.10.7.1015",
+  "settings": {
+    "UiLanguage": "Русский",
+    "Theme": "dark",
+    "CursorSize": 24,
+    "EnableCaretOverlay": true,
+    "CaseHotkey": "Ctrl+Shift+F11",
+    "ContextMenuChord": "Ctrl+RightClick",
+    "TranslateEndpoint": ""
+  },
+  "tables": {
+    "LayoutConversionProfiles": [],
+    "TranslateProfiles": []
+  }
+}

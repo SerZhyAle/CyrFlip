@@ -5,7 +5,7 @@
 | **Id** | `APP-BEHAVIOUR` |
 | **Version** | 0.12, draft |
 | **Home** | `desktop-app-ux/APP-BEHAVIOUR.md` in the shared contracts catalog |
-| **Role here** | consumer - CyrFlip and its launcher module; **conformant, with one open owner decision** (rule 5, row deletes) |
+| **Role here** | consumer - CyrFlip and its launcher module; **conformant** (rules 1-12 held in the tree) |
 
 ## What this repository must do to stay conformant
 
@@ -34,6 +34,8 @@ The tray application's tool windows (settings, history, notes, search) and the t
 companion-surface class of rule 1 (0.11): not modal, close box = Escape = hide, state kept, the popup never
 takes the focus and is dismissed by a key the hook watches.
 
-Open: whether deleting a row of the conversion or translation table needs the rule 5 confirmation (owner
-decision D1; the layout removal, the scenario delete and the orphan language hotkey are confirmed). The plan is
-in `PLAN/` (local, not published); the deviations belong in the catalog's registry as dated exceptions.
+Every irreversible delete is confirmed (rule 5, owner decision D1 of 2026-10-07): the layout removal, the
+scenario, the conversion and translation table rows, and the orphan language hotkey. The plan is in `PLAN/`
+(local, not published); the deviations belong in the catalog's registry as dated exceptions.
+
+`WelcomeDialog` (S0055) is a modal five-page first-run surface: Escape, close and Skip have one no-action exit; Enter advances or opens General settings. Live edits keep their values on Back/Skip. Its size is measured across every page per language; `WelcomeDialogTests` holds 13 languages and three palettes.

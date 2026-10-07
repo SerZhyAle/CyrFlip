@@ -35,6 +35,7 @@
   <ItemGroup>
     <!-- Byte-exact OneClickRunner scenario XMLs (Фаза 0) - the launcher migration fixtures. -->
     <None Update="Fixtures\**\*.xml" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures\SettingsFile\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

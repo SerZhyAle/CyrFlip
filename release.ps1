@@ -161,6 +161,18 @@ try {
         & (Join-Path $preflightRoot 'tools\checks\Test-CheckPlacement.ps1')
         if ($LASTEXITCODE -ne 0) { $preflightFails.Add("placement check failed (exit $LASTEXITCODE)") }
 
+        # POSITIONING.md (S0058): frozen anchors, retired leads and the descriptor on every public surface.
+        Step 'Positioning'
+        & (Join-Path $preflightRoot 'tools\site\Test-Positioning.ps1')
+        if ($LASTEXITCODE -eq 1) { $preflightFails.Add('A public surface drifted from POSITIONING.md (descriptor, retired lead or frozen anchor). Run tools\site\Test-Positioning.ps1.') }
+        elseif ($LASTEXITCODE -ne 0) { $preflightUnverified.Add("Positioning check could not read a surface (exit $LASTEXITCODE).") }
+
+        # site-facts.json (S0054 D2-D3): editions, channel display names, Windows minimum, language count.
+        Step 'Site facts'
+        & (Join-Path $preflightRoot 'tools\site\Test-SiteFacts.ps1')
+        if ($LASTEXITCODE -eq 1) { $preflightFails.Add('A public page drifted from tools\site\site-facts.json (edition, channel name, Windows minimum or language count). Run tools\site\Test-SiteFacts.ps1.') }
+        elseif ($LASTEXITCODE -ne 0) { $preflightUnverified.Add("Site facts check could not read a source (exit $LASTEXITCODE).") }
+
         dotnet build CyrFlip.sln -c Release -p:Version=$Version --nologo
         if ($LASTEXITCODE -ne 0) {
             $preflightFails.Add("Build failed (exit $LASTEXITCODE)")

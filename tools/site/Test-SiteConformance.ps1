@@ -54,8 +54,11 @@ try {
     $kitBytes = [System.IO.File]::ReadAllBytes((Join-Path $repoRoot $kitPath))
     $md5 = [System.Security.Cryptography.MD5]::Create()
     $hash = [System.BitConverter]::ToString($md5.ComputeHash($kitBytes)).Replace("-", "").ToLower()
-    $expectedHash = "33bb9ad27200b26b158ab935ad7aafbc"
+    $expectedHash = "e307519533b1e7685fc47b30c4c18ebd"
     Assert-Check "sza-kit.css md5 is $expectedHash" ($hash -eq $expectedHash) "Found hash $hash"
+    $expectedSha256 = 'aea958f805249d300b7417373e4cad18b44d7eed9765954df19ed710276c4c9e'
+    $kitSha256 = (Get-FileHash -LiteralPath $kitPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    Assert-Check 'sza-kit.css matches the catalog SHA-256 pin (S0052 B1)' ($kitSha256 -eq $expectedSha256) "Found $kitSha256"
 
     if ($Online) {
         try {
@@ -113,14 +116,14 @@ try {
         Assert-Check "$lp has tools-grid with 8 family links" ($hasGrid -and $count -eq 8) "Found $count family links in $lp"
     }
 
-    # A5. Pre-paint Script Resolver Order (40 Rendered HTML Pages)
-    Write-Host "`n=== A5. Pre-paint Script Preceding Stylesheet in All 40 Rendered Pages ===" -ForegroundColor Yellow
+    # A5. Pre-paint Script Resolver Order (41 Rendered HTML Pages)
+    Write-Host "`n=== A5. Pre-paint Script Preceding Stylesheet in All 41 Rendered Pages ===" -ForegroundColor Yellow
     $allHtml = Get-ChildItem -Path "docs" -Filter "*.html" -Recurse | Where-Object {
         $_.FullName -notmatch '[\\/]en[\\/]index\.html' -and
         $_.FullName -notmatch '[\\/]ru[\\/]index\.html' -and
         $_.FullName -notmatch '[\\/]uk[\\/]index\.html'
     }
-    Assert-Check "Found 40 rendered HTML pages" ($allHtml.Count -eq 40) "Found $($allHtml.Count) rendered pages"
+    Assert-Check "Found 44 rendered HTML pages (43 plus the not-found page)" ($allHtml.Count -eq 44) "Found $($allHtml.Count) rendered pages"
     foreach ($h in $allHtml) {
         $c = Get-Content -Raw $h.FullName
         $scriptPos = $c.IndexOf('<script')
@@ -223,6 +226,43 @@ try {
         $hasAuthorHub = $c -match 'sza\.od\.ua'
         Assert-Check "$r has no Related project heading and references sza.od.ua" (-not $hasRelated -and $hasAuthorHub) "Related heading found or sza.od.ua missing"
     }
+
+    # A16. S0052 offline gates apply to every published HTML file, including forwarders.
+    Write-Host "`n=== A16. Site Experience Source Gates ===" -ForegroundColor Yellow
+    $experienceErrors = @{
+        main = @(); h1 = @(); skip = @(); locale = @(); inline = @(); nav = @(); headings = @()
+    }
+    foreach ($page in (Get-ChildItem docs -Recurse -Filter *.html)) {
+        $html = Get-Content -Raw -LiteralPath $page.FullName
+        $name = $page.FullName.Substring($repoRoot.Length + 1)
+        $mainTags = [regex]::Matches($html, '<main\b[^>]*>')
+        if ($mainTags.Count -ne 1 -or $mainTags[0].Value -notmatch '\bid="main-content"' -or
+            [regex]::Matches($html, '</main>').Count -ne 1) { $experienceErrors.main += $name }
+        if ([regex]::Matches($html, '<h1\b').Count -ne 1) { $experienceErrors.h1 += $name }
+        if ($html -notmatch '<body>\s*<a\b[^>]*class="skip-link"[^>]*href="#main-content"') { $experienceErrors.skip += $name }
+        $expectedLang = if ($page.Directory.FullName -eq (Join-Path $repoRoot 'docs')) { 'en' } else { $page.Directory.Name }
+        $htmlTag = [regex]::Match($html, '<html\b[^>]*>').Value
+        if ($htmlTag -notmatch "\blang=`"$expectedLang`"" -or
+            (($expectedLang -in @('ar', 'ur')) -ne ($htmlTag -match '\bdir="rtl"'))) { $experienceErrors.locale += $name }
+        if ($html -match '<[a-zA-Z][^>]*\sstyle\s*=') { $experienceErrors.inline += $name }
+        foreach ($nav in [regex]::Matches($html, '<nav\b[^>]*>')) {
+            if ($nav.Value -notmatch '\baria-label(?:ledby)?="[^\"]+"') { $experienceErrors.nav += $name }
+        }
+        $previousLevel = 0
+        foreach ($heading in [regex]::Matches($html, '<h([1-6])\b')) {
+            $level = [int]$heading.Groups[1].Value
+            if ($level -gt $previousLevel + 1) { $experienceErrors.headings += $name; break }
+            $previousLevel = $level
+        }
+    }
+    foreach ($rule in @('main', 'h1', 'skip', 'locale', 'inline', 'nav', 'headings')) {
+        Assert-Check "All HTML pages pass $rule source gate" ($experienceErrors[$rule].Count -eq 0) ($experienceErrors[$rule] -join ', ')
+    }
+    $wrapperCaps = [regex]::Matches($cssContent, '(?s)([^{}]+)\{([^{}]*)\}') | Where-Object {
+        $_.Groups[1].Value -match '(?<![\w-])(?:\.wrap|\.container|\.site-header|main|body|html)\s*(?:,|$)' -and
+        ($_.Groups[2].Value -match 'max-width\s*:\s*(?!none\b)' -or $_.Groups[2].Value -match 'margin(?:-inline)?\s*:[^;{}]*\bauto\b')
+    }
+    Assert-Check 'Page stylesheet does not cap or center page wrappers' ($wrapperCaps.Count -eq 0) ($wrapperCaps.Value -join ', ')
 
     # Summary
     Write-Host "`n========================================================" -ForegroundColor Cyan

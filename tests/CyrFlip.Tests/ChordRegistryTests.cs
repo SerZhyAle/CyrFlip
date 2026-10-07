@@ -152,6 +152,52 @@ namespace CyrFlip.Tests
             Assert.DoesNotContain(registry.Owners, o => o.Kind == ChordKind.Launcher);
         }
 
+        // ---- The screenshots folder chord (S0057) ----
+
+        [Fact]
+        public void TheFolderChordIsRefusedOnEveryOwnerAndRefusesTheCaptureChordBack()
+        {
+            // Every row-and-owner kind refuses it (KC-6, whatever switches are off).
+            foreach (ChordKind holder in CyrFlipKinds)
+            {
+                AppConfig config = EmptyConfig();
+                var scenarios = new List<LauncherScenario>();
+                Own(config, scenarios, holder, "Ctrl+Alt+F7");
+                config.ScreenshotFolderHotkey = "Ctrl+Alt+F7";
+                ChordRegistry registry = ChordRegistry.Build(config, scenarios, new LanguageHotkeys.Entry[0]);
+
+                ChordOwner? owner = registry.CyrFlipOwnerOf(Hotkey.Parse("Ctrl+Alt+F7"), ChordKind.ScreenshotFolder);
+                Assert.True(owner != null, holder + " refused the folder chord");
+                Assert.Equal(holder, owner!.Kind);
+            }
+
+            // The capture chord refuses it and is refused back, both switched off, saving off.
+            AppConfig clash = EmptyConfig();
+            clash.ScreenshotHotkey = "Ctrl+Shift+F5";
+            clash.ScreenshotFolderHotkey = "Ctrl+Shift+F5";
+            clash.EnableScreenshotHotkey = false;
+            clash.EnableScreenshotFolderHotkey = false;
+            clash.ScreenshotSaveEnabled = false;
+            ChordRegistry both = ChordRegistry.Build(clash, new LauncherScenario[0], new LanguageHotkeys.Entry[0]);
+            Assert.Equal(ChordKind.Screenshot, both.CyrFlipOwnerOf(Hotkey.Parse("Ctrl+Shift+F5"), ChordKind.ScreenshotFolder)!.Kind);
+            Assert.Equal(ChordKind.ScreenshotFolder, both.CyrFlipOwnerOf(Hotkey.Parse("Ctrl+Shift+F5"), ChordKind.Screenshot)!.Kind);
+        }
+
+        [Fact]
+        public void ASwitchedOffFolderChordStillOwnsItsChord()
+        {
+            AppConfig config = EmptyConfig();
+            config.ScreenshotFolderHotkey = "Ctrl+Alt+F6";
+            config.EnableScreenshotFolderHotkey = false;
+            config.ScreenshotSaveEnabled = false;
+            config.EnableHotkeys = false;
+            ChordRegistry registry = ChordRegistry.Build(config, new LauncherScenario[0], new LanguageHotkeys.Entry[0]);
+
+            ChordOwner? owner = registry.CyrFlipOwnerOf(Hotkey.Parse("Ctrl+Alt+F6"), ChordKind.Case);
+            Assert.True(owner != null && owner.Kind == ChordKind.ScreenshotFolder,
+                "a switched-off folder chord still owns its chord");
+        }
+
         [Fact]
         public void LabelsNameTheOwner()
         {

@@ -17,11 +17,15 @@ so a synthesized chord would prove nothing:
      in the same second is " (2)", and the file is byte-equal to the PNG the clipboard gets;
   4. with -Clipboard only: Win32Clipboard.TrySetImage puts PNG and CF_DIB on the clipboard in one open.
      This REPLACES YOUR CLIPBOARD (an image cannot be handed back the way text is), so it is opt-in;
-  5. a hundred grab/crop/encode rounds do not grow the GDI or USER handle count.
+  5. a hundred grab/crop/encode rounds do not grow the GDI or USER handle count;
+  6. with -FolderChord only: the screenshots-folder chord (S0057) - a human presses the key and the
+     script verifies the Explorer window, its LocationURL and that it is in front (L1).
 
 The second half is the checklist of what only a person can check: the chord, the drag across mixed-DPI
 monitors, the paste into Paint (the DIB) and into a browser or Telegram (the PNG), the cancels, a
-tooltip frozen into the picture, the caret marker absent from it.
+tooltip frozen into the picture, the caret marker absent from it, and the S0057 folder-chord live
+checks (the not-yet-created balloon, the pass-through while saving is off, the removed-drive case,
+the RDP deferral).
 
 Run it from Windows PowerShell (the exe is .NET Framework).
 
@@ -31,6 +35,10 @@ Run only the unattended half.
 .PARAMETER Clipboard
 Also run scene 4, which replaces whatever is on the clipboard.
 
+.PARAMETER FolderChord
+Also run scene 6 (S0057): CyrFlip must be running with saving on; the script asks you to press the
+chord and then checks the Explorer window it opened.
+
 .EXAMPLE
 powershell -sta -NoProfile -ExecutionPolicy Bypass -File tools\uitest\Test-ScreenRegion.ps1 -InteropOnly
 #>
@@ -38,6 +46,7 @@ powershell -sta -NoProfile -ExecutionPolicy Bypass -File tools\uitest\Test-Scree
 param(
     [switch]$InteropOnly,
     [switch]$Clipboard,
+    [switch]$FolderChord,
     [ValidateSet('Release', 'Debug')][string]$Configuration = 'Release'
 )
 
@@ -54,6 +63,7 @@ using System.Runtime.InteropServices;
 public static class ScreenRegionUi {
     [DllImport("user32.dll")] public static extern bool IsClipboardFormatAvailable(uint format);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern uint RegisterClipboardFormatW(string name);
+    [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
 }
 '@
 }
@@ -143,7 +153,12 @@ try {
     Check 'the file carries the contract''s name' ((Split-Path $firstPath -Leaf) -eq "$stem.png") (Split-Path $firstPath -Leaf)
     Check 'a second save in the same second is (2)' ((Split-Path $secondPath -Leaf) -eq "$stem (2).png") (Split-Path $secondPath -Leaf)
     $bytes = [IO.File]::ReadAllBytes($firstPath)
-    Check 'the file is byte-equal to the clipboard PNG' ([Linq.Enumerable]::SequenceEqual([byte[]]$bytes, [byte[]]$png)) "$($bytes.Length) bytes"
+    # CAPTURE-OUTPUT rule 16: the saver injects a 19-byte tIME chunk (signature + IHDR + tIME + the rest).
+    $body = ($bytes.Length -eq $png.Length + 19) `
+        -and [Linq.Enumerable]::SequenceEqual([byte[]]($bytes[0..32] + $bytes[52..($bytes.Length - 1)]), [byte[]]($png[0..32] + $png[33..($png.Length - 1)]))
+    $timeOk = (([int]$bytes[41] * 256 + [int]$bytes[42]) -eq $started.Year) -and ([int]$bytes[43] -eq $started.Month) `
+        -and ([int]$bytes[44] -eq $started.Day) -and ([int]$bytes[45] -eq $started.Hour) -and ([int]$bytes[46] -eq $started.Minute)
+    Check 'the file is the clipboard PNG plus its tIME chunk (rule 16)' ($body -and $timeOk) "$($bytes.Length) bytes, started $($started.ToString('yyyy-MM-dd HH:mm'))"
     Check 'no temporary file is left' (@(Get-ChildItem $folder -Filter '*.tmp').Count -eq 0) ''
 }
 finally {
@@ -178,6 +193,48 @@ for ($n = 0; $n -lt 100; $n++) {
 $after = Handles
 Check 'a hundred captures do not grow GDI/USER handles' (($after[0] - $before[0]) -le 2 -and ($after[1] - $before[1]) -le 2) "GDI $($before[0])->$($after[0]), USER $($before[1])->$($after[1])"
 
+# ---- 6. the screenshots folder chord (S0057, -FolderChord) ----------------------------------------
+# Live, so a human presses the key: CyrFlip must be running with saving on and the folder existing.
+if ($FolderChord) {
+    $settings = Get-ItemProperty 'HKCU:\Software\CyrFlip' -ErrorAction SilentlyContinue
+    Check 'CyrFlip is running with settings present' ($null -ne $settings) ''
+    if ($null -ne $settings) {
+        $saving = [bool]($settings.ScreenshotSaveEnabled)
+        Check 'saving screenshots to a folder is on (Graphics tab)' $saving ''
+        # The folder the settings show: the user's choice, else the Screenshots known folder.
+        $shown = [string]$settings.ScreenshotFolder
+        if (-not $shown) {
+            try { $shown = [string](New-Object -ComObject Shell.Application).NameSpace('shell:Screenshots').Self.Path }
+            catch { $shown = '' }
+        }
+        $shown = $shown.TrimEnd('\')
+        Write-Host "  The folder to open: $shown" -ForegroundColor Cyan
+        Write-Host '  Press the folder chord now (default Ctrl+Shift+Alt+PrintScreen).' -ForegroundColor Cyan
+        Read-Host '  Press Enter once the Explorer window has opened (or should have)'
+
+        $shell = New-Object -ComObject Shell.Application
+        $hit = $null
+        foreach ($window in $shell.Windows()) {
+            try {
+                $url = [string]$window.LocationURL
+                if ($url -and $url.StartsWith('file:///')) {
+                    $path = ([Uri]$url).LocalPath.TrimEnd('\')
+                    if ($path -ieq $shown) { $hit = $window; break }
+                }
+            }
+            catch { }
+        }
+        Check 'an Explorer window is open on the folder' ([bool]$hit) "LocationURL of $shown"
+        if ($hit) {
+            $foreground = [ScreenRegionUi]::GetForegroundWindow()
+            Check 'the window is in front (S0057 L1)' ($foreground -eq [IntPtr][int]$hit.HWND) "foreground $foreground, window $($hit.HWND)"
+        }
+    }
+}
+else {
+    Write-Host '  [SKIP] the folder chord - run with -FolderChord (CyrFlip running, saving on)' -ForegroundColor DarkGray
+}
+
 if ($InteropOnly) {
     if ($failures.Count) { Write-Host "`n$($failures.Count) check(s) failed." -ForegroundColor Red; exit 1 }
     Write-Host "`nAll unattended checks passed." -ForegroundColor Green
@@ -197,7 +254,13 @@ Write-Host "`nNow by hand (CyrFlip running):" -ForegroundColor Cyan
     'Two monitors with different scaling: a drag across both is one continuous picture, no seam.',
     'With "Also save captures to a folder" on: the file appears in Pictures\Screenshots, named screenshot_yyMMdd_HHmmss.png.',
     'Point the folder at a pulled USB stick: the capture still reaches the clipboard and a balloon names Pictures\Screenshots.',
-    'With Windows 11 "Use the Print screen key to open Snipping Tool" ON: the chord does not also open Snipping Tool (Q1).'
+    'With Windows 11 "Use the Print screen key to open Snipping Tool" ON: the chord does not also open Snipping Tool (Q1).',
+    'S0057, saving on, folder exists: the folder chord (default Ctrl+Shift+Alt+PrintScreen) opens the folder - and it is in front of the editor you came from.',
+    'S0057, saving on, folder deleted (or not created yet): the chord shows the "no folder yet" balloon and no window opens.',
+    'S0057, saving off: the same chord is not bound - the keys reach a text box in the foreground app, no window.',
+    'S0057, folder on a removed drive or an offline share: the keyboard stays responsive while the chord is handled (the hook thread is not held); the balloon or Explorer''s own error appears.',
+    'S0057, pressing the chord twice: two Explorer windows (D3); while the region overlay is up: nothing opens.',
+    'S0057, inside an RDP client with "Defer to the remote desktop" on: the chord travels to the remote session, as every chord does.'
 ) | ForEach-Object { Write-Host "  [ ] $_" }
 
 if ($failures.Count) { Write-Host "`n$($failures.Count) unattended check(s) failed." -ForegroundColor Red; exit 1 }

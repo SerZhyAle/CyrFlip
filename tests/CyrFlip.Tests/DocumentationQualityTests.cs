@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -100,6 +100,172 @@ namespace CyrFlip.Tests
             Assert.True(errors.Count == 0, string.Join(Environment.NewLine, errors));
         }
 
+        // SITE-STRUCTURE rule 8 (ticket S0051 A3): the addresses held outside the site - the app, the READMEs, the
+        // listings, the winget manifests - are listed in docs/site-held-addresses.jsonl in a form a program reads,
+        // and this is the gate that compares the list both ways with those sources and resolves every entry.
+        private const string SiteBase = "https://serzhyale.github.io/CyrFlip/";
+
+        private sealed class HeldEntry
+        {
+            public string Path = "";
+            public string Anchor = "";
+            public SortedSet<string> Files = new SortedSet<string>(StringComparer.Ordinal);
+            public string Key => Path + (Anchor.Length > 0 ? "#" + Anchor : "");
+        }
+
+        private static List<HeldEntry> ReadHeldAddressList()
+        {
+            var parser = new JavaScriptSerializer();
+            var entries = new List<HeldEntry>();
+            foreach (string line in File.ReadAllLines(Path.Combine(Docs, "site-held-addresses.jsonl")).Where(l => l.Trim().Length > 0))
+            {
+                var row = parser.Deserialize<Dictionary<string, object>>(line);
+                var entry = new HeldEntry { Path = (string)row["path"], Anchor = (string)row["anchor"] };
+                foreach (Dictionary<string, object> holder in ((System.Collections.IEnumerable)row["held_by"]).Cast<Dictionary<string, object>>())
+                {
+                    Assert.False(string.IsNullOrWhiteSpace((string)holder["surface"]), entry.Key + ": a holder without a surface name");
+                    entry.Files.Add((string)holder["file"]);
+                }
+                entries.Add(entry);
+            }
+            return entries;
+        }
+
+        // Every file that can carry an address a person or a store reads: the app's strings, the READMEs, the
+        // extension's manifest and README, the winget manifests, the Store listing sources.
+        private static IEnumerable<string> HeldAddressSources()
+        {
+            var sources = new List<string>();
+            void Add(string directory, string pattern)
+            {
+                string folder = Path.Combine(Repo, directory);
+                if (Directory.Exists(folder)) sources.AddRange(Directory.GetFiles(folder, pattern, SearchOption.TopDirectoryOnly));
+            }
+            Add("src/CyrFlip", "*.cs");
+            Add("", "*.md");
+            Add("vscode-extension", "*.md");
+            Add("vscode-extension", "package.json");
+            Add("vscode-extension/src", "*.ts");
+            Add("winget", "*.yaml");
+            Add("msix", "*.xml");
+            Add("msix", "*.csv");
+            Add("msix", "*.md");
+            Add("msix/listing", "*.txt");
+            Add("store", "listing-*.txt");
+            return sources;
+        }
+
+        private static Dictionary<string, SortedSet<string>> FindHeldAddresses(IEnumerable<string> files)
+        {
+            var found = new Dictionary<string, SortedSet<string>>(StringComparer.Ordinal);
+            var address = new Regex(@"https://serzhyale\.github\.io/CyrFlip/([^\s""'<>)\]`\\,;]*)");
+            foreach (string file in files)
+                foreach (Match match in address.Matches(File.ReadAllText(file)))
+                {
+                    string tail = match.Groups[1].Value.TrimEnd('.').Split('?')[0];
+                    string key = tail;
+                    if (!found.TryGetValue(key, out SortedSet<string>? holders)) found[key] = holders = new SortedSet<string>(StringComparer.Ordinal);
+                    holders.Add(Relative(file));
+                }
+            return found;
+        }
+
+        private static string PageFileFor(string path)
+        {
+            string local = path.Length == 0 ? "index.html" : path.EndsWith("/") ? path + "index.html" : path;
+            return Path.Combine(Docs, local.Replace('/', Path.DirectorySeparatorChar));
+        }
+
+        private static List<string> CompareHeldAddresses(List<HeldEntry> entries, Dictionary<string, SortedSet<string>> found, string sitemap)
+        {
+            var errors = new List<string>();
+            foreach (var duplicate in entries.GroupBy(e => e.Key).Where(g => g.Count() > 1))
+                errors.Add("listed twice: " + duplicate.Key);
+            var listed = entries.GroupBy(e => e.Key).ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
+            foreach (var key in found.Keys.Except(listed.Keys, StringComparer.Ordinal))
+                errors.Add("held outside the site but not in the list: " + key + " (" + string.Join(", ", found[key]) + ")");
+            foreach (var entry in entries)
+            {
+                if (!found.TryGetValue(entry.Key, out SortedSet<string>? holders)) { errors.Add("listed but held by no source: " + entry.Key); }
+                else if (!holders.SetEquals(entry.Files))
+                    errors.Add("holders differ for " + entry.Key + ": list says [" + string.Join(", ", entry.Files) + "], sources say [" + string.Join(", ", holders) + "]");
+                string page = PageFileFor(entry.Path);
+                if (!File.Exists(page)) { errors.Add("does not resolve to a page: " + entry.Key); continue; }
+                string text = File.ReadAllText(page);
+                if (Regex.IsMatch(text, "http-equiv=[\"']refresh[\"']", RegexOptions.IgnoreCase))
+                    errors.Add("resolves to a forwarder, not a page: " + entry.Key);
+                if (!sitemap.Contains("<loc>" + SiteBase + entry.Path + "</loc>"))
+                    errors.Add("not in the sitemap: " + entry.Key);
+                if (entry.Anchor.Length > 0 && !Regex.IsMatch(text, "\\bid=[\"']" + Regex.Escape(entry.Anchor) + "[\"']"))
+                    errors.Add("anchor is missing on its page: " + entry.Key);
+            }
+            return errors;
+        }
+
+        [Fact]
+        public void HeldAddressListMatchesItsSourcesAndResolves()
+        {
+            var entries = ReadHeldAddressList();
+            Assert.NotEmpty(entries);
+            var errors = CompareHeldAddresses(entries, FindHeldAddresses(HeldAddressSources()),
+                File.ReadAllText(Path.Combine(Docs, "sitemap.xml")));
+            Assert.True(errors.Count == 0, string.Join(Environment.NewLine, errors));
+            // SITE-STRUCTURE rule 8: a section anchor an outside surface links is never renamed.
+            Assert.Contains(entries, e => e.Anchor == "layout-colours" && e.Path == "guide.html");
+        }
+
+        [Fact]
+        public void HeldAddressGateFailsOnAPlantedWrongEntry()
+        {
+            string sitemap = File.ReadAllText(Path.Combine(Docs, "sitemap.xml"));
+            var found = FindHeldAddresses(HeldAddressSources());
+            Assert.Empty(CompareHeldAddresses(ReadHeldAddressList(), found, sitemap));
+
+            List<HeldEntry> Fresh() => ReadHeldAddressList();
+            var typo = Fresh(); typo.First(e => e.Path == "privacy.html").Path = "privacy.htm";
+            Assert.Contains(CompareHeldAddresses(typo, found, sitemap), e => e.Contains("does not resolve to a page: privacy.htm"));
+
+            var lostAnchor = Fresh(); lostAnchor.First(e => e.Anchor == "layout-colours").Anchor = "layout-colors";
+            Assert.NotEmpty(CompareHeldAddresses(lostAnchor, found, sitemap));
+
+            var forwarder = Fresh(); forwarder.Add(new HeldEntry { Path = "ru/", Files = new SortedSet<string>(new[] { "README_RU.md" }) });
+            Assert.Contains(CompareHeldAddresses(forwarder, found, sitemap), e => e.Contains("listed but held by no source: ru/"));
+
+            var missing = Fresh(); missing.RemoveAt(0);
+            Assert.Contains(CompareHeldAddresses(missing, found, sitemap), e => e.Contains("held outside the site but not in the list"));
+
+            var wrongHolder = Fresh(); wrongHolder.First(e => e.Path == "trust.html").Files.Add("README_UK.md");
+            Assert.Contains(CompareHeldAddresses(wrongHolder, found, sitemap), e => e.Contains("holders differ for trust.html"));
+
+            var forwardedEntry = Fresh(); forwardedEntry.First(e => e.Path == "privacy.html").Path = "en/";
+            Assert.Contains(CompareHeldAddresses(forwardedEntry, found, sitemap), e => e.Contains("forwarder"));
+        }
+
+        // SITE-STRUCTURE rule 15 (ticket S0051 A1): the host serves docs/404.html for any unknown address, at any
+        // depth, so it must be noindex, built from absolute addresses, and offer what this tier has.
+        [Fact]
+        public void NotFoundPageIsNoindexAbsoluteAndOffersTheCorePages()
+        {
+            string page = File.ReadAllText(Path.Combine(Docs, "404.html"));
+            Assert.Matches("<meta name=\"robots\" content=\"noindex\">", page);
+            foreach (string lang in new[] { "ru", "en", "ua" })
+                Assert.Contains("data-l=\"" + lang + "\"", page);
+            var links = Regex.Matches(page, @"\b(?:href|src)\s*=\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase).Cast<Match>().Select(m => m.Groups[1].Value).ToArray();
+            Assert.All(links, link =>
+            {
+                if (link.StartsWith("#"))
+                    Assert.Contains("id=\"" + link.Substring(1) + "\"", page);
+                else
+                    Assert.True(link.StartsWith("https://") || link.StartsWith("mailto:"), "404.html: a relative address would break at depth: " + link);
+            });
+            foreach (string path in new[] { "", "guide.html", "privacy.html" })
+            {
+                Assert.Contains(SiteBase + path, links);
+                Assert.True(File.Exists(PageFileFor(path)), "404.html offers a page that does not exist: " + path);
+            }
+            Assert.DoesNotContain("404.html", File.ReadAllText(Path.Combine(Docs, "sitemap.xml")));
+        }
+
         private static HashSet<string> MarkdownAnchors(string markdown)
         {
             var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -124,7 +290,7 @@ namespace CyrFlip.Tests
         {
             var groups = new Dictionary<string, string[]> {
                 ["index"] = Locales.Except(new[] { "ru", "uk" }).ToArray(),
-                ["guide"] = new[] { "en", "ru", "uk" }, ["privacy"] = Locales, ["trust"] = Locales };
+                ["guide"] = new[] { "en", "ru", "uk" }, ["store"] = new[] { "en", "ru", "uk" }, ["privacy"] = Locales, ["trust"] = Locales };
             var sitemap = File.ReadAllText(Path.Combine(Docs, "sitemap.xml"));
             var index = File.ReadAllText(Path.Combine(Docs, "search-index.json"));
             foreach (var group in groups)
@@ -170,7 +336,7 @@ namespace CyrFlip.Tests
         [Fact]
         public void TermbaseHasFiveTermsPerLocaleAndGuidesUseThem()
         {
-            var data = new JavaScriptSerializer().DeserializeObject(File.ReadAllText(Path.Combine(Docs, "termbase.json"))) as Dictionary<string, object>;
+            var data = Assert.IsType<Dictionary<string, object>>(new JavaScriptSerializer().DeserializeObject(File.ReadAllText(Path.Combine(Docs, "termbase.json"))));
             Assert.NotNull(data);
             var concepts = (object[])data!["concepts"];
             Assert.Equal(new[] { "layout", "conversion", "case flip", "CapsLock", "quick notes" }, concepts.Cast<string>());
@@ -195,6 +361,36 @@ namespace CyrFlip.Tests
                 if (locale.Key == "en") combined = string.Join(" ", Directory.GetFiles(Docs, "*.html", SearchOption.TopDirectoryOnly).Select(File.ReadAllText));
                 foreach (string bad in (object[])locale.Value)
                     Assert.DoesNotContain(bad, combined, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        [Fact]
+        public void GuideNamesControlsInTheirOwnWords()
+        {
+            // SITE-REPRESENTATION rule 8 (ticket S0054 D5): a control the guide names is the product's own
+            // string of that language, in the app's strings and quoted by the guide.
+            var data = Assert.IsType<Dictionary<string, object>>(new JavaScriptSerializer().DeserializeObject(File.ReadAllText(Path.Combine(Docs, "termbase.json"))));
+            var controls = (Dictionary<string, object>)data["controls"];
+            string table = string.Join(" ", Directory.GetFiles(Path.Combine(Repo, "src", "CyrFlip"), "Localization*.cs").Select(File.ReadAllText));
+            var appStrings = new Dictionary<string, HashSet<string>>
+            {
+                ["en"] = new HashSet<string>(Regex.Matches(table, @"en:\s*""([^""
+]*)""").Cast<Match>().Select(m => m.Groups[1].Value)),
+                ["ru"] = new HashSet<string>(Regex.Matches(table, @"Add\(\s*""([^""
+]+)""").Cast<Match>().Select(m => m.Groups[1].Value)),
+                ["uk"] = new HashSet<string>(Regex.Matches(table, @"uk:\s*""([^""
+]*)""").Cast<Match>().Select(m => m.Groups[1].Value)),
+            };
+            foreach (var locale in controls)
+            {
+                string visible = Regex.Replace(WebUtility.HtmlDecode(Regex.Replace(File.ReadAllText(Page("guide", locale.Key)), "<[^>]+>", " ")), @"\s+", " ");
+                foreach (string name in ((object[])locale.Value).Cast<string>())
+                {
+                    Assert.True(visible.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0,
+                        locale.Key + " guide does not name the control as '" + name + "'");
+                    Assert.True(appStrings[locale.Key].Contains(name),
+                        locale.Key + " termbase control '" + name + "' is not one of the app's own strings");
+                }
             }
         }
 

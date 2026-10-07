@@ -1,0 +1,288 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>site measurement harness</title>
+<!-- Loaded by tools/site/Measure-SiteContracts.ps1 in headless Chrome: loads every page of docs/ in an iframe at 360, 1920 and 2560 px in both themes, measures landmarks, contrast, width, targets, focus rings, motion and contacted origins, and POSTs one JSON result. Read-only: nothing here is shipped. -->
+<body>
+<pre id="log">starting</pre>
+<script>
+const Q = new URLSearchParams(location.search);
+const MODE = Q.get('mode') || 'full';        // full | motion
+const NAME = Q.get('name') || MODE;
+const log = (m) => { document.getElementById('log').textContent = m; };
+
+function parseColor(s) {
+  if (!s) return null;
+  let m = s.match(/^rgba?\(([^)]+)\)$/);
+  if (m) {
+    const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number);
+    return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+  }
+  m = s.match(/^color\(srgb ([^)]+)\)$/);
+  if (m) {
+    const p = m[1].split(/[ \/]+/).filter(Boolean).map(Number);
+    return [p[0] * 255, p[1] * 255, p[2] * 255, p.length > 3 ? p[3] : 1];
+  }
+  return null;
+}
+function over(fg, bg) { // fg rgba over opaque bg rgb
+  const a = fg[3];
+  return [fg[0] * a + bg[0] * (1 - a), fg[1] * a + bg[1] * (1 - a), fg[2] * a + bg[2] * (1 - a), 1];
+}
+function lum(c) {
+  const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
+}
+function ratio(a, b) {
+  const l1 = lum(a), l2 = lum(b);
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+}
+function bgOf(el, w) {
+  const layers = []; let image = false;
+  for (let e = el; e; e = e.parentElement) {
+    const cs = w.getComputedStyle(e);
+    if (cs.backgroundImage && cs.backgroundImage !== 'none') image = true;
+    const c = parseColor(cs.backgroundColor);
+    if (c && c[3] > 0) { layers.push(c); if (c[3] >= 1) break; }
+  }
+  let base = [255, 255, 255, 1];
+  for (let i = layers.length - 1; i >= 0; i--) base = over(layers[i], base);
+  return { c: base, image };
+}
+function opacityOf(el, w) {
+  let o = 1;
+  for (let e = el; e; e = e.parentElement) o *= parseFloat(w.getComputedStyle(e).opacity);
+  return o;
+}
+function visible(el, w) {
+  const r = el.getBoundingClientRect();
+  if (r.width <= 0 || r.height <= 0) return false;
+  const cs = w.getComputedStyle(el);
+  if (cs.visibility !== 'visible' || cs.display === 'none') return false;
+  return true;
+}
+function sel(el) {
+  let s = el.tagName.toLowerCase();
+  if (el.id) s += '#' + el.id;
+  else if (el.className && typeof el.className === 'string') s += '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.');
+  return s;
+}
+
+function contrast(d, w) {
+  const out = { checked: 0, fail: [], uncertain: 0, min: 99 };
+  const walker = d.createTreeWalker(d.body, NodeFilter.SHOW_ELEMENT);
+  const seen = new Set();
+  for (let el = walker.currentNode; el; el = walker.nextNode()) {
+    if (!el.childNodes) continue;
+    let own = '';
+    for (const n of el.childNodes) if (n.nodeType === 3) own += n.textContent;
+    if (!own.trim()) continue;
+    if (['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(el.tagName)) continue;
+    if (!visible(el, w)) continue;
+    const cs = w.getComputedStyle(el);
+    let fg = parseColor(cs.color); if (!fg) continue;
+    const op = opacityOf(el, w);
+    const bg = bgOf(el, w);
+    fg = [fg[0], fg[1], fg[2], fg[3] * op];
+    const f = over(fg, bg.c);
+    const r = ratio(f, bg.c);
+    const size = parseFloat(cs.fontSize), bold = parseInt(cs.fontWeight, 10) >= 700;
+    const large = size >= 24 || (size >= 18.66 && bold);
+    const need = large ? 3 : 4.5;
+    out.checked++;
+    if (bg.image) out.uncertain++;
+    if (r < out.min) out.min = r;
+    if (r < need) {
+      const key = sel(el) + '|' + Math.round(r * 100);
+      if (!seen.has(key)) { seen.add(key); if (out.fail.length < 6) out.fail.push({ sel: sel(el), t: own.trim().slice(0, 24), r: +r.toFixed(2), px: size, img: bg.image }); }
+    }
+  }
+  out.min = +out.min.toFixed(2);
+  return out;
+}
+
+function structure(d, w) {
+  const hs = [...d.querySelectorAll('h1,h2,h3,h4,h5,h6')].filter(h => visible(h, w)).map(h => +h.tagName[1]);
+  const skipped = [];
+  for (let i = 1; i < hs.length; i++) if (hs[i] - hs[i - 1] > 1) skipped.push(hs[i - 1] + '>' + hs[i]);
+  const navs = [...d.querySelectorAll('nav,[role=navigation]')];
+  const imgs = [...d.querySelectorAll('img')];
+  const focusables = [...d.querySelectorAll('a[href],button,input,select,textarea,summary,[tabindex]')].filter(e => visible(e, w) && e.tabIndex >= 0);
+  const first3 = focusables.slice(0, 3).map(e => (e.tagName.toLowerCase() + (e.getAttribute('href') ? '[' + e.getAttribute('href').slice(0, 30) + ']' : '') + ':' + (e.textContent || e.getAttribute('aria-label') || '').trim().slice(0, 16)));
+  const posTab = focusables.filter(e => e.tabIndex > 0).length;
+  const mainEl = d.querySelector('main,[role=main]');
+  const links = [...d.querySelectorAll('a[href^="#"]')];
+  const skip = links.find(a => /skip|main|content|перейти|пропустить/i.test((a.className || '') + ' ' + a.textContent + ' ' + a.getAttribute('href')) && d.querySelector(a.getAttribute('href').length > 1 ? a.getAttribute('href') : 'x'));
+  return {
+    lang: d.documentElement.lang, dir: d.documentElement.dir || null,
+    title: (d.title || '').slice(0, 70),
+    mains: d.querySelectorAll('main,[role=main]').length,
+    h1: hs.filter(x => x === 1).length, firstHeading: hs[0] || null, skippedLevels: skipped,
+    navs: navs.length, navsUnlabelled: navs.filter(n => !(n.getAttribute('aria-label') || n.getAttribute('aria-labelledby'))).length,
+    header: d.querySelectorAll('header,[role=banner]').length, footer: d.querySelectorAll('footer,[role=contentinfo]').length,
+    styleAttrs: d.querySelectorAll('[style]').length,
+    styleAttrsLayout: [...d.querySelectorAll('[style]')].filter(e => /(width|height|margin|padding|display|color|background|position|flex|grid|font|border|top|left)/i.test(e.getAttribute('style'))).length,
+    imgs: imgs.length, imgNoAlt: imgs.filter(i => i.getAttribute('alt') === null).length,
+    imgEmptyAlt: imgs.filter(i => i.getAttribute('alt') === '').length,
+    skipLink: !!skip, first3, posTab, focusables: focusables.length,
+    mainHasId: !!(mainEl && mainEl.id)
+  };
+}
+
+function widthInfo(d, w, vw) {
+  const de = d.documentElement, body = d.body;
+  const h1 = d.querySelector('h1'), hdr = d.querySelector('header'), ftr = d.querySelector('footer');
+  // the page's content container: <main>, else the ancestor of the h1 that is a direct child of <body>
+  let main = d.querySelector('main');
+  if (!main && h1) { main = h1; while (main.parentElement && main.parentElement !== body) main = main.parentElement; }
+  if (!main) main = body;
+  const mr = main.getBoundingClientRect();
+  // every wrapper from the heading up to the root, the header and the footer: a cap on any of them narrows the page
+  const chain = [];
+  for (let e = h1 || main; e; e = e.parentElement) chain.push(e);
+  const wrappers = new Set([...chain, hdr, ftr].filter(Boolean));
+  const caps = [];
+  for (const e of wrappers) {
+    if (e === de) continue;
+    const cs = w.getComputedStyle(e);
+    if (e !== h1 && cs.maxWidth !== 'none') caps.push(sel(e) + ' max-width:' + cs.maxWidth);
+    if (e !== h1 && (cs.marginLeft === 'auto' || (cs.marginLeft === cs.marginRight && parseFloat(cs.marginLeft) > 40))) caps.push(sel(e) + ' margin:' + cs.marginLeft + '/' + cs.marginRight);
+  }
+  const left = (e) => e ? Math.round(e.getBoundingClientRect().left) : null;
+  const firstText = (e) => { if (!e) return null; const c = e.firstElementChild; return c ? Math.round(c.getBoundingClientRect().left) : left(e); };
+  return {
+    vw, mainSel: sel(main), mainW: Math.round(mr.width), mainLeft: Math.round(mr.left),
+    ok: mr.width >= vw - 80, caps, h1Left: left(h1), headerLeft: firstText(hdr), footerLeft: firstText(ftr),
+    overflowX: de.scrollWidth > vw + 1, scrollW: de.scrollWidth
+  };
+}
+
+function targets(d, w) {
+  const els = [...d.querySelectorAll('a[href],button,summary,input,select')].filter(e => visible(e, w));
+  let small = 0, inlineSmall = 0; const sample = [];
+  for (const e of els) {
+    const r = e.getBoundingClientRect();
+    if (Math.min(r.width, r.height) < 44 - 0.5) {
+      const inline = e.tagName === 'A' && w.getComputedStyle(e).display === 'inline';
+      if (inline) inlineSmall++; else { small++; if (sample.length < 6) sample.push(sel(e) + ' ' + Math.round(r.width) + 'x' + Math.round(r.height)); }
+    }
+  }
+  return { total: els.length, smallControls: small, inlineSmall, sample };
+}
+
+function focusRings(d, w) {
+  const els = [...d.querySelectorAll('a[href],button,summary,input,select')].filter(e => visible(e, w)).slice(0, 60);
+  let none = 0; const sample = [];
+  for (const e of els) {
+    const b = w.getComputedStyle(e);
+    const before = [b.outlineStyle, b.outlineWidth, b.boxShadow].join('|');
+    try { e.focus({ focusVisible: true }); } catch (x) { e.focus(); }
+    const a = w.getComputedStyle(e);
+    const after = [a.outlineStyle, a.outlineWidth, a.boxShadow].join('|');
+    const hasRing = (a.outlineStyle !== 'none' && parseFloat(a.outlineWidth) > 0) || (a.boxShadow !== 'none' && a.boxShadow !== b.boxShadow);
+    if (!hasRing) { none++; if (sample.length < 4) sample.push(sel(e)); }
+    e.blur();
+  }
+  return { checked: els.length, noRing: none, sample };
+}
+
+function motion(d, w) {
+  const run = d.getAnimations ? d.getAnimations().filter(a => a.playState === 'running') : [];
+  let trans = 0, anim = 0;
+  for (const e of d.querySelectorAll('body *')) {
+    const cs = w.getComputedStyle(e);
+    if (cs.animationName !== 'none' && parseFloat(cs.animationDuration) > 0) anim++;
+    if (cs.transitionDuration.split(',').some(x => parseFloat(x) > 0)) trans++;
+  }
+  const html = w.getComputedStyle(d.documentElement);
+  return { rm: w.matchMedia('(prefers-reduced-motion: reduce)').matches, runningAnimations: run.length, animatedEls: anim, transitionEls: trans, scrollBehavior: html.scrollBehavior, canvases: d.querySelectorAll('canvas').length, blobs: d.querySelectorAll('.bg-blobs').length };
+}
+
+function origins(w) {
+  const o = {};
+  for (const e of w.performance.getEntriesByType('resource')) {
+    try { const u = new URL(e.name); if (u.origin !== location.origin) o[u.host] = (o[u.host] || 0) + 1; } catch (x) { }
+  }
+  return o;
+}
+
+function langControl(d, w, pageUrl) {
+  const set = new Set();
+  const out = [];
+  for (const a of d.querySelectorAll('a[hreflang],nav[aria-label*="anguage" i] a,nav.langbar a,.langbar a,.langs a,.lang-row a,[class*=lang] a')) {
+    const h = a.href; if (!h || set.has(h)) continue; set.add(h); out.push(h);
+  }
+  const seg = [...d.querySelectorAll('[data-lang]')].filter(e => e.tagName === 'BUTTON').map(b => b.dataset.lang);
+  return { links: out, seg };
+}
+
+async function head(u) {
+  try { const r = await fetch(u, { method: 'HEAD', cache: 'no-store' }); return r.status; } catch (x) { return -1; }
+}
+
+function load(frame, url) {
+  return new Promise((res) => {
+    const to = setTimeout(() => res(false), 12000);
+    frame.onload = () => { clearTimeout(to); setTimeout(() => res(true), 700); };
+    frame.src = url;
+  });
+}
+
+async function main() {
+  const pages = await (await fetch('/work/pages.json')).json();
+  const results = [];
+  const fr = document.createElement('iframe');
+  fr.setAttribute('scrolling', 'no');
+  fr.style.cssText = 'border:0;position:absolute;left:0;top:0;height:1400px';
+  document.body.appendChild(fr);
+
+  const doPass = async (page, theme, vw, kinds) => {
+    localStorage.setItem('sza-theme', theme);
+    localStorage.setItem('sza-lang', 'en');
+    fr.style.width = vw + 'px'; fr.style.height = '1400px';
+    const ok = await load(fr, '/' + page + '?v=' + Date.now());
+    if (!ok) return { err: 'timeout' };
+    const d = fr.contentDocument, w = fr.contentWindow;
+    const r = { theme, vw, themeAttr: d.documentElement.getAttribute('data-theme') };
+    if (kinds.includes('structure')) Object.assign(r, { structure: structure(d, w) });
+    if (kinds.includes('contrast')) r.contrast = contrast(d, w);
+    if (kinds.includes('width')) r.width = widthInfo(d, w, vw);
+    if (kinds.includes('targets')) r.targets = targets(d, w);
+    if (kinds.includes('focus')) r.focus = focusRings(d, w);
+    if (kinds.includes('motion')) r.motion = motion(d, w);
+    if (kinds.includes('origins')) r.origins = origins(w);
+    if (kinds.includes('lang')) {
+      const lc = langControl(d, w, page);
+      r.lang = { seg: lc.seg, links: lc.links.length, bad: [] };
+      for (const u of lc.links) { const s = await head(u); if (s !== 200) r.lang.bad.push(u.replace(location.origin, '') + ' ' + s); }
+    }
+    if (kinds.includes('text')) r.text = (d.body.innerText || '').toLowerCase();
+    if (kinds.includes('storage')) r.storage = { lang: localStorage.getItem('sza-lang'), theme: localStorage.getItem('sza-theme') };
+    return r;
+  };
+
+  let i = 0;
+  for (const page of pages) {
+    i++; log(MODE + ' ' + i + '/' + pages.length + ' ' + page);
+    const row = { page };
+    if (MODE === 'motion') {
+      row.motion = await doPass(page, 'dark', 1920, ['motion']);
+    } else {
+      row.dark1920 = await doPass(page, 'dark', 1920, ['structure', 'contrast', 'width', 'focus', 'motion', 'origins', 'lang', 'storage']);
+      row.light1920 = await doPass(page, 'light', 1920, ['structure', 'contrast', 'width']);
+      row.light2560 = await doPass(page, 'light', 2560, ['width']);
+      row.dark360 = await doPass(page, 'dark', 360, ['width', 'targets', 'structure']);
+      row.light360 = await doPass(page, 'light', 360, ['targets', 'contrast']);
+      if (/privacy\.html$/.test(page)) {
+        const t = await doPass(page, 'dark', 1920, ['text']);
+        row.privacyText = { google: /google/.test(t.text), fonts: /fonts/.test(t.text), github: /github/.test(t.text), apiGithub: /api\.github\.com/.test(t.text), ollama: /ollama/.test(t.text), virustotal: /virustotal/.test(t.text) };
+      }
+    }
+    results.push(row);
+  }
+  await fetch('/save?name=' + NAME, { method: 'POST', body: JSON.stringify(results) });
+  log('DONE ' + NAME);
+  document.title = 'DONE';
+}
+main().catch(e => { log('ERR ' + e + ' ' + e.stack); fetch('/save?name=' + NAME + '-err', { method: 'POST', body: String(e) }); });
+</script>
+

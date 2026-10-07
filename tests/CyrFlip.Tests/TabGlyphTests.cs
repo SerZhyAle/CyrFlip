@@ -10,16 +10,15 @@ namespace CyrFlip.Tests
     /// <summary>
     /// The settings tab strip's icons (ticket S0022 A2): the pages that have a vocabulary record draw it,
     /// in the theme's text colour and nothing else (the mono look, ICON-RENDER section 10 C), no two pages
-    /// share a glyph (ICON-SET rule 2), and the list has no slot for the picture nobody used. Two pages -
-    /// Languages and Conversions - still wait for a record and keep their own drawing (registry exception X1).
+    /// share a glyph (ICON-SET rule 2), and the list has no slot for the picture nobody used. Every page has
+    /// a record since the catalog took Languages and Conversions in (0.23); no private drawing is left.
     /// </summary>
     [Collection(SharedGdiCollection.Name)]
     public class TabGlyphTests
     {
-        private static readonly int[] Kinds = { 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11 };
-
-        /// <summary>The pages that wait for a catalog record: Languages (6) and Conversions (7).</summary>
-        private static readonly int[] WithoutARecord = { 6, 7 };
+        private static readonly int[] Kinds = { 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12 };
+        // Kind 12 (Symbols, ticket S0056 Q6) awaits a vocabulary catalog record and renders an empty canvas fallback.
+        private static readonly int[] WithoutARecord = { 12 };
 
         [Fact]
         public void EveryMappedPageHasAVendoredGlyphAndNoTwoPagesShareOne()
@@ -29,6 +28,7 @@ namespace CyrFlip.Tests
             {
                 "app.settings", "feature.layout-indicator", "app.shortcuts", "feature.clipboard-history", "app.info",
                 "feature.quick-launch", "action.translate", "content.note", "system.screenshot",
+                "system.input-language", "action.convert-layout",
             }.OrderBy(i => i), ids.OrderBy(i => i));
             Assert.Equal(ids.Length, ids.Distinct().Count());
             foreach (string id in ids) Assert.True(GlyphRenderer.Has(id), id);
@@ -37,7 +37,8 @@ namespace CyrFlip.Tests
         [Fact]
         public void OnlyThePagesAwaitingARecordAreWithoutAGlyph()
         {
-            Assert.Equal(WithoutARecord, Kinds.Where(k => SettingsForm.TabGlyphId(k) == null).ToArray());
+            int[] missing = Kinds.Where(k => SettingsForm.TabGlyphId(k) == null).ToArray();
+            Assert.Equal(WithoutARecord.OrderBy(k => k), missing.OrderBy(k => k));
         }
 
         [Fact]
@@ -68,23 +69,6 @@ namespace CyrFlip.Tests
             // The guard fact: the same walk against the wrong colour must say no, or the test above proves nothing.
             using Bitmap settings = SettingsForm.TabIcon(0, ThemePalette.Light.TextPrimary);
             Assert.False(AllInkIs(settings, ThemePalette.Dark.TextPrimary));
-        }
-
-        [Fact]
-        public void APageWithoutARecordKeepsItsOwnPictureOnTheSameCanvas()
-        {
-            // Languages and Conversions have no record yet: drawn (not blank), and in the same ink as the vocabulary tabs.
-            Color ink = Color.FromArgb(10, 20, 30);
-            foreach (int kind in WithoutARecord)
-            {
-                using Bitmap own = SettingsForm.TabIcon(kind, ink);
-                Assert.Equal(new Size(SettingsForm.TabIconSize, SettingsForm.TabIconSize), own.Size);
-                Assert.True(AllInkIs(own, ink), "kind " + kind);
-                int inked = 0;
-                for (int y = 0; y < own.Height; y++)
-                    for (int x = 0; x < own.Width; x++) if (own.GetPixel(x, y).A > 0) inked++;
-                Assert.True(inked > 10, "kind " + kind);
-            }
         }
 
         [Fact]

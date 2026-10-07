@@ -67,6 +67,7 @@ public static class CyrFlipUi {
     [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc cb, IntPtr p);
     [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongW")] public static extern int GetWindowStyle(IntPtr h, int index);
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int cmd);
     [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr h, IntPtr hdc, uint flags);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetWindowTextW(IntPtr h, StringBuilder s, int n);
@@ -734,6 +735,11 @@ function Save-WindowShot {
     $hdc = $g.GetHdc()
     $ok = [CyrFlipUi]::PrintWindow($Handle, $hdc, 2)   # PW_RENDERFULLCONTENT
     $g.ReleaseHdc($hdc); $g.Dispose()
+    # PrintWindow writes a mirrored bitmap for a WS_EX_LAYOUTRTL window. Normalize to the
+    # on-screen orientation, so Arabic/Urdu text and layout badges remain readable in captures.
+    if (([CyrFlipUi]::GetWindowStyle($Handle, -20) -band 0x00400000) -ne 0) {
+        $bmp.RotateFlip([System.Drawing.RotateFlipType]::RotateNoneFlipX)
+    }
     $full = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path (Get-Location) $Path }
     $bmp.Save($full, [System.Drawing.Imaging.ImageFormat]::Png)
     $bmp.Dispose()

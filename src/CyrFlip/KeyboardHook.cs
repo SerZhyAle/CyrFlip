@@ -25,8 +25,12 @@ namespace CyrFlip
         public event EventHandler? QuickNotesHotkeyPressed;
         /// <summary>Raised when a screen region capture should start (S0026).</summary>
         public event EventHandler? ScreenshotHotkeyPressed;
+        /// <summary>Raised when the screenshots folder should be opened (S0057).</summary>
+        public event EventHandler? ScreenshotFolderHotkeyPressed;
         /// <summary>The keyboard's way to the text context menu (S0045 K2): opens it at the caret.</summary>
         public event EventHandler? TextMenuHotkeyPressed;
+        /// <summary>Raised when the symbols window should be shown or hidden (S0056).</summary>
+        public event EventHandler? SymbolsHotkeyPressed;
         /// <summary>Raised with the id of a user-configured layout conversion profile.</summary>
         public event Action<string>? LayoutConversionHotkeyPressed;
         /// <summary>Raised with the id of a launcher scenario whose per-scenario chord matched.</summary>
@@ -87,10 +91,16 @@ namespace CyrFlip
         private bool _quickNotesEnabled;
         // The screen region capture's chord - off until the context binds it from the config.
         private Hotkey _screenshotHotkey = Hotkey.Parse(AppConfig.DefaultScreenshotHotkey);
+        // The chord that opens the screenshots folder (S0057) - off while saving is off, like the
+        // text menu's: a keystroke with no folder worth opening belongs to whatever else wants it.
+        private Hotkey _screenshotFolderHotkey = Hotkey.Parse(AppConfig.DefaultScreenshotFolderHotkey);
+        private bool _screenshotFolderEnabled;
         private Hotkey _textMenuHotkey = Hotkey.Parse(AppConfig.DefaultTextMenuHotkey);
         // Off unless the context menu and the chord's own switch are both on.
         private bool _textMenuEnabled;
         private bool _screenshotEnabled;
+        private Hotkey _symbolsHotkey = Hotkey.Parse(AppConfig.DefaultSymbolsHotkey);
+        private bool _symbolsEnabled;
         private ConversionBinding[] _conversionProfiles = new ConversionBinding[0];
         // Launcher scenario chords. Same discipline as the conversion table: an immutable snapshot
         // array swapped atomically, empty whenever the launcher is off, so the callback never pays
@@ -261,12 +271,14 @@ namespace CyrFlip
             bool historyMatch = _historyEnabled && _matcher.Matches(_clipboardHistoryHotkey, vk);
             bool notesMatch = _quickNotesEnabled && _matcher.Matches(_quickNotesHotkey, vk);
             bool screenshotMatch = _screenshotEnabled && _matcher.Matches(_screenshotHotkey, vk);
+            bool screenshotFolderMatch = _screenshotFolderEnabled && _matcher.Matches(_screenshotFolderHotkey, vk);
             bool textMenuMatch = _textMenuEnabled && _matcher.Matches(_textMenuHotkey, vk);
+            bool symbolsMatch = _symbolsEnabled && _matcher.Matches(_symbolsHotkey, vk);
             LayoutConversionProfile? conversion = FindConversion(vk);
             Guid? launcher = FindLauncher(vk);
             TranslationProfile? translation = FindTranslation(vk);
 
-            if (!caseMatch && !historyMatch && !notesMatch && !screenshotMatch && !textMenuMatch && conversion == null && launcher == null && translation == null)
+            if (!caseMatch && !historyMatch && !notesMatch && !screenshotMatch && !screenshotFolderMatch && !textMenuMatch && !symbolsMatch && conversion == null && launcher == null && translation == null)
                 return false;
 
             // When a remote-desktop client is focused and deferral is on, don't touch the key: let
@@ -287,7 +299,9 @@ namespace CyrFlip
             else if (historyMatch) ClipboardHistoryHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (notesMatch) QuickNotesHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (screenshotMatch) ScreenshotHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (screenshotFolderMatch) ScreenshotFolderHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (textMenuMatch) TextMenuHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (symbolsMatch) SymbolsHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (conversion != null) LayoutConversionHotkeyPressed?.Invoke(conversion.Id);
             else if (launcher != null) LauncherHotkeyPressed?.Invoke(launcher.Value);
             else TranslateHotkeyPressed?.Invoke(translation!.Id);
@@ -355,6 +369,12 @@ namespace CyrFlip
         public void UpdateTextMenuEnabled(bool enabled) => _textMenuEnabled = enabled;
         /// <summary>The capture chord's own switch.</summary>
         public void UpdateScreenshotEnabled(bool enabled) => _screenshotEnabled = enabled;
+        public void UpdateScreenshotFolderHotkey(Hotkey hotkey) => _screenshotFolderHotkey = hotkey;
+        /// <summary>False whenever saving is off <b>or</b> this chord's own switch is (S0057).</summary>
+        public void UpdateScreenshotFolderEnabled(bool enabled) => _screenshotFolderEnabled = enabled;
+        public void UpdateSymbolsHotkey(Hotkey hotkey) => _symbolsHotkey = hotkey;
+        /// <summary>False whenever the symbols window is off or its hotkey switch is off.</summary>
+        public void UpdateSymbolsEnabled(bool enabled) => _symbolsEnabled = enabled;
 
         /// <summary>Watch for Escape (see <see cref="CancelKeyPressed"/>) - on only while translating.</summary>
         public void UpdateCancelKeyWatch(bool watch) => _watchCancelKey = watch;

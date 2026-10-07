@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `LAYOUT-SIGNAL` |
-| **Version** | 1.2, active (1.1 written 2026-09-26 by ticket S0016, 1.2 the same day by S0012/S0013 - rules 3, 5, 6, 7 in section 9; the shipped app and extension still carry 1.0 until the next release) |
+| **Version** | 1.2, active (1.1 written 2026-09-26 by ticket S0016, 1.2 the same day by S0012/S0013 - rules 3, 5, 6, 7 in section 9; read again 2026-10-07 against the tree, `dotnet test` exit 0. The app has carried 1.1 and 1.2 since v26.10.1.0346/0354 (2026-10-01); the extension's 1.1 and 1.2 code is in 0.1.5, in that tag too - whether 0.1.5 is on the Marketplace is not checked from here) |
 | **Home** | `layout-indicator/README.md` in the shared contracts catalog |
 | **Role here** | producer of `layout.txt` and `layout-klid.txt`; consumer of the editor's caret claim |
 

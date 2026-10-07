@@ -204,6 +204,35 @@ namespace CyrFlip
                 ur: "یہ فولڈر ابھی موجود نہیں - پہلا اسکرین شاٹ محفوظ ہونے پر بنے گا۔",
                 zh: "此文件夹尚不存在 - 保存第一张截图时才会创建。");
 
+            // ---- The screenshots folder chord (S0057) ----
+            Add("Открыть папку со снимками",
+                en: "Open the screenshots folder",
+                uk: "Відкрити папку зі знімками",
+                de: "Screenshots-Ordner öffnen",
+                it: "Apri la cartella degli screenshot",
+                es: "Abrir la carpeta de capturas",
+                fr: "Ouvrir le dossier des captures",
+                pt: "Abrir a pasta de capturas",
+                ar: "فتح مجلد لقطات الشاشة",
+                hi: "स्क्रीनशॉट फ़ोल्डर खोलें",
+                bn: "স্ক্রিনশট ফোল্ডার খুলুন",
+                ur: "اسکرین شاٹ فولڈر کھولیں",
+                zh: "打开屏幕截图文件夹");
+
+            Add("Работает, пока включено сохранение снимков в папку. Открывает ту папку, в которую CyrFlip пишет снимки. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
+                en: "Works while saving captures to a folder is on. It opens the folder CyrFlip writes the captures into. One chord cannot be given to two CyrFlip actions.",
+                uk: "Працює, поки ввімкнено збереження знімків у папку. Відкриває ту папку, в яку CyrFlip пише знімки. Одну комбінацію не можна віддати двом діям CyrFlip.",
+                de: "Funktioniert nur, solange das Speichern der Aufnahmen in einen Ordner eingeschaltet ist. Öffnet den Ordner, in den CyrFlip die Aufnahmen schreibt. Eine Kombination kann nicht zwei CyrFlip-Aktionen gehören.",
+                it: "Funziona finché il salvataggio delle catture in una cartella è attivo. Apre la cartella in cui CyrFlip scrive le catture. Una combinazione non può essere assegnata a due azioni di CyrFlip.",
+                es: "Funciona mientras esté activado guardar las capturas en una carpeta. Abre la carpeta en la que CyrFlip guarda las capturas. Una combinación no se puede dar a dos acciones de CyrFlip.",
+                fr: "Fonctionne tant que l'enregistrement des captures dans un dossier est activé. Ouvre le dossier dans lequel CyrFlip écrit les captures. Une combinaison ne peut pas être donnée à deux actions de CyrFlip.",
+                pt: "Funciona enquanto o guardar de capturas numa pasta estiver ativado. Abre a pasta onde o CyrFlip guarda as capturas. Uma combinação não pode ser dada a duas ações do CyrFlip.",
+                ar: "يعمل أثناء تفعيل حفظ اللقطات في مجلد. يفتح المجلد الذي تكتب فيه CyrFlip اللقطات. لا يمكن إعطاء اختصار واحد لإجراءين من CyrFlip.",
+                hi: "स्क्रीनशॉट को फ़ोल्डर में सहेना चालू रहने तक काम करता है। वह फ़ोल्डर खोलता है जिसमें CyrFlip स्क्रीनशॉट लिखता है। एक ही कॉम्बिनेशन दो CyrFlip क्रियाओं को नहीं दिया जा सकता।",
+                bn: "স্ক্রিনশট ফোল্ডারে সংরক্ষণ চালু থাকা পর্যন্ত কাজ করে। যে ফোল্ডারে CyrFlip স্ক্রিনশট লেখে সেটি খোলে। একটি কম্বিনেশন দুটি CyrFlip কাজকে দেওয়া যায় না।",
+                ur: "اسکرین شاٹ کے فولڈر میں محفوظ کرنے کے چالو ہونے تک کام کرتا ہے۔ وہ فولڈر کھولتا ہے جس میں CyrFlip اسکرین شاٹ لکھتا ہے۔ ایک ہی کمبینیشن دو CyrFlip عملوں کو نہیں دی جا سکتی۔",
+                zh: "仅在开启将截图保存到文件夹时有效。打开 CyrFlip 写入截图的那个文件夹。一个组合键不能同时属于两个 CyrFlip 操作。");
+
             Add("Задать хоткей снимка области экрана",
                 en: "Set the screen region capture hotkey",
                 uk: "Задати хоткей знімка області екрана",
@@ -217,6 +246,20 @@ namespace CyrFlip
                 bn: "স্ক্রিনের অংশের স্ক্রিনশটের হটকি সেট করুন",
                 ur: "اسکرین کے حصے کے اسکرین شاٹ کی ہاٹ کی مقرر کریں",
                 zh: "设置屏幕区域截图的快捷键");
+
+            Add("Задать хоткей папки со снимками",
+                en: "Set the screenshots folder hotkey",
+                uk: "Задати хоткей папки зі знімками",
+                de: "Tastenkombination für den Screenshots-Ordner festlegen",
+                it: "Imposta la scorciatoia per la cartella degli screenshot",
+                es: "Definir el atajo de la carpeta de capturas",
+                fr: "Définir le raccourci du dossier des captures",
+                pt: "Definir o atalho da pasta de capturas",
+                ar: "تعيين اختصار لمجلد لقطات الشاشة",
+                hi: "स्क्रीनशॉट फ़ोल्डर की हॉटकी सेट करें",
+                bn: "স্ক্রিনশট ফোল্ডারের হটকি সেট করুন",
+                ur: "اسکرین شاٹ فولڈر کی ہاٹ کی مقرر کریں",
+                zh: "设置屏幕截图文件夹的快捷键");
 
             // ---- Balloons ----
             Add("Не удалось сделать снимок экрана.",
@@ -260,6 +303,21 @@ namespace CyrFlip
                 bn: "স্ক্রিনশটের ফোল্ডার অপ্রাপ্য - স্ক্রিনশটটি এখানে সংরক্ষিত হয়েছে: {0}",
                 ur: "اسکرین شاٹس کا فولڈر دستیاب نہیں - اسکرین شاٹ یہاں محفوظ کیا گیا: {0}",
                 zh: "截图文件夹无法访问 - 截图已改存到这里：{0}");
+
+            // S0057: the folder chord's own naming of a configured folder that is not there.
+            Add("Папка для снимков недоступна: {0}",
+                en: "The screenshots folder is unavailable: {0}",
+                uk: "Папка для знімків недоступна: {0}",
+                de: "Der Ordner für Aufnahmen ist nicht verfügbar: {0}",
+                it: "La cartella delle catture non è disponibile: {0}",
+                es: "La carpeta de capturas no está disponible: {0}",
+                fr: "Le dossier des captures est indisponible : {0}",
+                pt: "A pasta das capturas não está disponível: {0}",
+                ar: "مجلد اللقطات غير متاح: {0}",
+                hi: "स्क्रीनशॉट का फ़ोल्डर उपलब्ध नहीं है: {0}",
+                bn: "স্ক্রিনশটের ফোল্ডারটি অপ্রাপ্য: {0}",
+                ur: "اسکرین شاٹس کا فولڈر دستیاب نہیں: {0}",
+                zh: "截图文件夹不可用：{0}");
 
             Add("Снимок в буфере обмена, но сохранить файл не удалось ни в одну папку.",
                 en: "The capture is on the clipboard, but the file could not be saved into any folder.",

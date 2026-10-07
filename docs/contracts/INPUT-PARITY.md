@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `INPUT-PARITY` |
-| **Version** | 0.3, draft |
+| **Version** | 0.3, draft (read 2026-10-07; 0.3 filled the touch, gamepad and remote columns, which are another product's - the keyboard and mouse cells stand as CyrFlip wrote them) |
 | **Home** | `input-controls/README.md` in the shared contracts catalog (section 3 the actions, section 4 the device table) |
 | **Role here** | Producer; steward of the **keyboard** and **mouse** columns. The other columns belong to other products |
 

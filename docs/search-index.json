@@ -3,7 +3,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/guide.html",
     "lang": "en",
     "title": "CyrFlip - setup guide",
-    "description": "Install CyrFlip for instant layout indicators everywhere. The VS Code extension is optional.",
+    "description": "Set up CyrFlip, a tray toolkit for your keyboard and desktop: the layout marker, conversions, notes and more. The VS Code extension is optional.",
     "headings": [
       "CyrFlip setup guide",
       "Find a task",
@@ -19,6 +19,7 @@
       "CyrFlip's own context menu (optional)",
       "Quick notes (optional)",
       "Interface languages",
+      "Settings transfer",
       "What the marker's colour means",
       "Where the layout shows up",
       "Troubleshooting"
@@ -28,7 +29,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/ru/guide.html",
     "lang": "ru",
     "title": "CyrFlip - инструкция",
-    "description": "Установите CyrFlip для мгновенного отображения раскладки везде. Расширение для VS Code — необязательное дополнение.",
+    "description": "Как настроить CyrFlip - набор инструментов в трее для клавиатуры и рабочего стола: маркер раскладки, конвертация, заметки и другое.",
     "headings": [
       "Инструкция по установке CyrFlip",
       "Найти задачу",
@@ -44,6 +45,7 @@
       "Языки интерфейса",
       "Шаг 2 - установите расширение для VS Code (необязательно)",
       "Шаг 3 - пользуйтесь вместе",
+      "Перенос настроек",
       "Что означает цвет маркера",
       "Где показывается раскладка",
       "Решение проблем"
@@ -53,7 +55,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/uk/guide.html",
     "lang": "uk",
     "title": "CyrFlip - інструкція",
-    "description": "Встановіть CyrFlip для миттєвого відображення розкладки всюди. Розширення для VS Code — необов'язковий додаток.",
+    "description": "Як налаштувати CyrFlip - набір інструментів у треї для клавіатури та робочого столу: маркер розкладки, конвертація, нотатки та інше.",
     "headings": [
       "Інструкція з встановлення CyrFlip",
       "Знайти завдання",
@@ -69,9 +71,49 @@
       "Мови інтерфейсу",
       "Крок 2 - встановіть розширення для VS Code (необов'язково)",
       "Крок 3 - користуйтеся разом",
+      "Перенесення налаштувань",
       "Що означає колір маркера",
       "Де показується розкладка",
       "Усунення проблем"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/store.html",
+    "lang": "en",
+    "title": "CyrFlip in the Microsoft Store",
+    "description": "What the Microsoft Store build of CyrFlip does differently: Windows owns its startup, its files live in the package folder, and it never.",
+    "headings": [
+      "CyrFlip in the Microsoft Store",
+      "Windows owns its startup",
+      "Its files live in the package folder",
+      "It never downloads or runs an installer",
+      "The Store handles updates"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ru/store.html",
+    "lang": "ru",
+    "title": "CyrFlip в Microsoft Store",
+    "description": "Чем сборка CyrFlip из Microsoft Store отличается: автозапуском управляет Windows, файлы лежат в папке пакета, и установщик никогда не скачивается.",
+    "headings": [
+      "CyrFlip в Microsoft Store",
+      "Автозапуском управляет Windows",
+      "Её файлы лежат в папке пакета",
+      "Она никогда не скачивает и не запускает установщик",
+      "Обновления ставит Store"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/uk/store.html",
+    "lang": "uk",
+    "title": "CyrFlip у Microsoft Store",
+    "description": "Чим збірка CyrFlip з Microsoft Store відрізняється: автозапуском керує Windows, файли лежать у теці пакета, і інсталятор ніколи не завантажується.",
+    "headings": [
+      "CyrFlip у Microsoft Store",
+      "Автозапуском керує Windows",
+      "Її файли лежать у теці пакета",
+      "Вона ніколи не завантажує й не запускає інсталятор",
+      "Оновлення ставить Store"
     ]
   },
   {
@@ -84,6 +126,7 @@
       "What the app accesses, and why",
       "Local files CyrFlip writes",
       "Data sharing",
+      "This website",
       "Children's privacy",
       "Open source",
       "Changes to this policy",
@@ -100,6 +143,7 @@
       "К чему приложение обращается и зачем",
       "Локальные файлы, которые пишет CyrFlip",
       "Передача данных",
+      "Этот сайт",
       "Конфиденциальность детей",
       "Открытый исходный код",
       "Изменения политики",
@@ -116,6 +160,7 @@
       "До чого застосунок звертається і навіщо",
       "Локальні файли, які пише CyrFlip",
       "Передавання даних",
+      "Цей сайт",
       "Конфіденційність дітей",
       "Відкритий код",
       "Зміни політики",
@@ -132,6 +177,7 @@
       "Worauf die App zugreift und warum",
       "Lokale Dateien, die CyrFlip schreibt",
       "Weitergabe von Daten",
+      "Diese Website",
       "Datenschutz für Kinder",
       "Quelloffen",
       "Änderungen dieser Erklärung",
@@ -148,6 +194,7 @@
       "A cosa accede l'app, e perché",
       "File locali che CyrFlip scrive",
       "Condivisione dei dati",
+      "Questo sito web",
       "Privacy dei minori",
       "Codice aperto",
       "Modifiche a questa informativa",
@@ -164,6 +211,7 @@
       "A qué accede la aplicación, y por qué",
       "Archivos locales que escribe CyrFlip",
       "Cesión de datos",
+      "Este sitio web",
       "Privacidad de los menores",
       "Código abierto",
       "Cambios en esta política",
@@ -180,6 +228,7 @@
       "Ce à quoi l'application accède, et pourquoi",
       "Fichiers locaux écrits par CyrFlip",
       "Partage de données",
+      "Ce site web",
       "Vie privée des enfants",
       "Code source ouvert",
       "Modifications de cette politique",
@@ -196,6 +245,7 @@
       "A que o aplicativo acessa, e por quê",
       "Arquivos locais que o CyrFlip grava",
       "Compartilhamento de dados",
+      "Este site",
       "Privacidade de crianças",
       "Código aberto",
       "Alterações desta política",
@@ -212,6 +262,7 @@
       "ما الذي يصل إليه التطبيق، ولماذا",
       "الملفات المحلية التي يكتبها CyrFlip",
       "مشاركة البيانات",
+      "هذا الموقع",
       "خصوصية الأطفال",
       "مفتوح المصدر",
       "تغييرات هذه السياسة",
@@ -228,6 +279,7 @@
       "ऐप किन चीज़ों तक पहुँचता है, और क्यों",
       "CyrFlip द्वारा लिखी जाने वाली स्थानीय फ़ाइलें",
       "डेटा साझा करना",
+      "यह वेबसाइट",
       "बच्चों की गोपनीयता",
       "मुक्त स्रोत",
       "इस नीति में परिवर्तन",
@@ -244,6 +296,7 @@
       "অ্যাপ কীসে হাত দেয়, আর কেন",
       "CyrFlip যেসব স্থানীয় ফাইল লেখে",
       "তথ্য ভাগাভাগি",
+      "এই ওয়েবসাইট",
       "শিশুদের গোপনীয়তা",
       "মুক্ত উৎস",
       "এই নীতির পরিবর্তন",
@@ -260,6 +313,7 @@
       "ایپ کس چیز تک رسائی لیتی ہے، اور کیوں",
       "مقامی فائلیں جو CyrFlip لکھتی ہے",
       "معلومات کا اشتراک",
+      "یہ ویب سائٹ",
       "بچوں کی پرائیویسی",
       "کھلا ماخذ",
       "اس پالیسی میں تبدیلیاں",
@@ -276,6 +330,7 @@
       "应用访问什么，为什么",
       "CyrFlip 写入的本地文件",
       "数据共享",
+      "本网站",
       "儿童隐私",
       "开放源代码",
       "本政策的变更",
@@ -506,17 +561,17 @@
   {
     "url": "https://serzhyale.github.io/CyrFlip/",
     "lang": "en",
-    "title": "CyrFlip - fix wrong-layout text on Windows",
-    "description": "CyrFlip is a Windows tray tool that shows the active keyboard layout where you type and fixes selected text typed in the wrong layout.",
+    "title": "CyrFlip - a tray toolkit for your keyboard and desktop",
+    "description": "Windows tray toolkit: the layout at the caret, one-key fixes for wrong-layout text, plus an optional selection menu, translator, notes and launcher.",
     "headings": [
-      "Исправляйте текст в неверной раскладке и видьте текущую до ввода.Fix wrong-layout text and see the active layout before you type.Виправляйте текст у хибній розкладці й бачте поточну до введення.",
-      "Основные ситуацииCommon situationsОсновні ситуації",
+      "Печатайте в нужной раскладке, а инструменты для текста держите под рукой.Type in the right layout, and keep your text tools one chord away.Друкуйте в потрібній розкладці, а інструменти для тексту тримайте під рукою.",
+      "Что умеет CyrFlipWhat CyrFlip doesЩо вміє CyrFlip",
       "Увидеть раскладку до вводаSee the layout before typingПобачити розкладку до введення",
-      "Исправить набранный текст и CapsLockFix typed text and CapsLockВиправити набраний текст і CapsLock",
-      "Вернуться к недавнему фрагментуReturn to a recent snippetПовернутися до недавнього фрагмента",
-      "Сохранить фрагмент кода на потомKeep a fragment of code for laterЗберегти фрагмент коду на потім",
-      "Понять текст на чужом языкеUnderstand text in another languageЗрозуміти текст чужою мовою",
-      "Всё то же самое — мышьюThe same things, by mouseТе саме — мишею",
+      "Исправить текст в неверной раскладке и CapsLockFix wrong-layout text and CapsLockВиправити текст у хибній розкладці й CapsLock",
+      "Действовать над выделеннымAct on a selectionДіяти над виділеним",
+      "Сохранить скопированное и записанноеKeep what you copy and writeЗберегти скопійоване й записане",
+      "Запуск и снимок экранаLaunch and captureЗапуск і знімок екрана",
+      "Только вашеYours aloneЛише ваше",
       "Продолжить по своей задачеContinue with your taskПродовжити зі своїм завданням",
       "Подробности и ограниченияDetails and limitationsПодробиці та обмеження"
     ]
@@ -524,151 +579,151 @@
   {
     "url": "https://serzhyale.github.io/CyrFlip/de/",
     "lang": "de",
-    "title": "CyrFlip — falsch getippten Text unter Windows korrigieren",
-    "description": "CyrFlip zeigt das aktive Tastaturlayout dort, wo Sie tippen, und korrigiert markierten Text, der im falschen Layout eingegeben wurde.",
+    "title": "CyrFlip - ein Werkzeugkasten für Tastatur und Desktop",
+    "description": "Werkzeugkasten für Windows: aktives Layout an der Schreibmarke, Korrektur von Text im falschen Layout, optional Auswahlmenü, Übersetzer und Notizen.",
     "headings": [
-      "Korrigieren Sie Text im falschen Layout und sehen Sie das aktive Layout schon vor dem Tippen.",
+      "Tippen Sie im richtigen Layout - Ihre Textwerkzeuge sind nur ein Tastenkürzel entfernt.",
       "Layout vor dem Tippen sehen",
-      "Bereits getippten Text und CapsLock korrigieren",
-      "Zwischenablage-Verlauf",
-      "Codeausschnitt für später aufheben",
-      "Markierten Text übersetzen",
-      "Dasselbe – mit der Maus"
+      "Text im falschen Layout und CapsLock korrigieren",
+      "Mit einer Auswahl arbeiten",
+      "Behalten, was Sie kopieren und schreiben",
+      "Starten und Bildschirm aufnehmen",
+      "Gehört nur Ihnen"
     ]
   },
   {
     "url": "https://serzhyale.github.io/CyrFlip/it/",
     "lang": "it",
-    "title": "CyrFlip - correggere il testo nel layout sbagliato",
-    "description": "CyrFlip mostra il layout di tastiera attivo dove stai scrivendo e corregge il testo selezionato digitato con il layout sbagliato.",
+    "title": "CyrFlip - un set di strumenti per tastiera e desktop",
+    "description": "Set di strumenti per Windows: layout attivo accanto al cursore, correzione del testo nel layout sbagliato e, opzionali, menu, traduttore e note.",
     "headings": [
-      "Correggi il testo digitato con il layout sbagliato e vedi quello attivo prima di scrivere.",
+      "Scrivi nel layout giusto, con gli strumenti per il testo a una scorciatoia di distanza.",
       "Vedere il layout prima di scrivere",
-      "Correggere il testo digitato e CapsLock",
-      "Cronologia degli appunti",
-      "Conservare un frammento per dopo",
-      "Tradurre la selezione",
-      "Le stesse cose, col mouse"
+      "Correggere il testo nel layout sbagliato e CapsLock",
+      "Agire su una selezione",
+      "Conservare ciò che copi e scrivi",
+      "Avviare e catturare",
+      "Solo tuo"
     ]
   },
   {
     "url": "https://serzhyale.github.io/CyrFlip/es/",
     "lang": "es",
-    "title": "CyrFlip - corregir texto con otra distribución",
-    "description": "CyrFlip muestra la distribución de teclado activa donde escribes y corrige el texto seleccionado que se escribió con la distribución equivocada.",
+    "title": "CyrFlip - caja de herramientas para teclado y escritorio",
+    "description": "Caja de herramientas para Windows: distribución activa en el cursor, una tecla que corrige el texto mal escrito y menú, traductor, notas y lanzador opcionales.",
     "headings": [
-      "Corrige el texto escrito con la distribución equivocada y mira la activa antes de teclear.",
+      "Escribe en la distribución correcta y ten tus herramientas de texto a un atajo de distancia.",
       "Ver la distribución antes de escribir",
-      "Corregir texto escrito y CapsLock",
-      "Historial del portapapeles",
-      "Guardar un fragmento para después",
-      "Traducir el texto seleccionado",
-      "Lo mismo, con el ratón"
+      "Corregir la distribución equivocada y CapsLock",
+      "Actuar sobre la selección",
+      "Guardar lo que copias y escribes",
+      "Lanzar y capturar",
+      "Solo tuyo"
     ]
   },
   {
     "url": "https://serzhyale.github.io/CyrFlip/fr/",
     "lang": "fr",
-    "title": "CyrFlip - corriger un texte saisi au mauvais clavier",
-    "description": "CyrFlip affiche la disposition de clavier active là où vous tapez et corrige le texte sélectionné saisi dans la mauvaise disposition.",
+    "title": "CyrFlip - boîte à outils pour le clavier et le bureau",
+    "description": "Boîte à outils pour Windows : la disposition active au curseur, le texte mal saisi corrigé d'une touche et, en option, menu, traducteur, notes et lanceur.",
     "headings": [
-      "Corrigez le texte saisi dans la mauvaise disposition et voyez la disposition active avant de taper.",
+      "Tapez dans la bonne disposition et gardez vos outils de texte à portée de raccourci.",
       "Voir la disposition avant de taper",
-      "Corriger le texte saisi et Verr. Maj.",
-      "Historique du presse-papiers",
-      "Garder un fragment pour plus tard",
-      "Traduire la sélection",
-      "Les mêmes gestes, à la souris"
+      "Corriger la mauvaise disposition et Verr. Maj.",
+      "Agir sur la sélection",
+      "Garder ce que vous copiez et écrivez",
+      "Lancer et capturer",
+      "Rien qu'à vous"
     ]
   },
   {
     "url": "https://serzhyale.github.io/CyrFlip/pt/",
     "lang": "pt",
-    "title": "CyrFlip - corrigir texto no layout errado",
-    "description": "O CyrFlip mostra o layout de teclado ativo onde você digita e corrige o texto selecionado digitado no layout errado.",
+    "title": "CyrFlip - caixa de ferramentas: teclado e área de trabalho",
+    "description": "Caixa de ferramentas para Windows: o layout ativo no cursor, correção do texto no layout errado com uma tecla e, opcionais, menu, tradutor, notas e lançador.",
     "headings": [
-      "Corrija o texto digitado no layout errado e veja o layout ativo antes de digitar.",
+      "Digite no layout certo e tenha suas ferramentas de texto a um atalho de distância.",
       "Ver o layout antes de digitar",
-      "Corrigir texto digitado e CapsLock",
-      "Histórico da área de transferência",
-      "Guardar um trecho para depois",
-      "Traduzir a seleção",
-      "As mesmas coisas, com o mouse"
+      "Corrigir texto no layout errado e CapsLock",
+      "Agir sobre a seleção",
+      "Guardar o que você copia e escreve",
+      "Iniciar e capturar",
+      "Só seu"
     ]
   },
   {
     "url": "https://serzhyale.github.io/CyrFlip/ar/",
     "lang": "ar",
-    "title": "CyrFlip — تصحيح النص المكتوب بتخطيط خاطئ على Windows",
-    "description": "يعرض CyrFlip تخطيط لوحة المفاتيح النشط حيث تكتب، ويصحّح النص المحدّد الذي كُتب بتخطيط خاطئ.",
+    "title": "CyrFlip - مجموعة أدوات للوحة المفاتيح وسطح المكتب",
+    "description": "مجموعة أدوات في علبة نظام Windows: التخطيط النشط بجوار مؤشر الكتابة، وتصحيح النص المكتوب بتخطيط خاطئ بضغطة واحدة، وقائمة تحديد ومترجم وملاحظات ومشغّل اختيارية.",
     "headings": [
-      "صحّح النص المكتوب بتخطيط خاطئ، وشاهد التخطيط النشط قبل أن تبدأ الكتابة.",
+      "اكتب بالتخطيط الصحيح، وأبقِ أدوات النص على بُعد تركيبة مفاتيح واحدة.",
       "رؤية التخطيط قبل الكتابة",
-      "تصحيح النص المكتوب وCapsLock",
-      "سجل الحافظة",
-      "حفظ مقتطف لوقت لاحق",
-      "ترجمة النص المحدَّد",
-      "الأشياء نفسها - بالفأرة"
+      "تصحيح التخطيط الخاطئ وCapsLock",
+      "العمل على النص المحدَّد",
+      "احتفظ بما تنسخه وتكتبه",
+      "التشغيل ولقطة الشاشة",
+      "لك وحدك"
     ]
   },
   {
     "url": "https://serzhyale.github.io/CyrFlip/hi/",
     "lang": "hi",
-    "title": "CyrFlip — Windows पर गलत लेआउट में लिखा पाठ ठीक करें",
-    "description": "CyrFlip वहीं सक्रिय कीबोर्ड लेआउट दिखाता है जहाँ आप टाइप करते हैं और गलत लेआउट में लिखा चयनित पाठ ठीक करता है।",
+    "title": "CyrFlip - कीबोर्ड और डेस्कटॉप के लिए ट्रे टूलकिट",
+    "description": "Windows के लिए ट्रे टूलकिट: कैरेट के पास सक्रिय लेआउट, गलत लेआउट में लिखे पाठ का एक कुंजी से सुधार, और वैकल्पिक चयन मेनू, अनुवादक, नोट्स व लॉन्चर।",
     "headings": [
-      "गलत लेआउट में लिखा पाठ ठीक करें और टाइप करने से पहले सक्रिय लेआउट देखें।",
+      "सही लेआउट में टाइप करें, और पाठ के सारे औज़ार बस एक शॉर्टकट की दूरी पर रखें।",
       "टाइप करने से पहले लेआउट देखें",
-      "लिखा पाठ और CapsLock ठीक करें",
-      "क्लिपबोर्ड इतिहास",
-      "कोड का अंश बाद के लिए रखें",
-      "चुने हुए पाठ का अनुवाद",
-      "वही सब, माउस से"
+      "गलत लेआउट का पाठ और CapsLock ठीक करें",
+      "चुने हुए पाठ पर काम करें",
+      "जो कॉपी करें और लिखें, उसे सहेजें",
+      "चलाएँ और स्क्रीनशॉट लें",
+      "सिर्फ़ आपका"
     ]
   },
   {
     "url": "https://serzhyale.github.io/CyrFlip/bn/",
     "lang": "bn",
-    "title": "CyrFlip — Windows-এ ভুল লেআউটে লেখা টেক্সট ঠিক করুন",
-    "description": "CyrFlip আপনি যেখানে টাইপ করছেন সেখানেই সক্রিয় কীবোর্ড লেআউট দেখায় এবং ভুল লেআউটে লেখা নির্বাচিত টেক্সট ঠিক করে।",
+    "title": "CyrFlip - কীবোর্ড ও ডেস্কটপের জন্য ট্রে টুলকিট",
+    "description": "Windows-এর জন্য ট্রে টুলকিট: ক্যারেটের পাশে সক্রিয় লেআউট, ভুল লেআউটে লেখা টেক্সট এক কী চেপে ঠিক, আর ঐচ্ছিক নির্বাচন মেনু, অনুবাদক, নোট ও লঞ্চার।",
     "headings": [
-      "ভুল লেআউটে লেখা টেক্সট ঠিক করুন এবং টাইপ করার আগেই সক্রিয় লেআউট দেখুন।",
+      "সঠিক লেআউটে টাইপ করুন, আর লেখার সব টুল রাখুন মাত্র এক শর্টকাট দূরে।",
       "টাইপ করার আগে লেআউট দেখুন",
-      "লেখা টেক্সট ও CapsLock ঠিক করুন",
-      "ক্লিপবোর্ডের ইতিহাস",
-      "কোডের অংশ পরের জন্য রাখুন",
-      "নির্বাচিত লেখার অনুবাদ",
-      "একই কাজ, মাউস দিয়ে"
+      "ভুল লেআউটের লেখা ও CapsLock ঠিক করুন",
+      "নির্বাচিত লেখা নিয়ে কাজ করুন",
+      "যা কপি করেন ও লেখেন, তা রেখে দিন",
+      "চালু করুন ও স্ক্রিনশট নিন",
+      "শুধুই আপনার"
     ]
   },
   {
     "url": "https://serzhyale.github.io/CyrFlip/ur/",
     "lang": "ur",
-    "title": "CyrFlip — ونڈوز پر غلط لے آؤٹ میں لکھا متن درست کریں",
-    "description": "‏CyrFlip وہیں فعال کی بورڈ لے آؤٹ دکھاتا ہے جہاں آپ لکھ رہے ہیں، اور غلط لے آؤٹ میں لکھا منتخب متن درست کرتا ہے۔",
+    "title": "CyrFlip - کی بورڈ اور ڈیسک ٹاپ کے لیے ٹرے ٹول کٹ",
+    "description": "ونڈوز کے لیے ٹرے ٹول کٹ: کیریٹ کے پاس فعال لے آؤٹ، غلط لے آؤٹ میں لکھے متن کی ایک کلید سے درستی، نیز اختیاری انتخابی مینو، مترجم، نوٹس اور فوری اجرا۔",
     "headings": [
-      "غلط لے آؤٹ میں لکھا متن درست کریں اور لکھنے سے پہلے ہی فعال لے آؤٹ دیکھیں۔",
+      "درست لے آؤٹ میں لکھیں، اور متن کے ٹولز ہمیشہ ایک شارٹ کٹ کی دوری پر رکھیں۔",
       "لکھنے سے پہلے لے آؤٹ دیکھیں",
-      "لکھا متن اور CapsLock درست کریں",
-      "کلپ بورڈ کی تاریخ",
-      "کوڈ کا ٹکڑا بعد کے لیے رکھیں",
-      "منتخب متن کا ترجمہ",
-      "وہی سب کچھ - ماؤس سے"
+      "غلط لے آؤٹ اور CapsLock درست کریں",
+      "منتخب متن پر کام کریں",
+      "جو نقل کریں اور لکھیں، محفوظ رکھیں",
+      "اجرا اور اسکرین شاٹ",
+      "صرف آپ کا"
     ]
   },
   {
     "url": "https://serzhyale.github.io/CyrFlip/zh/",
     "lang": "zh",
-    "title": "CyrFlip — 在 Windows 上修正用错误键盘布局输入的文本",
-    "description": "CyrFlip 在你输入的位置显示当前键盘布局，并修正用错误布局输入的选中文本。",
+    "title": "CyrFlip - 托盘里的键盘与桌面工具箱",
+    "description": "Windows 托盘工具箱：在插入点旁显示当前键盘布局，一键修正用错布局输入的文本，另有可选的选区菜单、翻译器、笔记和快速启动。",
     "headings": [
-      "修正用错误布局输入的文本，并在开始输入前就看清当前布局。",
+      "始终用对布局输入，常用文本工具一键即达。",
       "输入前先看清布局",
-      "修正输错的文本与 CapsLock",
-      "剪贴板历史",
-      "把代码片段留到以后",
-      "翻译选中的文本",
-      "同样的事，用鼠标完成"
+      "修正布局输错的文本与 CapsLock",
+      "对选中内容直接操作",
+      "留住复制和写下的内容",
+      "启动与截图",
+      "只属于你"
     ]
   }
 ]

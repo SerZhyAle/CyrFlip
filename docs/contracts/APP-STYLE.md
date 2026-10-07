@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-STYLE` |
-| **Version** | 0.11, draft |
+| **Version** | 0.12, draft (read 2026-10-07; 0.12 adds section 10 - complete live theme coverage and the Windows profile; the sections 2-5 below were re-verified against it by S0048 on 2026-10-06) |
 | **Home** | `desktop-app-ux/APP-STYLE.md` in the shared contracts catalog |
 | **Role here** | consumer - sections 2-5 implemented and shipped (the app theme, since v26.10.1) |
 
@@ -23,8 +23,14 @@
   disabled text).
 - **Section 5 - declared out of theme.** The layout marker: its colours are `LAYOUT-PALETTE`'s and never
   follow the window theme - the marker names a layout. Declared at `LayoutStyle.cs` and `CaretOverlay.cs`.
+- **Section 10 (0.12) - complete live coverage.** Nested children, native internal editors, popups, menus and
+  secondary dialogs take the palette (`ThemeApply`, `ThemedForm`, `ThemeToolStripRenderer`); a new control or a
+  recreated handle is themed on arrival and a hidden window catches up before it is shown; repeated
+  Light -> Dark -> Light leaves nothing behind (`ThemeCoverageTests` - light after dark restores every property;
+  `tools/uitest/Test-DarkTheme.ps1 -FollowWindows` live). Disabled captions are repainted in `text.disabled`.
+  The navigation identity inks of section 10 are a permission, not a duty, and this product does not use them.
 - **Section 8, answered here rather than left open:** Windows' high contrast wins over every mode (system
   colours only), and the title bar follows the theme.
 
-The plan and its decisions are in `PLAN/` (local, not published). The catalog registry row is updated by
-the contract sync, not from here.
+The Windows profile that section 10 introduces is [WINDOWS-UI](WINDOWS-UI.md). The plan and its decisions are in
+`PLAN/` (local, not published). The catalog registry row is updated by the contract sync, not from here.

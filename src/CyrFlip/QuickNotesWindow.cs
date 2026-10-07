@@ -404,14 +404,14 @@ namespace CyrFlip
             }
 
             _newText.Text = "+ " + T("Заметка");
-            _newList.Text = "+ " + T("Список");
+            _newList.Text = "+ " + T("Чек-лист");
             _settings.Text = T("Настройки");
             _transfer.Text = T("Перенос...");
             _transferExport.Text = T("Экспортировать...");
             _transferImport.Text = T("Импортировать...");
             _title.PlaceholderTextSafe(T("Имя (необязательно)"));
             _kindText.Text = T("Текст");
-            _kindList.Text = T("Список");
+            _kindList.Text = T("Чек-лист");
             _addItem.Text = T("Добавить пункт");
             _removeItem.Text = T("Удалить пункт");
             _itemUp.AccessibleName = T("Переместить вверх");

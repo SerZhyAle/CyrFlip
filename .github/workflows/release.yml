@@ -173,9 +173,9 @@ jobs:
           $out = "src/CyrFlip/bin/Release/net48"
           if (-not (Test-Path "$out/CyrFlip.exe")) { throw "CyrFlip.exe not found in $out" }
 
-          # Single-file app: ship the exe + config.json, drop debug/doc artefacts.
+          # config.json is a legacy user migration source, never a new-install default (S0055).
           Get-ChildItem $out -File |
-            Where-Object { $_.Extension -notin '.pdb','.xml' } |
+            Where-Object { $_.Extension -notin '.pdb','.xml' -and $_.Name -ne 'config.json' } |
             ForEach-Object { Copy-Item $_.FullName $stage }
           if (Test-Path README.md) { Copy-Item README.md $stage }
           if (Test-Path LICENSE)   { Copy-Item LICENSE   $stage }

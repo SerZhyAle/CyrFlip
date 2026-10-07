@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `SCENARIO-FILE` |
-| **Version** | 0.10, draft |
+| **Version** | 0.11, draft |
 | **Home** | `launch-scenarios/README.md` in the shared contracts catalog, with nine byte-exact legacy vectors and six authored negative vectors beside it, and the two proposals it folds (`PROPOSAL-2026-09-23-owner-side-read.md`, `PROPOSAL-2026-09-26-absorbing-side-read.md`) |
 | **Role here** | producer and consumer - the launcher store, the export (`LauncherScenarioStore.Export`, the settings table's context menu), the single-file import and the one-way OneClickRunner migration |
 
@@ -37,9 +37,11 @@
   literals, since CI has no copy of the catalog. A re-issue of the vectors updates those tests in the same
   change. Of the six, five are skipped, counted and named by both the store and the migration, and
   `unknown_element.xml` reads.
-- **Identity: preserved on migration, replaced on import** (rule 8). A colliding id gets a fresh one and is
-  counted, so the user is told; the same id with the same content is skipped and counted instead (not yet in
-  the contract text - see the debts).
+- **Identity: preserved on migration, replaced on import** (rule 8, item H since 0.11). A colliding id gets a
+  fresh one and is counted, so the user is told; the same id with the same `Name`, `Path` and `Arguments` is
+  skipped and counted apart as already migrated, and the store's entry - which may be the user's own edit - is
+  the one kept (`RunningTheMigrationTwiceImportsNothingTheSecondTime`,
+  `OnlyNamePathAndArgumentsDecideWhetherAScenarioIsAlreadyMigrated`).
 - **A corrupt file costs one scenario, never the list** (rule 9), and its name is surfaced.
 - **`SPECIAL_YTDLP` keeps working forever** (rule 4), and normalizing it happens in our own store only.
 - **Nothing runs at import** (rule 10); targets are validated at launch. An untrusted runtime input - the
@@ -56,15 +58,13 @@ own is owed by that product.
 
 ## Open debts
 
-The product side of the whole 0.10 amendment is implemented and tested. What remains is not in this repository:
+The product side of the whole 0.10 amendment and of 0.11 item H is implemented and tested. What remains is not in
+this repository:
 
-1. **Rule 8 on a repeated migration** (CyrFlip's proposal B5, backlog C8). The contract text was not changed:
-   it still says only that a colliding id gets a fresh one and is counted. This product skips a scenario whose
-   id is present **and** whose name, path and arguments match (`RunningTheMigrationTwiceImportsNothingTheSecondTime`)
-   and treats the same id with other content as a collision
-   (`TheSameIdWithOtherContentIsStillACollisionNotAnAlreadyMigratedScenario`). The dated exception stays open
-   until the contract says so.
-2. **Nobody has run OneClickRunner against the six negative vectors**, and it does not read `schemaVersion`
+1. **Nobody has run OneClickRunner against the six negative vectors**, and it does not read `schemaVersion`
    yet; a file carrying a higher one is refused only here.
-3. **The contract is a draft** because its declared owner - OneClickRunner, whose format it is - has not
+2. **The contract is a draft** because its declared owner - OneClickRunner, whose format it is - has not
    confirmed it. That repository was read and not touched.
+
+Closed on 2026-10-07 (ticket `S0050`): rule 8 on a repeated migration (CyrFlip's proposal B5, backlog C8) - the
+contract text now says what a second run does (item H), and this product already did exactly that.
