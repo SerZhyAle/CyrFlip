@@ -61,11 +61,15 @@ namespace CyrFlip
         public const string DefaultTextMenuHotkey = "Ctrl+Shift+Alt+M";
         /// <summary>Default hotkey for the symbols palette (ticket S0056 section 9).</summary>
         public const string DefaultSymbolsHotkey = "Ctrl+Shift+F9";
-        private const string UsKlid = "00000409";
-        private const string RussianKlid = "00000419";
+        internal const string UsKlid = "00000409";
+        internal const string RussianKlid = "00000419";
+        /// <summary>The case flip's shipped chord (<c>Hotkey.CaseDefault</c>) as the token the registry stores.</summary>
+        public const string DefaultCaseHotkey = "Ctrl+Shift+F11";
+        /// <summary>The clipboard history's shipped chord.</summary>
+        public const string DefaultHistoryHotkey = "Ctrl+Shift+F10";
 
-        public string CaseHotkey { get; set; } = "Ctrl+Shift+F11";
-        public string ClipboardHistoryHotkey { get; set; } = "Ctrl+Shift+F10";
+        public string CaseHotkey { get; set; } = DefaultCaseHotkey;
+        public string ClipboardHistoryHotkey { get; set; } = DefaultHistoryHotkey;
         public string UiLanguage { get; set; } = DefaultUiLanguage();
         /// <summary>
         /// Index of the settings tab the window was last left on, so reopening it comes back to the
@@ -73,6 +77,12 @@ namespace CyrFlip
         /// count when applied - the tab strip grows between versions.
         /// </summary>
         public int SettingsTab { get; set; } = 0;
+        /// <summary>
+        /// The settings page the window was last left on, by its stable <see cref="SettingsPageKey"/>
+        /// name rather than the tab's position (S0060 P5, M6): the strip grows between versions, and a
+        /// remembered index silently changes meaning. Empty = the fallback index of an older build.
+        /// </summary>
+        public string SettingsPageId { get; set; } = "";
         /// <summary>
         /// Expansion of the settings window's collapsible groups (WINDOWS-UI section 3): "id=0|1" pairs
         /// joined by ";", the id being the group's stable internal string - never a translated caption.
@@ -310,8 +320,10 @@ namespace CyrFlip
         public bool EnableSymbols { get; set; } = false;
         public string SymbolsHotkey { get; set; } = DefaultSymbolsHotkey;
         public bool EnableSymbolsHotkey { get; set; } = true;
-        public string SymbolsRecent { get; set; } = "";
-        public string SymbolsCategory { get; set; } = "recent";
+        /// <summary>The window's "close on pick" switch: a pick copies the character alone and closes the window.</summary>
+        public bool SymbolsCloseOnPick { get; set; } = false;
+        /// <summary>The group the Symbols window last showed; <see cref="SymbolsData.AllCategories"/> for every symbol.</summary>
+        public string SymbolsCategory { get; set; } = SymbolsData.AllCategories;
         public bool SymbolsHideTypable { get; set; } = false;
         public int SymbolsX { get; set; } = int.MinValue;
         public int SymbolsY { get; set; } = int.MinValue;
@@ -405,6 +417,7 @@ namespace CyrFlip
                     cfg.ClipboardHistoryHotkey = cfg.ReadHotkey(key, "ClipboardHistoryHotkey", cfg.ClipboardHistoryHotkey);
                     cfg.UiLanguage = cfg.ReadString(key, "UiLanguage", cfg.UiLanguage);
                     cfg.SettingsTab = Math.Max(0, cfg.ReadInt(key, "SettingsTab", cfg.SettingsTab));
+                    cfg.SettingsPageId = cfg.ReadString(key, "SettingsPageId", cfg.SettingsPageId);
                     cfg.SettingsGroupsState = SanitizeGroupState(cfg.ReadString(key, "SettingsGroupsState", ""));
                     cfg.SettingsViewport = SanitizeViewport(cfg.ReadString(key, "SettingsViewport", ""));
                     cfg.SettingsWindowX = cfg.ReadInt(key, "SettingsWindowX", cfg.SettingsWindowX);
@@ -509,7 +522,7 @@ namespace CyrFlip
                     cfg.EnableSymbols = cfg.ReadBool(key, "EnableSymbols", cfg.EnableSymbols);
                     cfg.SymbolsHotkey = cfg.ReadHotkey(key, "SymbolsHotkey", cfg.SymbolsHotkey);
                     cfg.EnableSymbolsHotkey = cfg.ReadBool(key, "EnableSymbolsHotkey", cfg.EnableSymbolsHotkey);
-                    cfg.SymbolsRecent = cfg.ReadString(key, "SymbolsRecent", cfg.SymbolsRecent);
+                    cfg.SymbolsCloseOnPick = cfg.ReadBool(key, "SymbolsCloseOnPick", cfg.SymbolsCloseOnPick);
                     cfg.SymbolsCategory = cfg.ReadString(key, "SymbolsCategory", cfg.SymbolsCategory);
                     cfg.SymbolsHideTypable = cfg.ReadBool(key, "SymbolsHideTypable", cfg.SymbolsHideTypable);
                     cfg.SymbolsX = cfg.ReadInt(key, "SymbolsX", cfg.SymbolsX);
@@ -540,6 +553,7 @@ namespace CyrFlip
                 key.SetValue("ClipboardHistoryHotkey", ClipboardHistoryHotkey, RegistryValueKind.String);
                 key.SetValue("UiLanguage", UiLanguage, RegistryValueKind.String);
                 key.SetValue("SettingsTab", SettingsTab, RegistryValueKind.DWord);
+                key.SetValue("SettingsPageId", SettingsPageId, RegistryValueKind.String);
                 key.SetValue("SettingsGroupsState", SettingsGroupsState, RegistryValueKind.String);
                 key.SetValue("SettingsViewport", SettingsViewport, RegistryValueKind.String);
                 key.SetValue("SettingsWindowX", SettingsWindowX, RegistryValueKind.DWord);
@@ -624,7 +638,7 @@ namespace CyrFlip
                     key.SetValue("EnableSymbols", EnableSymbols ? 1 : 0, RegistryValueKind.DWord);
                     key.SetValue("SymbolsHotkey", SymbolsHotkey, RegistryValueKind.String);
                     key.SetValue("EnableSymbolsHotkey", EnableSymbolsHotkey ? 1 : 0, RegistryValueKind.DWord);
-                    key.SetValue("SymbolsRecent", SymbolsRecent, RegistryValueKind.String);
+                    key.SetValue("SymbolsCloseOnPick", SymbolsCloseOnPick ? 1 : 0, RegistryValueKind.DWord);
                     key.SetValue("SymbolsCategory", SymbolsCategory, RegistryValueKind.String);
                     key.SetValue("SymbolsHideTypable", SymbolsHideTypable ? 1 : 0, RegistryValueKind.DWord);
                     key.SetValue("SymbolsX", SymbolsX, RegistryValueKind.DWord);
@@ -638,16 +652,22 @@ namespace CyrFlip
 
         /// <summary>
         /// Remember the settings tab and persist only that value (cheap write) - switching tabs
-        /// shouldn't rewrite every setting just to record where the user is looking.
+        /// shouldn't rewrite every setting just to record where the user is looking. The page is
+        /// recorded by its stable key name when the caller knows it (S0060 P5, M6); the index stays
+        /// as the fallback an older build reads.
         /// </summary>
-        public void SaveSettingsTab(int index)
+        public void SaveSettingsTab(int index) => SaveSettingsTab(index, null);
+
+        public void SaveSettingsTab(int index, string? pageId)
         {
-            if (index < 0 || index == SettingsTab) return;
+            if (index < 0 || (index == SettingsTab && (pageId == null || pageId == SettingsPageId))) return;
             SettingsTab = index;
+            if (pageId != null) SettingsPageId = pageId;
             try
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 key?.SetValue("SettingsTab", SettingsTab, RegistryValueKind.DWord);
+                key?.SetValue("SettingsPageId", SettingsPageId, RegistryValueKind.String);
             }
             catch { }
         }
@@ -852,12 +872,12 @@ namespace CyrFlip
             catch { }
         }
 
-        public void SaveSymbolsRecent()
+        public void SaveSymbolsCloseOnPick()
         {
             try
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
-                key?.SetValue("SymbolsRecent", SymbolsRecent, RegistryValueKind.String);
+                key?.SetValue("SymbolsCloseOnPick", SymbolsCloseOnPick ? 1 : 0, RegistryValueKind.DWord);
             }
             catch { }
         }
@@ -882,7 +902,6 @@ namespace CyrFlip
                 key.SetValue("SymbolsY", SymbolsY, RegistryValueKind.DWord);
                 key.SetValue("SymbolsWidth", SymbolsWidth, RegistryValueKind.DWord);
                 key.SetValue("SymbolsHeight", SymbolsHeight, RegistryValueKind.DWord);
-                key.SetValue("SymbolsCategory", SymbolsCategory, RegistryValueKind.String);
             }
             catch { }
         }

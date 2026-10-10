@@ -67,7 +67,8 @@ namespace CyrFlip
     /// </summary>
     internal static partial class SymbolsData
     {
-        public const string CategoryRecent = "recent";
+        /// <summary>The list entry that shows every symbol; the one key that is not a group of the table.</summary>
+        public const string AllCategories = "all";
         public const string CategoryPunctuation = "punctuation";
         public const string CategoryCurrency = "currency";
         public const string CategoryMath = "math";
@@ -83,7 +84,6 @@ namespace CyrFlip
 
         public static readonly SymbolCategory[] Categories =
         {
-            new SymbolCategory(CategoryRecent, "Недавние"),
             new SymbolCategory(CategoryPunctuation, "Пунктуация и типографика"),
             new SymbolCategory(CategoryCurrency, "Валюты"),
             new SymbolCategory(CategoryMath, "Математика"),
@@ -117,6 +117,17 @@ namespace CyrFlip
 
         /// <summary>Returns the Russian source category name for localization.</summary>
         public static string CategoryTitleRu(string categoryKey) =>
-            CategoryNames.TryGetValue(categoryKey, out string? name) ? name : "Недавние";
+            CategoryNames.TryGetValue(categoryKey, out string? name) ? name : string.Empty;
+
+        /// <summary>The group a stored key names; anything else (empty, damaged, a group a later version dropped) is <see cref="AllCategories"/>.</summary>
+        public static string NormalizeCategory(string? key)
+        {
+            if (string.IsNullOrEmpty(key)) return AllCategories;
+            foreach (SymbolCategory cat in Categories)
+            {
+                if (string.Equals(cat.Key, key, StringComparison.OrdinalIgnoreCase)) return cat.Key;
+            }
+            return AllCategories;
+        }
     }
 }

@@ -25,3 +25,7 @@ system.screenshot
 nav.expand
 nav.collapse
 system.input-language
+feature.symbols
+app.shortcut-overview
+nav.back
+nav.forward

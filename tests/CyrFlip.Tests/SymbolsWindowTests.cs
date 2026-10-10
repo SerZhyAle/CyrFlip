@@ -51,7 +51,7 @@ namespace CyrFlip.Tests
                     string code = Localization.Codes[i];
                     var config = new AppConfig { UiLanguage = language, EnableSymbols = true };
 
-                    using var window = new SymbolsWindow(config, language, (_, onResult) => onResult(true));
+                    using var window = new SymbolsWindow(config, language, (_, onResult) => onResult(true, 1));
 
                     // Title
                     Assert.False(string.IsNullOrWhiteSpace(window.Text), $"{language}: Window text is empty");
@@ -110,7 +110,7 @@ namespace CyrFlip.Tests
             OnUiThread(() =>
             {
                 var config = new AppConfig { UiLanguage = "Русский", EnableSymbols = true };
-                using var window = new SymbolsWindow(config, "Русский", (_, onResult) => onResult(true));
+                using var window = new SymbolsWindow(config, "Русский", (_, onResult) => onResult(true, 1));
 
                 foreach (Control c in All(window))
                 {
@@ -131,12 +131,35 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
+        public void RepeatedGeometryAndLanguageUpdatesKeepClipboardFontUsableBeforeShow()
+        {
+            OnUiThread(() =>
+            {
+                using var window = new SymbolsWindow(new AppConfig(), "Русский", (_, done) => done(true, 1));
+                for (int i = 0; i < 3; i++)
+                {
+                    window.ApplyLanguage("Русский");
+                    typeof(SymbolsWindow).GetMethod("ApplyWindowGeometry", BindingFlags.Instance | BindingFlags.NonPublic)!
+                        .Invoke(window, null);
+                }
+
+                // Font setters may skip equal fonts. Replacing and disposing the old instance then leaves
+                // the native text box with a disposed font when its handle is first created.
+                IntPtr fontHandle = window.TextField.Font.ToHfont();
+                WindowInterop.DeleteObject(fontHandle);
+                Assert.NotEqual(IntPtr.Zero, window.TextField.Handle);
+                Assert.False(window.TextField.Multiline);
+                Assert.True(window.TextField.Font.SizeInPoints > window.Font.SizeInPoints);
+            });
+        }
+
+        [Fact]
         public void MinimumSizeIsMeasuredAndPositive()
         {
             OnUiThread(() =>
             {
                 var config = new AppConfig { UiLanguage = "Русский", EnableSymbols = true };
-                using var window = new SymbolsWindow(config, "Русский", (_, onResult) => onResult(true));
+                using var window = new SymbolsWindow(config, "Русский", (_, onResult) => onResult(true, 1));
 
                 Assert.True(window.MinimumSize.Width >= 320, $"MinimumSize width too small: {window.MinimumSize.Width}");
                 Assert.True(window.MinimumSize.Height >= 260, $"MinimumSize height too small: {window.MinimumSize.Height}");
@@ -173,10 +196,67 @@ namespace CyrFlip.Tests
             Assert.False(config.EnableSymbols);
             Assert.True(config.EnableSymbolsHotkey);
             Assert.Equal("Ctrl+Shift+F9", config.SymbolsHotkey);
-            Assert.Equal(SymbolsData.CategoryRecent, config.SymbolsCategory);
-            Assert.Equal(string.Empty, config.SymbolsRecent);
+            Assert.False(config.SymbolsCloseOnPick);
             Assert.False(config.SymbolsHideTypable);
             Assert.Equal(0, config.SymbolsCount);
+            Assert.Equal(SymbolsData.AllCategories, config.SymbolsCategory);
+        }
+
+        [Fact]
+        public void StoredGroupKeysNormalizeAndAnythingElseOpensOnAll()
+        {
+            Assert.Equal(SymbolsData.CategoryMath, SymbolsData.NormalizeCategory("MATH"));
+            Assert.Equal(SymbolsData.AllCategories, SymbolsData.NormalizeCategory("recent"));
+            Assert.Equal(SymbolsData.AllCategories, SymbolsData.NormalizeCategory(""));
+            Assert.Equal(SymbolsData.AllCategories, SymbolsData.NormalizeCategory(null));
+        }
+
+        [Fact]
+        public void ListHoldsAllThenTheTwelveGroupsInTableOrder()
+        {
+            OnUiThread(() =>
+            {
+                var config = new AppConfig { UiLanguage = "Русский", EnableSymbols = true };
+                using var window = new SymbolsWindow(config, "Русский", (_, onResult) => onResult(true, 1));
+                ComboBox list = All(window).OfType<ComboBox>().Single();
+
+                Assert.Equal(13, list.Items.Count);
+                Assert.Equal("Все", list.GetItemText(list.Items[0]));
+                for (int i = 0; i < SymbolsData.Categories.Length; i++)
+                {
+                    Assert.Equal(SymbolsData.CategoryTitleRu(SymbolsData.Categories[i].Key), list.GetItemText(list.Items[i + 1]));
+                }
+            });
+        }
+
+        [Fact]
+        public void RememberedGroupSelectsItsListEntryAndFiltersTheGrid()
+        {
+            OnUiThread(() =>
+            {
+                var config = new AppConfig { UiLanguage = "Русский", EnableSymbols = true, SymbolsCategory = SymbolsData.CategoryMath };
+                using var window = new SymbolsWindow(config, "Русский", (_, onResult) => onResult(true, 1));
+                ComboBox list = All(window).OfType<ComboBox>().Single();
+
+                Assert.Equal("Математика", list.GetItemText(list.SelectedItem));
+                Assert.NotEmpty(window.Grid.Entries);
+                Assert.All(window.Grid.Entries, e => Assert.Equal(SymbolsData.CategoryMath, e.Category));
+            });
+        }
+
+        [Fact]
+        public void SearchStaysInsideTheSelectedGroup()
+        {
+            OnUiThread(() =>
+            {
+                var config = new AppConfig { UiLanguage = "Русский", EnableSymbols = true, SymbolsCategory = SymbolsData.CategoryMath };
+                using var window = new SymbolsWindow(config, "Русский", (_, onResult) => onResult(true, 1));
+
+                // A currency sign is on the table, but not in the math group the window is showing
+                window.SearchBox.Text = "€";
+
+                Assert.Empty(window.Grid.Entries);
+            });
         }
     }
 }

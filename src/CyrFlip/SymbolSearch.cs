@@ -25,10 +25,9 @@ namespace CyrFlip
         {
             if (source == null) return new List<SymbolEntry>();
 
-            // Category filter if a specific curated category is selected (not "all" or "recent")
+            // Category filter if a specific curated category is selected (null is the "all" list)
             IEnumerable<SymbolEntry> candidates = source;
-            if (!string.IsNullOrEmpty(selectedCategory) &&
-                !string.Equals(selectedCategory, SymbolsData.CategoryRecent, StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(selectedCategory))
             {
                 candidates = candidates.Where(e => string.Equals(e.Category, selectedCategory, StringComparison.OrdinalIgnoreCase));
             }

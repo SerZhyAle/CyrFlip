@@ -64,7 +64,7 @@ namespace CyrFlip.Tests
             Assert.Equal("Немецкая", altGrInfo.LayoutName);
 
             // Localization hint
-            string ruHint = altGrInfo.GetHint("Русский");
+            string ruHint = altGrInfo.GetHint("Русский", entryAltGr.NameEn);
             Assert.Contains("AltGr+E", ruHint);
             Assert.Contains("Немецкая", ruHint);
         }
@@ -87,12 +87,14 @@ namespace CyrFlip.Tests
             TypabilityInfo absentInfo = typability.Query(absent);
             Assert.False(absentInfo.IsTypable);
             Assert.Null(absentInfo.Chord);
-            Assert.Equal("Нет на ваших раскладках", absentInfo.GetHint("Русский"));
+            foreach (string language in Localization.Names)
+                Assert.Equal("DOUBLE DAGGER", absentInfo.GetHint(language, absent.NameEn));
 
             TypabilityInfo deadInfo = typability.Query(deadKeyChar);
             Assert.False(deadInfo.IsTypable);
             Assert.Null(deadInfo.Chord);
-            Assert.Equal("Нет на ваших раскладках", deadInfo.GetHint("Русский"));
+            foreach (string language in Localization.Names)
+                Assert.Equal("LATIN SMALL LETTER E WITH ACUTE", deadInfo.GetHint(language, deadKeyChar.NameEn));
         }
 
         [Fact]

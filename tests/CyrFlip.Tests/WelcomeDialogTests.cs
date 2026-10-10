@@ -28,13 +28,22 @@ namespace CyrFlip.Tests
                 foreach (Control nested in Walk(child)) yield return nested;
         }
 
-        private static WelcomeDialog New(string language, bool packaged = false)
+        private static AppConfig NewConfig(string language)
         {
             var config = new AppConfig { UiLanguage = language };
             config.LayoutConversionProfiles.Add(AppConfig.FlipRow(null, true));
-            return new WelcomeDialog(new WelcomeFacts(config, new[] { new InputLayouts.Installed { Klid = "00000409" } },
-                packaged, true, true), _ => { }, _ => { }, () => false);
+            return config;
         }
+
+        private static WelcomeDialog New(string language, bool packaged = false)
+            => New(NewConfig(language), packaged);
+
+        private static WelcomeDialog New(AppConfig config, bool packaged = false, Action<WelcomeSwitch, string?, bool>? apply = null)
+            => new WelcomeDialog(new WelcomeFacts(config, new[] { new InputLayouts.Installed { Klid = "00000409" } },
+                packaged, true, true), _ => { }, _ => { }, () => false, apply);
+
+        private static ToggleSwitch SwitchNamed(Control root, string name)
+            => Assert.Single(Walk(root).OfType<ToggleSwitch>(), s => s.AccessibleName == name);
 
         private static void CheckCaptions(Control root)
         {
@@ -69,6 +78,140 @@ namespace CyrFlip.Tests
                         }
                         dialog.Close();
                     }
+            });
+        }
+
+        [Fact]
+        public void EveryPageOpensWithOneSolidGlyphPlate()
+        {
+            Sta(() =>
+            {
+                using var dialog = New("English"); dialog.Show();
+                for (int page = 0; page < 5; page++)
+                {
+                    dialog.Navigate(page); dialog.PerformLayout();
+                    Assert.Single(Walk(dialog).OfType<GlyphBadge>(), b => b.Solid && IsShown(b));
+                    Assert.Contains(Walk(dialog).OfType<GlyphBadge>(), b => !b.Solid && IsShown(b));
+                }
+            });
+        }
+
+        private static bool IsShown(Control control)
+        {
+            for (Control? c = control; c != null; c = c.Parent) if (!c.Visible) return false;
+            return true;
+        }
+
+        [Fact]
+        public void PaintedPiecesFollowTheirPalette()
+        {
+            Sta(() =>
+            {
+                foreach (var palette in new[] { ThemePalette.Light, ThemePalette.Dark })
+                {
+                    using var plate = new GlyphBadge(AppGlyphs.Info, null, 52, true);
+                    plate.ApplyTheme(palette);
+                    using var bitmap = new Bitmap(52, 52);
+                    plate.DrawToBitmap(bitmap, new Rectangle(0, 0, 52, 52));
+                    // Near the top edge of the disc, clear of the glyph: the plate's own fill.
+                    Assert.Equal(palette.Accent.ToArgb(), bitmap.GetPixel(26, 4).ToArgb());
+
+                    // The knob rests at the far end when on, so the near end of the track shows its fill.
+                    foreach (bool on in new[] { true, false })
+                    {
+                        using var toggle = new ToggleSwitch(on);
+                        toggle.ApplyTheme(palette);
+                        Size size = toggle.GetPreferredSize(Size.Empty);
+                        toggle.Size = size;
+                        using var switchBitmap = new Bitmap(size.Width, size.Height);
+                        toggle.DrawToBitmap(switchBitmap, new Rectangle(Point.Empty, size));
+                        Color track = switchBitmap.GetPixel(on ? size.Width * 18 / 100 : size.Width * 75 / 100, size.Height / 2);
+                        Assert.Equal((on ? palette.Accent : palette.SurfaceRaised).ToArgb(), track.ToArgb());
+                    }
+                }
+            });
+        }
+
+        [Fact]
+        public void SwitchesAreLiveAndWriteTheConfiguration()
+        {
+            Sta(() =>
+            {
+                AppConfig config = NewConfig("English");
+                using var dialog = New(config); dialog.Show();
+                Assert.True(config.EnableCaretOverlay);
+                SwitchNamed(dialog, Localization.Translate("English", "Метка у каретки")).Toggle();
+                Assert.False(config.EnableCaretOverlay);
+                SwitchNamed(dialog, Localization.Translate("English", "Курсор мыши")).Toggle();
+                Assert.True(config.EnableCursorChange);
+                SwitchNamed(dialog, "EN ⇄ RU").Toggle();
+                Assert.False(config.LayoutConversionProfiles[0].Enabled);
+                SwitchNamed(dialog, Localization.Translate("English", "Быстрые заметки")).Toggle();
+                Assert.True(config.EnableQuickNotes);
+                Assert.True(SwitchNamed(dialog, Localization.Translate("English", "Быстрые заметки")).Checked);
+            });
+        }
+
+        [Fact]
+        public void ARefusedSwitchPutsItsKnobBack()
+        {
+            Sta(() =>
+            {
+                AppConfig config = NewConfig("English");
+                var asked = new List<(WelcomeSwitch, bool)>();
+                using var dialog = New(config, apply: (which, _, on) => asked.Add((which, on)));
+                dialog.Show();
+                ToggleSwitch caret = SwitchNamed(dialog, Localization.Translate("English", "Метка у каретки"));
+                caret.Toggle();
+                Assert.Equal((WelcomeSwitch.CaretMarker, false), Assert.Single(asked));
+                Assert.True(caret.Checked, "the owner changed nothing, so the switch must show the real state");
+            });
+        }
+
+        [Fact]
+        public void TurningAChordOnTurnsTheMasterSwitchOn()
+        {
+            AppConfig config = NewConfig("English");
+            config.EnableHotkeys = false;
+            var facts = new WelcomeFacts(config, Array.Empty<InputLayouts.Installed>(), false, false, false);
+            Assert.False(facts.IsOn(WelcomeSwitch.CaseFlip));
+            facts.Set(WelcomeSwitch.CaseFlip, null, true);
+            Assert.True(config.EnableHotkeys);
+            Assert.True(facts.IsOn(WelcomeSwitch.CaseFlip));
+            facts.Set(WelcomeSwitch.CaseFlip, null, false);
+            Assert.False(facts.IsOn(WelcomeSwitch.CaseFlip));
+            Assert.True(config.EnableHotkeys, "switching one chord off must not switch the others off with it");
+        }
+
+        [Fact]
+        public void NavigationButtonsCarryTheirGlyphs()
+        {
+            Sta(() =>
+            {
+                foreach (string language in new[] { "English", "العربية" })
+                {
+                    using var dialog = New(language); dialog.Show();
+                    var buttons = Walk(dialog).OfType<GlyphButton>().ToList();
+                    Assert.Equal(3, buttons.Count);
+                    Assert.All(buttons, b => Assert.NotNull(b.Image));
+                    Assert.Equal(new[] { AppGlyphs.Back, AppGlyphs.Forward, AppGlyphs.Close }, buttons.Select(b => b.Glyph));
+                    dialog.Navigate(4);
+                    Assert.Contains(buttons, b => b.Glyph == AppGlyphs.Settings);
+                }
+            });
+        }
+
+        [Fact]
+        public void KeyCapsSplitAChordIntoItsKeys()
+        {
+            Assert.Equal(new[] { "Ctrl", "Shift", "F12" }, KeyCaps.Split("Ctrl+Shift+F12"));
+            Assert.Equal(new[] { "Ctrl", "Shift", "Alt", "PrtSc" }, KeyCaps.Split("Ctrl+Shift+Alt+PrintScreen"));
+            Assert.Empty(KeyCaps.Split(""));
+            Sta(() =>
+            {
+                using var caps = new KeyCaps("Ctrl+Shift+F12");
+                using var one = new KeyCaps("F12");
+                Assert.True(caps.GetPreferredSize(Size.Empty).Width > 2 * one.GetPreferredSize(Size.Empty).Width);
             });
         }
 
@@ -141,7 +284,10 @@ namespace CyrFlip.Tests
                     typeof(Form).GetMethod("ProcessDialogKey", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(dialog, new object[] { Keys.Enter });
                 }
                 Assert.Equal(SettingsPageKey.General, dialog.RequestedPage);
-                Assert.Empty(Walk(dialog).OfType<CheckBox>());
+                string startup = Localization.Translate("English", "Запускать CyrFlip вместе с Windows");
+                Assert.DoesNotContain(Walk(dialog).OfType<ToggleSwitch>(), s => s.AccessibleName == startup);
+                using var portable = New("English", false); portable.Show();
+                SwitchNamed(portable, startup);
             });
         }
     }

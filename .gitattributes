@@ -33,6 +33,10 @@ docs/assets/sza-kit.css -text
 # The contract's test vectors are a byte-exact copy of the catalog's: LF on every checkout, or the file-versus-parser test fails on a CRLF one.
 tests/CyrFlip.Tests/Fixtures/InputChord/*.jsonl text eol=lf
 
+# The settings-file writer emits LF (SettingsFileWriterTests asserts no CR), and BytesArePinnedByTheV1WriterFixture
+# compares its output with this fixture's bytes: an eol=crlf checkout (the *.json rule above) fails it on a fresh clone.
+tests/CyrFlip.Tests/Fixtures/SettingsFile/writer-v1.json text eol=lf
+
 # WINDOWS-STORE rules 8 and 13: the listing export, the emptied round-trip fixture and the built
 # import CSV are compared as bytes - CRLF inside quoted cells included. Git must never normalise
 # their line endings, or a fresh checkout no longer matches what Partner Center receives.

@@ -16,6 +16,8 @@ namespace CyrFlip
         public const string PinOff = "action.pin--off";
         public const string Delete = "action.delete";
         public const string Close = "nav.close";
+        public const string Back = "nav.back";
+        public const string Forward = "nav.forward";
         public const string Exit = "nav.exit";
         public const string MoveUp = "action.move-up";
         public const string MoveDown = "action.move-down";
@@ -29,6 +31,8 @@ namespace CyrFlip
         public const string Screenshot = "system.screenshot";
         public const string ConvertLayout = "action.convert-layout";
         public const string InputLanguage = "system.input-language";
+        public const string Symbols = "feature.symbols";
+        public const string ShortcutOverview = "app.shortcut-overview";
         // Disclosure chevrons (WINDOWS-UI section 3: a collapsed group shows nav.expand, an open one
         // nav.collapse - the glyph names the action a click performs). Both records are rtl: fixed.
         public const string Expand = "nav.expand";

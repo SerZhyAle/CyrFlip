@@ -126,7 +126,7 @@ namespace CyrFlip
                 text = read;
                 return true;
             }
-            finally { CloseClipboard(); }
+            finally { EndSession(); }
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace CyrFlip
                 text = ReadOpenText(maxBytes / sizeof(char), out tooLarge) ?? string.Empty;
                 return true;
             }
-            finally { CloseClipboard(); }
+            finally { EndSession(); }
         }
 
         /// <summary>What the copy half found on the clipboard, read in one open.</summary>
@@ -195,7 +195,7 @@ namespace CyrFlip
                 read.Locale = ReadDword(CF_LOCALE) ?? 0;
                 return true;
             }
-            finally { CloseClipboard(); }
+            finally { EndSession(); }
         }
 
         /// <summary>
@@ -280,7 +280,7 @@ namespace CyrFlip
                 SetCompanions(locale, marks);
                 return true;
             }
-            finally { CloseClipboard(); }
+            finally { EndSession(); }
         }
 
         /// <summary>CF_UNICODETEXT's block: the text in UTF-16 with its terminating NUL.</summary>
@@ -335,7 +335,7 @@ namespace CyrFlip
                 ReadOpenBytes(format, maxBytes, out data);
                 return true;
             }
-            finally { CloseClipboard(); }
+            finally { EndSession(); }
         }
 
         /// <summary>One format off the already open clipboard.</summary>
@@ -437,7 +437,7 @@ namespace CyrFlip
                         all &= SetBytes(payload.Key, payload.Value);
                 return all;
             }
-            finally { CloseClipboard(); }
+            finally { EndSession(); }
         }
 
         /// <summary>
@@ -458,26 +458,45 @@ namespace CyrFlip
             if (!OpenWithRetry())
                 return false;
             try { return EmptyClipboard(); }
-            finally { CloseClipboard(); }
+            finally { EndSession(); }
         }
+
+        // Every clipboard session of this process takes one lock first. OpenClipboard(NULL) does not keep two
+        // threads of this process out of the clipboard: the crash dump of 2026-10-09 (CyrFlip 26.10.9.129)
+        // shows the history capture and the Symbols mirror both inside GetClipboardData at the same moment,
+        // and the process heap was already corrupt when GlobalSize touched the block. The wait is bounded,
+        // so a session stuck behind a hung owner's render fails like a busy clipboard instead of freezing
+        // its caller - the UI thread calls into here too (the quick notes' copy buttons).
+        private static readonly object Session = new object();
+        private const int SessionWaitMs = 2000;
 
         // The clipboard can be briefly locked by another process; retry for a short while.
         private static bool OpenWithRetry()
         {
+            if (!Monitor.TryEnter(Session, SessionWaitMs))
+                return false;
             for (int i = 0; i < 12; i++)
             {
                 if (OpenClipboard(IntPtr.Zero))
                     return true;
                 Thread.Sleep(15);
             }
+            Monitor.Exit(Session);
             return false;
+        }
+
+        /// <summary>Closes the session <see cref="OpenWithRetry"/> opened and lets the next caller in.</summary>
+        private static void EndSession()
+        {
+            try { CloseClipboard(); }
+            finally { Monitor.Exit(Session); }
         }
 
         private sealed class Win32Reader : IClipboardReader
         {
             public int CountFormats() => CountClipboardFormats();
             public bool Open() => OpenWithRetry();
-            public void Close() => CloseClipboard();
+            public void Close() => EndSession();
             public uint Sequence() => GetClipboardSequenceNumber();
             public bool IsAvailable(uint format) => format != 0 && IsClipboardFormatAvailable(format);
             public ClipboardRead Read(uint format, int maxBytes, out byte[]? data) => ReadOpenBytes(format, maxBytes, out data);

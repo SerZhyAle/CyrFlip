@@ -77,7 +77,7 @@ Early development - which here means "it works, but we reserve the right to be h
   - **Quick notes** - the local notepad (see below): the switch, its chord, whether the editor wraps long lines, the export of every note to one Markdown file, and the button that destroys the lot.
   - **Graphics** - the **screen region capture**: its chord (**Ctrl+Shift+PrintScreen** by default), a **Capture a region** button, and the optional saving of every capture as a PNG into a folder you choose; the folder opens on its own chord (**Ctrl+Shift+Alt+PrintScreen** by default), bound only while saving is on. The capture always goes to the clipboard; the same command is in the tray menu.
   - **Translation** - the local translator (see below): the Ollama address and model, the buttons that install, start and check it, the table of translation directions, and what to do with the result.
-  - **Clipboard** and **About & Advanced** - history options, its transparency and search, the **build version** (the same `YY.M.D.HHmm` stamp the release ZIP carries, so you can tell at a glance whether a fix is in your copy), links to the MIT licence and the privacy policy, plus the caret-position diagnostics and **Send logs to the author..** (see below).
+  - **Clipboard** and **About** - history options, its transparency and search, the **build version** (the same `YY.M.D.HHmm` stamp the release ZIP carries, so you can tell at a glance whether a fix is in your copy), links to the MIT licence and the privacy policy, plus the caret-position diagnostics and **Send logs to the author..** (see below).
 
 CyrFlip is a normal desktop app, not a Windows service: a global keyboard hook and the layout indicator must run in your interactive session, so "autostart" is a per-user startup entry rather than a service.
 
@@ -196,7 +196,7 @@ A legacy `config.json` (next to the exe or in `%APPDATA%\CyrFlip\`) is migrated 
 
 ## Reporting a problem
 
-**Settings → About & Advanced → Send logs to the author..** packs CyrFlip's own diagnostic logs
+**Settings → About → Send logs to the author..** packs CyrFlip's own diagnostic logs
 (`launcher.log`, `context-menu.log`, `translate.log`, the caret diagnostics, `layout.txt`) plus a
 configuration report into one ZIP under `reports`, next to the layout file, and opens a message to
 [sza@ukr.net](mailto:sza@ukr.net) with that archive attached.

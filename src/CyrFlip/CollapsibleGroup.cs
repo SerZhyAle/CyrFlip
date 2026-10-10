@@ -56,7 +56,7 @@ namespace CyrFlip
                 TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
                 ImageAlign = System.Drawing.ContentAlignment.MiddleLeft,
                 TextImageRelation = TextImageRelation.ImageBeforeText,
-                Padding = new Padding(2, 6, 6, 6),
+                Padding = new Padding(12, 11, 8, 11),
                 Margin = new Padding(0),
                 UseMnemonic = false,
                 // No explicit AccessibleName: the button's own Text is its name, and Text is what the
@@ -78,6 +78,14 @@ namespace CyrFlip
             Controls.Add(_header);
             Controls.Add(_body);
             UpdateChevron();
+        }
+
+        /// <summary>The header is a band across the whole page (WINDOWS-UI section 3 rule 1), not a pill round its
+        /// caption: the page tells it how much room it has and the band takes all of it.</summary>
+        public void FitWidth(int width)
+        {
+            int wanted = Math.Max(160, width);
+            if (_header.MinimumSize.Width != wanted) _header.MinimumSize = new Size(wanted, 0);
         }
 
         public string Id { get; }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Reflection;
@@ -53,6 +54,8 @@ namespace CyrFlip
             public ThemeFrame? Frame;
             /// <summary>The button's two raw visual-style fields - see <see cref="ReadVisualStyleFields"/>.</summary>
             public (bool Enabled, bool Set)? VisualStyleRaw;
+            /// <summary>The form's answer to a disabled edit's <c>WM_CTLCOLORSTATIC</c> (see <see cref="ThemeCtColor"/>).</summary>
+            public ThemeCtColor? CtColor;
         }
 
         // ButtonBase.UseVisualStyleBackColor is not a stored value until something sets it: unset, it is
@@ -110,8 +113,22 @@ namespace CyrFlip
             state.Palette = palette;
             Paint(control, state, palette);
             if (control.IsHandleCreated) Native(control, state, palette);
+            // A form hosts the WM_CTLCOLORSTATIC answer for the disabled read-only edits whose message
+            // lands on it (H5); the numeric and the editable combo answer through their own subclass
+            // (ThemeFrame). Light and high contrast release it - the system colours come back.
+            if (control is Form) AttachCtColor(control, state, palette);
             (control as IThemeAware)?.ApplyTheme(palette);
             foreach (Control child in control.Controls) Walk(child, palette);
+        }
+
+        private static void AttachCtColor(Control form, State state, ThemePalette palette)
+        {
+            if (palette.IsDark)
+            {
+                state.CtColor ??= new ThemeCtColor();
+                state.CtColor.Update(form.Handle);
+            }
+            else state.CtColor?.Release();
         }
 
         private static State RecordState(Control control)
@@ -509,6 +526,11 @@ namespace CyrFlip
 
             protected override void WndProc(ref Message m)
             {
+                // The numeric's and the editable combo's inner edit answers its colours to this
+                // control, not to the form - the other half of the disabled-editor fix (H5).
+                if (m.Msg == WindowInterop.WM_CTLCOLORSTATIC && (_control is UpDownBase || _control is ComboBox)
+                    && !_control.Enabled && AnswerCtColorStatic(ref m, _control))
+                    return;
                 base.WndProc(ref m);
                 if (!_dark) return;
                 if (m.Msg == WindowInterop.WM_NCPAINT && _control is TextBoxBase) PaintFrame(window: true);
@@ -542,6 +564,74 @@ namespace CyrFlip
         }
 
         // ---- Disabled text ----
+
+        /// <summary>
+        /// A read-only or disabled native edit answers <c>WM_CTLCOLORSTATIC</c> with the framework's
+        /// default - a white face under grey system text, whatever the managed <c>BackColor</c> says
+        /// (H5). In dark the theme answers for it: the editor's own (dark) face and <c>text.disabled</c>
+        /// ink. The message is received by the edit's <b>parent</b>, so there are two receivers: this
+        /// window-level subclass covers the text boxes and the drop-down combos, whose parent is the
+        /// form; <see cref="ThemeFrame"/> covers the numeric editor and the editable combo, whose
+        /// inner edit is parented by the control itself.
+        /// </summary>
+        internal static bool AnswerCtColorStatic(ref Message m, Control editor)
+        {
+            bool inert = !editor.Enabled || (editor is TextBoxBase box && box.ReadOnly);
+            ThemePalette? palette = PaletteOf(editor);
+            if (!inert || palette == null || !palette.IsDark) return false;
+            IntPtr dc = m.WParam;
+            if (dc == IntPtr.Zero) return false;
+            int ink = ColorTranslator.ToWin32(editor is TextBoxBase { ReadOnly: true } && editor.Enabled
+                ? palette.TextMuted
+                : palette.TextDisabled);
+            WindowInterop.SetTextColor(dc, ink);
+            WindowInterop.SetBkMode(dc, WindowInterop.TRANSPARENT);
+            m.Result = StaticBrush(editor.BackColor);
+            return true;
+        }
+
+        // Brushes are cached per colour and kept for the process: the system holds the returned handle
+        // past the message, and the set of colours is the palette's role set - a handful, bounded.
+        private static readonly Dictionary<int, IntPtr> StaticBrushes = new Dictionary<int, IntPtr>();
+
+        private static IntPtr StaticBrush(Color color)
+        {
+            int colorref = ColorTranslator.ToWin32(color);
+            if (!StaticBrushes.TryGetValue(colorref, out IntPtr brush))
+            {
+                brush = WindowInterop.CreateSolidBrush(colorref);
+                StaticBrushes[colorref] = brush;
+            }
+            return brush;
+        }
+
+        /// <summary>The window-level receiver: every disabled text box and drop-down combo of a dark form.</summary>
+        private sealed class ThemeCtColor : NativeWindow
+        {
+            public void Update(IntPtr hwnd)
+            {
+                if (Handle != hwnd)
+                {
+                    if (Handle != IntPtr.Zero) ReleaseHandle();
+                    AssignHandle(hwnd);
+                }
+            }
+
+            public void Release()
+            {
+                if (Handle != IntPtr.Zero) ReleaseHandle();
+            }
+
+            protected override void WndProc(ref Message m)
+            {
+                if (m.Msg == WindowInterop.WM_CTLCOLORSTATIC)
+                {
+                    Control? editor = Control.FromChildHandle(m.LParam);
+                    if (editor is TextBoxBase or ComboBox && AnswerCtColorStatic(ref m, editor)) return;
+                }
+                base.WndProc(ref m);
+            }
+        }
 
         /// <summary>
         /// WinForms derives a disabled caption's colour from the background - <c>ControlPaint.Dark</c> of

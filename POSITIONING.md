@@ -51,8 +51,10 @@ works from the first start and the one people search for; it is one group among 
   presented as running from the first start except pillar 1 and the region capture.
 - **Only what the latest release contains.** A feature of an open ticket is announced in the release that ships it.
 - **Search words are kept.** No existing tag, topic or store search term is removed by a rewrite
-  (`keyboard-layout`, `transliteration`, `cyrillic`, `punto-switcher-alternative` and the layout wording of the RU
-  and UK pages are entry points); new ones are added beside them.
+  (`keyboard-layout`, `transliteration`, `cyrillic` and the layout wording of the RU and UK pages are entry
+  points); new ones are added beside them. The one exception: a term that carries a competitor's product or
+  brand name is never a search word and is removed wherever it is found (canon PROMOTION.md section 1 rule 4;
+  owner, 2026-10-09: "Убрать названия конкурентов" - "remove the competitors' names").
 - **The privacy statement is not rewritten with the positioning.** Its meaning stays as it is; a change there is a
   separate, deliberate edit on the privacy page, the trust page and the guide together.
 - **Every locale in one edit.** 13 landing pages, 13 Store columns, 13 About strings, 3 READMEs, 3 winget locales.

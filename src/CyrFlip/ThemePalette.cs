@@ -219,6 +219,49 @@ namespace CyrFlip
             => kind == ThemeKind.Dark ? Dark : kind == ThemeKind.HighContrast ? HighContrast : Light;
 
         /// <summary>
+        /// The identity ink of each settings destination (WINDOWS-UI section 6 rule 6, ICON-SET section 11): the
+        /// page list may draw a destination's glyph in its own stable hue - one table, a dark and a light value per
+        /// entry, never a literal at a call site. The ink marks the destination and nothing else (not status,
+        /// not selection) and is measured at 3:1 against the surface the list paints on in both themes
+        /// (<c>NavInkTests</c>). High contrast does not use it: the list falls back to the text role.
+        /// Indexed by the page kind <see cref="SettingsForm.TabGlyphId"/> takes.
+        /// </summary>
+        internal static class NavInk
+        {
+            // kind -> (dark, light)
+            private static readonly Dictionary<int, KeyValuePair<Color, Color>> Table = new Dictionary<int, KeyValuePair<Color, Color>>
+            {
+                [0] = Pair("#4DD0E1", "#00838F"),   // General - cyan
+                [1] = Pair("#66BB6A", "#2E7D32"),   // Indicators - green
+                [2] = Pair("#FFA726", "#E16200"),   // Hotkeys - amber
+                [3] = Pair("#FF7043", "#D84315"),   // Clipboard - orange
+                [5] = Pair("#9E9E9E", "#616161"),   // About - grey
+                [6] = Pair("#42A5F5", "#1565C0"),   // Windows languages - blue
+                [7] = Pair("#F06292", "#AD1457"),   // Conversions - pink
+                [8] = Pair("#EF5350", "#C62828"),   // Quick launch - red
+                [9] = Pair("#7986CB", "#303F9F"),   // Translate - indigo
+                [10] = Pair("#AB47BC", "#6A1B9A"),  // Quick notes - purple
+                [11] = Pair("#26A69A", "#00695C"),  // Graphics - teal
+                [12] = Pair("#90A4AE", "#455A64"),  // Symbols - blue grey
+                [13] = Pair("#D4E157", "#827717"),  // All shortcuts - lime
+            };
+
+            private static KeyValuePair<Color, Color> Pair(string dark, string light)
+                => new KeyValuePair<Color, Color>(ColorTranslator.FromHtml(dark), ColorTranslator.FromHtml(light));
+
+            public static IEnumerable<int> Kinds => Table.Keys;
+
+            /// <summary>The ink of a page kind in the palette's theme, or the palette's own text role when the
+            /// kind has no entry or the palette is high contrast.</summary>
+            public static Color For(int kind, ThemePalette palette)
+            {
+                if (palette.Kind == ThemeKind.HighContrast || !Table.TryGetValue(kind, out KeyValuePair<Color, Color> pair))
+                    return palette.TextPrimary;
+                return palette.IsDark ? pair.Key : pair.Value;
+            }
+        }
+
+        /// <summary>
         /// The role a colour a control was <b>built</b> with stands for, or null for a colour that is not
         /// part of the design-time palette (which the coverage test reports). An exact match first - the
         /// system colours are "known colours" and compare by name - and then by value, so a literal that

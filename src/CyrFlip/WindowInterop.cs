@@ -777,6 +777,27 @@ namespace CyrFlip
         [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
         public static extern int GetWindowLong(IntPtr hWnd, int index);
 
+        // ---- Disabled edit colouring (S0060 P3) ----
+        // A read-only or disabled native edit answers its parent's WM_CTLCOLORSTATIC with the framework
+        // default - a white face and grey system text - whatever the managed colours say. The theme
+        // answers the message itself with these, in dark only.
+
+        public const int WM_CTLCOLORSTATIC = 0x0138;
+        public const int TRANSPARENT = 1;
+
+        [DllImport("gdi32.dll")]
+        public static extern int SetTextColor(IntPtr hdc, int color);   // COLORREF: 0x00BBGGRR
+
+        [DllImport("gdi32.dll")]
+        public static extern int SetBkMode(IntPtr hdc, int mode);
+
+        [DllImport("gdi32.dll")]
+        public static extern IntPtr CreateSolidBrush(int color);   // COLORREF: 0x00BBGGRR
+
+        /// <summary>Test seam: read back what a WM_CTLCOLORSTATIC handler wrote into the DC.</summary>
+        [DllImport("gdi32.dll")]
+        public static extern int GetTextColor(IntPtr hdc);
+
         // ---- Screen region capture (S0026) ----
         public const uint SRCCOPY = 0x00CC0020;
         /// <summary>Without it layered windows (tooltips, many modern menus) are missing from a BitBlt.</summary>

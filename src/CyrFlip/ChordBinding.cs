@@ -20,6 +20,11 @@ namespace CyrFlip
         NoChord,
         /// <summary>The stored chord token failed to parse as a valid hotkey.</summary>
         Unparsable,
+        /// <summary>
+        /// The row's own fields do not make a binding the hook takes: a KLID that is not eight characters, a
+        /// translation with no target (<see cref="LayoutConversionProfile.IsUsable"/>, <see cref="TranslationProfile.IsUsable"/>).
+        /// </summary>
+        Incomplete,
         /// <summary>Another active CyrFlip owner shares this chord.</summary>
         Clash,
     }
@@ -57,13 +62,17 @@ namespace CyrFlip
         /// Evaluates the runtime state of a chord.
         /// </summary>
         public static ChordBinding Evaluate(AppConfig config, ChordKind kind, string id, string? rawChord,
-            bool rowEnabled, bool moduleEnabled, ChordRegistry? registry = null, object? source = null)
+            bool rowEnabled, bool moduleEnabled, ChordRegistry? registry = null, object? source = null, bool usable = true)
         {
             if (string.IsNullOrEmpty(rawChord))
                 return new ChordBinding(kind, id, rawChord, null, ChordBindingState.NoChord, null, source);
 
             if (!Hotkey.TryParse(rawChord, out Hotkey parsed))
                 return new ChordBinding(kind, id, rawChord, null, ChordBindingState.Unparsable, null, source);
+
+            // The hook takes no row that is not usable, whatever its switch says (S0056 B1): the overview must say so too.
+            if (!usable)
+                return new ChordBinding(kind, id, rawChord, parsed, ChordBindingState.Incomplete, null, source);
 
             if (!moduleEnabled)
                 return new ChordBinding(kind, id, rawChord, parsed, ChordBindingState.OffByModule, null, source);
@@ -83,6 +92,15 @@ namespace CyrFlip
 
         // ---- Pure predicates matching CyrFlipContext / KeyboardHook ----
 
+        // The module-and-own-switch half of "is this chord bound", without the master switch and without
+        // the chord text. CyrFlipContext's *ChordLive properties call these, so the hook and the overview
+        // (ticket S0056, B1) are made from one condition and cannot drift apart when a module gets a switch.
+        public static bool QuickNotesLive(AppConfig config) => config.EnableQuickNotes && config.EnableQuickNotesHotkey;
+        public static bool SymbolsLive(AppConfig config) => config.EnableSymbols && config.EnableSymbolsHotkey;
+        public static bool ScreenshotLive(AppConfig config) => config.EnableScreenshotHotkey;
+        public static bool ScreenshotFolderLive(AppConfig config) => config.ScreenshotSaveEnabled && config.EnableScreenshotFolderHotkey;
+        public static bool TextMenuLive(AppConfig config) => config.EnableContextMenu && config.EnableTextMenuHotkey;
+
         public static bool IsCaseActive(AppConfig config)
             => config.EnableHotkeys && config.EnableCaseHotkey && Hotkey.TryParse(config.CaseHotkey, out _);
 
@@ -90,19 +108,19 @@ namespace CyrFlip
             => config.EnableHotkeys && config.EnableHistoryHotkey && Hotkey.TryParse(config.ClipboardHistoryHotkey, out _);
 
         public static bool IsQuickNotesActive(AppConfig config)
-            => config.EnableHotkeys && config.EnableQuickNotes && config.EnableQuickNotesHotkey && Hotkey.TryParse(config.QuickNotesHotkey, out _);
+            => config.EnableHotkeys && QuickNotesLive(config) && Hotkey.TryParse(config.QuickNotesHotkey, out _);
 
         public static bool IsSymbolsActive(AppConfig config)
-            => config.EnableHotkeys && config.EnableSymbols && config.EnableSymbolsHotkey && Hotkey.TryParse(config.SymbolsHotkey, out _);
+            => config.EnableHotkeys && SymbolsLive(config) && Hotkey.TryParse(config.SymbolsHotkey, out _);
 
         public static bool IsScreenshotActive(AppConfig config)
-            => config.EnableHotkeys && config.EnableScreenshotHotkey && Hotkey.TryParse(config.ScreenshotHotkey, out _);
+            => config.EnableHotkeys && ScreenshotLive(config) && Hotkey.TryParse(config.ScreenshotHotkey, out _);
 
         public static bool IsScreenshotFolderActive(AppConfig config)
-            => config.EnableHotkeys && config.ScreenshotSaveEnabled && config.EnableScreenshotFolderHotkey && Hotkey.TryParse(config.ScreenshotFolderHotkey, out _);
+            => config.EnableHotkeys && ScreenshotFolderLive(config) && Hotkey.TryParse(config.ScreenshotFolderHotkey, out _);
 
         public static bool IsTextMenuActive(AppConfig config)
-            => config.EnableHotkeys && config.EnableContextMenu && config.EnableTextMenuHotkey && Hotkey.TryParse(config.TextMenuHotkey, out _);
+            => config.EnableHotkeys && TextMenuLive(config) && Hotkey.TryParse(config.TextMenuHotkey, out _);
 
         public static bool IsConversionActive(AppConfig config, LayoutConversionProfile profile)
             => config.EnableHotkeys && profile != null && profile.Enabled && profile.IsUsable && Hotkey.TryParse(profile.Hotkey, out _);

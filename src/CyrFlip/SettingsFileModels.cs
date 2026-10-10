@@ -68,8 +68,7 @@ namespace CyrFlip
             Add("machine history", "QuickNotesNoticeShown TranslateSeeded LauncherFirstEnableDone DataFolderMigrated ShortcutsCreated WelcomeShown");
             Add("Windows state", "LanguageHotkeysBackup InputLayoutsBackup InputMethodOverrideWritten");
             Add("machine path", "ScreenshotFolder"); Add("launcher excluded in v1", "EnableScenarioLauncher");
-            Add("user data", "SymbolsRecent");
-            Add("symbols window not in v1", "EnableSymbols EnableSymbolsHotkey SymbolsHotkey SymbolsHideTypable");
+            Add("symbols window not in v1", "EnableSymbols EnableSymbolsHotkey SymbolsHotkey SymbolsHideTypable SymbolsCloseOnPick");
             return result;
         }
         internal static void Copy(AppConfig source, AppConfig target)

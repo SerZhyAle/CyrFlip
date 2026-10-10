@@ -64,7 +64,7 @@ namespace CyrFlip
         private SymbolsWindow? _symbolsWindow;
         private readonly ToolStripMenuItem _symbolsItem;
         private bool _symbolsChordWasLive;
-        private bool SymbolsChordLive => _config.EnableSymbols && _config.EnableSymbolsHotkey;
+        private bool SymbolsChordLive => ChordBinding.SymbolsLive(_config);
         // ---- Tray hotkeys hover popup (S0059) ----
         private readonly ToolStripMenuItem _hotkeysOverviewItem;
         private TrayHotkeysPopup? _trayPopup;
@@ -301,7 +301,9 @@ namespace CyrFlip
             // Keep dynamic state in sync when the menu opens.
             menu.Opening += (_, _) =>
             {
-                _trayHover.OnUserActionDismiss();
+                // The pointer stays over the icon while the menu is open, so the hover would re-arm and
+                // the popup would cover the menu (S0059 section 3.2). Held until Closed below.
+                _trayHover.OnMenuOpened();
                 // Both builds can now answer this truthfully: the packaged one reads the startupTask.
                 _autostartItem.Checked = Autostart.IsEnabled;
                 // Dot style only makes sense when the caret overlay is on.
@@ -313,6 +315,7 @@ namespace CyrFlip
                 _quickNotesItem.ShortcutKeyDisplayString = _config.EnableHotkeys && QuickNotesChordLive ? _quickNotesHotkey.Display : null;
                 _symbolsItem.ShortcutKeyDisplayString = _config.EnableHotkeys && SymbolsChordLive ? _symbolsHotkey.Display : null;
             };
+            menu.Closed += (_, _) => _trayHover.OnMenuClosed();
 
             Icon initialIcon = TryGetAppIcon();
             _tray = new NotifyIcon
@@ -369,9 +372,9 @@ namespace CyrFlip
             _settings.ConversionProfilesChanged += (_, _) => OnConversionProfilesChanged();
             _settings.QuickNotesChanged += (_, _) => OnQuickNotesChanged();
             _settings.SymbolsChanged += (_, _) => OnSymbolsChanged();
+            _settings.ChordsEdited += (_, _) => OnChordsEdited();
             _settings.SymbolsHotkeyChangeRequested += (_, _) => OnSetSymbolsHotkey();
             _settings.OpenSymbolsRequested += (_, _) => ToggleSymbols();
-            _settings.ClearSymbolsRecentRequested += (_, _) => _symbolsWindow?.ClearRecent();
             _settings.GraphicsChanged += (_, _) => OnGraphicsChanged();
             _settings.ScreenshotHotkeyChangeRequested += (_, _) => OnSetScreenshotHotkey();
             _settings.ScreenshotFolderHotkeyChangeRequested += (_, _) => OnSetScreenshotFolderHotkey();
@@ -392,9 +395,10 @@ namespace CyrFlip
             // switch waits out the system double-click time before acting - otherwise every trip to
             // Settings would also flip the layout.
             _trayClickTimer.Interval = Math.Max(200, SystemInformation.DoubleClickTime);
-            _trayClickTimer.Tick += (_, _) => { _trayClickTimer.Stop(); SwitchLayoutFromTray(); };
+            _trayClickTimer.Tick += (_, _) => { TrayDebug("timer tick"); _trayClickTimer.Stop(); SwitchLayoutFromTray(); };
             _tray.MouseClick += (_, e) =>
             {
+                TrayDebug("MouseClick " + e.Button);
                 _trayHover.OnUserActionDismiss();
                 if (e.Button != MouseButtons.Left) return;
                 _trayClickTimer.Stop();
@@ -402,6 +406,7 @@ namespace CyrFlip
             };
             _tray.MouseDoubleClick += (_, e) =>
             {
+                TrayDebug("MouseDoubleClick " + e.Button);
                 _trayHover.OnUserActionDismiss();
                 if (e.Button != MouseButtons.Left) return;
                 _trayClickTimer.Stop();
@@ -1097,14 +1102,14 @@ namespace CyrFlip
         // ---- Screen region capture (ticket S0026) ----
 
         /// <summary>The chord has only its own switch - there is no module switch (owner, 2026-09-26).</summary>
-        private bool ScreenshotChordLive => _config.EnableScreenshotHotkey;
+        private bool ScreenshotChordLive => ChordBinding.ScreenshotLive(_config);
 
         /// <summary>
         /// The folder chord is bound only while saving is on and its own switch is (S0057 3.1):
         /// with saving off there is no folder worth opening and the keystroke belongs to whatever
         /// else wants it.
         /// </summary>
-        private bool ScreenshotFolderChordLive => _config.ScreenshotSaveEnabled && _config.EnableScreenshotFolderHotkey;
+        private bool ScreenshotFolderChordLive => ChordBinding.ScreenshotFolderLive(_config);
 
         private Hotkey ParsedScreenshotFolderHotkey()
             => Hotkey.TryParse(_config.ScreenshotFolderHotkey, out Hotkey chord) ? chord : Hotkey.Parse(AppConfig.DefaultScreenshotFolderHotkey);
@@ -1292,7 +1297,7 @@ namespace CyrFlip
         }
 
         /// <summary>The text menu's keyboard chord is bound only while the menu and its own switch are on (S0045 K2).</summary>
-        private bool TextMenuChordLive => _config.EnableContextMenu && _config.EnableTextMenuHotkey;
+        private bool TextMenuChordLive => ChordBinding.TextMenuLive(_config);
 
         private Hotkey ParsedTextMenuHotkey()
             => Hotkey.TryParse(_config.TextMenuHotkey, out Hotkey chord) ? chord : Hotkey.Parse(AppConfig.DefaultTextMenuHotkey);
@@ -1354,7 +1359,7 @@ namespace CyrFlip
         // ---- Quick notes (spec: PLAN/QuickNotes_Spec_Idea_v0.1.md) ----
 
         /// <summary>The chord is bound only while the feature and its own switch are both on.</summary>
-        private bool QuickNotesChordLive => _config.EnableQuickNotes && _config.EnableQuickNotesHotkey;
+        private bool QuickNotesChordLive => ChordBinding.QuickNotesLive(_config);
 
         /// <summary>
         /// The service and its window are built on first use, not at startup: the store replays an
@@ -2060,7 +2065,7 @@ namespace CyrFlip
             if (!_config.EnableSymbols) return null;
             if (_symbolsWindow == null || _symbolsWindow.IsDisposed)
             {
-                _symbolsWindow = new SymbolsWindow(_config, _config.UiLanguage, CopySymbolToClipboard);
+                _symbolsWindow = new SymbolsWindow(_config, _config.UiLanguage, CopySymbolToClipboard, ReadClipboardForSymbols);
             }
             return _symbolsWindow;
         }
@@ -2079,24 +2084,63 @@ namespace CyrFlip
             ToggleSymbols();
         }
 
-        private void CopySymbolToClipboard(string text, Action<bool> onResult)
+        private void CopySymbolToClipboard(string text, Action<bool, uint> onResult)
         {
             if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
             {
-                onResult(false);
+                onResult(false, 0);
                 return;
             }
 
             StartClipboardWorker(() =>
             {
                 bool ok = false;
+                uint sequence = 0;
+                // Composing symbols updates the clipboard on every pick; those intermediate writes
+                // must not fill history. End also suppresses notifications delivered after this worker.
+                _clipboardHistory.SuppressBegin();
                 try
                 {
                     uint locale = string.IsNullOrEmpty(_currentKlid) ? 0u : (uint)InputLayouts.LangIdOf(_currentKlid);
                     ok = Win32Clipboard.TrySetText(text, locale, TransientMarks.None);
                     if (ok)
                     {
+                        // The window mirrors this number: its own write is not read back as a foreign change
+                        sequence = WindowInterop.GetClipboardSequenceNumber();
                         _config.IncrementSymbolsCount();
+                    }
+                }
+                catch { /* never let a clipboard op take the app down */ }
+                finally
+                {
+                    _clipboardHistory.SuppressEnd();
+                    Interlocked.Exchange(ref _busy, 0);
+                }
+
+                _ui?.Post(_ => onResult(ok, sequence), null);
+            });
+        }
+
+        /// <summary>
+        /// The Symbols window's view of the clipboard, read on the clipboard worker under the same guard as a copy.
+        /// A marked secret (a password manager's "do not record") comes back as an empty text, so the field stays empty.
+        /// </summary>
+        private void ReadClipboardForSymbols(Action<SymbolsClipboardSnapshot> onResult)
+        {
+            if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
+            {
+                onResult(new SymbolsClipboardSnapshot(0, null, busy: true));
+                return;
+            }
+
+            StartClipboardWorker(() =>
+            {
+                var snapshot = new SymbolsClipboardSnapshot(0, null, busy: false);
+                try
+                {
+                    if (Win32Clipboard.TryReadForHistory(SymbolsWindow.MirrorMaxBytes, out string text, out _, out uint sequence, out bool tooLarge))
+                    {
+                        snapshot = new SymbolsClipboardSnapshot(sequence, tooLarge ? null : text, busy: false);
                     }
                 }
                 catch { /* never let a clipboard op take the app down */ }
@@ -2105,7 +2149,7 @@ namespace CyrFlip
                     Interlocked.Exchange(ref _busy, 0);
                 }
 
-                _ui?.Post(_ => onResult(ok), null);
+                _ui?.Post(_ => onResult(snapshot), null);
             });
         }
 
@@ -2260,22 +2304,31 @@ namespace CyrFlip
         {
             try
             {
+                // TEMP-TRAYDEBUG timings
+                var sw = System.Diagnostics.Stopwatch.StartNew();
                 if (_trayPopup == null || _trayPopup.IsDisposed)
                     _trayPopup = new TrayHotkeysPopup(_config.UiLanguage);
+                TrayDebug("popup new " + sw.ElapsedMilliseconds);
 
+                var windowsHotkeys = LanguageHotkeys.ReadAll();
+                TrayDebug("popup ReadAll " + sw.ElapsedMilliseconds);
                 TrayChordList model = TrayChordList.Build(
                     _config,
                     _launcherStore?.All,
-                    LanguageHotkeys.ReadAll(),
+                    windowsHotkeys,
                     LanguageHotkeys.ToggleCode(),
                     _config.UiLanguage,
                     WorldLayouts.CodeForKlid,
                     T);
+                TrayDebug("popup Build " + sw.ElapsedMilliseconds);
 
                 _trayPopup.ApplyLanguage(_config.UiLanguage);
+                TrayDebug("popup ApplyLanguage " + sw.ElapsedMilliseconds);
                 _trayPopup.SetModel(model, anchor);
+                TrayDebug("popup SetModel " + sw.ElapsedMilliseconds);
                 if (!_trayPopup.Visible)
                     _trayPopup.Show();
+                TrayDebug("popup Show " + sw.ElapsedMilliseconds);
             }
             catch (Exception ex)
             {
@@ -2363,9 +2416,18 @@ namespace CyrFlip
         /// </summary>
         private void SwitchLayoutFromTray()
         {
-            if (!LayoutSwitcher.SwitchToNext(_indicator.LastActiveWindow))
+            bool switched = LayoutSwitcher.SwitchToNext(_indicator.LastActiveWindow);
+            TrayDebug("SwitchLayoutFromTray lastActive=0x" + _indicator.LastActiveWindow.ToInt64().ToString("X") + " switched=" + switched);
+            if (!switched)
                 _tray.ShowBalloonTip(2000, "CyrFlip",
                     T("Переключать не на что: в Windows установлена только одна раскладка."), ToolTipIcon.Info);
+        }
+
+        // TEMP-TRAYDEBUG: diagnosis of the tray click, to be removed
+        private static void TrayDebug(string text)
+        {
+            try { System.IO.File.AppendAllText(System.IO.Path.Combine(DataFolder.Current, "tray-debug.log"), DateTime.Now.ToString("HH:mm:ss.fff") + " " + text + Environment.NewLine); }
+            catch { }
         }
 
         private void ShowSettings()
@@ -2383,7 +2445,7 @@ namespace CyrFlip
             var facts = new WelcomeFacts(_config, InputLayouts.ListInstalled(), Autostart.ManagedByWindows,
                 AppShortcuts.IsTransientLocation(Application.ExecutablePath, System.IO.Path.GetTempPath()),
                 !AppShortcuts.ManagedByWindows && (AppShortcuts.Exists(ShortcutPlace.StartMenu) || AppShortcuts.Exists(ShortcutPlace.Desktop)));
-            using (var dialog = new WelcomeDialog(facts, SetUiLanguage, SetAutostartFromSettings, () => Autostart.IsEnabled))
+            using (var dialog = new WelcomeDialog(facts, SetUiLanguage, SetAutostartFromSettings, () => Autostart.IsEnabled, ApplyWelcomeSwitch))
             {
                 _welcome = dialog;
                 if (markFirstRun) dialog.Shown += (_, _) => _config.SaveWelcomeShown();
@@ -2397,6 +2459,43 @@ namespace CyrFlip
                 var page = _queuedSettingsPage;
                 _settingsQueued = false; _queuedSettingsPage = null;
                 Defer(() => ShowSettings(page));
+            }
+        }
+
+        /// <summary>
+        /// One of the first-run tour's live switches, applied exactly as the settings window applies it:
+        /// the same value, the same handler, so the hook, the tray and the config cannot tell the two
+        /// apart. A chord that another action owns is refused (the config keeps its old value and the
+        /// tour re-reads it); turning a chord on while the master switch is off turns the master on, since
+        /// a tour that shows a working switch has to deliver a working chord.
+        /// </summary>
+        private void ApplyWelcomeSwitch(WelcomeSwitch which, string? id, bool on)
+        {
+            if (on && which is WelcomeSwitch.Conversion or WelcomeSwitch.CaseFlip or WelcomeSwitch.Screenshot && !_config.EnableHotkeys)
+                SetHotkeysEnabled(true);
+            switch (which)
+            {
+                case WelcomeSwitch.CaretMarker: _caretItem.Checked = on; break;
+                case WelcomeSwitch.MouseCursor: _cursorItem.Checked = on; break;
+                case WelcomeSwitch.Conversion:
+                {
+                    LayoutConversionProfile? row = _config.LayoutConversionProfiles.Find(p => p.Id == id);
+                    if (row == null) break;
+                    if (on && Hotkey.TryParse(row.Hotkey, out Hotkey chord)
+                        && !ChordGuard.IsFree(null, Chords(), chord, ChordKind.Conversion, row.Id, _config.UiLanguage,
+                            WorldLayouts.LabelForKlid, askAboutWindows: false)) break;
+                    row.Enabled = on;
+                    OnConversionProfilesChanged();
+                    break;
+                }
+                case WelcomeSwitch.CaseFlip: SetCaseHotkeyEnabled(on); break;
+                case WelcomeSwitch.Screenshot: _config.EnableScreenshotHotkey = on; OnGraphicsChanged(); break;
+                case WelcomeSwitch.ClipboardHistory: _historyEnabledItem.Checked = on; break;
+                case WelcomeSwitch.QuickNotes: _config.EnableQuickNotes = on; OnQuickNotesChanged(); break;
+                case WelcomeSwitch.Symbols: _config.EnableSymbols = on; OnSymbolsChanged(); break;
+                case WelcomeSwitch.Translate: _config.EnableTranslate = on; OnTranslationChanged(); break;
+                case WelcomeSwitch.QuickLaunch: SetLauncherEnabled(on); break;
+                case WelcomeSwitch.ContextMenu: _config.EnableContextMenu = on; OnContextMenuChanged(); break;
             }
         }
 

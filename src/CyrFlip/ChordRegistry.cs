@@ -156,9 +156,17 @@ namespace CyrFlip
 
         /// <summary>What the user calls the owner, in <paramref name="uiLanguage"/>.</summary>
         public static string Label(ChordOwner owner, string uiLanguage, Func<string, string> layoutName)
+            => LabelFor(owner.Kind, owner.Source, uiLanguage, layoutName);
+
+        /// <summary>
+        /// The same words for an action that is not (yet) an owner - a row whose chord is empty or does
+        /// not parse owns nothing but is still listed (the hotkeys overview, S0056), and must be called
+        /// by the name every refusal and every page uses.
+        /// </summary>
+        public static string LabelFor(ChordKind kind, object? source, string uiLanguage, Func<string, string> layoutName)
         {
             string T(string key) => Localization.Translate(uiLanguage, key);
-            switch (owner.Kind)
+            switch (kind)
             {
                 case ChordKind.Case: return T("Исправить CapsLock");
                 case ChordKind.History: return T("Менеджер буфера");
@@ -168,13 +176,13 @@ namespace CyrFlip
                 case ChordKind.TextMenu: return T("Открыть меню с клавиатуры");
                 case ChordKind.Symbols: return T("Окно символов");
                 case ChordKind.Conversion:
-                    var conversion = (LayoutConversionProfile)owner.Source!;
+                    var conversion = (LayoutConversionProfile)source!;
                     return layoutName(conversion.SourceKlid) + " ⇄ " + layoutName(conversion.TargetKlid);
                 case ChordKind.Translation:
-                    var translation = (TranslationProfile)owner.Source!;
+                    var translation = (TranslationProfile)source!;
                     return T("Перевод") + ": " + TranslationLanguages.Label(translation.TargetLang, uiLanguage);
-                case ChordKind.Launcher: return ((LauncherScenario)owner.Source!).Name;
-                default: return LanguageHotkeys.LanguageName(((LanguageHotkeys.Entry)owner.Source!).TargetHkl);
+                case ChordKind.Launcher: return ((LauncherScenario)source!).Name;
+                default: return LanguageHotkeys.LanguageName(((LanguageHotkeys.Entry)source!).TargetHkl);
             }
         }
     }

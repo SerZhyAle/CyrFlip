@@ -16,9 +16,9 @@ namespace CyrFlip.Tests
     [Collection(SharedGdiCollection.Name)]
     public class TabGlyphTests
     {
-        private static readonly int[] Kinds = { 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12 };
-        // Kind 12 (Symbols, ticket S0056 Q6) awaits a vocabulary catalog record and renders an empty canvas fallback.
-        private static readonly int[] WithoutARecord = { 12 };
+        private static readonly int[] Kinds = { 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+        // Every page has a vocabulary record since ICON-SET 0.29 (feature.symbols, app.shortcut-overview).
+        private static readonly int[] WithoutARecord = { };
 
         [Fact]
         public void EveryMappedPageHasAVendoredGlyphAndNoTwoPagesShareOne()
@@ -28,7 +28,7 @@ namespace CyrFlip.Tests
             {
                 "app.settings", "feature.layout-indicator", "app.shortcuts", "feature.clipboard-history", "app.info",
                 "feature.quick-launch", "action.translate", "content.note", "system.screenshot",
-                "system.input-language", "action.convert-layout",
+                "system.input-language", "action.convert-layout", "feature.symbols", "app.shortcut-overview",
             }.OrderBy(i => i), ids.OrderBy(i => i));
             Assert.Equal(ids.Length, ids.Distinct().Count());
             foreach (string id in ids) Assert.True(GlyphRenderer.Has(id), id);

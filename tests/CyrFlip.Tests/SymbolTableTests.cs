@@ -16,14 +16,9 @@ namespace CyrFlip.Tests
         public void TableHas501EntriesAcross12CuratedCategories()
         {
             Assert.Equal(501, SymbolsData.Table.Length);
+            Assert.Equal(12, SymbolsData.Categories.Length);
 
-            var curatedCategories = SymbolsData.Categories
-                .Where(c => !string.Equals(c.Key, SymbolsData.CategoryRecent, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            Assert.Equal(12, curatedCategories.Count);
-
-            foreach (SymbolCategory cat in curatedCategories)
+            foreach (SymbolCategory cat in SymbolsData.Categories)
             {
                 int count = SymbolsData.Table.Count(e => string.Equals(e.Category, cat.Key, StringComparison.OrdinalIgnoreCase));
                 Assert.True(count > 0, $"Category '{cat.Key}' is empty in SymbolsData.Table");
@@ -48,7 +43,6 @@ namespace CyrFlip.Tests
                 Assert.Equal(expectedCodePoint, entry.CodePoint);
 
                 Assert.True(knownCategories.Contains(entry.Category), $"Unknown category '{entry.Category}' for {entry.NameEn}");
-                Assert.NotEqual(SymbolsData.CategoryRecent, entry.Category);
 
                 Assert.False(string.IsNullOrWhiteSpace(entry.NameEn), $"NameEn is empty for code point U+{entry.CodePoint:X4}");
                 Assert.False(string.IsNullOrWhiteSpace(entry.NameRu), $"NameRu is empty for code point U+{entry.CodePoint:X4}");

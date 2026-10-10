@@ -22,6 +22,12 @@ namespace CyrFlip
         public long AutoDismissAtMs { get; private set; }
         public bool IsKeyboardInvoked { get; private set; }
 
+        /// <summary>
+        /// True while the tray's context menu is open (ticket S0059). The pointer is still over the icon
+        /// then, so the shell keeps sending MouseMove; the hover must not re-arm underneath the menu.
+        /// </summary>
+        public bool MenuOpen { get; private set; }
+
         public int HoverDwellTimeMs { get; set; } = 400;
         public int LeaveDistanceThresholdPx { get; set; } = 28;
         public int AutoDismissTimeoutMs { get; set; } = 10000;
@@ -33,6 +39,8 @@ namespace CyrFlip
 
         public void OnPointerMove(Point cursorPosition, long nowMs)
         {
+            if (MenuOpen) return;
+
             switch (State)
             {
                 case TrayHoverState.Idle:
@@ -109,6 +117,22 @@ namespace CyrFlip
         {
             if (State != TrayHoverState.Idle)
                 Dismiss();
+        }
+
+        /// <summary>
+        /// The tray menu opened: any popup goes, and no hover starts until <see cref="OnMenuClosed"/>.
+        /// A keyboard-invoked popup is still allowed (the menu item that opens it runs while the menu
+        /// is still marked open).
+        /// </summary>
+        public void OnMenuOpened()
+        {
+            MenuOpen = true;
+            OnUserActionDismiss();
+        }
+
+        public void OnMenuClosed()
+        {
+            MenuOpen = false;
         }
 
         public void Dismiss()

@@ -7,6 +7,26 @@ namespace CyrFlip
     {
         private static void AddSymbolsStrings()
         {
+            Add("Текущий буфер обмена",
+                en: "Current clipboard", uk: "Поточний буфер обміну", de: "Aktuelle Zwischenablage",
+                it: "Appunti attuali", es: "Portapapeles actual", fr: "Presse-papiers actuel",
+                pt: "Área de transferência atual", ar: "الحافظة الحالية", hi: "वर्तमान क्लिपबोर्ड",
+                bn: "বর্তমান ক্লিপবোর্ড", ur: "موجودہ کلپ بورڈ", zh: "当前剪贴板");
+
+            Add("Поиск по названию, ключевым словам или коду Unicode",
+                en: "Search by name, keywords or Unicode code",
+                uk: "Пошук за назвою, ключовими словами або кодом Unicode",
+                de: "Nach Name, Stichwörtern oder Unicode-Code suchen",
+                it: "Cerca per nome, parole chiave o codice Unicode",
+                es: "Buscar por nombre, palabras clave o código Unicode",
+                fr: "Rechercher par nom, mots-clés ou code Unicode",
+                pt: "Pesquisar por nome, palavras-chave ou código Unicode",
+                ar: "البحث بالاسم أو الكلمات المفتاحية أو رمز Unicode",
+                hi: "नाम, कीवर्ड या Unicode कोड से खोजें",
+                bn: "নাম, কীওয়ার্ড বা Unicode কোড দিয়ে খুঁজুন",
+                ur: "نام، مطلوبہ الفاظ یا Unicode کوڈ سے تلاش کریں",
+                zh: "按名称、关键词或 Unicode 代码搜索");
+
             Add("Символы",
                 en: "Symbols", uk: "Символи", de: "Symbole", it: "Simboli",
                 es: "Símbolos", fr: "Symboles", pt: "Símbolos",
@@ -45,37 +65,6 @@ namespace CyrFlip
                 ur: "میرے لے آؤٹ پر دستیاب علامات چھپائیں",
                 zh: "隐藏我的键盘布局已有的符号");
 
-            Add("Очистить недавние",
-                en: "Clear recent", uk: "Очистити недавні", de: "Zuletzt verwendete löschen", it: "Cancella recenti",
-                es: "Borrar recientes", fr: "Effacer les récents", pt: "Limpar recentes",
-                ar: "مسح العناصر الأخيرة", hi: "हाल के साफ़ करें", bn: "সাম্প্রতিক মুছুন", ur: "حالیہ صاف کریں", zh: "清除最近使用");
-
-            Add("Очистить список недавних символов?",
-                en: "Clear the list of recent symbols?", uk: "Очистити список недавніх символів?",
-                de: "Liste der zuletzt verwendeten Symbole löschen?",
-                it: "Cancellare l'elenco dei simboli recenti?",
-                es: "¿Borrar la lista de símbolos recientes?",
-                fr: "Effacer la liste des symboles récents ?",
-                pt: "Limpar a lista de símbolos recentes?",
-                ar: "هل تريد مسح قائمة الرموز الأخيرة؟",
-                hi: "क्या हाल के प्रतीकों की सूची साफ़ करें?",
-                bn: "সাম্প্রতিক প্রতীকের তালিকা মুছে ফেলবেন?",
-                ur: "کیا حالیہ علامات کی فہرست صاف کریں؟",
-                zh: "清除最近使用的符号列表？");
-
-            Add("Список недавних символов уже пуст.",
-                en: "The recent symbols list is already empty.", uk: "Список недавніх символів уже порожній.",
-                de: "Die Liste der zuletzt verwendeten Symbole ist bereits leer.",
-                it: "L'elenco dei simboli recenti è già vuoto.",
-                es: "La lista de símbolos recientes ya está vacía.",
-                fr: "La liste des symboles récents est déjà vide.",
-                pt: "A lista de símbolos recentes já está vazia.",
-                ar: "قائمة الرموز الأخيرة فارغة بالفعل.",
-                hi: "हाल के प्रतीकों की सूची पहले से ही खाली है।",
-                bn: "সাম্প্রতিক প্রতীকের তালিকা ইতিমধ্যেই খালি।",
-                ur: "حالیہ علامات کی فہرست پہلے سے خالی ہے۔",
-                zh: "最近使用的符号列表已为空。");
-
             Add("Палитра редких символов: клик копирует символ в буфер обмена; всё остаётся на этом компьютере.",
                 en: "A palette of rare characters: clicking copies the character to the clipboard; everything stays on this computer.",
                 uk: "Палітра рідкісних символів: клік копіює символ у буфер обміну; все залишається на цьому комп'ютері.",
@@ -90,19 +79,19 @@ namespace CyrFlip
                 ur: "نایاب علامات کا پیلیٹ: کلک کرنے سے علامت کلپ بورڈ پر کاپی ہو جاتی ہے؛ سب کچھ اسی کمپیوٹر پر رہتا ہے۔",
                 zh: "生僻符号调色板：点击将字符复制到剪贴板；所有操作均在本地计算机完成。");
 
-            Add("Символ заменяет текущее содержимое буфера обмена (история буфера, если включена, сохраняет предыдущее значение); данные не покидают компьютер.",
-                en: "The character replaces the current clipboard contents (clipboard history, if enabled, preserves the previous value); nothing leaves this computer.",
-                uk: "Символ замінює поточний вміст буфера обміну (історія буфера, якщо увімкнена, зберігає попереднє значення); дані не залишають комп'ютер.",
-                de: "Das Zeichen ersetzt den aktuellen Inhalt der Zwischenablage (der Zwischenablageverlauf behält den vorherigen Wert, sofern aktiviert); keine Daten verlassen diesen Computer.",
-                it: "Il carattere sostituisce il contenuto attuale degli appunti (la cronologia, se attivata, mantiene il valore precedente); nessun dato lascia questo computer.",
-                es: "El carácter reemplaza el contenido actual del portapapeles (el historial, si está habilitado, conserva el valor anterior); ningún dato sale del equipo.",
-                fr: "Le caractère remplace le contenu actuel du presse-papiers (l'historique, s'il est activé, conserve la valeur précédente) ; rien ne quitte cet ordinateur.",
-                pt: "O caractere substitui o conteúdo atual da área de transferência (o histórico, se ativado, mantém o valor anterior); nenhum dado sai deste computador.",
-                ar: "يستبدل الرمز محتوى الحافظة الحالي (سجل الحافظة، إذا كان مفعلاً، يحتفظ بالقيمة السابقة)؛ لا تخرج أي بيانات من هذا الكمبيوتر.",
-                hi: "वर्ण क्लिपबोर्ड की वर्तमान सामग्री को बदल देता है (क्लिपबोर्ड इतिहास, यदि सक्षम है, पिछला मान सुरक्षित रखता है); कोई भी डेटा इस कंप्यूटर से बाहर नहीं जाता है।",
-                bn: "অক্ষরটি বর্তমান ক্লিপবোর্ড বিষয়বস্তু প্রতিস্থাপন করে (ক্লিপবোর্ড ইতিহাস সক্রিয় থাকলে পূর্ববর্তী মান সংরক্ষণ করে); কোনো ডেটা এই কম্পিউটার ছেড়ে যায় না।",
-                ur: "علامت موجودہ کلپ بورڈ مواد کی جگہ لے لیتی ہے (کلپ بورڈ کی تاریخ، اگر فعال ہو، پچھلی قدر کو محفوظ رکھتی ہے)؛ کوئی ڈیٹا اس کمپیوٹر سے باہر نہیں جاتا ہے۔",
-                zh: "该字符会替换当前剪贴板内容（若启用了剪贴板历史记录，则会保留之前的值）；数据绝不离开本地计算机。");
+            Add("Клик копирует символ в буфер обмена: символы накапливаются в поле текста окна, пока не включено «Закрыть по выбору». Выбор символов не добавляется в историю буфера обмена. Данные не покидают компьютер.",
+                en: "A click copies the symbol to the clipboard. Symbols collect in the window's text field until \"Close on pick\" is on. Symbol picks are not added to clipboard history. Nothing leaves this computer.",
+                uk: "Клік копіює символ у буфер обміну. Символи накопичуються в полі тексту вікна, доки не увімкнено «Закрити після вибору». Вибір символів не додається до історії буфера обміну. Дані не залишають цей комп'ютер.",
+                de: "Ein Klick kopiert das Zeichen in die Zwischenablage. Zeichen sammeln sich im Textfeld des Fensters, bis „Nach Auswahl schließen“ aktiviert ist. Die Zeichenauswahl wird nicht im Zwischenablageverlauf gespeichert. Keine Daten verlassen diesen Computer.",
+                it: "Un clic copia il simbolo negli appunti. I simboli si accumulano nel campo di testo della finestra finché non è attivo \"Chiudi alla selezione\". La selezione dei simboli non viene aggiunta alla cronologia degli appunti. Nessun dato lascia questo computer.",
+                es: "Un clic copia el símbolo en el portapapeles. Los símbolos se acumulan en el campo de texto de la ventana hasta que esté activada la opción \"Cerrar al seleccionar\". La selección de símbolos no se añade al historial del portapapeles. Ningún dato sale de este equipo.",
+                fr: "Un clic copie le symbole dans le presse-papiers. Les symboles s'accumulent dans le champ de texte de la fenêtre tant que « Fermer après la sélection » n'est pas activé. La sélection de symboles n'est pas ajoutée à l'historique du presse-papiers. Aucune donnée ne quitte cet ordinateur.",
+                pt: "Um clique copia o símbolo para a área de transferência. Os símbolos se acumulam no campo de texto da janela até que \"Fechar ao selecionar\" esteja ativado. A seleção de símbolos não é adicionada ao histórico da área de transferência. Nenhum dado sai deste computador.",
+                ar: "النقر ينسخ الرمز إلى الحافظة. تتراكم الرموز في حقل النص بالنافذة ما لم يكن خيار \"إغلاق عند الاختيار\" مفعّلاً. لا تُضاف اختيارات الرموز إلى سجل الحافظة. لا تغادر أي بيانات هذا الكمبيوتر.",
+                hi: "क्लिक करने पर प्रतीक क्लिपबोर्ड पर कॉपी होता है। जब तक \"चयन के बाद बंद करें\" चालू नहीं है, प्रतीक विंडो के टेक्स्ट फ़ील्ड में जमा होते हैं। प्रतीकों का चयन क्लिपबोर्ड इतिहास में नहीं जोड़ा जाता। कोई भी डेटा इस कंप्यूटर से बाहर नहीं जाता।",
+                bn: "একটি ক্লিকে প্রতীকটি ক্লিপবোর্ডে কপি হয়। \"নির্বাচনের পর বন্ধ করুন\" চালু না থাকলে প্রতীকগুলি উইন্ডোর টেক্সট ফিল্ডে জমা হয়। প্রতীক নির্বাচন ক্লিপবোর্ড ইতিহাসে যোগ করা হয় না। কোনো ডেটা এই কম্পিউটার ছেড়ে যায় না।",
+                ur: "کلک کرنے سے علامت کلپ بورڈ پر کاپی ہوتی ہے۔ جب تک \"منتخب کرنے پر بند کریں\" فعال نہ ہو، علامات ونڈو کے ٹیکسٹ فیلڈ میں جمع ہوتی ہیں۔ علامات کا انتخاب کلپ بورڈ کی تاریخ میں شامل نہیں ہوتا۔ کوئی ڈیٹا اس کمپیوٹر سے باہر نہیں جاتا۔",
+                zh: "点击会将符号复制到剪贴板。未开启“选择后关闭”时，符号会累积在窗口的文本框中。选择符号不会添加到剪贴板历史记录。数据绝不离开本机。");
 
             Add("Скопировано: {0}",
                 en: "Copied: {0}", uk: "Скопійовано: {0}", de: "Kopiert: {0}", it: "Copiato: {0}",
@@ -128,14 +117,6 @@ namespace CyrFlip
                 hi: "टाइप किया जा सकता है: {0} ({1})", bn: "টাইপ করা যাবে: {0} ({1})",
                 ur: "ٹائپ کیا جا سکتا ہے: {0} ({1})", zh: "可键入: {0} ({1})");
 
-            Add("Нет на ваших раскладках",
-                en: "Not available on your layouts", uk: "Немає на ваших розкладках",
-                de: "Nicht auf Ihren Tastaturlayouts verfügbar", it: "Non disponibile sui tuoi layout",
-                es: "No disponible en sus distribuciones", fr: "Non disponible sur vos dispositions",
-                pt: "Não disponível nos seus layouts", ar: "غير متوفر في تخطيطاتك",
-                hi: "आपके लेआउट पर उपलब्ध नहीं है", bn: "আপনার লেআউটে অনুপলব্ধ",
-                ur: "آپ کے لے آؤٹ پر دستیاب نہیں ہے", zh: "您的键盘布局中未提供");
-
             Add("Задать хоткей окна символов",
                 en: "Set symbols window hotkey", uk: "Задати хоткей вікна символів",
                 de: "Hotkey für Symbolfenster festlegen", it: "Imposta tasto di scelta rapida per la finestra dei simboli",
@@ -154,10 +135,20 @@ namespace CyrFlip
                 es: "Cuadrícula de símbolos", fr: "Grille de symboles", pt: "Grade de símbolos",
                 ar: "شبكة الرموز", hi: "प्रतीक ग्रिड", bn: "প্রতীক গ্রিড", ur: "علامات کا گرڈ", zh: "符号网格");
 
-            Add("Недавние",
-                en: "Recent", uk: "Недавні", de: "Zuletzt verwendet", it: "Recenti",
-                es: "Recientes", fr: "Récents", pt: "Recentes",
-                ar: "الأخيرة", hi: "हाल के", bn: "সাম্প্রতিক", ur: "حالیہ", zh: "最近使用");
+            Add("Все",
+                en: "All", uk: "Усі", de: "Alle", it: "Tutti", es: "Todos", fr: "Tous", pt: "Todos",
+                ar: "الكل", hi: "सभी", bn: "সব", ur: "سب", zh: "全部");
+
+            Add("Набор символов",
+                en: "Symbol set", uk: "Набір символів", de: "Zeichensatz", it: "Insieme di simboli",
+                es: "Conjunto de símbolos", fr: "Jeu de symboles", pt: "Conjunto de símbolos",
+                ar: "مجموعة الرموز", hi: "प्रतीक सेट", bn: "প্রতীক সেট", ur: "علامات کا سیٹ", zh: "符号集");
+
+            Add("Закрыть по выбору",
+                en: "Close on pick", uk: "Закрити після вибору", de: "Nach Auswahl schließen", it: "Chiudi alla selezione",
+                es: "Cerrar al seleccionar", fr: "Fermer après la sélection", pt: "Fechar ao selecionar",
+                ar: "إغلاق عند الاختيار", hi: "चयन के बाद बंद करें", bn: "নির্বাচনের পর বন্ধ করুন",
+                ur: "منتخب کرنے پر بند کریں", zh: "选择后关闭");
 
             Add("Пунктуация и типографика",
                 en: "Punctuation & typography", uk: "Пунктуація та типографіка",
@@ -297,21 +288,6 @@ namespace CyrFlip
                 hi: "पैलेट से उन प्रतीकों को छुपाता है जिन्हें इंस्टॉल किए गए लेआउट पर एकल कुंजी या Shift / AltGr संयोजन से टाइप किया जा सकता है।",
                 bn: "প্যালেট থেকে সেই প্রতীকগুলি লুকিয়ে রাখে যা ইনস্টল করা লেআউটে একটি একক কী বা Shift / AltGr সমন্বয় দিয়ে টাইপ করা যেতে পারে।",
                 ur: "پیلیٹ سے ان علامات کو چھپاتا ہے جنہیں انسٹال شدہ لے آؤٹ پر ایک کلید یا Shift / AltGr کے امتزاج سے ٹائپ کیا جا سکتا ہے۔",
-                zh: "从调色板中隐藏在已安装布局上可以用单个按键或 Shift / AltGr 组合键键入的符号。");
-
-            Add("Очищает список недавних символов на первой вкладке палитры.",
-                en: "Clears the list of recent symbols on the palette's first tab.",
-                uk: "Очищає список недавніх символів на першій вкладці палітри.",
-                de: "Löscht die Liste der zuletzt verwendeten Symbole auf der ersten Registerkarte der Palette.",
-                it: "Cancella l'elenco dei simboli recenti nella prima scheda della tavolozza.",
-                es: "Borra la lista de símbolos recientes en la primera pestaña de la paleta.",
-                fr: "Efface la liste des symboles récents sur le premier onglet de la palette.",
-                pt: "Limpa a lista de símbolos recentes na primeira aba da paleta.",
-                ar: "يمسح قائمة الرموز الأخيرة في علامة التبويب الأولى من اللوحة.",
-                hi: "पैलेट के पहले टैब पर हाल के प्रतीकों की सूची को साफ़ करता है।",
-                bn: "প্যালেটের প্রথম ট্যাবে সাম্প্রতিক প্রতীকের তালিকা মুছে ফেলে।",
-                ur: "پیلیٹ کے پہلے ٹیب پر حالیہ علامات کی فہرست صاف کرتا ہے۔",
-                zh: "清除调色板第一个选项卡上的最近使用的符号列表。");
-        }
+                zh: "从调色板中隐藏在已安装布局上可以用单个按键或 Shift / AltGr 组合键键入的符号。");        }
     }
 }

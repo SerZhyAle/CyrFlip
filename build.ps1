@@ -1,9 +1,13 @@
 <#
     CyrFlip local build + deploy  ==  a "СБОРКА" (build) in this project's vocabulary.
 
-    A СБОРКА is fully LOCAL and costs no GitHub Actions minutes:
-      build Release -> run tests -> stage the single self-contained exe -> deploy to sync folders.
+    The default СБОРКА is FAST and fully LOCAL, costs no GitHub Actions minutes:
+      build Release (the app project only) -> stage the single self-contained exe -> deploy to sync folders.
     net48 needs no bundled runtime. Mirrors the convention across SerZhyAle's Windows apps.
+    The test suite (CyrFlip.Tests, ~1200 net48/WinForms tests) and the static checks are NOT part of the
+    default run - they are what made every сборка of this small tray app take minutes. The full validation lives in:
+      -Tests        build the whole solution -> dotnet test -> Assert-TestRun -> the three static checks
+      release.ps1   the preflight before every release runs the same full validation
 
     Optionally it also commits the result (the "если удачно - коммитим" half of a сборка):
       -Commit            git add -A + commit AFTER a green build/test
@@ -22,7 +26,9 @@ param(
     [switch] $Commit,
     [string] $Message,
     [switch] $Push,
-    [switch] $NoRun
+    [switch] $NoRun,
+    # Full validation: the whole solution + dotnet test + the static checks (the slow path).
+    [switch] $Tests
 )
 $ErrorActionPreference = 'Stop'
 
@@ -72,10 +78,21 @@ if ($running.Count -gt 0) {
 
 $restartStopped = $stoppedPaths.Count -gt 0
 try {
-Write-Host 'Building Release..' -ForegroundColor Cyan
-dotnet build $Solution -c Release --nologo
+# The fast loop builds ONLY the app project; the test project is by far the slowest thing in the
+# solution build, and the suite itself (~1200 net48/WinForms tests) took minutes on this tray app.
+# -Tests, the release preflight and CI still run everything.
+$AppProject = Join-Path $SolutionDir 'src\CyrFlip\CyrFlip.csproj'
+if ($Tests) {
+    Write-Host 'Building Release (full solution for tests)..' -ForegroundColor Cyan
+    dotnet build $Solution -c Release --nologo
+}
+else {
+    Write-Host 'Building Release (app only - fast path, pass -Tests for the full validation)..' -ForegroundColor Cyan
+    dotnet build $AppProject -c Release --nologo
+}
 if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
 
+if ($Tests) {
 Write-Host 'Running tests..' -ForegroundColor Cyan
 $testResults = Join-Path ([IO.Path]::GetTempPath()) ("CyrFlip-tests-" + [Guid]::NewGuid().ToString('N'))
 try {
@@ -99,6 +116,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Site facts check failed (exit $LASTEXITCODE)." }
 }
 finally { Remove-Item -LiteralPath $testResults -Recurse -Force -ErrorAction SilentlyContinue }
+}
+else { Write-Host 'Skipping tests and static checks (fast path - pass -Tests to run them).' -ForegroundColor DarkGray }
 
 $ExePath = Join-Path $OutDir $ExeName
 if (-not (Test-Path $ExePath)) { throw "Output not found: $ExePath" }
@@ -173,7 +192,7 @@ if ($Commit) {
     git commit -m $msg
     $committed = $LASTEXITCODE -eq 0
     if (-not $committed) {
-        # "Nothing to commit" is not a failure of the сборка - the build and tests already passed.
+        # "Nothing to commit" is not a failure of the сборка - the build (and, with -Tests, the tests) already passed.
         # Say so and carry on; anything else is a real git problem and still stops the script.
         if (@(git status --porcelain).Count -eq 0) {
             Write-Host 'Nothing to commit - the tree was already clean.' -ForegroundColor DarkGray

@@ -276,7 +276,7 @@ namespace CyrFlip.Tests
                 {
                     var skip = new HashSet<object>();
                     // The screenshot folder box shows a path - the user's data, whatever script it is in (S0026).
-                    foreach (string field in new[] { "_layoutRows", "_languageRows", "_uiLanguage", "_screenshotFolderBox" })
+                    foreach (string field in new[] { "_layoutRows", "_languageRows", "_uiLanguage", "_screenshotFolderBox", "_overviewWindowsRows" })
                         if (type.GetField(field, BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(form) is object c)
                             skip.Add(c);
                     Walk(language, form, skip, problems);

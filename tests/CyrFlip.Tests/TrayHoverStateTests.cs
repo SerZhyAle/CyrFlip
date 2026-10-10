@@ -145,5 +145,87 @@ namespace CyrFlip.Tests
             Assert.True(dismissed);
             Assert.Equal(TrayHoverState.Idle, sm.State);
         }
+
+        [Fact]
+        public void RestingOnTheIconWhileMenuIsOpenShowsNoPopup()
+        {
+            // The shell keeps sending MouseMove over the icon while the tray menu is open (S0059 3.2).
+            var sm = new TrayHoverStateMachine { HoverDwellTimeMs = 400, LeaveDistanceThresholdPx = 20 };
+            bool shown = false;
+            bool nativeHidden = false;
+
+            sm.ShowPopupRequested += _ => shown = true;
+            sm.HideNativeTipRequested += () => nativeHidden = true;
+
+            sm.OnMenuOpened();
+            sm.OnPointerMove(new Point(100, 100), 0);
+            sm.OnDwellTimerTick(400, new Point(100, 100));
+
+            Assert.False(shown, "Popup must not cover the open tray menu");
+            Assert.False(nativeHidden, "Native tooltip must not be touched while the menu is open");
+            Assert.Equal(TrayHoverState.Idle, sm.State);
+        }
+
+        [Fact]
+        public void OpeningTheMenuDismissesAVisiblePopup()
+        {
+            var sm = new TrayHoverStateMachine { HoverDwellTimeMs = 400, LeaveDistanceThresholdPx = 20 };
+            bool dismissed = false;
+            bool nativeRestored = false;
+
+            sm.DismissPopupRequested += () => dismissed = true;
+            sm.RestoreNativeTipRequested += () => nativeRestored = true;
+
+            sm.OnPointerMove(new Point(100, 100), 0);
+            sm.OnDwellTimerTick(400, new Point(100, 100));
+            Assert.Equal(TrayHoverState.PopupVisible, sm.State);
+
+            sm.OnMenuOpened();
+
+            Assert.True(sm.MenuOpen);
+            Assert.Equal(TrayHoverState.Idle, sm.State);
+            Assert.True(dismissed);
+            Assert.True(nativeRestored);
+        }
+
+        [Fact]
+        public void HoverResumesOnceTheMenuCloses()
+        {
+            var sm = new TrayHoverStateMachine { HoverDwellTimeMs = 400, LeaveDistanceThresholdPx = 20 };
+            int showCount = 0;
+
+            sm.ShowPopupRequested += _ => showCount++;
+
+            sm.OnMenuOpened();
+            sm.OnPointerMove(new Point(100, 100), 0);
+            sm.OnDwellTimerTick(400, new Point(100, 100));
+            Assert.Equal(0, showCount);
+
+            sm.OnMenuClosed();
+            Assert.False(sm.MenuOpen);
+
+            sm.OnPointerMove(new Point(100, 100), 1000);
+            sm.OnDwellTimerTick(1400, new Point(100, 100));
+            Assert.Equal(1, showCount);
+            Assert.Equal(TrayHoverState.PopupVisible, sm.State);
+        }
+
+        [Fact]
+        public void KeyboardTriggerIsStillAllowedWhileMenuIsMarkedOpen()
+        {
+            // The "hotkeys overview" item runs while the menu is still marked open (Closed comes after
+            // the click), so the keyboard route must not be swallowed by the menu guard.
+            var sm = new TrayHoverStateMachine { AutoDismissTimeoutMs = 10000 };
+            bool shown = false;
+
+            sm.ShowPopupRequested += _ => shown = true;
+
+            sm.OnMenuOpened();
+            sm.TriggerFromKeyboard(new Point(100, 100), 1000);
+
+            Assert.True(shown);
+            Assert.True(sm.IsKeyboardInvoked);
+            Assert.Equal(TrayHoverState.PopupVisible, sm.State);
+        }
     }
 }

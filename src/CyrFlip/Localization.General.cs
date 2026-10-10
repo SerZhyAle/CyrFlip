@@ -1,4 +1,4 @@
-﻿namespace CyrFlip
+namespace CyrFlip
 {
     /// <summary>General / Indicators / About tabs of the settings window.</summary>
     internal static partial class Localization
@@ -354,11 +354,16 @@
                 ur: "کیس درست کرنے کے بعد CapsLock کی حقیقی حالت بدل دیتا ہے، تاکہ آگے کی ٹائپنگ درست متن سے میل کھائے۔",
                 zh: "更正大小写后改变 CapsLock 的实际状态，使后续按键与更正后的文本一致。");
 
-            Add("О программе и дополнительно",
-                en: "About & Advanced", uk: "Про програму й додатково", de: "Info und Erweitert",
-                it: "Informazioni e avanzate", es: "Acerca de y avanzado", fr: "À propos et avancé",
-                pt: "Sobre e avançado", ar: "حول وخيارات متقدمة", hi: "बारे में और उन्नत",
-                bn: "সম্পর্কে ও উন্নত", ur: "تعارف اور جدید", zh: "关于与高级");
+            Add("Параметры",
+                en: "Options", uk: "Параметри", de: "Optionen",
+                it: "Opzioni", es: "Opciones", fr: "Options",
+                pt: "Opções", ar: "الخيارات", hi: "विकल्प",
+                bn: "বিকল্প", ur: "اختیارات", zh: "选项");
+            Add("О программе",
+                en: "About", uk: "Про програму", de: "Info",
+                it: "Informazioni", es: "Acerca de", fr: "À propos",
+                pt: "Sobre", ar: "حول", hi: "बारे में",
+                bn: "সম্পর্কে", ur: "تعارف", zh: "关于");
 
             Add("CyrFlip - набор инструментов в трее для клавиатуры и рабочего стола: показывает активную раскладку у каретки, исправляет текст, набранный в неверной раскладке или с включённым CapsLock, и снимает область экрана; меню над выделением, локальный переводчик, быстрые заметки, история буфера и быстрый запуск - необязательные модули, которые вы включаете сами.\n\nПриложение не передаёт историю буфера в сеть. Если история включена, записи защищены Windows DPAPI и читаются только той же учётной записью Windows.",
                 en: "CyrFlip is a tray toolkit for your keyboard and desktop: it shows the active layout at the caret, fixes text typed in the wrong layout or with CapsLock on, and captures a screen region; a selection menu, a local translator, quick notes, clipboard history and quick launch are optional modules you switch on yourself.\n\nThe app never sends clipboard history over the network. When history is on, entries are protected by Windows DPAPI and readable only by the same Windows account.",

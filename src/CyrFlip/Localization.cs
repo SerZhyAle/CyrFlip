@@ -55,6 +55,7 @@ namespace CyrFlip
             AddWelcomeStrings();
             AddSettingsTransferStrings();
             AddSymbolsStrings();
+            AddHotkeysOverviewStrings();
             AddTrayPopupStrings();
         }
 

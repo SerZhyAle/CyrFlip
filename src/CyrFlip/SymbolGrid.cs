@@ -6,12 +6,15 @@ using System.Windows.Forms;
 namespace CyrFlip
 {
     /// <summary>
-    /// Owner-drawn grid of symbols (ticket S0056 section 5.2).
+    /// Owner-drawn grid of symbols (ticket S0056 section 5.2, revision 2026-10-08: twelve columns, vertical scroll).
     /// Answers WM_MOUSEACTIVATE with MA_NOACTIVATE so clicking never steals focus from the editor.
     /// Uses ThemePalette roles exclusively with zero Color literals.
     /// </summary>
     internal sealed class SymbolGrid : Control, IThemeAware
     {
+        /// <summary>The cells are always this many across; the scroll bar sits beside them, not among them.</summary>
+        public const int Columns = 12;
+
         private readonly VScrollBar _scrollBar;
         private readonly List<SymbolEntry> _entries = new List<SymbolEntry>();
         private int _hoverIndex = -1;
@@ -163,9 +166,12 @@ namespace CyrFlip
             }
         }
 
-        private int AvailableWidth => Math.Max(1, ClientSize.Width - (_scrollBar.Visible ? _scrollBar.Width : 0));
+        /// <summary>The edge of one cell; the window sizes itself to <see cref="Columns"/> of them.</summary>
+        public int CellPixelSize => CellSize;
 
-        private int ColumnsCount => Math.Max(1, AvailableWidth / CellSize);
+        private int CellsWidth => Columns * CellSize;
+
+        private int ColumnsCount => Columns;
 
         private int RowsCount => (_entries.Count + ColumnsCount - 1) / ColumnsCount;
 
@@ -203,7 +209,7 @@ namespace CyrFlip
 
         private int HitTest(Point pt)
         {
-            if (_entries.Count == 0 || pt.X >= AvailableWidth) return -1;
+            if (_entries.Count == 0 || pt.X >= CellsWidth) return -1;
 
             int size = CellSize;
             int scrollY = _scrollBar.Visible ? _scrollBar.Value : 0;
@@ -386,7 +392,6 @@ namespace CyrFlip
             base.OnPaint(e);
             Graphics g = e.Graphics;
 
-            int viewWidth = AvailableWidth;
             int viewHeight = ClientSize.Height;
             int size = CellSize;
             int scrollY = _scrollBar.Visible ? _scrollBar.Value : 0;

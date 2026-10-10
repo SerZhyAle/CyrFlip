@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using Microsoft.Win32;
@@ -252,6 +255,56 @@ namespace CyrFlip
     }
 
     /// <summary>
+    /// <see cref="Control.DeviceDpi"/> on net48 is a private field the framework updates only inside its
+    /// own DPI-changed machinery, which this app does not opt into (<c>U-H1</c>: it stayed 96 on every
+    /// monitor, so everything that scaled by it - <see cref="SettingsNumeric"/>, the viewport capture -
+    /// silently did nothing). The settings window answers <c>WM_DPICHANGED</c> itself and keeps the tree
+    /// truthful through this helper. The field name is frozen with the net48 runtime, the way
+    /// <see cref="ThemeApply"/> already relies on <c>ButtonBase</c>'s; a runtime without it degrades to
+    /// the static 96, which is exactly what the app did before.
+    /// </summary>
+    internal static class ControlDpi
+    {
+        // net48 spells it "deviceDpi" (decompiled); the underscore name guards a future respelling.
+        private static readonly FieldInfo? Field =
+            typeof(Control).GetField("deviceDpi", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?? typeof(Control).GetField("_deviceDpi", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        /// <summary>Logical 96-DPI px to device px, never shrinking below the authored size.</summary>
+        internal static int Scale(int dpi, int logical) => Math.Max(logical, (int)Math.Round(logical * Math.Max(96, dpi) / 96.0));
+
+        /// <summary>Device px back to logical 96-DPI px (the unit the config stores).</summary>
+        internal static int Unscale(int dpi, int device) => (int)Math.Round((double)device * 96 / Math.Max(96, dpi));
+
+        /// <summary>Set the control's own <c>DeviceDpi</c>; false when the runtime refuses.</summary>
+        internal static bool Set(Control control, int dpi)
+        {
+            if (Field == null) return false;
+            try { Field.SetValue(control, dpi); return true; }
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// Read the stored per-window DPI back. Only a per-monitor-v2 thread's <c>DeviceDpi</c>
+        /// property returns this field (net48 decides in <c>DpiHelper</c>); everywhere else the
+        /// property answers the process DPI, so a test peeks at the field itself.
+        /// </summary>
+        internal static int? Peek(Control control)
+        {
+            if (Field == null) return null;
+            try { return (int?)Field.GetValue(control); }
+            catch { return null; }
+        }
+
+        /// <summary>The whole subtree: the framework updates children through its own walk, which never runs here.</summary>
+        internal static void UpdateTree(Control root, int dpi)
+        {
+            Set(root, dpi);
+            foreach (Control child in root.Controls) UpdateTree(child, dpi);
+        }
+    }
+
+    /// <summary>
     /// The base of every CyrFlip window. It attaches to <see cref="ThemeManager"/> when its handle is
     /// created - after the constructor has built every control, before anything is painted - which is
     /// what "no white flash" (S0020 section 9) comes down to, and which matters most for the translation
@@ -261,14 +314,64 @@ namespace CyrFlip
     ///
     /// <para><c>ThemeCoverageTests</c> fails on any <see cref="Form"/> in the assembly that is neither a
     /// <see cref="ThemedForm"/> nor declared out of theme with a reason.</para>
+    ///
+    /// <para><c>WM_DPICHANGED</c> (S0060 P2, WINDOWS-UI section 5): the app declares PerMonitorV2 but
+    /// opts out of WinForms' own DPI machinery, so the framework would neither move the window to the
+    /// rect Windows suggests nor update <c>DeviceDpi</c>. This form does both - move, rescale the
+    /// field over the whole tree, then hand the change to <see cref="OnDpiChanged"/>, which a window
+    /// with pixel geometry overrides to re-measure itself.</para>
     /// </summary>
     internal class ThemedForm : Form
     {
+        private const int WM_DPICHANGED = 0x02E0;
+
         protected override void OnHandleCreated(EventArgs e)
         {
             ThemeManager.Attach(this);
             base.OnHandleCreated(e);
         }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_DPICHANGED) { HandleDpiChanged(ref m); return; }
+            base.WndProc(ref m);
+        }
+
+        private void HandleDpiChanged(ref Message m)
+        {
+            int oldDpi = DeviceDpi;
+            int newDpi = (int)(((long)m.WParam >> 16) & 0xFFFF);   // LOWORD = X, HIWORD = Y; they are equal on real monitors
+            if (newDpi <= 0) newDpi = oldDpi;
+            Rectangle suggested = Rectangle.Empty;
+            if (m.LParam != IntPtr.Zero)
+            {
+                var rect = (WindowInterop.RECT)Marshal.PtrToStructure(m.LParam, typeof(WindowInterop.RECT))!;
+                suggested = Rectangle.FromLTRB(rect.Left, rect.Top, rect.Right, rect.Bottom);
+            }
+            bool wasNormal = WindowState == FormWindowState.Normal;
+            // The framework's own pass is skipped on purpose: in a process that is not per-monitor aware
+            // it re-reads GetDpiForWindow - the system DPI - into every child, overwriting this update
+            // asynchronously (found by the test gate). This form owns the whole story instead.
+            ControlDpi.UpdateTree(this, newDpi);
+            if (wasNormal && suggested.Width > 0 && suggested.Height > 0)
+            {
+                // Windows suggests the same physical footprint at the new DPI. A maximized window
+                // keeps its state; a restored one takes the rectangle, clamped to the monitor.
+                try
+                {
+                    var work = new List<Rectangle> { Screen.FromRectangle(suggested).WorkingArea };
+                    Bounds = ScreenPlacement.Clamp(suggested, work);
+                }
+                catch { Bounds = suggested; }
+            }
+            OnDpiChanged(oldDpi, newDpi);
+            m.Result = IntPtr.Zero;
+        }
+
+        internal void RaiseDpiChanged(int oldDpi, int newDpi) => OnDpiChanged(oldDpi, newDpi);
+
+        /// <summary>The window moved to a monitor of another DPI; re-derive whatever is measured in pixels.</summary>
+        protected virtual void OnDpiChanged(int oldDpi, int newDpi) { }
 
         internal void RaiseThemeApplied(ThemePalette palette) => OnThemeApplied(palette);
 

@@ -20,14 +20,15 @@ namespace CyrFlip
             LayoutName = layoutName;
         }
 
-        public string GetHint(string uiLanguage)
+        public string GetHint(string uiLanguage, string symbolName)
         {
             if (IsTypable && !string.IsNullOrEmpty(Chord))
             {
                 string layout = !string.IsNullOrEmpty(LayoutName) ? LayoutName! : "";
                 return Localization.Format(uiLanguage, "Набирается: {0} ({1})", Chord, layout);
             }
-            return Localization.Translate(uiLanguage, "Нет на ваших раскладках");
+            // Unicode names are shown as published, regardless of the UI language.
+            return symbolName;
         }
     }
 

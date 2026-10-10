@@ -7,23 +7,11 @@ namespace CyrFlip
     {
         private static void AddTrayPopupStrings()
         {
-            Add("Текст",
-                en: "Text", uk: "Текст", de: "Text",
-                it: "Testo", es: "Texto", fr: "Texte",
-                pt: "Texto", ar: "النص", hi: "पाठ",
-                bn: "টেক্সট", ur: "متن", zh: "文本");
-
             Add("Конвертация",
                 en: "Conversion", uk: "Конвертація", de: "Konvertierung",
                 it: "Conversione", es: "Conversión", fr: "Conversion",
                 pt: "Conversão", ar: "التحويل", hi: "रूपांतरण",
                 bn: "রূপান্তর", ur: "تبدیلی", zh: "转换");
-
-            Add("Перевод",
-                en: "Translation", uk: "Переклад", de: "Übersetzung",
-                it: "Traduzione", es: "Traducción", fr: "Traduction",
-                pt: "Tradução", ar: "الترجمة", hi: "अनुवाद",
-                bn: "অনুবাদ", ur: "ترجمہ", zh: "翻译");
 
             Add("Сценарии",
                 en: "Scenarios", uk: "Сценарії", de: "Szenarien",
