@@ -222,25 +222,29 @@ namespace CyrFlip.Tests
         }
 
         /// <summary>
-        /// The read loop's clock (TD-2), scaled down: a line every 20 ms for 1.6 s against a 500 ms idle
-        /// limit completes - the old total cap (the 500 ms "load" budget) would have cut it - and a
+        /// The read loop's clock (TD-2), scaled down: a line every 20 ms for 1.6 s against a 2 s idle
+        /// limit completes - the old total cap (the 1 s "load" budget) would have cut it - and a
         /// stream that falls silent after five lines is cut, with those five delivered. The idle limit
-        /// is 25 gaps wide on purpose: the full suite runs 40 s of parallel GUI tests, and a 20 ms
-        /// delay against a 100 ms limit was cut by thread-pool starvation alone (S0029).
+        /// is 100 gaps wide on purpose: the full suite runs minutes of parallel GUI tests, and a 20 ms
+        /// delay against a 100 ms limit (S0029), then a 500 ms one (CI, v26.10.10.0309), was cut by
+        /// thread-pool starvation alone.
         /// </summary>
         [Fact]
         public async Task ASlowStreamThatKeepsWritingIsNeverCutOff()
         {
             int sent = 0;
             var lines = new List<string>();
-            using var linked = new CancellationTokenSource(500); // the "load" budget: first line only
+            // The "load" budget: first line only. 1 s is still shorter than the whole stream (80 x 20 ms
+            // and more), so a budget that survived the first line would cut it; the idle limit is 100
+            // gaps wide because a loaded CI runner stretched one 20 ms delay past 500 ms (v26.10.10.0309).
+            using var linked = new CancellationTokenSource(1000);
 
             bool ok = await HttpOllamaTransport.PumpAsync(async token =>
             {
                 if (sent == 80) return null;
                 await Task.Delay(20, token);
                 return "line " + sent++;
-            }, lines.Add, linked, idleTimeoutMs: 500, maxAnswerMs: 0);
+            }, lines.Add, linked, idleTimeoutMs: 2000, maxAnswerMs: 0);
 
             Assert.True(ok);
             Assert.Equal(80, lines.Count);

@@ -69,7 +69,11 @@ namespace CyrFlip.Tests
                 Assert.Equal(144, ControlDpi.Peek(form));
                 NumericUpDown editor = SettingsForm.NumericEditors(form).First();
                 Assert.Equal(144, ControlDpi.Peek(editor));   // the whole tree, not the form alone
-                int expectedWidth = Math.Min(before.Width * 3 / 2, SystemInformation.MaxWindowTrackSize.Width);
+                // The window takes the suggested rectangle clamped to the monitor it lands on (the work
+                // area), which on a small session display - a 1024 px CI runner - is narrower than both
+                // the suggestion and the system's tracking limit.
+                int workWidth = Screen.FromRectangle(Rectangle.FromLTRB(suggested.Left, suggested.Top, suggested.Right, suggested.Bottom)).WorkingArea.Width;
+                int expectedWidth = Math.Min(Math.Min(before.Width * 3 / 2, SystemInformation.MaxWindowTrackSize.Width), workWidth);
                 Assert.Equal(expectedWidth, form.Width);
             });
         }
