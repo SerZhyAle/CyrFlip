@@ -84,16 +84,16 @@ namespace CyrFlip.Tests
                 Assert.Equal(device, ControlDpi.Scale(dpi, ControlDpi.Unscale(dpi, device)));
                 Assert.Equal(logical, ControlDpi.Unscale(dpi, ControlDpi.Scale(dpi, logical)));
             }
-            Assert.Equal(20, SettingsForm.TabIconSizeFor(96));
-            Assert.Equal(30, SettingsForm.TabIconSizeFor(144));
+            Assert.Equal(24, SettingsForm.TabIconSizeFor(96));
+            Assert.Equal(36, SettingsForm.TabIconSizeFor(144));
         }
 
         [Fact]
         public void TabIconsRenderAtTheMonitorDpi()
         {
             using var list = SettingsForm.CreateTabIcons(ThemePalette.Light.TextPrimary, 144);
-            Assert.Equal(30, list.ImageSize.Width);
-            Assert.Equal(30, list.ImageSize.Height);
+            Assert.Equal(36, list.ImageSize.Width);
+            Assert.Equal(36, list.ImageSize.Height);
         }
 
         [Fact]

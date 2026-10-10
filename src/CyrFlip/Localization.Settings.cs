@@ -55,6 +55,16 @@ namespace CyrFlip
                 en: "Privacy policy", uk: "Політика конфіденційності", de: "Datenschutzerklärung", it: "Informativa sulla privacy",
                 es: "Política de privacidad", fr: "Politique de confidentialité", pt: "Política de privacidade",
                 ar: "سياسة الخصوصية", hi: "गोपनीयता नीति", bn: "গোপনীয়তা নীতি", ur: "پرایویسی پالیسی", zh: "隐私政策");
+
+            Add("Включение",
+                en: "Enable", uk: "Увімкнення", de: "Aktivierung", it: "Attivazione",
+                es: "Activación", fr: "Activation", pt: "Ativação",
+                ar: "التفعيل", hi: "सक्रियण", bn: "সক্রিয়করণ", ur: "فعال کرنا", zh: "启用");
+
+            Add("Помощь и поддержка",
+                en: "Help and support", uk: "Допомога та підтримка", de: "Hilfe und Support", it: "Assistenza e supporto",
+                es: "Ayuda y soporte", fr: "Aide et assistance", pt: "Ajuda e suporte",
+                ar: "المساعدة والدعم", hi: "सहायता और समर्थन", bn: "সহায়তা ও সমর্থন", ur: "مدد اور معاونت", zh: "帮助与支持");
         }
     }
 }

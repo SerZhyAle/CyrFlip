@@ -356,7 +356,7 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    (`SymbolTypability`, computed on the pool). It is declared a tab with **no vocabulary glyph** (`ICON-SET` rule 7,
    see `TabGlyphTests`). The machine check (every entry drawable by some installed font) and the clipboard write
    are `tools/uitest/Test-Symbols.ps1`; the chord, the focus rule in real editors and the handle counts are the
-   human checklist at its end. Spec: [PLAN/S0056_symbols-window.md](PLAN/S0056_symbols-window.md).
+   human checklist at its end. Spec: [PLAN/done/S0056_symbols-window.md](PLAN/done/S0056_symbols-window.md).
 
 13. **The hotkeys overview - "Все комбинации" (ticket S0056).** One settings page, right after "Горячие клавиши",
    that lists **every** chord CyrFlip binds in six groups (`keys/fixed`, `keys/mouse`, `keys/conversions`,
@@ -1092,6 +1092,7 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `ClipboardHistoryWidth` / `ClipboardHistoryHeight` | `REG_DWORD` | `260` / `360` | Last history window width and height |
 | `ClipboardHistoryOpacity` | `REG_DWORD` | `100` | History window opacity in percent (30..100) |
 | `SettingsTab` | `REG_DWORD` | `0` | Index of the settings tab last left open; the window reopens on it (clamped against the live page count) |
+| `SettingsPageId` | `REG_SZ` | *(empty)* | Stable key (`SettingsPageKey` name) of the page last left open; it wins over `SettingsTab` when it still names a page, so the tab strip growing between versions no longer moves the remembered page |
 | `SettingsGroupsState` | `REG_SZ` | *(empty)* | Expansion of the settings window's collapsible groups, as `id=0\|1` pairs joined by `;` under the groups' stable internal ids (WINDOWS-UI section 3); sanitized on read - malformed rows dropped, 64 rows max |
 | `SettingsViewport` | `REG_SZ` | *(empty)* | Where each settings page was scrolled to, as `page\|anchor\|offset` rows (`;`-joined): a group id or stable row ordinal plus the offset from it in logical (96-DPI) px; sanitized on read |
 | `SettingsWindowX` / `SettingsWindowY` | `REG_DWORD` | `int.MinValue` | The settings window's last position; `int.MinValue` = never placed (then it opens centred). Written on hide/close only, restored clamped to a work area |

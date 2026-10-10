@@ -32,13 +32,13 @@ Description: >-
   author button that packs CyrFlip's own logs into one archive for a report you send yourself. Ships
   as a single portable exe with no installer and no runtime dependencies.
 ReleaseNotes: |-
-  This release brings a dark theme, a screen-region capture, local quick notes and a much sturdier clipboard flip.
-  - Theme: choose "Like Windows", Light or Dark on the General tab; every window, dialog and menu follows at once, with no restart.
-  - Screen capture: Ctrl+Shift+PrintScreen (or the tray item), drag a region - the picture lands on the clipboard as PNG and can also be saved to a folder.
-  - Quick notes (opt-in, off by default): Ctrl+Shift+Alt+N opens a local notepad, encrypted on disk; the text menu can save a selection into it. Notes and clipboard history move to another PC or phone as one plain-text exchange file.
-  - The flip hands your clipboard back exactly: images, copied files, a Cut and password-manager markers survive, and a slow target (RDP, a VM, a busy Word) no longer pastes your old clipboard over the fix. Clipboard history is encrypted whole on disk, and "×" really erases an entry.
-  - More works from the keyboard: Ctrl+Shift+Alt+M opens CyrFlip's menu at the caret, and the history strip, the capture and the settings lists take the arrow keys.
-  - Steadier: hotkeys never wait on a disk or a network share, CyrFlip closes cleanly at sign-out, the Store build keeps each Windows user's files apart, and the portable build adds Start menu and desktop shortcuts. "Send logs to the author" masks account names and never includes the clipboard history.
+  This release introduces CyrFlip as a tray toolkit for your keyboard and desktop and adds a first-run tour, a symbols palette and one page with every shortcut.
+  - Welcome tour: five short pages on the first run show what CyrFlip does and let you switch each optional module on or off on the spot; About replays it.
+  - Symbols window (opt-in, off by default): Ctrl+Shift+F9 opens a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one and never takes the focus from your editor.
+  - All shortcuts: a new settings page lists every chord CyrFlip binds, says whether it really fires and why not, and lets you change, switch off or reset each one; hovering the tray icon shows the same list.
+  - Settings transfer: export your settings to a plain file and import them on another PC, with a preview and three automatic local backups.
+  - Ctrl+Shift+Alt+PrintScreen opens the folder your screen captures are saved in.
+  - A friendlier settings window: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.
 ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
 PrivacyUrl: https://serzhyale.github.io/CyrFlip/privacy.html
 InstallationNotes: "This build is not code-signed, so Windows SmartScreen or an antivirus may warn when CyrFlip first starts. What the warning means and what to click: https://serzhyale.github.io/CyrFlip/trust.html"

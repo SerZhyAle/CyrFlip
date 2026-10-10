@@ -55,7 +55,7 @@ namespace CyrFlip
             /// <summary>The button's two raw visual-style fields - see <see cref="ReadVisualStyleFields"/>.</summary>
             public (bool Enabled, bool Set)? VisualStyleRaw;
             /// <summary>The form's answer to a disabled edit's <c>WM_CTLCOLORSTATIC</c> (see <see cref="ThemeCtColor"/>).</summary>
-            public ThemeCtColor? CtColor;
+            public ThemeCtColor? CtlHost;
         }
 
         // ButtonBase.UseVisualStyleBackColor is not a stored value until something sets it: unset, it is
@@ -125,10 +125,10 @@ namespace CyrFlip
         {
             if (palette.IsDark)
             {
-                state.CtColor ??= new ThemeCtColor();
-                state.CtColor.Update(form.Handle);
+                state.CtlHost ??= new ThemeCtColor();
+                state.CtlHost.Update(form.Handle);
             }
-            else state.CtColor?.Release();
+            else state.CtlHost?.Release();
         }
 
         private static State RecordState(Control control)

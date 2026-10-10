@@ -63,7 +63,7 @@ namespace CyrFlip
         {
             var result = new Dictionary<string, string>(StringComparer.Ordinal);
             void Add(string reason, string names) { foreach (string name in names.Split(' ')) result.Add(name, reason); }
-            Add("navigation", "SettingsTab SettingsGroupsState SettingsViewport SettingsWindowX SettingsWindowY SettingsWindowWidth SettingsWindowHeight ClipboardHistoryX ClipboardHistoryY ClipboardHistoryWidth ClipboardHistoryHeight QuickNotesX QuickNotesY QuickNotesWidth QuickNotesHeight QuickNotesSelected TranslateWindowWidth TranslateWindowHeight SymbolsX SymbolsY SymbolsWidth SymbolsHeight SymbolsCategory");
+            Add("navigation", "SettingsTab SettingsPageId SettingsGroupsState SettingsViewport SettingsWindowX SettingsWindowY SettingsWindowWidth SettingsWindowHeight ClipboardHistoryX ClipboardHistoryY ClipboardHistoryWidth ClipboardHistoryHeight QuickNotesX QuickNotesY QuickNotesWidth QuickNotesHeight QuickNotesSelected TranslateWindowWidth TranslateWindowHeight SymbolsX SymbolsY SymbolsWidth SymbolsHeight SymbolsCategory");
             Add("usage", "FlipCount CaseFlipCount TranslateCount QuickNoteCount ScreenshotCount SymbolsCount");
             Add("machine history", "QuickNotesNoticeShown TranslateSeeded LauncherFirstEnableDone DataFolderMigrated ShortcutsCreated WelcomeShown");
             Add("Windows state", "LanguageHotkeysBackup InputLayoutsBackup InputMethodOverrideWritten");

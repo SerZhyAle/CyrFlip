@@ -258,137 +258,163 @@ En General, exporta la configuración de CyrFlip a JSON, revisa los cambios ante
 پہلی بار چلانے پر پانچ مراحل کا تعارفی دورہ CyrFlip سے متعارف کراتا ہے اور ابتدائی ترتیب کے لیے عمومی ترتیبات کھولنے کا اختیار دیتا ہے۔ طے شدہ اقدار برقرار رکھنے کے لیے چھوڑیں یا بند کریں۔ اپ ڈیٹ اسے دوبارہ نہیں دکھاتے؛ تعارف کے صفحے سے دوبارہ دیکھ سکتے ہیں۔ Windows کے ساتھ آغاز بند رہتا ہے جب تک آپ اسے منتخب نہ کریں۔
 
 عام صفحے پر CyrFlip ترتیبات JSON میں برآمد کریں، درآمد سے پہلے تبدیلیاں دیکھیں یا سابقہ ترتیبات بحال کریں۔ تازہ ترین تین نقول مقامی رہتی ہیں۔ نوٹس، کلپ بورڈ تاریخ، لانچر منظرنامے، مقامی راستے اور Windows ترتیبات شامل نہیں ہیں۔ ریکارڈنگ اور دوسرے ترجمہ سرور کے لیے الگ رضامندی درکار ہے۔"
-"ReleaseNotes","3","Text","","The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+"ReleaseNotes","3","Text","","CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
+All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
+Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.","Цвет маркера теперь называет раскладку, а не только язык: у каждой из 25 раскладок 13 отобранных языков свой оттенок цвета её языка - русский всегда красный, но «Русская (машинопись)» уже другой красный, - а все остальные раскладки Windows получили один нейтральный цвет. В стиле «точка» этот цвет и есть весь маркер.
+A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
 
-Рядом с кареткой и на указателе мыши маркер стал полупрозрачным, так что текст под ним остаётся читаемым, а его буквы вписаны в значок с одним пикселем поля. Текстовый курсор и значок в трее остаются непрозрачными.
+The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.","CyrFlip теперь представляется как трей-набор инструментов для клавиатуры и рабочего стола, и вместе с этим появились новые возможности.
 
-Двойного маркера в VS Code больше нет: пока рисует расширение, CyrFlip прячет свой. В панели чата, в терминале и в полях поиска, где расширение рисовать не может, маркер возвращается.
+Приветственный тур при первом запуске: пять коротких страниц показывают, что умеет CyrFlip, и позволяют тут же включить или выключить каждый необязательный модуль. Повторить тур можно на странице «О программе».
 
-Смешанный текст исправляется одним нажатием: направление выбирается теперь для каждого символа, поэтому «ghbdtnпривет» превращается в «приветghbdtn», а не удваивает первую половину.
+Окно символов (необязательно, Ctrl+Shift+F9): палитра примерно из 500 знаков, которых нет ни в одной установленной раскладке, - валюты, стрелки, математика, греческие буквы, рамки. Щелчок копирует знак, не забирая фокус у вашего редактора.
 
-Знаки препинания теперь ваш выбор. Клавиша, дающая знак в обеих раскладках, не говорит о том, в какой из них её нажали, поэтому «Конвертировать знаки препинания вместе с текстом» можно выключить: тогда «/ghbdtn» сохранит свой слеш вместо того, чтобы начаться с точки.
+Все комбинации в одном месте: новая страница настроек перечисляет каждое сочетание клавиш CyrFlip, показывает, действительно ли оно работает и почему нет, и позволяет изменить, отключить или сбросить любое. Тот же список появляется при наведении на значок в трее.
 
-Синхронизация CapsLock после исправления регистра задаёт состояние клавиши, а не переключает его, поэтому повторное исправление того же текста больше не оставляет её в обратном положении. А на вкладке «О программе» показана версия сборки.","The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+Перенос настроек на другой компьютер: экспорт в обычный файл и импорт с предпросмотром и автоматическими локальными копиями.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+Отдельная комбинация - Ctrl+Shift+Alt+PrintScreen - открывает папку, в которую сохраняются снимки экрана.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+В окне настроек стало удобнее: сворачиваемые группы, поиск, значки страниц масштабируются вместе с экраном, а окно открывается там, где вы его оставили.","CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
+A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
+A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.","The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
+The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.","CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
+A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.","The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
+A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
+The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.","CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.","The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
+Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
+A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.","The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.","CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
+All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
+Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.","The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.","CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
+A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
+All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.","The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.","CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
+A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
+A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.","The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
+The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.","CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
+A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.","The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
+A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
+The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.","CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version.","Колір маркера тепер називає розкладку, а не лише мову: кожна з 25 розкладок 13 відібраних мов має власний відтінок кольору своєї мови - російська завжди червона, але «Російська (друкарська машинка)» вже інший червоний, - а всі інші розкладки Windows дістали один нейтральний колір. У стилі «крапка» цей колір і є весь маркер.
+A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
 
-Поруч із кареткою та на вказівнику миші маркер став напівпрозорим, тож текст під ним лишається читабельним, а його літери вписані у значок з одним пікселем поля. Текстовий курсор і піктограма в треї лишаються непрозорими.
+A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
 
-Подвійного маркера у VS Code більше немає: поки малює розширення, CyrFlip ховає свій. У панелі чату, в терміналі та в полях пошуку, де розширення малювати не може, маркер повертається.
+All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
 
-Змішаний текст виправляється одним натисканням: напрям обирається тепер для кожного символу, тому «ghbdtnпривет» перетворюється на «приветghbdtn», а не подвоює першу половину.
+Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-Розділові знаки тепер ваш вибір. Клавіша, що дає знак в обох розкладках, не каже, в якій із них її натиснули, тому «Перетворювати розділові знаки разом із текстом» можна вимкнути: тоді «/ghbdtn» збереже свій слеш замість того, щоб початися з крапки.
+A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
 
-Синхронізація CapsLock після виправлення регістру задає стан клавіші, а не перемикає його, тож повторне виправлення того самого тексту більше не лишає її у зворотному положенні. А на вкладці «Про програму» показано версію збірки.","The marker's colour now names the keyboard layout, not only the language: each of the 25 layouts of the 13 curated languages has its own shade of its language's colour - Russian is always red, but Russian Typewriter is a different red - and every other Windows layout shares one neutral colour. In the dot style that colour is the whole marker.
+The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.","CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
 
-Beside the caret and on the mouse pointer the marker is translucent, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border. The I-beam and the tray icon stay solid.
+A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
 
-No more double marker in VS Code: while the companion extension is drawing, CyrFlip hides its own. It returns in the chat panel, the terminal and the search boxes, where the extension cannot draw at all.
+A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
 
-Mixed text is fixed in one press - the direction is now decided for each character, so ""ghbdtnпривет"" comes back as ""приветghbdtn"" instead of doubling the first half.
+All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
 
-Punctuation is now your choice. A key that gives a symbol in both layouts says nothing about which layout you meant, so ""Convert punctuation along with the text"" can be switched off: ""/ghbdtn"" then keeps its slash instead of starting with a full stop.
+Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-Synchronizing CapsLock after the case fix sets the key instead of toggling it, so correcting the same text twice no longer leaves it backwards. And the About tab now shows the build version."
+A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
+
+The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.","CyrFlip тепер представляється як трей-набір інструментів для клавіатури та робочого столу, і разом із цим з'явилися нові можливості.
+
+Вітальний тур під час першого запуску: п'ять коротких сторінок показують, що вміє CyrFlip, і дозволяють одразу ввімкнути чи вимкнути кожен необов'язковий модуль. Повторити тур можна на сторінці «Про програму».
+
+Вікно символів (необов'язкове, Ctrl+Shift+F9): палітра приблизно з 500 знаків, яких немає в жодній встановленій розкладці, - валюти, стрілки, математика, грецькі літери, рамки. Клацання копіює знак, не забираючи фокус у вашого редактора.
+
+Усі комбінації в одному місці: нова сторінка налаштувань перелічує кожне сполучення клавіш CyrFlip, показує, чи воно справді працює і чому ні, та дає змогу змінити, вимкнути або скинути будь-яке. Той самий список з'являється, коли навести вказівник на значок у треї.
+
+Перенесення налаштувань на інший комп'ютер: експорт у звичайний файл та імпорт із попереднім переглядом і автоматичними локальними копіями.
+
+Окреме сполучення - Ctrl+Shift+Alt+PrintScreen - відкриває теку, до якої зберігаються знімки екрана.
+
+У вікні налаштувань стало зручніше: згортні групи, пошук, значки сторінок масштабуються разом з екраном, а вікно відкривається там, де ви його залишили.","CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
+
+A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
+
+A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
+
+All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
+
+Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
+
+A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
+
+The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it."
 "Title","4","Text","","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip","CyrFlip"
 "ShortTitle","5","Text","","","","","","","","","","","","","",""
 "SortTitle","6","Text","","","","","","","","","","","","","",""

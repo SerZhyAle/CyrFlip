@@ -96,8 +96,10 @@ namespace CyrFlip.Tests
         private static bool IsInTree(object control, object needle)
         {
             if (ReferenceEquals(control, needle)) return true;
-            if (control.GetType().GetProperty("Controls")?.GetValue(control) is IEnumerable children)
-                foreach (object child in children)
+            // Typed, not reflected: a control that hides Controls with `new` makes GetProperty("Controls")
+            // ambiguous, and an exception on this test's own thread was swallowed into a blank label.
+            if (control is System.Windows.Forms.Control owner)
+                foreach (System.Windows.Forms.Control child in owner.Controls)
                     if (IsInTree(child, needle)) return true;
             return false;
         }

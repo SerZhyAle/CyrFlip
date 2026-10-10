@@ -3808,7 +3808,7 @@ namespace CyrFlip
 
         internal const int TabIconSize = 24;
 
-        /// <summary>The icon's edge in device pixels at the given DPI: authored 20 logical, never smaller.</summary>
+        /// <summary>The icon's edge in device pixels at the given DPI: authored 24 logical, never smaller.</summary>
         internal static int TabIconSizeFor(int dpi) => ControlDpi.Scale(dpi, TabIconSize);
 
         internal static ImageList CreateTabIcons(Color ink) => CreateTabIcons(ink, 96);

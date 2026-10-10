@@ -191,7 +191,7 @@ namespace CyrFlip
                 if (_rebuilding || _applying) return;
                 _applying = true;
                 try { _applySwitch(kind, id, toggle.Checked); }
-                catch (Exception ex) { Debug.WriteLine("Welcome switch " + kind + ": " + ex.Message); }
+                catch (Exception ex) { TrayLog.Log("Welcome switch " + kind + " failed: " + ex.GetType().Name); }
                 finally { _applying = false; }
                 RefreshSwitches();
             };
