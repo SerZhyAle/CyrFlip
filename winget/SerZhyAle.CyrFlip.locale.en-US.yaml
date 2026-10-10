@@ -10,7 +10,7 @@ PackageUrl: https://github.com/SerZhyAle/CyrFlip
 License: MIT
 LicenseUrl: https://github.com/SerZhyAle/CyrFlip/blob/main/LICENSE
 Copyright: Copyright (c) 2026 SerZhyAle
-ShortDescription: A tray toolkit for your keyboard and desktop: the live layout at the caret, one-key fixes for wrong-layout text, screen capture and optional text tools.
+ShortDescription: "A tray toolkit for your keyboard and desktop: the live layout at the caret, one-key fixes for wrong-layout text, screen capture and optional text tools."
 Description: >-
   CyrFlip is a tray toolkit for your keyboard and desktop on Windows. Out of the box it shows the
   active keyboard layout right next to the blinking text caret - on the mouse I-beam and the tray
