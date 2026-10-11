@@ -76,12 +76,18 @@ namespace CyrFlip
                 var import = new Button { Text = Localize("Импортировать..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
                 export.Click += (_, _) => exchange(this, false);
                 import.Click += (_, _) => exchange(this, true);
+                ButtonGlyphs.Attach(export, AppGlyphs.Export);
+                ButtonGlyphs.Attach(import, AppGlyphs.Import);
                 bottom.Controls.Add(import);
                 bottom.Controls.Add(export);
             }
             Controls.Add(bottom);
 
             close.Click += (_, _) => Close();
+            // WINDOWS-UI section 11 item 1: the command carries its verb's glyph. This is a tool window
+            // beside the user's work, not a dialog asking a question, so its buttons stay in the mono look.
+            ButtonGlyphs.Attach(close, AppGlyphs.Close);
+            ButtonGlyphs.Attach(_restore, AppGlyphs.Copy);
             // INPUT-PARITY rule 1: Esc closes, Enter restores the selected row, Delete removes it, and
             // Down/Up in the query box walk into the results - every pointer action has a key.
             CancelButton = close;
@@ -128,6 +134,10 @@ namespace CyrFlip
             base.Dispose(disposing); // the control tree first: it is still drawing with our font
             if (disposing)
             {
+                // FormClosed also unsubscribes, but a window disposed without being closed (the context's
+                // own disposal, a test) never raises it - and the service outlives every window: S0061
+                // WindowLifetimeTests found this window still reachable through the service's handler.
+                _service.Changed -= OnHistoryChanged;
                 _search?.Cancel();
                 _debounce.Dispose();
                 _ownFont?.Dispose();
@@ -259,7 +269,10 @@ namespace CyrFlip
             if (_results.SelectedIndices.Count != 1) return;
             int index = _results.SelectedIndices[0];
             if (index < 0 || index >= _matches.Length) return;
-            if (_service.Restore(_matches[index])) Close();
+            if (_service.Restore(_matches[index])) { Close(); return; }
+            // S0065 E-7: a restore the clipboard refused used to leave the window sitting open with
+            // no word; the hint says it and the window stays up for the retry.
+            _hint.Text = Localize("Не удалось скопировать текст в буфер обмена. Повторите.");
         }
 
         protected override void OnResize(EventArgs e)

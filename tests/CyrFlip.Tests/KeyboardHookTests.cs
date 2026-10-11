@@ -164,8 +164,7 @@ namespace CyrFlip.Tests
             // Not bound: saving is off, the keystroke belongs to whatever else wants it (S0057 D2).
             Assert.False(hook.Decide(Key(0xA2, 10), down: true));
             Assert.False(hook.Decide(Key(0xA0, 20), down: true));
-            Assert.False(hook.Decide(Key(0xA4, 30), down: true));
-            Assert.False(hook.Decide(Key(PrintScreen, 40), down: false)); // the lone event Windows sends
+            Assert.False(hook.Decide(Key(PrintScreen, 30), down: false)); // the lone event Windows sends
             Assert.Equal(0, fired);
 
             // Live: the lone key-up fires and is swallowed.
@@ -205,7 +204,7 @@ namespace CyrFlip.Tests
             const uint PrintScreen = 0x2C;
             KeyboardHook hook = new FakeHooks().Create();
             Install(hook);
-            hook.UpdateScreenshotHotkey(Hotkey.Parse("Ctrl+Shift+PrintScreen"));
+            hook.UpdateScreenshotHotkey(Hotkey.Parse(AppConfig.DefaultScreenshotHotkey));
             hook.UpdateScreenshotEnabled(true);
             hook.UpdateScreenshotFolderHotkey(Hotkey.Parse(AppConfig.DefaultScreenshotFolderHotkey));
             hook.UpdateScreenshotFolderEnabled(true);
@@ -214,13 +213,12 @@ namespace CyrFlip.Tests
             hook.ScreenshotFolderHotkeyPressed += (_, _) => folder++;
 
             Assert.False(hook.Decide(Key(0xA2, 10), down: true));
-            Assert.False(hook.Decide(Key(0xA0, 20), down: true));
-            Assert.True(hook.Decide(Key(PrintScreen, 30), down: false)); // Ctrl+Shift: the capture's
+            Assert.True(hook.Decide(Key(PrintScreen, 30), down: false)); // Ctrl alone: the capture's
             Assert.Equal(1, capture);
             Assert.Equal(0, folder);
 
-            Assert.False(hook.Decide(Key(0xA4, 60), down: true));
-            Assert.True(hook.Decide(Key(PrintScreen, 70), down: false)); // plus Alt: the folder's
+            Assert.False(hook.Decide(Key(0xA0, 60), down: true));
+            Assert.True(hook.Decide(Key(PrintScreen, 70), down: false)); // plus Shift: the folder's
             Assert.Equal(1, capture);
             Assert.Equal(1, folder);
         }

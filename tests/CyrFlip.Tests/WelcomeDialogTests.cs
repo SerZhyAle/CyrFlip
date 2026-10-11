@@ -193,8 +193,14 @@ namespace CyrFlip.Tests
                     using var dialog = New(language); dialog.Show();
                     var buttons = Walk(dialog).OfType<GlyphButton>().ToList();
                     Assert.Equal(3, buttons.Count);
-                    Assert.All(buttons, b => Assert.NotNull(b.Image));
-                    Assert.Equal(new[] { AppGlyphs.Back, AppGlyphs.Forward, AppGlyphs.Close }, buttons.Select(b => b.Glyph));
+                    // The glyph is filled from the shared path in the button's own Paint and never stored as
+                    // an Image (ButtonGlyphs): what a button carries is an attached, drawable vocabulary glyph.
+                    Assert.All(buttons, b =>
+                    {
+                        Assert.True(ButtonGlyphs.IsAttached(b), b.Text);
+                        Assert.True(GlyphRenderer.Has(b.Glyph), b.Glyph);
+                    });
+                    Assert.Equal(new[] { AppGlyphs.Back, AppGlyphs.Forward, AppGlyphs.Cancel }, buttons.Select(b => b.Glyph));
                     dialog.Navigate(4);
                     Assert.Contains(buttons, b => b.Glyph == AppGlyphs.Settings);
                 }

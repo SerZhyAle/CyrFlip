@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace CyrFlip
@@ -21,8 +23,10 @@ namespace CyrFlip
         private readonly FlowLayoutPanel _progress = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = false };
         private readonly FlowLayoutPanel _buttons = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = false };
         private readonly GlyphButton _back = new GlyphButton(AppGlyphs.Back, false) { TabIndex = 0 };
-        private readonly GlyphButton _next = new GlyphButton(AppGlyphs.Forward, true) { TabIndex = 1 };
-        private readonly GlyphButton _cancel = new GlyphButton(AppGlyphs.Close, false) { TabIndex = 2, DialogResult = DialogResult.Cancel };
+        // WINDOWS-UI section 11 item 4: "Next" is the affirmative answer (green), "Skip" / "Close" the
+        // dismissing one (red); "Back" is navigation, not an answer, and stays in the mono look.
+        private readonly GlyphButton _next = new GlyphButton(AppGlyphs.Forward, true, ButtonLook.Affirmative) { TabIndex = 1 };
+        private readonly GlyphButton _cancel = new GlyphButton(AppGlyphs.Cancel, false, ButtonLook.Dismissing) { TabIndex = 2, DialogResult = DialogResult.Cancel };
         private readonly List<FlowLayoutPanel> _pages = new List<FlowLayoutPanel>();
         // Every live switch of the tour, so one change can re-read them all: turning a chord on may turn
         // the master switch on, and a refused change has to put its knob back.
@@ -32,6 +36,9 @@ namespace CyrFlip
         private Font? _ownFont;
         private Font _titleFont = SystemFonts.DefaultFont;
         private Font _boldFont = SystemFonts.DefaultFont;
+        // The app's own mark (two frames: the header tile and the title bar's small one). The icon
+        // resource is the same ico the exe carries; a failed read leaves both places as they were.
+        private readonly Icon? _appIcon, _titleIcon;
         // WinForms can retain an equal ambient Font in native/control layout caches. Keep prior
         // language fonts alive until the entire control tree has been disposed.
         private readonly List<Font> _fonts = new List<Font>();
@@ -53,7 +60,9 @@ namespace CyrFlip
         {
             _facts = facts; _setLanguage = setLanguage; _setAutostart = setAutostart; _autostartEnabled = autostartEnabled;
             _applySwitch = applySwitch ?? facts.Set;
-            Text = "CyrFlip"; ShowInTaskbar = true; ShowIcon = false;
+            Text = "CyrFlip"; ShowInTaskbar = true;
+            _appIcon = LoadAppIcon(52); _titleIcon = LoadAppIcon(20);
+            if (_titleIcon != null) { Icon = _titleIcon; ShowIcon = true; }
             FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false; MinimizeBox = false;
             StartPosition = FormStartPosition.Manual;
             AutoSize = true; AutoSizeMode = AutoSizeMode.GrowAndShrink;
@@ -72,6 +81,23 @@ namespace CyrFlip
         }
 
         // ---- building blocks -------------------------------------------------------------------
+
+        /// <summary>
+        /// The app's own icon at (or nearest to) the requested square size, read from the embedded
+        /// resource - the way LauncherBrand reads the launcher's, and best-effort the same way: a
+        /// missing or unreadable resource simply leaves the header plate with the vocabulary glyph
+        /// and the title bar bare.
+        /// </summary>
+        private static Icon? LoadAppIcon(int size)
+        {
+            try
+            {
+                using Stream? stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("CyrFlip.app.ico");
+                return stream == null ? null : new Icon(stream, new Size(size, size));
+            }
+            catch { /* the mark is decoration - the tour reads fine without it */ }
+            return null;
+        }
 
         private Label Paragraph(FlowLayoutPanel page, string text)
         {
@@ -97,17 +123,22 @@ namespace CyrFlip
             catch (ArgumentException) { return new Font(family, size, FontStyle.Regular); }
         }
 
-        private FlowLayoutPanel Page(string title, string glyph)
+        private FlowLayoutPanel Page(string title, string glyph) => Page(title, glyph, null);
+
+        private FlowLayoutPanel Page(string title, string glyph, Icon? icon)
         {
             var page = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 FlowDirection = FlowDirection.TopDown, WrapContents = false, Width = _wrap + 6,
                 MaximumSize = new Size(_wrap + 6, 0), Margin = Padding.Empty };
-            // The header: a solid vocabulary-glyph plate and the title beside it. The plate is decoration;
+            // The header: a solid plate and the title beside it - the vocabulary glyph on every page
+            // but the first, which carries the app's own mark instead. The plate is decoration;
             // the title stays the page's accessible caption.
             int plate = Px(52);
             var head = new TableLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 2,
                 RowCount = 1, Margin = new Padding(0, 0, 0, Px(8)), Font = Font, RightToLeft = RightToLeft };
-            head.Controls.Add(new GlyphBadge(glyph, null, plate, true) { Anchor = AnchorStyles.Left, Margin = new Padding(3, 2, Px(14), 2) }, 0, 0);
+            var headBadge = icon != null ? new GlyphBadge(icon, plate, true) : new GlyphBadge(glyph, null, plate, true);
+            headBadge.Anchor = AnchorStyles.Left; headBadge.Margin = new Padding(3, 2, Px(14), 2);
+            head.Controls.Add(headBadge, 0, 0);
             head.Controls.Add(new Label { Text = T(title), Font = _titleFont, AutoSize = true, UseMnemonic = false,
                 MaximumSize = new Size(Math.Max(Px(120), _wrap - plate - Px(24)), 0), Anchor = AnchorStyles.Left,
                 Margin = Padding.Empty }, 1, 0);
@@ -119,22 +150,23 @@ namespace CyrFlip
         /// <summary>
         /// One feature on a soft glyph plate: a title (a link when <paramref name="open"/> names a settings
         /// page), an optional line beneath it, optional keys under that, and an optional trailing control
-        /// (the state pill). With no title the line is plain body text - a callout.
+        /// (the state pill). With no title the line is plain body text - a callout. <paramref name="plate"/>
+        /// and <paramref name="vPad"/> shrink the row for the welcome page's one-line-per-feature index.
         /// </summary>
         private TableLayoutPanel Row(FlowLayoutPanel page, string? glyph, string? mark, string? title, string? text,
-            Control? detail = null, Control? trailing = null, SettingsPageKey? open = null)
+            Control? detail = null, Control? trailing = null, SettingsPageKey? open = null, int plate = 34, int vPad = 5)
         {
-            int plate = Px(34), gap = Px(10);
+            int size = Px(plate), gap = Px(10);
             if (trailing != null) { trailing.Font = Font; trailing.RightToLeft = RightToLeft; }
             int trailing_w = trailing == null ? 0 : trailing.GetPreferredSize(Size.Empty).Width + gap;
-            int textMax = Math.Max(Px(140), _wrap - plate - gap - trailing_w - Px(14));
+            int textMax = Math.Max(Px(140), _wrap - size - gap - trailing_w - Px(14));
             var row = new TableLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 3, RowCount = 1,
-                MinimumSize = new Size(_wrap + 6, 0), Margin = new Padding(0, Px(5), 0, Px(5)), Font = Font, RightToLeft = RightToLeft };
+                MinimumSize = new Size(_wrap + 6, 0), Margin = new Padding(0, Px(vPad), 0, Px(vPad)), Font = Font, RightToLeft = RightToLeft };
             row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
-            var badge = new GlyphBadge(glyph, mark, plate, false) { Anchor = AnchorStyles.Left, Margin = new Padding(3, 2, gap, 2) };
+            var badge = new GlyphBadge(glyph, mark, size, false) { Anchor = AnchorStyles.Left, Margin = new Padding(3, 2, gap, 2) };
             row.Controls.Add(badge, 0, 0);
 
             var body = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.TopDown,
@@ -233,7 +265,7 @@ namespace CyrFlip
         private void BrowserLink(FlowLayoutPanel page, string caption, string url)
         {
             var link = new LinkLabel { Text = T(caption), AutoSize = true, Margin = new Padding(3, 5, 3, 5) };
-            link.LinkClicked += (_, _) => { try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch { } };
+            link.LinkClicked += (_, _) => { try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true })?.Dispose(); } catch { } };
             page.Controls.Add(link);
         }
 
@@ -285,10 +317,20 @@ namespace CyrFlip
 
         private void BuildWelcome()
         {
-            var welcome = Page("Добро пожаловать в CyrFlip", AppGlyphs.Info);
-            Row(welcome, AppGlyphs.ConvertLayout, null, null, T("Исправляет текст, набранный в неверной раскладке"));
-            Row(welcome, AppGlyphs.LayoutIndicator, null, null, T("Показывает активный язык у каретки и в трее"));
-            Row(welcome, AppGlyphs.Apps, null, null, T("Живёт в трее и не мешает работе"));
+            var welcome = Page("Добро пожаловать в CyrFlip", AppGlyphs.Info, _appIcon);
+            // The whole product in one index, one line per feature, in the pillars' order of
+            // POSITIONING.md; the tour's own pages tell each of them in detail right after.
+            Row(welcome, AppGlyphs.LayoutIndicator, null, null, T("Показывает активный язык у каретки и в трее"), plate: 28, vPad: 2);
+            Row(welcome, null, "I", null, T("Показывает раскладку и на курсоре мыши"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.ConvertLayout, null, null, T("Исправляет текст, набранный в неверной раскладке"), plate: 28, vPad: 2);
+            Row(welcome, null, "Aa", null, T("Исправляет регистр, если забыли про CapsLock"), plate: 28, vPad: 2);
+            Row(welcome, null, "≡", null, T("Показывает своё меню над выделенным текстом"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.Translate, null, null, T("Переводит выделенный текст"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.ClipboardHistory, null, null, T("Ведёт историю буфера обмена"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.Note, null, null, T("Хранит быстрые заметки"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.Screenshot, null, null, T("Делает снимок области экрана"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.QuickLaunch, null, null, T("Запускает программы и сценарии одним щелчком"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.Apps, null, null, T("Живёт в трее и не мешает работе"), plate: 28, vPad: 2);
 
             // The one control on this page: the interface language, with the globe the settings use for it.
             var language = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = false,
@@ -351,7 +393,7 @@ namespace CyrFlip
             }
             Row(conversions, null, "Aa", T("Смена регистра"), T("Если оставили CapsLock включённым"),
                 detail: new KeyCaps(config.CaseHotkey), trailing: Trailing(null, WelcomeSwitch.CaseFlip, null, T("Смена регистра")),
-                open: SettingsPageKey.Hotkeys);
+                open: SettingsPageKey.Conversions);
             Paragraph(conversions, F("Пример: выделите {0}, затем нажмите комбинацию выше.", "ghbdtn")).Margin = new Padding(3, Px(8), 3, Px(4));
             var example = new ConversionExample("ghbdtn", "привет") { Margin = new Padding(3, 0, 3, Px(6)), Font = Font, RightToLeft = RightToLeft };
             conversions.Controls.Add(example);
@@ -375,7 +417,7 @@ namespace CyrFlip
             Row(modules, AppGlyphs.QuickLaunch, null, T("Быстрый запуск"), null,
                 trailing: Trailing(null, WelcomeSwitch.QuickLaunch, null, T("Быстрый запуск")), open: SettingsPageKey.Launcher);
             Row(modules, null, "≡", T("Своё контекстное меню над выделенным текстом"), null,
-                trailing: Trailing(null, WelcomeSwitch.ContextMenu, null, T("Своё контекстное меню над выделенным текстом")), open: SettingsPageKey.Hotkeys);
+                trailing: Trailing(null, WelcomeSwitch.ContextMenu, null, T("Своё контекстное меню над выделенным текстом")), open: SettingsPageKey.SelectionMenu);
             Note(modules, T("Нажмите на название, чтобы открыть настройки модуля."));
             BrowserLink(modules, "Политика конфиденциальности", "https://serzhyale.github.io/CyrFlip/privacy.html");
             BrowserLink(modules, "Установка и предупреждение SmartScreen", "https://serzhyale.github.io/CyrFlip/trust.html");
@@ -446,7 +488,11 @@ namespace CyrFlip
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            if (disposing) foreach (var font in _fonts) font.Dispose();
+            if (disposing)
+            {
+                foreach (var font in _fonts) font.Dispose();
+                _appIcon?.Dispose(); _titleIcon?.Dispose();
+            }
         }
     }
 }

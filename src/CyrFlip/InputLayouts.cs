@@ -77,10 +77,11 @@ namespace CyrFlip
             public bool ManagedByWindows { get; set; }
         }
 
-        /// <summary>What a layout edit did. Anything but <see cref="Ok"/> means nothing was written.</summary>
+        /// <summary>What a layout edit did. Failed writes attempt to restore the captured Windows state.</summary>
         internal enum EditResult
         {
             Ok,
+            Failed,
             /// <summary>The input list could not be read whole; an edit built on it would drop layouts (WL-10).</summary>
             Unreadable,
             /// <summary>Windows must keep one layout.</summary>
@@ -102,14 +103,14 @@ namespace CyrFlip
             var result = new List<Available>();
             try
             {
-                using RegistryKey? root = Registry.LocalMachine.OpenSubKey(LayoutsPath);
+                using IRuntimeRegistryKey? root = RuntimeRegistry.Machine.OpenSubKey(LayoutsPath);
                 if (root == null) return result;
 
                 foreach (string klid in root.GetSubKeyNames())
                 {
                     if (klid.Length != 8 || !uint.TryParse(klid, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out _))
                         continue;
-                    using RegistryKey? key = root.OpenSubKey(klid);
+                    using IRuntimeRegistryKey? key = root.OpenSubKey(klid);
                     if (key == null) continue;
 
                     ushort langId = LangIdOf(klid);
@@ -174,9 +175,9 @@ namespace CyrFlip
             result = new List<string>();
             try
             {
-                using RegistryKey? preload = Registry.CurrentUser.OpenSubKey(PreloadPath);
+                using IRuntimeRegistryKey? preload = RuntimeRegistry.User.OpenSubKey(PreloadPath);
                 if (preload == null) return false;
-                using RegistryKey? subs = Registry.CurrentUser.OpenSubKey(SubstitutesPath);
+                using IRuntimeRegistryKey? subs = RuntimeRegistry.User.OpenSubKey(SubstitutesPath);
 
                 // Preload entries are named "1".."N"; honour their numeric order, not string order.
                 var names = new List<string>(preload.GetValueNames());
@@ -214,11 +215,13 @@ namespace CyrFlip
             klid = klid.ToLowerInvariant();
             if (!TryReadEffectiveKlids(out List<string> klids)) return EditResult.Unreadable;
             if (InputLayoutApi.Add(InputLayoutApi.Current, klid) == EditResult.Ok)
-                ReconcileLegacy(list => { if (!list.Contains(klid)) list.Add(klid); });
+            {
+                if (!ReconcileLegacy(list => { if (!list.Contains(klid)) list.Add(klid); })) return EditResult.Failed;
+            }
             else
             {
                 if (!klids.Contains(klid)) klids.Add(klid);
-                Persist(klids, added: klid);
+                if (Persist(klids, added: klid).Failure != null) return EditResult.Failed;
             }
 
             LoadKeyboardLayout(klid, KLF_ACTIVATE | KLF_SUBSTITUTE_OK);
@@ -239,11 +242,13 @@ namespace CyrFlip
             EditResult? viaApi = InputLayoutApi.Remove(InputLayoutApi.Current, klid);
             if (viaApi == EditResult.LastLayout) return EditResult.LastLayout;
             if (viaApi == EditResult.Ok)
-                ReconcileLegacy(list => list.RemoveAll(k => k == klid));
+            {
+                if (!ReconcileLegacy(list => list.RemoveAll(k => k == klid))) return EditResult.Failed;
+            }
             else
             {
                 klids.RemoveAll(k => k == klid);
-                Persist(klids, removed: klid);
+                if (Persist(klids, removed: klid).Failure != null) return EditResult.Failed;
             }
 
             // A layout can't be unloaded while it's the active one, so make sure something else is active.
@@ -271,7 +276,7 @@ namespace CyrFlip
             string? overrideBefore = ReadInputMethodOverride();
             if (InputLayoutApi.MakeDefault(InputLayoutApi.Current, klid) == EditResult.Ok)
             {
-                ReconcileLegacy(list => { if (list.Remove(klid)) list.Insert(0, klid); });
+                if (!ReconcileLegacy(list => { if (list.Remove(klid)) list.Insert(0, klid); })) return EditResult.Failed;
                 string? overrideAfter = ReadInputMethodOverride();
                 if (overrideAfter != null && !string.Equals(overrideAfter, overrideBefore, StringComparison.OrdinalIgnoreCase))
                     writtenOverride = overrideAfter;
@@ -279,8 +284,9 @@ namespace CyrFlip
             }
             klids.Remove(klid);
             klids.Insert(0, klid);
-            writtenOverride = Persist(klids, makeDefault: klid);
-            return EditResult.Ok;
+            PersistResult persisted = Persist(klids, makeDefault: klid);
+            writtenOverride = persisted.Override;
+            return persisted.Failure == null ? EditResult.Ok : EditResult.Failed;
         }
 
         /// <summary>
@@ -288,19 +294,21 @@ namespace CyrFlip
         /// left it behind - the list the tab shows and the default it marks are read from there. A
         /// Preload that does not read whole is Windows' to settle at sign-in, never ours to rebuild.
         /// </summary>
-        private static void ReconcileLegacy(Action<List<string>> edit)
+        private static bool ReconcileLegacy(Action<List<string>> edit)
         {
-            if (!TryReadEffectiveKlids(out List<string> klids)) return;
+            if (!TryReadEffectiveKlids(out List<string> klids)) return false;
             var edited = new List<string>(klids);
             edit(edited);
-            if (edited.Count > 0 && !SameSequence(klids, edited)) WriteLegacy(edited);
+            LastFailure = edited.Count > 0 && !SameSequence(klids, edited)
+                ? RuntimeRegistry.Change(new[] { PreloadPath, SubstitutesPath }, () => WriteLegacy(edited)) : null;
+            return LastFailure == null;
         }
 
         private static string? ReadInputMethodOverride()
         {
             try
             {
-                using RegistryKey? profile = Registry.CurrentUser.OpenSubKey(ProfilePath);
+                using IRuntimeRegistryKey? profile = RuntimeRegistry.User.OpenSubKey(ProfilePath);
                 return profile?.GetValue("InputMethodOverride") as string;
             }
             catch { return null; }
@@ -323,8 +331,7 @@ namespace CyrFlip
             if (!string.Equals(GroupOf(model, klids[i]), GroupOf(model, klids[j]), StringComparison.OrdinalIgnoreCase))
                 return EditResult.CrossLanguage;
             (klids[i], klids[j]) = (klids[j], klids[i]);
-            Persist(klids);
-            return EditResult.Ok;
+            return Persist(klids).Failure == null ? EditResult.Ok : EditResult.Failed;
         }
 
         /// <summary>May the row at <paramref name="index"/> move by <paramref name="delta"/>? Only onto a neighbour of its own language (WL-8).</summary>
@@ -335,54 +342,58 @@ namespace CyrFlip
             return string.Equals(rows[index].Group, rows[j].Group, StringComparison.OrdinalIgnoreCase);
         }
 
-        /// <summary>
-        /// Rewrites the legacy store from one canonical ordered KLID list and brings the modern store in
-        /// line with it <b>without touching anything it does not model</b> (see <see cref="ApplyLayouts"/>).
-        /// Returns the <c>InputMethodOverride</c> it wrote, if it wrote one.
-        /// </summary>
-        public static string? Persist(List<string> klids, string? added = null, string? makeDefault = null, string? removed = null)
+        internal sealed class PersistResult
         {
-            WriteLegacy(klids);
-            return WriteModern(klids, added, makeDefault, removed);
+            public string? Override { get; set; }
+            public Exception? Failure { get; set; }
+        }
+
+        public static Exception? LastFailure { get; private set; }
+
+        /// <summary>
+        /// Rewrites both stores from one canonical list, preserving unmodeled profile values.
+        /// Returns the written override on success, or the write/rollback failure.
+        /// </summary>
+        public static PersistResult Persist(List<string> klids, string? added = null, string? makeDefault = null, string? removed = null)
+        {
+            string? written = null;
+            LastFailure = RuntimeRegistry.Change(new[] { PreloadPath, SubstitutesPath, ProfilePath }, () =>
+            {
+                WriteLegacy(klids);
+                written = WriteModern(klids, added, makeDefault, removed);
+            });
+            return new PersistResult { Override = LastFailure == null ? written : null, Failure = LastFailure };
         }
 
         private static void WriteLegacy(List<string> klids)
         {
             (Dictionary<string, string> preload, Dictionary<string, string> subs) = BuildPreload(klids);
-            try
-            {
-                // Recreate Preload from scratch so removed entries don't linger.
-                Registry.CurrentUser.DeleteSubKey(PreloadPath, throwOnMissingSubKey: false);
-                using (RegistryKey? key = Registry.CurrentUser.CreateSubKey(PreloadPath))
-                    if (key != null)
-                        foreach (KeyValuePair<string, string> pair in preload)
-                            key.SetValue(pair.Key, pair.Value, RegistryValueKind.String);
+            // Recreate Preload from scratch so removed entries don't linger.
+            RuntimeRegistry.User.DeleteSubKey(PreloadPath, throwOnMissingSubKey: false);
+            using (IRuntimeRegistryKey? key = RuntimeRegistry.User.CreateSubKey(PreloadPath))
+                if (key != null)
+                    foreach (KeyValuePair<string, string> pair in preload)
+                        key.SetValue(pair.Key, pair.Value, RegistryValueKind.String);
 
-                using (RegistryKey? key = Registry.CurrentUser.CreateSubKey(SubstitutesPath))
-                    if (key != null)
-                    {
-                        foreach (string name in key.GetValueNames()) key.DeleteValue(name, throwOnMissingValue: false);
-                        foreach (KeyValuePair<string, string> pair in subs)
-                            key.SetValue(pair.Key, pair.Value, RegistryValueKind.String);
-                    }
-            }
-            catch { }
+            using (IRuntimeRegistryKey? key = RuntimeRegistry.User.CreateSubKey(SubstitutesPath))
+                if (key != null)
+                {
+                    foreach (string name in key.GetValueNames()) key.DeleteValue(name, throwOnMissingValue: false);
+                    foreach (KeyValuePair<string, string> pair in subs)
+                        key.SetValue(pair.Key, pair.Value, RegistryValueKind.String);
+                }
         }
 
         private static string? WriteModern(List<string> klids, string? added, string? makeDefault, string? removed)
         {
-            try
-            {
-                using RegistryKey? profile = Registry.CurrentUser.CreateSubKey(ProfilePath);
-                if (profile == null) return null;
-                ProfileModel before = ReadProfileModel(profile);
-                ProfileModel after = before.Clone();
-                ApplyLayouts(after, klids, added, makeDefault, Bcp47ForLangId, removed);
-                WriteProfileDiff(profile, before, after);
-                return after.InputMethodOverride != null && after.InputMethodOverride != before.InputMethodOverride
-                    ? after.InputMethodOverride : null;
-            }
-            catch { return null; }
+            using IRuntimeRegistryKey? profile = RuntimeRegistry.User.CreateSubKey(ProfilePath);
+            if (profile == null) return null;
+            ProfileModel before = ReadProfileModel(profile);
+            ProfileModel after = before.Clone();
+            ApplyLayouts(after, klids, added, makeDefault, Bcp47ForLangId, removed);
+            WriteProfileDiff(profile, before, after);
+            return after.InputMethodOverride != null && after.InputMethodOverride != before.InputMethodOverride
+                ? after.InputMethodOverride : null;
         }
 
         /// <summary>
@@ -565,21 +576,21 @@ namespace CyrFlip
         {
             try
             {
-                using RegistryKey? profile = Registry.CurrentUser.OpenSubKey(ProfilePath);
+                using IRuntimeRegistryKey? profile = RuntimeRegistry.User.OpenSubKey(ProfilePath);
                 if (profile != null) return ReadProfileModel(profile);
             }
             catch { }
             return new ProfileModel();
         }
 
-        private static ProfileModel ReadProfileModel(RegistryKey profile)
+        private static ProfileModel ReadProfileModel(IRuntimeRegistryKey profile)
         {
             var model = new ProfileModel();
             if (profile.GetValue("Languages") is string[] langs) model.Languages.AddRange(langs);
             model.InputMethodOverride = profile.GetValue("InputMethodOverride") as string;
             foreach (string tag in profile.GetSubKeyNames())
             {
-                using RegistryKey? langKey = profile.OpenSubKey(tag);
+                using IRuntimeRegistryKey? langKey = profile.OpenSubKey(tag);
                 if (langKey != null) model.Subkeys[tag] = new List<string>(langKey.GetValueNames());
             }
             return model;
@@ -590,7 +601,7 @@ namespace CyrFlip
         /// a language whose layout set or order changed, and <c>Languages</c> / <c>InputMethodOverride</c>
         /// when they changed. A value that is not a plain layout is never deleted or rewritten.
         /// </summary>
-        private static void WriteProfileDiff(RegistryKey profile, ProfileModel before, ProfileModel after)
+        private static void WriteProfileDiff(IRuntimeRegistryKey profile, ProfileModel before, ProfileModel after)
         {
             foreach (string tag in before.Subkeys.Keys)
                 if (!after.Subkeys.ContainsKey(tag))
@@ -603,7 +614,7 @@ namespace CyrFlip
                 List<string> newLayouts = sub.Value.FindAll(IsLayoutValue);
                 if (old != null && SameSequence(oldLayouts, newLayouts)) continue;
 
-                using RegistryKey? langKey = profile.CreateSubKey(sub.Key);
+                using IRuntimeRegistryKey? langKey = profile.CreateSubKey(sub.Key);
                 if (langKey == null) continue;
                 foreach (string name in oldLayouts) langKey.DeleteValue(name, throwOnMissingValue: false);
                 foreach (string name in newLayouts) langKey.SetValue(name, 1, RegistryValueKind.DWord);
@@ -638,13 +649,13 @@ namespace CyrFlip
             // delete every language subkey and recreate none. "" leaves the next edit to try again.
             try
             {
-                Dictionary<string, string> preload = DumpValues(Registry.CurrentUser, PreloadPath);
+                Dictionary<string, string> preload = DumpValues(RuntimeRegistry.User, PreloadPath);
                 Dictionary<string, object> profile = DumpProfile();
                 var snap = new Dictionary<string, object>
                 {
                     ["format"] = 2,
                     ["preload"] = preload,
-                    ["substitutes"] = DumpValues(Registry.CurrentUser, SubstitutesPath),
+                    ["substitutes"] = DumpValues(RuntimeRegistry.User, SubstitutesPath),
                     ["profile"] = profile,
                 };
                 string json = new JavaScriptSerializer().Serialize(snap);
@@ -674,28 +685,29 @@ namespace CyrFlip
         /// subkeys of the profile exactly, the profile root values that were captured with their own
         /// kinds - the root itself is never deleted, so values the snapshot did not capture
         /// (<c>HttpAcceptLanguageOptOut</c>, the text-prediction switches..) stay. Then the live session
-        /// is brought in line with the restored list. False, with nothing written, for a snapshot that
+        /// is brought in line with the restored list. False, with rollback attempted on a write fault, or with nothing written for a snapshot that
         /// does not read or would not put a layout back (CF-4, WL-11).
         /// <paramref name="overrideWrittenByCyrFlip"/> is the <c>InputMethodOverride</c> CyrFlip last
         /// wrote: a format-1 snapshot never captured that value, so it is removed when it is still ours (WL-13).
         /// </summary>
         public static bool RestoreAll(string json, string? overrideWrittenByCyrFlip = null)
         {
+            LastFailure = null;
             if (!TryParseSnapshot(json, out Dictionary<string, object> snap)) return false;
 
-            try
+            LastFailure = RuntimeRegistry.Change(new[] { PreloadPath, SubstitutesPath, ProfilePath }, () =>
             {
-                Registry.CurrentUser.DeleteSubKey(PreloadPath, throwOnMissingSubKey: false);
-                using (RegistryKey? key = Registry.CurrentUser.CreateSubKey(PreloadPath))
+                RuntimeRegistry.User.DeleteSubKey(PreloadPath, throwOnMissingSubKey: false);
+                using (IRuntimeRegistryKey? key = RuntimeRegistry.User.CreateSubKey(PreloadPath))
                     RestoreValues(key, snap, "preload", RegistryValueKind.String);
 
-                using (RegistryKey? key = Registry.CurrentUser.CreateSubKey(SubstitutesPath))
+                using (IRuntimeRegistryKey? key = RuntimeRegistry.User.CreateSubKey(SubstitutesPath))
                 {
                     if (key != null) foreach (string n in key.GetValueNames()) key.DeleteValue(n, false);
                     RestoreValues(key, snap, "substitutes", RegistryValueKind.String);
                 }
 
-                using (RegistryKey? profile = Registry.CurrentUser.CreateSubKey(ProfilePath))
+                using (IRuntimeRegistryKey? profile = RuntimeRegistry.User.CreateSubKey(ProfilePath))
                     if (profile != null)
                     {
                         foreach (string tag in profile.GetSubKeyNames())
@@ -704,8 +716,8 @@ namespace CyrFlip
                         if (!snap.ContainsKey("format") && ShouldDropOverride(profile.GetValue("InputMethodOverride") as string, overrideWrittenByCyrFlip))
                             profile.DeleteValue("InputMethodOverride", throwOnMissingValue: false);
                     }
-            }
-            catch { }
+            });
+            if (LastFailure != null) return false;
             SyncLiveSession();
             return true;
         }
@@ -837,13 +849,13 @@ namespace CyrFlip
         {
             try
             {
-                using RegistryKey? key = Registry.LocalMachine.OpenSubKey(LayoutsPath + "\\" + klid);
+                using IRuntimeRegistryKey? key = RuntimeRegistry.Machine.OpenSubKey(LayoutsPath + "\\" + klid);
                 return key != null ? DisplayNameOf(key) : klid;
             }
             catch { return klid; }
         }
 
-        private static string DisplayNameOf(RegistryKey key)
+        private static string DisplayNameOf(IRuntimeRegistryKey key)
         {
             if (key.GetValue("Layout Display Name") is string indirect && indirect.StartsWith("@"))
             {
@@ -862,11 +874,11 @@ namespace CyrFlip
         {
             try
             {
-                using RegistryKey? profile = Registry.CurrentUser.OpenSubKey(ProfilePath);
+                using IRuntimeRegistryKey? profile = RuntimeRegistry.User.OpenSubKey(ProfilePath);
                 if (profile == null) return null;
                 foreach (string tag in profile.GetSubKeyNames())
                 {
-                    using RegistryKey? langKey = profile.OpenSubKey(tag);
+                    using IRuntimeRegistryKey? langKey = profile.OpenSubKey(tag);
                     if (langKey == null) continue;
                     foreach (string valueName in langKey.GetValueNames())
                     {
@@ -924,10 +936,10 @@ namespace CyrFlip
 
         // The dumps throw rather than return what they managed to read: BackupAll turns any failure
         // into "no backup yet", never into a partial one (WL-11).
-        private static Dictionary<string, string> DumpValues(RegistryKey root, string path)
+        private static Dictionary<string, string> DumpValues(IRuntimeRegistryKey root, string path)
         {
             var map = new Dictionary<string, string>();
-            using RegistryKey? key = root.OpenSubKey(path);
+            using IRuntimeRegistryKey? key = root.OpenSubKey(path);
             if (key != null)
                 foreach (string name in key.GetValueNames())
                     map[name] = key.GetValue(name) as string ?? throw new InvalidOperationException(path + "\\" + name);
@@ -937,27 +949,27 @@ namespace CyrFlip
         private static Dictionary<string, object> DumpProfile()
         {
             var profileDump = new Dictionary<string, object>();
-            using RegistryKey? profile = Registry.CurrentUser.OpenSubKey(ProfilePath);
+            using IRuntimeRegistryKey? profile = RuntimeRegistry.User.OpenSubKey(ProfilePath);
             if (profile == null) return profileDump;
 
             profileDump["root"] = DumpTyped(profile);
             var subs = new Dictionary<string, object>();
             foreach (string tag in profile.GetSubKeyNames())
             {
-                using RegistryKey? langKey = profile.OpenSubKey(tag) ?? throw new InvalidOperationException(ProfilePath + "\\" + tag);
+                using IRuntimeRegistryKey? langKey = profile.OpenSubKey(tag) ?? throw new InvalidOperationException(ProfilePath + "\\" + tag);
                 subs[tag] = DumpTyped(langKey);
             }
             profileDump["subkeys"] = subs;
             return profileDump;
         }
 
-        private static Dictionary<string, object> DumpTyped(RegistryKey key)
+        private static Dictionary<string, object> DumpTyped(IRuntimeRegistryKey key)
         {
             var values = new Dictionary<string, object>();
             foreach (string name in key.GetValueNames())
             {
                 object? value = key.GetValue(name, null, RegistryValueOptions.DoNotExpandEnvironmentNames);
-                if (value != null) values[name] = EncodeValue(value, key.GetValueKind(name));
+                values[name] = EncodeValue(value ?? throw new InvalidOperationException("Registry value disappeared."), key.GetValueKind(name));
             }
             return values;
         }
@@ -1004,14 +1016,14 @@ namespace CyrFlip
             catch { return false; }
         }
 
-        private static void RestoreValues(RegistryKey? key, Dictionary<string, object> snap, string field, RegistryValueKind kind)
+        private static void RestoreValues(IRuntimeRegistryKey? key, Dictionary<string, object> snap, string field, RegistryValueKind kind)
         {
             if (key == null || !(snap.TryGetValue(field, out object? raw) && raw is Dictionary<string, object> map)) return;
             foreach (KeyValuePair<string, object> pair in map)
                 key.SetValue(pair.Key, pair.Value?.ToString() ?? "", kind);
         }
 
-        private static void RestoreProfile(RegistryKey? profile, Dictionary<string, object> snap)
+        private static void RestoreProfile(IRuntimeRegistryKey? profile, Dictionary<string, object> snap)
         {
             if (profile == null || !(snap.TryGetValue("profile", out object? raw) && raw is Dictionary<string, object> p)) return;
 
@@ -1025,7 +1037,7 @@ namespace CyrFlip
                 if (p.TryGetValue("subkeys", out object? typedSubs) && typedSubs is Dictionary<string, object> tags)
                     foreach (KeyValuePair<string, object> lang in tags)
                     {
-                        using RegistryKey? langKey = profile.CreateSubKey(lang.Key);
+                        using IRuntimeRegistryKey? langKey = profile.CreateSubKey(lang.Key);
                         RestoreTyped(langKey, lang.Value);
                     }
                 return;
@@ -1040,7 +1052,7 @@ namespace CyrFlip
                 foreach (KeyValuePair<string, object> lang in subs)
                 {
                     if (!(lang.Value is Dictionary<string, object> values)) continue;
-                    using RegistryKey? langKey = profile.CreateSubKey(lang.Key);
+                    using IRuntimeRegistryKey? langKey = profile.CreateSubKey(lang.Key);
                     if (langKey == null) continue;
                     foreach (KeyValuePair<string, object> v in values)
                     {
@@ -1053,7 +1065,7 @@ namespace CyrFlip
             }
         }
 
-        private static void RestoreTyped(RegistryKey? key, object? values)
+        private static void RestoreTyped(IRuntimeRegistryKey? key, object? values)
         {
             if (key == null || !(values is Dictionary<string, object> map)) return;
             foreach (KeyValuePair<string, object> pair in map)

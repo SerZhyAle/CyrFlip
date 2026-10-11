@@ -123,6 +123,7 @@ namespace CyrFlip
 
         /// <summary>The journal was missing and the notes came back from its <c>.bak</c>. Surfaced once.</summary>
         public bool RecoveredFromBackup { get; private set; }
+        public Exception? ReadFailure { get; private set; }
 
         public string JournalPath => _store.Path;
 
@@ -193,6 +194,7 @@ namespace CyrFlip
                     if (_persisted.Add(note.Id)) QuickNotesOrder.Insert(_notes, note);
                 SkippedRecords = _store.SkippedRecords;
                 RecoveredFromBackup = _store.RecoveredFromBackup;
+                ReadFailure = _store.ReadFailure ?? _replay.Exception?.GetBaseException();
                 IsLoaded = true;
             }
             Loaded?.Invoke(this, EventArgs.Empty);
@@ -504,7 +506,10 @@ namespace CyrFlip
                 }
                 // Every note the batch carried stays unsaved and is retried one by one (QN2-1).
                 if (!written)
+                {
+                    report.NotesUnwritten = records.Count;
                     RetryLater(records.ConvertAll(record => record.Value));
+                }
             }
             if (actions.Count > 0)
             {

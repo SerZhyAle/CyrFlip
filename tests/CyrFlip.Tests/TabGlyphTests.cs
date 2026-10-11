@@ -10,14 +10,17 @@ namespace CyrFlip.Tests
     /// <summary>
     /// The settings tab strip's icons (ticket S0022 A2): the pages that have a vocabulary record draw it,
     /// in the theme's text colour and nothing else (the mono look, ICON-RENDER section 10 C), no two pages
-    /// share a glyph (ICON-SET rule 2), and the list has no slot for the picture nobody used. Every page has
-    /// a record since the catalog took Languages and Conversions in (0.23); no private drawing is left.
+    /// share a glyph (ICON-SET rule 2), and the list has no slot for the picture nobody used. No private drawing
+    /// is left: every destination draws a vocabulary glyph - the selection menu was the last caption-only one
+    /// until its record (<c>feature.selection-menu</c>, asked 2026-10-11) landed.
     /// </summary>
     [Collection(SharedGdiCollection.Name)]
     public class TabGlyphTests
     {
-        private static readonly int[] Kinds = { 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
-        // Every page has a vocabulary record since ICON-SET 0.29 (feature.symbols, app.shortcut-overview).
+        private static readonly int[] Kinds = { 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14 };
+        // Kind 14 is the selection menu: its record (feature.selection-menu) landed on 2026-10-11; before that
+        // the tab drew its caption alone (S0062 D7). Kind 13, the overview page, is gone - it merged into
+        // Hotkeys (kind 2, app.shortcuts).
         private static readonly int[] WithoutARecord = { };
 
         [Fact]
@@ -28,7 +31,7 @@ namespace CyrFlip.Tests
             {
                 "app.settings", "feature.layout-indicator", "app.shortcuts", "feature.clipboard-history", "app.info",
                 "feature.quick-launch", "action.translate", "content.note", "system.screenshot",
-                "system.input-language", "action.convert-layout", "feature.symbols", "app.shortcut-overview",
+                "system.input-language", "action.convert-layout", "feature.symbols", "feature.selection-menu",
             }.OrderBy(i => i), ids.OrderBy(i => i));
             Assert.Equal(ids.Length, ids.Distinct().Count());
             foreach (string id in ids) Assert.True(GlyphRenderer.Has(id), id);

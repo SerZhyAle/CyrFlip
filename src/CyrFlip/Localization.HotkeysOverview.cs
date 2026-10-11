@@ -1,45 +1,27 @@
 namespace CyrFlip
 {
     /// <summary>
-    /// Strings of the "Все комбинации" settings page (ticket S0056): every chord in one list, its state,
-    /// and the reset. Wording follows the existing "Горячие клавиши" page ("hotkeys").
+    /// Strings of the "Горячие клавиши" settings page (tickets S0056 and S0062): the master switch, every chord
+    /// in one list, its state, and the reset. It was the "Все комбинации" page until the old Hotkeys page was
+    /// dissolved into the pages of the features (S0062).
     /// </summary>
     internal static partial class Localization
     {
         private static void AddHotkeysOverviewStrings()
         {
-            Add("Все комбинации",
-                en: "All hotkeys", uk: "Усі комбінації", de: "Alle Tastenkürzel", it: "Tutte le scorciatoie",
-                es: "Todos los atajos", fr: "Tous les raccourcis", pt: "Todos os atalhos",
-                ar: "كل الاختصارات", hi: "सभी शॉर्टकट", bn: "সব শর্টকাট", ur: "تمام شارٹ کٹس", zh: "全部快捷键");
-
-            Add("Все комбинации CyrFlip в одном списке: что делает каждая, действует ли она сейчас и почему нет.",
-                en: "Every CyrFlip hotkey in one list: what each one does, whether it works right now and, if not, why.",
-                uk: "Усі комбінації CyrFlip в одному списку: що робить кожна, чи діє вона зараз і чому ні.",
-                de: "Alle CyrFlip-Tastenkürzel in einer Liste: was jedes tut, ob es gerade wirkt und, wenn nicht, warum.",
-                it: "Tutte le scorciatoie di CyrFlip in un elenco: cosa fa ciascuna, se è attiva ora e, se no, perché.",
-                es: "Todos los atajos de CyrFlip en una lista: qué hace cada uno, si funciona ahora y, si no, por qué.",
-                fr: "Tous les raccourcis de CyrFlip dans une liste : ce que fait chacun, s'il agit en ce moment et, sinon, pourquoi.",
-                pt: "Todos os atalhos do CyrFlip numa lista: o que cada um faz, se está ativo agora e, se não, porquê.",
-                ar: "كل اختصارات CyrFlip في قائمة واحدة: ما يفعله كل منها، وهل يعمل الآن، وإن لم يعمل فلماذا.",
-                hi: "CyrFlip के सभी शॉर्टकट एक सूची में: हर एक क्या करता है, क्या वह अभी काम कर रहा है, और नहीं तो क्यों।",
-                bn: "CyrFlip-এর সব শর্টকাট এক তালিকায়: প্রতিটি কী করে, এখন কাজ করছে কি না, আর না করলে কেন।",
-                ur: "CyrFlip کے تمام شارٹ کٹس ایک فہرست میں: ہر ایک کیا کرتا ہے، آیا ابھی کام کر رہا ہے، اور اگر نہیں تو کیوں۔",
-                zh: "CyrFlip 的全部快捷键集中在一个列表里：各自的作用、此刻是否生效，以及未生效的原因。");
-
-            Add("Тот же выключатель, что на странице «Горячие клавиши»: пока он снят, ни одна комбинация CyrFlip не действует.",
-                en: "The same switch as on the “Hotkeys” page: while it is off, no CyrFlip hotkey works.",
-                uk: "Той самий перемикач, що на сторінці «Гарячі клавіші»: поки його знято, жодна комбінація CyrFlip не діє.",
-                de: "Derselbe Schalter wie auf der Seite „Tastenkürzel“: Ist er aus, wirkt kein CyrFlip-Tastenkürzel.",
-                it: "Lo stesso interruttore della pagina «Scorciatoie»: finché è disattivato, nessuna scorciatoia di CyrFlip funziona.",
-                es: "El mismo interruptor que en la página «Atajos de teclado»: mientras esté apagado, ningún atajo de CyrFlip funciona.",
-                fr: "Le même interrupteur que sur la page « Raccourcis clavier » : tant qu'il est coupé, aucun raccourci de CyrFlip n'agit.",
-                pt: "O mesmo interruptor da página «Atalhos de teclado»: enquanto estiver desligado, nenhum atalho do CyrFlip funciona.",
-                ar: "هو المفتاح نفسه الموجود في صفحة «اختصارات لوحة المفاتيح»: ما دام معطّلًا لا يعمل أي اختصار في CyrFlip.",
-                hi: "वही स्विच जो «शॉर्टकट कुंजियाँ» पृष्ठ पर है: जब तक यह बंद है, CyrFlip का कोई शॉर्टकट काम नहीं करता।",
-                bn: "«শর্টকাট কী» পৃষ্ঠার একই সুইচ: এটি বন্ধ থাকলে CyrFlip-এর কোনো শর্টকাট কাজ করে না।",
-                ur: "وہی سوئچ جو «شارٹ کٹ کیز» صفحے پر ہے: جب تک یہ بند ہے، CyrFlip کا کوئی شارٹ کٹ کام نہیں کرتا۔",
-                zh: "与“快捷键”页面上的开关相同：关闭时，CyrFlip 的任何快捷键都不会生效。");
+            Add("Общий выключатель и полный список сочетаний CyrFlip: что делает каждое, действует ли оно сейчас и почему. Сочетание можно изменить или сбросить здесь; настройки функции остаются на её вкладке.",
+                en: "The master switch and the full list of CyrFlip hotkeys: what each one does, whether it works right now and why. A hotkey can be changed or reset here; the feature's own settings stay on its page.",
+                uk: "Загальний перемикач і повний список комбінацій CyrFlip: що робить кожна, чи діє вона зараз і чому. Комбінацію можна змінити або скинути тут; налаштування функції залишаються на її вкладці.",
+                de: "Der Hauptschalter und die vollständige Liste der CyrFlip-Tastenkürzel: was jedes tut, ob es gerade wirkt und warum. Ein Kürzel lässt sich hier ändern oder zurücksetzen; die übrigen Einstellungen der Funktion bleiben auf ihrer Seite.",
+                it: "L'interruttore generale e l'elenco completo delle scorciatoie di CyrFlip: cosa fa ciascuna, se è attiva ora e perché. Qui puoi cambiare o ripristinare una scorciatoia; le impostazioni della funzione restano nella sua pagina.",
+                es: "El interruptor general y la lista completa de atajos de CyrFlip: qué hace cada uno, si funciona ahora y por qué. Aquí se puede cambiar o restablecer un atajo; los ajustes de la función se quedan en su página.",
+                fr: "L'interrupteur général et la liste complète des raccourcis de CyrFlip : ce que fait chacun, s'il agit en ce moment et pourquoi. Un raccourci peut être modifié ou réinitialisé ici ; les réglages de la fonction restent sur sa page.",
+                pt: "O interruptor geral e a lista completa dos atalhos do CyrFlip: o que cada um faz, se está ativo agora e porquê. Aqui pode alterar ou repor um atalho; as definições da funcionalidade ficam na respetiva página.",
+                ar: "المفتاح العام والقائمة الكاملة لاختصارات CyrFlip: ما يفعله كل منها، وهل يعمل الآن ولماذا. يمكن تغيير الاختصار أو إعادة تعيينه هنا؛ أما إعدادات الميزة فتبقى في صفحتها.",
+                hi: "मुख्य स्विच और CyrFlip के सभी शॉर्टकट की पूरी सूची: हर एक क्या करता है, क्या वह अभी काम कर रहा है और क्यों। शॉर्टकट यहीं बदला या रीसेट किया जा सकता है; सुविधा की अपनी सेटिंग उसके पृष्ठ पर ही रहती हैं।",
+                bn: "মূল সুইচ এবং CyrFlip-এর সব শর্টকাটের পূর্ণ তালিকা: প্রতিটি কী করে, এখন কাজ করছে কি না এবং কেন। শর্টকাট এখানেই বদলানো বা রিসেট করা যায়; ফিচারের নিজস্ব সেটিং তার পৃষ্ঠাতেই থাকে।",
+                ur: "مرکزی سوئچ اور CyrFlip کے تمام شارٹ کٹس کی مکمل فہرست: ہر ایک کیا کرتا ہے، آیا ابھی کام کر رہا ہے اور کیوں۔ شارٹ کٹ یہاں بدلا یا ری سیٹ کیا جا سکتا ہے؛ فیچر کی اپنی سیٹنگز اسی کے صفحے پر رہتی ہیں۔",
+                zh: "总开关和 CyrFlip 全部快捷键的完整列表：各自的作用、此刻是否生效以及原因。可在此更改或重置快捷键；功能本身的设置仍在它自己的页面上。");
 
             Add("Сбросить все...",
                 en: "Reset all...", uk: "Скинути всі...", de: "Alle zurücksetzen...", it: "Ripristina tutte...",
@@ -165,19 +147,19 @@ namespace CyrFlip
                 fr: "Raccourci : {0}", pt: "Atalho: {0}", ar: "الاختصار: {0}", hi: "शॉर्टकट: {0}", bn: "শর্টকাট: {0}",
                 ur: "شارٹ کٹ: {0}", zh: "快捷键：{0}");
 
-            Add("Все комбинации уже такие, как при установке.",
-                en: "All hotkeys are already as they were when installed.",
-                uk: "Усі комбінації вже такі, як після встановлення.",
-                de: "Alle Tastenkürzel sind bereits wie bei der Installation.",
-                it: "Tutte le scorciatoie sono già come all'installazione.",
-                es: "Todos los atajos ya están como en la instalación.",
-                fr: "Tous les raccourcis sont déjà tels qu'à l'installation.",
-                pt: "Todos os atalhos já estão como na instalação.",
-                ar: "جميع الاختصارات هي بالفعل كما كانت عند التثبيت.",
-                hi: "सभी शॉर्टकट पहले से वैसे ही हैं जैसे इंस्टॉल के समय थे।",
-                bn: "সব শর্টকাট ইতিমধ্যে ইনস্টলের সময়ের মতোই আছে।",
-                ur: "تمام شارٹ کٹس پہلے ہی ویسے ہیں جیسے انسٹال کے وقت تھے۔",
-                zh: "所有快捷键已经是安装时的状态。");
+            Add("Горячие клавиши уже такие, как при установке.",
+                en: "Hotkeys are already as they were when installed.",
+                uk: "Гарячі клавіші вже такі, як після встановлення.",
+                de: "Die Tastenkürzel sind bereits wie bei der Installation.",
+                it: "Le scorciatoie sono già come all'installazione.",
+                es: "Los atajos ya están como en la instalación.",
+                fr: "Les raccourcis sont déjà tels qu'à l'installation.",
+                pt: "Os atalhos já estão como na instalação.",
+                ar: "الاختصارات هي بالفعل كما كانت عند التثبيت.",
+                hi: "शॉर्टकट पहले से वैसे ही हैं जैसे इंस्टॉल के समय थे।",
+                bn: "শর্টকাট ইতিমধ্যে ইনস্টলের সময়ের মতোই আছে।",
+                ur: "شارٹ کٹس پہلے ہی ویسے ہیں جیسے انسٹال کے وقت تھے۔",
+                zh: "快捷键已经是安装时的状态。");
 
             Add("Вернуть комбинации к тем, с которыми CyrFlip поставляется?",
                 en: "Put the hotkeys back to what CyrFlip ships with?",

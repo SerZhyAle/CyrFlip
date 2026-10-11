@@ -7,6 +7,7 @@ namespace CyrFlip
     /// <summary>Why a row of a reset was not reset (ticket S0056, R4 and R8).</summary>
     internal enum ChordSkipReason
     {
+        SaveFailed,
         /// <summary>The shipped chord is held by another CyrFlip action.</summary>
         Taken,
         /// <summary>The row changed between the plan and the apply: nothing is applied from a stale plan.</summary>
@@ -209,7 +210,18 @@ namespace CyrFlip
 
                 setChord(step.ToChord);
                 if (step.ToSwitch.HasValue && setSwitch != null) setSwitch(step.ToSwitch.Value);
-                if (scenario != null) saveScenario(scenario);
+                if (scenario != null)
+                {
+                    try { saveScenario(scenario); }
+                    catch (Exception failure)
+                    {
+                        setChord(step.FromChord);
+                        if (setSwitch != null) setSwitch(step.FromSwitch);
+                        result.Skipped.Add(new ChordResetSkip(step.Caption, ChordSkipReason.SaveFailed,
+                            FailureCause.Describe(failure, uiLanguage)));
+                        continue;
+                    }
+                }
                 result.Applied.Add(step);
             }
 

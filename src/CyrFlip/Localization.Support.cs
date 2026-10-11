@@ -186,7 +186,22 @@ namespace CyrFlip
                 ur: "کیرٹ کی تشخیص: ونڈو کلاسز اور پروسیسز - عنوان صرف لمبائی کے طور پر",
                 zh: "光标诊断：窗口类名和进程 - 标题只记录长度");
 
+            Add("аварийные остановки: тип и стек последней ошибки - без текста",
+                en: "fatal stops: the type and stack of the last error - no text",
+                uk: "аварійні зупинки: тип і стек останньої помилки - без тексту",
+                de: "Abstürze: Typ und Stapel des letzten Fehlers - ohne Text",
+                it: "arresti fatali: tipo e stack dell'ultimo errore - senza testo",
+                es: "paradas fatales: tipo y pila del último error - sin texto",
+                fr: "arrêts fatals : type et pile de la dernière erreur - sans texte",
+                pt: "paradas fatais: tipo e pilha do último erro - sem texto",
+                ar: "التوقفات الفادحة: نوع آخر خطأ وتتبّعه - دون نص",
+                hi: "घातक रुकन: अंतिम त्रुटि का प्रकार और स्टैक - कोई पाठ नहीं",
+                bn: "মারাত্মক বন্ধ: শেষ ত্রুটির ধরন ও স্ট্যাক - কোনো লেখা নেই",
+                ur: "مہلک رکاوٹیں: آخری خرابی کی قسم اور اسٹیک - کوئی متن نہیں",
+                zh: "致命停止：最后一次错误的类型和堆栈 - 不含文本");
+
             Add("код текущей раскладки",
+
                 en: "the current layout's code", uk: "код поточної розкладки",
                 de: "Kürzel des aktuellen Layouts", it: "codice del layout attuale",
                 es: "código de la distribución actual", fr: "code de la disposition actuelle",

@@ -415,6 +415,9 @@ namespace CyrFlip.Tests
             using (QuickNotesService notes = Notes("notes.log"))
             using (ClipboardHistoryService history = History("history"))
             {
+                // The replay is lazy now (S0064 H-5): a start with the history off reads no journal,
+                // so reading the entries starts it - as the manager window and the export do in the app.
+                history.EnsureReplayed();
                 Assert.Contains(notes.Notes, n => n.RawText == Hostile && n.CreatedAtUtc == Created);
                 Assert.Contains(history.Entries, e => e.Text == "b" && e.IsPinned);
                 // An export of what was imported is the same file again.
@@ -467,6 +470,86 @@ namespace CyrFlip.Tests
             SynchronizationContext.SetSynchronizationContext(null);
             try { return new ClipboardHistoryService(enabled: false, paused: false, Path.Combine(_root, name), new FakeCipher()); }
             finally { SynchronizationContext.SetSynchronizationContext(previous); }
+        }
+
+        // ---- The export caps (S0066 L-9 / LK-3b-07) ----
+
+        /// <summary>
+        /// "History: All" used to write a file the same program refuses to read back: the importer
+        /// stops at 10 000 objects and at 25 MB, the writer had no cap at all. The export is trimmed
+        /// to what the importer accepts before the file is written, and what survives must actually
+        /// import - never offer an export our reader would refuse.
+        /// </summary>
+        [Fact]
+        public void AnExportOverTheImportCapsIsTrimmedToWhatTheReaderAccepts()
+        {
+            var entries = new List<ClipboardHistoryEntry>();
+            for (int i = 0; i < CyrFlipExchange.MaxObjects + 500; i++)
+                entries.Add(Entry("entry " + i + " of an oversized history", at: Now.AddMinutes(-i)));
+
+            List<ClipboardHistoryEntry> selected =
+                CyrFlipExchangeWriter.SelectHistory(entries, pinned: false, rest: true, ExchangeHistoryScope.All, Now);
+            Assert.Equal(CyrFlipExchange.MaxObjects + 500, selected.Count);   // the selection alone is honest
+
+            int trimmed = CyrFlipExchangeWriter.TrimToImportCaps(notes: null, history: selected);
+
+            Assert.True(trimmed > 0);
+            Assert.InRange(selected.Count, 1, CyrFlipExchange.MaxObjects);
+            Assert.True(CyrFlipExchangeWriter.EstimateBytes(null, selected) <= CyrFlipExchange.MaxFileBytes,
+                "the estimate that drove the trim is within the reader's file cap");
+
+            // The oldest went first, the newest stayed: the file reads as the recent history.
+            Assert.Equal(CyrFlipExchange.HistoryId("entry 0 of an oversized history"), selected[0].Uuid);
+
+            string file = CyrFlipExchangeWriter.ToText(Now, null, selected);
+            Assert.True(Encoding.UTF8.GetByteCount(file) <= CyrFlipExchange.MaxFileBytes,
+                "the written file is within the reader's own size cap");
+            ExchangeReadResult read = CyrFlipExchangeReader.Parse(file);
+            Assert.NotEqual(ExchangeProblemKind.FileTooLarge, read.Fatal);
+            Assert.Equal(selected.Count, read.ValidBlocks);
+        }
+
+        /// <summary>
+        /// The same cap by bytes: a smaller history of huge entries is trimmed for its size, not its
+        /// count, and the estimate the trim uses is an upper bound of the real file - the direction
+        /// that errs on the side of the reader.
+        /// </summary>
+        [Fact]
+        public void AHugeHistoryIsTrimmedByBytesAndTheEstimateIsAnUpperBound()
+        {
+            var entries = new List<ClipboardHistoryEntry>();
+            string chunk = new string('x', 8 * 1024);   // 8 KB per entry: ~4 000 entries to pass 25 MB
+            for (int i = 0; i < 4000; i++)
+                entries.Add(Entry(chunk + " " + i, at: Now.AddMinutes(-i)));
+
+            List<ClipboardHistoryEntry> selected =
+                CyrFlipExchangeWriter.SelectHistory(entries, pinned: false, rest: true, ExchangeHistoryScope.All, Now);
+            int trimmed = CyrFlipExchangeWriter.TrimToImportCaps(notes: null, history: selected);
+
+            Assert.True(trimmed > 0);
+            Assert.True(selected.Count <= CyrFlipExchange.MaxObjects);
+            string file = CyrFlipExchangeWriter.ToText(Now, null, selected);
+            Assert.True(Encoding.UTF8.GetByteCount(file) <= CyrFlipExchange.MaxFileBytes);
+            Assert.True(CyrFlipExchangeWriter.EstimateBytes(null, selected) >= Encoding.UTF8.GetByteCount(file),
+                "the estimate never understates the file");
+        }
+
+        /// <summary>
+        /// A history inside both caps is trimmed by nothing - the caps are a bound on the exporter,
+        /// not a new, smaller default.
+        /// </summary>
+        [Fact]
+        public void AHistoryWithinTheCapsIsTrimmedByNothing()
+        {
+            var entries = new List<ClipboardHistoryEntry>();
+            for (int i = 0; i < 100; i++)
+                entries.Add(Entry("entry " + i, at: Now.AddMinutes(-i)));
+
+            List<ClipboardHistoryEntry> selected =
+                CyrFlipExchangeWriter.SelectHistory(entries, pinned: false, rest: true, ExchangeHistoryScope.All, Now);
+
+            Assert.Equal(0, CyrFlipExchangeWriter.TrimToImportCaps(notes: null, history: selected));
+            Assert.Equal(100, selected.Count);
         }
     }
 }

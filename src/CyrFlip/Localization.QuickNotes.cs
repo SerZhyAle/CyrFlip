@@ -10,6 +10,48 @@ namespace CyrFlip
     {
         private static void AddQuickNotesStrings()
         {
+            Add("Не удалось прочитать журнал быстрых заметок. Запись отключена до перезапуска.",
+                en: "Could not read the quick notes journal. Saving is disabled until restart.",
+                uk: "Не вдалося прочитати журнал швидких нотаток. Запис вимкнено до перезапуску.",
+                de: "Das Schnellnotizen-Journal konnte nicht gelesen werden. Speichern ist bis zum Neustart deaktiviert.",
+                it: "Impossibile leggere il registro delle note rapide. Il salvataggio è disattivato fino al riavvio.",
+                es: "No se pudo leer el registro de notas rápidas. El guardado está desactivado hasta reiniciar.",
+                fr: "Impossible de lire le journal des notes rapides. L’enregistrement est désactivé jusqu’au redémarrage.",
+                pt: "Não foi possível ler o registo de notas rápidas. A gravação está desativada até reiniciar.",
+                ar: "تعذرت قراءة سجل الملاحظات السريعة. الحفظ معطل حتى إعادة التشغيل.",
+                hi: "त्वरित नोट्स का जर्नल पढ़ा नहीं जा सका। पुनः आरंभ करने तक सहेजना बंद है।",
+                bn: "দ্রুত নোটের জার্নাল পড়া যায়নি। পুনরায় চালু করা পর্যন্ত সংরক্ষণ বন্ধ আছে।",
+                ur: "فوری نوٹس کا جرنل پڑھا نہیں جا سکا۔ دوبارہ شروع کرنے تک محفوظ کرنا بند ہے۔",
+                zh: "无法读取快速笔记日志。保存功能已停用，直到重新启动。");
+
+            Add("Заметок ещё не записано на диск: {0}. Они будут дописаны, пока CyrFlip работает.",
+                en: "Notes not yet saved to disk: {0}. CyrFlip will retry while it is running.",
+                uk: "Нотаток ще не записано на диск: {0}. CyrFlip повторюватиме запис, поки працює.",
+                de: "Noch nicht gespeicherte Notizen: {0}. CyrFlip versucht es erneut, solange es läuft.",
+                it: "Note non ancora salvate su disco: {0}. CyrFlip riproverà finché è in esecuzione.",
+                es: "Notas aún no guardadas en disco: {0}. CyrFlip lo reintentará mientras esté abierto.",
+                fr: "Notes pas encore enregistrées sur le disque : {0}. CyrFlip réessaiera tant qu’il fonctionne.",
+                pt: "Notas ainda não gravadas no disco: {0}. O CyrFlip tentará novamente enquanto estiver em execução.",
+                ar: "ملاحظات لم تُحفظ على القرص بعد: {0}. سيعيد CyrFlip المحاولة أثناء تشغيله.",
+                hi: "अभी डिस्क पर नहीं सहेजे गए नोट्स: {0}। CyrFlip चलते रहने तक फिर कोशिश करेगा।",
+                bn: "এখনও ডিস্কে সংরক্ষিত নয় এমন নোট: {0}। CyrFlip চালু থাকা অবস্থায় আবার চেষ্টা করবে।",
+                ur: "ابھی تک ڈسک پر محفوظ نہ ہونے والے نوٹس: {0}۔ CyrFlip چلتے رہنے تک دوبارہ کوشش کرے گا۔",
+                zh: "尚未保存到磁盘的笔记：{0}。CyrFlip 将在运行期间重试。");
+
+            Add("Не удалось скопировать текст в буфер обмена. Повторите.",
+                en: "Could not copy the text to the clipboard. Try again.",
+                uk: "Не вдалося скопіювати текст до буфера обміну. Повторіть.",
+                de: "Der Text konnte nicht in die Zwischenablage kopiert werden. Versuchen Sie es erneut.",
+                it: "Impossibile copiare il testo negli appunti. Riprova.",
+                es: "No se pudo copiar el texto al portapapeles. Inténtalo de nuevo.",
+                fr: "Impossible de copier le texte dans le presse-papiers. Réessayez.",
+                pt: "Não foi possível copiar o texto para a área de transferência. Tente novamente.",
+                ar: "تعذر نسخ النص إلى الحافظة. حاول مرة أخرى.",
+                hi: "टेक्स्ट क्लिपबोर्ड पर कॉपी नहीं हो सका। फिर कोशिश करें।",
+                bn: "লেখা ক্লিপবোর্ডে কপি করা যায়নি। আবার চেষ্টা করুন।",
+                ur: "متن کلپ بورڈ پر کاپی نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+                zh: "无法将文本复制到剪贴板。请重试。");
+
             Add("Быстрые заметки",
                 en: "Quick notes", uk: "Швидкі нотатки", de: "Schnellnotizen", it: "Note rapide",
                 es: "Notas rápidas", fr: "Notes rapides", pt: "Notas rápidas",

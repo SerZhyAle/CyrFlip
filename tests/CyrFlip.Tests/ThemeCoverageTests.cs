@@ -215,7 +215,8 @@ namespace CyrFlip.Tests
 
         // ---- The windows ----
 
-        private IEnumerable<(string, Func<Form>)> Windows()
+        // internal: WindowLifetimeTests (S0061 LK) builds the very same set of windows.
+        internal IEnumerable<(string, Func<Form>)> Windows()
         {
             var layouts = new List<InputLayouts.Installed>
             {
@@ -302,9 +303,20 @@ namespace CyrFlip.Tests
 
         // By what a colour is for, not merely by value: the dark text colour is exactly the light "control"
         // grey, and dark ink is exactly black - a check by value alone would pass an unthemed window.
-        private static readonly HashSet<int> DarkBackColors = Values(ThemeRole.SurfaceWindow, ThemeRole.SurfaceRaised,
+        private static readonly HashSet<int> DarkBackColors = WithAnswerFaces(Values(ThemeRole.SurfaceWindow, ThemeRole.SurfaceRaised,
             ThemeRole.SurfaceSunken, ThemeRole.SurfaceSelected, ThemeRole.SurfaceAlternate, ThemeRole.Control,
-            ThemeRole.ControlHover, ThemeRole.ControlPressed, ThemeRole.Danger, ThemeRole.Accent);
+            ThemeRole.ControlHover, ThemeRole.ControlPressed, ThemeRole.Danger, ThemeRole.Accent));
+
+        // A dialog's affirmative / dismissing answer is the control face tinted with its hue (WINDOWS-UI
+        // section 11 item 4): derived from the palette's own roles and the shared answer hue, never a literal.
+        private static HashSet<int> WithAnswerFaces(HashSet<int> colors)
+        {
+            ThemePalette dark = ThemePalette.Dark;
+            foreach (AnswerHue hue in new[] { AnswerHue.Ok, AnswerHue.Error })
+                foreach (Color face in new[] { dark.Control, dark.ControlHover, dark.ControlPressed })
+                    colors.Add(ThemePalette.AnswerInk.Face(face, hue, dark).ToArgb());
+            return colors;
+        }
         private static readonly HashSet<int> DarkForeColors = Values(ThemeRole.TextPrimary, ThemeRole.TextMuted,
             ThemeRole.TextDisabled, ThemeRole.Accent, ThemeRole.AccentInk, ThemeRole.Link, ThemeRole.Info,
             ThemeRole.Warning, ThemeRole.Danger, ThemeRole.Success);

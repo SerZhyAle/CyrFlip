@@ -32,6 +32,19 @@ namespace CyrFlip.Tests
 
         private const string OneRow = "[{\"Id\":\"a\",\"SourceKlid\":\"00000409\",\"TargetKlid\":\"00000419\",\"Hotkey\":\"Ctrl+Shift+F12\",\"Enabled\":true}]";
 
+        /// <summary>
+        /// S0065 E-9: Save answers. A registry the config could not even open (policy-denied,
+        /// redirected %LOCALAPPDATA% of the ER-5 feed) marks the whole file unreadable, and Save then
+        /// refuses without touching it - the old void Save swallowed that, so no setting change
+        /// could ever fail visibly.
+        /// </summary>
+        [Fact]
+        public void SaveAnswersFalseWhenTheRegistryRefusedToOpen()
+        {
+            AppConfig cfg = AppConfig.Load(() => throw new UnauthorizedAccessException());
+            Assert.False(cfg.Save());
+        }
+
         [Fact]
         public void AValueOfTheWrongKindDoesNotCostTheValuesAfterIt()
         {
@@ -194,12 +207,12 @@ namespace CyrFlip.Tests
         public void TheScreenshotsFolderChordDefaultsRoundTripsAndFallsBackAlone()
         {
             Assert.Equal(AppConfig.DefaultScreenshotFolderHotkey, new AppConfig().ScreenshotFolderHotkey);
-            Assert.Equal("Ctrl+Shift+Alt+PrintScreen", AppConfig.DefaultScreenshotFolderHotkey);
+            Assert.Equal("Ctrl+Shift+PrintScreen", AppConfig.DefaultScreenshotFolderHotkey);
             Assert.True(new AppConfig().EnableScreenshotFolderHotkey);
 
             // A non-canonical token comes back canonical and is written back that way (rule 2).
             var key = new FakeKey();
-            key.Values["ScreenshotFolderHotkey"] = "control + shift + alt + printscreen";
+            key.Values["ScreenshotFolderHotkey"] = "control + shift + printscreen";
             key.Values["EnableScreenshotFolderHotkey"] = 0;
             AppConfig cfg = Load(key);
             Assert.Equal(AppConfig.DefaultScreenshotFolderHotkey, cfg.ScreenshotFolderHotkey);

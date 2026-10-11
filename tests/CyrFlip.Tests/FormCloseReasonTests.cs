@@ -11,10 +11,15 @@ using Xunit;
 namespace CyrFlip.Tests
 {
     /// <summary>
-    /// The three "close means hide" windows must turn only a <b>user</b> close into a hide. They used to
-    /// cancel every close: a hidden window still answers <c>WM_QUERYENDSESSION</c>, so opening Settings
-    /// once was enough to make CyrFlip veto a Windows sign-out, and the fatal-error path's
-    /// <c>Application.Exit()</c> was cancelled by the same handler (spec S0003 LC-1).
+    /// The three "close means hide" windows turn a close that means "this window gone for now" into
+    /// a hide: the user's own close, and - since S0065 E-13 - a <b>bare program-sent
+    /// <c>WM_CLOSE</c></b> (a window manager, <c>taskkill</c> without <c>/F</c>, the Restart Manager),
+    /// which Windows reports as <see cref="CloseReason.TaskManagerClosing"/> and which used to
+    /// dispose the window, ending the app on its next open. A session end
+    /// (<c>WM_QUERYENDSESSION</c>) and the fatal path's <c>Application.Exit()</c> are still let
+    /// through: opening Settings once must never make CyrFlip veto a Windows sign-out
+    /// (spec S0003 LC-1), and a cancelled exit left the app running after telling the user it
+    /// would close.
     /// </summary>
     [Collection(SharedGdiCollection.Name)]   // builds the real settings window - see SharedGdiCollection
     public class FormCloseReasonTests
@@ -25,30 +30,54 @@ namespace CyrFlip.Tests
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
         [Fact]
-        public void Intercept_cancels_only_a_user_close()
+        public void Intercept_hides_on_a_user_close_and_a_bare_program_close()
         {
             foreach (CloseReason reason in Enum.GetValues(typeof(CloseReason)))
             {
                 var e = new FormClosingEventArgs(reason, false);
                 bool hide = CloseToHide.Intercept(e);
-                bool user = reason == CloseReason.UserClosing;
-                Assert.Equal(user, hide);
-                Assert.Equal(user, e.Cancel);
+                // S0065 E-13: TaskManagerClosing is what a bare WM_CLOSE from another program
+                // arrives as; on these tray windows it is a hide like the user's own close.
+                bool gone = reason == CloseReason.UserClosing || reason == CloseReason.TaskManagerClosing;
+                Assert.Equal(gone, hide);
+                Assert.Equal(gone, e.Cancel);
             }
         }
+
+        /// <summary>
+        /// The reproduced E-13 fault: a bare WM_CLOSE used to dispose the Settings window, and the
+        /// next open from the tray or the pipe threw ObjectDisposedException into the fatal path.
+        /// The window must be hidden, alive, and openable again.
+        /// </summary>
+        [Fact]
+        public void A_bare_WmClose_hides_the_settings_window_instead_of_disposing_it() => OnUiThread(() =>
+        {
+            Form form = BuildSettings();
+            try
+            {
+                form.Show();
+                SendMessage(form.Handle, 0x0010, IntPtr.Zero, IntPtr.Zero); // WM_CLOSE
+                Assert.False(form.Visible, "the bare close left the settings window visible");
+                Assert.False(form.IsDisposed, "the bare close disposed the settings window");
+
+                form.Show(); // what ShowSettings does next - the window must still open
+                Assert.True(form.Visible, "the window could not be shown again after a bare close");
+            }
+            finally { form.Dispose(); }
+        });
 
         [Fact]
         public void Settings_window_lets_windows_end_the_session() => OnUiThread(() =>
         {
             Form form = BuildSettings();
-            try { AssertClosesOnlyByUser(form); } finally { form.Dispose(); }
+            try { AssertHidesOnUserCloseAndLetsTheSessionEnd(form); } finally { form.Dispose(); }
         });
 
         [Fact]
         public void Translation_window_lets_windows_end_the_session() => OnUiThread(() =>
         {
             using var form = new TranslationResultWindow(new AppConfig(), "English");
-            AssertClosesOnlyByUser(form);
+            AssertHidesOnUserCloseAndLetsTheSessionEnd(form);
         });
 
         [Fact]
@@ -60,7 +89,7 @@ namespace CyrFlip.Tests
             try
             {
                 using var form = new ClipboardHistoryWindow(service, new AppConfig(), () => { });
-                AssertClosesOnlyByUser(form);
+                AssertHidesOnUserCloseAndLetsTheSessionEnd(form);
             }
             finally
             {
@@ -69,7 +98,7 @@ namespace CyrFlip.Tests
             }
         });
 
-        private static void AssertClosesOnlyByUser(Form form)
+        private static void AssertHidesOnUserCloseAndLetsTheSessionEnd(Form form)
         {
             // The shape of a sign-out: the window has a handle, is hidden, and Windows asks it.
             IntPtr handle = form.Handle;

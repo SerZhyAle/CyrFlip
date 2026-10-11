@@ -5,25 +5,17 @@ namespace CyrFlip
     {
         private static void AddHotkeyStrings()
         {
+            // S0062: the group on top of the merged page - the master switch and the RDP option.
+            Add("Общие выключатели",
+                en: "Main switches", uk: "Загальні перемикачі", de: "Allgemeine Schalter", it: "Interruttori generali",
+                es: "Interruptores generales", fr: "Interrupteurs généraux", pt: "Interruptores gerais",
+                ar: "المفاتيح العامة", hi: "सामान्य स्विच", bn: "সাধারণ সুইচ", ur: "عمومی سوئچ", zh: "总开关");
+
             Add("Горячие клавиши",
                 en: "Hotkeys", uk: "Гарячі клавіші", de: "Tastenkürzel", it: "Scorciatoie",
                 es: "Atajos de teclado", fr: "Raccourcis clavier", pt: "Atalhos de teclado",
                 ar: "اختصارات لوحة المفاتيح", hi: "शॉर्टकट कुंजियाँ", bn: "শর্টকাট কী",
                 ur: "شارٹ کٹ کیز", zh: "快捷键");
-
-            Add("Комбинации работают глобально, пока CyrFlip запущен в вашем сеансе Windows. Каждый хоткей можно включить или отключить отдельно.",
-                en: "These shortcuts work globally while CyrFlip runs in your Windows session. Each hotkey can be enabled or disabled independently.",
-                uk: "Ці комбінації працюють глобально, поки CyrFlip запущений у вашому сеансі Windows. Кожну гарячу клавішу можна ввімкнути чи вимкнути окремо.",
-                de: "Diese Tastenkürzel gelten systemweit, solange CyrFlip in Ihrer Windows-Sitzung läuft. Jedes Kürzel lässt sich einzeln ein- oder ausschalten.",
-                it: "Queste scorciatoie valgono a livello di sistema finché CyrFlip è in esecuzione nella tua sessione di Windows. Ogni scorciatoia può essere attivata o disattivata singolarmente.",
-                es: "Estos atajos funcionan de forma global mientras CyrFlip se ejecuta en tu sesión de Windows. Cada atajo se puede activar o desactivar por separado.",
-                fr: "Ces raccourcis fonctionnent globalement tant que CyrFlip s'exécute dans votre session Windows. Chaque raccourci peut être activé ou désactivé séparément.",
-                pt: "Estes atalhos funcionam globalmente enquanto o CyrFlip estiver em execução na sua sessão do Windows. Cada atalho pode ser ativado ou desativado separadamente.",
-                ar: "تعمل هذه الاختصارات على مستوى النظام ما دام CyrFlip يعمل في جلسة Windows الخاصة بك. ويمكن تفعيل كل اختصار أو تعطيله على حدة.",
-                hi: "जब तक CyrFlip आपके Windows सत्र में चल रहा है, ये शॉर्टकट पूरे सिस्टम में काम करते हैं। हर शॉर्टकट अलग-अलग चालू या बंद किया जा सकता है।",
-                bn: "আপনার Windows সেশনে CyrFlip চালু থাকা পর্যন্ত এই শর্টকাটগুলি সিস্টেমজুড়ে কাজ করে। প্রতিটি শর্টকাট আলাদাভাবে চালু বা বন্ধ করা যায়।",
-                ur: "جب تک CyrFlip آپ کے Windows سیشن میں چل رہا ہے، یہ شارٹ کٹس پورے سسٹم میں کام کرتے ہیں۔ ہر شارٹ کٹ الگ سے آن یا آف کیا جا سکتا ہے۔",
-                zh: "只要 CyrFlip 在你的 Windows 会话中运行，这些快捷键就全局有效。每个快捷键都可以单独启用或禁用。");
 
             // The hook watchdog's only voice: Windows drops a low-level hook that overran its
             // timeout and tells nobody, so a re-arm that keeps failing is the one thing the user has
@@ -131,20 +123,6 @@ namespace CyrFlip
                 bn: "রিমোট ডেস্কটপ ক্লায়েন্টের (mstsc/msrdc) উইন্ডো সক্রিয় থাকলে CyrFlip শর্টকাট আটকায় না — কী রিমোট সেশনে চলে যায়, যেখানে সেই মেশিনের CyrFlip তা সামলায়। RDP সংযোগের দুই প্রান্তেই অ্যাপ চললে এটি চালু করুন।",
                 ur: "جب ریموٹ ڈیسک ٹاپ کلائنٹ (mstsc/msrdc) کی ونڈو فوکس میں ہو تو CyrFlip شارٹ کٹس نہیں روکتا — کی ریموٹ سیشن تک جاتی ہے جہاں وہاں کا CyrFlip اسے سنبھالتا ہے۔ اگر ایپ RDP کنکشن کے دونوں سروں پر چل رہی ہو تو یہ آن کریں۔",
                 zh: "当远程桌面客户端窗口（mstsc/msrdc）处于前台时，CyrFlip 不拦截快捷键——按键会传到远程会话，由那台机器上的 CyrFlip 处理。如果两端都运行本程序，请启用此项。");
-
-            Add("Здесь только эти два хоткея. Все комбинации, которые конвертируют текст из одной раскладки в другую — включая EN ⇄ RU на Ctrl+Shift+F12 — живут одной таблицей на вкладке «Конвертация раскладок».",
-                en: "Only these two hotkeys live here. Every combination that converts text from one layout into another — EN ⇄ RU on Ctrl+Shift+F12 included — lives in a single table on the «Layout conversions» tab.",
-                uk: "Тут лише ці два хоткеї. Усі сполучення, що перетворюють текст з однієї розкладки в іншу — разом із EN ⇄ RU на Ctrl+Shift+F12 — зібрані в одну таблицю на вкладці «Перетворення розкладок».",
-                de: "Hier stehen nur diese beiden Kürzel. Alle Kombinationen, die Text von einem Layout in ein anderes umwandeln — auch EN ⇄ RU auf Strg+Umschalt+F12 — stehen gemeinsam in einer Tabelle auf der Registerkarte «Layout-Umwandlung».",
-                it: "Qui ci sono solo queste due scorciatoie. Tutte le combinazioni che convertono il testo da un layout a un altro — compresa EN ⇄ RU su Ctrl+Maiusc+F12 — stanno in un'unica tabella nella scheda «Conversione layout».",
-                es: "Aquí solo están estos dos atajos. Todas las combinaciones que convierten texto de una distribución a otra — incluida EN ⇄ RU en Ctrl+Mayús+F12 — están en una sola tabla en la pestaña «Conversión de distribuciones».",
-                fr: "Seuls ces deux raccourcis se trouvent ici. Toutes les combinaisons qui convertissent du texte d'une disposition vers une autre — y compris EN ⇄ RU sur Ctrl+Maj+F12 — sont réunies dans un seul tableau, dans l'onglet «Conversion de dispositions».",
-                pt: "Aqui ficam só estes dois atalhos. Todas as combinações que convertem texto de um layout para outro — inclusive EN ⇄ RU em Ctrl+Shift+F12 — ficam em uma única tabela na aba «Conversão de layouts».",
-                ar: "لا يوجد هنا سوى هذين الاختصارين. أما كل التركيبات التي تحوّل النص من تخطيط إلى آخر — بما فيها EN ⇄ RU على Ctrl+Shift+F12 — فتوجد في جدول واحد ضمن تبويب «تحويل التخطيطات».",
-                hi: "यहाँ केवल ये दो शॉर्टकट हैं। पाठ को एक लेआउट से दूसरे में बदलने वाले सभी संयोजन — Ctrl+Shift+F12 पर EN ⇄ RU सहित — «लेआउट रूपांतरण» टैब की एक ही तालिका में रहते हैं।",
-                bn: "এখানে কেবল এই দুটি শর্টকাট। এক লেআউট থেকে অন্য লেআউটে লেখা রূপান্তর করে এমন সব সংমিশ্রণ — Ctrl+Shift+F12-এ EN ⇄ RU সহ — «লেআউট রূপান্তর» ট্যাবের একটিমাত্র টেবিলে থাকে।",
-                ur: "یہاں صرف یہی دو شارٹ کٹس ہیں۔ متن کو ایک لے آؤٹ سے دوسرے میں بدلنے والے تمام مجموعے — بشمول Ctrl+Shift+F12 پر EN ⇄ RU — «لے آؤٹ تبدیلی» ٹیب کی ایک ہی فہرست میں ہوتے ہیں۔",
-                zh: "这里只有这两个快捷键。所有把文本从一种布局转换成另一种布局的组合键——包括 Ctrl+Shift+F12 上的 EN ⇄ RU——都集中在《布局转换》选项卡的同一张表里。");
 
             Add("Изменить...",
                 en: "Change...", uk: "Змінити...", de: "Ändern...", it: "Modifica...", es: "Cambiar...",

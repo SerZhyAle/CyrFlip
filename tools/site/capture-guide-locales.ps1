@@ -6,6 +6,10 @@ Import-Module (Join-Path $PSScriptRoot '../uitest/CyrFlip.UiTest.psm1') -Force
 $key = 'HKCU:\Software\CyrFlip'
 $originalLanguage = (Get-ItemProperty $key -Name UiLanguage -ErrorAction SilentlyContinue).UiLanguage
 $originalTab = (Get-ItemProperty $key -Name SettingsTab -ErrorAction SilentlyContinue).SettingsTab
+$originalPage = (Get-ItemProperty $key -Name SettingsPageId -ErrorAction SilentlyContinue).SettingsPageId
+# S0062: the window opens on the stored page KEY when there is one, and only then on the index - so both are
+# written. The three guide shots are General, Indicators and the text-correction page (the old conversions page).
+$pageKeys = @{ 0 = 'General'; 1 = 'Indicators'; 3 = 'Conversions' }
 $originalProcess = Get-Process CyrFlip -ErrorAction SilentlyContinue | Select-Object -First 1
 $originalExe = if ($originalProcess) { $originalProcess.Path } else { $null }
 $exe = if ($originalExe) { $originalExe } else { Get-CyrFlipExe -Configuration Release }
@@ -21,6 +25,7 @@ try {
         foreach ($tab in @(0, 1, 3)) {
             Stop-CyrFlipApp
             New-ItemProperty $key -Name SettingsTab -Value $tab -PropertyType DWord -Force | Out-Null
+            New-ItemProperty $key -Name SettingsPageId -Value $pageKeys[$tab] -PropertyType String -Force | Out-Null
             Start-Process -FilePath $exe -ArgumentList '/launcher-settings' -WindowStyle Hidden
             $window = Wait-AppWindow -MinWidth 800 -TimeoutSeconds 20
             if (-not $window) { throw "Settings window did not open for $($language.Code), tab $tab" }
@@ -37,5 +42,7 @@ finally {
     else { New-ItemProperty $key -Name UiLanguage -Value $originalLanguage -PropertyType String -Force | Out-Null }
     if ($null -eq $originalTab) { Remove-ItemProperty $key -Name SettingsTab -ErrorAction SilentlyContinue }
     else { New-ItemProperty $key -Name SettingsTab -Value $originalTab -PropertyType DWord -Force | Out-Null }
+    if ($null -eq $originalPage) { Remove-ItemProperty $key -Name SettingsPageId -ErrorAction SilentlyContinue }
+    else { New-ItemProperty $key -Name SettingsPageId -Value $originalPage -PropertyType String -Force | Out-Null }
     if ($originalExe) { Start-Process -FilePath $originalExe -WindowStyle Hidden }
 }

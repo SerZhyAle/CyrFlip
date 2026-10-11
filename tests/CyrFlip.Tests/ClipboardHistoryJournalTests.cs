@@ -455,5 +455,47 @@ namespace CyrFlip.Tests
 
             Assert.StartsWith("\n{", File.ReadAllText(_path));
         }
+
+        /// <summary>
+        /// S0066 L-8 (LK-3b-05): a delete rewrites the whole journal and decrypts every line - seconds
+        /// of work at 10^5 entries, and the erase is what the strip's "x" asked for. The rewrite has
+        /// always run on the writer thread; the progress state is what tells the caller (and the
+        /// SC22 rig, which times a delete at 10^4 / 10^5 entries) that it started, that it is over,
+        /// and that neither ever happened on the calling thread.
+        /// </summary>
+        [Fact]
+        public void AnEraseReportsItsProgressOnTheWriterThread()
+        {
+            using (var journal = Journal())
+            {
+                for (int i = 0; i < 5; i++)
+                    journal.Append(ClipboardHistoryJournal.Record.Of("add", Entry("E" + i, 100 + i)));
+
+                int started = 0, finished = 0;
+                var threads = new List<int>();
+                journal.EraseStarted += () => { threads.Add(Thread.CurrentThread.ManagedThreadId); started++; };
+                journal.EraseFinished += () => { threads.Add(Thread.CurrentThread.ManagedThreadId); finished++; };
+
+                journal.Append(ClipboardHistoryJournal.Record.Of("delete", Entry("E2", 102)));
+
+                Assert.True(SpinUntil(() => finished == 1, 5000), "the erase never finished");
+                Assert.True(journal.Drain(TimeSpan.FromSeconds(2)));
+                Assert.Equal(1, started);
+                Assert.False(journal.Erasing);
+                Assert.All(threads, id => Assert.NotEqual(Thread.CurrentThread.ManagedThreadId, id));
+            }
+        }
+
+        private static bool SpinUntil(Func<bool> condition, int timeoutMs)
+        {
+            int waited = 0;
+            while (!condition())
+            {
+                if (waited >= timeoutMs) return false;
+                Thread.Sleep(20);
+                waited += 20;
+            }
+            return true;
+        }
     }
 }

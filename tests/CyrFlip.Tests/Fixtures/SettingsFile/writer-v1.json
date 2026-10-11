@@ -46,9 +46,9 @@
     "QuickNotesWordWrap": false,
     "ExchangeNotesWarningOff": false,
     "EnableScreenshotHotkey": true,
-    "ScreenshotHotkey": "Ctrl+Shift+PrintScreen",
+    "ScreenshotHotkey": "Ctrl+PrintScreen",
     "EnableScreenshotFolderHotkey": true,
-    "ScreenshotFolderHotkey": "Ctrl+Shift+Alt+PrintScreen",
+    "ScreenshotFolderHotkey": "Ctrl+Shift+PrintScreen",
     "ScreenshotSaveEnabled": false
   },
   "tables": {

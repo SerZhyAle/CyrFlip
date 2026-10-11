@@ -70,18 +70,30 @@ namespace CyrFlip
         public LauncherScenario? Find(Guid id) => _items.Find(s => s.Id == id);
 
         /// <summary>Re-read every XML in the folder. Corrupt files land in <see cref="LoadErrors"/>.</summary>
+        internal Func<string, string[]> ListScenarioFiles = folder => Directory.GetFiles(folder, "*.xml");
+
         public void Reload()
         {
             Version++;
-            _items.Clear();
             LoadErrors.Clear();
             if (!Directory.Exists(_folder))
+            {
+                _items.Clear();
                 return;
+            }
 
             if (!_readOnly) DeleteStaleTempFiles();
 
             // Sorted, so "which of two same-Id files keeps the Id" is the same answer on every load.
-            string[] files = Directory.GetFiles(_folder, "*.xml");
+            string[] files;
+            try { files = ListScenarioFiles(_folder); }
+            catch (Exception ex)
+            {
+                LoadErrors.Add(Path.GetFileName(_folder));
+                LauncherLog.Log("Store: listing failed: " + ex.GetType().Name);
+                return;
+            }
+            _items.Clear();
             Array.Sort(files, StringComparer.OrdinalIgnoreCase);
 
             var seen = new HashSet<Guid>();
@@ -161,7 +173,7 @@ namespace CyrFlip
             {
                 var serializer = new XmlSerializer(typeof(LauncherScenario));
                 using FileStream stream = File.OpenRead(file);
-                using XmlReader reader = XmlReader.Create(stream);
+                using XmlReader reader = XmlReader.Create(stream, new XmlReaderSettings { CheckCharacters = false });
                 reader.MoveToContent();
                 CheckRoot(reader);
                 var item = (LauncherScenario?)serializer.Deserialize(reader);
@@ -198,25 +210,29 @@ namespace CyrFlip
         }
 
         /// <summary>Append a scenario: fresh filename when empty, order = end of list, then persist.</summary>
-        public void Add(LauncherScenario item)
+        public Exception? Add(LauncherScenario item)
         {
             if (string.IsNullOrEmpty(item.Filename))
                 item.Filename = item.Id + ".xml";
             item.Order = _items.Count == 0 ? 0 : _items.Max(s => s.Order) + 1;
+            Exception? failure = SaveItem(item);
+            if (failure != null) return failure;
             _items.Add(item);
             Version++;
-            SaveItem(item);
+            return null;
         }
 
-        public void Update(LauncherScenario item)
+        public Exception? Update(LauncherScenario item)
         {
             int index = _items.FindIndex(s => s.Id == item.Id);
-            if (index < 0) return;
+            if (index < 0) return new InvalidOperationException("Scenario not found.");
             item.Filename = _items[index].Filename;
             item.Order = _items[index].Order;
+            Exception? failure = SaveItem(item);
+            if (failure != null) return failure;
             _items[index] = item;
             Version++;
-            SaveItem(item);
+            return null;
         }
 
         /// <summary>
@@ -226,7 +242,11 @@ namespace CyrFlip
         /// without a word.
         /// </summary>
         /// <returns>null when the scenario is gone (its file deleted, or already absent); the reason otherwise, and the scenario stays.</returns>
-        public string? Remove(Guid id)
+        /// <param name="translate">
+        /// The caller's translating function (S0065 E-5): the reason used to be the Russian key in
+        /// every UI language, so an English user read "Could not delete: Не удалось запустить процесс."
+        /// </param>
+        public string? Remove(Guid id, Func<string, string>? translate = null)
         {
             LauncherScenario? item = _items.Find(s => s.Id == id);
             if (item == null) return null;
@@ -240,7 +260,7 @@ namespace CyrFlip
                 if (!gone)
                 {
                     LauncherLog.Log("Store: delete failed for " + item.Filename + ": " + ex.GetType().Name);
-                    return FailureCause.Describe(ex, "Русский");
+                    return FailureCause.Describe(ex, translate);
                 }
             }
             _items.Remove(item);
@@ -252,21 +272,28 @@ namespace CyrFlip
         /// Move a scenario one slot up (-1) or down (+1), keeping the persisted orders contiguous.
         /// Saves only the two affected files.
         /// </summary>
-        public void Move(Guid id, int direction)
+        public Exception? Move(Guid id, int direction)
         {
             int index = _items.FindIndex(s => s.Id == id);
-            if (index < 0) return;
-            int newIndex = index + direction;
-            if (newIndex < 0 || newIndex >= _items.Count) return;
-
-            LauncherScenario a = _items[index];
-            _items[index] = _items[newIndex];
-            _items[newIndex] = a;
-            _items[index].Order = index;
-            _items[newIndex].Order = newIndex;
+            int next = index + direction;
+            if (index < 0 || next < 0 || next >= _items.Count) return null;
+            LauncherScenario a = _items[index].Clone(), b = _items[next].Clone();
+            int aOrder = a.Order, bOrder = b.Order;
+            a.Order = bOrder;
+            b.Order = aOrder;
+            Exception? failure = SaveItem(a);
+            if (failure != null) return failure;
+            failure = SaveItem(b);
+            if (failure != null)
+            {
+                a.Order = aOrder;
+                Exception? rollback = SaveItem(a);
+                return rollback == null ? failure : new AggregateException(failure, rollback);
+            }
+            _items[index] = b;
+            _items[next] = a;
             Version++;
-            SaveItem(_items[index]);
-            SaveItem(_items[newIndex]);
+            return null;
         }
 
         /// <summary>
@@ -279,16 +306,15 @@ namespace CyrFlip
             if (item == null) return null;
             item.Id = Guid.NewGuid();
             item.Filename = string.Empty; // Add assigns {new-guid}.xml
-            Add(item);
-            return item;
+            error = Add(item);
+            return error == null ? item : null;
         }
 
         /// <summary>Export one scenario to a portable XML of the same contract.</summary>
         public void Export(LauncherScenario item, string file)
         {
-            var serializer = new XmlSerializer(typeof(LauncherScenario));
             using FileStream stream = File.Create(file);
-            serializer.Serialize(stream, item);
+            SerializeScenario(stream, item);
         }
 
         /// <summary>
@@ -296,10 +322,10 @@ namespace CyrFlip
         /// forever - the caller guards with the one-time <c>LauncherFirstEnableDone</c> marker, so an
         /// emptied list is never refilled.
         /// </summary>
-        public void SeedSample(string name)
+        public Exception? SeedSample(string name)
         {
-            if (_items.Count > 0) return;
-            Add(new LauncherScenario { Name = name, Path = "calc.exe" });
+            if (_items.Count > 0) return null;
+            return Add(new LauncherScenario { Name = name, Path = "calc.exe" });
         }
 
         /// <summary>
@@ -317,11 +343,11 @@ namespace CyrFlip
             {
                 if (_items[i].Order == i && !mustSave.Contains(_items[i])) continue;
                 _items[i].Order = i;
-                SaveItem(_items[i]);
+                if (SaveItem(_items[i]) != null) LoadErrors.Add(_items[i].Filename);
             }
         }
 
-        private void SaveItem(LauncherScenario item)
+        private Exception? SaveItem(LauncherScenario item)
         {
             if (_readOnly) throw new InvalidOperationException("A read-only scenario store is never written.");
             string? temp = null;
@@ -329,7 +355,6 @@ namespace CyrFlip
             {
                 Directory.CreateDirectory(_folder);
                 string path = Path.Combine(_folder, item.Filename);
-                var serializer = new XmlSerializer(typeof(LauncherScenario));
                 // Write to a sibling temp file, then replace: a crash mid-write can't leave a
                 // half-written scenario that the next load counts as corrupt. The replace is one
                 // atomic File.Replace - a delete followed by a move lost the scenario to a crash in
@@ -337,14 +362,16 @@ namespace CyrFlip
                 // instance and a one-shot /launcher-run process can save the same scenario.
                 temp = TempPathFor(path);
                 using (FileStream stream = File.Create(temp))
-                    serializer.Serialize(stream, item);
+                    SerializeScenario(stream, item);
                 if (File.Exists(path)) File.Replace(temp, path, null);
                 else File.Move(temp, path);
                 temp = null;
+                return null;
             }
             catch (Exception ex)
             {
-                LauncherLog.Log("Store: save failed for " + item.Filename + ": " + ex.Message);
+                LauncherLog.Log("Store: save failed for " + item.Filename + ": " + ex.GetType().Name);
+                return ex;
             }
             finally
             {
@@ -352,6 +379,33 @@ namespace CyrFlip
                 {
                     try { File.Delete(temp); } catch { /* removed as stale on a later load */ }
                 }
+            }
+        }
+
+        private static void SerializeScenario(Stream stream, LauncherScenario item)
+        {
+            // Keep the established writer shape, including its declaration and namespaces.
+            using var writer = new ScenarioXmlWriter(stream) { Formatting = Formatting.Indented };
+            new XmlSerializer(typeof(LauncherScenario)).Serialize(writer, item);
+        }
+
+        private sealed class ScenarioXmlWriter : XmlTextWriter
+        {
+            internal ScenarioXmlWriter(Stream stream) : base(stream, null) { }
+            public override void WriteString(string? text)
+            {
+                // XML normalizes literal CR/CRLF on read. Entity references preserve the user's
+                // original string, while XmlTextWriter also entitizes control characters.
+                if (text == null) { base.WriteString(text); return; }
+                int start = 0;
+                for (int at = 0; at < text.Length; at++)
+                    if (text[at] == '\r')
+                    {
+                        base.WriteString(text.Substring(start, at - start));
+                        WriteCharEntity('\r');
+                        start = at + 1;
+                    }
+                base.WriteString(text.Substring(start));
             }
         }
 

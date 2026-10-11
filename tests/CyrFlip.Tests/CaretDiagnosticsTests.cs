@@ -1,4 +1,6 @@
+using System;
 using System.Text;
+using System.Threading;
 using CyrFlip;
 using Xunit;
 
@@ -29,5 +31,32 @@ namespace CyrFlip.Tests
         [Fact]
         public void AnUnreadableTitleSaysSo()
             => Assert.Equal("<unreadable>", CaretDiagnostics.TextLength(null));
+
+        /// <summary>
+        /// S0065 E-6: the failure callback takes the exception, never its raw message - the OS text
+        /// can carry the data-folder path (the account name) into a balloon, and the file no longer
+        /// sits in the AppBehaviourGate exemption list. The caller classifies it through
+        /// FailureCause, whose sentence never contains the path.
+        /// </summary>
+        [Fact]
+        public void TheFailureCallbackCarriesTheExceptionNotItsMessage()
+        {
+            Exception? seen = null;
+            var done = new ManualResetEventSlim(false);
+            string folder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            bool started = CaretDiagnostics.Run(
+                onDone: _ => done.Set(),
+                onError: ex => { seen = ex; done.Set(); },
+                capture: () => throw new UnauthorizedAccessException(
+                    "Access to the path '" + folder + "\\CyrFlip\\caret-diagnostics.txt' is denied."));
+            Assert.True(started);
+            Assert.True(done.Wait(TimeSpan.FromSeconds(20)), "the capture never answered");
+            Assert.IsType<UnauthorizedAccessException>(seen);
+
+            string described = FailureCause.Describe(seen, "English");
+            Assert.Equal("Access to file or folder is denied.", described);
+            Assert.DoesNotContain("Users", described);
+            Assert.DoesNotContain(folder, described);
+        }
     }
 }

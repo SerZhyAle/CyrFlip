@@ -75,6 +75,20 @@ namespace CyrFlip
                 ur: "فائل عام، غیر خفیہ کردہ ٹیکسٹ ہوگی۔ اسے غیر محفوظ ذرائع سے نہ بھیجیں اور ضرورت نہ رہے تو منتقلی کے بعد اسے حذف کر دیں۔",
                 zh: "该文件将是未加密的普通文本。请勿通过不安全的渠道传输，如果不再需要，请在传输后将其删除。");
 
+            Add("Экспорт больше, чем принимает импорт CyrFlip (25 МБ, 10 000 объектов). В файл не войдут {0} самых старых записей. Продолжить?",
+                en: "The export is larger than CyrFlip's import accepts (25 MB, 10,000 objects). The oldest {0} entries will be left out of the file. Continue?",
+                uk: "Експорт більший, ніж приймає імпорт CyrFlip (25 МБ, 10 000 об'єктів). До файла не ввійдуть {0} найдавніших записів. Продовжити?",
+                de: "Der Export ist größer, als CyrFlips Import annimmt (25 MB, 10.000 Objekte). Die {0} ältesten Einträge kommen nicht in die Datei. Fortfahren?",
+                it: "L'esportazione è più grande di quanto l'importazione di CyrFlip accetti (25 MB, 10.000 oggetti). I {0} elementi più vecchi non entreranno nel file. Continuare?",
+                es: "La exportación supera lo que la importación de CyrFlip acepta (25 MB, 10 000 objetos). Las {0} entradas más antiguas no entrarán en el archivo. ¿Continuar?",
+                fr: "L'exportation dépasse ce que l'importation de CyrFlip accepte (25 Mo, 10 000 objets). Les {0} entrées les plus anciennes ne figureront pas dans le fichier. Continuer ?",
+                pt: "A exportação é maior do que a importação do CyrFlip aceita (25 MB, 10 000 objetos). As {0} entradas mais antigas não entrarão no arquivo. Continuar?",
+                ar: "التصدير أكبر مما يقبله الاستيراد في CyrFlip (25 ميجابايت، 10000 عنصر). لن تدخل أقدم {0} من السجلات إلى الملف. هل تريد المتابعة؟",
+                hi: "निर्यात, CyrFlip का आयात जितना स्वीकार करता है उससे बड़ा है (25 MB, 10,000 ऑब्जेक्ट)। सबसे पुरानी {0} प्रविष्टियाँ फ़ाइल में नहीं जाएँगी। जारी रखें?",
+                bn: "এক্সপোর্টটি CyrFlip-এর ইমপোর্ট যতটা গ্রহণ করে তার চেয়ে বড় (25 MB, 10,000 অবজেক্ট)। সবচেয়ে পুরোনো {0} এন্ট্রি ফাইলে থাকবে না। চালিয়ে যাবেন?",
+                ur: "ایکسپورٹ CyrFlip کے امپورٹ کی قبول حد سے بڑا ہے (25 MB، 10,000 اشیاء)۔ سب سے پرانی {0} اندراجات فائل میں شامل نہیں ہوں گی۔ جاری رکھیں؟",
+                zh: "导出超出了 CyrFlip 导入所能接受的大小（25 MB、10,000 个对象）。最早的 {0} 条记录不会写入文件。要继续吗？");
+
             Add("Больше не предупреждать для заметок",
                 en: "Don't warn again for notes", uk: "Більше не попереджати для нотаток", de: "Bei Notizen nicht mehr warnen",
                 it: "Non avvisare più per le note", es: "No volver a avisar para las notas", fr: "Ne plus avertir pour les notes",

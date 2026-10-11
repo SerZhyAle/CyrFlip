@@ -160,19 +160,19 @@ namespace CyrFlip
 
             // --- fixed chords ---------------------------------------------------------------------
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.Case,
-                config.CaseHotkey, config.EnableCaseHotkey, true, null);
+                config.CaseHotkey, config.EnableCaseHotkey, true, SettingsPageKey.Conversions);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.History,
-                config.ClipboardHistoryHotkey, config.EnableHistoryHotkey, true, null);
+                config.ClipboardHistoryHotkey, config.EnableHistoryHotkey, true, SettingsPageKey.Clipboard);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.QuickNotes,
                 config.QuickNotesHotkey, config.EnableQuickNotesHotkey, config.EnableQuickNotes, SettingsPageKey.QuickNotes);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.Symbols,
                 config.SymbolsHotkey, config.EnableSymbolsHotkey, config.EnableSymbols, SettingsPageKey.Symbols);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.Screenshot,
-                config.ScreenshotHotkey, config.EnableScreenshotHotkey, true, null);
+                config.ScreenshotHotkey, config.EnableScreenshotHotkey, true, SettingsPageKey.Graphics);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.ScreenshotFolder,
                 config.ScreenshotFolderHotkey, config.EnableScreenshotFolderHotkey, config.ScreenshotSaveEnabled, SettingsPageKey.Graphics);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.TextMenu,
-                config.TextMenuHotkey, config.EnableTextMenuHotkey, config.EnableContextMenu, SettingsPageKey.Hotkeys);
+                config.TextMenuHotkey, config.EnableTextMenuHotkey, config.EnableContextMenu, SettingsPageKey.SelectionMenu);
 
             // --- the text menu's mouse chord ---------------------------------------------------------
             MouseChord mouse = MouseChord.Parse(config.ContextMenuChord);
@@ -182,7 +182,7 @@ namespace CyrFlip
                 Caption = T("Меню над выделением"),
                 StoredChord = mouse.Token, ChordText = mouse.Display(T),
                 State = config.EnableContextMenu ? ChordBindingState.Active : ChordBindingState.OffByModule,
-                ModulePage = SettingsPageKey.Hotkeys,
+                ModulePage = SettingsPageKey.SelectionMenu,
                 DefaultChord = ChordDefaults.MouseChordToken,
                 Differs = !string.Equals(mouse.Token, ChordDefaults.MouseChordToken, StringComparison.Ordinal),
             });

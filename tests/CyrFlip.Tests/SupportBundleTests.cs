@@ -60,6 +60,31 @@ namespace CyrFlip.Tests
             }
         }
 
+        /// <summary>
+        /// S0065 E-11: the bundle a user mails after a crash holds the crash - crash.log is in the
+        /// whitelist, and its stack (which can quote paths) passes the redactor like every file.
+        /// </summary>
+        [Fact]
+        public void CrashLogIsCollectedAndRedacted()
+        {
+            var redactor = new DiagnosticRedactor(new[]
+            {
+                new KeyValuePair<string, string>(@"C:\Users\SECRET-ANN\AppData\Local\CyrFlip", DiagnosticRedactor.AppDataToken),
+                new KeyValuePair<string, string>(@"C:\Users\SECRET-ANN", DiagnosticRedactor.UserToken),
+            });
+            Write("crash.log",
+                "2026-10-09 01:54:10.123 - fatal: System.ArgumentException: cannot create a font at C:\\Users\\SECRET-ANN\\AppData\\Local\\CyrFlip\\x\r\n");
+
+            SupportBundle.Result result = SupportBundle.Create(_logs, _reports, "REPORT-BODY", "26.7.29.2340",
+                new DateTime(2026, 7, 29, 23, 40, 0), redactor: redactor);
+
+            Assert.Contains("crash.log", Names(result));
+            string crash = ReadEntry(result.ArchivePath, "crash.log");
+            Assert.Contains("fatal:", crash);
+            Assert.DoesNotContain("SECRET-ANN", crash);
+            Assert.Contains(DiagnosticRedactor.AppDataToken, crash);
+        }
+
         [Fact]
         public void TheReportIsAlwaysThereAndComesFirst()
         {

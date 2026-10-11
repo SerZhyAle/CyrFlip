@@ -81,7 +81,9 @@ namespace CyrFlip
             try
             {
                 ProcessStartInfo startInfo = BuildStartInfo(item, resolved!);
-                Process? process = Process.Start(startInfo);
+                // The handle is released as soon as the log has the pid (S0066 L-7): the child
+                // runs on; only our kernel handle used to wait for a finalizer.
+                using Process? process = Process.Start(startInfo);
                 LauncherLog.Log(LaunchedLine(item, kind, process?.Id));
                 return LauncherLaunchResult.Ok();
             }
@@ -93,7 +95,7 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 LauncherLog.Log(FailedLine(item, kind, ex));
-                return LauncherLaunchResult.Fail(FailureCause.Describe(ex, "Русский"));
+                return LauncherLaunchResult.Fail(FailureCause.Describe(ex, translate));
             }
         }
 
@@ -222,7 +224,7 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 return LauncherLaunchResult.Fail(Localization.Format(translate,
-                    "Не удалось использовать папку загрузки «{0}»: {1}", outputFolder, FailureCause.Describe(ex, "Русский")));
+                    "Не удалось использовать папку загрузки «{0}»: {1}", outputFolder, FailureCause.Describe(ex, translate)));
             }
 
             try
@@ -230,7 +232,7 @@ namespace CyrFlip
                 ProcessStartInfo startInfo = BuildYtDlpStartInfo(item, link, outputFolder, ytDlp,
                     YtDlpConfigLocations(ytDlp, outputFolder, File.Exists, Environment.GetEnvironmentVariable,
                         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
-                Process? process = Process.Start(startInfo);
+                using Process? process = Process.Start(startInfo);
                 // The link itself is deliberately absent from the log (spec §9).
                 LauncherLog.Log(LaunchedLine(item, "yt-dlp", process?.Id));
                 return LauncherLaunchResult.Ok();
@@ -238,7 +240,7 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 LauncherLog.Log(FailedLine(item, "yt-dlp", ex));
-                return LauncherLaunchResult.Fail(FailureCause.Describe(ex, "Русский"));
+                return LauncherLaunchResult.Fail(FailureCause.Describe(ex, translate));
             }
         }
 

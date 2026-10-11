@@ -24,9 +24,11 @@ namespace CyrFlip.Tests
         private static readonly string SourceFolder = Path.GetFullPath(Path.Combine(
             AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "src", "CyrFlip"));
 
+        // S0065 E-6: CaretDiagnostics no longer needs the exemption - its report records exception
+        // type names only, and the failure callback takes the exception (classified by the caller
+        // through FailureCause), never a raw message.
         private static readonly HashSet<string> DiagnosticExceptionFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "CaretDiagnostics.cs",
             "Ia2Caret.cs",
             "UiaCaretCom.cs",
         };

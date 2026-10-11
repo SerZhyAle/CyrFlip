@@ -242,5 +242,77 @@ namespace CyrFlip.Tests
             Assert.Equal(SelectionState.Absent, SelectionProbe.EditAnswer("Edit", (4L << 16) | 4L, (_, _) => "x").State);
             Assert.Equal(SelectionState.Unknown, SelectionProbe.EditAnswer("Chrome_WidgetWin_1", (9L << 16) | 2L, (_, _) => "x").State);
         }
+
+        /// <summary>
+        /// S0066 L-4 (LK-3a-04): the probe runs on one thread, and one hung cross-process call inside
+        /// it parked that thread for the rest of the session - every later chord answered Unknown
+        /// after its 90 ms cap, silently. The watchdog replaces a worker that has been inside a probe
+        /// for too long and abandons the parked one; the replacement must answer the next chord.
+        /// The hung provider here is a probe function that never returns - exactly what a wedged
+        /// IAccessible2 call looks like from this side.
+        /// </summary>
+        [Fact]
+        public void AWedgedProbeWorkerIsReplacedSoTheNextChordIsAnswered()
+        {
+            var wedge = new System.Threading.ManualResetEventSlim(false);
+            int probes = 0;
+            using (var worker = new SelectionProbe.Worker(
+                (x, y) =>
+                {
+                    if (System.Threading.Interlocked.Increment(ref probes) == 1)
+                        wedge.Wait(30000);   // the first provider never answers
+                    return new SelectionSnapshot(SelectionState.Present, "recovered");
+                },
+                watchdogAfterMs: 400))
+            {
+                var first = worker.Request(1, 1);
+                first.Collect();
+                Assert.Equal(1, probes);   // the first probe ran and wedged
+
+                // Before the watchdog this request was answered Unknown by the deadline, forever:
+                // the only worker was inside the hung call.
+                var second = worker.Request(2, 2);
+                Assert.True(SpinUntil(() => second.Collect().State == SelectionState.Present, 10000),
+                    "the replacement never answered the chord");
+                Assert.Equal(2, probes);
+                Assert.Equal(1, worker.AbandonedLoopsForTest);
+            }
+            wedge.Set();
+        }
+
+        /// <summary>
+        /// The cap of the same watchdog (S0066 L-4): a provider that hangs <i>every</i> probe must not
+        /// accumulate replacement workers without end. Three abandoned loops is the cap; after it,
+        /// the watchdog stops replacing and the menu keeps answering Unknown, as before.
+        /// </summary>
+        [Fact]
+        public void TheWatchdogNeverAbandonsMoreThanThreeWorkers()
+        {
+            var wedge = new System.Threading.ManualResetEventSlim(false);
+            using (var worker = new SelectionProbe.Worker(
+                (x, y) => { wedge.Wait(30000); return SelectionSnapshot.Unknown; },
+                watchdogAfterMs: 250))
+            {
+                for (int i = 0; i < 12; i++)
+                {
+                    worker.Request(i, i).Collect();
+                    System.Threading.Thread.Sleep(200);
+                }
+                Assert.Equal(SelectionProbe.Worker.MaxAbandonedLoops, worker.AbandonedLoopsForTest);
+            }
+            wedge.Set();
+        }
+
+        private static bool SpinUntil(Func<bool> condition, int timeoutMs)
+        {
+            int waited = 0;
+            while (!condition())
+            {
+                if (waited >= timeoutMs) return false;
+                System.Threading.Thread.Sleep(20);
+                waited += 20;
+            }
+            return true;
+        }
     }
 }

@@ -209,7 +209,7 @@ if ($FolderChord) {
         }
         $shown = $shown.TrimEnd('\')
         Write-Host "  The folder to open: $shown" -ForegroundColor Cyan
-        Write-Host '  Press the folder chord now (default Ctrl+Shift+Alt+PrintScreen).' -ForegroundColor Cyan
+        Write-Host '  Press the folder chord now (default Ctrl+Shift+PrintScreen).' -ForegroundColor Cyan
         Read-Host '  Press Enter once the Explorer window has opened (or should have)'
 
         $shell = New-Object -ComObject Shell.Application
@@ -244,7 +244,7 @@ if ($InteropOnly) {
 # ---- the human half -------------------------------------------------------------------------------
 Write-Host "`nNow by hand (CyrFlip running):" -ForegroundColor Cyan
 @(
-    'Press the chord (default Ctrl+Shift+PrintScreen) and, separately, pick "Screen region capture" in the tray menu: the screen freezes and dims, the pointer is a cross.',
+    'Press the chord (default Ctrl+PrintScreen) and, separately, pick "Screen region capture" in the tray menu: the screen freezes and dims, the pointer is a cross.',
     'Drag a rectangle, release: the overlay closes, the focus is back in the app you came from.',
     'Ctrl+V into Paint - the picture appears (CF_DIB).',
     'Ctrl+V into a browser text field, Telegram or Slack - the picture appears (PNG).',
@@ -255,7 +255,7 @@ Write-Host "`nNow by hand (CyrFlip running):" -ForegroundColor Cyan
     'With "Also save captures to a folder" on: the file appears in Pictures\Screenshots, named screenshot_yyMMdd_HHmmss.png.',
     'Point the folder at a pulled USB stick: the capture still reaches the clipboard and a balloon names Pictures\Screenshots.',
     'With Windows 11 "Use the Print screen key to open Snipping Tool" ON: the chord does not also open Snipping Tool (Q1).',
-    'S0057, saving on, folder exists: the folder chord (default Ctrl+Shift+Alt+PrintScreen) opens the folder - and it is in front of the editor you came from.',
+    'S0057, saving on, folder exists: the folder chord (default Ctrl+Shift+PrintScreen) opens the folder - and it is in front of the editor you came from.',
     'S0057, saving on, folder deleted (or not created yet): the chord shows the "no folder yet" balloon and no window opens.',
     'S0057, saving off: the same chord is not bound - the keys reach a text box in the foreground app, no window.',
     'S0057, folder on a removed drive or an offline share: the keyboard stays responsive while the chord is handled (the hook thread is not held); the balloon or Explorer''s own error appears.',

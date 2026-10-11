@@ -144,8 +144,29 @@ namespace CyrFlip.Tests
             Assert.Equal("CyrFlip 26.7.29.2340 logs - Windows 10.0.26200 x64 - ru", mail.Subject);
             Assert.Contains("CyrFlip-logs-26.7.29.2340-20260729-2340.zip", mail.Body);
             Assert.Contains("does not contain clipboard history", mail.Body);
-            // The fallback body has to carry the path, since the link cannot carry the file.
-            Assert.Contains(mail.AttachmentPath, mail.ShortBody);
+            // The fallback body has to say which file to attach, since the link cannot carry it - by
+            // its name and its place, never with the account's name in it (S0061 ER-4-01).
+            Assert.Contains(mail.AttachmentName, mail.ShortBody);
+            Assert.DoesNotContain(@"\Users\u\", mail.ShortBody);
+        }
+
+        /// <summary>
+        /// S0061 ER-4-01: the mail text is the one artefact of this feature that leaves the machine
+        /// outside the archive, and the dialog promises it carries no account name. Before the fix
+        /// the fallback body held the literal archive path - red on this assertion.
+        /// </summary>
+        [Fact]
+        public void TheMailedFallbackBodyCarriesNoAccountName()
+        {
+            SupportMail mail = MailSender.Compose(
+                @"C:\Users\Alice Wonderland\AppData\Local\CyrFlip\reports\CyrFlip-logs-26.10.11.1342-20261011-1400.zip",
+                "26.10.11.1342", "en", "Windows 10.0.26200 x64");
+
+            string everything = mail.Subject + "\n" + mail.Body + "\n" + mail.ShortBody
+                + "\n" + Uri.UnescapeDataString(MailSender.BuildMailto(mail));
+
+            Assert.DoesNotContain("Alice", everything);
+            Assert.Contains("CyrFlip-logs-26.10.11.1342-20261011-1400.zip", mail.ShortBody);
         }
 
         [Fact]

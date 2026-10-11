@@ -16,6 +16,9 @@ namespace CyrFlip
     {
         private readonly TextBox _link = new TextBox();
         private readonly Button _ok;
+        /// <summary>The script font this dialog created for itself - WinForms never disposes a font
+        /// it was handed, so the dialog owns it (LK-3b-03 / S0066 L-5), like every other dialog.</summary>
+        private readonly Font? _ownFont;
 
         /// <summary>The entered link when confirmed, else null.</summary>
         public string? Link { get; private set; }
@@ -30,7 +33,7 @@ namespace CyrFlip
             string? family = Localization.FontFamily(uiLanguage);
             if (family != null)
             {
-                try { Font = new Font(family, Font.SizeInPoints); }
+                try { Font = _ownFont = new Font(family, Font.SizeInPoints); }
                 catch { /* the font is missing on this machine - keep the default */ }
             }
 
@@ -43,7 +46,7 @@ namespace CyrFlip
             _link.Margin = new Padding(3, 0, 3, 3);
             _link.TextChanged += (_, _) => _ok!.Enabled = _link.Text.Trim().Length > 0;
 
-            _ok = Command(Localization.Translate(uiLanguage, "Начать"), DialogResult.OK);
+            _ok = Command(Localization.Translate(uiLanguage, "Начать"), DialogResult.OK, AppGlyphs.Run);
             _ok.Enabled = false;
             _ok.Click += (_, _) => Link = _link.Text.Trim();
             Button cancel = Command(Localization.Translate(uiLanguage, "Отмена"), DialogResult.Cancel);
@@ -73,12 +76,18 @@ namespace CyrFlip
             Shown += (_, _) => { ForegroundActivator.Activate(this); _link.Focus(); };
         }
 
-        private Button Command(string text, DialogResult result) => new Button
+        private Button Command(string text, DialogResult result, string? verbGlyph = null) => ButtonGlyphs.Answer(new Button
         {
             Text = text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
             MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = result,
-        };
+        }, verbGlyph);
 
         private int TextWidth(string text) => TextRenderer.MeasureText(text, Font).Width + 16;
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);   // the control tree first: it still draws with the font
+            if (disposing) _ownFont?.Dispose();
+        }
     }
 }

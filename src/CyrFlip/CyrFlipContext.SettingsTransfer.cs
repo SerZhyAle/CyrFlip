@@ -48,7 +48,7 @@ namespace CyrFlip
                 catch { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "retention failed io"); }
                 DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "import ok changes=" + preview.Plan.Changes.Count + " skipped=" + preview.Plan.Issues.Count);
                 foreach (var issue in preview.Plan.Issues) DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), issue.Key + " " + issue.Reason);
-                _settings.Reload();
+                _settings?.Reload();
             }
             catch (Exception ex)
             {
@@ -118,7 +118,7 @@ namespace CyrFlip
                 _clipboardHistorySearchWindow.ApplyLanguage(_config.UiLanguage);
             ThemeManager.SetMode(ThemeModes.Parse(_config.Theme));
             _clipboardHistoryWindow.ApplyLanguage(); UpdateTrayTexts(); RefreshLauncherSurfaces();
-            _settings.Reload();
+            _settings?.Reload();
         }
     }
 }

@@ -42,8 +42,26 @@ namespace CyrFlip
     internal sealed class CaretOverlay : IDisposable
     {
         private readonly OverlayForm _form;
-        private Thread? _thread;
         private volatile bool _running;
+
+        /// <summary>
+        /// One tracker worker: its own stop flag and heartbeat, so a worker wedged inside a hung
+        /// cross-process call can be told to stand down and abandoned without taking the tracker
+        /// with it (LK-3a-03 / S0066 L-4). The S0011 decision - no call timeouts - stands; what it
+        /// never promised is that one foreign hang silences the marker in every other window.
+        /// </summary>
+        private sealed class Tracker
+        {
+            internal volatile bool Running = true;
+            /// <summary>Set when the watchdog gave up on this worker: it decrements the cap when it exits.</summary>
+            internal bool Abandoned;
+            internal long HeartbeatMs;
+            internal Thread? Thread;
+        }
+        private volatile Tracker? _tracker;
+        /// <summary>Workers the watchdog parked inside a call that never returned - capped, and freed
+        /// again by the worker itself if its call ever does return.</summary>
+        private int _abandonedTrackers;
         private volatile string _code = "";
         private volatile string _klid = "";
         private volatile bool _caps;
@@ -51,19 +69,34 @@ namespace CyrFlip
         // UIA caret lookups are cross-process and expensive, so throttle them and reuse the last
         // position between polls. The cheap system-caret path still runs every tick.
         private const int UiaThrottleMs = 120;
+        /// <summary>How often the managed-UIA fallback may be retried for a window whose cheaper
+        /// sources keep failing (S0066 L-6) - see <see cref="TryGetCaret"/>.</summary>
+        private const int ManagedUiaRetryMs = 1000;
         private readonly Stopwatch _clock = Stopwatch.StartNew();
         private long _lastUiaMs = -1000;
+        private long _managedUiaFailedMs = -10000;
+        private IntPtr _managedUiaFailedWindow;
         private bool _haveUia;
         private CaretRect _uiaCaret;
         private IntPtr _uiaForeground;
 
         /// <summary>A tracker silent for longer than this is presumed blocked, and its badge hidden.</summary>
         internal const int StaleAfterMs = 1000;
+        /// <summary>
+        /// How long a silent tracker may be inside one cross-process call before a replacement is
+        /// started (S0066 L-4): far above a healthy poll (a tick every ~90 ms), far below the ~20 s
+        /// UIA transaction timeout the hung call would eventually take on its own.
+        /// </summary>
+        internal const int WatchdogAfterMs = 3000;
+        /// <summary>At most this many wedged workers are ever parked (S0066 L-4): the cap counts the
+        /// abandoned ones, and a worker that escapes its hang gives its slot back.</summary>
+        internal const int MaxAbandonedTrackers = 3;
+        /// <summary>Test seam: how many workers the watchdog currently counts as parked.</summary>
+        internal int AbandonedTrackersForTest => Volatile.Read(ref _abandonedTrackers);
 
-        // The tracker's heartbeat (clock ms at the end of its last tick) and the UI thread's hide
-        // generation: every hide the UI thread decides on its own bumps it, so the tracker's
-        // "I already posted exactly this" shortcut cannot keep a hidden badge hidden.
-        private long _heartbeatMs;
+        // The UI thread's hide generation: every hide the UI thread decides on its own bumps it, so
+        // the tracker's "I already posted exactly this" shortcut cannot keep a hidden badge hidden.
+        // (The heartbeat itself lives on the worker - see <see cref="Tracker"/>.)
         private int _generation;
         private System.Windows.Forms.Timer? _staleTimer;
 
@@ -79,16 +112,25 @@ namespace CyrFlip
         public void Start()
         {
             _ = _form.Handle; // create the handle on the UI thread so BeginInvoke works
-            Volatile.Write(ref _heartbeatMs, _clock.ElapsedMilliseconds);
             InstallWinEventHooks();
             _staleTimer = new System.Windows.Forms.Timer { Interval = 250 };
-            _staleTimer.Tick += (_, _) => HideIfTrackerIsSilent();
+            // One tick, two duties: hide the badge over a window the tracker stopped reporting for,
+            // and - the L-4 half - replace a tracker that a hung call has parked.
+            _staleTimer.Tick += (_, _) => { HideIfTrackerIsSilent(); ReplaceTrackerIfWedged(); };
             _staleTimer.Start();
 
             _running = true;
-            _thread = new Thread(Loop) { IsBackground = true, Name = "CyrFlip.CaretTracker" };
-            _thread.SetApartmentState(ApartmentState.MTA); // UIA client prefers MTA
-            _thread.Start();
+            StartTracker();
+        }
+
+        private void StartTracker()
+        {
+            var tracker = new Tracker { HeartbeatMs = _clock.ElapsedMilliseconds };
+            var thread = new Thread(() => Loop(tracker)) { IsBackground = true, Name = "CyrFlip.CaretTracker" };
+            thread.SetApartmentState(ApartmentState.MTA); // UIA client prefers MTA
+            tracker.Thread = thread;
+            _tracker = tracker;
+            thread.Start();
         }
 
         /// <summary>Set the layout code, its KLID (which picks the colour) and the CapsLock state
@@ -165,21 +207,49 @@ namespace CyrFlip
         private void HideIfTrackerIsSilent()
         {
             if (!_form.Visible) return;
-            if (_clock.ElapsedMilliseconds - Volatile.Read(ref _heartbeatMs) > StaleAfterMs)
+            Tracker? tracker = _tracker;
+            if (tracker != null && _clock.ElapsedMilliseconds - Volatile.Read(ref tracker.HeartbeatMs) > StaleAfterMs)
                 HideUntilNextReport();
         }
 
         // ------------------------------------------------------------------ tracker thread
 
-        private void Loop()
+        private void Loop(Tracker tracker)
         {
-            while (_running)
+            try
             {
-                try { Tick(); }
-                catch { /* never let tracking kill the app */ }
-                Volatile.Write(ref _heartbeatMs, _clock.ElapsedMilliseconds);
-                Thread.Sleep(90);
+                while (tracker.Running && _running)
+                {
+                    try { Tick(); }
+                    catch { /* never let tracking kill the app */ }
+                    Volatile.Write(ref tracker.HeartbeatMs, _clock.ElapsedMilliseconds);
+                    Thread.Sleep(90);
+                }
             }
+            finally
+            {
+                // A parked worker that escapes its hang gives its slot in the cap back.
+                if (tracker.Abandoned) Interlocked.Decrement(ref _abandonedTrackers);
+            }
+        }
+
+        /// <summary>
+        /// The watchdog (S0066 L-4): a tracker silent past <see cref="WatchdogAfterMs"/> is inside a
+        /// call that is not coming back soon - it is told to stand down (it exits if the call ever
+        /// returns), counted against <see cref="MaxAbandonedTrackers"/>, and a replacement starts at
+        /// once, so the marker comes back in every window the hung one is not.
+        /// </summary>
+        private void ReplaceTrackerIfWedged()
+        {
+            if (!_running) return;
+            Tracker? tracker = _tracker;
+            if (tracker == null) return;
+            if (_clock.ElapsedMilliseconds - Volatile.Read(ref tracker.HeartbeatMs) <= WatchdogAfterMs) return;
+            if (Volatile.Read(ref _abandonedTrackers) >= MaxAbandonedTrackers) return;
+            tracker.Running = false;
+            tracker.Abandoned = true;
+            Interlocked.Increment(ref _abandonedTrackers);
+            StartTracker();
         }
 
         private void Tick()
@@ -315,6 +385,18 @@ namespace CyrFlip
             if (_haveUia && _uiaForeground != fg)
                 _haveUia = false;
 
+            // A foreground window that is not answering would park this worker inside a proxy call
+            // that has no timeout (the S0011 decision), and with one thread that silenced the
+            // marker in every other window too (LK-3a-03 / S0066 L-4). The window is skipped with
+            // the same cheap USER check <see cref="ForegroundActivator"/> makes; the watchdog
+            // covers a window that goes bad between the check and the call.
+            if (IsHungAppWindow(fg))
+            {
+                _haveUia = false;
+                caret = default;
+                return false;
+            }
+
             // 2) Cross-process caret APIs (modern apps) - expensive, so throttled, and asked only while
             //    the user is typing or has just moved the focus (S0011 LI-1). Outside that the caret
             //    has not moved, so the last position stands and nobody is asked anything. In order:
@@ -325,17 +407,26 @@ namespace CyrFlip
             if (now - _lastUiaMs >= UiaThrottleMs && CaretQueryGate.ShouldQueryNow())
             {
                 _lastUiaMs = now;
+                // The managed fallback is the one caret source with no explicit release: each call
+                // allocates provider-side nodes that only a collection frees (LK-3b-04 / S0066 L-6).
+                // While the cheaper sources keep failing for this window, it is retried at most once
+                // a second instead of 8.3 times a second, so a terminal or custom-drawn editor
+                // stops pinning thousands of nodes in the target process while the user types.
+                bool managedAllowed = fg != _managedUiaFailedWindow || now - _managedUiaFailedMs >= ManagedUiaRetryMs;
                 if (UiaCaretCom.TryGetCaretRange(out CaretRect found)
                     || Ia2Caret.TryGetCaret(out found)
-                    || TryUiaCaret(out found))
+                    || (managedAllowed && TryUiaCaret(out found)))
                 {
                     _haveUia = true;
                     _uiaCaret = found;
                     _uiaForeground = fg;
+                    _managedUiaFailedWindow = IntPtr.Zero;
                     caret = found;
                     return true;
                 }
                 _haveUia = false;
+                _managedUiaFailedWindow = fg;
+                _managedUiaFailedMs = now;
                 caret = default;
                 return false;
             }
@@ -465,8 +556,13 @@ namespace CyrFlip
         public void Dispose()
         {
             _running = false;
-            try { _thread?.Join(300); }
-            catch { /* ignore */ }
+            Tracker? tracker = _tracker;
+            if (tracker != null)
+            {
+                tracker.Running = false;
+                try { tracker.Thread?.Join(300); }
+                catch { /* ignore */ }
+            }
             _staleTimer?.Dispose();
             if (_foregroundHook != IntPtr.Zero) UnhookWinEvent(_foregroundHook);
             if (_focusHook != IntPtr.Zero) UnhookWinEvent(_focusHook);

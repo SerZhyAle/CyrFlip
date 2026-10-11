@@ -52,10 +52,11 @@ namespace CyrFlip
 
             var set = new Button { Text = T("Задать..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(8, 3, 3, 3) };
             set.Click += (_, _) => SetHotkey();
+            ButtonGlyphs.Attach(set, AppGlyphs.Edit);
 
-            var ok = new Button { Text = "OK", AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = DialogResult.OK };
+            var ok = ButtonGlyphs.Answer(new Button { Text = "OK", AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = DialogResult.OK });
             ok.Click += (_, _) => BuildProfile(existing);
-            var cancel = new Button { Text = T("Отмена"), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = DialogResult.Cancel };
+            var cancel = ButtonGlyphs.Answer(new Button { Text = T("Отмена"), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = DialogResult.Cancel });
 
             // RightToLeft flow, so the first control added sits rightmost - and WinForms mirrors the whole
             // thing for Arabic and Urdu, which puts OK on the left, as those UIs expect.

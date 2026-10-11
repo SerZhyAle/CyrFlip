@@ -158,6 +158,18 @@ namespace CyrFlip
             _keep.Click += (_, _) => CopyForKeep();
             _export.Click += (_, _) => ExportCurrent();
             _delete.Click += (_, _) => DeleteCurrent();
+            // WINDOWS-UI section 11 item 1: every command carries the vocabulary's glyph before its
+            // caption. "Transfer..." opens a menu of both directions of the exchange file - no record
+            // in the vocabulary names that yet (PROPOSAL-2026-10-11-cyrflip-button-meanings).
+            ButtonGlyphs.Attach(_newText, AppGlyphs.CreateNote);
+            ButtonGlyphs.Attach(_newList, AppGlyphs.Checklist);
+            ButtonGlyphs.Attach(_settings, AppGlyphs.Settings);
+            ButtonGlyphs.Attach(_addItem, AppGlyphs.Add);
+            ButtonGlyphs.Attach(_removeItem, AppGlyphs.Remove);
+            ButtonGlyphs.Attach(_copy, AppGlyphs.Copy);
+            ButtonGlyphs.Attach(_keep, AppGlyphs.Copy);
+            ButtonGlyphs.Attach(_export, AppGlyphs.Export);
+            ButtonGlyphs.Attach(_delete, AppGlyphs.Delete);
             _service.Changed += OnServiceChanged;
             _service.Cleared += OnServiceCleared;
             _service.Imported += OnServiceImported;
@@ -403,8 +415,8 @@ namespace CyrFlip
                 if (_editorFont != null) { _editor.Font = _editorFont; _items.Font = _editorFont; }
             }
 
-            _newText.Text = "+ " + T("Заметка");
-            _newList.Text = "+ " + T("Чек-лист");
+            _newText.Text = T("Заметка");
+            _newList.Text = T("Чек-лист");
             _settings.Text = T("Настройки");
             _transfer.Text = T("Перенос...");
             _transferExport.Text = T("Экспортировать...");
@@ -885,16 +897,27 @@ namespace CyrFlip
 
         // ---- Commands ----
 
+        internal static bool TryCopyText(Func<string, bool> setText, string text, Action failed)
+        {
+            if (setText(text)) return true;
+            failed();
+            return false;
+        }
+
+        private void CopyFailed()
+            => ConfirmDialog.Show(this, _language, T("Не удалось скопировать текст в буфер обмена. Повторите."),
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
         private void CopyCurrent()
         {
             if (_current == null) return;
-            Win32Clipboard.TrySetText(_current.ToPlainText());
+            TryCopyText(Win32Clipboard.TrySetText, _current.ToPlainText(), CopyFailed);
         }
 
         private void CopyForKeep()
         {
             if (_current == null) return;
-            Win32Clipboard.TrySetText(_current.ToKeepText());
+            if (!TryCopyText(Win32Clipboard.TrySetText, _current.ToKeepText(), CopyFailed)) return;
             string message = T("Текст скопирован. Создайте заметку в Google Keep и вставьте его.");
             // Said out loud rather than discovered in Keep: pasted lines become list items there,
             // and the tick marks have nowhere to travel.

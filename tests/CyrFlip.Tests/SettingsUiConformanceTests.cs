@@ -158,15 +158,17 @@ namespace CyrFlip.Tests
         [Fact]
         public void ViewportRowsRoundTripAndReplacePerPage()
         {
-            string raw = SettingsForm.UpsertViewportRow("", 2, "g:graphics/capture", 120);
-            raw = SettingsForm.UpsertViewportRow(raw, 0, "r:4", 30);
-            var (anchor, offset) = SettingsForm.ReadViewportRow(raw, 2);
+            string raw = SettingsForm.UpsertViewportRow("", SettingsPageKey.Hotkeys, "g:graphics/capture", 120);
+            raw = SettingsForm.UpsertViewportRow(raw, SettingsPageKey.General, "r:4", 30);
+            var (anchor, offset) = SettingsForm.ReadViewportRow(raw, SettingsPageKey.Hotkeys);
             Assert.Equal("g:graphics/capture", anchor);
             Assert.Equal(120, offset);
-            raw = SettingsForm.UpsertViewportRow(raw, 2, "r:1", 55);
-            Assert.Equal(("r:1", 55), SettingsForm.ReadViewportRow(raw, 2));
-            Assert.Equal(("r:4", 30), SettingsForm.ReadViewportRow(raw, 0));
-            Assert.Equal((null, 0), SettingsForm.ReadViewportRow(raw, 9));
+            raw = SettingsForm.UpsertViewportRow(raw, SettingsPageKey.Hotkeys, "r:1", 55);
+            Assert.Equal(("r:1", 55), SettingsForm.ReadViewportRow(raw, SettingsPageKey.Hotkeys));
+            Assert.Equal(("r:4", 30), SettingsForm.ReadViewportRow(raw, SettingsPageKey.General));
+            Assert.Equal((null, 0), SettingsForm.ReadViewportRow(raw, SettingsPageKey.Launcher));
+            // A page is written by its key: a row names its page, not its position in a list that is reordered.
+            Assert.StartsWith("General|r:4|30", raw.Split(';').Single(row => row.StartsWith("General")));
 
             string safe = AppConfig.SanitizeViewport("0|g:x|10;junk;2||7;3|r:5|999999999;-1|y|1;8|r:1|-20");
             Assert.Equal("0|g:x|10;8|r:1|-20", safe);
@@ -274,7 +276,7 @@ namespace CyrFlip.Tests
                 SettingsForm.SettingsSearchHit? rdpHit = index.FirstOrDefault(hit => ReferenceEquals(hit.Focus, deferRdp));
                 Assert.True(rdpHit != null, "the deferRdp row is not discoverable");
                 Assert.True(rdpHit!.Texts.Contains(deferRdp.Text), "the hit does not carry its caption");
-                Assert.Equal(form.Tabs.TabPages[2].Text, rdpHit.PageTitle);
+                Assert.Equal(form.Tabs.TabPages.Cast<TabPage>().Single(p => Equals(p.Tag, SettingsPageKey.Hotkeys)).Text, rdpHit.PageTitle);
 
                 // A term inside a description (not just the caption) finds the row.
                 string descriptionWord = rdpHit.Texts.Split(' ').LastOrDefault(word => word.Length > 4 && !deferRdp.Text.Contains(word)) ?? "";

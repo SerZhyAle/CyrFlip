@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CyrFlip
@@ -47,11 +48,27 @@ namespace CyrFlip
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // Route UI-thread exceptions through our handler instead of the default WinForms dialog,
-            // and make sure the system cursor is restored on any fatal error.
+            // Route UI-thread exceptions through containment instead of the default WinForms dialog
+            // (D3, S0061: contain per handler, exit only on a run of faults - S0065 E-2): one fault
+            // in one handler costs that handler, not the tray, the indicator and both hooks. What
+            // reaches the UI thread from outside it - an unhandled exception on a worker - is still
+            // terminal, so that stays Fatal.
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-            Application.ThreadException += (_, e) => Fatal(e.Exception);
+            Application.ThreadException += (_, e) => FaultContainment.Contain(e.Exception);
             AppDomain.CurrentDomain.UnhandledException += (_, e) => Fatal(e.ExceptionObject as Exception);
+            // A task tail nobody observed used to vanish without a line anywhere (S0065 E-10):
+            // the fault goes to crash.log - in the log bundle since E-11 - and is marked observed,
+            // because an unobserved exception's default end is the process.
+            TaskScheduler.UnobservedTaskException += (_, e) =>
+            {
+                try
+                {
+                    DiagnosticLog.Append(DiagnosticLog.Path("crash.log"),
+                        Stamp(DateTime.Now) + " - unobserved task: " + (e.Exception?.ToString() ?? "null"));
+                }
+                catch { /* diagnostics must never affect the app */ }
+                e.SetObserved();
+            };
 
             // Keep the autostart entry pointing at whichever exe is actually running (the user may
             // have enabled "Start with Windows" from another build location). After the handlers,
@@ -75,6 +92,10 @@ namespace CyrFlip
                 Fatal(ex);
             }
         }
+
+        /// <summary>One time stamp in the format crash.log lines start with.</summary>
+        internal static string Stamp(DateTime moment)
+            => moment.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture);
 
         /// <summary>
         /// The OneClickRunner-equivalent one-shot launch: load the store fresh, run the scenario,
@@ -129,15 +150,14 @@ namespace CyrFlip
             }
         }
 
-        private static void Fatal(Exception? ex)
+        internal static void Fatal(Exception? ex)
         {
             // The exception itself goes to the log before anything else runs: a crash report that
             // names only the log folder but not the failure makes every crash undiagnosable
             // (APP-BEHAVIOUR rule 6 - the raw exception belongs to the log, never to the user).
             try
             {
-                DiagnosticLog.Append(DiagnosticLog.Path("crash.log"),
-                    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture) + " - fatal: "
+                DiagnosticLog.Append(DiagnosticLog.Path("crash.log"), Stamp(DateTime.Now) + " - fatal: "
                     + (ex?.ToString() ?? "null"));
             }
             catch { /* diagnostics must never affect the app */ }
@@ -150,13 +170,34 @@ namespace CyrFlip
             try
             {
                 // The system box, deliberately, and the one left in the app (ThemeSourceGateTests): the
-                // process is going down, and this is the dialog least likely to fail with it.
-                MessageBox.Show(
-                    "CyrFlip hit an unexpected error and will close.\n\nDiagnostic logs: " + DataFolder.Current,
-                    "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // process is going down, and this is the dialog least likely to fail with it. What it
+                // says changed with S0065 E-1: localized from the saved UI language, no data-folder
+                // path (the account name), and the one thing the old text never said - that every
+                // hotkey just went with the process, so CyrFlip has to be started again.
+                MessageBox.Show(FatalBoxText(SavedUiLanguage()), "CyrFlip", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch { /* ignore */ }
             Application.Exit();
+        }
+
+        /// <summary>The localized fatal sentence (S0065 E-1) - testable without closing anything.</summary>
+        internal static string FatalBoxText(string language)
+            => Localization.Translate(language,
+                "CyrFlip столкнулся с непредвиденной ошибкой и закрывается. Все горячие клавиши отключены — запустите CyrFlip снова.");
+
+        /// <summary>
+        /// The saved UI language, which is what the fatal box speaks; the OS default when even the
+        /// registry read fails. The old box was English-only in all thirteen.
+        /// </summary>
+        internal static string SavedUiLanguage()
+        {
+            try
+            {
+                string saved = AppConfig.Load().UiLanguage;
+                if (saved.Length > 0) return saved;
+            }
+            catch { /* the box still needs a language */ }
+            return Localization.DefaultLanguage();
         }
     }
 }

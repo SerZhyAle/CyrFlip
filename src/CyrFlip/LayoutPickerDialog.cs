@@ -56,7 +56,7 @@ namespace CyrFlip
             _list.DoubleClick += (_, _) => Accept();
             _list.Format += (_, e) => { if (e.ListItem is InputLayouts.Available a) e.Value = Format(a); };
 
-            var add = Command(T("Добавить"), DialogResult.OK);
+            var add = Command(T("Добавить"), DialogResult.OK, AppGlyphs.Add);
             var cancel = Command(T("Отмена"), DialogResult.Cancel);
             add.Click += (_, _) => Accept();
 
@@ -99,11 +99,11 @@ namespace CyrFlip
             if (disposing) _ownFont?.Dispose();
         }
 
-        private Button Command(string text, DialogResult result) => new Button
+        private Button Command(string text, DialogResult result, string? verbGlyph = null) => ButtonGlyphs.Answer(new Button
         {
             Text = text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
             MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = result,
-        };
+        }, verbGlyph);
 
         private int TextWidth(string text) => TextRenderer.MeasureText(text, Font).Width + 16;
 

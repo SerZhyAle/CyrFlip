@@ -11,9 +11,10 @@ using Xunit;
 namespace CyrFlip.Tests
 {
     /// <summary>
-    /// The "Все комбинации" page built for real (ticket S0056 section 8): in all 13 languages with
-    /// nothing clipped, its place in the page list, the two views of one value staying one value with no
-    /// change handler fired by a refresh, the search finding a row by its chord, and the empty tables.
+    /// The "Горячие клавиши" page built for real (tickets S0056 section 8 and S0062): in all 13 languages with
+    /// nothing clipped, the one master switch (S0062 D9 - the overview no longer carries a second one), a value
+    /// staying one value with no change handler fired by a refresh, the search finding a row by its chord, and
+    /// the empty tables.
     /// </summary>
     [Collection(SharedGdiCollection.Name)]
     public class HotkeysOverviewPageTests
@@ -57,20 +58,25 @@ namespace CyrFlip.Tests
         }
 
         private static TabPage OverviewPage(SettingsForm form)
-            => form.Tabs!.TabPages.Cast<TabPage>().Single(p => Equals(p.Tag, SettingsPageKey.HotkeysOverview));
+            => form.Tabs!.TabPages.Cast<TabPage>().Single(p => Equals(p.Tag, SettingsPageKey.Hotkeys));
+
+        private static IEnumerable<Control> ContentOf(TabPage page)
+            => ((Control)page.Controls[0]).Controls.Cast<Control>();
 
         private static Control FirstRowOf(SettingsForm form, string groupId)
             => form.Groups.Single(g => g.Id == groupId).Body.Controls[0];
 
         [Fact]
-        public void ThePageSitsRightAfterTheHotkeysPageWithItsSixGroups()
+        public void TheOnePageHoldsTheSwitchesGroupAndTheSixOverviewGroups()
         {
             OnUiThread(() =>
             {
                 using SettingsForm form = Build(Config("English"));
-                var pages = form.Tabs!.TabPages.Cast<TabPage>().ToList();
-                int hotkeys = pages.FindIndex(p => Equals(p.Tag, SettingsPageKey.Hotkeys));
-                Assert.Equal(hotkeys + 1, pages.FindIndex(p => Equals(p.Tag, SettingsPageKey.HotkeysOverview)));
+                // S0062 D8: the overview and the old Hotkeys page are one page, under the Hotkeys key.
+                Assert.DoesNotContain(form.Tabs!.TabPages.Cast<TabPage>(), p => Equals(p.Tag, SettingsPageKey.HotkeysOverview));
+                Assert.Single(form.Tabs.TabPages.Cast<TabPage>(), p => Equals(p.Tag, SettingsPageKey.Hotkeys));
+                string[] onThePage = ContentOf(OverviewPage(form)).OfType<CollapsibleGroup>().Select(g => g.Id).ToArray();
+                Assert.Equal(new[] { "hotkeys/switches", "keys/fixed", "keys/mouse", "keys/conversions", "keys/translations", "keys/launcher", "keys/windows" }, onThePage);
 
                 string[] ids = form.Groups.Where(g => g.Id.StartsWith("keys/", StringComparison.Ordinal)).Select(g => g.Id).ToArray();
                 Assert.Equal(new[] { "keys/fixed", "keys/mouse", "keys/conversions", "keys/translations", "keys/launcher", "keys/windows" }, ids);
@@ -143,7 +149,7 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void TheTwoViewsOfAValueStayOneAndARefreshFiresNoHandler()
+        public void AValueChangedBehindThePageShowsOnTheRowAndARefreshFiresNoHandler()
         {
             OnUiThread(() =>
             {
@@ -151,7 +157,7 @@ namespace CyrFlip.Tests
                 int caseCalls = 0, masterCalls = 0;
                 using SettingsForm form = Build(config, v => { caseCalls++; config.EnableCaseHotkey = v; }, v => { masterCalls++; config.EnableHotkeys = v; });
 
-                // Old page -> overview: a value changed behind the page's back shows on both after a refresh.
+                // A value changed behind the page's back shows on the row and on the owning page after a refresh.
                 config.CaseHotkey = "Ctrl+Alt+Z";
                 config.EnableCaseHotkey = false;
                 config.EnableHotkeys = false;
@@ -161,7 +167,6 @@ namespace CyrFlip.Tests
                 Assert.False(row.SwitchOn);
                 Assert.Equal("Ctrl+Alt+Z", ((Label)Field(form, "_caseHotkeyValue")).Text);
                 Assert.False(((CheckBox)Field(form, "_caseEnabled")).Checked);
-                Assert.False(((CheckBox)Field(form, "_overviewMaster")).Checked);
                 Assert.False(((CheckBox)Field(form, "_enableHotkeys")).Checked);
                 // A refresh is not an edit: no change handler ran.
                 Assert.Equal(0, caseCalls);
@@ -182,17 +187,20 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void TheMasterSwitchOnThePageIsTheSameValueAsTheHotkeysPage()
+        public void TheMasterSwitchIsOneControlWithOneHandler()
         {
             OnUiThread(() =>
             {
                 AppConfig config = Config("English");
                 int calls = 0;
                 using SettingsForm form = Build(config, null, v => { calls++; config.EnableHotkeys = v; });
-                ((CheckBox)Field(form, "_overviewMaster")).Checked = false;
+                // There is no second switch to keep in step with it (D9).
+                Assert.Null(typeof(SettingsForm).GetField("_overviewMaster", BindingFlags.NonPublic | BindingFlags.Instance));
+                var master = (CheckBox)Field(form, "_enableHotkeys");
+                Assert.Same(master, ContentOf(OverviewPage(form)).OfType<CollapsibleGroup>().First(g => g.Id == "hotkeys/switches").Body.Controls.Cast<Control>().SelectMany(c => Walk(c).Prepend(c)).OfType<CheckBox>().First());
+                master.Checked = false;
                 Assert.Equal(1, calls);
                 Assert.False(config.EnableHotkeys);
-                Assert.False(((CheckBox)Field(form, "_enableHotkeys")).Checked);
                 Assert.True(form.OverviewRows.Where(r => r.Group == ChordGroup.Fixed && r.State != ChordBindingState.OffByModule)
                     .All(r => r.State == ChordBindingState.OffByMaster));
             });
@@ -205,11 +213,11 @@ namespace CyrFlip.Tests
             {
                 using SettingsForm form = Build(Config("English"));
                 List<SettingsForm.SettingsSearchHit> hits = form.BuildSearchIndex();
-                SettingsForm.SettingsSearchHit hit = hits.First(h => Equals(h.Page.Tag, SettingsPageKey.HotkeysOverview)
+                SettingsForm.SettingsSearchHit hit = hits.First(h => Equals(h.Page.Tag, SettingsPageKey.Hotkeys)
                     && SettingsForm.SearchMatchesForTest(h.Texts, "Ctrl+Shift+F10"));
                 Assert.Contains("Ctrl+Shift+F10", hit.Texts);
                 // A state is searchable too: "off" finds the rows that are off.
-                Assert.Contains(hits, h => Equals(h.Page.Tag, SettingsPageKey.HotkeysOverview)
+                Assert.Contains(hits, h => Equals(h.Page.Tag, SettingsPageKey.Hotkeys)
                     && SettingsForm.SearchMatchesForTest(h.Texts, "module is off"));
             });
         }

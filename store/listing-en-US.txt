@@ -21,7 +21,7 @@ The built-in translator is optional too. Select text anywhere in Windows, press 
 
 Keep what you copy and write. The optional clipboard history keeps recent text locally, searchable in its own window; entries can be pinned, deleted, paused or cleared, and every record is encrypted with Windows DPAPI for your Windows account. Optional quick notes open with Ctrl+Shift+Alt+N and keep text exactly as given - no Markdown, no auto-formatting - so a fragment of code pastes back unchanged; search looks inside every note, and the notes are encrypted on disk too. Notes and clipboard history move to another computer or a phone as one plain-text file you export and import yourself.
 
-Launch and capture. Ctrl+Shift+PrintScreen freezes the screen, you drag a region, and the picture lands on the clipboard - optionally also saved as a PNG to a folder. Ctrl+Shift+Alt+PrintScreen opens that folder while saving is on. Quick launch, an optional module, turns your programs, scripts and yt-dlp downloads into scenarios you start from the tray, from a hotkey of their own or from the taskbar Jump List; scenarios from the standalone OneClickRunner tool can be imported without touching the originals. Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
+Launch and capture. Ctrl+PrintScreen freezes the screen, you drag a region, and the picture lands on the clipboard - optionally also saved as a PNG to a folder. Ctrl+Shift+PrintScreen opens that folder while saving is on. Quick launch, an optional module, turns your programs, scripts and yt-dlp downloads into scenarios you start from the tray, from a hotkey of their own or from the taskbar Jump List; scenarios from the standalone OneClickRunner tool can be imported without touching the originals. Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
 
 Yours alone. Optional modules stay off until you switch them on, every hotkey can be switched off on its own, and CyrFlip can hand its hotkeys to a focused Remote Desktop window. The interface is available in 13 languages, right-to-left ones included, with a light, dark or Windows-matching theme. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11.
 
@@ -46,7 +46,7 @@ PRODUCT FEATURES (max 200 chars each)
 • Optional encrypted clipboard history with search, pins and Windows DPAPI protection
 • Optional quick notes that keep text exactly as given, so code pastes back unchanged; encrypted on disk
 • Move notes and clipboard history to another computer in one plain-text exchange file
-• Screen-region capture to the clipboard on Ctrl+Shift+PrintScreen, optionally saved as PNG
+• Screen-region capture to the clipboard on Ctrl+PrintScreen, optionally saved as PNG
 • Optional Quick launch: programs, scripts and yt-dlp downloads as one-click scenarios
 • Start a scenario from the tray, its own global hotkey, or the taskbar Jump List
 • Two keep-awake switches: no sleep and no screen blanking while you work
@@ -68,7 +68,7 @@ All shortcuts in one place: a new settings page lists every chord CyrFlip binds,
 
 Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
+A chord of its own - Ctrl+Shift+PrintScreen - opens the folder your screen captures are saved in.
 
 The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.
 

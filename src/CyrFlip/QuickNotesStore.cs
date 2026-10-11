@@ -168,6 +168,12 @@ namespace CyrFlip
         // Dropping them made the second compaction - the one that overwrites the .bak - the moment
         // they were gone for good (ticket S0006, QN-5).
         private readonly List<string> _unreadable = new List<string>();
+        // S0064 H-7: while a compaction is between its snapshot and its swap, every record appended
+        // to the journal also parks its encrypted line here, so the snapshot the swap puts in place
+        // carries those records too. The compaction's bulk work runs outside the journal lock, which
+        // is what keeps a UI-thread save from waiting behind a 5 000-note rewrite.
+        private bool _compacting;
+        private readonly List<string> _compactionTail = new List<string>();
 
         /// <summary>
         /// The <see cref="File.Replace(string,string,string)"/> call of a compaction. A seam for one
@@ -190,6 +196,7 @@ namespace CyrFlip
 
         /// <summary>Journal lines the last <see cref="Load"/> could not read. Diagnostics only.</summary>
         public int SkippedRecords { get; private set; }
+        public Exception? ReadFailure { get; private set; }
 
         /// <summary>
         /// Of <see cref="SkippedRecords"/>, the fragments of records cut off mid-append - never
@@ -225,6 +232,7 @@ namespace CyrFlip
         public List<QuickNote> Load()
         {
             SkippedRecords = 0;
+            ReadFailure = null;
             TornRecords = 0;
             RecoveredFromBackup = false;
             var byId = new Dictionary<Guid, QuickNote>();
@@ -237,7 +245,11 @@ namespace CyrFlip
                 _compactAt = CompactAfterOperations;
                 _unreadable.Clear();
                 _deleted.Clear();
-                if (!File.Exists(_path) && !TryRestoreBackup()) return new List<QuickNote>();
+                if (!File.Exists(_path) && !TryRestoreBackup())
+                {
+                    _readFailed = ReadFailure != null;
+                    return new List<QuickNote>();
+                }
                 try
                 {
                     foreach (string line in File.ReadLines(_path))
@@ -272,6 +284,7 @@ namespace CyrFlip
                     // An unreadable journal file (locked, truncated mid-line) leaves whatever was
                     // replayed so far standing; the alternative is to hand the user an empty app.
                     _readFailed = true;
+                    ReadFailure = ex;
                     QuickNotesLog.Log("journal read failed: " + ex.GetType().Name + " " + ex.Message);
                 }
                 _compactAt = byId.Count + _unreadable.Count + CompactAfterOperations;
@@ -300,18 +313,30 @@ namespace CyrFlip
         /// restart after that would ignore the backup and show just that one note.
         /// Called under <see cref="_gate"/>.
         /// </summary>
+        private bool EnsureJournal()
+            => File.Exists(_path) || (!File.Exists(BackupPath) && !File.Exists(_path + ".tmp")) || TryRestoreBackup();
+
         private bool TryRestoreBackup()
         {
-            if (!File.Exists(BackupPath)) return false;
+            string source = File.Exists(_path + ".tmp") ? _path + ".tmp" : BackupPath;
+            if (!File.Exists(source)) return false;
             try
             {
-                File.Copy(BackupPath, _path, overwrite: false);
+                string staging = _path + ".restore.tmp";
+                File.Copy(source, staging, overwrite: true);
+                File.Move(staging, _path);
+                if (source == _path + ".tmp")
+                {
+                    try { File.Delete(source); }
+                    catch (Exception cleanup) { QuickNotesLog.Log("recovery temp cleanup failed: " + cleanup.GetType().Name); }
+                }
                 RecoveredFromBackup = true;
                 QuickNotesLog.Log("journal missing - restored from the backup");
                 return true;
             }
             catch (Exception ex)
             {
+                ReadFailure = ex;
                 QuickNotesLog.Log("journal restore from the backup failed: " + ex.GetType().Name + " " + ex.Message);
                 return false;
             }
@@ -342,17 +367,21 @@ namespace CyrFlip
                 lock (_gate) // the serializer is shared with every other write, all of them under this lock
                 {
                     var text = new StringBuilder();
+                    var lines = new List<string>();
                     int count = 0;
                     foreach (KeyValuePair<bool, QuickNote> pair in createdAndNotes)
                     {
                         // Leading line break, as in WriteLine (QN-7).
-                        text.Append(Environment.NewLine)
-                            .Append(_cipher.Protect(_json.Serialize(ToRecord(pair.Key ? ActionCreate : ActionUpdate, pair.Value))));
+                        string line = _cipher.Protect(_json.Serialize(ToRecord(pair.Key ? ActionCreate : ActionUpdate, pair.Value)));
+                        text.Append(Environment.NewLine).Append(line);
+                        lines.Add(line);
                         count++;
                     }
                     if (count == 0) return true;
+                    if (_readFailed || !EnsureJournal()) return false;
                     Directory.CreateDirectory(System.IO.Path.GetDirectoryName(_path)!);
                     File.AppendAllText(_path, text.ToString(), Encoding.UTF8);
+                    if (_compacting) _compactionTail.AddRange(lines); // the running compaction must carry them over
                     _operations += count;
                     return true;
                 }
@@ -376,14 +405,16 @@ namespace CyrFlip
             {
                 lock (_gate)
                 {
+                    if (_readFailed || !EnsureJournal()) return false;
                     Directory.CreateDirectory(System.IO.Path.GetDirectoryName(_path)!);
                     // The line break goes first, not last (ticket S0006, QN-7). A crash mid-append
                     // leaves the file without a final newline; a record written after it with only a
                     // trailing break was glued onto that fragment and lost with it - a create never
                     // followed by an update gone, a delete undone. A leading break costs at most an
                     // empty line, and replay skips those.
-                    File.AppendAllText(_path, Environment.NewLine + _cipher.Protect(_json.Serialize(record)),
-                        Encoding.UTF8);
+                    string line = _cipher.Protect(_json.Serialize(record));
+                    File.AppendAllText(_path, Environment.NewLine + line, Encoding.UTF8);
+                    if (_compacting) _compactionTail.Add(line); // the running compaction must carry it over
                     _operations++;
                     return true;
                 }
@@ -412,39 +443,98 @@ namespace CyrFlip
         /// appended, so a snapshot taken under the lock that also orders the appends never misses a
         /// record that ends up in the file it replaces - a delete appended to the old journal while
         /// the snapshot still held the note would otherwise bring that note back.
+        ///
+        /// <para>The lock is held for the snapshot and the swap, not for the work between them
+        /// (S0064 H-7): the per-note serialize and encrypt of a large journal used to run under the
+        /// very lock a UI-thread save needs, so a background compaction stalled typing for its whole
+        /// length. Between the two locked moments every append lands in the old journal <i>and</i> in
+        /// <see cref="_compactionTail"/>; the swap flushes that tail into the snapshot file first, so
+        /// the replaced journal still holds every record - the same guarantee, at the cost of the
+        /// tail's strings in memory only.</para>
         /// </summary>
         public void Compact(Func<IEnumerable<QuickNote>> snapshot)
         {
             string temp = _path + ".tmp";
+
+            // Under the lock: the checks, the snapshot (atomic with the appends it is measured
+            // against), and the flag that routes every append into the tail from here on.
+            List<string> unreadable;
+            List<QuickNote> notes;
             lock (_gate)
             {
+                if (_compacting)
+                {
+                    QuickNotesLog.Log("compaction skipped: one is already running");
+                    return;
+                }
                 if (_readFailed)
                 {
                     QuickNotesLog.Log("compaction skipped: the journal was only partly read");
                     return;
                 }
-                int count = 0;
+                if (!EnsureJournal()) return;
+                _compacting = true;
+                _compactionTail.Clear();
+                unreadable = new List<string>(_unreadable);
+                notes = new List<QuickNote>(snapshot());
+            }
+
+            // Outside the lock: the bulk of the work. The serializer is shared and stays under the
+            // lock everywhere else, so this phase carries its own; the cipher is stateless.
+            try
+            {
+                var json = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+                var text = new StringBuilder();
+                foreach (string line in unreadable)
+                    text.Append(line).Append(Environment.NewLine);
+                foreach (QuickNote note in notes)
+                    text.Append(_cipher.Protect(json.Serialize(ToRecord(ActionCreate, note))))
+                        .Append(Environment.NewLine);
+                File.WriteAllText(temp, text.ToString(), Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                QuickNotesLog.Log("compaction failed: " + ex.GetType().Name + " " + ex.Message);
+                // The journal was never touched; only the retry discipline of QN2-8 applies.
+                lock (_gate)
+                {
+                    _compacting = false;
+                    _compactionTail.Clear();
+                    _compactAt = _operations + CompactAfterOperations;
+                    _dropFragments = false;
+                }
+                try { if (File.Exists(temp)) File.Delete(temp); }
+                catch (Exception cleanup) { QuickNotesLog.Log("temp cleanup failed: " + cleanup.GetType().Name); }
+                return;
+            }
+
+            // Under the lock again: flush the records appended meanwhile into the snapshot file, and
+            // put it in place of the journal - the swap is the only part the save path ever waits for.
+            lock (_gate)
+            {
+                int count = unreadable.Count + notes.Count;
                 try
                 {
-                    Directory.CreateDirectory(System.IO.Path.GetDirectoryName(_path)!);
-                    var text = new StringBuilder();
-                    foreach (string line in _unreadable)
+                    if (!_compacting)
                     {
-                        text.Append(line).Append(Environment.NewLine);
-                        count++;
+                        // "Delete every quick note" ran while the snapshot was being built: the files
+                        // are gone on purpose, and this snapshot must not bring anything back.
+                        try { if (File.Exists(temp)) File.Delete(temp); }
+                        catch (Exception cleanup) { QuickNotesLog.Log("temp cleanup failed: " + cleanup.GetType().Name); }
+                        return;
                     }
-                    foreach (QuickNote note in snapshot())
+                    if (_compactionTail.Count > 0)
                     {
-                        text.Append(_cipher.Protect(_json.Serialize(ToRecord(ActionCreate, note))))
-                            .Append(Environment.NewLine);
-                        count++;
+                        var tail = new StringBuilder();
+                        foreach (string line in _compactionTail)
+                            tail.Append(Environment.NewLine).Append(line);
+                        File.AppendAllText(temp, tail.ToString(), Encoding.UTF8);
                     }
-                    File.WriteAllText(temp, text.ToString(), Encoding.UTF8);
 
                     if (File.Exists(_path)) ReplaceFile(temp, _path, BackupPath);
                     else File.Move(temp, _path);
-                    _operations = count;
-                    _compactAt = count + CompactAfterOperations;
+                    _operations = count + _compactionTail.Count;
+                    _compactAt = _operations + CompactAfterOperations;
                     _dropFragments = false;
                 }
                 catch (Exception ex)
@@ -452,7 +542,8 @@ namespace CyrFlip
                     QuickNotesLog.Log("compaction failed: " + ex.GetType().Name + " " + ex.Message);
                     // Not again on the next save (QN2-8): a replace that fails once - a backup tool
                     // holding the journal without delete sharing - tends to fail every time, and each
-                    // try re-encrypts and rewrites every note.
+                    // try re-encrypts and rewrites every note. The tail's records are in the old
+                    // journal, which still stands, so dropping the tail loses nothing.
                     _compactAt = _operations + CompactAfterOperations;
                     _dropFragments = false;
                     // File.Replace can fail half way: the journal already renamed to .bak and the
@@ -463,7 +554,7 @@ namespace CyrFlip
                     {
                         if (!File.Exists(_path))
                         {
-                            if (File.Exists(temp)) { File.Move(temp, _path); _operations = count; }
+                            if (File.Exists(temp)) { File.Move(temp, _path); _operations = count + _compactionTail.Count; }
                             else if (File.Exists(BackupPath)) File.Move(BackupPath, _path);
                         }
                     }
@@ -471,7 +562,13 @@ namespace CyrFlip
                     {
                         QuickNotesLog.Log("compaction recovery failed: " + again.GetType().Name + " " + again.Message);
                     }
-                    try { if (File.Exists(temp)) File.Delete(temp); } catch { }
+                    try { if (File.Exists(_path) && File.Exists(temp)) File.Delete(temp); }
+                    catch (Exception cleanup) { QuickNotesLog.Log("temp cleanup failed: " + cleanup.GetType().Name); }
+                }
+                finally
+                {
+                    _compacting = false;
+                    _compactionTail.Clear();
                 }
             }
         }
@@ -490,12 +587,19 @@ namespace CyrFlip
                 try { if (File.Exists(_path)) File.Delete(_path); } catch { }
                 try { if (File.Exists(BackupPath)) File.Delete(BackupPath); } catch { }
                 try { if (File.Exists(_path + ".tmp")) File.Delete(_path + ".tmp"); } catch { }
+                try { if (File.Exists(_path + ".restore.tmp")) File.Delete(_path + ".restore.tmp"); }
+                catch (Exception ex) { QuickNotesLog.Log("recovery temp erase failed: " + ex.GetType().Name); }
                 foreach (string kept in MigratedJournals(System.IO.Path.GetDirectoryName(_path) ?? "", "*"))
                     try { File.Delete(kept); } catch { }
                 _operations = 0;
                 _compactAt = CompactAfterOperations;
                 _readFailed = false;
                 _dropFragments = false;
+                // A compaction between its snapshot and its swap must not put that snapshot - a full
+                // copy of the notes - back on disk after this (S0064 H-7); its swap sees the flag
+                // down and deletes its temp file instead.
+                _compacting = false;
+                _compactionTail.Clear();
                 // "Everything" includes what could not be read: carrying it into the next journal
                 // would keep on disk exactly what the user asked to destroy.
                 _unreadable.Clear();

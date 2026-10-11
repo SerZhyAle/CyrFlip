@@ -146,11 +146,11 @@ namespace CyrFlip
             else if (reason.Length == 0 && shown) _layout.Controls.Remove(_reasonLabel);
         }
 
-        private Button Command(string text, DialogResult result) => new Button
+        private Button Command(string text, DialogResult result) => ButtonGlyphs.Answer(new Button
         {
             Text = text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
             MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = result,
-        };
+        });
 
         private int TextWidth(string text) => TextRenderer.MeasureText(text, Font).Width + 16;
 

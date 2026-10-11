@@ -1,5 +1,7 @@
 using System;
 using System.Drawing;
+using System.IO;
+using System.Text.RegularExpressions;
 using CyrFlip;
 using Xunit;
 
@@ -227,5 +229,27 @@ namespace CyrFlip.Tests
             Assert.True(sm.IsKeyboardInvoked);
             Assert.Equal(TrayHoverState.PopupVisible, sm.State);
         }
+
+        /// <summary>
+        /// S0066 L-3 (LK-3a-01): <see cref="TrayHoverStateMachine.TriggerFromKeyboard"/> sets a 10 s
+        /// auto-dismiss deadline, but the deadline is only ever *checked* by the dwell timer - and the
+        /// timer used to be started only from <c>_tray.MouseMove</c>. A popup opened from the tray
+        /// menu (Win+B, the Menu key) therefore stayed on screen forever: no pointer ever crossed the
+        /// icon to re-arm the timer. The state machine proves the deadline; this source gate - in the
+        /// style of <see cref="ErrorBoundaryGateTests"/> - proves the wiring, because the wiring
+        /// lives in <c>CyrFlipContext</c>, beside a NotifyIcon no unit harness can build.
+        /// </summary>
+        [Fact]
+        public void TheKeyboardInvokedPopupArmsTheDwellTimer()
+        {
+            string source = File.ReadAllText(Path.Combine(SourceRoot, "CyrFlipContext.cs"));
+            Match method = new Regex("private void ShowTrayHotkeysFromKeyboard\\(\\)\\s*\\{(.*?)\\n        \\}",
+                RegexOptions.Singleline).Match(source);
+            Assert.True(method.Success, "ShowTrayHotkeysFromKeyboard was not found in CyrFlipContext.cs");
+            Assert.Contains("_trayHoverTimer.Start()", method.Groups[1].Value);
+        }
+
+        private static readonly string SourceRoot = Path.GetFullPath(Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "src", "CyrFlip"));
     }
 }

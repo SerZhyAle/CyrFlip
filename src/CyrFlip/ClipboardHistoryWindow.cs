@@ -36,6 +36,8 @@ namespace CyrFlip
         private readonly ClipboardHistoryService _service;
         private readonly AppConfig _config;
         private readonly Action _openSearch;
+        // The failure voice (S0065 E-7): the strip owns no tray, so the context lends it its balloon.
+        private readonly Action<string>? _tellRestoreFailed;
         private bool _dragging;
         private Point _dragStart;
         // The keyboard cursor through the full history, scrolling it into view; -1 until a key moves it, and again after a click.
@@ -56,9 +58,10 @@ namespace CyrFlip
         private Font? _titleFont, _hotkeyFont, _bigFont, _smallFont;
         private Font? _uiFont;
 
-        public ClipboardHistoryWindow(ClipboardHistoryService service, AppConfig config, Action openSearch)
+        public ClipboardHistoryWindow(ClipboardHistoryService service, AppConfig config, Action openSearch,
+            Action<string>? tellRestoreFailed = null)
         {
-            _service = service; _config = config; _openSearch = openSearch;
+            _service = service; _config = config; _openSearch = openSearch; _tellRestoreFailed = tellRestoreFailed;
             Text = Localization.Translate(config.UiLanguage, "Менеджер буфера"); TopMost = true; ShowInTaskbar = false;
             RightToLeft = Localization.IsRightToLeft(config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
             // WinForms otherwise paints a second, native title bar above our owner-drawn header.
@@ -92,6 +95,9 @@ namespace CyrFlip
         public void ToggleVisible()
         {
             if (Visible) { Hide(); return; }
+            // The replay is lazy now (S0064 H-5): a start with the history off touches no file, so
+            // the file's records arrive on the first open instead of at startup.
+            _service.EnsureReplayed();
             // ForegroundActivator, not Activate(): from the text context menu this process has no
             // foreground rights and Windows refuses the activation without saying so.
             RestorePlacement(); Show(); ForegroundActivator.Activate(this); Invalidate();
@@ -141,13 +147,29 @@ namespace CyrFlip
                 ClipboardHistoryEntry item = items[_cursor];
                 switch (keyData)
                 {
-                    case Keys.Enter: _service.Restore(item); return true;
+                    case Keys.Enter: RestoreEntry(item); return true;
                     case Keys.Space: _service.TogglePin(item); return true;
                     case Keys.Delete: _service.Delete(item); return true;
                 }
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }
+
+        /// <summary>
+        /// One restore through the failure voice (S0065 E-7): <see cref="ClipboardHistoryService.Restore"/>
+        /// answers false while another program holds the clipboard, and a click that did nothing used
+        /// to be indistinguishable from a click that worked - the user pasted the previous clipboard
+        /// into their document.
+        /// </summary>
+        private void RestoreEntry(ClipboardHistoryEntry item)
+        {
+            string? notice = RestoreNotice(_service.Restore(item), ru => Localization.Translate(_config.UiLanguage, ru));
+            if (notice != null) _tellRestoreFailed?.Invoke(notice);
+        }
+
+        /// <summary>The sentence a refused restore says, or null when it restored - the pure core.</summary>
+        internal static string? RestoreNotice(bool restored, Func<string, string> translate)
+            => restored ? null : translate("Не удалось скопировать текст в буфер обмена. Повторите.");
 
         private void MoveCursor(int index, int count)
         {
@@ -333,7 +355,7 @@ namespace CyrFlip
             ClipboardHistoryEntry item = items[index];
             if (e.X >= ClientSize.Width - CellButtonWidth) { if (e.Y - HeaderHeight - index * CellHeight < PinZoneHeight) _service.TogglePin(item); else _service.Delete(item); }
             else if (e.Button == MouseButtons.Right) _service.TogglePin(item);
-            else if (e.Button == MouseButtons.Left) _service.Restore(item);
+            else if (e.Button == MouseButtons.Left) RestoreEntry(item);
         }
 
         private void OnMouseMove(object? sender, MouseEventArgs e)

@@ -301,6 +301,13 @@ namespace CyrFlip
         /// </summary>
         private static void PaintButton(Button button, State state, ThemePalette palette)
         {
+            // The command glyph first: its ink depends on the palette and on the button being available.
+            ButtonGlyphs.Refresh(button, palette);
+            // A dialog's affirmative or dismissing answer paints its own face from the palette in every
+            // state (a hue-tinted flat face, the neutral one when unavailable, system colours under high
+            // contrast - WINDOWS-UI section 11 items 4 and 6); every other button takes the path below.
+            if (ButtonGlyphs.PaintFace(button, palette)) return;
+
             ThemeRole? backRole = state.BackExplicit ? ThemePalette.RoleOfDesignColor(state.Back) : null;
             bool neutral = backRole == null || backRole == ThemeRole.SurfaceWindow || backRole == ThemeRole.Control;
             if (palette.IsDark)
@@ -751,6 +758,8 @@ namespace CyrFlip
             Rectangle text = new Rectangle(client.X + button.Padding.Left, client.Y + button.Padding.Top,
                 Math.Max(0, client.Width - button.Padding.Horizontal), Math.Max(0, client.Height - button.Padding.Vertical));
             TextRenderer.DrawText(g, button.Text, button.Font, text, palette.TextDisabled, flags);
+            // The command glyph the fill above wiped (its ink is text.disabled while unavailable).
+            ButtonGlyphs.Draw(button, g, palette);
         }
 
         private static bool IsMirrored(Control control)

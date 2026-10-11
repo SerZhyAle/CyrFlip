@@ -59,11 +59,14 @@ namespace CyrFlip
     /// A round plate with a vocabulary glyph (or, where the vocabulary has no picture for it, a short
     /// typographic mark such as "Aa") - the tour's way of putting a recognisable face on a feature.
     /// <see cref="Solid"/> is the page header (accent plate, ink glyph); the soft plate is a list row.
+    /// The icon overload is the welcome header alone: the app's own mark, drawn whole (it carries its
+    /// own tile), in place of a vocabulary glyph - an identity, not a feature meaning.
     /// </summary>
     internal sealed class GlyphBadge : WelcomePainted
     {
         private readonly string? _glyph;
         private readonly string? _mark;
+        private readonly Icon? _icon;
 
         public bool Solid { get; }
 
@@ -74,8 +77,21 @@ namespace CyrFlip
             MinimumSize = MaximumSize = Size;
         }
 
+        /// <summary>Draws the given icon whole; the caller owns it (the welcome header's app mark).</summary>
+        public GlyphBadge(Icon icon, int size, bool solid)
+        {
+            _icon = icon; Solid = solid;
+            Size = new Size(size, size);
+            MinimumSize = MaximumSize = Size;
+        }
+
         protected override void Draw(Graphics g)
         {
+            if (_icon != null)
+            {
+                g.DrawIcon(_icon, new Rectangle(0, 0, Width, Height));
+                return;
+            }
             var plate = new RectangleF(0.5f, 0.5f, Width - 1.5f, Height - 1.5f);
             Color fill = Solid ? Palette.Accent : ThemePalette.Mix(Palette.Accent, Palette.SurfaceWindow, 0.84f);
             Color ink = Solid ? Palette.AccentInk : Palette.Accent;
@@ -264,46 +280,23 @@ namespace CyrFlip
     }
 
     /// <summary>
-    /// A button that carries a vocabulary glyph beside its caption, drawn at the theme's text colour and
-    /// again whenever the theme, the direction or the glyph changes (nothing is baked). A glyph that
-    /// cannot be drawn leaves the caption alone.
+    /// A button that carries a vocabulary glyph beside its caption - the tour's navigation. The glyph,
+    /// its hue and its tinted face are <see cref="ButtonGlyphs"/>' own, the same as every other command
+    /// button of the product: drawn again whenever the theme, the direction, the DPI or the glyph changes
+    /// (nothing is baked), and a glyph that cannot be drawn leaves the caption alone.
     /// </summary>
-    internal sealed class GlyphButton : Button, IThemeAware
+    internal sealed class GlyphButton : Button
     {
-        private ThemePalette _palette = ThemePalette.Light;
-        private string _glyph;
-
-        public GlyphButton(string glyph, bool glyphAfterText)
+        public GlyphButton(string glyph, bool glyphAfterText, ButtonLook look = ButtonLook.Neutral)
         {
-            _glyph = glyph;
             AutoSize = true;
-            ImageAlign = ContentAlignment.MiddleCenter;
-            TextImageRelation = glyphAfterText ? TextImageRelation.TextBeforeImage : TextImageRelation.ImageBeforeText;
-            Redraw();
+            ButtonGlyphs.Attach(this, glyph, look, glyphAfterText);
         }
 
         public string Glyph
         {
-            get => _glyph;
-            set { if (_glyph != value) { _glyph = value; Redraw(); } }
-        }
-
-        public void ApplyTheme(ThemePalette palette) { _palette = palette; Redraw(); }
-
-        private void Redraw()
-        {
-            Image? previous = Image;
-            Image = GlyphRenderer.Render(_glyph, LogicalToDeviceUnits(16), _palette.TextPrimary, RightToLeft == RightToLeft.Yes);
-            previous?.Dispose();   // after the button let go of it
-        }
-
-        protected override void OnRightToLeftChanged(EventArgs e) { base.OnRightToLeftChanged(e); Redraw(); }
-        protected override void OnHandleCreated(EventArgs e) { base.OnHandleCreated(e); Redraw(); }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing) { Image?.Dispose(); Image = null; }
-            base.Dispose(disposing);
+            get => ButtonGlyphs.GlyphOf(this) ?? "";
+            set => ButtonGlyphs.SetGlyph(this, value);
         }
     }
 

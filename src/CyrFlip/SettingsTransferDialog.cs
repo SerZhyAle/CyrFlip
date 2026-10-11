@@ -38,8 +38,11 @@ namespace CyrFlip
             var choices = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false };
             foreach (var group in Plan.Changes.Where(c => !c.OptIn).GroupBy(c => c.Entry.Group))
             {
-                string groupCaption = GroupCaption(group.Key);
-                var box = new CheckBox { Text = T(groupCaption), Checked = true, AutoSize = true };
+                // The page and then the group (S0062): a group caption alone - "Запись", "С клавиатуры" - does not
+                // say which feature it belongs to, and the page titles are all translated already.
+                string pageCaption = PageCaption(group.Key), groupCaption = GroupCaption(group.Key);
+                string shown = pageCaption == groupCaption ? T(pageCaption) : T(pageCaption) + " - " + T(groupCaption);
+                var box = new CheckBox { Text = shown, Checked = true, AutoSize = true };
                 _choices.Add(new KeyValuePair<CheckBox, string[]>(box, group.Select(c => c.Entry.Key).ToArray())); choices.Controls.Add(box);
             }
             foreach (var change in Plan.Changes.Where(c => c.OptIn))
@@ -56,8 +59,8 @@ namespace CyrFlip
             scroll.Controls.Add(_changes); layout.Controls.Add(scroll);
             _status = new Label { AutoSize = true, MaximumSize = new Size(width, 0), UseMnemonic = false }; layout.Controls.Add(_status);
             var buttons = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.RightToLeft, Dock = DockStyle.Fill };
-            var cancel = new Button { AutoSize = true, Text = T(Plan.Changes.Count == 0 ? "Закрыть" : "Отмена"), DialogResult = DialogResult.Cancel };
-            _apply = new Button { AutoSize = true, Text = T("Применить"), DialogResult = DialogResult.OK };
+            var cancel = ButtonGlyphs.Answer(new Button { AutoSize = true, Text = T(Plan.Changes.Count == 0 ? "Закрыть" : "Отмена"), DialogResult = DialogResult.Cancel });
+            _apply = ButtonGlyphs.Answer(new Button { AutoSize = true, Text = T("Применить"), DialogResult = DialogResult.OK });
             buttons.Controls.Add(cancel); buttons.Controls.Add(_apply); layout.Controls.Add(buttons); Controls.Add(layout);
             CancelButton = cancel; AcceptButton = cancel;
             var offered = new HashSet<string>(_choices.SelectMany(c => c.Value));
@@ -131,13 +134,32 @@ namespace CyrFlip
                 case "notes/editor": return "Редактор";
                 case "notes/storage": return "Экспорт и хранение";
                 case "graphics/capture": return "Снимок области экрана";
+                // S0062: the groups the regrouped pages are made of.
+                case "general/language": return "Язык и тема";
+                case "general/power": return "Питание и экран";
+                case "hotkeys/switches": return "Общие выключатели";
+                case "conversions/table": return "Таблица раскладок";
+                case "conversions/after": return "После конвертации";
+                case "conversions/symbols": return "Знаки препинания";
+                case "conversions/case": return "Регистр";
+                case "clipboard/recording": return "Запись";
+                case "clipboard/window": return "Окно истории";
+                case "selection/mouse": return "Меню над выделением";
+                case "selection/keyboard": return "С клавиатуры";
             }
+            return PageCaption(id);
+        }
+
+        /// <summary>The page a group id belongs to (its first segment), by the page's source title.</summary>
+        internal static string PageCaption(string id)
+        {
             switch (id.Split('/')[0])
             {
                 case "general": return "Общие"; case "indicators": return "Индикаторы";
-                case "hotkeys": return "Горячие клавиши"; case "conversions": return "Конвертация раскладок";
-                case "clipboard": return "Буфер обмена"; case "context": return "Контекстное меню";
-                case "translate": return "Перевод"; case "notes": return "Быстрые заметки"; default: return "Графика";
+                case "hotkeys": return "Горячие клавиши"; case "conversions": return "Исправление текста";
+                case "clipboard": return "Буфер обмена"; case "selection": return "Меню для выделенного";
+                case "translate": return "Перевод"; case "notes": return "Быстрые заметки";
+                default: return "Снимки экрана";
             }
         }
     }

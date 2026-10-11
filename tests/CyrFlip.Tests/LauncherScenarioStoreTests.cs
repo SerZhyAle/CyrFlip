@@ -33,6 +33,30 @@ namespace CyrFlip.Tests
             Hotkey = "Ctrl+Alt+F9",
         };
 
+        /// <summary>
+        /// S0065 E-5: the delete-refusal reason follows the caller's language. It used to be the
+        /// Russian key in every UI - an English user read "Could not delete: Не удалось запустить
+        /// процесс." - and the store's file is held open here so File.Delete fails with the sharing
+        /// violation the split of E-8 gives its own sentence.
+        /// </summary>
+        [Fact]
+        public void ADeleteRefusalSpeaksTheCallersLanguage()
+        {
+            var store = NewStore();
+            LauncherScenario scenario = Sample();
+            store.Add(scenario);
+            string file = Path.Combine(_folder, scenario.Filename);
+            Assert.True(File.Exists(file));
+
+            using (new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                // Same store instance: a second store cannot reload the XML while the lock holds it.
+                Assert.Equal("Файл занят другой программой.", store.Remove(scenario.Id));
+                Assert.Equal("The file is in use by another program.",
+                    store.Remove(scenario.Id, ru => Localization.Translate("English", ru)));
+            }
+        }
+
         [Fact]
         public void RoundTripPreservesEveryField()
         {

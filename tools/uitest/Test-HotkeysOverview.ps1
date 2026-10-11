@@ -1,4 +1,5 @@
-# The "Все комбинации" settings page on a live app (ticket S0056, section 8).
+# The "Горячие клавиши" settings page - the master switch and the overview of every chord - on a live app
+# (tickets S0056 section 8 and S0062; it was the "Все комбинации" page before S0062).
 #
 # What xUnit cannot reach: the page in a real window with a real hook behind it. This script stages a
 # known set of chords and switches, opens the settings window on the page, saves its screenshot and
@@ -38,7 +39,7 @@ $names = @(
     'EnableScreenshotFolderHotkey', 'EnableTextMenuHotkey', 'EnableSymbolsHotkey',
     'LayoutConversionProfiles', 'TranslateProfiles',
     'EnableTranslate', 'EnableScenarioLauncher', 'EnableQuickNotes', 'EnableContextMenu', 'EnableSymbols',
-    'ScreenshotSaveEnabled', 'SettingsTab', 'SettingsGroupsState'
+    'ScreenshotSaveEnabled', 'SettingsTab', 'SettingsPageId', 'SettingsGroupsState'
 )
 
 function Read-Settings {
@@ -107,7 +108,8 @@ try {
     Set-ItemProperty -Path $key -Name 'EnableCaseHotkey' -Value 1 -Type DWord
     Set-ItemProperty -Path $key -Name 'EnableHistoryHotkey' -Value 0 -Type DWord
     Set-ItemProperty -Path $key -Name 'EnableQuickNotes' -Value 0 -Type DWord
-    Set-ItemProperty -Path $key -Name 'SettingsTab' -Value 3 -Type DWord   # the page right after "Hotkeys"
+    # The page is remembered by its key (S0062: the stored key wins over a bare index).
+    Set-ItemProperty -Path $key -Name 'SettingsPageId' -Value 'Hotkeys' -Type String
     Remove-ItemProperty -Path $key -Name 'SettingsGroupsState' -ErrorAction SilentlyContinue
 
     # Opened with /launcher-settings, so no mouse is needed (see Test-DarkTheme.ps1).
@@ -122,18 +124,21 @@ try {
     Write-Host @'
 
 Human checklist (the unattended half ends here - tick each against the window that is open now):
-  [ ] The page "Все комбинации" sits right after "Горячие клавиши", with six groups; "Windows" is collapsed.
+  [ ] The page "Горячие клавиши" is the second from the bottom (before "О программе"): a first group "Общие выключатели"
+      (the master switch and "Уступать хоткеи ...") and then six groups; "Windows" is collapsed.
   [ ] "Исправить CapsLock" shows Ctrl+Alt+Z with its switch ON; its "По умолчанию" button is enabled.
   [ ] "Менеджер буфера" shows Ctrl+Shift+F10 with its switch OFF and the muted word "выключено".
   [ ] "Быстрые заметки" says "модуль выключен" and the words are a link to the notes page.
-  [ ] Same value, two views: untick the case-flip switch on the old "Горячие клавиши" page, come back here
-      - the row shows it off, and the other way round. Neither page fires a change twice.
+  [ ] One value, two places: untick the case-flip switch on "Исправление текста" (group "Регистр"), come back here
+      - the row shows it off, and the other way round. Neither place fires a change twice. The master switch is one
+      control on this page: untick it and every row says "горячие клавиши выключены"; "Исправить CapsLock" and
+      "Менеджер буфера" are greyed on their own pages.
   [ ] Change a chord from here ("Изменить..."): a chord another action holds is refused with its name.
   [ ] Press the changed chord in Notepad: the LIVE hook acts on it (a real keypress, by you).
   [ ] Keyboard only: Tab into a row, Up/Down move between rows, Enter on "Изменить...", Space on a switch,
       Delete on a conversion/translation/scenario row clears its chord; focus survives every rebuild.
   [ ] "Сбросить все...": the confirmation counts what changes and names rows it cannot reset; Yes is red;
-      Escape answers No. After Yes the page, the old page and the real chords all show the shipped values.
+      Escape answers No. After Yes this page, the feature pages and the real chords all show the shipped values.
   [ ] A clash (give a conversion row the case flip's chord): both rows say "совпадает с: ...".
   [ ] A long language (de, hi), Arabic (right to left), 125 % / 200 % scaling, high contrast: nothing clipped.
 '@ -ForegroundColor Yellow

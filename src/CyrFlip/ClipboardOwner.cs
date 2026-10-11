@@ -366,11 +366,14 @@ namespace CyrFlip
             // Inside WM_RENDERFORMAT the requester holds the clipboard open - usually with a window of
             // its own, which names the process that asked.
             IntPtr requester = GetOpenClipboardWindow();
-            if (offer.RenderedBy.Length == 0) offer.RenderedBy = ProcessOf(requester);
             uint requesterPid = 0;
             if (requester != IntPtr.Zero) GetWindowThreadProcessId(requester, out requesterPid);
             bool bridge = requester != IntPtr.Zero && RemoteDesktop.IsSlowClipboardTarget(requester);
             SetText(offer, PasteOffer.IsTargetRead(requesterPid, offer.TargetProcessId, bridge));
+            // The name is diagnostics, not part of the decision, so it is resolved after the render
+            // (S0064 H-6): the paste target used to sit blocked inside GetClipboardData while
+            // ProcessOf walked the process table for it.
+            if (offer.RenderedBy.Length == 0) offer.RenderedBy = ProcessOf(requester);
         }
 
         private static string ProcessOf(IntPtr hwnd)

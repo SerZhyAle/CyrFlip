@@ -83,7 +83,7 @@ namespace CyrFlip
         {
             "launcher.log", "context-menu.log", "translate.log", "quick-notes-diagnostics.log",
             "clipboard-history-diagnostics.log", "clipboard-flip.log", "screenshot.log",
-            "settings-file.log", "caret-diagnostics.txt", "layout.txt",
+            "settings-file.log", "caret-diagnostics.txt", "crash.log", "layout.txt",
         };
 
         /// <summary>
@@ -118,6 +118,10 @@ namespace CyrFlip
             ["screenshot.log"] = "снимки экрана: исход сохранения файла - без путей",
             ["caret-diagnostics.txt"] = "диагностика каретки: классы окон и процессы - заголовки только длиной",
             ["settings-file.log"] = "перенос настроек: счётчики, имена ключей и коды причин - без значений",
+            // S0065 E-11: the bundle a user mails after a crash used to hold no crash - Fatal writes
+            // the exception to crash.log, which was never in the whitelist. It passes the redactor
+            // like every file (the profile becomes <USER>), so the stack can keep its paths.
+            ["crash.log"] = "аварийные остановки: тип и стек последней ошибки - без текста",
             ["layout.txt"] = "код текущей раскладки",
         };
 

@@ -33,7 +33,12 @@ namespace CyrFlip
         // <see cref="ClipboardHistoryOrder"/> for why that class exists at all.
         private readonly ClipboardHistoryOrder _order = new ClipboardHistoryOrder();
         private readonly ClipboardHistoryGate _gate = new ClipboardHistoryGate();
-        private readonly ClipboardHistoryJournal _journal;
+        // Comes up on first use (S0064 H-5): a start with the history off creates no folder, no
+        // writer thread and reads no journal. Owner thread only, like everything else here.
+        private ClipboardHistoryJournal? _journal;
+        private readonly string _dir;
+        private readonly IQuickNotesCipher _cipher;
+        private int _replayQueued;
         private readonly ConcurrentQueue<Action> _toOwner = new ConcurrentQueue<Action>();
         private int _runQueuedPosted;
         private bool _enabled;
@@ -48,6 +53,13 @@ namespace CyrFlip
         public event EventHandler? ClearFailed;
         /// <summary>The first journal record of this session that could not be written (S0031 CH2-4). Raised on the UI thread, once.</summary>
         public event EventHandler? WriteFailed;
+        public event EventHandler? EraseFailed;
+        /// <summary>
+        /// The startup replay is over (S0064 H-5), on the UI thread, exactly once per service. Carries
+        /// no data - read <see cref="SkippedRecords"/>. It replaced reading the count in the caller's
+        /// constructor, which the pool replay made too early.
+        /// </summary>
+        public event EventHandler? ReplayFinished;
 
         /// <summary>
         /// Pinned first, then newest first. Already in that order - <see cref="ClipboardHistoryOrder"/>
@@ -55,8 +67,8 @@ namespace CyrFlip
         /// </summary>
         public IReadOnlyList<ClipboardHistoryEntry> Entries => _order.Entries;
 
-        /// <summary>Journal lines that could not be read at startup; each cost only itself (spec S0005 CH-2).</summary>
-        public int SkippedRecords { get; }
+        /// <summary>Journal lines that could not be read by the replay; each cost only itself (spec S0005 CH-2). Final once <see cref="ReplayFinished"/> has run.</summary>
+        public int SkippedRecords { get; private set; }
 
         public ClipboardHistoryService(bool enabled, bool paused)
             : this(enabled, paused, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CyrFlip"))
@@ -68,22 +80,96 @@ namespace CyrFlip
         {
             _enabled = enabled;
             _paused = paused;
-            Directory.CreateDirectory(dir);
-            _journal = new ClipboardHistoryJournal(Path.Combine(dir, "clipboard-history.log"), cipher ?? QuickNotesCipher.Dpapi);
-            SkippedRecords = _journal.Load(_order);
-            if (SkippedRecords > 0)
-                ClipboardHistoryLog.Log("history: " + SkippedRecords + " unreadable records skipped on load");
+            _dir = dir;
+            _cipher = cipher ?? QuickNotesCipher.Dpapi;
             // Before the journal can fail a write: the handle is where the report is posted to.
             CreateHandle(new CreateParams { Caption = "CyrFlip Clipboard History Listener" });
-            _journal.WriteFailed += () => PostToOwner(() =>
+            AddClipboardFormatListener(Handle);
+            if (enabled) StartReplay();
+        }
+
+        /// <summary>
+        /// The journal, on first use (S0064 H-5). A <c>%LOCALAPPDATA%</c> that cannot hold the folder
+        /// is no longer a fatal box at every start: the failure surfaces on the first write through the
+        /// usual <see cref="WriteFailed"/> balloon, and the rest of the history keeps working in memory.
+        /// </summary>
+        private ClipboardHistoryJournal EnsureJournal()
+        {
+            if (_journal != null) return _journal;
+            try { Directory.CreateDirectory(_dir); }
+            catch { /* the write path reports an unwritable folder */ }
+            var journal = new ClipboardHistoryJournal(Path.Combine(_dir, "clipboard-history.log"), _cipher);
+            journal.WriteFailed += () => PostToOwner(() =>
             {
                 ClipboardHistoryLog.Log("history: a journal record could not be written");
                 WriteFailed?.Invoke(this, EventArgs.Empty);
             });
-            AddClipboardFormatListener(Handle);
+            journal.EraseFailed += () => PostToOwner(() => EraseFailed?.Invoke(this, EventArgs.Empty));
+            _journal = journal;
+            return journal;
         }
 
-        public void SetEnabled(bool value) { _enabled = value; if (value) Capture(); }
+        /// <summary>
+        /// Replay the journal into the list on the pool, once per service: the decrypt of a large file
+        /// no longer runs on the hooks' thread at startup (S0064 H-5). Copies made while the replay is
+        /// in flight are already in the list, and the merge below skips them by Uuid.
+        /// </summary>
+        private void StartReplay()
+        {
+            if (Interlocked.Exchange(ref _replayQueued, 1) != 0) return;
+            ClipboardHistoryJournal journal = EnsureJournal();
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                var replayed = new ClipboardHistoryOrder();
+                int skipped = 0;
+                try { skipped = journal.Load(replayed); }
+                catch { replayed.Clear(); skipped = 0; }
+                PostToOwner(() =>
+                {
+                    if (_disposed) return;
+                    SkippedRecords = skipped;
+                    if (skipped > 0)
+                        ClipboardHistoryLog.Log("history: " + skipped + " unreadable records skipped on load");
+                    MergeReplayed(replayed);
+                });
+            });
+        }
+
+        /// <summary>
+        /// Complete the replay on the calling thread when it has not run yet (S0064 H-5). For callers
+        /// that must see the file's records now, while the history is switched off: opening the
+        /// manager window and the exchange export - explicit user actions, unlike the start.
+        /// UI thread only, like everything that touches the list.
+        /// </summary>
+        internal void EnsureReplayed()
+        {
+            if (Interlocked.Exchange(ref _replayQueued, 1) != 0) return;
+            ClipboardHistoryJournal journal = EnsureJournal();
+            var replayed = new ClipboardHistoryOrder();
+            int skipped = 0;
+            try { skipped = journal.Load(replayed); }
+            catch { replayed.Clear(); skipped = 0; }
+            SkippedRecords = skipped;
+            if (skipped > 0)
+                ClipboardHistoryLog.Log("history: " + skipped + " unreadable records skipped on load");
+            MergeReplayed(replayed);
+        }
+
+        /// <summary>Move the replayed entries into the live list; a Uuid already captured live stays as it is.</summary>
+        private void MergeReplayed(ClipboardHistoryOrder replayed)
+        {
+            bool added = false;
+            foreach (ClipboardHistoryEntry entry in replayed.Entries)
+                if (_order.Add(entry)) added = true;
+            if (added) RaiseChanged();
+            ReplayFinished?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void SetEnabled(bool value)
+        {
+            _enabled = value;
+            if (value) { StartReplay(); Capture(); }
+        }
         public void SetPaused(bool value) { _paused = value; }
 
         /// <summary>
@@ -110,21 +196,21 @@ namespace CyrFlip
         public void TogglePin(ClipboardHistoryEntry entry)
         {
             _order.Update(entry, entry.CreatedAt, !entry.IsPinned);
-            _journal.Append(ClipboardHistoryJournal.Record.Of(entry.IsPinned ? "pin" : "unpin", entry));
+            EnsureJournal().Append(ClipboardHistoryJournal.Record.Of(entry.IsPinned ? "pin" : "unpin", entry));
             RaiseChanged();
         }
 
         public void Delete(ClipboardHistoryEntry entry)
         {
             _order.Remove(entry);
-            _journal.Append(ClipboardHistoryJournal.Record.Of("delete", entry));
+            EnsureJournal().Append(ClipboardHistoryJournal.Record.Of("delete", entry));
             RaiseChanged();
         }
 
         public void Clear()
         {
             _order.Clear();
-            _journal.Clear(deleted =>
+            EnsureJournal().Clear(deleted =>
             {
                 if (!deleted) PostToOwner(() => ClearFailed?.Invoke(this, EventArgs.Empty));
             });
@@ -163,13 +249,13 @@ namespace CyrFlip
                         SourceApp = action.Item.SourceApp,
                         SourceTitle = action.Item.SourceTitle,
                     };
-                    if (_order.Add(entry)) _journal.Append(ClipboardHistoryJournal.Record.Of("add", entry));
+                    if (_order.Add(entry)) EnsureJournal().Append(ClipboardHistoryJournal.Record.Of("add", entry));
                 }
                 else
                 {
                     // "touch" carries both the date and the pin, and replays as exactly this update.
                     _order.Update(action.Existing, action.CopiedAtUtc, action.Pinned);
-                    _journal.Append(ClipboardHistoryJournal.Record.Of("touch", action.Existing));
+                    EnsureJournal().Append(ClipboardHistoryJournal.Record.Of("touch", action.Existing));
                 }
             }
             if (actions.Count > 0)
@@ -187,8 +273,10 @@ namespace CyrFlip
         /// </summary>
         public int FlushJournal(TimeSpan timeout)
         {
-            _journal.Drain(timeout);
-            return _journal.Pending;
+            ClipboardHistoryJournal? journal = _journal;
+            if (journal == null) return 0;
+            journal.Drain(timeout);
+            return journal.Pending;
         }
 
         /// <summary>
@@ -281,7 +369,7 @@ namespace CyrFlip
             if (existing != null)
             {
                 _order.Update(existing, DateTime.UtcNow, existing.IsPinned);
-                _journal.Append(ClipboardHistoryJournal.Record.Of("touch", existing));
+                EnsureJournal().Append(ClipboardHistoryJournal.Record.Of("touch", existing));
             }
             else
             {
@@ -294,7 +382,7 @@ namespace CyrFlip
                     SourceTitle = sourceTitle
                 };
                 _order.Add(existing);
-                _journal.Append(ClipboardHistoryJournal.Record.Of("add", existing));
+                EnsureJournal().Append(ClipboardHistoryJournal.Record.Of("add", existing));
             }
             _order.SetCurrent(existing);
             RaiseChanged();
@@ -336,7 +424,8 @@ namespace CyrFlip
         public bool WaitForPendingWrites(TimeSpan timeout)
         {
             LogSessionSummary();
-            return _journal.Drain(timeout);
+            ClipboardHistoryJournal? journal = _journal;
+            return journal == null || journal.Drain(timeout);
         }
 
         /// <summary>
@@ -346,7 +435,7 @@ namespace CyrFlip
         private void LogSessionSummary()
         {
             int skipped = Volatile.Read(ref _skippedMarked);
-            int failed = _journal.WriteFailures;
+            int failed = _journal?.WriteFailures ?? 0;
             if ((skipped == 0 && failed == 0) || Interlocked.Exchange(ref _summaryLogged, 1) != 0) return;
             if (skipped > 0) ClipboardHistoryLog.Log("history: skipped " + skipped + " marked entries");
             if (failed > 0) ClipboardHistoryLog.Log("history: " + failed + " journal records could not be written");
@@ -365,9 +454,9 @@ namespace CyrFlip
             _disposed = true;
             if (Handle != IntPtr.Zero) RemoveClipboardFormatListener(Handle);
             DestroyHandle();
-            _journal.Dispose(); // drains what is queued, up to ClipboardHistoryJournal.DisposeDrain
+            _journal?.Dispose(); // drains what is queued, up to ClipboardHistoryJournal.DisposeDrain
             LogSessionSummary();
-            int abandoned = _journal.Pending;
+            int abandoned = _journal?.Pending ?? 0;
             if (abandoned > 0)
                 ClipboardHistoryLog.Log("history: " + abandoned + " queued records abandoned at exit");
         }

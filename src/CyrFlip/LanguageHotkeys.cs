@@ -76,12 +76,14 @@ namespace CyrFlip
         // ---- Reading ----
 
         /// <summary>Every assignment currently stored in the direct-switch range, ordered by id.</summary>
-        public static List<Entry> ReadAll()
+        public static List<Entry> ReadAll() => ReadAll(false);
+
+        private static List<Entry> ReadAll(bool strict)
         {
             var result = new List<Entry>();
             try
             {
-                using RegistryKey? root = Registry.CurrentUser.OpenSubKey(HotKeysPath);
+                using IRuntimeRegistryKey? root = RuntimeRegistry.User.OpenSubKey(HotKeysPath);
                 if (root == null) return result;
 
                 foreach (string name in root.GetSubKeyNames())
@@ -91,9 +93,13 @@ namespace CyrFlip
                     if (id < DirectSwitchFirst || id > DirectSwitchLast)
                         continue; // built-in IME chord - not ours to read or edit
 
-                    using RegistryKey? key = root.OpenSubKey(name);
-                    if (key == null) continue;
+                    using IRuntimeRegistryKey? key = root.OpenSubKey(name);
+                    if (key == null) { if (strict) throw new InvalidOperationException("Hotkey key disappeared."); continue; }
 
+                    if (strict)
+                        foreach (string field in new[] { "Virtual Key", "Key Modifiers", "Target IME" })
+                            if (!(key.GetValue(field) is byte[] bytes) || bytes.Length != 4)
+                                throw new InvalidOperationException("Unreadable hotkey value.");
                     uint vk = ReadDword(key, "Virtual Key");
                     if (vk == 0) continue; // no trigger key => not a usable assignment
 
@@ -106,7 +112,7 @@ namespace CyrFlip
                     });
                 }
             }
-            catch { /* an unreadable key just means "nothing assigned" */ }
+            catch { if (strict) throw; }
 
             result.Sort((a, b) => a.Id.CompareTo(b.Id));
             return result;
@@ -180,7 +186,7 @@ namespace CyrFlip
 
             try
             {
-                using (RegistryKey? key = Registry.CurrentUser.CreateSubKey(HotKeysPath + "\\" + slot.ToString("X8", CultureInfo.InvariantCulture)))
+                using (IRuntimeRegistryKey? key = RuntimeRegistry.User.CreateSubKey(HotKeysPath + "\\" + slot.ToString("X8", CultureInfo.InvariantCulture)))
                 {
                     if (key == null) return AssignStatus.Failed;
                     WriteDword(key, "Key Modifiers", modifiers);
@@ -221,7 +227,7 @@ namespace CyrFlip
             if (id < DirectSwitchFirst || id > DirectSwitchLast) return;
             try
             {
-                using RegistryKey? root = Registry.CurrentUser.OpenSubKey(HotKeysPath, writable: true);
+                using IRuntimeRegistryKey? root = RuntimeRegistry.User.OpenSubKey(HotKeysPath, writable: true);
                 root?.DeleteSubKeyTree(id.ToString("X8", CultureInfo.InvariantCulture), throwOnMissingSubKey: false);
             }
             catch { }
@@ -246,23 +252,27 @@ namespace CyrFlip
         /// </summary>
         public static string BackupAll()
         {
-            var toggle = new Dictionary<string, object>();
             try
             {
-                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(TogglePath);
+                var toggle = new Dictionary<string, object>();
+                using IRuntimeRegistryKey? key = RuntimeRegistry.User.OpenSubKey(TogglePath);
                 if (key != null)
                     foreach (string name in ToggleValues)
-                        if (key.GetValue(name) is string value) toggle[name] = value;
+                    {
+                        object? value = key.GetValue(name);
+                        if (value != null) toggle[name] = value as string
+                            ?? throw new InvalidOperationException("Unreadable toggle value.");
+                    }
+                var snap = new Dictionary<string, object> { ["format"] = 2, ["rows"] = BackupRows(), ["toggle"] = toggle };
+                return new JavaScriptSerializer().Serialize(snap);
             }
-            catch { }
-            var snap = new Dictionary<string, object> { ["format"] = 2, ["rows"] = BackupRows(), ["toggle"] = toggle };
-            try { return new JavaScriptSerializer().Serialize(snap); } catch { return ""; }
+            catch { return ""; }
         }
 
         private static List<Dictionary<string, object>> BackupRows()
         {
             var rows = new List<Dictionary<string, object>>();
-            foreach (Entry e in ReadAll())
+            foreach (Entry e in ReadAll(true))
             {
                 rows.Add(new Dictionary<string, object>
                 {
@@ -315,7 +325,7 @@ namespace CyrFlip
             {
                 try
                 {
-                    using RegistryKey? key = Registry.CurrentUser.CreateSubKey(TogglePath);
+                    using IRuntimeRegistryKey? key = RuntimeRegistry.User.CreateSubKey(TogglePath);
                     if (key != null)
                         foreach (string name in ToggleValues)
                         {
@@ -336,7 +346,7 @@ namespace CyrFlip
                 {
                     int id = Convert.ToInt32(row["id"], CultureInfo.InvariantCulture);
                     if (id < DirectSwitchFirst || id > DirectSwitchLast) continue;
-                    using RegistryKey? key = Registry.CurrentUser.CreateSubKey(HotKeysPath + "\\" + id.ToString("X8", CultureInfo.InvariantCulture));
+                    using IRuntimeRegistryKey? key = RuntimeRegistry.User.CreateSubKey(HotKeysPath + "\\" + id.ToString("X8", CultureInfo.InvariantCulture));
                     if (key == null) continue;
                     WriteDword(key, "Key Modifiers", Convert.ToUInt32(row["mod"], CultureInfo.InvariantCulture));
                     WriteDword(key, "Virtual Key", Convert.ToUInt32(row["vk"], CultureInfo.InvariantCulture));
@@ -371,7 +381,7 @@ namespace CyrFlip
             if ((ushort)(value >> 16) != lang) return "";
             try
             {
-                using RegistryKey? key = Registry.LocalMachine.OpenSubKey(
+                using IRuntimeRegistryKey? key = RuntimeRegistry.Machine.OpenSubKey(
                     @"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\0000" + lang.ToString("X4", CultureInfo.InvariantCulture));
                 return key?.GetValue("Layout Text") as string ?? "";
             }
@@ -391,7 +401,7 @@ namespace CyrFlip
         {
             try
             {
-                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(TogglePath);
+                using IRuntimeRegistryKey? key = RuntimeRegistry.User.OpenSubKey(TogglePath);
                 string? code = (key?.GetValue("Language Hotkey") ?? key?.GetValue("Hotkey")) as string;
                 return code ?? "3";
             }
@@ -421,18 +431,22 @@ namespace CyrFlip
         /// layout within a language" chord and is left alone (see <see cref="LayoutHotkeyAfter"/>).
         /// Re-read by the OS via <see cref="ApplyToWindows"/>.
         /// </summary>
-        public static void SetToggle(string code)
+        public static Exception? LastFailure { get; private set; }
+
+        public static bool SetToggle(string code)
         {
-            try
+            LastFailure = RuntimeRegistry.Change(new[] { TogglePath }, () =>
             {
-                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(TogglePath);
-                if (key == null) return;
+                using IRuntimeRegistryKey key = RuntimeRegistry.User.CreateSubKey(TogglePath);
+                string? layout = LayoutHotkeyAfter(key.GetValue("Layout Hotkey") as string, code);
                 key.SetValue("Hotkey", code, RegistryValueKind.String);
                 key.SetValue("Language Hotkey", code, RegistryValueKind.String);
-                string? layout = LayoutHotkeyAfter(key.GetValue("Layout Hotkey") as string, code);
                 if (layout != null) key.SetValue("Layout Hotkey", layout, RegistryValueKind.String);
-            }
-            catch { }
+                if (!Equals(key.GetValue("Hotkey"), code) || !Equals(key.GetValue("Language Hotkey"), code)
+                    || (layout != null && !Equals(key.GetValue("Layout Hotkey"), layout)))
+                    throw new InvalidOperationException("Toggle verification failed.");
+            });
+            return LastFailure == null;
         }
 
         /// <summary>
@@ -495,13 +509,13 @@ namespace CyrFlip
 
         // ---- Registry primitives ----
 
-        private static uint ReadDword(RegistryKey key, string name)
+        private static uint ReadDword(IRuntimeRegistryKey key, string name)
         {
             var raw = key.GetValue(name) as byte[];
             return raw != null && raw.Length >= 4 ? BitConverter.ToUInt32(raw, 0) : 0u;
         }
 
-        private static void WriteDword(RegistryKey key, string name, uint value)
+        private static void WriteDword(IRuntimeRegistryKey key, string name, uint value)
             => key.SetValue(name, BitConverter.GetBytes(value), RegistryValueKind.Binary);
     }
 }

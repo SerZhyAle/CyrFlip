@@ -5,6 +5,22 @@ namespace CyrFlip
     {
         private static void AddGeneralStrings()
         {
+            // S0062: the groups of the General page.
+            Add("Язык и тема",
+                en: "Language and theme", uk: "Мова й тема", de: "Sprache und Design", it: "Lingua e tema",
+                es: "Idioma y tema", fr: "Langue et thème", pt: "Idioma e tema",
+                ar: "اللغة والسمة", hi: "भाषा और थीम", bn: "ভাষা ও থিম", ur: "زبان اور تھیم", zh: "语言与主题");
+
+            Add("Запуск",
+                en: "Startup", uk: "Запуск", de: "Start", it: "Avvio",
+                es: "Inicio", fr: "Démarrage", pt: "Arranque",
+                ar: "التشغيل", hi: "प्रारंभ", bn: "চালু করা", ur: "آغاز", zh: "启动");
+
+            Add("Питание и экран",
+                en: "Power and screen", uk: "Живлення й екран", de: "Energie und Bildschirm", it: "Alimentazione e schermo",
+                es: "Energía y pantalla", fr: "Alimentation et écran", pt: "Energia e ecrã",
+                ar: "الطاقة والشاشة", hi: "पावर और स्क्रीन", bn: "পাওয়ার ও স্ক্রিন", ur: "پاور اور اسکرین", zh: "电源与屏幕");
+
             Add("Настройки CyrFlip",
                 en: "CyrFlip Settings", uk: "Налаштування CyrFlip", de: "CyrFlip-Einstellungen", it: "Impostazioni CyrFlip",
                 es: "Configuración de CyrFlip", fr: "Paramètres de CyrFlip", pt: "Configurações do CyrFlip",
@@ -593,6 +609,131 @@ namespace CyrFlip
                 bn: "একটি অপ্রত্যাশিত ত্রুটি ঘটেছে।",
                 ur: "ایک غیر متوقع خرابی پیش آگئی۔",
                 zh: "发生意外错误。");
+
+            // The IOException split (S0065 E-8): one sentence for every disk failure used to read as
+            // "disk error" - a file another program holds, a full disk and a path too long each have
+            // their own next step.
+            Add("Файл занят другой программой.",
+                en: "The file is in use by another program.",
+                uk: "Файл зайнятий іншою програмою.",
+                de: "Die Datei wird von einem anderen Programm verwendet.",
+                it: "Il file è in uso da un altro programma.",
+                es: "El archivo está en uso por otro programa.",
+                fr: "Le fichier est utilisé par un autre programme.",
+                pt: "O arquivo está em uso por outro programa.",
+                ar: "الملف قيد الاستخدام من برنامج آخر.",
+                hi: "फ़ाइल किसी अन्य प्रोग्राम द्वारा उपयोग में है।",
+                bn: "ফাইলটি অন্য একটি প্রোগ্রাম ব্যবহার করছে।",
+                ur: "فائل کسی اور پروگرام کے استعمال میں ہے۔",
+                zh: "文件正被另一个程序使用。");
+
+            Add("Диск заполнен — освободите место.",
+                en: "The disk is full - free some space.",
+                uk: "Диск заповнено — звільніть місце.",
+                de: "Der Datenträger ist voll - schaffen Sie Platz.",
+                it: "Il disco è pieno - liberi dello spazio.",
+                es: "El disco está lleno - libere espacio.",
+                fr: "Le disque est plein - libérez de l'espace.",
+                pt: "O disco está cheio - libere espaço.",
+                ar: "القرص ممتلئ - حرر بعض المساحة.",
+                hi: "डिस्क भर चुका है - कुछ जगह खाली करें।",
+                bn: "ডিস্ক পূর্ণ - কিছু জায়গা খালি করুন।",
+                ur: "ڈسک بھر چکا ہے - کچھ جگہ خالی کریں۔",
+                zh: "磁盘已满 - 请释放空间。");
+
+            Add("Слишком длинный путь к файлу.",
+                en: "The path to the file is too long.",
+                uk: "Шлях до файлу задовгий.",
+                de: "Der Pfad zur Datei ist zu lang.",
+                it: "Il percorso del file è troppo lungo.",
+                es: "La ruta al archivo es demasiado larga.",
+                fr: "Le chemin d'accès au fichier est trop long.",
+                pt: "O caminho até o arquivo é longo demais.",
+                ar: "المسار إلى الملف طويل جدًا.",
+                hi: "फ़ाइल का पथ बहुत लंबा है।",
+                bn: "ফাইলের পথটি খুব দীর্ঘ।",
+                ur: "فائل کا راستہ بہت لمبا ہے۔",
+                zh: "文件路径过长。");
+
+            // What the flip chord answers when nothing changed (S0065 E-4): the chord was consumed,
+            // so the user hears that instead of wondering whether the hotkey died.
+            Add("Текст уже в этой раскладке — конвертировать нечего.",
+                en: "The text is already in this layout - nothing to convert.",
+                uk: "Текст уже в цій розкладці — конвертувати нічого.",
+                de: "Der Text ist bereits in diesem Layout - nichts zu konvertieren.",
+                it: "Il testo è già in questo layout - niente da convertire.",
+                es: "El texto ya está en esta distribución - no hay nada que convertir.",
+                fr: "Le texte est déjà dans cette disposition - rien à convertir.",
+                pt: "O texto já está neste layout - nada para converter.",
+                ar: "النص موجود بالفعل في هذا التخطيط - لا شيء لتحويله.",
+                hi: "पाठ पहले से इसी लेआउट में है - बदलने को कुछ नहीं।",
+                bn: "লেখাটি আগে থেকেই এই লেআউটে আছে - রূপান্তর করার কিছু নেই।",
+                ur: "متن پہلے ہی اسی لے آؤٹ میں ہے - تبدیل کرنے کو کچھ نہیں۔",
+                zh: "文本已是这种布局 - 无需转换。");
+
+            Add("Окно сменилось — конвертация отменена.",
+                en: "The window changed - the conversion was cancelled.",
+                uk: "Вікно змінилося — конвертацію скасовано.",
+                de: "Das Fenster hat gewechselt - die Konvertierung wurde abgebrochen.",
+                it: "La finestra è cambiata - la conversione è stata annullata.",
+                es: "La ventana cambió - la conversión fue cancelada.",
+                fr: "La fenêtre a changé - la conversion a été annulée.",
+                pt: "A janela mudou - a conversão foi cancelada.",
+                ar: "تغيّرت النافذة - تم إلغاء التحويل.",
+                hi: "विंडो बदल गई - रूपांतरण रद्द कर दिया गया।",
+                bn: "উইন্ডো বদলে গেছে - রূপান্তর বাতিল করা হলো।",
+                ur: "ونڈو بدل گئی - تبدیلی منسوخ کر دی گئی۔",
+                zh: "窗口已切换 - 转换已取消。");
+
+            // The contained-fault balloon (S0065 E-2): one fault in one handler costs that handler,
+            // not the process - the tray, the indicator and both hooks live on.
+            Add("Команда не выполнена из-за внутренней ошибки. CyrFlip продолжает работу — если горячие клавиши молчат, перезапустите его.",
+                en: "A command failed on an internal error. CyrFlip keeps running - if the hotkeys go quiet, restart it.",
+                uk: "Команда не виконана через внутрішню помилку. CyrFlip продовжує роботу — якщо гарячі клавіші мовчать, перезапустіть його.",
+                de: "Ein Befehl ist an einem internen Fehler gescheitert. CyrFlip läuft weiter - werden die Hotkeys still, starten Sie es neu.",
+                it: "Un comando non è riuscito per un errore interno. CyrFlip continua a funzionare - se le scorciatoie smettono di rispondere, lo riavvii.",
+                es: "Un comando falló por un error interno. CyrFlip sigue funcionando - si los atajos dejan de responder, reinícielo.",
+                fr: "Une commande a échoué sur une erreur interne. CyrFlip continue de fonctionner - si les raccourcis se taisent, redémarrez-le.",
+                pt: "Um comando falhou por um erro interno. O CyrFlip continua funcionando - se os atalhos ficarem mudos, reinicie-o.",
+                ar: "فشل أمر بسبب خطأ داخلي. يواصل CyrFlip العمل - إذا صمتت الاختصارات فأعد تشغيله.",
+                hi: "एक आदेश आंतरिक त्रुटि से विफल हुआ। CyrFlip चलता रहेगा - अगर हॉटकी चुप हो जाएँ तो इसे पुनरारंभ करें।",
+                bn: "একটি আদেশ অভ্যন্তরীণ ত্রুটিতে ব্যর্থ হলো। CyrFlip চলতেই থাকে - হটকি চুপ হয়ে গেলে এটি পুনরায় চালু করুন।",
+                ur: "ایک کمانڈ اندرونی خرابی سے ناکام ہوئی۔ CyrFlip چلتا رہے گا - اگر ہاٹ کیز خاموش ہو جائیں تو اسے دوبارہ چلائیں۔",
+                zh: "一条命令因内部错误失败。CyrFlip 继续运行 - 如果快捷键失去响应，请重启它。");
+
+            // The fatal box (S0065 E-1): localized from the saved UI language, no data-folder path,
+            // and the one thing the old English text never said - that every hotkey went with the
+            // process, so CyrFlip has to be started again.
+            Add("CyrFlip столкнулся с непредвиденной ошибкой и закрывается. Все горячие клавиши отключены — запустите CyrFlip снова.",
+                en: "CyrFlip hit an unexpected error and is closing. Every hotkey is now off - start CyrFlip again.",
+                uk: "CyrFlip зіткнувся з непередбаченою помилкою і закривається. Усі гарячі клавіші вимкнені — запустіть CyrFlip знову.",
+                de: "CyrFlip ist auf einen unerwarteten Fehler gestoßen und wird beendet. Alle Hotkeys sind jetzt aus - starten Sie CyrFlip erneut.",
+                it: "CyrFlip ha riscontrato un errore imprevisto e si chiude. Tutte le scorciatoie sono disattivate - avvii di nuovo CyrFlip.",
+                es: "CyrFlip encontró un error inesperado y se cerrará. Todos los atajos quedan desactivados - inicie CyrFlip de nuevo.",
+                fr: "CyrFlip a rencontré une erreur inattendue et va se fermer. Tous les raccourcis sont désactivés - relancez CyrFlip.",
+                pt: "O CyrFlip encontrou um erro inesperado e será encerrado. Todos os atalhos estão desligados - inicie o CyrFlip novamente.",
+                ar: "واجه CyrFlip خطأً غير متوقع وسوف يُغلق. جميع الاختصارات متوقفة الآن - ابدأ CyrFlip مرة أخرى.",
+                hi: "CyrFlip को एक अप्रत्याशित त्रुटि मिली और वह बंद हो रहा है। सभी हॉटकी बंद हैं - CyrFlip को फिर से चालू करें।",
+                bn: "CyrFlip একটি অপ্রত্যাশিত ত্রুটিতে পড়ে বন্ধ হচ্ছে। সব হটকি এখন বন্ধ - CyrFlip আবার চালু করুন।",
+                ur: "CyrFlip کو ایک غیر متوقع خرابی پیش آئی اور یہ بند ہو رہا ہے۔ تمام ہاٹ کیز بند ہیں - CyrFlip دوبارہ چلائیں۔",
+                zh: "CyrFlip 遇到意外错误并将关闭。所有快捷键已停用 - 请重新启动 CyrFlip。");
+
+            // A setting change that did not reach the registry (S0065 E-9): said once, not on every
+            // toggle of a machine whose registry is denied.
+            Add("Настройку не удалось сохранить — она будет работать до перезапуска CyrFlip.",
+                en: "The setting could not be saved - it will work until CyrFlip is restarted.",
+                uk: "Налаштування не вдалося зберегти — воно працюватиме до перезапуску CyrFlip.",
+                de: "Die Einstellung ließ sich nicht speichern - sie gilt bis zum Neustart von CyrFlip.",
+                it: "L'impostazione non è stata salvata - funzionerà fino al riavvio di CyrFlip.",
+                es: "El ajuste no se pudo guardar - funcionará hasta que reinicie CyrFlip.",
+                fr: "Le réglage n'a pas pu être enregistré - il restera actif jusqu'au redémarrage de CyrFlip.",
+                pt: "A configuração não pôde ser salva - ela funcionará até o CyrFlip ser reiniciado.",
+                ar: "تعذر حفظ الإعداد - سيعمل حتى إعادة تشغيل CyrFlip.",
+                hi: "सेटिंग सहेजी नहीं जा सकी - यह CyrFlip पुनरारंभ होने तक काम करेगी।",
+                bn: "সেটিংটি সংরক্ষণ করা গেল না - এটি CyrFlip পুনরায় চালু হওয়া পর্যন্ত কাজ করবে।",
+                ur: "ترتیب محفوظ نہیں ہو سکی - یہ CyrFlip کے دوبارہ چلنے تک کام کرے گی۔",
+                zh: "设置未能保存 - 在 CyrFlip 重启之前它仍然生效。");
         }
     }
 }
+

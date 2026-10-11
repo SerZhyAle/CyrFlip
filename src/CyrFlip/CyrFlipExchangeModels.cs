@@ -155,6 +155,7 @@ namespace CyrFlip
     internal sealed class ExchangeMergeReport
     {
         public int NotesAdded { get; set; }
+        public int NotesUnwritten { get; set; }
         public int NotesUpdated { get; set; }
         public int NotesSkipped { get; set; }
         /// <summary>Hand-written notes without an id, counted apart: they are added only on confirmation.</summary>

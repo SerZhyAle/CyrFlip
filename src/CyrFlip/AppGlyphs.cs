@@ -33,9 +33,38 @@ namespace CyrFlip
         public const string InputLanguage = "system.input-language";
         public const string Symbols = "feature.symbols";
         public const string ShortcutOverview = "app.shortcut-overview";
+        public const string SelectionMenu = "feature.selection-menu";
         // Disclosure chevrons (WINDOWS-UI section 3: a collapsed group shows nav.expand, an open one
         // nav.collapse - the glyph names the action a click performs). Both records are rtl: fixed.
         public const string Expand = "nav.expand";
         public const string Collapse = "nav.collapse";
+        // The command buttons' own meanings (WINDOWS-UI section 11 item 1): the verb of the caption, the
+        // vocabulary's record for it. A button whose verb has no record waits for one (the quick notes'
+        // "Transfer..." - PROPOSAL-2026-10-11-cyrflip-button-meanings), it never borrows a neighbour's.
+        public const string Confirm = "action.confirm";
+        public const string Cancel = "action.cancel";
+        public const string Add = "action.add";
+        public const string Remove = "action.remove";
+        public const string Copy = "action.copy";
+        public const string Paste = "action.paste";
+        public const string Edit = "action.edit";
+        public const string Export = "action.export";
+        public const string Import = "action.import";
+        public const string Refresh = "action.refresh";
+        public const string Run = "action.run";
+        public const string Reset = "action.reset";
+        public const string Undo = "action.undo";
+        public const string TestConnection = "action.test-connection";
+        public const string Install = "action.install";
+        public const string ChooseFolder = "action.choose-folder";
+        public const string ChooseFile = "action.choose-file";
+        public const string Verify = "action.verify";
+        public const string ClearInput = "action.clear-input";
+        public const string ClearAll = "action.clear-all";
+        public const string Email = "action.email";
+        public const string CreateNote = "action.create-note";
+        public const string Folder = "content.folder";
+        public const string Checklist = "content.checklist";
+        public const string Help = "app.help";
     }
 }

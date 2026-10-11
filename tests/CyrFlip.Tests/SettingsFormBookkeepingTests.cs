@@ -16,6 +16,21 @@ namespace CyrFlip.Tests
     [Collection(SharedGdiCollection.Name)]
     public class SettingsFormBookkeepingTests
     {
+        /// <summary>
+        /// S0065 E-9: a failed settings save is told once, not on every toggle of a machine whose
+        /// registry is denied - and a successful save re-arms the notice.
+        /// </summary>
+        [Fact]
+        public void TheSaveFailureNoticeTellsOnceUntilASaveSucceeds()
+        {
+            bool told = false;
+            Assert.True(SettingsForm.SaveNotice.ShouldTell(false, ref told));   // the first failure is told
+            Assert.False(SettingsForm.SaveNotice.ShouldTell(false, ref told));  // still failing: silence
+            Assert.False(SettingsForm.SaveNotice.ShouldTell(false, ref told));
+            Assert.False(SettingsForm.SaveNotice.ShouldTell(true, ref told));   // saved: nothing to tell
+            Assert.True(SettingsForm.SaveNotice.ShouldTell(false, ref told));   // the next failure tells again
+        }
+
         private static readonly BindingFlags Private = BindingFlags.NonPublic | BindingFlags.Instance;
 
         private static void OnSta(Action<SettingsForm> body)

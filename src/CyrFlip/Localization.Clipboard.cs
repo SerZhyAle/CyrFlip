@@ -5,6 +5,36 @@ namespace CyrFlip
     {
         private static void AddClipboardStrings()
         {
+            Add("Не удалось удалить запись истории буфера. Повторите.",
+                en: "Could not delete the clipboard history entry. Try again.",
+                uk: "Не вдалося видалити запис історії буфера. Повторіть.",
+                de: "Der Eintrag im Zwischenablageverlauf konnte nicht gelöscht werden. Versuchen Sie es erneut.",
+                it: "Impossibile eliminare la voce della cronologia degli appunti. Riprova.",
+                es: "No se pudo eliminar la entrada del historial del portapapeles. Inténtalo de nuevo.",
+                fr: "Impossible de supprimer l’entrée de l’historique du presse-papiers. Réessayez.",
+                pt: "Não foi possível eliminar a entrada do histórico da área de transferência. Tente novamente.",
+                ar: "تعذر حذف إدخال سجل الحافظة. حاول مرة أخرى.",
+                hi: "क्लिपबोर्ड इतिहास की प्रविष्टि हटाई नहीं जा सकी। फिर कोशिश करें।",
+                bn: "ক্লিপবোর্ড ইতিহাসের এন্ট্রি মুছে ফেলা যায়নি। আবার চেষ্টা করুন।",
+                ur: "کلپ بورڈ کی تاریخ کا اندراج حذف نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+                zh: "无法删除剪贴板历史记录条目。请重试。");
+
+            // S0062: the groups of the clipboard page.
+            Add("Запись",
+                en: "Recording", uk: "Запис", de: "Aufzeichnung", it: "Registrazione",
+                es: "Grabación", fr: "Enregistrement", pt: "Gravação",
+                ar: "التسجيل", hi: "रिकॉर्डिंग", bn: "রেকর্ডিং", ur: "ریکارڈنگ", zh: "记录");
+
+            Add("Окно истории",
+                en: "History window", uk: "Вікно історії", de: "Verlaufsfenster", it: "Finestra della cronologia",
+                es: "Ventana del historial", fr: "Fenêtre de l'historique", pt: "Janela do histórico",
+                ar: "نافذة السجل", hi: "इतिहास विंडो", bn: "ইতিহাস উইন্ডো", ur: "ہسٹری ونڈو", zh: "历史窗口");
+
+            Add("Очистка",
+                en: "Clearing", uk: "Очищення", de: "Löschen", it: "Pulizia",
+                es: "Limpieza", fr: "Effacement", pt: "Limpeza",
+                ar: "المسح", hi: "साफ़ करना", bn: "মুছে ফেলা", ur: "صفائی", zh: "清除");
+
             Add("Буфер обмена",
                 en: "Clipboard", uk: "Буфер обміну", de: "Zwischenablage", it: "Appunti",
                 es: "Portapapeles", fr: "Presse-papiers", pt: "Área de transferência",

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -174,6 +175,13 @@ namespace CyrFlip.Tests
                     Assert.True(path != null, id + " did not parse");
         }
 
+        // Drawings the catalog hands over outside the live area of ICON-RENDER section 10 A. CyrFlip vendors
+        // a catalog file as it is - it never redraws one - so a departure is named here, with the date it
+        // was found, and the list can only shrink: the test fails once a listed glyph is back inside.
+        //   action.paste  (found 2026-10-11, ICON-SET 0.30) - Material content_paste, ink y 0..22 of the
+        //   24 grid; the catalog is asked to re-export it inside the live area.
+        private static readonly HashSet<string> OutsideTheLiveArea = new HashSet<string> { "action.paste" };
+
         [Fact]
         public void EveryVendoredGlyphKeepsItsInkInsideOneToTwentyThree()
         {
@@ -183,9 +191,21 @@ namespace CyrFlip.Tests
             {
                 RectangleF? ink = GlyphRenderer.InkBounds(id);
                 Assert.True(ink.HasValue, id);
-                Assert.True(ink!.Value.Left >= 0.95f && ink.Value.Top >= 0.95f && ink.Value.Right <= 23.05f && ink.Value.Bottom <= 23.05f,
-                    id + " ink is " + ink.Value);
+                bool inside = ink!.Value.Left >= 0.95f && ink.Value.Top >= 0.95f && ink.Value.Right <= 23.05f && ink.Value.Bottom <= 23.05f;
+                if (OutsideTheLiveArea.Contains(id))
+                {
+                    Assert.False(inside, id + " is listed as outside the live area but its ink is " + ink.Value + " - remove it from the list");
+                    continue;
+                }
+                Assert.True(inside, id + " ink is " + ink.Value);
             }
+        }
+
+        [Fact]
+        public void EveryNamedDepartureFromTheLiveAreaIsAVendoredGlyph()
+        {
+            foreach (string id in OutsideTheLiveArea)
+                Assert.True(GlyphRenderer.Has(id), id + " is listed as a departure but is not vendored - remove it from the list");
         }
 
         [Theory]

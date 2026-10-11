@@ -79,6 +79,12 @@ namespace CyrFlip
         private void RebuildControls(TrayChordList model)
         {
             _table.SuspendLayout();
+
+            // Clear() does not dispose: every render used to leak its labels until a collection.
+            Control[] stale = new Control[_table.Controls.Count];
+            _table.Controls.CopyTo(stale, 0);
+            foreach (Control control in stale)
+                control.Dispose();
             _table.Controls.Clear();
             _table.RowStyles.Clear();
 
@@ -110,23 +116,15 @@ namespace CyrFlip
                 }
             }
 
+            // Collect what the table will hold before touching controls: measuring is done once
+            // per string below (S0064 H-4), so the row set must be known first.
+            var rows = new List<RowSpec>();
             foreach (TrayChordGroup group in model.Groups)
             {
                 if (displayedActiveRows >= allowedRows && capped)
                     break;
 
-                // Group header
-                var headerLabel = new Label
-                {
-                    Text = group.Title,
-                    AutoSize = true,
-                    ForeColor = _palette.TextMuted,
-                    Font = Font,
-                    Margin = new Padding(0, rowIndex == 0 ? 0 : 6, 0, 2),
-                };
-                _table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-                _table.Controls.Add(headerLabel, 0, rowIndex);
-                _table.SetColumnSpan(headerLabel, 2);
+                rows.Add(RowSpec.Header(group.Title, rowIndex == 0));
                 rowIndex++;
 
                 foreach (TrayChordRow row in group.Rows)
@@ -134,46 +132,10 @@ namespace CyrFlip
                     if (displayedActiveRows >= allowedRows && capped)
                         break;
 
-                    _table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-
                     if (string.IsNullOrEmpty(row.ChordDisplay))
-                    {
-                        var fullRow = new Label
-                        {
-                            Text = row.ActionDisplay,
-                            AutoSize = true,
-                            ForeColor = row.IsMuted ? _palette.TextMuted : _palette.TextPrimary,
-                            Font = Font,
-                            Margin = new Padding(0, 1, 0, 1),
-                        };
-                        _table.Controls.Add(fullRow, 0, rowIndex);
-                        _table.SetColumnSpan(fullRow, 2);
-                    }
+                        rows.Add(RowSpec.Full(row.ActionDisplay, row.IsMuted));
                     else
-                    {
-                        Color textColor = row.IsClash ? _palette.Warning : (row.IsMuted ? _palette.TextMuted : _palette.TextPrimary);
-                        var chordLabel = new Label
-                        {
-                            Text = row.ChordDisplay,
-                            AutoSize = true,
-                            TextAlign = ContentAlignment.MiddleRight,
-                            ForeColor = textColor,
-                            Font = Font,
-                            Margin = new Padding(0, 1, 10, 1),
-                        };
-                        var actionLabel = new Label
-                        {
-                            Text = (row.IsClash ? "⚠ " : "") + row.ActionDisplay,
-                            AutoSize = true,
-                            TextAlign = ContentAlignment.MiddleLeft,
-                            ForeColor = textColor,
-                            Font = Font,
-                            Margin = new Padding(0, 1, 0, 1),
-                        };
-
-                        _table.Controls.Add(chordLabel, 0, rowIndex);
-                        _table.Controls.Add(actionLabel, 1, rowIndex);
-                    }
+                        rows.Add(RowSpec.Pair(row.ChordDisplay, row.ActionDisplay, row.IsClash, row.IsMuted));
 
                     displayedActiveRows++;
                     rowIndex++;
@@ -181,19 +143,93 @@ namespace CyrFlip
             }
 
             if (capped && totalActiveRows > displayedActiveRows)
+                rows.Add(RowSpec.Cap(Localization.Format(_uiLanguage, "ещё {0} — в настройках", totalActiveRows - displayedActiveRows)));
+
+            // One measure per string with the one font every label uses; the chord and action
+            // columns take the widest of their cells, and a spanning row wider than the pair
+            // widens the action column. Sizes are then fixed, so the layout engine only sums
+            // them - the labels never auto-measure, and GetPreferredSize below never touches text.
+            Font font = Font;
+            int colChord = 0, colAction = 0;
+            foreach (RowSpec row in rows)
             {
-                int remaining = totalActiveRows - displayedActiveRows;
-                var capLabel = new Label
+                row.TextSize = TextRenderer.MeasureText(row.Action, font);
+                if (row.IsHeader || row.IsCap || row.Chord == null)
                 {
-                    Text = Localization.Format(_uiLanguage, "ещё {0} — в настройках", remaining),
-                    AutoSize = true,
-                    ForeColor = _palette.TextMuted,
-                    Font = Font,
-                    Margin = new Padding(0, 6, 0, 0),
-                };
+                    int spanWidth = row.TextSize.Width + 2;
+                    if (spanWidth > colChord + colAction) colAction = spanWidth - colChord;
+                }
+                else
+                {
+                    row.ChordSize = TextRenderer.MeasureText(row.Chord, font);
+                    colChord = Math.Max(colChord, row.ChordSize.Width + 2 + 10); // the chord label's right margin
+                    colAction = Math.Max(colAction, row.TextSize.Width + 2);
+                }
+            }
+
+            int tableRow = 0;
+            foreach (RowSpec row in rows)
+            {
                 _table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-                _table.Controls.Add(capLabel, 0, rowIndex);
-                _table.SetColumnSpan(capLabel, 2);
+                int topMargin = row.IsHeader ? (row.First ? 0 : 6) : (row.IsCap ? 6 : 1);
+                int bottomMargin = row.IsHeader ? 2 : (row.IsCap ? 0 : 1);
+
+                if (row.IsHeader || row.IsCap)
+                {
+                    var label = new Label
+                    {
+                        Text = row.Action,
+                        AutoSize = false,
+                        Size = row.TextSize,
+                        ForeColor = _palette.TextMuted,
+                        Font = font,
+                        Margin = new Padding(0, topMargin, 0, bottomMargin),
+                    };
+                    _table.Controls.Add(label, 0, tableRow);
+                    _table.SetColumnSpan(label, 2);
+                }
+                else if (row.Chord == null)
+                {
+                    var fullRow = new Label
+                    {
+                        Text = row.Action,
+                        AutoSize = false,
+                        Size = row.TextSize,
+                        ForeColor = row.Muted ? _palette.TextMuted : _palette.TextPrimary,
+                        Font = font,
+                        Margin = new Padding(0, topMargin, 0, bottomMargin),
+                    };
+                    _table.Controls.Add(fullRow, 0, tableRow);
+                    _table.SetColumnSpan(fullRow, 2);
+                }
+                else
+                {
+                    Color textColor = row.Clash ? _palette.Warning : (row.Muted ? _palette.TextMuted : _palette.TextPrimary);
+                    var chordLabel = new Label
+                    {
+                        Text = row.Chord,
+                        AutoSize = false,
+                        Size = row.ChordSize,
+                        TextAlign = ContentAlignment.MiddleRight,
+                        ForeColor = textColor,
+                        Font = font,
+                        Margin = new Padding(0, topMargin, 10, bottomMargin),
+                    };
+                    var actionLabel = new Label
+                    {
+                        Text = (row.Clash ? "⚠ " : "") + row.Action,
+                        AutoSize = false,
+                        Size = row.TextSize,
+                        TextAlign = ContentAlignment.MiddleLeft,
+                        ForeColor = textColor,
+                        Font = font,
+                        Margin = new Padding(0, topMargin, 0, bottomMargin),
+                    };
+
+                    _table.Controls.Add(chordLabel, 0, tableRow);
+                    _table.Controls.Add(actionLabel, 1, tableRow);
+                }
+                tableRow++;
             }
 
             _table.ResumeLayout(true);
@@ -201,6 +237,20 @@ namespace CyrFlip
             Size = new Size(
                 Math.Min(maxCapWidth, Math.Max(200, preferred.Width + 2)),
                 Math.Min(maxCapHeight, Math.Max(60, preferred.Height + 2)));
+        }
+
+        /// <summary>One visual row of the popup, measured once before any control is built (S0064 H-4).</summary>
+        private sealed class RowSpec
+        {
+            public string? Chord;     // null: the row spans both columns
+            public string Action = "";
+            public bool Clash, Muted, IsHeader, IsCap, First;
+            public Size TextSize, ChordSize;
+
+            public static RowSpec Header(string title, bool first) => new RowSpec { Action = title, IsHeader = true, First = first };
+            public static RowSpec Full(string action, bool muted) => new RowSpec { Action = action, Muted = muted };
+            public static RowSpec Pair(string chord, string action, bool clash, bool muted) => new RowSpec { Chord = chord, Action = action, Clash = clash, Muted = muted };
+            public static RowSpec Cap(string text) => new RowSpec { Action = text, IsCap = true };
         }
 
         public void PositionBeside(Point anchor)

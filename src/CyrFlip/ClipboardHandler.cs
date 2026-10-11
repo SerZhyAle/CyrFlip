@@ -194,6 +194,14 @@ namespace CyrFlip
         /// <summary>Cap on one companion format; a Shell IDList Array for thousands of files stays far below it.</summary>
         internal const int MaxCompanionBytes = 1024 * 1024;
 
+        /// <summary>
+        /// Cap on a backed-up file list (S0066 L-10 / LK-3b-09): the one content format that used to
+        /// be read at any size, where text and image stop at 64 MB - a 300 000-file Explorer copy
+        /// meant 60 MB of large-object-heap on every chord, selected or not. Over it the list is
+        /// skipped like an oversized picture, never fatal: the clipboard keeps its files.
+        /// </summary>
+        internal const int MaxBackupFilesBytes = 64 * 1024 * 1024;
+
         private readonly IClipboardReader _reader;
         private readonly Action<IList<KeyStroke>> _send;
 
@@ -393,7 +401,7 @@ namespace CyrFlip
 
                 if (reader.IsAvailable(CF_DIB) && !ReadContent(reader, CF_DIB, MaxBackupImageBytes, out image))
                     ClipboardFlipLog.Log("backup: the picture could not be rendered and is not carried");
-                if (reader.IsAvailable(CF_HDROP) && !ReadContent(reader, CF_HDROP, int.MaxValue, out files))
+                if (reader.IsAvailable(CF_HDROP) && !ReadContent(reader, CF_HDROP, MaxBackupFilesBytes, out files))
                     ClipboardFlipLog.Log("backup: the file list could not be rendered and is not carried");
 
                 companions = ReadCompanions(reader);

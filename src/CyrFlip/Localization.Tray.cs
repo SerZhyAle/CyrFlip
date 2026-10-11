@@ -105,6 +105,21 @@ namespace CyrFlip
                 bn: "পাল্টানোর মতো কিছু নেই: Windows-এ কেবল একটিই কীবোর্ড লেআউট ইনস্টল করা আছে।",
                 ur: "بدلنے کے لیے کچھ نہیں: Windows میں صرف ایک ہی کی بورڈ لے آؤٹ نصب ہے۔",
                 zh: "无法切换：Windows 中只安装了一种键盘布局。");
+
+            // ---- Exit: the hidden ollama serve this app started (S0066 L-7) ----
+            Add("CyrFlip запустил сервер перевода (ollama serve). Остановить его вместе с CyrFlip, чтобы освободить его память?",
+                en: "CyrFlip started the translation server (ollama serve). Stop it together with CyrFlip to free its memory?",
+                uk: "CyrFlip запустив сервер перекладу (ollama serve). Зупинити його разом із CyrFlip, щоб звільнити його пам'ять?",
+                de: "CyrFlip hat den Übersetzungsserver (ollama serve) gestartet. Soll er zusammen mit CyrFlip beendet werden, um seinen Speicher freizugeben?",
+                it: "CyrFlip ha avviato il server di traduzione (ollama serve). Interromperlo insieme a CyrFlip per liberare la sua memoria?",
+                es: "CyrFlip inició el servidor de traducción (ollama serve). ¿Detenerlo junto con CyrFlip para liberar su memoria?",
+                fr: "CyrFlip a démarré le serveur de traduction (ollama serve). L'arrêter en même temps que CyrFlip pour libérer sa mémoire ?",
+                pt: "O CyrFlip iniciou o servidor de tradução (ollama serve). Interrompê-lo junto com o CyrFlip para liberar a memória dele?",
+                ar: "أطلق CyrFlip خادم الترجمة (ollama serve). هل تريد إيقافه مع CyrFlip لتحرير ذاكرته؟",
+                hi: "CyrFlip ने अनुवाद सर्वर (ollama serve) शुरू किया। क्या आप CyrFlip के साथ इसे बंद करके उसकी मेमोरी खाली करना चाहते हैं?",
+                bn: "CyrFlip অনুবাদ সার্ভার (ollama serve) চালু করেছে। এর মেমোরি মুক্ত করতে CyrFlip-এর সঙ্গে এটি বন্ধ করবেন?",
+                ur: "CyrFlip نے ترجمہ سرور (ollama serve) شروع کیا۔ کیا آپ اس کی میموری خالی کرنے کے لیے CyrFlip کے ساتھ اسے بند کرنا چاہتے ہیں؟",
+                zh: "CyrFlip 启动了翻译服务器（ollama serve）。要随 CyrFlip 一起停止它以释放其内存吗？");
         }
     }
 }

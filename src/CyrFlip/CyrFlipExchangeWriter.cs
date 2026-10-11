@@ -109,6 +109,45 @@ namespace CyrFlip
         }
 
         /// <summary>
+        /// The bytes the file will take, without building it (S0066 L-9 / LK-3b-07): the framing is
+        /// budgeted per object (the metadata lines and a fence) rather than measured, so the
+        /// estimate is an <b>upper</b> bound - the direction that errs on the side of the importer
+        /// that has to read the result.
+        /// </summary>
+        public static long EstimateBytes(IEnumerable<QuickNote>? notes, IEnumerable<ClipboardHistoryEntry>? clipboard)
+        {
+            long bytes = 256;   // the marker and the header lines
+            if (notes != null)
+                foreach (QuickNote note in notes)
+                    bytes += 512 + Encoding.UTF8.GetByteCount(note.Body());
+            if (clipboard != null)
+                foreach (ClipboardHistoryEntry entry in clipboard)
+                    bytes += 512 + Encoding.UTF8.GetByteCount(entry.Text);
+            return bytes;
+        }
+
+        /// <summary>
+        /// Trim an export to what the importer accepts (S0066 L-9): the reader stops at
+        /// <see cref="CyrFlipExchange.MaxFileBytes"/> and <see cref="CyrFlipExchange.MaxObjects"/>,
+        /// and "history: All" used to write a file this same program refuses to read back. The
+        /// oldest go first - the selection is newest-first, so the end of the list is what the
+        /// file misses least. Returns how many objects were left out; 0 when it already fit.
+        /// </summary>
+        public static int TrimToImportCaps(List<QuickNote>? notes, List<ClipboardHistoryEntry>? history)
+        {
+            int dropped = 0;
+            while ((notes == null ? 0 : notes.Count) + (history == null ? 0 : history.Count) > CyrFlipExchange.MaxObjects
+                || EstimateBytes(notes, history) > CyrFlipExchange.MaxFileBytes)
+            {
+                if (history != null && history.Count > 0) history.RemoveAt(history.Count - 1);
+                else if (notes != null && notes.Count > 0) notes.RemoveAt(notes.Count - 1);
+                else break;
+                dropped++;
+            }
+            return dropped;
+        }
+
+        /// <summary>
         /// Write the file atomically (spec 6.2): the whole text goes into a temporary file in the
         /// target folder, which then takes the final name in one step. A failure leaves an existing
         /// file at that name exactly as it was.

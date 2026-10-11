@@ -40,7 +40,7 @@ The built-in translator is optional too. Select text anywhere in Windows, press 
 
 Keep what you copy and write. The optional clipboard history keeps recent text locally, searchable in its own window; entries can be pinned, deleted, paused or cleared, and every record is encrypted with Windows DPAPI for your Windows account. Optional quick notes open with Ctrl+Shift+Alt+N and keep text exactly as given - no Markdown, no auto-formatting - so a fragment of code pastes back unchanged; search looks inside every note, and the notes are encrypted on disk too. Notes and clipboard history move to another computer or a phone as one plain-text file you export and import yourself.
 
-Launch and capture. Ctrl+Shift+PrintScreen freezes the screen, you drag a region, and the picture lands on the clipboard - optionally also saved as a PNG to a folder. Ctrl+Shift+Alt+PrintScreen opens that folder while saving is on. Quick launch, an optional module, turns your programs, scripts and yt-dlp downloads into scenarios you start from the tray, from a hotkey of their own or from the taskbar Jump List; scenarios from the standalone OneClickRunner tool can be imported without touching the originals. Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
+Launch and capture. Ctrl+PrintScreen freezes the screen, you drag a region, and the picture lands on the clipboard - optionally also saved as a PNG to a folder. Ctrl+Shift+PrintScreen opens that folder while saving is on. Quick launch, an optional module, turns your programs, scripts and yt-dlp downloads into scenarios you start from the tray, from a hotkey of their own or from the taskbar Jump List; scenarios from the standalone OneClickRunner tool can be imported without touching the originals. Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
 
 Yours alone. Optional modules stay off until you switch them on, every hotkey can be switched off on its own, and CyrFlip can hand its hotkeys to a focused Remote Desktop window. The interface is available in 13 languages, right-to-left ones included, with a light, dark or Windows-matching theme. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11.
 
@@ -65,7 +65,7 @@ Translation runs on Ollama on your own computer - installed separately, off unti
 Optional encrypted clipboard history with search, pins and Windows DPAPI protection
 Optional quick notes that keep text exactly as given, so code pastes back unchanged; encrypted on disk
 Move notes and clipboard history to another computer in one plain-text exchange file
-Screen-region capture to the clipboard on Ctrl+Shift+PrintScreen, optionally saved as PNG
+Screen-region capture to the clipboard on Ctrl+PrintScreen, optionally saved as PNG
 Optional Quick launch: programs, scripts and yt-dlp downloads as one-click scenarios
 Start a scenario from the tray, its own global hotkey, or the taskbar Jump List
 Two keep-awake switches: no sleep and no screen blanking while you work
@@ -87,7 +87,7 @@ All shortcuts in one place: a new settings page lists every chord CyrFlip binds,
 
 Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
 
-A chord of its own - Ctrl+Shift+Alt+PrintScreen - opens the folder your screen captures are saved in.
+A chord of its own - Ctrl+Shift+PrintScreen - opens the folder your screen captures are saved in.
 
 The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.
 ```
@@ -113,7 +113,7 @@ CyrFlip - набор инструментов в трее для клавиат�
 
 Сохранять скопированное и записанное. Необязательная история буфера хранит недавний текст локально, с поиском в отдельном окне; записи можно закрепить, удалить, поставить запись на паузу или очистить, и каждая запись шифруется Windows DPAPI для вашей учётной записи. Необязательные быстрые заметки открываются по Ctrl+Shift+Alt+N и хранят текст ровно таким, каким его дали, - без Markdown и автоформатирования, - поэтому фрагмент кода вставляется обратно без изменений; поиск смотрит внутрь каждой заметки, и на диске заметки тоже зашифрованы. Заметки и историю буфера можно перенести на другой компьютер или телефон одним текстовым файлом, который вы сами экспортируете и импортируете.
 
-Запуск и снимок экрана. Ctrl+Shift+PrintScreen замораживает экран, вы выделяете область - и картинка попадает в буфер обмена, а по желанию сохраняется ещё и в PNG в папку. Пока включено сохранение, Ctrl+Shift+Alt+PrintScreen открывает эту папку. «Быстрый запуск», необязательный модуль, превращает ваши программы, скрипты и загрузки yt-dlp в сценарии, которые запускаются из трея, по собственному сочетанию или из Jump List панели задач; сценарии отдельной программы OneClickRunner можно импортировать, не трогая оригиналы. Два переключателя не дают Windows уснуть или погасить экран, пока вы работаете.
+Запуск и снимок экрана. Ctrl+PrintScreen замораживает экран, вы выделяете область - и картинка попадает в буфер обмена, а по желанию сохраняется ещё и в PNG в папку. Пока включено сохранение, Ctrl+Shift+PrintScreen открывает эту папку. «Быстрый запуск», необязательный модуль, превращает ваши программы, скрипты и загрузки yt-dlp в сценарии, которые запускаются из трея, по собственному сочетанию или из Jump List панели задач; сценарии отдельной программы OneClickRunner можно импортировать, не трогая оригиналы. Два переключателя не дают Windows уснуть или погасить экран, пока вы работаете.
 
 Только ваше. Необязательные модули выключены, пока вы их не включите, любую горячую клавишу можно выключить отдельно, а CyrFlip умеет отдавать свои сочетания активному окну удалённого рабочего стола. Интерфейс доступен на 13 языках, включая письмо справа налево, со светлой, тёмной или как в Windows темой. Программа работает в системном трее, расходует мало памяти и ничего не требует установить дополнительно на Windows 10/11.
 
@@ -138,7 +138,7 @@ CyrFlip - набор инструментов в трее для клавиат�
 Необязательная зашифрованная история буфера с поиском, закреплением и защитой Windows DPAPI
 Необязательные быстрые заметки хранят текст ровно таким, каким его дали, - код вставляется без правок; шифруются на диске
 Перенос заметок и истории буфера на другой компьютер одним открытым текстовым файлом
-Снимок области экрана в буфер обмена по Ctrl+Shift+PrintScreen, по желанию с сохранением в PNG
+Снимок области экрана в буфер обмена по Ctrl+PrintScreen, по желанию с сохранением в PNG
 Необязательный «Быстрый запуск»: программы, скрипты и загрузки yt-dlp как сценарии в один клик
 Запуск сценария из трея, по его собственному глобальному сочетанию или из Jump List панели задач
 Два переключателя «не спать»: без перехода в сон и без гашения экрана, пока вы работаете
@@ -160,7 +160,7 @@ CyrFlip теперь представляется как трей-набор и�
 
 Перенос настроек на другой компьютер: экспорт в обычный файл и импорт с предпросмотром и автоматическими локальными копиями.
 
-Отдельная комбинация - Ctrl+Shift+Alt+PrintScreen - открывает папку, в которую сохраняются снимки экрана.
+Отдельная комбинация - Ctrl+Shift+PrintScreen - открывает папку, в которую сохраняются снимки экрана.
 
 В окне настроек стало удобнее: сворачиваемые группы, поиск, значки страниц масштабируются вместе с экраном, а окно открывается там, где вы его оставили.
 ```
@@ -186,7 +186,7 @@ CyrFlip - набір інструментів у треї для клавіат�
 
 Зберігати скопійоване й записане. Необов'язкова історія буфера зберігає нещодавній текст локально, з пошуком в окремому вікні; записи можна закріпити, видалити, поставити запис на паузу або очистити, і кожен запис шифрується Windows DPAPI для вашого облікового запису. Необов'язкові швидкі нотатки відкриваються за Ctrl+Shift+Alt+N і зберігають текст рівно таким, яким його дали, - без Markdown і автоформатування, - тож фрагмент коду вставляється назад без змін; пошук дивиться всередину кожної нотатки, і на диску нотатки теж зашифровані. Нотатки та історію буфера можна перенести на інший комп'ютер або телефон одним текстовим файлом, який ви самі експортуєте та імпортуєте.
 
-Запуск і знімок екрана. Ctrl+Shift+PrintScreen заморожує екран, ви виділяєте область - і зображення потрапляє в буфер обміну, а за бажанням зберігається ще й у PNG у теку. Поки ввімкнено збереження, Ctrl+Shift+Alt+PrintScreen відкриває цю теку. «Швидкий запуск», необов'язковий модуль, перетворює ваші програми, скрипти та завантаження yt-dlp на сценарії, які запускаються з трея, за власним сполученням або з Jump List панелі завдань; сценарії окремої програми OneClickRunner можна імпортувати, не чіпаючи оригіналів. Два перемикачі не дають Windows заснути чи погасити екран, поки ви працюєте.
+Запуск і знімок екрана. Ctrl+PrintScreen заморожує екран, ви виділяєте область - і зображення потрапляє в буфер обміну, а за бажанням зберігається ще й у PNG у теку. Поки ввімкнено збереження, Ctrl+Shift+PrintScreen відкриває цю теку. «Швидкий запуск», необов'язковий модуль, перетворює ваші програми, скрипти та завантаження yt-dlp на сценарії, які запускаються з трея, за власним сполученням або з Jump List панелі завдань; сценарії окремої програми OneClickRunner можна імпортувати, не чіпаючи оригіналів. Два перемикачі не дають Windows заснути чи погасити екран, поки ви працюєте.
 
 Лише ваше. Необов'язкові модулі вимкнені, доки ви їх не ввімкнете, будь-яку гарячу клавішу можна вимкнути окремо, а CyrFlip уміє віддавати свої сполучення активному вікну віддаленого робочого столу. Інтерфейс доступний 13 мовами, зокрема з письмом справа наліво, зі світлою, темною або як у Windows темою. Програма працює в системному треї, витрачає мало пам'яті й нічого не потребує встановлювати додатково на Windows 10/11.
 
@@ -209,7 +209,7 @@ CyrFlip - набір інструментів у треї для клавіат�
 Необов'язкова зашифрована історія буфера з пошуком, закріпленням і захистом Windows DPAPI
 Необов'язкові швидкі нотатки зберігають текст рівно таким, яким його дали, - код вставляється без правок; шифруються на диску
 Перенесення нотаток та історії буфера на інший комп'ютер одним відкритим текстовим файлом
-Знімок області екрана в буфер обміну за Ctrl+Shift+PrintScreen, за бажанням зі збереженням у PNG
+Знімок області екрана в буфер обміну за Ctrl+PrintScreen, за бажанням зі збереженням у PNG
 Необов'язковий «Швидкий запуск»: програми, скрипти та завантаження yt-dlp як сценарії в один клік
 Запуск сценарію з трея, за його власним глобальним сполученням або з Jump List панелі завдань
 Два перемикачі «не спати»: без переходу в сон і без гасіння екрана, поки ви працюєте
@@ -231,7 +231,7 @@ CyrFlip тепер представляється як трей-набір ін�
 
 Перенесення налаштувань на інший комп'ютер: експорт у звичайний файл та імпорт із попереднім переглядом і автоматичними локальними копіями.
 
-Окреме сполучення - Ctrl+Shift+Alt+PrintScreen - відкриває теку, до якої зберігаються знімки екрана.
+Окреме сполучення - Ctrl+Shift+PrintScreen - відкриває теку, до якої зберігаються знімки екрана.
 
 У вікні налаштувань стало зручніше: згортні групи, пошук, значки сторінок масштабуються разом з екраном, а вікно відкривається там, де ви його залишили.
 ```

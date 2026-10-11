@@ -184,6 +184,22 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
+        public void EveryFixedChordNamesThePageOfItsFeature()
+        {
+            // S0062 D1/D14: a chord lives on the page of the feature it starts, and the overview says which.
+            List<ChordOverviewRow> rows = Build(new AppConfig());
+            Assert.Equal(SettingsPageKey.Conversions, Row(rows, ChordKind.Case).ModulePage);
+            Assert.Equal(SettingsPageKey.Clipboard, Row(rows, ChordKind.History).ModulePage);
+            Assert.Equal(SettingsPageKey.QuickNotes, Row(rows, ChordKind.QuickNotes).ModulePage);
+            Assert.Equal(SettingsPageKey.Symbols, Row(rows, ChordKind.Symbols).ModulePage);
+            Assert.Equal(SettingsPageKey.Graphics, Row(rows, ChordKind.Screenshot).ModulePage);
+            Assert.Equal(SettingsPageKey.Graphics, Row(rows, ChordKind.ScreenshotFolder).ModulePage);
+            Assert.Equal(SettingsPageKey.SelectionMenu, Row(rows, ChordKind.TextMenu).ModulePage);
+            Assert.Equal(SettingsPageKey.SelectionMenu, rows.Single(r => r.IsMouse).ModulePage);
+            Assert.All(rows.Where(r => r.Group == ChordGroup.Fixed), r => Assert.NotNull(r.ModulePage));
+        }
+
+        [Fact]
         public void DifferingFromTheShippedStateIsDecidedPerRow()
         {
             var config = WithRows();

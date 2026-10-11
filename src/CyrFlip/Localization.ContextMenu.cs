@@ -5,6 +5,34 @@ namespace CyrFlip
     {
         private static void AddContextMenuStrings()
         {
+            // S0062: the page of CyrFlip's own menu over the selection ("Меню над выделением" is registered
+            // with the hotkeys overview, where the same words name the mouse chord's row). The Russian key
+            // reads "для выделенного" (2026-10-11): "Меню выделения" read as a genitive of "выделение" and
+            // was one word away from the clipboard's page.
+            Add("Меню для выделенного",
+                en: "Selection menu", uk: "Меню виділення", de: "Auswahlmenü", it: "Menu di selezione",
+                es: "Menú de selección", fr: "Menu de sélection", pt: "Menu de seleção",
+                ar: "قائمة التحديد", hi: "चयन मेनू", bn: "নির্বাচন মেনু", ur: "انتخاب مینو", zh: "选区菜单");
+
+            Add("Меню CyrFlip над выделенным текстом: копирование, вырезание, вставка, конвертация, регистр, перевод и быстрый запуск. Выключено по умолчанию: пока оно снято, CyrFlip не следит за мышью.",
+                en: "CyrFlip's own menu over the selected text: copy, cut, paste, conversion, case, translation and quick launch. Off by default: while it is off, CyrFlip does not watch the mouse.",
+                uk: "Меню CyrFlip над виділеним текстом: копіювання, вирізання, вставлення, перетворення, регістр, переклад і швидкий запуск. Типово вимкнено: поки його знято, CyrFlip не стежить за мишею.",
+                de: "Das CyrFlip-Menü über dem markierten Text: Kopieren, Ausschneiden, Einfügen, Umwandlung, Groß- und Kleinschreibung, Übersetzung und Schnellstart. Standardmäßig aus: Solange es aus ist, beobachtet CyrFlip die Maus nicht.",
+                it: "Il menu di CyrFlip sul testo selezionato: copia, taglia, incolla, conversione, maiuscole e minuscole, traduzione e avvio rapido. Disattivato per impostazione predefinita: finché è spento, CyrFlip non controlla il mouse.",
+                es: "El menú de CyrFlip sobre el texto seleccionado: copiar, cortar, pegar, conversión, mayúsculas y minúsculas, traducción e inicio rápido. Desactivado de forma predeterminada: mientras esté apagado, CyrFlip no vigila el ratón.",
+                fr: "Le menu de CyrFlip au-dessus du texte sélectionné : copier, couper, coller, conversion, casse, traduction et lancement rapide. Désactivé par défaut : tant qu'il est coupé, CyrFlip ne surveille pas la souris.",
+                pt: "O menu do CyrFlip sobre o texto selecionado: copiar, cortar, colar, conversão, maiúsculas e minúsculas, tradução e arranque rápido. Desligado por predefinição: enquanto estiver desligado, o CyrFlip não vigia o rato.",
+                ar: "قائمة CyrFlip فوق النص المحدَّد: نسخ وقص ولصق وتحويل وحالة الأحرف وترجمة وتشغيل سريع. معطّلة افتراضيًا: وما دامت معطّلة فإن CyrFlip لا يراقب الفأرة.",
+                hi: "चुने हुए पाठ के ऊपर CyrFlip का अपना मेनू: कॉपी, कट, पेस्ट, रूपांतरण, अक्षर केस, अनुवाद और त्वरित लॉन्च। डिफ़ॉल्ट रूप से बंद: जब तक यह बंद है, CyrFlip माउस पर नज़र नहीं रखता।",
+                bn: "নির্বাচিত টেক্সটের উপর CyrFlip-এর নিজস্ব মেনু: কপি, কাট, পেস্ট, রূপান্তর, অক্ষরের কেস, অনুবাদ ও দ্রুত চালু। ডিফল্টে বন্ধ: বন্ধ থাকলে CyrFlip মাউসের উপর নজর রাখে না।",
+                ur: "منتخب متن پر CyrFlip کا اپنا مینو: کاپی، کٹ، پیسٹ، تبدیلی، حروف کی حالت، ترجمہ اور فوری لانچ۔ بطورِ طے شدہ بند: جب تک یہ بند ہے، CyrFlip ماؤس پر نظر نہیں رکھتا۔",
+                zh: "CyrFlip 在选中文本上方的专属菜单：复制、剪切、粘贴、转换、大小写、翻译和快速启动。默认关闭：关闭期间，CyrFlip 不监视鼠标。");
+
+            Add("С клавиатуры",
+                en: "From the keyboard", uk: "З клавіатури", de: "Per Tastatur", it: "Da tastiera",
+                es: "Con el teclado", fr: "Au clavier", pt: "Pelo teclado",
+                ar: "من لوحة المفاتيح", hi: "कीबोर्ड से", bn: "কীবোর্ড থেকে", ur: "کی بورڈ سے", zh: "通过键盘");
+
             // "Копировать", "Вставить" and "Настройки" are already registered by the translator tab;
             // only the commands this menu adds are new.
             Add("Вырезать",

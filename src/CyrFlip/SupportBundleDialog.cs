@@ -20,6 +20,11 @@ namespace CyrFlip
 
         private readonly string _uiLanguage;
         private readonly SupportBundle.Result _result;
+        /// <summary>The script font this dialog created for itself - WinForms never disposes a font
+        /// it was handed, so the dialog owns it (LK-3b-03 / S0066 L-5), like every other dialog.
+        /// Not readonly: <see cref="ApplyScript"/> runs from the constructor, after the field's
+        /// initializer.</summary>
+        private Font? _ownFont;
 
         public SupportBundleDialog(SupportBundle.Result result, string uiLanguage)
         {
@@ -70,8 +75,8 @@ namespace CyrFlip
                 files.Items.Add(item);
             }
 
-            var create = Button(T("Создать письмо"), DialogResult.OK);
-            var open = Button(T("Открыть папку с архивом"), DialogResult.None);
+            var create = Button(T("Создать письмо"), DialogResult.OK, AppGlyphs.Email);
+            var open = Button(T("Открыть папку с архивом"), DialogResult.None, AppGlyphs.Folder);
             open.Click += (_, _) => Reveal();
             var close = Button(T("Закрыть"), DialogResult.Cancel);
 
@@ -108,16 +113,16 @@ namespace CyrFlip
             try
             {
                 Process.Start(new ProcessStartInfo("explorer.exe", "/select,\"" + _result.ArchivePath + "\"")
-                { UseShellExecute = true });
+                { UseShellExecute = true })?.Dispose();
             }
             catch { /* the path is on screen either way */ }
         }
 
-        private Button Button(string text, DialogResult result) => new Button
+        private Button Button(string text, DialogResult result, string? verbGlyph = null) => ButtonGlyphs.Answer(new Button
         {
             Text = text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
             DialogResult = result, Margin = new Padding(6, 3, 3, 3),
-        };
+        }, verbGlyph);
 
         /// <summary>
         /// A wrapped paragraph: <see cref="MaximumSize"/> caps the width, AutoSize grows the height to
@@ -135,7 +140,7 @@ namespace CyrFlip
             if (Localization.IsRightToLeft(uiLanguage)) { RightToLeft = RightToLeft.Yes; RightToLeftLayout = true; }
             string? family = Localization.FontFamily(uiLanguage);
             if (family == null) return;
-            try { Font = new Font(family, Font.SizeInPoints); }
+            try { Font = _ownFont = new Font(family, Font.SizeInPoints); }
             catch { /* the font is missing on this machine - keep the default */ }
         }
 
@@ -143,5 +148,11 @@ namespace CyrFlip
             => SupportBundle.Contents.TryGetValue(fileName, out string? ru) ? T(ru) : "";
 
         private string T(string ru) => Localization.Translate(_uiLanguage, ru);
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);   // the control tree first: it still draws with the font
+            if (disposing) _ownFont?.Dispose();
+        }
     }
 }

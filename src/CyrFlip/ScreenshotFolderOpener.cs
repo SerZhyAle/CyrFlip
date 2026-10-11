@@ -94,7 +94,7 @@ namespace CyrFlip
         /// <summary>explorer.exe "&lt;folder&gt;": the same shell-open the settings button always used.</summary>
         private static void ShellOpen(string folder)
         {
-            try { Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true }); }
+            try { Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true })?.Dispose(); }
             catch { /* the shell refused - nothing this feature can add to it */ }
         }
     }

@@ -53,11 +53,19 @@ namespace CyrFlip
 
         public static bool IsInstalled() => FindExe().Length > 0;
 
-        /// <summary>True when an Ollama process is alive; the server itself is probed over HTTP.</summary>
+        /// <summary>True when Ollama is alive; the server itself is probed over HTTP.</summary>
         public static bool IsProcessRunning()
         {
             return HasProcess("ollama") || HasProcess("ollama app");
         }
+
+        /// <summary>
+        /// True when the hidden <c>ollama serve</c> this class started is still ours to stop
+        /// (LK-3a-07 / S0066 L-7). Only the hidden branch records it: with <c>ollama app.exe</c> the
+        /// user has Ollama's own tray icon, and a server that was already running before the first
+        /// translation belongs to whoever started it. Cleared by <see cref="StopStartedServer"/>.
+        /// </summary>
+        public static bool ServerStartedByCyrFlip { get; private set; }
 
         /// <summary>Starts the server: the tray app when it is installed, otherwise a hidden "ollama serve".</summary>
         public static bool StartServer()
@@ -71,15 +79,43 @@ namespace CyrFlip
                 if (File.Exists(app))
                     Process.Start(new ProcessStartInfo(app) { UseShellExecute = true })?.Dispose();
                 else
-                    Process.Start(new ProcessStartInfo(exe, "serve")
+                {
+                    bool alreadyRunning = IsProcessRunning();
+                    using (Process? server = Process.Start(new ProcessStartInfo(exe, "serve")
                     {
                         UseShellExecute = false,
                         CreateNoWindow = true,
                         WindowStyle = ProcessWindowStyle.Hidden,
-                    })?.Dispose();
+                    }))
+                    {
+                        // Only a server that was not there before this call is ours: a second
+                        // "ollama serve" exits at once, and the user's own stays the user's.
+                        if (server != null && !alreadyRunning) ServerStartedByCyrFlip = true;
+                    }
+                }
                 return true;
             }
             catch { return false; }
+        }
+
+        /// <summary>
+        /// Stop the hidden server <see cref="StartServer"/> started - the offer the tray Exit makes
+        /// (S0066 L-7). A server the user started themselves is never touched: the flag was never
+        /// set for it. True when the stop was attempted (a server that had already left on its own
+        /// still counts: the promise was only that CyrFlip's is gone).
+        /// </summary>
+        public static bool StopStartedServer()
+        {
+            if (!ServerStartedByCyrFlip) return false;
+            ServerStartedByCyrFlip = false;
+            try
+            {
+                Process[] servers = Process.GetProcessesByName("ollama");
+                try { foreach (Process server in servers) try { server.Kill(); } catch { /* already leaving */ } }
+                finally { foreach (Process server in servers) server.Dispose(); }
+            }
+            catch { /* nothing to stop - the flag is cleared either way */ }
+            return true;
         }
 
         /// <summary>What <see cref="DownloadInstallerAsync"/> came back with.</summary>

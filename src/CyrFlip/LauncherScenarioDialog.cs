@@ -35,6 +35,9 @@ namespace CyrFlip
         private readonly Panel _typeHost;
         private readonly string _uiLanguage;
         private readonly LauncherScenario _edited;
+        /// <summary>The script font this dialog created for itself - WinForms never disposes a font
+        /// it was handed, so the dialog owns it (LK-3b-03 / S0066 L-5), like every other dialog.</summary>
+        private readonly Font? _ownFont;
 
         /// <summary>The assembled scenario when the user confirmed, else null.</summary>
         public LauncherScenario? Scenario { get; private set; }
@@ -51,7 +54,7 @@ namespace CyrFlip
             string? family = Localization.FontFamily(uiLanguage);
             if (family != null)
             {
-                try { Font = new Font(family, Font.SizeInPoints); }
+                try { Font = _ownFont = new Font(family, Font.SizeInPoints); }
                 catch { /* the font is missing on this machine - keep the default */ }
             }
 
@@ -71,19 +74,19 @@ namespace CyrFlip
             _executablePanel = TypeSection();
             _executablePanel.Controls.Add(Caption(T("Путь:")), 0, 0);
             _executablePanel.Controls.Add(_path, 1, 0);
-            _executablePanel.Controls.Add(Browse(T("Обзор..."), BrowsePath), 2, 0);
+            _executablePanel.Controls.Add(Browse(T("Обзор..."), AppGlyphs.ChooseFile, BrowsePath), 2, 0);
             _executablePanel.Controls.Add(Caption(T("Аргументы:")), 0, 1);
             _executablePanel.Controls.Add(_arguments, 1, 1);
             _executablePanel.Controls.Add(Caption(T("Рабочая папка:")), 0, 2);
             _executablePanel.Controls.Add(_workingDir, 1, 2);
-            _executablePanel.Controls.Add(Browse(T("Обзор..."), BrowseWorkingDir), 2, 2);
+            _executablePanel.Controls.Add(Browse(T("Обзор..."), AppGlyphs.ChooseFolder, BrowseWorkingDir), 2, 2);
             _executablePanel.Controls.Add(_runAsAdmin, 1, 3);
             _executablePanel.SetColumnSpan(_runAsAdmin, 2);
 
             _ytDlpPanel = TypeSection();
             _ytDlpPanel.Controls.Add(Caption(T("Папка загрузки (пусто = Загрузки):")), 0, 0);
             _ytDlpPanel.Controls.Add(_ytOutput, 1, 0);
-            _ytDlpPanel.Controls.Add(Browse(T("Обзор..."), BrowseOutput), 2, 0);
+            _ytDlpPanel.Controls.Add(Browse(T("Обзор..."), AppGlyphs.ChooseFolder, BrowseOutput), 2, 0);
             _ytDlpPanel.Controls.Add(Caption(T("Доп. параметры yt-dlp:")), 0, 1);
             _ytDlpPanel.Controls.Add(_ytFormat, 1, 1);
             // A stored value outside the allowed set is kept but not passed (S0008 LS-4) - say so
@@ -111,14 +114,16 @@ namespace CyrFlip
 
             var setHotkey = new Button { Text = T("Задать..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(8, 3, 3, 3) };
             setHotkey.Click += (_, _) => SetHotkey();
+            ButtonGlyphs.Attach(setHotkey, AppGlyphs.Edit);
             var clearHotkey = new Button { Text = T("Очистить"), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(3, 3, 3, 3) };
             clearHotkey.Click += (_, _) => _hotkey.Text = T("Не назначено");
+            ButtonGlyphs.Attach(clearHotkey, AppGlyphs.ClearInput);
             var hotkeyRow = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = Padding.Empty };
             hotkeyRow.Controls.Add(_hotkey); hotkeyRow.Controls.Add(setHotkey); hotkeyRow.Controls.Add(clearHotkey);
 
-            var ok = new Button { Text = "OK", AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = DialogResult.OK };
+            var ok = ButtonGlyphs.Answer(new Button { Text = "OK", AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = DialogResult.OK });
             ok.Click += (_, _) => BuildScenario();
-            var cancel = new Button { Text = T("Отмена"), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = DialogResult.Cancel };
+            var cancel = ButtonGlyphs.Answer(new Button { Text = T("Отмена"), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = DialogResult.Cancel });
 
             var buttons = new FlowLayoutPanel { FlowDirection = FlowDirection.RightToLeft, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Dock = DockStyle.Fill, Margin = new Padding(0, 12, 0, 0) };
             buttons.Controls.Add(cancel); buttons.Controls.Add(ok);
@@ -168,10 +173,11 @@ namespace CyrFlip
         private static Label Caption(string text)
             => new Label { Text = text, AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 8, 10, 3) };
 
-        private static Button Browse(string text, Action action)
+        private static Button Browse(string text, string glyph, Action action)
         {
             var button = new Button { Text = text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(8, 3, 3, 3) };
             button.Click += (_, _) => action();
+            ButtonGlyphs.Attach(button, glyph);
             return button;
         }
 
@@ -263,5 +269,11 @@ namespace CyrFlip
 
         private void Warn(string message)
             => ConfirmDialog.Show(this, _uiLanguage, message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);   // the control tree first: it still draws with the font
+            if (disposing) _ownFont?.Dispose();
+        }
     }
 }

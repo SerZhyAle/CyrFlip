@@ -51,7 +51,7 @@ namespace CyrFlip
             RefreshLauncherSurfaces();
             UpdateTrayTexts();
             UpdateTrayTooltip();
-            _settings.Reload();
+            _settings?.Reload();
         }
     }
 }

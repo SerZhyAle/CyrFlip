@@ -13,7 +13,7 @@ Le traducteur intégré est facultatif lui aussi. Sélectionnez du texte n'impor
 
 Gardez ce que vous copiez et écrivez. L'historique facultatif du presse-papiers conserve localement le texte récent, consultable dans sa propre fenêtre ; les entrées peuvent être épinglées ou supprimées, l'historique mis en pause ou vidé, et chaque enregistrement est chiffré avec la DPAPI de Windows pour votre compte Windows. Les notes rapides facultatives s'ouvrent avec Ctrl+Maj+Alt+N et conservent le texte tel quel, sans Markdown ni mise en forme automatique, si bien qu'un fragment de code se recolle sans changement ; la recherche porte sur le contenu de chaque note, et les notes sont elles aussi chiffrées sur le disque. Les notes et l'historique du presse-papiers passent sur un autre ordinateur ou un téléphone dans un seul fichier texte brut que vous exportez et importez vous-même.
 
-Lancez et capturez. Ctrl+Maj+Impr. écran fige l'écran, vous tracez une zone et l'image arrive dans le presse-papiers - avec, en option, un enregistrement au format PNG dans un dossier. Le lancement rapide, un module facultatif, transforme vos programmes, scripts et téléchargements yt-dlp en scénarios que vous lancez depuis la zone de notification, depuis un raccourci qui leur est propre ou depuis la liste de raccourcis de la barre des tâches ; les scénarios de l'outil autonome OneClickRunner peuvent être importés sans toucher aux originaux. Deux interrupteurs empêchent Windows de se mettre en veille ou d'éteindre l'écran pendant que vous travaillez.
+Lancez et capturez. Ctrl+Impr. écran fige l'écran, vous tracez une zone et l'image arrive dans le presse-papiers - avec, en option, un enregistrement au format PNG dans un dossier. Le lancement rapide, un module facultatif, transforme vos programmes, scripts et téléchargements yt-dlp en scénarios que vous lancez depuis la zone de notification, depuis un raccourci qui leur est propre ou depuis la liste de raccourcis de la barre des tâches ; les scénarios de l'outil autonome OneClickRunner peuvent être importés sans toucher aux originaux. Deux interrupteurs empêchent Windows de se mettre en veille ou d'éteindre l'écran pendant que vous travaillez.
 
 Rien qu'à vous. Les modules facultatifs restent éteints tant que vous ne les activez pas, chaque raccourci se désactive séparément et CyrFlip peut céder ses raccourcis à une fenêtre Bureau à distance au premier plan. L'interface est disponible en 13 langues, y compris celles qui s'écrivent de droite à gauche, avec un thème clair, sombre ou calqué sur Windows. CyrFlip tourne dans la zone de notification, consomme peu de mémoire et ne demande rien de plus à installer sous Windows 10/11.
 
@@ -48,7 +48,7 @@ Notes rapides facultatives qui conservent le texte tel quel, pour recoller le co
 @@Feature12
 Transférez notes et historique du presse-papiers vers un autre ordinateur dans un seul fichier texte brut
 @@Feature13
-Capture d'une zone de l'écran dans le presse-papiers avec Ctrl+Maj+Impr. écran, enregistrable en PNG
+Capture d'une zone de l'écran dans le presse-papiers avec Ctrl+Impr. écran, enregistrable en PNG
 @@Feature14
 Lancement rapide facultatif : programmes, scripts et téléchargements yt-dlp en scénarios d'un clic
 @@Feature15

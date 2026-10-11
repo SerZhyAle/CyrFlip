@@ -73,11 +73,11 @@ namespace CyrFlip
             }
             Size = new Size(Math.Max(MinimumSize.Width, width), Math.Max(MinimumSize.Height, height));
 
-            _copy = Command("Копировать", () => CopyRequested?.Invoke(this, EventArgs.Empty));
-            _paste = Command("Вставить", () => PasteRequested?.Invoke(this, EventArgs.Empty));
-            _retry = Command("Ещё раз", () => RetryRequested?.Invoke(this, EventArgs.Empty));
-            _start = Command("Запустить Ollama", () => StartServerRequested?.Invoke(this, EventArgs.Empty));
-            _settings = Command("Настройки", () => SettingsRequested?.Invoke(this, EventArgs.Empty));
+            _copy = Command("Копировать", AppGlyphs.Copy, () => CopyRequested?.Invoke(this, EventArgs.Empty));
+            _paste = Command("Вставить", AppGlyphs.Paste, () => PasteRequested?.Invoke(this, EventArgs.Empty));
+            _retry = Command("Ещё раз", AppGlyphs.Refresh, () => RetryRequested?.Invoke(this, EventArgs.Empty));
+            _start = Command("Запустить Ollama", AppGlyphs.Run, () => StartServerRequested?.Invoke(this, EventArgs.Empty));
+            _settings = Command("Настройки", AppGlyphs.Settings, () => SettingsRequested?.Invoke(this, EventArgs.Empty));
 
             _language.SelectedIndexChanged += (_, _) =>
             {
@@ -504,7 +504,7 @@ namespace CyrFlip
             catch { /* the font is missing on this machine - keep the default */ }
         }
 
-        private Button Command(string russian, Action action)
+        private Button Command(string russian, string glyph, Action action)
         {
             var button = new Button
             {
@@ -516,6 +516,7 @@ namespace CyrFlip
                 TabStop = false,
             };
             button.Click += (_, _) => action();
+            ButtonGlyphs.Attach(button, glyph);
             return button;
         }
 

@@ -60,6 +60,10 @@
          launcher's two surfaces: the settings page header and the taskbar button. LauncherBrand
          looks it up by this exact LogicalName. -->
     <EmbeddedResource Include="..\..\assets\oneclickrunner-source\app.ico" LogicalName="CyrFlip.launcher.ico" />
+    <!-- CyrFlip's own icon beside the exe's Win32 resource, so the welcome tour can draw the app's
+         mark at any size without ExtractAssociatedIcon's 32px ceiling. WelcomeDialog looks it up
+         by this exact LogicalName. -->
+    <EmbeddedResource Include="..\..\assets\cyrflip.ico" LogicalName="CyrFlip.app.ico" />
   </ItemGroup>
 
   <!-- config.json is a legacy user migration source, never a new-install default (S0055).

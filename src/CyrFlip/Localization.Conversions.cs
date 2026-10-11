@@ -5,6 +5,46 @@ namespace CyrFlip
     {
         private static void AddConversionStrings()
         {
+            // S0062: the page that holds both fixes of mistyped text - the layout table and the case fix.
+            Add("Исправление текста",
+                en: "Text correction", uk: "Виправлення тексту", de: "Textkorrektur", it: "Correzione del testo",
+                es: "Corrección de texto", fr: "Correction de texte", pt: "Correção de texto",
+                ar: "تصحيح النص", hi: "पाठ सुधार", bn: "লেখা সংশোধন", ur: "متن کی درستی", zh: "文本纠正");
+
+            Add("Текст, набранный не в той раскладке или при включённом CapsLock, исправляется одной комбинацией. Здесь таблица пар раскладок с их комбинациями и исправление регистра. Каждая пара работает в обе стороны.",
+                en: "Text typed in the wrong layout or with CapsLock on is fixed with one hotkey. Here are the table of layout pairs with their hotkeys and the case fix. Every pair works both ways.",
+                uk: "Текст, набраний не в тій розкладці або з увімкненим CapsLock, виправляється однією комбінацією. Тут таблиця пар розкладок з їхніми комбінаціями та виправлення регістру. Кожна пара працює в обидва боки.",
+                de: "Text, der im falschen Layout oder bei eingeschaltetem CapsLock getippt wurde, wird mit einem Tastenkürzel korrigiert. Hier stehen die Tabelle der Layoutpaare mit ihren Kürzeln und die Korrektur der Groß- und Kleinschreibung. Jedes Paar funktioniert in beide Richtungen.",
+                it: "Il testo digitato nel layout sbagliato o con CapsLock attivo si corregge con una sola scorciatoia. Qui trovi la tabella delle coppie di layout con le relative scorciatoie e la correzione di maiuscole e minuscole. Ogni coppia funziona in entrambe le direzioni.",
+                es: "El texto escrito en la distribución equivocada o con CapsLock activado se corrige con un solo atajo. Aquí están la tabla de pares de distribuciones con sus atajos y la corrección de mayúsculas y minúsculas. Cada par funciona en ambos sentidos.",
+                fr: "Le texte tapé dans la mauvaise disposition ou avec CapsLock activé se corrige avec un seul raccourci. Voici le tableau des paires de dispositions avec leurs raccourcis et la correction de la casse. Chaque paire fonctionne dans les deux sens.",
+                pt: "O texto escrito no layout errado ou com o CapsLock ligado corrige-se com um único atalho. Aqui estão a tabela de pares de layouts com os respetivos atalhos e a correção de maiúsculas e minúsculas. Cada par funciona nos dois sentidos.",
+                ar: "يُصحَّح النص المكتوب بتخطيط خاطئ أو مع تفعيل CapsLock باختصار واحد. هنا جدول أزواج التخطيطات مع اختصاراتها وتصحيح حالة الأحرف. يعمل كل زوج في الاتجاهين.",
+                hi: "गलत लेआउट में या CapsLock चालू रहते टाइप किया गया पाठ एक ही शॉर्टकट से ठीक हो जाता है। यहाँ लेआउट जोड़ियों की तालिका उनके शॉर्टकट के साथ और अक्षर केस का सुधार है। हर जोड़ी दोनों दिशाओं में काम करती है।",
+                bn: "ভুল লেআউটে বা CapsLock চালু অবস্থায় লেখা টেক্সট একটি শর্টকাটেই ঠিক হয়। এখানে আছে লেআউট জোড়ার টেবিল তাদের শর্টকাটসহ এবং অক্ষরের কেস সংশোধন। প্রতিটি জোড়া দুই দিকেই কাজ করে।",
+                ur: "غلط لے آؤٹ میں یا CapsLock آن ہونے پر ٹائپ کیا گیا متن ایک ہی شارٹ کٹ سے درست ہو جاتا ہے۔ یہاں لے آؤٹ جوڑوں کی جدول ان کے شارٹ کٹس کے ساتھ اور حروف کی حالت کی درستی ہے۔ ہر جوڑا دونوں سمتوں میں کام کرتا ہے۔",
+                zh: "在错误布局下或开着 CapsLock 时输入的文本，用一个快捷键即可纠正。这里有布局对表及其快捷键，以及大小写纠正。每一对都可双向使用。");
+
+            Add("Таблица раскладок",
+                en: "Layout table", uk: "Таблиця розкладок", de: "Layout-Tabelle", it: "Tabella dei layout",
+                es: "Tabla de distribuciones", fr: "Tableau des dispositions", pt: "Tabela de layouts",
+                ar: "جدول التخطيطات", hi: "लेआउट तालिका", bn: "লেআউট টেবিল", ur: "لے آؤٹ جدول", zh: "布局表");
+
+            Add("После конвертации",
+                en: "After conversion", uk: "Після перетворення", de: "Nach der Umwandlung", it: "Dopo la conversione",
+                es: "Después de convertir", fr: "Après la conversion", pt: "Depois da conversão",
+                ar: "بعد التحويل", hi: "रूपांतरण के बाद", bn: "রূপান্তরের পরে", ur: "تبدیلی کے بعد", zh: "转换之后");
+
+            Add("Знаки препинания",
+                en: "Punctuation", uk: "Розділові знаки", de: "Satzzeichen", it: "Punteggiatura",
+                es: "Signos de puntuación", fr: "Ponctuation", pt: "Pontuação",
+                ar: "علامات الترقيم", hi: "विराम चिह्न", bn: "যতিচিহ্ন", ur: "رموزِ اوقاف", zh: "标点符号");
+
+            Add("Регистр",
+                en: "Letter case", uk: "Регістр", de: "Groß- und Kleinschreibung", it: "Maiuscole e minuscole",
+                es: "Mayúsculas y minúsculas", fr: "Casse", pt: "Maiúsculas e minúsculas",
+                ar: "حالة الأحرف", hi: "अक्षर केस", bn: "অক্ষরের কেস", ur: "حروف کی حالت", zh: "大小写");
+
             Add("Конвертация раскладок",
                 en: "Layout conversions", uk: "Перетворення розкладок", de: "Layout-Umwandlung",
                 it: "Conversione layout", es: "Conversión de distribuciones", fr: "Conversion de dispositions",

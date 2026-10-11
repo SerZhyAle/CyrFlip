@@ -212,23 +212,85 @@ namespace CyrFlip
         /// </summary>
         internal sealed class Worker : IDisposable
         {
+            /// <summary>
+            /// How long a loop may be inside one probe before the watchdog presumes it wedged in a
+            /// hung cross-process call (S0066 L-4 / LK-3a-04): far above a healthy probe, far below
+            /// the "no call timeout" decision of S0011, which this does not reopen.
+            /// </summary>
+            internal const int DefaultWatchdogAfterMs = 5000;
+            /// <summary>At most this many wedged loops are ever parked (S0066 L-4): a loop that
+            /// escapes its hang gives its slot in the cap back.</summary>
+            internal const int MaxAbandonedLoops = 3;
+
             private readonly AutoResetEvent _signal = new AutoResetEvent(false);
             private readonly Func<int, int, SelectionSnapshot> _probe;
             private readonly Func<string, LaunchTarget?> _parse;
             private readonly object _gate = new object();
             private Run? _pending;
             private volatile bool _stopped;
+            private readonly int _watchdogAfterMs;
+            private System.Threading.Timer? _watchdog;
+            private LoopState _loop;
+            private int _abandonedLoops;
+
+            /// <summary>Test seam: how many loops the watchdog currently counts as parked.</summary>
+            internal int AbandonedLoopsForTest => Volatile.Read(ref _abandonedLoops);
+
+            /// <summary>
+            /// One probe loop. A worker wedged inside a hung call keeps its own stop flag, so it can
+            /// be told to stand down and abandoned without stopping the worker as a whole.
+            /// </summary>
+            private sealed class LoopState
+            {
+                internal volatile bool Running = true;
+                /// <summary>Set when the watchdog gave up on this loop: it decrements the cap when it exits.</summary>
+                internal bool Abandoned;
+                internal int LastActivityMs = Environment.TickCount;
+            }
 
             /// <param name="probe">Replaces the real <see cref="Probe"/> in tests.</param>
             /// <param name="parse">Replaces the real launch-target parse in tests.</param>
-            internal Worker(Func<int, int, SelectionSnapshot>? probe = null, Func<string, LaunchTarget?>? parse = null)
+            /// <param name="watchdogAfterMs">Test seam for <see cref="DefaultWatchdogAfterMs"/>.</param>
+            internal Worker(Func<int, int, SelectionSnapshot>? probe = null, Func<string, LaunchTarget?>? parse = null,
+                int? watchdogAfterMs = null)
             {
                 _probe = probe ?? Probe;
                 _parse = parse ?? ParseLaunchTarget;
-                var thread = new Thread(Loop) { IsBackground = true, Name = "CyrFlip selection probe" };
+                _watchdogAfterMs = watchdogAfterMs ?? DefaultWatchdogAfterMs;
+                lock (_gate) _loop = StartLoop();
+                // A watchdog replaces a wedged loop instead of letting one hung provider answer
+                // "Unknown" for the rest of the session (S0066 L-4).
+                _watchdog = new System.Threading.Timer(WatchdogTick, null,
+                    _watchdogAfterMs, Math.Max(100, _watchdogAfterMs / 2));
+            }
+
+            private LoopState StartLoop()
+            {
+                var state = new LoopState();
+                var thread = new Thread(() => Loop(state)) { IsBackground = true, Name = "CyrFlip selection probe" };
                 // COM here is cross-process UIA/IAccessible2, exactly as in CaretOverlay's tracker.
                 thread.SetApartmentState(ApartmentState.MTA);
                 thread.Start();
+                return state;
+            }
+
+            private void WatchdogTick(object? state)
+            {
+                try
+                {
+                    lock (_gate)
+                    {
+                        if (_stopped) return;
+                        LoopState current = _loop;
+                        if (Environment.TickCount - Volatile.Read(ref current.LastActivityMs) < _watchdogAfterMs) return;
+                        if (Volatile.Read(ref _abandonedLoops) >= MaxAbandonedLoops) return;
+                        current.Running = false;   // it exits if its hung call ever returns
+                        current.Abandoned = true;
+                        Interlocked.Increment(ref _abandonedLoops);
+                        _loop = StartLoop();
+                    }
+                }
+                catch { /* a timer callback must never throw: on net48 it ends the process */ }
             }
 
             /// <summary>
@@ -251,25 +313,38 @@ namespace CyrFlip
                 return run;
             }
 
-            private void Loop()
+            private void Loop(LoopState state)
             {
-                while (!_stopped)
+                try
                 {
-                    _signal.WaitOne();
-                    Run? run;
-                    lock (_gate)
+                    while (state.Running && !_stopped)
                     {
-                        run = _pending;
-                        _pending = null;
+                        // Refreshed even while idle (the wait below times out on purpose): silence
+                        // inside Execute is a wedge; silence while waiting is just an idle worker.
+                        Volatile.Write(ref state.LastActivityMs, Environment.TickCount);
+                        _signal.WaitOne(Math.Max(100, _watchdogAfterMs / 2));
+                        Run? run;
+                        lock (_gate)
+                        {
+                            run = _pending;
+                            _pending = null;
+                        }
+                        if (_stopped || !state.Running) { run?.Abandon(); break; }
+                        Volatile.Write(ref state.LastActivityMs, Environment.TickCount);
+                        run?.Execute();
                     }
-                    if (_stopped) { run?.Abandon(); return; }
-                    run?.Execute();
+                }
+                finally
+                {
+                    // A parked loop that escapes its hang gives its slot in the cap back.
+                    if (state.Abandoned) Interlocked.Decrement(ref _abandonedLoops);
                 }
             }
 
             public void Dispose()
             {
                 _stopped = true;
+                _watchdog?.Dispose();
                 try { _signal.Set(); } catch (ObjectDisposedException) { }
             }
         }

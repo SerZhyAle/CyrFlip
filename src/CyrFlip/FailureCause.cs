@@ -15,25 +15,51 @@ namespace CyrFlip
     /// </summary>
     internal static class FailureCause
     {
+        // The three IOException outcomes a user can act on (S0065 E-8): sharing violation
+        // (ERROR_SHARING_VIOLATION), disk full (ERROR_DISK_FULL) and path too long
+        // (ERROR_FILENAME_EXCED_RANGE), as the runtime surfaces them - a facility of 0x0007 and
+        // the code as the low word.
+        private const int HrSharingViolation = unchecked((int)0x80070020);
+        private const int HrDiskFull = unchecked((int)0x80070070);
+        private const int HrPathTooLong = unchecked((int)0x800700CE);
+
         public static string Describe(Exception? ex, string language)
+            => Describe(ex, ru => Localization.Translate(language, ru));
+
+        /// <summary>
+        /// The same classification for a caller that holds the translating function (a window's
+        /// <c>T</c>, the launcher's <c>translate</c> seam) rather than a language string - the shape
+        /// S0065 E-5 asked for, so a balloon can no longer read "Could not start: Не удалось
+        /// запустить процесс." in one UI language. A null seam is the Russian key itself.
+        /// </summary>
+        public static string Describe(Exception? ex, Func<string, string>? translate)
         {
-            if (ex == null) return Localization.Translate(language, "Произошла непредвиденная ошибка.");
+            translate ??= ru => ru;
+            if (ex == null) return translate("Произошла непредвиденная ошибка.");
             if (ex is AggregateException agg && agg.InnerExceptions.Count > 0)
                 ex = agg.GetBaseException();
 
             if (ex is UnauthorizedAccessException || ex is SecurityException)
-                return Localization.Translate(language, "Нет доступа к файлу или папке.");
+                return translate("Нет доступа к файлу или папке.");
 
-            if (ex is IOException)
-                return Localization.Translate(language, "Ошибка чтения или записи на диск.");
+            if (ex is IOException io)
+            {
+                if (io.HResult == HrSharingViolation)
+                    return translate("Файл занят другой программой.");
+                if (io.HResult == HrDiskFull)
+                    return translate("Диск заполнен — освободите место.");
+                if (io.HResult == HrPathTooLong)
+                    return translate("Слишком длинный путь к файлу.");
+                return translate("Ошибка чтения или записи на диск.");
+            }
 
             if (ex is HttpRequestException || ex is WebException || ex is SocketException)
-                return Localization.Translate(language, "Сетевая ошибка или сервер недоступен.");
+                return translate("Сетевая ошибка или сервер недоступен.");
 
             if (ex is Win32Exception)
-                return Localization.Translate(language, "Не удалось запустить процесс.");
+                return translate("Не удалось запустить процесс.");
 
-            return Localization.Translate(language, "Произошла непредвиденная ошибка.");
+            return translate("Произошла непредвиденная ошибка.");
         }
     }
 }

@@ -430,7 +430,7 @@ namespace CyrFlip.Tests
         {
             AppConfig cfg = AppConfig.LoadFrom(new MemoryKey(), out _);
             Assert.False(cfg.ScreenshotSaveEnabled);
-            Assert.Equal("Ctrl+Shift+PrintScreen", cfg.ScreenshotHotkey);
+            Assert.Equal("Ctrl+PrintScreen", cfg.ScreenshotHotkey);
             Assert.True(cfg.EnableScreenshotHotkey);
             Assert.Equal(0, cfg.ScreenshotCount);
         }
@@ -475,7 +475,7 @@ namespace CyrFlip.Tests
         {
             AppConfig cfg = AppConfig.LoadFrom(new MemoryKey(), out _);
             ChordRegistry registry = ChordRegistry.Build(cfg, new LauncherScenario[0], new LanguageHotkeys.Entry[0]);
-            Hotkey chord = Hotkey.Parse("Ctrl+Shift+PrintScreen");
+            Hotkey chord = Hotkey.Parse("Ctrl+PrintScreen");
             ChordOwner? owner = registry.CyrFlipOwnerOf(chord, ChordKind.Case);
             Assert.NotNull(owner);
             Assert.Equal(ChordKind.Screenshot, owner!.Kind);

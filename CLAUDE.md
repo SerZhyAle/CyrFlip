@@ -81,7 +81,7 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    empty while the legacy values are still there (the config a build that had the table but not yet the
    merge left behind). Once they are gone a table the user empties stays empty.
    Rows live in `AppConfig.LayoutConversionProfiles` (`LayoutConversionProfile`, JSON in one registry value),
-   are edited on the **"Конвертация раскладок"** settings tab, and are bound in the hook by
+   are edited on the **"Исправление текста"** settings tab (S0062 - it was "Конвертация раскладок" until the case fix moved beside the table; the page key is still `SettingsPageKey.Conversions` and the Welcome tour keeps its own row caption), and are bound in the hook by
    `KeyboardHook.UpdateConversionProfiles` (an immutable snapshot array swapped atomically, so the hook never
    walks a list the UI is editing). The conversion carries **no alphabet table of its own**:
    `KeyboardLayoutConverter` asks Windows for both layouts' mappings, so it covers whatever the user has
@@ -103,7 +103,7 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    13-language starter set (the world's ten most-spoken - EN/ZH/HI/ES/FR/AR/BN/PT/RU/UR - plus DE, IT and UK, with
    the common variants per language) behind the "Add 10 popular languages" button, and `WorldLayouts.CodeForKlid`
    is the shared KLID → two-letter code used by the table and the tray tooltip.
-3. **Case flip (fix CapsLock).** A second global hotkey (default **Ctrl+Shift+F11**) copies the selection, inverts each letter's case (UPPER↔lower, `CaseFlipEngine`), and pastes it back - the "I left CapsLock on" fix. Same copy→transform→paste pipeline as the flip; its own user-configurable hotkey in the tray menu. Optional **"Synchronize CapsLock after case correction"** toggle (the case-flip counterpart of "Change the language after the flip"): after a successful case flip it **sets** the physical CapsLock key to match the corrected text - on when it ends in a capital, off when it ends in a small letter (`CaseFlipEngine.DesiredCapsLock`, the **last cased letter** deciding because that is where typing continues) - so continued typing matches what is now on screen. It is an absolute state, not a blind toggle, and that is the whole point: a toggle is only right while CapsLock still holds the state that produced the wrong text, so correcting the same text twice, or correcting it after the user had already pressed CapsLock by hand, left the key exactly backwards. A selection with no cased letter at all (digits, punctuation, a caseless script) says nothing about CapsLock and leaves it alone.
+3. **Case flip (fix CapsLock).** A second global hotkey (default **Ctrl+Shift+F11**) copies the selection, inverts each letter's case (UPPER↔lower, `CaseFlipEngine`), and pastes it back - the "I left CapsLock on" fix. Same copy→transform→paste pipeline as the flip; its own user-configurable hotkey, on the **"Исправление текста"** page beside the layout table (group "Регистр"). Optional **"Synchronize CapsLock after case correction"** toggle - in the same group - (the case-flip counterpart of "Change the language after the flip"): after a successful case flip it **sets** the physical CapsLock key to match the corrected text - on when it ends in a capital, off when it ends in a small letter (`CaseFlipEngine.DesiredCapsLock`, the **last cased letter** deciding because that is where typing continues) - so continued typing matches what is now on screen. It is an absolute state, not a blind toggle, and that is the whole point: a toggle is only right while CapsLock still holds the state that produced the wrong text, so correcting the same text twice, or correcting it after the user had already pressed CapsLock by hand, left the key exactly backwards. A selection with no cased letter at all (digits, punctuation, a caseless script) says nothing about CapsLock and leaves it alone.
 
 4. **A self-contained "Языки Windows" tab (settings editor for Windows' input config).** Goal: the user
    never has to open the Windows "Language & region" pane. The tab in `SettingsForm` manages three Windows
@@ -232,14 +232,16 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    thread is the hook's thread), compacted **in the background** once the journal holds
    `QuickNotesStore.CompactAfterOperations` (500) records more than a fresh snapshot would - not a flat 500,
    which rewrote every note on every save for anyone with 500 notes - and on exit, via `File.Replace` -
-   atomic, and the previous journal becomes the `.bak` in the same call; a compaction that failed waits for
+   atomic on success, and the previous journal becomes the `.bak` in the same call; a failed replacement
+   keeps its complete `.tmp` if recovery also fails. An append restores a missing journal before writing
+   a new record, and a failed or partial replay disables writes until restart. A compaction that failed waits for
    another 500 records instead of re-encrypting everything on the next save (S0035 QN2-8). A line that will
    not read is skipped, counted, reported once **and carried through every compaction verbatim** when it is
    a whole ciphertext (a DPAPI key can come back) or opens but is no record (a later format); a **fragment**
    a kill left mid-append - told apart by walking the DPAPI blob's length-prefixed fields
    (`QuickNotesCipher.IsWholeBlob`, a cipher's optional `IQuickNotesCipherShape`) - is dropped by the
    compaction the load itself asks for, so it is warned about once, not at every start (QN2-2). A missing
-   journal is restored from its `.bak`. Every
+   journal is restored from its complete `.tmp` or `.bak`; read or recovery failures have their own warning. Every
    record is written with a **leading** line break, so a torn tail costs only itself. A note is rewritten
    only when it was edited, and a note deleted this session is never committed again (ticket S0006). **A
    write that fails stays pending** - the note (or delete) goes back to the debounce, retried after 5 s or
@@ -303,11 +305,11 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    the quick notes are off, history entries while the history is off. CyrFlip never sends, opens or
    watches the file. Spec: [PLAN/done/S0023_history-notes-exchange-and-features.md](PLAN/done/S0023_history-notes-exchange-and-features.md).
 
-11. **The "Графика" settings tab and its first tool, the screen region capture (ticket S0026).** Deliberately
+11. **The "Снимки экрана" settings tab (it was "Графика" until S0062; page key `SettingsPageKey.Graphics`) and its first tool, the screen region capture (ticket S0026).** Deliberately
    **no module switch and no tray submenu** (owner, 2026-09-26: an extra switch and one more menu level make
    the command slower to reach) - the tab groups the settings, the tray has a top-level
    **"Снимок области экрана"** item that is always there, and the chord has only its own switch
-   (`EnableScreenshotHotkey`, on). The chord (`ScreenshotHotkey`, default **Ctrl+Shift+PrintScreen** -
+   (`EnableScreenshotHotkey`, on). The chord (`ScreenshotHotkey`, default **Ctrl+PrintScreen** -
    `Hotkey` learned `PrintScreen`/`PrtSc`, and `HotkeyDialog` captures it on the key-**up**, since Windows
    posts no key-down for it), the tray item or the settings button **freeze every screen first** (`ScreenCapture.Grab`, one
    `BitBlt` with `SRCCOPY | CAPTUREBLT` - `CopyFromScreen` drops layered windows, i.e. the tooltip the chord
@@ -322,7 +324,7 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    `FOLDERID_Screenshots` with no product subfolder, fallback Screenshots -> Downloads **always told** by a
    balloon (`ScreenshotSaver`, file system behind `IScreenshotFileSystem`). The folder the captures
    land in opens on **its own chord** (ticket S0057): `ScreenshotFolderHotkey`, default
-   **Ctrl+Shift+Alt+PrintScreen** (the capture chord plus one modifier), **bound only while saving is on**
+   **Ctrl+Shift+PrintScreen** (the capture chord plus one modifier), **bound only while saving is on**
    and its own switch (`EnableScreenshotFolderHotkey`) is - with saving off the keystroke passes through
    (`ScreenshotFolderChordLive`, the text menu's D2 discipline; going live is checked like assigning it,
    KC-6). `ScreenshotFolderTarget` picks the target - the folder the settings show
@@ -358,15 +360,15 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    are `tools/uitest/Test-Symbols.ps1`; the chord, the focus rule in real editors and the handle counts are the
    human checklist at its end. Spec: [PLAN/done/S0056_symbols-window.md](PLAN/done/S0056_symbols-window.md).
 
-13. **The hotkeys overview - "Все комбинации" (ticket S0056).** One settings page, right after "Горячие клавиши",
-   that lists **every** chord CyrFlip binds in six groups (`keys/fixed`, `keys/mouse`, `keys/conversions`,
+13. **The hotkeys overview - the "Горячие клавиши" page (tickets S0056 and S0062).** One settings page - the master
+   switch and the RDP option in its first group `hotkeys/switches`, then a list of **every** chord CyrFlip binds in six groups (`keys/fixed`, `keys/mouse`, `keys/conversions`,
    `keys/translations`, `keys/launcher`, `keys/windows`), says for each whether it **really fires and if not why**
    (`ChordBindingState`: its own switch, its module, the master switch, no chord, a token that does not parse; a
    **clash** is a second fact shown on both rows, since a switched-off chord still owns its chord), and lets the
    user change, switch and reset each from there. **It stores nothing and has no second setter**: a chord change
    opens the owning page's own flow (`HotkeyDialog` + `ChordGuard`, then the same setter), a switch calls the same
-   handler as the owning page, and a refresh re-reads every control without firing a handler, so the two views are
-   one value. The state is `ChordBinding.Evaluate` - the predicate the tray hover popup uses - and the five
+   handler as the owning page, and a refresh re-reads every control without firing a handler, so the page and
+   the owning page are one value. The state is `ChordBinding.Evaluate` - the predicate the tray hover popup uses - and the five
    `*ChordLive` properties of `CyrFlipContext` now call `ChordBinding.*Live`, so the hook and the overview are made
    from one condition. **Reset** (`ChordResetPlan`, pure): a chord token and that chord's own switch, nothing else -
    never a module switch, a row's language, the number of rows or a scenario's program; the seeded EN⇄RU and
@@ -377,10 +379,28 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    object** applied with every row re-checked, a stale one skipped and reported. "Сбросить все..." also turns the
    master switch back on (owner decision D4). The mouse chord is edited through a menu of the fixed six choices. No
    registry value is added. Decisions taken by the recommended defaults: D1 name "Все комбинации" after the Hotkeys
-   page, D2 the one-time shift of a remembered page index is accepted (`SettingsTab` is still an index; `SettingsPageKey` addresses pages for navigation only), D3 no
-   tab glyph until the catalog has a record, D4 reset turns the master on, D5 no filter, D6 the old page keeps its
-   chord rows. **Delete on a fixed chord does nothing** (it cannot be left empty; the spec's "asks first" is not
+   page (**superseded 2026-10-11 by S0062 D3**: the old page is dissolved - each chord moved to the page of its feature - so the
+   overview took the title "Горячие клавиши" back and the master switch moved onto it, one control, no duplicate),
+   D2 the one-time shift of a remembered page index (**no longer happens**: S0062 reads `SettingsPageId` by key and a bare
+   `SettingsTab` index through the pre-S0062 order table once), D3 no tab glyph until the catalog has a record (the
+   merged page keeps `app.shortcuts`), D4 reset turns the master on, D5 no filter, D6 (**gone with S0062**: the old
+   page and its chord rows no longer exist). **Delete on a fixed chord does nothing** (it cannot be left empty; the spec's "asks first" is not
    built). Spec: [PLAN/S0056_hotkeys-overview-tab.md](PLAN/S0056_hotkeys-overview-tab.md).
+
+14. **The settings pages follow the features (ticket S0062).** A setting and a chord live on the page of the feature they
+   configure (rule D1, held by `ChordHomeTests` and the move ledger `SettingsLedgerTests`): the case fix (chord and CapsLock
+   sync) is on **"Исправление текста"** (the old "Конвертация раскладок", group ids `conversions/table|after|symbols|case`),
+   the history chord on **"Буфер обмена"** (`clipboard/recording|window|clear`), the context menu, its mouse chord and its
+   keyboard chord on the new **"Меню для выделенного"** page (`selection/mouse|keyboard`, `SettingsPageKey.SelectionMenu`, tab kind 14,
+   glyph `feature.selection-menu`, the record asked on 2026-10-11 - until then it drew its caption alone, D7), and "Общие" has four groups (`general/language|startup|power|transfer`). The old "Горячие клавиши" page is
+   dissolved: its master switch and RDP option are the first group (`hotkeys/switches`) of the overview page, which
+   keeps the key `SettingsPageKey.Hotkeys` and the glyph `app.shortcuts` (`HotkeysOverview` is a retired key, read as
+   `Hotkeys`; tab kind 13 is gone). The page order is one table, `SettingsPageKeys.DisplayOrder`, in the pillar order of
+   `POSITIONING.md`, About last. Navigation is remembered by **key**: `SettingsViewport` rows are written `<PageKey>|anchor|offset`
+   and a legacy numeric row (and a bare `SettingsTab` index) is read once through `SettingsPageKeys.FromLegacyIndex`, the
+   pre-S0062 order table. The auto "Параметры" group is keyed by the page key and only "Индикаторы" has loose rows. Settings
+   file inventory group ids moved with the settings (preview captions only; the file format is untouched). Spec:
+   [PLAN/S0062_settings-tab-regrouping.md](PLAN/S0062_settings-tab-regrouping.md).
 
 It runs in the **system tray** (the icon also shows the layout; right-click menu = the history controls, the three indicator toggles, the two keep-awake switches, the **Launcher** submenu and **"Перевести буфер обмена"** - each visible only while its module is enabled - then Settings and Exit). **Tray mouse:** a **single left click switches the input language to the next one in Windows' rotation** (`LayoutSwitcher.SwitchToNext`), a **double click opens Settings**. Since the shell also delivers the first click of a double click as an ordinary click, the switch is deferred by `SystemInformation.DoubleClickTime` and cancelled when the double click arrives - and it targets `CursorIndicator.LastActiveWindow`, not the foreground window, because clicking the notification area moves the focus to the taskbar. See [PLAN/done/Spec_v1.1_Cursor_and_Caret.md](PLAN/done/Spec_v1.1_Cursor_and_Caret.md) for the indicator design.
 
@@ -406,7 +426,7 @@ It runs in the **system tray** (the icon also shows the layout; right-click menu
 
 ## Module architecture (`src/CyrFlip/`)
 
-- **WelcomeDialog.cs / WelcomeVisuals.cs / WelcomeFacts.cs / FirstRun.cs** - modal five-page introduction; pure live-config facts and normalized-marker decision. The tour is not text on a form: every page opens with a solid vocabulary-glyph plate and a large title, and each feature is a row (`GlyphBadge` + bold title + the chord drawn as `KeyCaps` + a live `ToggleSwitch`); the conversions page ends in a `ConversionExample` (`ghbdtn ⇄ привет`), the indicators page shows the live layout badges and the progress is `StepDots`. These are small owner-drawn `IThemeAware` controls (`WelcomePainted`) that read `ThemePalette` roles only - no colour literal, no private picture: a meaning the vocabulary lacks (case flip, the context menu, the I-beam) gets a typographic mark ("Aa", "≡", "I") on the plate instead. `WelcomeFacts.ConversionRows()` (capped at `MaxConversionRows`) feeds the page. **The switches are live, not decoration** (owner, 2026-10-09): a person who has just installed CyrFlip meets its features and turns them on or off on the spot. A flip goes through `CyrFlipContext.ApplyWelcomeSwitch`, which calls the very handler the settings window calls (`OnQuickNotesChanged`, `SetCaseHotkeyEnabled`, the tray items for the caret marker, the cursor and the history, ...), so the hook, the tray and the config cannot tell the two apart; the tour then re-reads every switch from the configuration (`WelcomeFacts.IsOn`), so a flip another chord owner refused puts its knob back, and turning a chord on while the master switch is off turns the master on. Without a context behind it the dialog writes the value itself (`WelcomeFacts.Set`). The navigation buttons are `GlyphButton`s carrying `nav.back` / `nav.forward` / `nav.close` (the last step: `app.settings`), drawn at the theme text colour and mirrored for right-to-left. `SettingsPageKey` addresses settings pages independently of tab order. The context posts startup display, writes the marker on Shown, queues settings requests during the tour and defers the single handoff.
+- **WelcomeDialog.cs / WelcomeVisuals.cs / WelcomeFacts.cs / FirstRun.cs** - modal five-page introduction; pure live-config facts and normalized-marker decision. The tour is not text on a form: every page opens with a solid plate and a large title - the vocabulary glyph everywhere but the welcome page, whose header carries the app's own icon (the `CyrFlip.app.ico` embedded resource, the same ico the exe carries) and whose body is the whole product in one index, one line per feature in POSITIONING.md's pillar order; on the later pages each feature is a row (`GlyphBadge` + bold title + the chord drawn as `KeyCaps` + a live `ToggleSwitch`); the conversions page ends in a `ConversionExample` (`ghbdtn ⇄ привет`), the indicators page shows the live layout badges and the progress is `StepDots`. These are small owner-drawn `IThemeAware` controls (`WelcomePainted`) that read `ThemePalette` roles only - no colour literal, no private picture: a meaning the vocabulary lacks (case flip, the context menu, the I-beam) gets a typographic mark ("Aa", "≡", "I") on the plate instead. `WelcomeFacts.ConversionRows()` (capped at `MaxConversionRows`) feeds the page. **The switches are live, not decoration** (owner, 2026-10-09): a person who has just installed CyrFlip meets its features and turns them on or off on the spot. A flip goes through `CyrFlipContext.ApplyWelcomeSwitch`, which calls the very handler the settings window calls (`OnQuickNotesChanged`, `SetCaseHotkeyEnabled`, the tray items for the caret marker, the cursor and the history, ...), so the hook, the tray and the config cannot tell the two apart; the tour then re-reads every switch from the configuration (`WelcomeFacts.IsOn`), so a flip another chord owner refused puts its knob back, and turning a chord on while the master switch is off turns the master on. Without a context behind it the dialog writes the value itself (`WelcomeFacts.Set`). The navigation buttons are `GlyphButton`s carrying `nav.back` / `nav.forward` / `nav.close` (the last step: `app.settings`), drawn at the theme text colour and mirrored for right-to-left. `SettingsPageKey` addresses settings pages independently of tab order. The context posts startup display, writes the marker on Shown, queues settings requests during the tour and defers the single handoff.
 
 Each class owns one concern (keep it this way - the spec prioritizes a minimal surface):
 
@@ -473,7 +493,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   clipboard strip's search / close / pin / delete (`HistoryStripGlyphs`, exposed to a screen reader as an
   `AccessibleObject` with four kinds of child), the order buttons of the layout list, the launcher list and
   the notes window (`action.move-up` / `action.move-down` in the theme's text colour, drawn again when the
-  theme changes), all eleven settings tabs (`SettingsForm.TabGlyphId`; the guides show the same glyph
+  theme changes), all thirteen settings tabs (`SettingsForm.TabGlyphId`; "Меню для выделенного" was the last caption-only tab until its record `feature.selection-menu` landed on 2026-10-11 - S0062 D7; the guides show the same glyph
   beside the tab's name), and the Jump List's Manage / Exit / yt-dlp / unreadable-program icons - written as
   `.ico` files into `icons\` beside `layout.txt` (`LauncherShortcutIcons`, the MSIX-aware folder; the name
   carries a revision), because the shell wants a file location and an SDK-style net48 project embeds one
@@ -706,7 +726,9 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   reader (splits on **LF only** - `TextReader.ReadLine` would eat a payload's CR - with the CRLF-file
   detection and the hash-decided line endings) and the merge planner that both the preview and the import
   run. `QuickNotesService.Import` changes an existing note **in place** and raises `Imported`, so the notes
-  window reloads the one it holds open. `ExchangeFlow` is only the dialogs around them, run through
+  window reloads the one it holds open. A failed note batch returns `NotesUnwritten`; the dialog reports
+  pending persistence instead of import completion. Quick-note copy feedback also follows the clipboard result.
+  `ExchangeFlow` is only the dialogs around them, run through
   `CyrFlipContext.RunExchange`. `SettingsForm` takes the `exchange` callback as its last (nullable,
   required) parameter; every test builds the window through the one compiled `TestForms.NewSettings`, so
   a constructor change breaks the build, never the run (S0029 RB-1 - reflection binds no defaults).
@@ -827,7 +849,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   forbids. **The owning thread by construction**: every result from the pool or the writer (capture,
   "too large", "clear failed", "write failed") is posted to the service's own window (`PostToOwner`, a
   private `WM_APP` message + a queue), never through a `SynchronizationContext` read in the constructor.
-  **Losses are counted**: a failed write (`WriteFailures`, one balloon per session), an import reports
+  **Losses are counted**: a failed write (`WriteFailures`, one balloon for background writes and a report for every failed erase), an import reports
   only after `FlushJournal`, and `Dispose` logs the records it abandoned. A privacy DWORD marker that is
   present but unreadable counts as 0 (`ClipboardPrivacy.MarkerValue`) - the flip backup's rule.
 - **AppShortcuts.cs** - the unpackaged build's Start menu and desktop `CyrFlip.lnk` (ticket S0041): there is no installer, so the first run from a stable folder creates both (`ShortcutsCreated` marker), later runs re-point an existing link at the running exe when the folder moved, a start from `%TEMP%` or `bin` touches nothing, and a deleted link comes back only through the General-page checkbox. The packaged build writes none - Windows lists the package in Start itself; an MSIX desktop shortcut (`desktop7:Shortcut`, build 19645+) is still open.
@@ -839,7 +861,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   broken: it opened the system page and then "unticked" itself even though Windows was starting CyrFlip.
 - **KeepAwake.cs** - the two "don't sleep / don't blank the screen (like video)" toggles. Two independent switches (`KeepSystemAwake`/`KeepScreenOn`) OR-ed into one `SetThreadExecutionState` call: `ES_SYSTEM_REQUIRED` (system won't sleep) and `ES_DISPLAY_REQUIRED` (display won't blank/lock on idle). `ES_CONTINUOUS` makes the request sticky (one call per change, no polling); it is bound to the calling thread (the tray UI thread), so a hard kill clears it for free, and `Reset()` restores the normal idle policy on exit and when both are off. **Both switches are persisted** (`AppConfig.KeepSystemAwake`/`KeepScreenOn`) and re-applied at startup by `Restore(system, screen)` - **one** call carrying both bits, never two, so a launch with both on never asks Windows for half the policy first. That reverses spec §5's original "memory only, off on every launch" (changed 2026-07-28): a switch that silently forgot itself read as broken, which is exactly how it was reported. The old safety argument now lives in the UI text instead - the settings hint says outright that a forgotten switch keeps the machine awake after a restart too and that CyrFlip will not watch your battery for you. `KeepAwake` still persists nothing itself: `CyrFlipContext` writes the config and hands the state back, so the P/Invoke seam (`SetExecutionState`) stays the only thing to fake in tests. No admin rights; the two registry values are ordinary `AppConfig` state. Driven by two checkable tray items + two "General"-tab checkboxes; see [PLAN/done/KeepAwake_Spec_Idea_v0.1.md](PLAN/done/KeepAwake_Spec_Idea_v0.1.md). **Only `powercfg /requests` (admin) can confirm the request landed** - `SetThreadExecutionState` returns the previous state, never a confirmation; `tools/uitest/Test-KeepAwake.ps1` is that check.
 - **WindowInterop.cs** - all `[DllImport]`s + interop structs. The `INPUT` union includes `MOUSEINPUT` so `Marshal.SizeOf(INPUT)` matches the real struct on x64 (else `SendInput` silently fails).
-- **AppConfig.cs** - persists settings to `HKCU\Software\CyrFlip`. On first run with no registry key, migrates from a legacy `config.json` (from `%APPDATA%\CyrFlip\` or beside the exe) and seeds the conversion table (`NeedsFlipRow`/`FlipRow`, called from `Load()`; see feature 2). Fields: `CaseHotkey` (default **Ctrl+Shift+F11**), `CursorSize`, `EnableCursorChange` (default **false**), `EnableCaretOverlay` (default **true**), `CaretDotMode` (default **false**), `EnableLanguageSwitch` (default **false**), `FlipCapsLockAfter` (default **false**), `ConvertSymbols` (default **true**), the hotkey switches `EnableHotkeys`/`EnableCaseHotkey`/`EnableHistoryHotkey` (all default **true**), `DeferToRemoteDesktop` (default **false**), `FlipCount` + `CaseFlipCount` + `TranslateCount` (usage counters), and the translator block (`EnableTranslate`, `TranslateSeeded`, `TranslateProfiles`, `TranslateEndpoint`, `TranslateModel`, the timeouts and the result-window options - see the config table). `UiLanguage` holds the language **endonym** ("Русский", "Deutsch", "中文", ..) and defaults to the OS UI language via `Localization.DefaultLanguage()` (any of the 13 translated languages, else **English** - never Russian, which is only the translation table's source language). The **user's display language** (`CurrentUICulture`) wins over the language Windows was installed in (`InstalledUICulture`), which is the only one that is right for an English Windows switched to a Russian desktop; regional variants resolve to their language, so de-AT, pt-BR and zh-Hans-CN all find their translation. `SettingsTab` remembers which settings page was open (restored on the next launch too, clamped against the live page count - the tab strip grows between versions). `Save()` writes all fields; `IncrementFlipCount()`/`IncrementCaseFlipCount()`/`IncrementTranslateCount()`/`SaveSettingsTab()` write only that one value (cheap). `SaveSettingsUiState()` is the settings window's UI-context write (ticket S0048, WINDOWS-UI section 3): group expansion (`SettingsGroupsState`), per-page scroll anchors (`SettingsViewport`) and the window rectangle (`SettingsWindowX/Y/Width/Height`), written when the window hides, never while the user drags it; anchors are stable group ids/row ordinals, not translated captions. **Every value is read on its own** (`LoadFrom`/`SaveTo` over the `IConfigKey` seam, `AppConfigLoadTests`; ticket S0007 CF-1): a value of the wrong kind falls back to its own default and lands in `UnreadableValues` (one balloon per start), where it used to abort the whole load and let the next save wipe the conversion table and the one-time Windows snapshots. A table or snapshot that is present but unreadable is **never saved over** until the user edits it; window geometry values are clamped by their windows rather than on load, other numbers are clamped to their UI's range; and the two profile tables are sanitized on load - null rows dropped, null strings made `""`, duplicate ids regenerated, the repaired form written back (CF-2).
+- **AppConfig.cs** - persists settings to `HKCU\Software\CyrFlip`. A failed key open marks the entire config unreadable and blocks every save, snapshot capture and first-run tour until restart (S0063). On first run with no registry key, migrates from a legacy `config.json` (from `%APPDATA%\CyrFlip\` or beside the exe) and seeds the conversion table (`NeedsFlipRow`/`FlipRow`, called from `Load()`; see feature 2). Fields: `CaseHotkey` (default **Ctrl+Shift+F11**), `CursorSize`, `EnableCursorChange` (default **false**), `EnableCaretOverlay` (default **true**), `CaretDotMode` (default **false**), `EnableLanguageSwitch` (default **false**), `FlipCapsLockAfter` (default **false**), `ConvertSymbols` (default **true**), the hotkey switches `EnableHotkeys`/`EnableCaseHotkey`/`EnableHistoryHotkey` (all default **true**), `DeferToRemoteDesktop` (default **false**), `FlipCount` + `CaseFlipCount` + `TranslateCount` (usage counters), and the translator block (`EnableTranslate`, `TranslateSeeded`, `TranslateProfiles`, `TranslateEndpoint`, `TranslateModel`, the timeouts and the result-window options - see the config table). `UiLanguage` holds the language **endonym** ("Русский", "Deutsch", "中文", ..) and defaults to the OS UI language via `Localization.DefaultLanguage()` (any of the 13 translated languages, else **English** - never Russian, which is only the translation table's source language). The **user's display language** (`CurrentUICulture`) wins over the language Windows was installed in (`InstalledUICulture`), which is the only one that is right for an English Windows switched to a Russian desktop; regional variants resolve to their language, so de-AT, pt-BR and zh-Hans-CN all find their translation. `SettingsTab` remembers which settings page was open (restored on the next launch too, clamped against the live page count - the tab strip grows between versions). `Save()` writes all fields; `IncrementFlipCount()`/`IncrementCaseFlipCount()`/`IncrementTranslateCount()`/`SaveSettingsTab()` write only that one value (cheap). `SaveSettingsUiState()` is the settings window's UI-context write (ticket S0048, WINDOWS-UI section 3): group expansion (`SettingsGroupsState`), per-page scroll anchors (`SettingsViewport`) and the window rectangle (`SettingsWindowX/Y/Width/Height`), written when the window hides, never while the user drags it; anchors are stable group ids/row ordinals, not translated captions. **Every value is read on its own** (`LoadFrom`/`SaveTo` over the `IConfigKey` seam, `AppConfigLoadTests`; ticket S0007 CF-1): a value of the wrong kind falls back to its own default and lands in `UnreadableValues` (one balloon per start), where it used to abort the whole load and let the next save wipe the conversion table and the one-time Windows snapshots. A table or snapshot that is present but unreadable is **never saved over** until the user edits it; window geometry values are clamped by their windows rather than on load, other numbers are clamped to their UI's range; and the two profile tables are sanitized on load - null rows dropped, null strings made `""`, duplicate ids regenerated, the repaired form written back (CF-2).
 - **Localization.cs (+ `Localization.*.cs` partials)** - the **single localization layer** for the whole
   app: settings window, tray menu and every dialog read from it, so adding a language is one column
   instead of a ternary in each file (the old `ru ? ... : uk ? ...` pattern is gone). The **key is the
@@ -871,7 +893,9 @@ guards it.
   legacy `HKCU\Keyboard Layout\Preload`+`Substitutes` (read by `GetKeyboardLayoutList`) and the modern,
   authoritative `HKCU\Control Panel\International\User Profile` (a `Languages` BCP-47 multi-string + a
   `<langid>:<klid>=1` value per keyboard). The modern store re-syncs the legacy one on sign-in, so both follow
-  one canonical ordered KLID list on every change (`Persist`): the legacy store is rebuilt, the modern one is
+  one canonical ordered KLID list on every successful change (`Persist` returns the failure and override):
+  registry writes and restores first capture the complete affected trees and roll back on failure (S0063).
+  On success, the legacy store is rebuilt, the modern one is
   **edited as a diff** (`ApplyLayouts` on a `ProfileModel`, unit-tested) that **never deletes an IME/TIP value**
   (`0804:{CLSID}{PROFILE}` - Pinyin, the Japanese/Korean IMEs; ticket S0007 WL-1), drops a language only when
   this edit removed its last layout and it holds no TIP, keeps a keyboard under the language it already lives
@@ -902,7 +926,8 @@ guards it.
 - **LanguageHotkeys.cs** - editor for **Windows'** own "switch straight to this input language" chords, stored
   in `HKCU\Control Panel\Input Method\Hot Keys\<id>` (ids `0x100`-`0x11F` = `IME_HOTKEY_DSWITCH_FIRST/LAST`),
   each a subkey with three 4-byte little-endian `REG_BINARY` values: `Key Modifiers` (a `MOD_*` mask),
-  `Virtual Key`, `Target IME` (the destination HKL). Written values are re-read by the OS via
+  `Virtual Key`, `Target IME` (the destination HKL). The switch-chord setter verifies all writes, returns failure and refreshes the dropdown from Windows;
+  one-time backups are complete or absent. Written values are re-read by the OS via
   `SystemParametersInfo(SPI_SETLANGTOGGLE)`. **CyrFlip does not process these chords** - the hook doesn't
   look at them; that's the whole point (they survive the app being closed). Two things worth knowing:
   the format stores an *arbitrary* modifier mask + VK, so **plain `Ctrl+1` is representable even though the
@@ -1030,7 +1055,7 @@ guards it.
   `LayoutConversionDialog`.
 - **Launcher (absorbed OneClickRunner), one concern per file:**
   - **LauncherScenario.cs** - the model. `[XmlRoot("AppItem")]` + identical field names = the OneClickRunner XML contract; `Hotkey` is the one CyrFlip extension; **public** only because net48 `XmlSerializer` refuses internal types. `SPECIAL_YTDLP` legacy sentinel → `IsYtDlp`.
-  - **LauncherScenarioStore.cs** - file-per-scenario store (`%APPDATA%\CyrFlip\Scenarios`, folder created lazily on first write). Corrupt file → skipped + counted in `LoadErrors`, never fatal. Contiguous `Order` normalization à la OneClickRunner (name breaks legacy all-zero ties); temp-file-then-`File.Replace` saves, the temp name unique per writer (`{name}.{pid}.{random}.tmp`; a leftover is never read and is deleted after a day - S0008 LS-9); a file with no `<Id>` or a duplicate one gets a fresh Guid saved at once (`LauncherScenario.IdWasAssigned`, LS-10); `Import` always fresh Guid; `SeedSample` only into an empty store (caller guards with the one-time marker). `Remove` drops a scenario only once its file is gone and returns the reason otherwise - the settings page says it (S0034 LS2-6); `readOnly: true` never writes (the log bundle's count, LS2-9). Every OneClickRunner import - first enable, tray, settings button - clears an imported chord something else already owns (`LauncherMigration.StripClashingHotkey`, LS2-8).
+  - **LauncherScenarioStore.cs** - file-per-scenario store (`%APPDATA%\CyrFlip\Scenarios`, folder created lazily on first write). Corrupt file → skipped + counted in `LoadErrors`, never fatal. A listing failure is counted and keeps the live list. Add/update/move return save failures; unsaved add/edit results never replace the stored list. Control characters and CR/LF round-trip through XML entities (S0063). Contiguous `Order` normalization à la OneClickRunner (name breaks legacy all-zero ties); temp-file-then-`File.Replace` saves, the temp name unique per writer (`{name}.{pid}.{random}.tmp`; a leftover is never read and is deleted after a day - S0008 LS-9); a file with no `<Id>` or a duplicate one gets a fresh Guid saved at once (`LauncherScenario.IdWasAssigned`, LS-10); `Import` always fresh Guid; `SeedSample` only into an empty store (caller guards with the one-time marker). `Remove` drops a scenario only once its file is gone and returns the reason otherwise - the settings page says it (S0034 LS2-6); `readOnly: true` never writes (the log bundle's count, LS2-9). Every OneClickRunner import - first enable, tray, settings button - clears an imported chord something else already owns (`LauncherMigration.StripClashingHotkey`, LS2-8).
   - **LauncherMigration.cs** - read-only import from `%APPDATA%\OneClickRunner\Scenarios`: Guid preserved unless colliding (then fresh + counted), unreadable files listed by name, source **never** written.
   - **LauncherExecution.cs** - the single launch path (port of `ScenarioLauncher`): `TryResolveTarget` (file / http(s) / workdir-relative / PATH+PATHEXT, relative PATH entries skipped) returns the **absolute** path it validated, and that path is what is started or elevated (S0008 LS-6); `runas` iff `RunAsAdmin`; UAC decline (Win32 error 1223) = cancel, not failure; interpreters (`cmd.exe`, Windows PowerShell) are started by their System32 path, never a bare name (S0034 LS2-7); yt-dlp = `cmd /s /k` console (cmd by its System32 path, started in the user profile) starting yt-dlp by its resolved full path (`NoDefaultCurrentDirectoryInExePath=1`), with `--` before the link and the link **only in `CYRFLIP_YTDLP_LINK`** (an absolute http(s) URL, quote/control chars rejected); **no config is read from the download folder** (S0034 LS2-2): yt-dlp loads a "home" `yt-dlp.conf` from its `-P` folder or, without `-P`, its current directory - Downloads by default, where a web page can drop one saying `--exec` - so the command says `--ignore-config` and names the user's own configs (the portable one beside the exe, the first user config in yt-dlp's own search order, never one inside the download folder) with `--config-locations`; the folder is `-P` through `CYRFLIP_YTDLP_FOLDER` (a UNC folder cannot be cmd's current directory), so a user config's own `-P` no longer overrides the scenario's folder; `YtDlpFormat` is passed only when every space-separated token matches `[A-Za-z0-9+/\[\]<>=*._,-]` (≤ 200 chars), each token quoted - otherwise kept but not passed, and the scenario dialog says why (S0008 LS-4). Error strings are Russian-source keys passed through a `translate` seam.
   - **LauncherScriptInterpreter.cs** - `.ps1` → pwsh (probed) else Windows PowerShell, `-NoProfile -ExecutionPolicy Bypass -File` last; `.bat`/`.cmd` → `cmd /s /c ""script" args"` (the one quoting that survives spaced paths AND quoted args). Do not "simplify" the quoting.
@@ -1082,7 +1107,7 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 
 | Registry value | Type | Default | Description |
 | --- | --- | --- | --- |
-| `CaseHotkey` | `REG_SZ` | `Ctrl+Shift+F11` | Case-flip hotkey (user-configurable on the "Горячие клавиши" tab) |
+| `CaseHotkey` | `REG_SZ` | `Ctrl+Shift+F11` | Case-flip hotkey (user-configurable on the "Исправление текста" tab, group "Регистр") |
 | `UiLanguage` | `REG_SZ` | Windows UI language, else `English` | Interface language endonym |
 | `ClipboardHistoryHotkey` | `REG_SZ` | `Ctrl+Shift+F10` | Opens clipboard history |
 | `EnableClipboardHistory` | `REG_DWORD` | `0` | Enables local clipboard history |
@@ -1150,9 +1175,9 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `CaseFlipCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful case flip |
 | `TranslateCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful translation |
 | `QuickNoteCount` | `REG_DWORD` | `0` | Usage counter; incremented when a note is created for the first time |
-| `ScreenshotHotkey` | `REG_SZ` | `Ctrl+Shift+PrintScreen` | Starts the screen region capture; checked against every other chord owner (`ChordRegistry`) |
+| `ScreenshotHotkey` | `REG_SZ` | `Ctrl+PrintScreen` | Starts the screen region capture; checked against every other chord owner (`ChordRegistry`) |
 | `EnableScreenshotHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound. The only switch the capture has: no module switch, the tray item is always there |
-| `ScreenshotFolderHotkey` | `REG_SZ` | `Ctrl+Shift+Alt+PrintScreen` | Opens the folder the captures are saved into (S0057); checked against every other chord owner (`ChordRegistry`) |
+| `ScreenshotFolderHotkey` | `REG_SZ` | `Ctrl+Shift+PrintScreen` | Opens the folder the captures are saved into (S0057); checked against every other chord owner (`ChordRegistry`) |
 | `EnableScreenshotFolderHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound (only while `ScreenshotSaveEnabled`=1; the probe and the open are `ScreenshotFolderOpener`'s, never on the hooks' thread) |
 | `ScreenshotSaveEnabled` | `REG_DWORD` | `0` | 1 = every capture is also saved as a PNG (the cropped region, the clipboard's bytes) into `ScreenshotFolder` |
 | `ScreenshotFolder` | `REG_SZ` | *(empty)* | Where saved captures go; empty = the `FOLDERID_Screenshots` known folder, resolved at save time (`CAPTURE-OUTPUT` rule 9) |

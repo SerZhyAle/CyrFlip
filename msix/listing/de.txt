@@ -13,7 +13,7 @@ Auch der eingebaute Übersetzer ist optional. Markieren Sie Text irgendwo in Win
 
 Behalten, was Sie kopieren und schreiben. Der optionale Zwischenablage-Verlauf bewahrt zuletzt kopierten Text lokal auf, durchsuchbar in einem eigenen Fenster; Einträge lassen sich anheften, löschen, pausieren oder leeren, und jeder Eintrag ist mit Windows DPAPI für Ihr Windows-Konto verschlüsselt. Die optionalen Schnellnotizen öffnen sich mit Strg+Umschalt+Alt+N und bewahren Text genau so, wie er eingegeben wurde (kein Markdown, keine automatische Formatierung), sodass ein Codeausschnitt unverändert zurückgefügt wird; die Suche schaut in jede Notiz, und auch die Notizen sind auf der Festplatte verschlüsselt. Notizen und Zwischenablage-Verlauf ziehen in einer einzigen Klartextdatei, die Sie selbst exportieren und importieren, auf einen anderen Rechner oder ein Smartphone um.
 
-Starten und Bildschirm aufnehmen. Strg+Umschalt+Druck friert den Bildschirm ein, Sie ziehen einen Bereich auf, und das Bild landet in der Zwischenablage - auf Wunsch zusätzlich als PNG in einem Ordner gespeichert. Der Schnellstart, ein optionales Modul, macht aus Ihren Programmen, Skripten und yt-dlp-Downloads Szenarien, die Sie aus dem Infobereich, per eigenem Tastenkürzel oder über die Sprungliste der Taskleiste starten; Szenarien aus dem eigenständigen Werkzeug OneClickRunner lassen sich importieren, ohne die Originale anzurühren. Zwei Wachhalte-Schalter verhindern, dass Windows schläft oder den Bildschirm abschaltet, während Sie arbeiten.
+Starten und Bildschirm aufnehmen. Strg+Druck friert den Bildschirm ein, Sie ziehen einen Bereich auf, und das Bild landet in der Zwischenablage - auf Wunsch zusätzlich als PNG in einem Ordner gespeichert. Der Schnellstart, ein optionales Modul, macht aus Ihren Programmen, Skripten und yt-dlp-Downloads Szenarien, die Sie aus dem Infobereich, per eigenem Tastenkürzel oder über die Sprungliste der Taskleiste starten; Szenarien aus dem eigenständigen Werkzeug OneClickRunner lassen sich importieren, ohne die Originale anzurühren. Zwei Wachhalte-Schalter verhindern, dass Windows schläft oder den Bildschirm abschaltet, während Sie arbeiten.
 
 Gehört nur Ihnen. Optionale Module bleiben aus, bis Sie sie einschalten, jedes Tastenkürzel lässt sich einzeln abschalten, und CyrFlip kann seine Tastenkürzel an ein aktives Remotedesktop-Fenster abgeben. Die Oberfläche ist in 13 Sprachen verfügbar, auch in solchen mit Schreibrichtung von rechts nach links, mit hellem, dunklem oder an Windows angepasstem Design. CyrFlip läuft im Infobereich, braucht wenig Speicher und erfordert unter Windows 10/11 keine zusätzliche Installation.
 
@@ -48,7 +48,7 @@ Optionale Schnellnotizen, die Text genau so bewahren, wie er ist - Code wird unv
 @@Feature12
 Notizen und Zwischenablage-Verlauf in einer Klartext-Austauschdatei auf einen anderen Rechner übertragen
 @@Feature13
-Bildschirmausschnitt per Strg+Umschalt+Druck in die Zwischenablage, auf Wunsch als PNG gespeichert
+Bildschirmausschnitt per Strg+Druck in die Zwischenablage, auf Wunsch als PNG gespeichert
 @@Feature14
 Optionaler Schnellstart: Programme, Skripte und yt-dlp-Downloads als Szenarien mit einem Klick
 @@Feature15

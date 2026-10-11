@@ -86,7 +86,7 @@ namespace CyrFlip
             _noNotesWarning.Text = T("Больше не предупреждать для заметок");
             _noNotesWarning.Checked = notesWarningOff;
 
-            _ok = Command(T("Экспортировать..."), DialogResult.OK);
+            _ok = Command(T("Экспортировать..."), DialogResult.OK, AppGlyphs.Export);
             Button cancel = Command(T("Отмена"), DialogResult.Cancel);
             var buttons = new FlowLayoutPanel
             {
@@ -141,11 +141,11 @@ namespace CyrFlip
             return widest;
         }
 
-        private Button Command(string text, DialogResult result) => new Button
+        private Button Command(string text, DialogResult result, string? verbGlyph = null) => ButtonGlyphs.Answer(new Button
         {
             Text = text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
             MinimumSize = new Size(TextRenderer.MeasureText("Cancel", Font).Width + 16, 0), DialogResult = result,
-        };
+        }, verbGlyph);
 
         protected override void Dispose(bool disposing)
         {

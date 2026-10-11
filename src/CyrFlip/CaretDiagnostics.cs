@@ -40,16 +40,24 @@ namespace CyrFlip
         /// <summary>True while a capture is in progress (so the tray item can't start two).</summary>
         public static bool IsRunning => Volatile.Read(ref _running) != 0;
 
-        /// <summary>Runs the capture off the UI thread; callbacks fire on the worker thread.</summary>
-        public static bool Run(Action<string> onDone, Action<string> onError)
+        /// <summary>
+        /// Runs the capture off the UI thread; callbacks fire on the worker thread. The failure
+        /// callback takes the <b>exception</b>, not its message: the raw OS text (S0065 E-6) can
+        /// carry the data-folder path - the account name - into a balloon; the caller classifies it
+        /// through <see cref="FailureCause"/>.
+        /// </summary>
+        public static bool Run(Action<string> onDone, Action<Exception> onError) => Run(onDone, onError, Capture);
+
+        /// <param name="capture">The seam a test drives; the real one writes the report to disk.</param>
+        internal static bool Run(Action<string> onDone, Action<Exception> onError, Func<string> capture)
         {
             if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
                 return false;
 
             var t = new Thread(() =>
             {
-                try { onDone(Capture()); }
-                catch (Exception ex) { onError(ex.Message); }
+                try { onDone(capture()); }
+                catch (Exception ex) { onError(ex); }
                 finally { Interlocked.Exchange(ref _running, 0); }
             })
             {
@@ -80,7 +88,7 @@ namespace CyrFlip
                 sb.AppendLine();
                 sb.AppendLine($"--- snapshot {i + 1}/{Samples}  (+{i * IntervalMs} ms) ---");
                 try { Snapshot(sb); }
-                catch (Exception ex) { sb.AppendLine("  snapshot error: " + ex.Message); }
+                catch (Exception ex) { sb.AppendLine("  snapshot error: " + ex.GetType().Name); }
                 Thread.Sleep(IntervalMs);
             }
 
@@ -140,7 +148,7 @@ namespace CyrFlip
                     sb.AppendLine("    FrameworkId: " + Safe(() => element.Current.FrameworkId));
                 }
             }
-            catch (Exception ex) { sb.AppendLine("  UIA focused element error: " + ex.Message); }
+            catch (Exception ex) { sb.AppendLine("  UIA focused element error: " + ex.GetType().Name); }
 
             // The sources, in the overlay's order, each through the overlay's own function.
             sb.AppendLine("  sources, in the overlay's order:");
@@ -226,7 +234,7 @@ namespace CyrFlip
                     : "accepted";
                 return $"rect[L={r.Left:0} T={r.Top:0} W={r.Width:0} H={r.Height:0}] {verdict}";
             }
-            catch (Exception ex) { return "error: " + ex.Message; }
+            catch (Exception ex) { return "error: " + ex.GetType().Name; }
         }
 
         /// <summary>

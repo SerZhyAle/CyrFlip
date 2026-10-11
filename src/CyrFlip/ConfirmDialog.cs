@@ -90,13 +90,17 @@ namespace CyrFlip
             layout.Controls.Add(row, 0, 1);
             layout.SetColumnSpan(row, 2);
 
-            Button Answer(string caption, DialogResult result)
+            // WINDOWS-UI section 11 item 4: the affirmative answer carries the check (green), the dismissing
+            // one the cross (red); in a confirmation of an irreversible act the acting answer alone takes
+            // the danger face and its ink, and the dismissing one keeps its red glyph with no tint (item 7).
+            Button Answer(string caption, DialogResult result, string glyph, ButtonLook look)
             {
                 var button = new Button
                 {
                     Text = caption, DialogResult = result, AutoSize = true, MinimumSize = new Size(88, 0),
                     Margin = new Padding(6, 0, 0, 0),
                 };
+                ButtonGlyphs.Attach(button, glyph, look);
                 return button;
             }
 
@@ -104,7 +108,8 @@ namespace CyrFlip
             {
                 case MessageBoxButtons.YesNo:
                 {
-                    Button yes = Answer(T("Да"), DialogResult.Yes), no = Answer(T("Нет"), DialogResult.No);
+                    Button yes = Answer(T("Да"), DialogResult.Yes, AppGlyphs.Confirm, danger ? ButtonLook.Acting : ButtonLook.Affirmative);
+                    Button no = Answer(T("Нет"), DialogResult.No, AppGlyphs.Cancel, danger ? ButtonLook.DismissingSafe : ButtonLook.Dismissing);
                     if (danger) MarkDanger(yes);
                     Buttons = new[] { yes, no };
                     AcceptButton = danger ? no : yes;
@@ -113,7 +118,8 @@ namespace CyrFlip
                 }
                 case MessageBoxButtons.OKCancel:
                 {
-                    Button ok = Answer("OK", DialogResult.OK), cancel = Answer(T("Отмена"), DialogResult.Cancel);
+                    Button ok = Answer("OK", DialogResult.OK, AppGlyphs.Confirm, danger ? ButtonLook.Acting : ButtonLook.Affirmative);
+                    Button cancel = Answer(T("Отмена"), DialogResult.Cancel, AppGlyphs.Cancel, danger ? ButtonLook.DismissingSafe : ButtonLook.Dismissing);
                     if (danger) MarkDanger(ok);
                     Buttons = new[] { ok, cancel };
                     AcceptButton = danger ? cancel : ok;
@@ -122,7 +128,7 @@ namespace CyrFlip
                 }
                 default:
                 {
-                    Button ok = Answer("OK", DialogResult.OK);
+                    Button ok = Answer("OK", DialogResult.OK, AppGlyphs.Confirm, ButtonLook.Affirmative);
                     Buttons = new[] { ok };
                     AcceptButton = ok;
                     CancelButton = ok;

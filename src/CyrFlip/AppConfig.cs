@@ -45,14 +45,14 @@ namespace CyrFlip
         public const string DefaultQuickNotesHotkey = "Ctrl+Shift+Alt+N";
         /// <summary>
         /// The region capture's chord (S0026). PrintScreen is the key people associate with
-        /// screenshots, and with Ctrl+Shift it is unused by Windows (Alt = window, Win = file).
+        /// screenshots; with plain Ctrl it is unused by Windows (Alt = window, Win = file).
         /// </summary>
-        public const string DefaultScreenshotHotkey = "Ctrl+Shift+PrintScreen";
+        public const string DefaultScreenshotHotkey = "Ctrl+PrintScreen";
         /// <summary>
         /// Opens the folder the captures are saved into (S0057): the capture chord plus one modifier -
-        /// the same four-key shape the quick notes and the text menu use.
+        /// the same family shape the quick notes and the text menu use.
         /// </summary>
-        public const string DefaultScreenshotFolderHotkey = "Ctrl+Shift+Alt+PrintScreen";
+        public const string DefaultScreenshotFolderHotkey = "Ctrl+Shift+PrintScreen";
         /// <summary>
         /// Opens the text context menu at the caret (S0045 K2): M for menu, in the quick notes' family
         /// (Ctrl+Shift+Alt+N) - Ctrl+Shift+F10, the Shift+F10 mnemonic, is the clipboard history's. Bound
@@ -338,7 +338,9 @@ namespace CyrFlip
         /// </summary>
         private static string DefaultUiLanguage() => Localization.DefaultLanguage();
 
-        public static AppConfig Load()
+        public static AppConfig Load() => Load(() => RuntimeRegistry.User.OpenSubKey(RegPath));
+
+        internal static AppConfig Load(Func<IRuntimeRegistryKey?> openKey)
         {
             AppConfig cfg;
             // True when the conversion table had to be created rather than read - a fresh install or a
@@ -347,12 +349,13 @@ namespace CyrFlip
             bool mustSave;
             try
             {
-                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RegPath);
-                cfg = LoadFrom(key == null ? null : new RegistryConfigKey(key), out mustSave);
+                using IRuntimeRegistryKey? key = openKey();
+                cfg = LoadFrom(key == null ? null : new RuntimeConfigKey(key), out mustSave);
             }
             catch
             {
-                cfg = new AppConfig();
+                cfg = new AppConfig { WelcomeShown = true };
+                cfg._unreadable.Add("*");
                 mustSave = false;
             }
 
@@ -377,14 +380,15 @@ namespace CyrFlip
         internal bool FromRegistry { get; private set; }
 
         /// <summary>
-        /// Registry values that were present but could not be read - wrong kind, unparsable number,
+        /// Registry values that were present but could not be read; "*" means the key itself could not
+        /// be opened and every save is disabled. Otherwise: wrong kind, unparsable number,
         /// malformed JSON. Each one fell back to its default <b>alone</b> (ticket S0007, CF-1): one bad
         /// value used to abort the whole load and leave every later field at its default, after which
         /// the next save wiped the conversion table and the one-time Windows snapshots for good.
         /// </summary>
         public IReadOnlyCollection<string> UnreadableValues => _unreadable;
         private readonly HashSet<string> _unreadable = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        internal bool IsUnreadable(string name) => _unreadable.Contains(name);
+        internal bool IsUnreadable(string name) => _unreadable.Contains("*") || _unreadable.Contains(name);
 
         /// <summary>
         /// Tables and backups that were unreadable, with the serialized fallback they were loaded as.
@@ -536,18 +540,27 @@ namespace CyrFlip
             return cfg;
         }
 
-        public void Save()
+        /// <summary>
+        /// Persists the config. Answers whether it landed (S0065 E-9): Save used to be void, so no
+        /// setting change could ever fail visibly - the machine whose registry is denied kept the
+        /// change for the session and quietly lost it on the next start.
+        /// </summary>
+        public bool Save()
         {
+            if (_unreadable.Contains("*")) return false;
             try
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
-                if (key != null) SaveTo(new RegistryConfigKey(key));
+                if (key == null) return false;
+                SaveTo(new RegistryConfigKey(key));
+                return true;
             }
-            catch { /* best effort */ }
+            catch { return false; }
         }
 
         internal void SaveTo(IConfigKey key)
         {
+            if (_unreadable.Contains("*")) return;
             {
                 key.SetValue("CaseHotkey", CaseHotkey, RegistryValueKind.String);
                 key.SetValue("ClipboardHistoryHotkey", ClipboardHistoryHotkey, RegistryValueKind.String);
@@ -660,6 +673,7 @@ namespace CyrFlip
 
         public void SaveSettingsTab(int index, string? pageId)
         {
+            if (_unreadable.Contains("*")) return;
             if (index < 0 || (index == SettingsTab && (pageId == null || pageId == SettingsPageId))) return;
             SettingsTab = index;
             if (pageId != null) SettingsPageId = pageId;
@@ -680,6 +694,7 @@ namespace CyrFlip
         /// </summary>
         public void SaveSettingsUiState()
         {
+            if (_unreadable.Contains("*")) return;
             if (!FromRegistry) return;
             try
             {
@@ -721,10 +736,10 @@ namespace CyrFlip
             {
                 string[] fields = part.Split('|');
                 if (fields.Length != 3 || fields[1].Length == 0 || fields[1].Length > 64) continue;
-                if (fields[0].Length == 0 || fields[0].Length > 8) continue;
-                if (!int.TryParse(fields[0], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int page)
-                    || !int.TryParse(fields[2], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int offset)) continue;
-                if (page < 0 || offset < -100000 || offset > 100000) continue;
+                // The page column is a page key since S0062 (a legacy row holds the old list index).
+                if (!SettingsPageKeys.TryParseViewportPage(fields[0], out _)) continue;
+                if (!int.TryParse(fields[2], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int offset)) continue;
+                if (offset < -100000 || offset > 100000) continue;
                 kept.Add(part);
                 if (kept.Count >= 64) break;
             }
@@ -734,6 +749,7 @@ namespace CyrFlip
         /// <summary>Set the one-time <see cref="DataFolderMigrated"/> marker, writing only that value.</summary>
         public void SaveDataFolderMigrated()
         {
+            if (_unreadable.Contains("*")) return;
             DataFolderMigrated = true;
             try
             {
@@ -746,6 +762,7 @@ namespace CyrFlip
         /// <summary>Set the one-time <see cref="ShortcutsCreated"/> marker, writing only that value.</summary>
         public void SaveShortcutsCreated()
         {
+            if (_unreadable.Contains("*")) return;
             ShortcutsCreated = true;
             try
             {
@@ -758,6 +775,7 @@ namespace CyrFlip
         /// <summary>Persist at display time, so closing or crashing cannot repeat the tour.</summary>
         public void SaveWelcomeShown()
         {
+            if (_unreadable.Contains("*")) return;
             WelcomeShown = true;
             try
             {
@@ -770,6 +788,7 @@ namespace CyrFlip
         /// <summary>Increment the flip counter and persist only that value (cheap write).</summary>
         public void IncrementFlipCount()
         {
+            if (_unreadable.Contains("*")) return;
             FlipCount++;
             try
             {
@@ -782,6 +801,7 @@ namespace CyrFlip
         /// <summary>Increment the case-flip counter and persist only that value (cheap write).</summary>
         public void IncrementCaseFlipCount()
         {
+            if (_unreadable.Contains("*")) return;
             CaseFlipCount++;
             try
             {
@@ -794,6 +814,7 @@ namespace CyrFlip
         /// <summary>Increment the translation counter and persist only that value (cheap write).</summary>
         public void IncrementTranslateCount()
         {
+            if (_unreadable.Contains("*")) return;
             TranslateCount++;
             try
             {
@@ -806,6 +827,7 @@ namespace CyrFlip
         /// <summary>Increment the region-capture counter and persist only that value (cheap write).</summary>
         public void IncrementScreenshotCount()
         {
+            if (_unreadable.Contains("*")) return;
             ScreenshotCount++;
             try
             {
@@ -818,6 +840,7 @@ namespace CyrFlip
         /// <summary>Increment the quick-notes counter and persist only that value (cheap write).</summary>
         public void IncrementQuickNoteCount()
         {
+            if (_unreadable.Contains("*")) return;
             QuickNoteCount++;
             try
             {
@@ -834,6 +857,7 @@ namespace CyrFlip
         /// </summary>
         public void SaveQuickNotesWindow()
         {
+            if (_unreadable.Contains("*")) return;
             try
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
@@ -853,6 +877,7 @@ namespace CyrFlip
         /// </summary>
         public void SaveQuickNotesSelected()
         {
+            if (_unreadable.Contains("*")) return;
             try
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
@@ -863,6 +888,7 @@ namespace CyrFlip
 
         public void IncrementSymbolsCount()
         {
+            if (_unreadable.Contains("*")) return;
             SymbolsCount++;
             try
             {
@@ -874,6 +900,7 @@ namespace CyrFlip
 
         public void SaveSymbolsCloseOnPick()
         {
+            if (_unreadable.Contains("*")) return;
             try
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
@@ -884,6 +911,7 @@ namespace CyrFlip
 
         public void SaveSymbolsCategory()
         {
+            if (_unreadable.Contains("*")) return;
             try
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
@@ -894,6 +922,7 @@ namespace CyrFlip
 
         public void SaveSymbolsWindow()
         {
+            if (_unreadable.Contains("*")) return;
             try
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
@@ -1214,6 +1243,14 @@ namespace CyrFlip
     {
         object? GetValue(string name);
         void SetValue(string name, object value, RegistryValueKind kind);
+    }
+
+    internal sealed class RuntimeConfigKey : IConfigKey
+    {
+        private readonly IRuntimeRegistryKey _key;
+        public RuntimeConfigKey(IRuntimeRegistryKey key) => _key = key;
+        public object? GetValue(string name) => _key.GetValue(name);
+        public void SetValue(string name, object value, RegistryValueKind kind) => _key.SetValue(name, value, kind);
     }
 
     internal sealed class RegistryConfigKey : IConfigKey

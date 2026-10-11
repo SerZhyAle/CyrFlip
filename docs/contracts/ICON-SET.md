@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.28, draft (the version `tools/IconGen` read when `Glyphs.g.cs` was generated) |
+| **Version** | 0.30, draft (the version `tools/IconGen` read when `Glyphs.g.cs` was generated) |
 | **Home** | `iconography/README.md` in the shared contracts catalog, section 2 |
 | **Role here** | consumer, contributor by proposal - **conformant on every surface the app draws** |
 
@@ -16,12 +16,14 @@
   meanings never share a picture (close is not delete).
 - **The layout badge is not a glyph**: it is `LAYOUT-PALETTE`'s and stays out of this contract.
 - **A `proposed` record may be shipped** (rule 6): the first product to draw it turns it `active` by
-  amendment. Eleven of CyrFlip's asked meanings are such records (nine of them since 0.17, `action.convert-layout` and `system.input-language` since 0.23), and the app draws seven of them.
+  amendment. Twelve of CyrFlip's asked meanings are such records (nine of them since 0.17, `action.convert-layout` and `system.input-language` since 0.23, `feature.selection-menu` asked 2026-10-11), and the app draws eight of them.
 - **Names follow the record** in all 13 interface languages.
 
-Held: all eleven settings tabs draw a vocabulary glyph - Settings (`app.settings`), Indicators
+Held: all thirteen settings tabs draw a vocabulary glyph - Settings (`app.settings`), Indicators
 (`feature.layout-indicator`), Hotkeys (`app.shortcuts`), Conversions (`action.convert-layout`), Windows languages
-(`system.input-language`), Clipboard (`feature.clipboard-history`), Quick notes (`content.note`), Translation
+(`system.input-language`), the selection menu (`feature.selection-menu`, asked 2026-10-11; the tab drew its
+caption alone until the record existed - S0062 D7), Symbols (`feature.symbols`), Clipboard
+(`feature.clipboard-history`), Quick notes (`content.note`), Translation
 (`action.translate`), Quick launch (`feature.quick-launch`), Graphics (`system.screenshot`) and About
 (`app.info`); no private tab drawing is left in the code. The clipboard strip's four glyphs, the order buttons of
 the layout list, the launcher list and the notes window (`action.move-up` / `action.move-down`) are vocabulary

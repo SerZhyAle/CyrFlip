@@ -22,6 +22,7 @@ namespace CyrFlip
             public int Imported;
             /// <summary>Corrupt/unreadable source files, by name.</summary>
             public readonly List<string> Skipped = new List<string>();
+            public readonly List<KeyValuePair<string, Exception>> SaveFailures = new List<KeyValuePair<string, Exception>>();
             /// <summary>Scenarios that arrived with a colliding Guid and got a fresh one.</summary>
             public int NewIds;
             /// <summary>Scenarios already in the store from an earlier migration (same id, same content): skipped.</summary>
@@ -36,13 +37,20 @@ namespace CyrFlip
         /// One chord belongs to one action - the same rule the XML import, the scenario dialog and
         /// every setter keep (S0034 LS2-8).
         /// </summary>
-        public static bool StripClashingHotkey(LauncherScenarioStore store, LauncherScenario scenario, ChordRegistry chords)
+        public static bool StripClashingHotkey(LauncherScenarioStore store, LauncherScenario scenario, ChordRegistry chords, Action<Exception>? onFailure = null)
         {
             if (scenario.Hotkey.Length == 0) return false;
             if (Hotkey.TryParse(scenario.Hotkey, out Hotkey chord)
                 && chords.CyrFlipOwnerOf(chord, ChordKind.Launcher, scenario.Id.ToString()) == null) return false;
+            LauncherScenario edited = scenario.Clone();
+            edited.Hotkey = "";
+            Exception? failure = store.Update(edited);
+            if (failure != null)
+            {
+                onFailure?.Invoke(failure);
+                return false;
+            }
             scenario.Hotkey = "";
-            store.Update(scenario);
             return true;
         }
 
@@ -127,14 +135,20 @@ namespace CyrFlip
                 }
                 taken.Add(item.Id);
                 item.Filename = string.Empty; // the CyrFlip store names its own files
-                store.Add(item);
+                Exception? failure = store.Add(item);
+                if (failure != null)
+                {
+                    result.SaveFailures.Add(new KeyValuePair<string, Exception>(item.Filename, failure));
+                    continue;
+                }
                 added.Add(item);
                 result.Imported++;
             }
 
             if (chords != null)
                 foreach (LauncherScenario item in added)
-                    if (StripClashingHotkey(store, item, chords()))
+                    if (StripClashingHotkey(store, item, chords(), failure =>
+                        result.SaveFailures.Add(new KeyValuePair<string, Exception>(item.Filename, failure))))
                         result.ChordsDropped++;
 
             LauncherLog.Log($"Migration: imported {result.Imported}, already present {result.AlreadyPresent}, "

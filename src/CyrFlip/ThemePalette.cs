@@ -243,7 +243,7 @@ namespace CyrFlip
                 [10] = Pair("#AB47BC", "#6A1B9A"),  // Quick notes - purple
                 [11] = Pair("#26A69A", "#00695C"),  // Graphics - teal
                 [12] = Pair("#90A4AE", "#455A64"),  // Symbols - blue grey
-                [13] = Pair("#D4E157", "#827717"),  // All shortcuts - lime
+                [14] = Pair("#D4E157", "#827717"),  // Selection menu - lime
             };
 
             private static KeyValuePair<Color, Color> Pair(string dark, string light)
@@ -259,6 +259,39 @@ namespace CyrFlip
                     return palette.TextPrimary;
                 return palette.IsDark ? pair.Key : pair.Value;
             }
+        }
+
+        /// <summary>
+        /// The hue of the answer buttons of a dialog (WINDOWS-UI section 11 item 4, ICON-RENDER section 14):
+        /// <c>state.ok</c> for the affirmative answer, <c>state.error</c> for the dismissing one, each in
+        /// the catalog's day tone on the light theme and its night tone on the dark one (<c>palette.json</c>,
+        /// the portfolio's shared keys - the OK of one product is the same green in the next). It is a
+        /// glyph ink and a 12 percent tint of the button's face, nothing else; high contrast uses the text
+        /// role, as the contract says system colours replace both hue and tint.
+        /// </summary>
+        internal static class AnswerInk
+        {
+            /// <summary>How much of the hue the face takes - the contract's reference value, measured by
+            /// <c>ButtonGlyphTests</c> against the 3:1 the glyph owes it.</summary>
+            public const float FaceTint = 0.12f;
+
+            private static readonly KeyValuePair<Color, Color> Ok = Pair("#2E7D32", "#81C784");      // state.ok (day, night)
+            private static readonly KeyValuePair<Color, Color> Error = Pair("#D32F2F", "#EF5350");   // state.error
+
+            private static KeyValuePair<Color, Color> Pair(string day, string night)
+                => new KeyValuePair<Color, Color>(ColorTranslator.FromHtml(day), ColorTranslator.FromHtml(night));
+
+            /// <summary>The hue in the palette's theme; the text role under high contrast.</summary>
+            public static Color For(AnswerHue hue, ThemePalette palette)
+            {
+                if (palette.Kind == ThemeKind.HighContrast) return palette.TextPrimary;
+                KeyValuePair<Color, Color> pair = hue == AnswerHue.Ok ? Ok : Error;
+                return palette.IsDark ? pair.Value : pair.Key;
+            }
+
+            /// <summary>The button's face tinted with the hue - the resting face, or a hover or pressed one.</summary>
+            public static Color Face(Color face, AnswerHue hue, ThemePalette palette)
+                => palette.Kind == ThemeKind.HighContrast ? face : Mix(face, For(hue, palette), FaceTint);
         }
 
         /// <summary>

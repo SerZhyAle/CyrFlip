@@ -19,7 +19,7 @@ Description: >-
   table of layout pairs adds as many "from layout to layout" conversions as you need, each with its
   own chord, a second hotkey fixes an accidental CapsLock, and a settings window replaces the
   Windows language pane: install, reorder and remove keyboard layouts, choose the switch chord, and
-  assign per-language shortcuts that Windows itself handles. Ctrl+Shift+PrintScreen puts any screen
+  assign per-language shortcuts that Windows itself handles. Ctrl+PrintScreen puts any screen
   region on the clipboard. The rest are optional modules, off until you switch them on: CyrFlip's
   own menu over a selection, opened by Ctrl and a right click; a translator that sends a selection
   to Ollama - a free program you install separately on your own computer - and shows the translation
@@ -37,7 +37,7 @@ ReleaseNotes: |-
   - Symbols window (opt-in, off by default): Ctrl+Shift+F9 opens a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one and never takes the focus from your editor.
   - All shortcuts: a new settings page lists every chord CyrFlip binds, says whether it really fires and why not, and lets you change, switch off or reset each one; hovering the tray icon shows the same list.
   - Settings transfer: export your settings to a plain file and import them on another PC, with a preview and three automatic local backups.
-  - Ctrl+Shift+Alt+PrintScreen opens the folder your screen captures are saved in.
+  - Ctrl+Shift+PrintScreen opens the folder your screen captures are saved in.
   - A friendlier settings window: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.
 ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
 PrivacyUrl: https://serzhyale.github.io/CyrFlip/privacy.html

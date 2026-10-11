@@ -88,6 +88,8 @@ namespace CyrFlip
         private int _pending;
         private int _disposed;
         private int _writeFailures;
+        private int _writeFailureReported;
+        private int _erasing;
 
         /// <summary>
         /// The <c>File.Replace</c> of a delete's rewrite. A seam for the test of the fallback: a replace
@@ -96,8 +98,15 @@ namespace CyrFlip
         /// </summary>
         internal Action<string, string> ReplaceFile = (source, destination) => File.Replace(source, destination, null);
 
-        /// <summary>The first failed write of this journal. Raised once, on the writer thread.</summary>
+        /// <summary>The first failed background write. Raised on the writer thread.</summary>
         public event Action? WriteFailed;
+        public event Action? EraseFailed;
+        /// <summary>An entry's erase began - the whole-file rewrite is running. Raised on the writer
+        /// thread (S0066 L-8): a purge decrypts every line, seconds at 10^5 entries, and the caller
+        /// only ever queued it.</summary>
+        public event Action? EraseStarted;
+        /// <summary>The erase is over, whichever way it ended (rewrite or tombstone). Raised on the writer thread.</summary>
+        public event Action? EraseFinished;
 
         /// <param name="beforeCommand">Test seam: runs on the writer thread before each command (e.g. a random yield).</param>
         internal ClipboardHistoryJournal(string path, IQuickNotesCipher cipher, Action? beforeCommand = null)
@@ -116,6 +125,8 @@ namespace CyrFlip
 
         /// <summary>Records still queued; after <see cref="Dispose"/>, the ones it abandoned (CH2-6).</summary>
         public int Pending => Volatile.Read(ref _pending);
+        /// <summary>True while an erase's rewrite is running on the writer thread (S0066 L-8).</summary>
+        public bool Erasing => Volatile.Read(ref _erasing) != 0;
 
         /// <summary>Queue one record. Safe from any thread; ignored after <see cref="Dispose"/>.</summary>
         public void Append(Record record) => Enqueue(new Command { Record = record });
@@ -152,15 +163,22 @@ namespace CyrFlip
                     else if (command.Record.Action == "delete") ExecuteDelete(command.Record);
                     else Write(command.Record);
                 }
-                catch { CountFailure(); /* history must never affect the clipboard or crash */ }
+                catch { CountFailure(command.Record?.Action == "delete"); /* history must never affect the clipboard or crash */ }
                 finally { Interlocked.Decrement(ref _pending); }
             }
             CloseStream();
         }
 
-        private void CountFailure()
+        private void CountFailure(bool requestedErase = false)
         {
-            if (Interlocked.Increment(ref _writeFailures) != 1) return;
+            Interlocked.Increment(ref _writeFailures);
+            if (requestedErase)
+            {
+                try { EraseFailed?.Invoke(); }
+                catch (Exception ex) { ClipboardHistoryLog.Log("erase failure callback failed: " + ex.GetType().Name); }
+                return;
+            }
+            if (Interlocked.Exchange(ref _writeFailureReported, 1) != 0) return;
             try { WriteFailed?.Invoke(); } catch { }
         }
 
@@ -201,10 +219,27 @@ namespace CyrFlip
             }
         }
 
-        /// <summary>Erase the entry's lines; when that cannot be done, append the tombstone instead (CH2-5).</summary>
+        /// <summary>
+        /// Erase the entry's lines; when that cannot be done, append the tombstone instead (CH2-5).
+        /// The progress state is S0066 L-8: the rewrite is the one command that walks and decrypts
+        /// every line - ~4-6 s of one core at 10^5 entries - and it runs here, on the writer
+        /// thread, never on the thread that queued the delete.
+        /// </summary>
         private void ExecuteDelete(Record record)
         {
-            if (TryPurge(record.Uuid)) return;
+            Interlocked.Exchange(ref _erasing, 1);
+            try { EraseStarted?.Invoke(); }
+            catch { /* a subscriber must not cost the erase - WriterLoop would count it a failure */ }
+            try
+            {
+                if (TryPurge(record.Uuid)) return;
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _erasing, 0);
+                try { EraseFinished?.Invoke(); }
+                catch { /* same guard on the way out */ }
+            }
             Write(record);
         }
 
@@ -289,7 +324,7 @@ namespace CyrFlip
                     catch { skipped++; }
                 }
             }
-            catch { /* the file could not be read at all: keep what replayed */ }
+            catch { skipped++; }
             return skipped;
         }
 

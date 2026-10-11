@@ -346,6 +346,26 @@ namespace CyrFlip.Tests
             Assert.Equal("caption", backup.Text);
         }
 
+        /// <summary>
+        /// S0066 L-10 (LK-3b-09): the file list was the one content format with no cap - a 300 000-file
+        /// Explorer copy was backed up through 60 MB of LOH on every flip chord, selected or not,
+        /// while text and image over the same size are refused. Same rule as the picture: skipped,
+        /// never fatal - the clipboard keeps its files, the flip just does not carry a backup of them.
+        /// </summary>
+        [Fact]
+        public void A_file_list_over_the_cap_is_skipped_rather_than_fatal()
+        {
+            var clip = new FakeClipboard()
+                .With(Text, Unicode("caption"))
+                .With(Drop, new byte[ClipboardHandler.MaxBackupFilesBytes + 1]);
+
+            ClipboardHandler.ClipboardBackup backup = ClipboardHandler.BackupClipboard(clip);
+
+            Assert.False(backup.Unreadable);
+            Assert.Null(backup.Files);
+            Assert.Equal("caption", backup.Text);
+        }
+
         [Fact]
         public void A_flip_over_an_unreadable_clipboard_stops_before_sending_a_single_key()
         {

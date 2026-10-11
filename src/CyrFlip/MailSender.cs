@@ -103,7 +103,10 @@ namespace CyrFlip
             shortBody.AppendLine();
             shortBody.AppendLine();
             shortBody.AppendLine("Attach this archive before sending:");
-            shortBody.AppendLine(archivePath);
+            // This text is mailed, and the dialog promises paths "without your account name": the
+            // path goes through the same redactor as everything inside the archive (S0061 ER-4-01).
+            // Explorer opens with the file selected, so the user does not need the literal path.
+            shortBody.AppendLine(DiagnosticRedactor.ForThisMachine().Redact(archivePath));
 
             return new SupportMail
             {
@@ -275,7 +278,7 @@ namespace CyrFlip
             {
                 try
                 {
-                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true })?.Dispose();
                     return true;
                 }
                 catch (Win32Exception) { return false; }   // no handler for mailto:
@@ -287,7 +290,7 @@ namespace CyrFlip
                 try
                 {
                     Process.Start(new ProcessStartInfo("explorer.exe", "/select,\"" + path + "\"")
-                    { UseShellExecute = true });
+                    { UseShellExecute = true })?.Dispose();
                 }
                 catch { /* the dialog still shows the path */ }
             }

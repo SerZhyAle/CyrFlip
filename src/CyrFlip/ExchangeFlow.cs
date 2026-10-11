@@ -97,19 +97,27 @@ namespace CyrFlip
                 noteList = new List<QuickNote>(notes.Notes);
             }
             // Snapshots taken here; selecting, formatting and writing them is the worker's (S0030 HT-2).
+            // An export must see the file's records even while the history is switched off, so the
+            // lazy replay (S0064 H-5) is completed here, on the thread that owns the list - the one
+            // caller that pays for it synchronously, by explicit user request.
+            if (pinned || rest) _history.EnsureReplayed();
             List<ClipboardHistoryEntry>? history = pinned || rest ? new List<ClipboardHistoryEntry>(_history.Entries) : null;
-            List<ClipboardHistoryEntry>? entries = null;
+            List<ClipboardHistoryEntry>? selected = null;
+            int trimmed = 0;
 
+            // Phase one - plan (S0066 L-9): select and cap, cheap enough to run before anybody is
+            // committed to anything. The caps are the importer's own (25 MB, 10 000 objects):
+            // "history: All" used to write a file this program refuses to read back, and the
+            // person found out at the other machine (LK-3b-07).
             try
             {
-                entries = BusyDialog.Run(owner, _config.UiLanguage, () =>
+                BusyDialog.Run(owner, _config.UiLanguage, () =>
                 {
                     DateTime now = DateTime.UtcNow;
-                    List<ClipboardHistoryEntry>? selected = history != null
+                    selected = history != null
                         ? CyrFlipExchangeWriter.SelectHistory(history, pinned, rest, scope, now)
                         : null;
-                    CyrFlipExchangeWriter.WriteFile(path, CyrFlipExchangeWriter.ToText(now, noteList, selected));
-                    return selected;
+                    trimmed = CyrFlipExchangeWriter.TrimToImportCaps(noteList, selected);
                 });
             }
             catch (Exception ex)
@@ -118,8 +126,28 @@ namespace CyrFlip
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+
+            // Say so *before* writing: the cap is told while cancelling still costs nothing.
+            if (trimmed > 0
+                && ConfirmDialog.Show(owner, _config.UiLanguage,
+                        Localization.Format(T, "Экспорт больше, чем принимает импорт CyrFlip (25 МБ, 10 000 объектов). В файл не войдут {0} самых старых записей. Продолжить?", trimmed),
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                return;
+
+            // Phase two - write.
+            try
+            {
+                BusyDialog.Run(owner, _config.UiLanguage, () =>
+                    CyrFlipExchangeWriter.WriteFile(path, CyrFlipExchangeWriter.ToText(DateTime.UtcNow, noteList, selected)));
+            }
+            catch (Exception ex)
+            {
+                ConfirmDialog.Show(owner, _config.UiLanguage, Localization.Format(T, "Не удалось сохранить файл: {0}", FailureCause.Describe(ex, _config.UiLanguage)),
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             ConfirmDialog.Show(owner, _config.UiLanguage,
-                Localization.Format(T, "Экспортировано заметок: {0}, записей истории: {1}.", noteList?.Count ?? 0, entries?.Count ?? 0)
+                Localization.Format(T, "Экспортировано заметок: {0}, записей истории: {1}.", noteList?.Count ?? 0, selected?.Count ?? 0)
                 + "\n\n" + path,
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -215,11 +243,13 @@ namespace CyrFlip
             int unwritten = history && doneHistory.ClipboardAdded + doneHistory.ClipboardExisting > 0
                 ? BusyDialog.Run(owner, _config.UiLanguage, () => _history.FlushJournal(HistoryImportFlush))
                 : 0;
-            string message = Localization.Format(T, "Импорт завершён: добавлено заметок {0}, обновлено {1}, добавлено записей истории {2}.",
+            string message = done.NotesUnwritten > 0
+                ? Localization.Format(T, "Заметок ещё не записано на диск: {0}. Они будут дописаны, пока CyrFlip работает.", done.NotesUnwritten)
+                : Localization.Format(T, "Импорт завершён: добавлено заметок {0}, обновлено {1}, добавлено записей истории {2}.",
                 done.NotesAdded + done.NotesNew, done.NotesUpdated, doneHistory.ClipboardAdded);
             if (unwritten > 0)
                 message += "\n\n" + Localization.Format(T, "Записей истории ещё не записано на диск: {0}. Они будут дописаны, пока CyrFlip работает.", unwritten);
-            Tell(owner, message, unwritten > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
+            Tell(owner, message, unwritten > 0 || done.NotesUnwritten > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
         }
 
         /// <summary>Wait for the notes replay with the message loop running - never <c>Task.Wait</c> on this thread.</summary>
