@@ -278,7 +278,97 @@ New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScr
 
 Приветственный тур начинается с одной страницы-оглавления обо всём, что умеет CyrFlip, а кнопки диалогов получили значки - зелёные у «ОК», «Да» и «Добавить», красные у «Отмена» и «Нет».
 
-На новых установках снимок области - Ctrl+PrintScreen, открытие папки со снимками - Ctrl+Shift+PrintScreen; на установках, где комбинации уже заданы, они сохраняются.",,,,,,,,,,"Налаштування тепер ідуть за функціями: «Виправлення тексту» поєднує таблицю розкладок і виправлення регістру, у меню над виділеним текстом своя сторінка, «Графіка» стала «Знімками екрана», «Загальні» розбито на чотири групи, а «Гарячі клавіші» містять загальний вимикач і список усіх сполучень. Відкрита вами сторінка запам'ятовується.
+На новых установках снимок области - Ctrl+PrintScreen, открытие папки со снимками - Ctrl+Shift+PrintScreen; на установках, где комбинации уже заданы, они сохраняются.","Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
+
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.","Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
+
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.","Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
+
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.","Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
+
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.","Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
+
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.","Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
+
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.","Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
+
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.","Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
+
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.","Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
+
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.","Налаштування тепер ідуть за функціями: «Виправлення тексту» поєднує таблицю розкладок і виправлення регістру, у меню над виділеним текстом своя сторінка, «Графіка» стала «Знімками екрана», «Загальні» розбито на чотири групи, а «Гарячі клавіші» містять загальний вимикач і список усіх сполучень. Відкрита вами сторінка запам'ятовується.
 
 Збій в одній дії більше не валить CyrFlip: з'являється сповіщення, а значок у треї, індикатор і гарячі клавіші далі працюють. CyrFlip закривається сам лише після п'яти збоїв за п'ять хвилин.
 
@@ -288,17 +378,27 @@ New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScr
 
 Вітальний тур починається з однієї сторінки-змісту про все, що вміє CyrFlip, а кнопки діалогів отримали значки - зелені в «ОК», «Так» і «Додати», червоні в «Скасувати» і «Ні».
 
-На нових установках знімок області - Ctrl+PrintScreen, відкриття теки зі знімками - Ctrl+Shift+PrintScreen; на установках, де сполучення вже задані, вони зберігаються.",
+На нових установках знімок області - Ctrl+PrintScreen, відкриття теки зі знімками - Ctrl+Shift+PrintScreen; на установках, де сполучення вже задані, вони зберігаються.","Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
+
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords."
 Title,4,Text,,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip,CyrFlip
 ShortTitle,5,Text,,,,,,,,,,,,,,
 SortTitle,6,Text,,,,,,,,,,,,,,
 VoiceTitle,7,Text,,,,,,,,,,,,,,
 ShortDescription,8,Text,,"A tray toolkit for your keyboard and desktop: a live layout marker at the caret, one-key fixes for wrong-layout and CapsLock text and a screen-region capture - plus an optional selection menu, local translator, quick notes, clipboard history and quick launch.","Набор инструментов в трее для клавиатуры и рабочего стола: живой маркер раскладки у каретки, исправление текста в неверной раскладке и с CapsLock одной клавишей и снимок области экрана - плюс необязательные меню над выделением, локальный переводчик, быстрые заметки, история буфера и быстрый запуск.",مجموعة أدوات في علبة النظام للوحة المفاتيح وسطح المكتب: علامة حية للتخطيط بجوار مؤشر الكتابة، وتصحيح النص المكتوب بتخطيط خاطئ أو مع ‏CapsLock بضغطة مفتاح واحدة، والتقاط منطقة من الشاشة - إلى جانب قائمة اختيارية فوق النص المحدد، ومترجم محلي، وملاحظات سريعة، وسجل للحافظة، وتشغيل سريع.,"কীবোর্ড ও ডেস্কটপের জন্য ট্রে টুলকিট: টেক্সট কার্সরের পাশে সরাসরি লেআউট চিহ্ন, ভুল লেআউটে বা CapsLock চালু রেখে লেখা টেক্সট এক কী চেপে ঠিক করা আর স্ক্রিনের অংশের স্ক্রিনশট - সঙ্গে ঐচ্ছিক নির্বাচন মেনু, স্থানীয় অনুবাদক, দ্রুত নোট, ক্লিপবোর্ড ইতিহাস ও দ্রুত চালু।",托盘里的键盘与桌面工具箱：在文字光标旁实时显示布局标记，一键修正用错布局或误开 CapsLock 输入的文本，还能截取屏幕区域；另有可选的选区菜单、本地翻译器、快速笔记、剪贴板历史和快速启动。,"Une boîte à outils dans la zone de notification pour le clavier et le bureau : un repère de disposition en direct près du curseur de texte, la correction d'une touche du texte saisi dans la mauvaise disposition ou en Verr. Maj. et la capture d'une zone de l'écran - avec, en option, un menu sur la sélection, un traducteur local, des notes rapides, un historique du presse-papiers et le lancement rapide.","Ein Werkzeugkasten im Infobereich für Tastatur und Desktop: eine Live-Layoutmarkierung an der Schreibmarke, Korrektur per Tastendruck für Text im falschen Layout oder mit CapsLock und die Aufnahme eines Bildschirmausschnitts - dazu optional ein Auswahlmenü, ein lokaler Übersetzer, Schnellnotizen, ein Zwischenablage-Verlauf und der Schnellstart.","कीबोर्ड और डेस्कटॉप के लिए ट्रे टूलकिट: टेक्स्ट कर्सर के पास लाइव लेआउट चिह्न, गलत लेआउट या CapsLock में लिखे टेक्स्ट का एक कुंजी से सुधार और स्क्रीन के हिस्से का स्क्रीनशॉट - साथ में वैकल्पिक चयन मेनू, स्थानीय अनुवादक, त्वरित नोट्स, क्लिपबोर्ड इतिहास और त्वरित लॉन्च।","Un set di strumenti nell'area di notifica per tastiera e desktop: indicatore del layout in tempo reale accanto al cursore di testo, correzione con un tasto del testo digitato nel layout sbagliato o con CapsLock e acquisizione di un'area dello schermo - più, opzionali, un menu sulla selezione, un traduttore locale, le note rapide, la cronologia degli appunti e l'avvio rapido.","Uma caixa de ferramentas na bandeja para o teclado e a área de trabalho: uma marca de layout ao vivo junto ao cursor de texto, correção com uma tecla do texto digitado no layout errado ou com o CapsLock ligado e captura de uma região da tela - e, opcionais, um menu sobre a seleção, um tradutor local, notas rápidas, histórico da área de transferência e Início rápido.","Una caja de herramientas en la bandeja para el teclado y el escritorio: una marca de distribución en vivo junto al cursor de texto, corrección con una tecla del texto escrito con la distribución equivocada o con BLOQ MAYÚS y captura de una región de la pantalla - además de un menú sobre la selección, un traductor local, notas rápidas, historial del portapapeles e inicio rápido opcionales.","Набір інструментів у треї для клавіатури та робочого столу: живий маркер розкладки біля каретки, виправлення тексту в хибній розкладці й із CapsLock однією клавішею та знімок області екрана - плюс необов'язкові меню над виділенням, локальний перекладач, швидкі нотатки, історія буфера й швидкий запуск.",کی بورڈ اور ڈیسک ٹاپ کے لیے ٹرے ٹول کٹ: ٹیکسٹ کرسر کے پاس زندہ لے آؤٹ نشان، غلط لے آؤٹ میں یا ‏CapsLock کے ساتھ لکھے متن کی ایک کلید سے درستی، اور اسکرین کے حصے کا اسکرین شاٹ - نیز اختیاری انتخابی مینو، مقامی مترجم، فوری نوٹس، کلپ بورڈ کی تاریخ اور فوری اجرا۔
 DevStudio,9,Text,,,,,,,,,,,,,,
-CopyrightTrademarkInformation,12,Text,,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,
+CopyrightTrademarkInformation,12,Text,,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko,(c) 2026 Serhii Zhyhunenko
 AdditionalLicenseTerms,13,Text,,,,,,,,,,,,,,
-DesktopScreenshot1,100,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025703689/listingassets/3002332669732948733,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025764004/listingassets/3021531227208492720,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405534/listingassets/3010664688666328099,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405536/listingassets/3032063335728561783,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405538/listingassets/3039334918728354771,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405540/listingassets/3048822920256315849,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405542/listingassets/3063651395259000180,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405544/listingassets/3058244923817591674,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405546/listingassets/3026608238520012796,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405548/listingassets/3018646455258791569,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405550/listingassets/3045407476930432789,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405552/listingassets/3018712507109219900,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405554/listingassets/3054620778518196319
-DesktopScreenshot2,101,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025703689/listingassets/3005374381540670575,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025764004/listingassets/3006962073667167210,,,,,,,,,,,
+DesktopScreenshot1,100,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025703689/listingassets/3002332669732948733,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025764004/listingassets/3021531227208492720,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405534/listingassets/3010664688666328099,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405536/listingassets/3032063335728561783,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405538/listingassets/3039334918728354771,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405540/listingassets/3048822920256315849,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405542/listingassets/3063651395259000180,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405544/listingassets/3058244923817591674,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405546/listingassets/3026608238520012796,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405548/listingassets/3018646455258791569,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405550/listingassets/3045407476930432789,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405552/listingassets/3018712507109219900,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405554/listingassets/3054620778518196319
+DesktopScreenshot2,101,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025703689/listingassets/3005374381540670575,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025764004/listingassets/3006962073667167210,,,,,,,,,,,
 DesktopScreenshot3,102,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
 DesktopScreenshot4,103,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
 DesktopScreenshot5,104,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
@@ -577,12 +677,12 @@ SurfaceHubScreenshotCaption27,576,Text,,,,,,,,,,,,,,
 SurfaceHubScreenshotCaption28,577,Text,,,,,,,,,,,,,,
 SurfaceHubScreenshotCaption29,578,Text,,,,,,,,,,,,,,
 SurfaceHubScreenshotCaption30,579,Text,,,,,,,,,,,,,,
-StoreLogo720x1080,600,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025703689/listingassets/3024536845760649503,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025764004/listingassets/3016062305556145027,,,,,,,,,,,
-StoreLogo1080x1080,601,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025703689/listingassets/3065505256797392410,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025764004/listingassets/3064050062548199220,,,,,,,,,,,
-StoreLogo300x300,602,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025703689/listingassets/3011622184153582248,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025764004/listingassets/3000937792344993296,,,,,,,,,,,
+StoreLogo720x1080,600,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025703689/listingassets/3024536845760649503,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025764004/listingassets/3016062305556145027,,,,,,,,,,,
+StoreLogo1080x1080,601,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025703689/listingassets/3065505256797392410,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025764004/listingassets/3064050062548199220,,,,,,,,,,,
+StoreLogo300x300,602,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025703689/listingassets/3011622184153582248,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025764004/listingassets/3000937792344993296,,,,,,,,,,,
 OverrideLogosForWin10,603,True/False,,True,True,False,False,False,False,False,False,False,False,False,False,False
-StoreLogoOverride150x150,604,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025703689/listingassets/3033703904342428710,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025764004/listingassets/3022149731566340303,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700026405534/listingassets/3023960367596865891,,,,,,,,,,
-StoreLogoOverride71x71,605,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025703689/listingassets/3033383520326831437,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702089890/listings/1152922700025764004/listingassets/3059838894553140024,,,,,,,,,,,
+StoreLogoOverride150x150,604,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025703689/listingassets/3033703904342428710,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025764004/listingassets/3022149731566340303,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700026405534/listingassets/3023960367596865891,,,,,,,,,,
+StoreLogoOverride71x71,605,Relative path (or URL to file in Partner Center),,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025703689/listingassets/3033383520326831437,https://developer.microsoft.com/en-us/dashboard/apps/9NB4W41NGQJ4/submissions/1152921505702098328/listings/1152922700025764004/listingassets/3059838894553140024,,,,,,,,,,,
 PromoImage1920x1080,606,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
 PromoImage2400x1200,607,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
 XboxBrandedKeyArt584x800,608,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
@@ -633,13 +733,13 @@ RecommendedHardwareReq8,857,Text,,,,,,,,,,,,,,
 RecommendedHardwareReq9,858,Text,,,,,,,,,,,,,,
 RecommendedHardwareReq10,859,Text,,,,,,,,,,,,,,
 RecommendedHardwareReq11,860,Text,,,,,,,,,,,,,,
-SearchTerm1,900,Text,,keyboard layout switcher,раскладка клавиатуры,تبديل تخطيط لوحة المفاتيح,কীবোর্ড লেআউট পরিবর্তন,键盘布局切换,changer disposition clavier,Tastaturlayout wechseln,कीबोर्ड लेआउट स्विचर,cambio layout tastiera,trocar layout do teclado,cambiar distribución teclado,перемикач розкладки,
-SearchTerm2,901,Text,,layout indicator,индикатор раскладки,مؤشر التخطيط,লেআউট নির্দেশক,布局指示器,indicateur de clavier,Layout-Anzeige,लेआउट संकेतक,indicatore layout,indicador de teclado,indicador de teclado,індикатор розкладки,
-SearchTerm3,902,Text,,transliteration,транслитерация,تحويل حرفي,লিপ্যন্তর,键位转写,translittération,Transliteration,लिप्यंतरण,traslitterazione,transliteração,transliteración,транслітерація,
-SearchTerm4,903,Text,,caps lock fix,переключатель раскладки,إصلاح مفتاح الأحرف الكبيرة,ক্যাপস লক ঠিক করা,修正大写锁定,corriger verr maj,Feststelltaste korrigieren,कैप्स लॉक ठीक करें,correggi bloc maiusc,corrigir caps lock,arreglar bloq mayús,виправити caps lock,
-SearchTerm5,904,Text,,cyrillic keyboard,кириллица латиница,لوحة مفاتيح سيريلية,সিরিলিক কীবোর্ড,西里尔文键盘,clavier cyrillique,kyrillische Tastatur,सिरिलिक कीबोर्ड,tastiera cirillica,teclado cirílico,teclado cirílico,кирилична клавіатура,
-SearchTerm6,905,Text,,clipboard manager,история буфера обмена,سجل الحافظة,ক্লিপবোর্ড ইতিহাস,剪贴板历史,historique presse-papiers,Zwischenablage-Verlauf,क्लिपबोर्ड इतिहास,cronologia appunti,histórico da área de transferência,historial portapapeles,історія буфера обміну,
-SearchTerm7,906,Text,,input language,исправить капслок,لغة الإدخال,ইনপুট ভাষা,输入语言,langue de saisie,Eingabesprache,इनपुट भाषा,lingua di input,idioma de entrada,idioma de entrada,мова введення,
+SearchTerm1,900,Text,,keyboard layout switcher,раскладка клавиатуры,تبديل تخطيط لوحة المفاتيح,কীবোর্ড লেআউট পরিবর্তন,键盘布局切换,changer disposition clavier,Tastaturlayout wechseln,कीबोर्ड लेआउट स्विचर,cambio layout tastiera,trocar layout do teclado,cambiar distribución teclado,перемикач розкладки,لے آؤٹ تبدیل
+SearchTerm2,901,Text,,layout indicator,индикатор раскладки,مؤشر التخطيط,লেআউট নির্দেশক,布局指示器,indicateur de clavier,Layout-Anzeige,लेआउट संकेतक,indicatore layout,indicador de teclado,indicador de teclado,індикатор розкладки,لے آؤٹ اشاریہ
+SearchTerm3,902,Text,,transliteration,транслитерация,تحويل حرفي,লিপ্যন্তর,键位转写,translittération,Transliteration,लिप्यंतरण,traslitterazione,transliteração,transliteración,транслітерація,حرفی تبادلہ
+SearchTerm4,903,Text,,caps lock fix,переключатель раскладки,إصلاح مفتاح الأحرف الكبيرة,ক্যাপস লক ঠিক করা,修正大写锁定,corriger verr maj,Feststelltaste korrigieren,कैप्स लॉक ठीक करें,correggi bloc maiusc,corrigir caps lock,arreglar bloq mayús,виправити caps lock,کیپس لاک درست کریں
+SearchTerm5,904,Text,,cyrillic keyboard,кириллица латиница,لوحة مفاتيح سيريلية,সিরিলিক কীবোর্ড,西里尔文键盘,clavier cyrillique,kyrillische Tastatur,सिरिलिक कीबोर्ड,tastiera cirillica,teclado cirílico,teclado cirílico,кирилична клавіатура,سیریلک کی بورڈ
+SearchTerm6,905,Text,,clipboard manager,история буфера обмена,سجل الحافظة,ক্লিপবোর্ড ইতিহাস,剪贴板历史,historique presse-papiers,Zwischenablage-Verlauf,क्लिपबोर्ड इतिहास,cronologia appunti,histórico da área de transferência,historial portapapeles,історія буфера обміну,کلپ بورڈ تاریخ
+SearchTerm7,906,Text,,input language,исправить капслок,لغة الإدخال,ইনপুট ভাষা,输入语言,langue de saisie,Eingabesprache,इनपुट भाषा,lingua di input,idioma de entrada,idioma de entrada,мова введення,اندراج کی زبان
 TrailerToPlayAtTopOfListing,999,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
 Trailer1,1000,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,
 Trailer2,1001,Relative path (or URL to file in Partner Center),,,,,,,,,,,,,,

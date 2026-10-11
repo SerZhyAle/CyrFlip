@@ -113,6 +113,10 @@ $ExpectedLanguages = @('en-us','ru','ar','bn','zh-hans','fr','de','hi','it','pt-
 $CapByField       = @{ ShortDescription = 1000; Description = 10000; ReleaseNotes = 1500 }
 $FeatureCap       = 200
 $MaxSearchTerms   = 7
+# Observed 2026-10-11 on Partner Center (CyrFlip submission 14): the words of all search terms of a language
+# count together - 21 words passed (pt-br), 23 failed the whole file with "We couldn't process this .csv
+# file" and an empty error list. A "word" is a run of non-space characters.
+$MaxSearchTermWords = 21
 
 # The copy rows this builder owns - what -WriteSample empties.
 $ProseExact = @('Description', 'ReleaseNotes', 'ShortDescription', 'Title', 'CopyrightTrademarkInformation')
@@ -222,6 +226,10 @@ if (-not ($FillNothing -or $LogoFlagOnly -or $WriteSample)) {
         if ($deckTerms.Count -gt $MaxSearchTerms) {
             $capFailures.Add("$code search terms: $($deckTerms.Count) in msix/listing/$name.txt; Partner Center accepts at most $MaxSearchTerms")
         }
+        $deckWords = ($deckTerms | ForEach-Object { @(($_ -split '\s+') | Where-Object { $_ }).Count } | Measure-Object -Sum).Sum
+        if ($deckWords -gt $MaxSearchTermWords) {
+            $capFailures.Add("$code search terms: $deckWords words in msix/listing/$name.txt; Partner Center accepts at most $MaxSearchTermWords in total")
+        }
         $deckDuplicates = @($deckTerms | Group-Object { $_.ToLowerInvariant() } | Where-Object Count -gt 1 | ForEach-Object { $_.Name })
         if ($deckDuplicates.Count -gt 0) {
             $capFailures.Add("$code search terms repeat in msix/listing/$name.txt: $($deckDuplicates -join ', ')")
@@ -323,6 +331,10 @@ foreach ($code in $langs) {
     $deckName = "msix/listing/$(if ($FileForCode.ContainsKey($code)) { $FileForCode[$code] } else { $code }).txt"
     if ($terms.Count -gt $MaxSearchTerms) {
         $capFailures.Add("$code search terms: $($terms.Count); Partner Center accepts at most $MaxSearchTerms (source: $deckName)")
+    }
+    $words = ($terms | ForEach-Object { @(($_ -split '\s+') | Where-Object { $_ }).Count } | Measure-Object -Sum).Sum
+    if ($words -gt $MaxSearchTermWords) {
+        $capFailures.Add("$code search terms: $words words; Partner Center accepts at most $MaxSearchTermWords in total (source: $deckName)")
     }
     $duplicates = @($terms | Group-Object { $_.ToLowerInvariant() } | Where-Object Count -gt 1 | ForEach-Object { $_.Name })
     if ($duplicates.Count -gt 0) {
