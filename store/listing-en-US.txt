@@ -58,19 +58,17 @@ PRODUCT FEATURES (max 200 chars each)
 
 WHAT'S NEW IN THIS VERSION
 --------------------------
-CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
+Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
 
-A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
 
-A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
 
-All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
 
-Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
 
-A chord of its own - Ctrl+Shift+PrintScreen - opens the folder your screen captures are saved in.
-
-The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.
 
 
 SEARCH TERMS

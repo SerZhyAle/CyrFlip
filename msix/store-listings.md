@@ -77,19 +77,17 @@ Open source - no telemetry and no data collection; the only network use is your 
 
 **What's new in this version**
 ```
-CyrFlip now introduces itself as a tray toolkit for your keyboard and desktop, and a few new pieces come with that.
+Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
 
-A welcome tour on the first run: five short pages show what CyrFlip does and let you switch each optional module on or off on the spot. About replays it.
+One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
 
-A symbols window (optional, Ctrl+Shift+F9): a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one without taking the focus from your editor.
+Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
 
-All shortcuts in one place: a new settings page lists every chord CyrFlip binds, says whether it really works and why not, and lets you change, switch off or reset each one. Hover the tray icon to see the same list.
+A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
 
-Move your settings to another PC: export them to a plain file and import with a preview and automatic local backups.
+The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
 
-A chord of its own - Ctrl+Shift+PrintScreen - opens the folder your screen captures are saved in.
-
-The settings window is easier to live in: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.
+New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.
 ```
 
 ---
@@ -150,19 +148,17 @@ CyrFlip - набор инструментов в трее для клавиат�
 
 **Что нового в этой версии**
 ```
-CyrFlip теперь представляется как трей-набор инструментов для клавиатуры и рабочего стола, и вместе с этим появились новые возможности.
+Настройки теперь идут за функциями: «Исправление текста» объединяет таблицу раскладок и исправление регистра, у меню над выделенным текстом своя страница, «Графика» стала «Снимками экрана», «Общие» разбиты на четыре группы, а «Горячие клавиши» содержат общий выключатель и список всех комбинаций. Открытая вами страница запоминается.
 
-Приветственный тур при первом запуске: пять коротких страниц показывают, что умеет CyrFlip, и позволяют тут же включить или выключить каждый необязательный модуль. Повторить тур можно на странице «О программе».
+Сбой в одном действии больше не роняет CyrFlip: появляется уведомление, а значок в трее, индикатор и горячие клавиши продолжают работать. CyrFlip закрывается сам только после пяти сбоев за пять минут.
 
-Окно символов (необязательно, Ctrl+Shift+F9): палитра примерно из 500 знаков, которых нет ни в одной установленной раскладке, - валюты, стрелки, математика, греческие буквы, рамки. Щелчок копирует знак, не забирая фокус у вашего редактора.
+Данные надёжнее при сбоях: нечитаемые настройки больше не стирают таблицу раскладок и снимки состояния Windows, неудачная смена раскладок клавиатуры откатывается, журнал заметок переживает двойной сбой, а неудавшиеся импорт, копирование или удаление сообщают об этом, а не об успехе.
 
-Все комбинации в одном месте: новая страница настроек перечисляет каждое сочетание клавиш CyrFlip, показывает, действительно ли оно работает и почему нет, и позволяет изменить, отключить или сбросить любое. Тот же список появляется при наведении на значок в трее.
+Спокойнее старт: окно настроек создаётся при первом открытии, а при выключенной истории буфера CyrFlip не обращается к её файлу при запуске.
 
-Перенос настроек на другой компьютер: экспорт в обычный файл и импорт с предпросмотром и автоматическими локальными копиями.
+Приветственный тур начинается с одной страницы-оглавления обо всём, что умеет CyrFlip, а кнопки диалогов получили значки - зелёные у «ОК», «Да» и «Добавить», красные у «Отмена» и «Нет».
 
-Отдельная комбинация - Ctrl+Shift+PrintScreen - открывает папку, в которую сохраняются снимки экрана.
-
-В окне настроек стало удобнее: сворачиваемые группы, поиск, значки страниц масштабируются вместе с экраном, а окно открывается там, где вы его оставили.
+На новых установках снимок области - Ctrl+PrintScreen, открытие папки со снимками - Ctrl+Shift+PrintScreen; на установках, где комбинации уже заданы, они сохраняются.
 ```
 
 ---
@@ -221,19 +217,17 @@ CyrFlip - набір інструментів у треї для клавіат�
 
 **Що нового в цій версії**
 ```
-CyrFlip тепер представляється як трей-набір інструментів для клавіатури та робочого столу, і разом із цим з'явилися нові можливості.
+Налаштування тепер ідуть за функціями: «Виправлення тексту» поєднує таблицю розкладок і виправлення регістру, у меню над виділеним текстом своя сторінка, «Графіка» стала «Знімками екрана», «Загальні» розбито на чотири групи, а «Гарячі клавіші» містять загальний вимикач і список усіх сполучень. Відкрита вами сторінка запам'ятовується.
 
-Вітальний тур під час першого запуску: п'ять коротких сторінок показують, що вміє CyrFlip, і дозволяють одразу ввімкнути чи вимкнути кожен необов'язковий модуль. Повторити тур можна на сторінці «Про програму».
+Збій в одній дії більше не валить CyrFlip: з'являється сповіщення, а значок у треї, індикатор і гарячі клавіші далі працюють. CyrFlip закривається сам лише після п'яти збоїв за п'ять хвилин.
 
-Вікно символів (необов'язкове, Ctrl+Shift+F9): палітра приблизно з 500 знаків, яких немає в жодній встановленій розкладці, - валюти, стрілки, математика, грецькі літери, рамки. Клацання копіює знак, не забираючи фокус у вашого редактора.
+Дані надійніші при збоях: нечитабельні налаштування більше не стирають таблицю розкладок і знімки стану Windows, невдала зміна розкладок клавіатури відкочується, журнал нотаток переживає подвійний збій, а невдалі імпорт, копіювання чи видалення повідомляють про це, а не про успіх.
 
-Усі комбінації в одному місці: нова сторінка налаштувань перелічує кожне сполучення клавіш CyrFlip, показує, чи воно справді працює і чому ні, та дає змогу змінити, вимкнути або скинути будь-яке. Той самий список з'являється, коли навести вказівник на значок у треї.
+Спокійніший старт: вікно налаштувань створюється під час першого відкриття, а коли історію буфера вимкнено, CyrFlip не звертається до її файлу під час запуску.
 
-Перенесення налаштувань на інший комп'ютер: експорт у звичайний файл та імпорт із попереднім переглядом і автоматичними локальними копіями.
+Вітальний тур починається з однієї сторінки-змісту про все, що вміє CyrFlip, а кнопки діалогів отримали значки - зелені в «ОК», «Так» і «Додати», червоні в «Скасувати» і «Ні».
 
-Окреме сполучення - Ctrl+Shift+PrintScreen - відкриває теку, до якої зберігаються знімки екрана.
-
-У вікні налаштувань стало зручніше: згортні групи, пошук, значки сторінок масштабуються разом з екраном, а вікно відкривається там, де ви його залишили.
+На нових установках знімок області - Ctrl+PrintScreen, відкриття теки зі знімками - Ctrl+Shift+PrintScreen; на установках, де сполучення вже задані, вони зберігаються.
 ```
 
 ---

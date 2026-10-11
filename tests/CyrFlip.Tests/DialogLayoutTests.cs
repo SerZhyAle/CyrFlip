@@ -16,7 +16,11 @@ namespace CyrFlip.Tests
     /// scaling makes of the UI font - the combination that had "Assign" rendering as "Assig" and
     /// "Cancel" as "Canc". Build each dialog in each language and check that every caption fits the
     /// control drawing it, which is what "laid out by content, not by pixel coordinates" has to mean.
+    /// The windows share the glyph and theme statics with every other window test, so the class runs
+    /// one at a time with them (a full run once saw the search window's hint label measured at 1 px
+    /// high beside the parallel classes; the class alone passes).
     /// </summary>
+    [Collection(SharedGdiCollection.Name)]
     public class DialogLayoutTests
     {
         private static readonly List<InputLayouts.Installed> Layouts = new List<InputLayouts.Installed>

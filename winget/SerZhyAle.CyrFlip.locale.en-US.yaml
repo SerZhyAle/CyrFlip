@@ -32,13 +32,13 @@ Description: >-
   author button that packs CyrFlip's own logs into one archive for a report you send yourself. Ships
   as a single portable exe with no installer and no runtime dependencies.
 ReleaseNotes: |-
-  This release introduces CyrFlip as a tray toolkit for your keyboard and desktop and adds a first-run tour, a symbols palette and one page with every shortcut.
-  - Welcome tour: five short pages on the first run show what CyrFlip does and let you switch each optional module on or off on the spot; About replays it.
-  - Symbols window (opt-in, off by default): Ctrl+Shift+F9 opens a palette of about 500 characters that sit on no installed layout - currency, arrows, math, Greek, box drawing. A click copies one and never takes the focus from your editor.
-  - All shortcuts: a new settings page lists every chord CyrFlip binds, says whether it really fires and why not, and lets you change, switch off or reset each one; hovering the tray icon shows the same list.
-  - Settings transfer: export your settings to a plain file and import them on another PC, with a preview and three automatic local backups.
-  - Ctrl+Shift+PrintScreen opens the folder your screen captures are saved in.
-  - A friendlier settings window: collapsible groups, a search box, page icons that scale with the display, and it reopens where you left it.
+  This release makes Settings follow the features and makes CyrFlip harder to knock over.
+  - Settings pages follow the features: Text correction holds the layout table and the case fix, the selection menu has a page of its own, Graphics is now Screenshots, General has four groups, and Hotkeys holds the master switch and the list of every chord.
+  - One failing action no longer takes CyrFlip down: a notice appears and the tray icon, the indicator and the hotkeys keep working; it closes itself only after five faults within five minutes.
+  - Safer data on failures: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so.
+  - Settings is built on first open, and with the clipboard history off CyrFlip does not touch its file at startup.
+  - The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons.
+  - New installs: Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.
 ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
 PrivacyUrl: https://serzhyale.github.io/CyrFlip/privacy.html
 InstallationNotes: "This build is not code-signed, so Windows SmartScreen or an antivirus may warn when CyrFlip first starts. What the warning means and what to click: https://serzhyale.github.io/CyrFlip/trust.html"
