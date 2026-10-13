@@ -101,7 +101,7 @@ namespace CyrFlip
                 LaunchGroup(state, translate, fillLauncher, showHistory, showSymbols),
                 new List<ToolStripItem>
                 {
-                    new ToolStripMenuItem(translate("Настройки"), null, (_, _) => showSettings()),
+                    new ToolStripMenuItem(translate("Settings"), null, (_, _) => showSettings()),
                 },
                 // Last, and deliberately so: the menu opens under the pointer, so whatever is at the
                 // top is what the hand is already on. That place belongs to Copy, which is where
@@ -136,9 +136,9 @@ namespace CyrFlip
             var items = new List<ToolStripItem>();
             if (state.SelectionChars <= 0) return items;
 
-            items.Add(Caption(Localization.Format(translate, "Выделено строк: {0}",
+            items.Add(Caption(Localization.Format(translate, "Lines selected: {0}",
                 SelectionStats.Format(state.SelectionLines, state.SelectionTruncated))));
-            items.Add(Caption(Localization.Format(translate, "символов: {0}",
+            items.Add(Caption(Localization.Format(translate, "characters: {0}",
                 SelectionStats.Format(state.SelectionChars, state.SelectionTruncated))));
             return items;
         }
@@ -150,12 +150,12 @@ namespace CyrFlip
             Action<ClipboardHandler.EditCommand> edit, bool hasSelection)
             => new List<ToolStripItem>
             {
-                Command(translate("Копировать"), "Ctrl+C", hasSelection,
+                Command(translate("Copy"), "Ctrl+C", hasSelection,
                     () => edit(ClipboardHandler.EditCommand.Copy)),
-                Command(translate("Вырезать"), "Ctrl+X", hasSelection,
+                Command(translate("Cut"), "Ctrl+X", hasSelection,
                     () => edit(ClipboardHandler.EditCommand.Cut)),
                 // Pasting does not care about the selection, only about the clipboard.
-                Command(translate("Вставить"), "Ctrl+V", state.ClipboardHasText,
+                Command(translate("Paste"), "Ctrl+V", state.ClipboardHasText,
                     () => edit(ClipboardHandler.EditCommand.Paste)),
             };
 
@@ -173,7 +173,7 @@ namespace CyrFlip
 
             // "&" would be read as a mnemonic and vanish from the caption - "?a=1&b=2" would show as
             // "?a=1b=2" - and the caption is the user's only view of what is about to open (S0008 LS-5).
-            items.Add(Command(Localization.Format(translate, "Открыть «{0}»", EscapeMnemonics(target.Display)), "", true,
+            items.Add(Command(Localization.Format(translate, "Open “{0}”", EscapeMnemonics(target.Display)), "", true,
                 () => launch(target)));
             return items;
         }
@@ -191,13 +191,13 @@ namespace CyrFlip
                 items.Add(Command(row.Label, row.Shortcut, hasSelection, () => convert(id)));
             }
 
-            items.Add(Command(translate("Исправить CapsLock"), state.CaseShortcut, hasSelection, caseFlip));
+            items.Add(Command(translate("Fix CapsLock"), state.CaseShortcut, hasSelection, caseFlip));
 
             foreach (TextMenuRow row in state.Translations)
             {
                 string id = row.Id;
                 items.Add(Command(
-                    Localization.Format(translate, "Перевести на {0}", row.Label),
+                    Localization.Format(translate, "Translate into {0}", row.Label),
                     row.Shortcut, hasSelection, () => translateSelection(id)));
             }
 
@@ -205,7 +205,7 @@ namespace CyrFlip
             // greyed rather than hidden when there is nothing selected, and absent entirely while
             // the notes are switched off - a module that is off contributes no items at all.
             if (state.ShowQuickNotes)
-                items.Add(Command(translate("Сохранить выделение в быстрые заметки"), "", hasSelection, saveToQuickNotes));
+                items.Add(Command(translate("Save the selection to quick notes"), "", hasSelection, saveToQuickNotes));
 
             return items;
         }
@@ -221,16 +221,16 @@ namespace CyrFlip
             {
                 // The very same LauncherTrayMenu.Fill that builds the tray submenu and the taskbar
                 // button's menu, so the three surfaces cannot drift apart.
-                var launcher = new ToolStripMenuItem(translate("Быстрый запуск"));
+                var launcher = new ToolStripMenuItem(translate("Quick launch"));
                 fillLauncher(launcher);
                 items.Add(launcher);
             }
 
             if (state.ShowHistory)
-                items.Add(new ToolStripMenuItem(translate("Менеджер буфера"), null, (_, _) => showHistory()));
+                items.Add(new ToolStripMenuItem(translate("Clipboard manager"), null, (_, _) => showHistory()));
 
             if (state.ShowSymbols && showSymbols != null)
-                items.Add(new ToolStripMenuItem(translate("Символы"), null, (_, _) => showSymbols()));
+                items.Add(new ToolStripMenuItem(translate("Symbols"), null, (_, _) => showSymbols()));
 
             return items;
         }

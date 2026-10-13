@@ -7,7 +7,7 @@ Scrivi nel layout giusto. Un indicatore di layout in tempo reale sta accanto al 
 
 Seleziona il testo digitato nel layout sbagliato e premi Ctrl+Maiusc+F12: CyrFlip lo converte sul posto, in entrambe le direzioni e persino per il testo misto. Aggiungi quante coppie "da un layout a un altro" vuoi, ciascuna con la propria scorciatoia; la conversione del layout segue la posizione fisica dei tasti, quindi AZERTY e QWERTZ sono gestiti correttamente. Una scorciatoia separata inverte maiuscole e minuscole e sistema così un BLOC MAIUSC (CapsLock) inserito per sbaglio. La scheda "Lingue di Windows" installa, riordina e rimuove i layout di tastiera (non si scarica nulla - sono già inclusi in Windows) e assegna scorciatoie per singola lingua gestite da Windows stesso, così continuano a funzionare anche a CyrFlip chiuso.
 
-Agisci su ciò che hai selezionato. Tieni premuto Ctrl e fai clic destro su una selezione: il menu di CyrFlip si apre accanto al puntatore con copia, taglia e incolla, le tue conversioni di layout, la correzione di maiuscole e minuscole, la traduzione, l'avvio rapido e la cronologia degli appunti - senza prendere il focus, così la selezione resta intatta. Una combinazione da tastiera apre lo stesso menu accanto al cursore di testo. Disattivato per impostazione predefinita.
+Agisci su ciò che hai selezionato. Tieni premuto Ctrl e fai clic destro su una selezione: il menu di CyrFlip si apre accanto al puntatore con copia, taglia e incolla, le tue conversioni di layout, la correzione di maiuscole e minuscole, la traduzione, l'avvio rapido e la cronologia degli appunti - senza prendere il focus, così la selezione resta intatta. Una combinazione da tastiera apre lo stesso menu accanto al cursore di testo. Disattivato per impostazione predefinita. La finestra dei simboli opzionale trova, per nome, parola chiave o codice Unicode, il carattere che manca alla tua tastiera e lo copia con un clic.
 
 Anche il traduttore integrato è opzionale. Seleziona il testo ovunque in Windows, premi la sua scorciatoia e la traduzione appare in una finestrella accanto al puntatore del mouse, riempiendosi man mano che il modello scrive. Funziona con Ollama, un programma gratuito che installi una volta sola sul tuo computer: CyrFlip non lo include, non ha account né chiavi e per impostazione predefinita parla solo con http://localhost:11434 - il tuo computer. Le direzioni sono una tabella aperta, ognuna con la sua scorciatoia, e il risultato può essere copiato negli appunti o incollato al posto della selezione. Il modello predefinito è aya-expanse:8b (~4,7 GB). Un avviso onesto: la qualità è quella del modello locale, la prima traduzione dopo un avvio a freddo richiede un po' di tempo, e la memoria usata dal modello appartiene al processo Ollama, non a CyrFlip.
 
@@ -15,7 +15,7 @@ Conserva ciò che copi e scrivi. La cronologia degli appunti opzionale conserva 
 
 Avvia e cattura. Ctrl+Stamp blocca lo schermo, trascini un'area e l'immagine finisce negli appunti - e, se vuoi, viene salvata anche come PNG in una cartella. L'avvio rapido, un modulo opzionale, trasforma programmi, script e download yt-dlp in scenari che avvii dall'area di notifica, da una scorciatoia dedicata o dalla Jump List della barra delle applicazioni; gli scenari dello strumento autonomo OneClickRunner si possono importare senza toccare gli originali. Due interruttori impediscono a Windows di sospendersi o di spegnere lo schermo mentre lavori.
 
-Solo tuo. I moduli opzionali restano spenti finché non li attivi, ogni scorciatoia si può disattivare singolarmente, e CyrFlip può cedere le sue scorciatoie a una finestra di Desktop remoto in primo piano. L'interfaccia è disponibile in 13 lingue, comprese quelle che si scrivono da destra a sinistra, con tema chiaro, scuro o come Windows. CyrFlip gira nell'area di notifica, usa poca memoria e non richiede nulla di aggiuntivo su Windows 10/11.
+Solo tuo. I moduli opzionali restano spenti finché non li attivi, ogni scorciatoia si può disattivare singolarmente, e CyrFlip può cedere le sue scorciatoie a una finestra di Desktop remoto in primo piano. L'interfaccia è disponibile in 13 lingue, comprese quelle che si scrivono da destra a sinistra, con tema chiaro, scuro o come Windows. CyrFlip gira nell'area di notifica, usa poca memoria e non richiede nulla di aggiuntivo su Windows 10/11. Ogni tasto rapido con il suo stato è riunito in un'unica lista delle impostazioni, dove reimpostarlo.
 
 Privacy: CyrFlip usa un hook della tastiera solo per riconoscere le proprie scorciatoie, gli appunti solo per le azioni che avvii tu e - solo finché tieni attivo il suo menu contestuale opzionale - un hook del mouse per l'unica combinazione che apre quel menu. Non registra i tasti premuti e non apre alcuna connessione di rete a meno che tu non attivi il traduttore, che parla solo con il server Ollama che indichi - il tuo computer per impostazione predefinita. Se qualcosa va storto, la finestra delle impostazioni raccoglie i log di CyrFlip in un unico archivio e apre un messaggio all'autore con quell'allegato. Il messaggio lo invia lei - CyrFlip non trasmette nulla in rete e la cronologia degli appunti non finisce mai nell'archivio. Codice aperto: https://github.com/SerZhyAle/CyrFlip
 
@@ -24,9 +24,9 @@ Al primo avvio, una guida di cinque passi presenta CyrFlip e propone di aprire l
 In Generale, esporta le impostazioni CyrFlip in JSON, verifica le modifiche prima di importare o ripristina le impostazioni precedenti. Le tre copie più recenti restano locali. Sono esclusi note, cronologia degli appunti, scenari di avvio, percorsi locali e impostazioni Windows. Registrazione e un altro server di traduzione richiedono un consenso separato.
 
 @@Feature1
-Contrassegno del layout accanto al cursore di testo - funziona nei browser e nella chat di VS Code
+Contrassegno del layout accanto al cursore di testo - 13 lingue selezionate con il loro colore; funziona nei browser e nella chat di VS Code
 @@Feature2
-13 lingue selezionate, ognuna con il suo colore; anche ogni altro layout di Windows ha il suo codice
+Finestra dei simboli opzionale: ricerca per nome, parola chiave o codice Unicode, un clic copia il carattere
 @@Feature3
 Un tasto corregge il testo digitato nel layout sbagliato, sul posto e in entrambe le direzioni
 @@Feature4
@@ -50,9 +50,9 @@ Porta note e cronologia degli appunti su un altro computer in un unico file di s
 @@Feature13
 Acquisizione di un'area dello schermo negli appunti con Ctrl+Stamp, salvabile anche come PNG
 @@Feature14
-Avvio rapido opzionale: programmi, script e download yt-dlp come scenari a un clic
+Avvio rapido opzionale: programmi, script e download yt-dlp come scenari - dall'area di notifica, da una scorciatoia o dalla Jump List
 @@Feature15
-Avvia uno scenario dall'area di notifica, dalla sua scorciatoia globale o dalla Jump List della barra delle applicazioni
+Tutti i tasti rapidi in un'unica lista: cosa fa ciascuno, se è attivo, modificarlo o reimpostarlo da lì
 @@Feature16
 Due interruttori anti-sospensione: niente standby e niente schermo spento mentre lavori
 @@Feature17

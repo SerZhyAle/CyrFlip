@@ -90,13 +90,13 @@ function Open-Settings {
     $subject = Start-Process -FilePath $ExePath -ArgumentList '/launcher-settings' -WindowStyle Hidden -PassThru
     $deadline = (Get-Date).AddSeconds(12)
     do {
-        $settings = Get-AppWindows | Where-Object { $_.Title -eq (T 'Настройки CyrFlip') } | Select-Object -First 1
+        $settings = Get-AppWindows | Where-Object { $_.Title -eq (T 'CyrFlip Settings') } | Select-Object -First 1
         if ($settings) { break }
         $tour = Get-AppWindows | Where-Object { $_.Title -eq 'CyrFlip' } | Select-Object -First 1
-        if ($tour -and (Named $tour (T 'Пропустить'))) { Click $tour (T 'Пропустить') }
+        if ($tour -and (Named $tour (T 'Skip'))) { Click $tour (T 'Skip') }
         Start-Sleep -Milliseconds 250
     } while ((Get-Date) -lt $deadline)
-    if (-not $settings) { Get-AppWindows | Format-Table Title,Class,Width; Get-Process CyrFlip -ErrorAction SilentlyContinue | Format-Table Id,Path; Write-Host ('Expected: '+(T 'Настройки CyrFlip')); if ($subject.HasExited) { Write-Host ('Subject exited: '+$subject.ExitCode) }; throw 'Settings did not open.' }
+    if (-not $settings) { Get-AppWindows | Format-Table Title,Class,Width; Get-Process CyrFlip -ErrorAction SilentlyContinue | Format-Table Id,Path; Write-Host ('Expected: '+(T 'CyrFlip Settings')); if ($subject.HasExited) { Write-Host ('Subject exited: '+$subject.ExitCode) }; throw 'Settings did not open.' }
     Start-Sleep -Seconds 1
     $script:tabHandle = [IntPtr]::Zero
     $callback = [CyrFlipUi+EnumProc]{ param($handle,$unused)
@@ -107,7 +107,7 @@ function Open-Settings {
     if ($script:tabHandle -eq [IntPtr]::Zero) { throw 'No native settings navigation.' }
     [void][CyrFlipUi]::PostMessageW($script:tabHandle,0x0100,[IntPtr]0x24,[IntPtr]::Zero)
     Start-Sleep -Milliseconds 500
-    if (-not (Named $settings (T 'Общие'))) { throw 'General page is missing.' }
+    if (-not (Named $settings (T 'General'))) { throw 'General page is missing.' }
     return $settings
 }
 function File-Command($settings,[string]$command,[string]$path) {
@@ -115,7 +115,7 @@ function File-Command($settings,[string]$command,[string]$path) {
     $deadline = (Get-Date).AddSeconds(10); $edit = $null; $dialog = $null
     do {
         foreach ($candidate in @(Get-AppWindows | Where-Object Class -EQ '#32770')) {
-            $editId = if ($command -eq 'Импортировать настройки...') { '1148' } else { '1001' }
+            $editId = if ($command -eq 'Import settings...') { '1148' } else { '1001' }
             $condition = New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::AutomationIdProperty,$editId)
             $edit = (Root $candidate).FindAll([Windows.Automation.TreeScope]::Descendants,$condition) | Where-Object { $_.Current.NativeWindowHandle -ne 0 -and [CyrFlipUi]::Cls([IntPtr]$_.Current.NativeWindowHandle) -eq 'Edit' } | Select-Object -First 1
             if ($edit) { $dialog=$candidate; break }
@@ -133,7 +133,7 @@ function File-Command($settings,[string]$command,[string]$path) {
     Start-Sleep -Milliseconds 500
 }
 function Export-Settings($settings,[string]$path) {
-    File-Command $settings 'Экспортировать настройки...' $path
+    File-Command $settings 'Export settings...' $path
     $result = Wait-Window 'CyrFlip'
     Click $result 'OK'
     if (-not (Test-Path -LiteralPath $path)) { throw 'CyrFlip export failed. Refusing to change settings.' }
@@ -147,12 +147,12 @@ function Write-Scene($values) {
     finally { $key.Dispose() }
 }
 function Import-Settings($settings,[string]$path) {
-    File-Command $settings 'Импортировать настройки...' $path
-    $preview = Wait-Window (T 'Перенос настроек')
+    File-Command $settings 'Import settings...' $path
+    $preview = Wait-Window (T 'Settings transfer')
     Save-WindowShot -Handle $preview.Handle -Path (Join-Path $OutputDirectory 'preview.png')
-    Click $preview (T 'Применить')
+    Click $preview (T 'Apply')
     Start-Sleep -Milliseconds 900
-    if (Get-AppWindows | Where-Object Title -EQ (T 'Перенос настроек')) { throw 'Preview did not apply.' }
+    if (Get-AppWindows | Where-Object Title -EQ (T 'Settings transfer')) { throw 'Preview did not apply.' }
 }
 function Compare-Settings($expected,$actual) {
     foreach ($section in @('settings','tables')) {
@@ -200,9 +200,9 @@ try {
     }
     $live = Export-Settings $settings (Join-Path $OutputDirectory 'settings-live.json')
     Compare-Settings $expected $live
-    Click $settings (T 'Вернуть настройки до импорта...')
-    $undoPreview = Wait-Window (T 'Перенос настроек')
-    Click $undoPreview (T 'Применить')
+    Click $settings (T 'Restore settings before import...')
+    $undoPreview = Wait-Window (T 'Settings transfer')
+    Click $undoPreview (T 'Apply')
     Start-Sleep -Milliseconds 800
     $undone = Export-Settings $settings (Join-Path $OutputDirectory 'settings-undone.json')
     Compare-Settings $beforeImport $undone

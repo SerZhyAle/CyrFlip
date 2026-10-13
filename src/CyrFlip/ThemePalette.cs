@@ -49,6 +49,19 @@ namespace CyrFlip
         Danger,
         /// <summary><c>success</c> (APP-STYLE 0.11) - a positive mark (the history strip's source app).</summary>
         Success,
+        /// <summary>
+        /// <c>status.ok.fill</c> (proposed, ticket S0069 D15) - the green of a reachable target. A <b>fill</b>, not an
+        /// ink: <see cref="Success"/> is a text colour (dark green on a light surface) and cannot colour a tile.
+        /// </summary>
+        StatusOkFill,
+        /// <summary><c>status.warning.fill</c> (proposed) - the amber of a target that answers but is not right.</summary>
+        StatusWarningFill,
+        /// <summary><c>status.error.fill</c> (proposed) - the red of a target that does not answer.</summary>
+        StatusErrorFill,
+        /// <summary><c>status.unknown.fill</c> (proposed) - the gray of a target with no completed check yet.</summary>
+        StatusUnknownFill,
+        /// <summary><c>status.ink</c> (proposed) - the mark and the label drawn on any of the four fills.</summary>
+        StatusInk,
     }
 
     /// <summary>What is actually drawn: the mode the user picked, resolved against Windows.</summary>
@@ -119,6 +132,11 @@ namespace CyrFlip
         public Color Warning => this[ThemeRole.Warning];
         public Color Danger => this[ThemeRole.Danger];
         public Color Success => this[ThemeRole.Success];
+        public Color StatusOkFill => this[ThemeRole.StatusOkFill];
+        public Color StatusWarningFill => this[ThemeRole.StatusWarningFill];
+        public Color StatusErrorFill => this[ThemeRole.StatusErrorFill];
+        public Color StatusUnknownFill => this[ThemeRole.StatusUnknownFill];
+        public Color StatusInk => this[ThemeRole.StatusInk];
 
         /// <summary>
         /// The region capture's overlay (S0026 4.4) - drawn over a frozen picture of the user's own
@@ -158,6 +176,14 @@ namespace CyrFlip
             [ThemeRole.Warning] = Color.FromArgb(150, 60, 0),  // Dark warning ink meets 4.5:1 on light surfaces.
             [ThemeRole.Danger] = Color.Firebrick,
             [ThemeRole.Success] = Color.FromArgb(30, 120, 70),
+            // The traffic light's tile fills (S0069 D15), measured by WCAG relative luminance: ink on fill
+            // 7.8 / 12.1 / 5.3 / 6.9. Against a light surface a fill falls below 3:1 (amber 1.5), which is why
+            // every tile carries a 1 px border and a mark - the edge and the state never rest on colour.
+            [ThemeRole.StatusOkFill] = Color.FromArgb(0x66, 0xBB, 0x6A),
+            [ThemeRole.StatusWarningFill] = Color.FromArgb(0xFF, 0xCA, 0x28),
+            [ThemeRole.StatusErrorFill] = Color.FromArgb(0xEF, 0x53, 0x50),
+            [ThemeRole.StatusUnknownFill] = Color.FromArgb(0x9E, 0x9E, 0x9E),
+            [ThemeRole.StatusInk] = Color.FromArgb(0x14, 0x14, 0x14),
         });
 
         /// <summary>
@@ -185,6 +211,12 @@ namespace CyrFlip
             [ThemeRole.Warning] = Color.FromArgb(255, 170, 90),
             [ThemeRole.Danger] = Color.FromArgb(255, 120, 120),
             [ThemeRole.Success] = Color.FromArgb(102, 205, 170),
+            // The same fills on the dark surface #202020: 6.9 / 10.7 / 4.7 / 6.1 - each holds 3:1 as an edge.
+            [ThemeRole.StatusOkFill] = Color.FromArgb(0x66, 0xBB, 0x6A),
+            [ThemeRole.StatusWarningFill] = Color.FromArgb(0xFF, 0xCA, 0x28),
+            [ThemeRole.StatusErrorFill] = Color.FromArgb(0xEF, 0x53, 0x50),
+            [ThemeRole.StatusUnknownFill] = Color.FromArgb(0x9E, 0x9E, 0x9E),
+            [ThemeRole.StatusInk] = Color.FromArgb(0x14, 0x14, 0x14),
         });
 
         /// <summary>
@@ -213,6 +245,13 @@ namespace CyrFlip
             [ThemeRole.Warning] = SystemColors.WindowText,
             [ThemeRole.Danger] = SystemColors.WindowText,
             [ThemeRole.Success] = SystemColors.WindowText,
+            // High contrast draws no colour of ours (S0069 D15): a tile is the Window colour with a WindowText
+            // border and the state is its mark alone; an unknown tile is drawn with GrayText by the board.
+            [ThemeRole.StatusOkFill] = SystemColors.Window,
+            [ThemeRole.StatusWarningFill] = SystemColors.Window,
+            [ThemeRole.StatusErrorFill] = SystemColors.Window,
+            [ThemeRole.StatusUnknownFill] = SystemColors.Window,
+            [ThemeRole.StatusInk] = SystemColors.WindowText,
         });
 
         public static ThemePalette For(ThemeKind kind)
@@ -244,6 +283,7 @@ namespace CyrFlip
                 [11] = Pair("#26A69A", "#00695C"),  // Graphics - teal
                 [12] = Pair("#90A4AE", "#455A64"),  // Symbols - blue grey
                 [14] = Pair("#D4E157", "#827717"),  // Selection menu - lime
+                [15] = Pair("#A1887F", "#5D4037"),  // Traffic light - brown
             };
 
             private static KeyValuePair<Color, Color> Pair(string dark, string light)

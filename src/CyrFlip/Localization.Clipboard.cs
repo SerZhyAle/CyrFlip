@@ -5,8 +5,8 @@ namespace CyrFlip
     {
         private static void AddClipboardStrings()
         {
-            Add("Не удалось удалить запись истории буфера. Повторите.",
-                en: "Could not delete the clipboard history entry. Try again.",
+            Add("Could not delete the clipboard history entry. Try again.",
+                ru: "Не удалось удалить запись истории буфера. Повторите.",
                 uk: "Не вдалося видалити запис історії буфера. Повторіть.",
                 de: "Der Eintrag im Zwischenablageverlauf konnte nicht gelöscht werden. Versuchen Sie es erneut.",
                 it: "Impossibile eliminare la voce della cronologia degli appunti. Riprova.",
@@ -20,28 +20,28 @@ namespace CyrFlip
                 zh: "无法删除剪贴板历史记录条目。请重试。");
 
             // S0062: the groups of the clipboard page.
-            Add("Запись",
-                en: "Recording", uk: "Запис", de: "Aufzeichnung", it: "Registrazione",
+            Add("Recording",
+                ru: "Запись", uk: "Запис", de: "Aufzeichnung", it: "Registrazione",
                 es: "Grabación", fr: "Enregistrement", pt: "Gravação",
                 ar: "التسجيل", hi: "रिकॉर्डिंग", bn: "রেকর্ডিং", ur: "ریکارڈنگ", zh: "记录");
 
-            Add("Окно истории",
-                en: "History window", uk: "Вікно історії", de: "Verlaufsfenster", it: "Finestra della cronologia",
+            Add("History window",
+                ru: "Окно истории", uk: "Вікно історії", de: "Verlaufsfenster", it: "Finestra della cronologia",
                 es: "Ventana del historial", fr: "Fenêtre de l'historique", pt: "Janela do histórico",
                 ar: "نافذة السجل", hi: "इतिहास विंडो", bn: "ইতিহাস উইন্ডো", ur: "ہسٹری ونڈو", zh: "历史窗口");
 
-            Add("Очистка",
-                en: "Clearing", uk: "Очищення", de: "Löschen", it: "Pulizia",
+            Add("Clearing",
+                ru: "Очистка", uk: "Очищення", de: "Löschen", it: "Pulizia",
                 es: "Limpieza", fr: "Effacement", pt: "Limpeza",
                 ar: "المسح", hi: "साफ़ करना", bn: "মুছে ফেলা", ur: "صفائی", zh: "清除");
 
-            Add("Буфер обмена",
-                en: "Clipboard", uk: "Буфер обміну", de: "Zwischenablage", it: "Appunti",
+            Add("Clipboard",
+                ru: "Буфер обмена", uk: "Буфер обміну", de: "Zwischenablage", it: "Appunti",
                 es: "Portapapeles", fr: "Presse-papiers", pt: "Área de transferência",
                 ar: "الحافظة", hi: "क्लिपबोर्ड", bn: "ক্লিপবোর্ড", ur: "کلپ بورڈ", zh: "剪贴板");
 
-            Add("История хранится только локально и шифруется Windows DPAPI для вашей учётной записи.",
-                en: "History is stored locally only and encrypted with Windows DPAPI for your account.",
+            Add("History is stored locally only and encrypted with Windows DPAPI for your account.",
+                ru: "История хранится только локально и шифруется Windows DPAPI для вашей учётной записи.",
                 uk: "Історія зберігається лише локально та шифрується Windows DPAPI для вашого облікового запису.",
                 de: "Der Verlauf wird nur lokal gespeichert und mit Windows DPAPI für Ihr Konto verschlüsselt.",
                 it: "La cronologia è salvata solo in locale e cifrata con Windows DPAPI per il tuo account.",
@@ -54,16 +54,61 @@ namespace CyrFlip
                 ur: "تاریخ صرف مقامی طور پر محفوظ ہوتی ہے اور آپ کے اکاؤنٹ کے لیے Windows DPAPI سے خفیہ کی جاتی ہے۔",
                 zh: "历史仅保存在本地，并使用 Windows DPAPI 针对你的账户加密。");
 
-            Add("Включить историю буфера",
-                en: "Enable clipboard history", uk: "Увімкнути історію буфера",
+            Add("Enable clipboard history",
+                ru: "Включить историю буфера", uk: "Увімкнути історію буфера",
                 de: "Zwischenablage-Verlauf aktivieren", it: "Attiva la cronologia degli appunti",
                 es: "Activar el historial del portapapeles", fr: "Activer l'historique du presse-papiers",
                 pt: "Ativar o histórico da área de transferência", ar: "تفعيل سجل الحافظة",
                 hi: "क्लिपबोर्ड इतिहास चालू करें", bn: "ক্লিপবোর্ড ইতিহাস চালু করুন",
                 ur: "کلپ بورڈ تاریخ آن کریں", zh: "启用剪贴板历史");
 
-            Add("CyrFlip сохраняет только Unicode-текст, скопированный после включения функции. Изображения, файлы и другие форматы не записываются.",
-                en: "CyrFlip saves only Unicode text copied after this feature is enabled. Images, files and other formats are not stored.",
+            // S0067 CU-2-06: the first enable says what is recorded and where, once, the way the
+            // quick notes' notice does; CU-2-09 keeps the unbounded decision said beside the switch.
+            Add("From now on CyrFlip records every text you copy into a local file on this computer. Nothing is sent anywhere.",
+                ru: "С этого момента CyrFlip записывает весь копируемый текст в локальный файл на этом компьютере. Никуда он не отправляется.",
+                uk: "Відтепер CyrFlip записує весь скопійований текст у локальний файл на цьому комп'ютері. Нікуди він не надсилається.",
+                de: "Von jetzt an zeichnet CyrFlip jeden kopierten Text in einer lokalen Datei auf diesem Computer auf. Nirgendwohin wird er gesendet.",
+                it: "Da ora CyrFlip registra ogni testo copiato in un file locale su questo computer. Non viene inviato da nessuna parte.",
+                es: "Desde ahora CyrFlip registra todo el texto que copias en un archivo local de este ordenador. No se envía a ninguna parte.",
+                fr: "Désormais, CyrFlip enregistre chaque texte copié dans un fichier local sur cet ordinateur. Il n'est envoyé nulle part.",
+                pt: "A partir de agora, o CyrFlip registra todo o texto copiado em um arquivo local neste computador. Nada é enviado a lugar algum.",
+                ar: "من الآن يسجّل CyrFlip كل نص تنسخه في ملف محلي على هذا الحاسوب. لا يُرسَل إلى أي مكان.",
+                hi: "अब से CyrFlip आपके द्वारा कॉपी किया गया हर पाठ इस कंप्यूटर की एक स्थानीय फ़ाइल में रिकॉर्ड करता है। इसे कहीं नहीं भेजा जाता।",
+                bn: "এখন থেকে CyrFlip আপনার কপি করা প্রতিটি লেখা এই কম্পিউটারের একটি স্থানীয় ফাইলে সংরক্ষণ করে। কোথাও পাঠানো হয় না।",
+                ur: "اب سے CyrFlip آپ کے کاپی کیا ہوا ہر متن اسی کمپیوٹر کی مقامی فائل میں محفوظ کرتا ہے۔ اسے کہیں نہیں بھیجا جاتا۔",
+                zh: "从现在起，CyrFlip 会将您复制的所有文本记录到这台计算机上的本地文件中。不会发送到任何地方。");
+
+            Add("Nothing is ever trimmed: a copied password stays until you delete its entry or clear the history.",
+                ru: "История не ограничена: скопированный пароль останется в ней, пока вы не удалите запись или не очистите историю.",
+                uk: "Історія необмежена: скопійований пароль залишиться в ній, доки ви не видалите запис або не очистите історію.",
+                de: "Der Verlauf wird nie gekürzt: Ein kopiertes Kennwort bleibt, bis Sie den Eintrag löschen oder den Verlauf leeren.",
+                it: "La cronologia non ha limiti: una password copiata resta finché non elimini la voce o non svuoti la cronologia.",
+                es: "El historial no se recorta nunca: una contraseña copiada queda hasta que borres esa entrada o vacíes el historial.",
+                fr: "L'historique n'est jamais tronqué : un mot de passe copié y reste jusqu'à ce que vous supprimiez l'entrée ou vidiez l'historique.",
+                pt: "O histórico nunca é aparado: uma senha copiada fica até você excluir a entrada ou limpar o histórico.",
+                ar: "السجل لا يُقتَطع أبدًا: كلمة المرور المنسوخة تبقى حتى تحذف الإدخال أو تمسح السجل بالكامل.",
+                hi: "इतिहास कभी छोटा नहीं होता: कॉपी किया गया पासवर्ड तब तक रहेगा जब तक आप उस प्रविष्टि को हटा न दें या इतिहास साफ़ न करें।",
+                bn: "ইতিহাস কখনো ছাঁটা হয় না: কপি করা পাসওয়ার্ড থেকে যাবে যতক্ষণ না আপনি সেই এন্ট্রি মুছেছেন বা ইতিহাস পরিষ্কার করেছেন।",
+                ur: "تاریخ کبھی مختصر نہیں ہوتی: کاپی کیا گیا پاس ورڈ وہیں رہے گا جب تک آپ اس اندراج کو حذف نہ کریں یا تاریخ صاف نہ کریں۔",
+                zh: "历史永不裁剪：复制的密码会一直保留，直到您删除该条目或清空历史。");
+
+            // S0067 CU-2-16: the strip the tray opens while the module is off names the switch that starts it.
+            Add("History is off - tick \"Clipboard history\" in the tray menu to start recording.",
+                ru: "История выключена - включите «История буфера» в меню трея, чтобы начать запись.",
+                uk: "Історію вимкнено - увімкніть «Історія буфера» у меню трея, щоб почати запис.",
+                de: "Der Verlauf ist aus - aktivieren Sie „Zwischenablage-Verlauf“ im Tray-Menü, um die Aufzeichnung zu starten.",
+                it: "La cronologia è disattivata: attiva \"Cronologia appunti\" nel menu della tray per iniziare a registrare.",
+                es: "El historial está desactivado: activa \"Historial del portapapeles\" en el menú de la bandeja para empezar a grabar.",
+                fr: "L'historique est désactivé - activez « Historique du presse-papiers » dans le menu de la zone de notification pour commencer l'enregistrement.",
+                pt: "O histórico está desligado: ative \"Histórico da área de transferência\" no menu da bandeja para começar a gravar.",
+                ar: "السجل متوقف - فعّل \"سجل الحافظة\" من قائمة شريط النظام لبدء التسجيل.",
+                hi: "इतिहास बंद है - रिकॉर्डिंग शुरू करने के लिए ट्रे मेनू में \"क्लिपबोर्ड इतिहास\" चालू करें।",
+                bn: "ইতিহাস বন্ধ - রেকর্ডিং শুরু করতে ট্রে মেনুতে \"ক্লিপবোর্ড ইতিহাস\" চালু করুন।",
+                ur: "تاریخ بند ہے - ریکارڈنگ شروع کرنے کے لیے ٹرے مینو میں \"کلپ بورڈ تاریخ\" آن کریں۔",
+                zh: "历史已关闭 - 在托盘菜单中勾选“剪贴板历史”以开始记录。");
+
+            Add("Off by default: while off, nothing is kept. When on: text only, never images or files, and nothing is trimmed.",
+                ru: "CyrFlip сохраняет только Unicode-текст, скопированный после включения функции. Изображения, файлы и другие форматы не записываются.",
                 uk: "CyrFlip зберігає лише Unicode-текст, скопійований після ввімкнення функції. Зображення, файли та інші формати не записуються.",
                 de: "CyrFlip speichert nur Unicode-Text, der nach dem Aktivieren dieser Funktion kopiert wurde. Bilder, Dateien und andere Formate werden nicht gespeichert.",
                 it: "CyrFlip salva solo testo Unicode copiato dopo l'attivazione della funzione. Immagini, file e altri formati non vengono registrati.",
@@ -76,16 +121,16 @@ namespace CyrFlip
                 ur: "CyrFlip صرف وہ Unicode متن محفوظ کرتا ہے جو یہ خصوصیت آن کرنے کے بعد کاپی ہوا ہو۔ تصاویر، فائلیں اور دیگر فارمیٹس محفوظ نہیں ہوتے۔",
                 zh: "CyrFlip 只保存启用该功能之后复制的 Unicode 文本。图片、文件及其他格式不会被记录。");
 
-            Add("Приостановить захват истории",
-                en: "Pause history capture", uk: "Призупинити захоплення історії",
+            Add("Pause history capture",
+                ru: "Приостановить захват истории", uk: "Призупинити захоплення історії",
                 de: "Verlaufsaufzeichnung pausieren", it: "Sospendi la registrazione della cronologia",
                 es: "Pausar la captura del historial", fr: "Suspendre la capture de l'historique",
                 pt: "Pausar a captura do histórico", ar: "إيقاف تسجيل السجل مؤقتًا",
                 hi: "इतिहास कैप्चर रोकें", bn: "ইতিহাস সংগ্রহ থামান",
                 ur: "تاریخ محفوظ کرنا روکیں", zh: "暂停记录历史");
 
-            Add("Временно прекращает захват новых копирований, не удаляя уже сохранённую историю. Полезно при работе с паролями и личными данными.",
-                en: "Temporarily stops capturing new copies without deleting saved history. Useful while handling passwords or private data.",
+            Add("Temporarily stops capturing new copies without deleting saved history. Useful while handling passwords or private data.",
+                ru: "Временно прекращает захват новых копирований, не удаляя уже сохранённую историю. Полезно при работе с паролями и личными данными.",
                 uk: "Тимчасово зупиняє захоплення нових копій, не видаляючи збережену історію. Корисно під час роботи з паролями чи приватними даними.",
                 de: "Stoppt vorübergehend die Aufzeichnung neuer Kopien, ohne den gespeicherten Verlauf zu löschen. Praktisch beim Umgang mit Kennwörtern oder privaten Daten.",
                 it: "Interrompe temporaneamente la registrazione delle nuove copie senza cancellare la cronologia salvata. Utile mentre gestisci password o dati personali.",
@@ -98,8 +143,8 @@ namespace CyrFlip
                 ur: "محفوظ شدہ تاریخ مٹائے بغیر نئی کاپیوں کا اندراج عارضی طور پر روک دیتا ہے۔ پاس ورڈ یا ذاتی ڈیٹا کے ساتھ کام کرتے وقت مفید۔",
                 zh: "暂时停止记录新的复制内容，但不删除已保存的历史。处理密码或私密数据时很有用。");
 
-            Add("Показывать окно менеджера буфера при запуске",
-                en: "Show clipboard manager on startup", uk: "Показувати менеджер буфера під час запуску",
+            Add("Show clipboard manager on startup",
+                ru: "Показывать окно менеджера буфера при запуске", uk: "Показувати менеджер буфера під час запуску",
                 de: "Zwischenablage-Manager beim Start anzeigen", it: "Mostra il gestore appunti all'avvio",
                 es: "Mostrar el gestor del portapapeles al iniciar",
                 fr: "Afficher le gestionnaire du presse-papiers au démarrage",
@@ -108,8 +153,8 @@ namespace CyrFlip
                 bn: "চালু হওয়ার সময় ক্লিপবোর্ড ম্যানেজার দেখান", ur: "شروع ہونے پر کلپ بورڈ مینیجر دکھائیں",
                 zh: "启动时显示剪贴板管理器");
 
-            Add("Запоминает, открыто ли окно менеджера буфера: если вы его закрыли, при следующем запуске оно останется закрытым (история всё равно ведётся в фоне).",
-                en: "Remembers whether the clipboard manager window is open: if you closed it, it stays closed on the next launch (history is still captured in the background).",
+            Add("Remembers whether the clipboard manager window is open: if you closed it, it stays closed on the next launch (history is still captured in the background).",
+                ru: "Запоминает, открыто ли окно менеджера буфера: если вы его закрыли, при следующем запуске оно останется закрытым (история всё равно ведётся в фоне).",
                 uk: "Запам'ятовує, чи відкрите вікно менеджера буфера: якщо ви його закрили, під час наступного запуску воно лишиться закритим (історія все одно ведеться у фоні).",
                 de: "Merkt sich, ob das Fenster des Zwischenablage-Managers offen ist: Haben Sie es geschlossen, bleibt es beim nächsten Start geschlossen (der Verlauf wird trotzdem im Hintergrund geführt).",
                 it: "Ricorda se la finestra del gestore appunti è aperta: se l'hai chiusa, resterà chiusa al prossimo avvio (la cronologia continua comunque in background).",
@@ -122,16 +167,16 @@ namespace CyrFlip
                 ur: "یاد رکھتا ہے کہ کلپ بورڈ مینیجر کی ونڈو کھلی ہے یا نہیں: اگر آپ نے بند کی تھی تو اگلی بار بھی بند رہے گی (تاریخ پھر بھی پس منظر میں محفوظ ہوتی رہتی ہے)۔",
                 zh: "记住剪贴板管理器窗口是否打开：如果你关闭了它，下次启动时仍保持关闭（历史仍会在后台记录）。");
 
-            Add("Прозрачность окна истории:",
-                en: "History window transparency:", uk: "Прозорість вікна історії:",
+            Add("History window transparency:",
+                ru: "Прозрачность окна истории:", uk: "Прозорість вікна історії:",
                 de: "Transparenz des Verlaufsfensters:", it: "Trasparenza della finestra cronologia:",
                 es: "Transparencia de la ventana del historial:", fr: "Transparence de la fenêtre d'historique :",
                 pt: "Transparência da janela do histórico:", ar: "شفافية نافذة السجل:",
                 hi: "इतिहास विंडो की पारदर्शिता:", bn: "ইতিহাস উইন্ডোর স্বচ্ছতা:",
                 ur: "تاریخ ونڈو کی شفافیت:", zh: "历史窗口透明度：");
 
-            Add("Задаёт прозрачность плавающего окна истории от 30% до 100%. Значение применяется сразу.",
-                en: "Sets the floating history window opacity from 30% to 100%. Applied immediately.",
+            Add("Sets the floating history window opacity from 30% to 100%. Applied immediately.",
+                ru: "Задаёт прозрачность плавающего окна истории от 30% до 100%. Значение применяется сразу.",
                 uk: "Задає прозорість плаваючого вікна історії від 30% до 100%. Застосовується одразу.",
                 de: "Legt die Deckkraft des schwebenden Verlaufsfensters von 30 % bis 100 % fest. Wirkt sofort.",
                 it: "Imposta l'opacità della finestra flottante della cronologia dal 30% al 100%. Si applica subito.",
@@ -144,14 +189,14 @@ namespace CyrFlip
                 ur: "تیرتی تاریخ ونڈو کی دھندلاہٹ 30% سے 100% تک مقرر کرتا ہے۔ فوراً لاگو ہوتا ہے۔",
                 zh: "将浮动历史窗口的不透明度设为 30% 到 100%，立即生效。");
 
-            Add("Поиск по истории",
-                en: "Search history", uk: "Пошук в історії", de: "Verlauf durchsuchen",
+            Add("Search history",
+                ru: "Поиск по истории", uk: "Пошук в історії", de: "Verlauf durchsuchen",
                 it: "Cerca nella cronologia", es: "Buscar en el historial", fr: "Rechercher dans l'historique",
                 pt: "Pesquisar no histórico", ar: "البحث في السجل", hi: "इतिहास में खोजें",
                 bn: "ইতিহাসে খুঁজুন", ur: "تاریخ میں تلاش کریں", zh: "搜索历史");
 
-            Add("Открывает отдельное окно поиска по фрагменту текста. Для поиска нужно ввести не менее трёх символов.",
-                en: "Opens a separate window to search by a text fragment. Enter at least three characters to search.",
+            Add("Opens a separate window to search by a text fragment. Enter at least three characters to search.",
+                ru: "Открывает отдельное окно поиска по фрагменту текста. Для поиска нужно ввести не менее трёх символов.",
                 uk: "Відкриває окреме вікно для пошуку за фрагментом тексту. Для пошуку введіть щонайменше три символи.",
                 de: "Öffnet ein eigenes Fenster für die Suche nach einem Textausschnitt. Geben Sie mindestens drei Zeichen ein.",
                 it: "Apre una finestra separata per cercare un frammento di testo. Servono almeno tre caratteri.",
@@ -164,15 +209,15 @@ namespace CyrFlip
                 ur: "متن کے ٹکڑے سے تلاش کے لیے الگ ونڈو کھولتا ہے۔ تلاش کے لیے کم از کم تین حروف لکھیں۔",
                 zh: "打开一个独立窗口，按文本片段搜索。至少输入三个字符才能搜索。");
 
-            Add("Очистить всю историю",
-                en: "Clear all history", uk: "Очистити всю історію", de: "Gesamten Verlauf löschen",
+            Add("Clear all history",
+                ru: "Очистить всю историю", uk: "Очистити всю історію", de: "Gesamten Verlauf löschen",
                 it: "Cancella tutta la cronologia", es: "Borrar todo el historial",
                 fr: "Effacer tout l'historique", pt: "Limpar todo o histórico",
                 ar: "مسح كل السجل", hi: "पूरा इतिहास मिटाएँ", bn: "সম্পূর্ণ ইতিহাস মুছুন",
                 ur: "پوری تاریخ مٹائیں", zh: "清除全部历史");
 
-            Add("Удаляет все записи из памяти и зашифрованного локального файла. Это действие нельзя отменить.",
-                en: "Deletes every entry from memory and the encrypted local file. This cannot be undone.",
+            Add("Deletes every entry from memory and the encrypted local file. This cannot be undone.",
+                ru: "Удаляет все записи из памяти и зашифрованного локального файла. Это действие нельзя отменить.",
                 uk: "Видаляє всі записи з пам'яті та зашифрованого локального файлу. Цю дію не можна скасувати.",
                 de: "Löscht alle Einträge aus dem Speicher und der verschlüsselten lokalen Datei. Das lässt sich nicht rückgängig machen.",
                 it: "Elimina tutte le voci dalla memoria e dal file locale cifrato. L'operazione non è reversibile.",
@@ -185,8 +230,8 @@ namespace CyrFlip
                 ur: "میموری اور خفیہ مقامی فائل سے تمام اندراجات حذف کر دیتا ہے۔ اسے واپس نہیں کیا جا سکتا۔",
                 zh: "从内存和加密的本地文件中删除所有条目。此操作无法撤销。");
 
-            Add("Удалить всю сохранённую историю буфера?",
-                en: "Delete all saved clipboard history?", uk: "Видалити всю збережену історію буфера?",
+            Add("Delete all saved clipboard history?",
+                ru: "Удалить всю сохранённую историю буфера?", uk: "Видалити всю збережену історію буфера?",
                 de: "Den gesamten gespeicherten Zwischenablage-Verlauf löschen?",
                 it: "Eliminare tutta la cronologia degli appunti salvata?",
                 es: "¿Borrar todo el historial guardado del portapapeles?",
@@ -199,16 +244,16 @@ namespace CyrFlip
                 zh: "要删除全部已保存的剪贴板历史吗？");
 
             // ---- Search window ----
-            Add("Введите не менее 3 символов:",
-                en: "Enter at least 3 characters:", uk: "Введіть щонайменше 3 символи:",
+            Add("Enter at least 3 characters:",
+                ru: "Введите не менее 3 символов:", uk: "Введіть щонайменше 3 символи:",
                 de: "Mindestens 3 Zeichen eingeben:", it: "Inserisci almeno 3 caratteri:",
                 es: "Escribe al menos 3 caracteres:", fr: "Saisissez au moins 3 caractères :",
                 pt: "Digite pelo menos 3 caracteres:", ar: "أدخل 3 أحرف على الأقل:",
                 hi: "कम से कम 3 अक्षर दर्ज करें:", bn: "অন্তত ৩টি অক্ষর লিখুন:",
                 ur: "کم از کم 3 حروف لکھیں:", zh: "请输入至少 3 个字符：");
 
-            Add("Введите минимум 3 символа для поиска по части текста.",
-                en: "Enter at least 3 characters to search by text fragment.",
+            Add("Enter at least 3 characters to search by text fragment.",
+                ru: "Введите минимум 3 символа для поиска по части текста.",
                 uk: "Введіть щонайменше 3 символи для пошуку за фрагментом тексту.",
                 de: "Geben Sie mindestens 3 Zeichen ein, um nach einem Textausschnitt zu suchen.",
                 it: "Inserisci almeno 3 caratteri per cercare un frammento di testo.",
@@ -221,49 +266,49 @@ namespace CyrFlip
                 ur: "متن کے ٹکڑے سے تلاش کے لیے کم از کم 3 حروف لکھیں۔",
                 zh: "请输入至少 3 个字符，以按文本片段搜索。");
 
-            Add("Совпадений не найдено.",
-                en: "No matches found.", uk: "Збігів не знайдено.", de: "Keine Treffer gefunden.",
+            Add("No matches found.",
+                ru: "Совпадений не найдено.", uk: "Збігів не знайдено.", de: "Keine Treffer gefunden.",
                 it: "Nessuna corrispondenza trovata.", es: "No se encontraron coincidencias.",
                 fr: "Aucun résultat trouvé.", pt: "Nenhuma correspondência encontrada.",
                 ar: "لم يُعثر على أي تطابق.", hi: "कोई मिलान नहीं मिला।", bn: "কোনো মিল পাওয়া যায়নি।",
                 ur: "کوئی مماثلت نہیں ملی۔", zh: "未找到匹配项。");
 
-            Add("Найдено: {0}",
-                en: "Found: {0}", uk: "Знайдено: {0}", de: "Gefunden: {0}", it: "Trovati: {0}",
+            Add("Found: {0}",
+                ru: "Найдено: {0}", uk: "Знайдено: {0}", de: "Gefunden: {0}", it: "Trovati: {0}",
                 es: "Encontrados: {0}", fr: "Trouvés : {0}", pt: "Encontrados: {0}",
                 ar: "النتائج: {0}", hi: "मिले: {0}", bn: "পাওয়া গেছে: {0}", ur: "ملے: {0}", zh: "找到：{0}");
 
-            Add("Текст",
-                en: "Text", uk: "Текст", de: "Text", it: "Testo", es: "Texto", fr: "Texte",
+            Add("Text",
+                ru: "Текст", uk: "Текст", de: "Text", it: "Testo", es: "Texto", fr: "Texte",
                 pt: "Texto", ar: "النص", hi: "पाठ", bn: "লেখা", ur: "متن", zh: "文本");
 
-            Add("Дата",
-                en: "Date", uk: "Дата", de: "Datum", it: "Data", es: "Fecha", fr: "Date",
+            Add("Date",
+                ru: "Дата", uk: "Дата", de: "Datum", it: "Data", es: "Fecha", fr: "Date",
                 pt: "Data", ar: "التاريخ", hi: "दिनांक", bn: "তারিখ", ur: "تاریخ", zh: "日期");
 
-            Add("Источник",
-                en: "Source", uk: "Джерело", de: "Quelle", it: "Origine", es: "Origen", fr: "Source",
+            Add("Source",
+                ru: "Источник", uk: "Джерело", de: "Quelle", it: "Origine", es: "Origen", fr: "Source",
                 pt: "Origem", ar: "المصدر", hi: "स्रोत", bn: "উৎস", ur: "ماخذ", zh: "来源");
 
             // The vocabulary's name for the pin (ICON-SET action.pin): the accessible name of the history
             // strip's pin toggle, whose pinned state is carried by the control's state, not by a second word.
-            Add("Закрепить",
-                en: "Pin", uk: "Закріпити", de: "Anheften", it: "Fissa", es: "Fijar", fr: "Épingler",
+            Add("Pin",
+                ru: "Закрепить", uk: "Закріпити", de: "Anheften", it: "Fissa", es: "Fijar", fr: "Épingler",
                 pt: "Fixar", ar: "تثبيت", hi: "पिन करें", bn: "পিন করুন", ur: "پن کریں", zh: "固定");
-            Add("Закрыть",
-                en: "Close", uk: "Закрити", de: "Schließen", it: "Chiudi", es: "Cerrar", fr: "Fermer",
+            Add("Close",
+                ru: "Закрыть", uk: "Закрити", de: "Schließen", it: "Chiudi", es: "Cerrar", fr: "Fermer",
                 pt: "Fechar", ar: "إغلاق", hi: "बंद करें", bn: "বন্ধ করুন", ur: "بند کریں", zh: "关闭");
 
-            Add("Вернуть в буфер",
-                en: "Restore to clipboard", uk: "Повернути в буфер", de: "In die Zwischenablage zurücklegen",
+            Add("Restore to clipboard",
+                ru: "Вернуть в буфер", uk: "Повернути в буфер", de: "In die Zwischenablage zurücklegen",
                 it: "Riporta negli appunti", es: "Devolver al portapapeles",
                 fr: "Remettre dans le presse-papiers", pt: "Devolver à área de transferência",
                 ar: "إعادة إلى الحافظة", hi: "क्लिपबोर्ड में वापस डालें",
                 bn: "ক্লিপবোর্ডে ফেরত দিন", ur: "کلپ بورڈ میں واپس رکھیں", zh: "放回剪贴板");
 
             // ---- Tray balloons ----
-            Add("Ничего не выделено. Я переворачиваю текст, а не воздух — сначала выделите что-нибудь.",
-                en: "Nothing selected. I flip text, not thin air — highlight something first.",
+            Add("Nothing selected. I flip text, not thin air — highlight something first.",
+                ru: "Ничего не выделено. Я переворачиваю текст, а не воздух — сначала выделите что-нибудь.",
                 uk: "Нічого не виділено. Я перевертаю текст, а не повітря — спершу виділіть щось.",
                 de: "Nichts ausgewählt. Ich wandle Text um, keine Luft — markieren Sie zuerst etwas.",
                 it: "Nessuna selezione. Converto testo, non aria: seleziona prima qualcosa.",
@@ -276,8 +321,8 @@ namespace CyrFlip
                 ur: "کچھ منتخب نہیں ہے۔ میں متن بدلتا ہوں، ہوا نہیں — پہلے کچھ منتخب کریں۔",
                 zh: "没有选中任何内容。我转换的是文本，不是空气——请先选中一些文字。");
 
-            Add("Не удалось прочитать или заменить выделение. У буфера обмена были другие планы.",
-                en: "Couldn't read or replace the selection. The clipboard had other plans.",
+            Add("Couldn't read or replace the selection. The clipboard had other plans.",
+                ru: "Не удалось прочитать или заменить выделение. У буфера обмена были другие планы.",
                 uk: "Не вдалося прочитати або замінити виділення. У буфера обміну були інші плани.",
                 de: "Die Auswahl konnte nicht gelesen oder ersetzt werden. Die Zwischenablage hatte andere Pläne.",
                 it: "Impossibile leggere o sostituire la selezione. Gli appunti avevano altri programmi.",
@@ -290,8 +335,8 @@ namespace CyrFlip
                 ur: "انتخاب پڑھا یا بدلا نہیں جا سکا۔ کلپ بورڈ کے ارادے کچھ اور تھے۔",
                 zh: "无法读取或替换所选内容。剪贴板另有打算。");
 
-            Add("Выделение слишком большое для конвертации (больше миллиона символов). Выделите часть.",
-                en: "The selection is too large to convert (over a million characters). Select a part of it.",
+            Add("The selection is too large to convert (over a million characters). Select a part of it.",
+                ru: "Выделение слишком большое для конвертации (больше миллиона символов). Выделите часть.",
                 uk: "Виділення завелике для конвертації (понад мільйон символів). Виділіть частину.",
                 de: "Die Auswahl ist zu groß zum Umwandeln (mehr als eine Million Zeichen). Wählen Sie einen Teil aus.",
                 it: "La selezione è troppo grande da convertire (oltre un milione di caratteri). Selezionane una parte.",
@@ -304,8 +349,8 @@ namespace CyrFlip
                 ur: "انتخاب تبدیل کرنے کے لیے بہت بڑا ہے (دس لاکھ سے زیادہ حروف)۔ اس کا ایک حصہ منتخب کریں۔",
                 zh: "所选内容太大，无法转换（超过一百万个字符）。请选择其中一部分。");
 
-            Add("Фрагмент слишком велик для истории (>128 КБ).",
-                en: "Fragment is too large for history (>128 KB).",
+            Add("Fragment is too large for history (>128 KB).",
+                ru: "Фрагмент слишком велик для истории (>128 КБ).",
                 uk: "Фрагмент завеликий для історії (>128 КБ).",
                 de: "Der Ausschnitt ist zu groß für den Verlauf (>128 KB).",
                 it: "Il frammento è troppo grande per la cronologia (>128 KB).",
@@ -318,8 +363,8 @@ namespace CyrFlip
                 ur: "یہ ٹکڑا تاریخ کے لیے بہت بڑا ہے (>128 کلوبائٹ)۔",
                 zh: "该片段太大，无法存入历史（超过 128 KB）。");
 
-            Add("Не прочитано записей истории буфера: {0}. Остальная история на месте.",
-                en: "Unreadable clipboard history records: {0}. The rest of the history is there.",
+            Add("Unreadable clipboard history records: {0}. The rest of the history is there.",
+                ru: "Не прочитано записей истории буфера: {0}. Остальная история на месте.",
                 uk: "Не прочитано записів історії буфера: {0}. Решта історії на місці.",
                 de: "Unlesbare Einträge im Zwischenablage-Verlauf: {0}. Der übrige Verlauf ist da.",
                 it: "Record della cronologia appunti illeggibili: {0}. Il resto della cronologia c'è.",
@@ -332,8 +377,8 @@ namespace CyrFlip
                 ur: "کلپ بورڈ کی تاریخ کے ناقابلِ مطالعہ ریکارڈ: {0}۔ باقی تاریخ موجود ہے۔",
                 zh: "无法读取的剪贴板历史记录：{0} 条。其余历史都在。");
 
-            Add("Файл истории буфера занят другой программой, и он не удалён. Повторите очистку.",
-                en: "The clipboard history file is in use by another program and was not deleted. Try clearing again.",
+            Add("The clipboard history file is in use by another program and was not deleted. Try clearing again.",
+                ru: "Файл истории буфера занят другой программой, и он не удалён. Повторите очистку.",
                 uk: "Файл історії буфера зайнятий іншою програмою, і його не видалено. Повторіть очищення.",
                 de: "Die Verlaufsdatei der Zwischenablage wird von einem anderen Programm verwendet und wurde nicht gelöscht. Leeren Sie sie erneut.",
                 it: "Il file della cronologia degli appunti è in uso da un altro programma e non è stato eliminato. Riprova a cancellare.",
@@ -346,8 +391,8 @@ namespace CyrFlip
                 ur: "کلپ بورڈ کی تاریخ کی فائل کسی دوسرے پروگرام کے استعمال میں ہے اور حذف نہیں ہوئی۔ دوبارہ صاف کریں۔",
                 zh: "剪贴板历史文件正被其他程序占用，未能删除。请再清除一次。");
 
-            Add("Запись в файл истории буфера не удалась - новые записи могут не сохраниться после перезапуска.",
-                en: "Writing to the clipboard history file failed - new entries may not survive a restart.",
+            Add("Writing to the clipboard history file failed - new entries may not survive a restart.",
+                ru: "Запись в файл истории буфера не удалась - новые записи могут не сохраниться после перезапуска.",
                 uk: "Запис у файл історії буфера не вдався - нові записи можуть не зберегтися після перезапуску.",
                 de: "Das Schreiben in die Verlaufsdatei der Zwischenablage ist fehlgeschlagen - neue Einträge überstehen einen Neustart möglicherweise nicht.",
                 it: "La scrittura nel file della cronologia degli appunti non è riuscita - le nuove voci potrebbero non sopravvivere a un riavvio.",
@@ -360,8 +405,8 @@ namespace CyrFlip
                 ur: "کلپ بورڈ کی تاریخ کی فائل میں لکھنا ناکام رہا - نئے اندراجات دوبارہ شروع کرنے کے بعد شاید باقی نہ رہیں۔",
                 zh: "写入剪贴板历史文件失败 - 新记录在重启后可能不会保留。");
 
-            Add("Записей истории ещё не записано на диск: {0}. Они будут дописаны, пока CyrFlip работает.",
-                en: "History entries not yet written to disk: {0}. They will be written while CyrFlip keeps running.",
+            Add("History entries not yet written to disk: {0}. They will be written while CyrFlip keeps running.",
+                ru: "Записей истории ещё не записано на диск: {0}. Они будут дописаны, пока CyrFlip работает.",
                 uk: "Записів історії ще не записано на диск: {0}. Їх буде дописано, поки CyrFlip працює.",
                 de: "Noch nicht auf den Datenträger geschriebene Verlaufseinträge: {0}. Sie werden geschrieben, solange CyrFlip läuft.",
                 it: "Voci della cronologia non ancora scritte su disco: {0}. Verranno scritte finché CyrFlip resta in esecuzione.",
@@ -374,8 +419,8 @@ namespace CyrFlip
                 ur: "تاریخ کے اندراجات جو ابھی ڈسک پر نہیں لکھے گئے: {0}۔ CyrFlip چلتا رہا تو یہ لکھ دیے جائیں گے۔",
                 zh: "尚未写入磁盘的历史记录：{0} 条。CyrFlip 运行期间会继续写入。");
 
-            Add("Не удалось изменить автозапуск Windows:",
-                en: "Couldn't update Windows startup:", uk: "Не вдалося змінити автозапуск Windows:",
+            Add("Couldn't update Windows startup:",
+                ru: "Не удалось изменить автозапуск Windows:", uk: "Не вдалося змінити автозапуск Windows:",
                 de: "Der Windows-Autostart konnte nicht geändert werden:",
                 it: "Impossibile modificare l'avvio automatico di Windows:",
                 es: "No se pudo cambiar el inicio automático de Windows:",
@@ -385,8 +430,8 @@ namespace CyrFlip
                 bn: "Windows স্টার্টআপ পরিবর্তন করা গেল না:", ur: "Windows اسٹارٹ اپ تبدیل نہیں ہو سکا:",
                 zh: "无法修改 Windows 开机启动：");
 
-            Add("История пуста.",
-                en: "History is empty.",
+            Add("History is empty.",
+                ru: "История пуста.",
                 uk: "Історія порожня.",
                 de: "Verlauf ist leer.",
                 it: "La cronologia è vuota.",

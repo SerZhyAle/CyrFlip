@@ -26,7 +26,7 @@ namespace CyrFlip
             Action? importFromOneClickRunner,
             Func<string, string> translate)
         {
-            parent.Text = translate("Быстрый запуск");
+            parent.Text = translate("Quick launch");
             Fill(parent.DropDownItems, scenarios, run, manage, importFromOneClickRunner, translate);
         }
 
@@ -64,11 +64,11 @@ namespace CyrFlip
                 items.Add(new ToolStripSeparator());
 
             items.Add(new ToolStripMenuItem(
-                translate("Управление сценариями..."), null, (_, _) => manage()));
+                translate("Manage scenarios..."), null, (_, _) => manage()));
 
             if (importFromOneClickRunner != null)
                 items.Add(new ToolStripMenuItem(
-                    translate("Импорт из OneClickRunner..."), null, (_, _) => importFromOneClickRunner()));
+                    translate("Import from OneClickRunner..."), null, (_, _) => importFromOneClickRunner()));
         }
 
         /// <summary>Drop every item (the launcher was switched off), leaving the parent empty.</summary>

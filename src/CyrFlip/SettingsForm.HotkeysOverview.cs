@@ -41,14 +41,14 @@ namespace CyrFlip
             _enableHotkeys.Name = "setting.hotkeys-master";
             var controls = new List<Control>
             {
-                Group("hotkeys/switches", "Общие выключатели",
-                    Setting(_enableHotkeys, "Общий выключатель всех горячих клавиш. Когда снят, CyrFlip не перехватывает ни одной комбинации — клавиши проходят в приложение как обычно."),
-                    Setting(_deferRdp, "Когда в фокусе окно клиента удалённого рабочего стола (mstsc/msrdc), CyrFlip не перехватывает хоткеи — клавиша уходит в удалённый сеанс, где её обработает CyrFlip на той машине. Включите, если утилита запущена на обеих сторонах RDP.")),
+                Group("hotkeys/switches", "Main switches",
+                    Setting(_enableHotkeys, "Master switch for all hotkeys. When off, CyrFlip intercepts none of the chords — keys reach the app as usual."),
+                    Setting(_deferRdp, "When a remote-desktop client window (mstsc/msrdc) is focused, CyrFlip does not intercept the hotkeys — the key travels to the remote session where that machine's CyrFlip handles it. Enable this if the app runs on both ends of the RDP connection.")),
                 _overviewNote,
             };
-            _overviewResetAll = Button("Сбросить все...", AppGlyphs.Reset, ResetAllChords);
+            _overviewResetAll = Button("Reset all...", AppGlyphs.Reset, ResetAllChords);
             _overviewResetAll.Name = "group.overview";
-            controls.Add(Setting(_overviewResetAll, "Возвращает комбинации и их выключатели к тем, с которыми CyrFlip поставляется. Модули, строки таблиц и сценарии не удаляются и не выключаются."));
+            controls.Add(Setting(_overviewResetAll, "Puts the hotkeys and their switches back to what CyrFlip ships with. Modules, table rows and scenarios are not deleted or switched off."));
             controls.Add(_overviewStatus);
 
             Dictionary<string, bool> saved = ParseGroupState(_config.SettingsGroupsState);
@@ -62,7 +62,7 @@ namespace CyrFlip
                 controls.Add(box);
             }
 
-            return Page("Горячие клавиши", "Общий выключатель и полный список сочетаний CyrFlip: что делает каждое, действует ли оно сейчас и почему. Сочетание можно изменить или сбросить здесь; настройки функции остаются на её вкладке.", controls.ToArray());
+            return Page("Hotkeys", "The master switch and the full list of CyrFlip hotkeys: what each one does, whether it works right now and why. A hotkey can be changed or reset here; the feature's own settings stay on its page.", controls.ToArray());
         }
 
         /// <summary>Rebuilds every row from the live state, in the current language.</summary>
@@ -93,7 +93,7 @@ namespace CyrFlip
                 if (added == 0 && pair.Key != ChordGroup.Windows)
                     body.Controls.Add(new Label
                     {
-                        Text = Translate("Здесь пока нет ни одной комбинации."), AutoSize = true,
+                        Text = Translate("There are no hotkeys here yet."), AutoSize = true,
                         ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(25, 6, 3, 4),
                     });
                 body.ResumeLayout();
@@ -103,9 +103,9 @@ namespace CyrFlip
             // The master switch is read back by Reload() itself (_enableHotkeys): a reset or an import that
             // changed it under the page reaches it there, and there is no second control to keep in step.
             string note = "";
-            if (!_config.EnableHotkeys) note = Translate("Горячие клавиши выключены: ни одна комбинация CyrFlip сейчас не действует.");
+            if (!_config.EnableHotkeys) note = Translate("Hotkeys are off: no CyrFlip hotkey works right now.");
             else if (_config.DeferToRemoteDesktop)
-                note = Translate("Пока в фокусе клиент удалённого рабочего стола (mstsc/msrdc), комбинации уходят в удалённый сеанс.");
+                note = Translate("While a remote desktop client (mstsc/msrdc) has the focus, hotkeys go to the remote session.");
             _overviewNote.Text = note;
             _overviewNote.Visible = note.Length > 0;
 
@@ -133,11 +133,11 @@ namespace CyrFlip
             var note = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 2, 3, 4) };
             note.Controls.Add(new Label
             {
-                Text = Translate("Эти комбинации ведёт сама Windows, не CyrFlip: здесь они только показаны, чтобы было видно, что занято."),
+                Text = Translate("Windows handles these hotkeys, not CyrFlip: they are only shown here so you can see what is taken."),
                 AutoSize = true, UseMnemonic = false, MaximumSize = new Size(Column(700), 0),
                 ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 0, 3, 2),
             });
-            var link = new LinkLabel { Text = Translate("Открыть «Языки Windows»"), AutoSize = true, Margin = new Padding(3, 0, 3, 2) };
+            var link = new LinkLabel { Text = Translate("Open “Windows languages”"), AutoSize = true, Margin = new Padding(3, 0, 3, 2) };
             link.LinkClicked += (_, _) => SelectPage(SettingsPageKey.WindowsLanguages);
             note.Controls.Add(link);
             return note;
@@ -187,8 +187,8 @@ namespace CyrFlip
 
             if (!row.ReadOnly)
             {
-                panel.Controls.Add(Button(Translate("Изменить..."), AppGlyphs.Edit, () => OverviewChange(row)));
-                Button reset = Button(Translate(row.ResetRestoresDefault ? "По умолчанию" : "Очистить"), row.ResetRestoresDefault ? AppGlyphs.Reset : AppGlyphs.ClearInput, () => OverviewReset(row));
+                panel.Controls.Add(Button(Translate("Change..."), AppGlyphs.Edit, () => OverviewChange(row)));
+                Button reset = Button(Translate(row.ResetRestoresDefault ? "Set default" : "Clear"), row.ResetRestoresDefault ? AppGlyphs.Reset : AppGlyphs.ClearInput, () => OverviewReset(row));
                 reset.Enabled = row.CanReset;
                 panel.Controls.Add(reset);
             }
@@ -232,6 +232,7 @@ namespace CyrFlip
                 case ChordKind.ScreenshotFolder: ScreenshotFolderHotkeyChangeRequested?.Invoke(this, EventArgs.Empty); break;
                 case ChordKind.TextMenu: TextMenuHotkeyChangeRequested?.Invoke(this, EventArgs.Empty); break;
                 case ChordKind.Symbols: SymbolsHotkeyChangeRequested?.Invoke(this, EventArgs.Empty); break;
+                case ChordKind.TrafficLight: TrafficLightHotkeyChangeRequested?.Invoke(this, EventArgs.Empty); break;
                 case ChordKind.Conversion:
                 case ChordKind.Translation:
                 case ChordKind.Launcher:
@@ -243,7 +244,7 @@ namespace CyrFlip
         private void ChangeRowChord(ChordOverviewRow row)
         {
             string start = Hotkey.TryParse(row.StoredChord, out Hotkey current) ? current.Display : row.StoredChord;
-            using var dialog = new HotkeyDialog(start, Localization.Format(Translate, "Комбинация: {0}", row.Caption), _config.UiLanguage);
+            using var dialog = new HotkeyDialog(start, Localization.Format(Translate, "Hotkey: {0}", row.Caption), _config.UiLanguage);
             if (dialog.ShowDialog(this) != DialogResult.OK || dialog.CapturedHotkey == null) return;
             if (!Hotkey.TryParse(dialog.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, row.Kind!.Value, row.Id)) return;
 
@@ -293,6 +294,7 @@ namespace CyrFlip
                 case ChordKind.History: Changed(_setHistoryEnabled, on); break;
                 case ChordKind.QuickNotes: QuickNotesSettingChanged(() => _config.EnableQuickNotesHotkey = on, reload: true); break;
                 case ChordKind.Symbols: SymbolsSettingChanged(() => _config.EnableSymbolsHotkey = on, reload: true); break;
+                case ChordKind.TrafficLight: TrafficLightSettingChanged(() => _config.EnableTrafficLightHotkey = on, reload: true); break;
                 case ChordKind.Screenshot: GraphicsSettingChanged(() => _config.EnableScreenshotHotkey = on, reload: true); break;
                 case ChordKind.ScreenshotFolder: GraphicsSettingChanged(() => _config.EnableScreenshotFolderHotkey = on, reload: true); break;
                 case ChordKind.TextMenu: TextMenuSettingChanged(() => _config.EnableTextMenuHotkey = on, reload: true); break;
@@ -347,7 +349,7 @@ namespace CyrFlip
             if (plan.IsEmpty)
             {
                 string none = plan.Skipped.Count == 0
-                    ? Translate("Горячие клавиши уже такие, как при установке.")
+                    ? Translate("Hotkeys are already as they were when installed.")
                     : string.Join("\n", plan.Skipped.Select(SkipText));
                 ConfirmDialog.Show(this, _config.UiLanguage, none, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
@@ -376,16 +378,16 @@ namespace CyrFlip
         /// <summary>The confirmation is built from the plan itself: counts, the rows that cannot be reset, Windows' holds.</summary>
         private string ResetPlanText(ChordResetPlan plan)
         {
-            var lines = new List<string> { Translate("Вернуть комбинации к тем, с которыми CyrFlip поставляется?") };
-            lines.Add(Localization.Format(Translate, "Будет изменено: {0}. Уже такие, как при установке: {1}.",
+            var lines = new List<string> { Translate("Put the hotkeys back to what CyrFlip ships with?") };
+            lines.Add(Localization.Format(Translate, "Will change: {0}. Already as installed: {1}.",
                 plan.Steps.Count, plan.AlreadyDefault));
             if (plan.Steps.Any(step => step.Clears))
-                lines.Add(Translate("Строки таблиц и сценарии не удаляются; у тех, что поставлялись без комбинации, она будет снята."));
+                lines.Add(Translate("Table rows and scenarios are not deleted; those that shipped without a hotkey will have theirs cleared."));
             if (plan.RestoreMaster)
-                lines.Add(Translate("Общий выключатель горячих клавиш будет включён."));
+                lines.Add(Translate("The master hotkey switch will be turned on."));
             if (plan.Skipped.Count > 0)
             {
-                lines.Add(Translate("Не будут изменены:"));
+                lines.Add(Translate("Will not be changed:"));
                 lines.AddRange(plan.Skipped.Select(SkipText));
             }
             lines.AddRange(plan.WindowsHolds.Select(WindowsHoldText));
@@ -399,21 +401,21 @@ namespace CyrFlip
                 case ChordSkipReason.SaveFailed:
                     return skip.Caption + ": " + skip.HeldBy;
                 case ChordSkipReason.Taken:
-                    return Localization.Format(Translate, "«{0}»: комбинация {1} занята действием «{2}».", skip.Caption, skip.Chord, skip.HeldBy ?? "");
+                    return Localization.Format(Translate, "“{0}”: the hotkey {1} is taken by “{2}”.", skip.Caption, skip.Chord, skip.HeldBy ?? "");
                 case ChordSkipReason.Changed:
-                    return Localization.Format(Translate, "«{0}»: строка изменилась, пока шёл сброс, - не тронута.", skip.Caption);
+                    return Localization.Format(Translate, "“{0}”: the row changed during the reset, so it was left alone.", skip.Caption);
                 default:
-                    return Localization.Format(Translate, "«{0}»: строки больше нет.", skip.Caption);
+                    return Localization.Format(Translate, "“{0}”: the row no longer exists.", skip.Caption);
             }
         }
 
         private string WindowsHoldText(KeyValuePair<string, string> hold)
-            => Localization.Format(Translate, "«{0}»: заводская комбинация занята в Windows (язык «{1}»). Если продолжить, Windows её больше не получит.", hold.Key, hold.Value);
+            => Localization.Format(Translate, "“{0}”: the shipped hotkey is used by Windows (language “{1}”). If you continue, Windows will no longer receive it.", hold.Key, hold.Value);
 
         private string ResetResultText(ChordResetResult result)
         {
-            string text = Localization.Format(Translate, "Сброшено: {0}. Не сброшено: {1}.", result.Applied.Count, result.Skipped.Count);
-            if (result.MasterRestored) text += " " + Translate("Общий выключатель горячих клавиш снова включён.");
+            string text = Localization.Format(Translate, "Reset: {0}. Not reset: {1}.", result.Applied.Count, result.Skipped.Count);
+            if (result.MasterRestored) text += " " + Translate("The master hotkey switch is on again.");
             foreach (ChordResetSkip skip in result.Skipped) text += "\n" + SkipText(skip);
             return text;
         }

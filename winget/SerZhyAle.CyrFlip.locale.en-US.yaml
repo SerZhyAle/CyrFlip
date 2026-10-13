@@ -24,10 +24,13 @@ Description: >-
   own menu over a selection, opened by Ctrl and a right click; a translator that sends a selection
   to Ollama - a free program you install separately on your own computer - and shows the translation
   in a small window at the mouse pointer, talking only to localhost by default, so no text leaves
-  your machine; a DPAPI-encrypted clipboard history with search; local encrypted quick notes that
+  your machine; a symbols window that finds the character your keyboard lacks by name, keyword or
+  Unicode code and copies it with a click; a DPAPI-encrypted clipboard history with search; local
+  encrypted quick notes that
   keep code exactly as typed; a plain-text exchange file that moves notes and history to another
   computer; and Quick launch, which turns your programs, scripts and yt-dlp downloads into scenarios
-  started from the tray, a global hotkey of their own or the taskbar Jump List. Extras: two
+  started from the tray, a global hotkey of their own or the taskbar Jump List. Extras: every hotkey
+  in one Settings list with a reset to its default, two
   keep-awake switches, a light or dark theme, an interface in 13 languages, and a Send logs to the
   author button that packs CyrFlip's own logs into one archive for a report you send yourself. Ships
   as a single portable exe with no installer and no runtime dependencies.

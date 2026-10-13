@@ -22,7 +22,7 @@ namespace CyrFlip
             _language = language; _build = build;
             string T(string text) => Localization.Translate(language, text);
             Plan = build(new HashSet<string>(document.Values.Keys));
-            Text = T("Перенос настроек"); ShowIcon = false; ShowInTaskbar = false;
+            Text = T("Settings transfer"); ShowIcon = false; ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent; MinimizeBox = false; MaximizeBox = false;
             AutoSize = true; AutoSizeMode = AutoSizeMode.GrowAndShrink;
             if (Localization.IsRightToLeft(language)) { RightToLeft = RightToLeft.Yes; RightToLeftLayout = true; }
@@ -32,9 +32,9 @@ namespace CyrFlip
                 ColumnCount = 1, Dock = DockStyle.Fill, Padding = new Padding(12) };
             int width = Math.Min(Screen.PrimaryScreen.WorkingArea.Width * 3 / 4, TextRenderer.MeasureText(new string('x', 90), Font).Width);
             layout.Controls.Add(new Label { AutoSize = true, MaximumSize = new Size(width, 0), UseMnemonic = false,
-                Text = Localization.Format(T, "Версия файла: {0}; дата: {1}", document.App, document.ExportedAtUtc) });
+                Text = Localization.Format(T, "File version: {0}; date: {1}", document.App, document.ExportedAtUtc) });
             if (Version.TryParse(document.App, out Version? version) && version > typeof(AppConfig).Assembly.GetName().Version)
-                layout.Controls.Add(new Label { AutoSize = true, MaximumSize = new Size(width, 0), Text = T("Файл создан более новой версией CyrFlip.") });
+                layout.Controls.Add(new Label { AutoSize = true, MaximumSize = new Size(width, 0), Text = T("This file was created by a newer CyrFlip version.") });
             var choices = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false };
             foreach (var group in Plan.Changes.Where(c => !c.OptIn).GroupBy(c => c.Entry.Group))
             {
@@ -47,7 +47,9 @@ namespace CyrFlip
             }
             foreach (var change in Plan.Changes.Where(c => c.OptIn))
             {
-                string caption = change.Entry.Key == "TranslateEndpoint" ? "Отправлять выделение на другой сервер" : change.Entry.Caption;
+                string caption = change.Entry.Key == "TranslateEndpoint" ? "Send selections to another server"
+                    : change.Entry.Key == "TrafficLightTargets" ? "Add the availability traffic light targets: CyrFlip will check the addresses listed in the file"
+                    : change.Entry.Caption;
                 var box = new CheckBox { Text = T(caption), Checked = false, AutoSize = true };
                 _choices.Add(new KeyValuePair<CheckBox, string[]>(box, new[] { change.Entry.Key })); choices.Controls.Add(box);
             }
@@ -59,8 +61,8 @@ namespace CyrFlip
             scroll.Controls.Add(_changes); layout.Controls.Add(scroll);
             _status = new Label { AutoSize = true, MaximumSize = new Size(width, 0), UseMnemonic = false }; layout.Controls.Add(_status);
             var buttons = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.RightToLeft, Dock = DockStyle.Fill };
-            var cancel = ButtonGlyphs.Answer(new Button { AutoSize = true, Text = T(Plan.Changes.Count == 0 ? "Закрыть" : "Отмена"), DialogResult = DialogResult.Cancel });
-            _apply = ButtonGlyphs.Answer(new Button { AutoSize = true, Text = T("Применить"), DialogResult = DialogResult.OK });
+            var cancel = ButtonGlyphs.Answer(new Button { AutoSize = true, Text = T(Plan.Changes.Count == 0 ? "Close" : "Cancel"), DialogResult = DialogResult.Cancel });
+            _apply = ButtonGlyphs.Answer(new Button { AutoSize = true, Text = T("Apply"), DialogResult = DialogResult.OK });
             buttons.Controls.Add(cancel); buttons.Controls.Add(_apply); layout.Controls.Add(buttons); Controls.Add(layout);
             CancelButton = cancel; AcceptButton = cancel;
             var offered = new HashSet<string>(_choices.SelectMany(c => c.Value));
@@ -85,8 +87,8 @@ namespace CyrFlip
             foreach (var change in Plan.Changes)
             {
                 string Value(object value) => change.Entry.IsTable
-                    ? Localization.Format(T, "Строк: {0}", new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<object[]>((string)value).Length)
-                    : change.Entry.Property.PropertyType == typeof(bool) ? T((int)value != 0 ? "Включено" : "Выключено") : Convert.ToString(value)!;
+                    ? Localization.Format(T, "Rows: {0}", new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<object[]>((string)value).Length)
+                    : change.Entry.Property.PropertyType == typeof(bool) ? T((int)value != 0 ? "On" : "Off") : Convert.ToString(value)!;
                 _changes.Controls.Add(new Label { AutoSize = true, MaximumSize = new Size(width - 24, 0), UseMnemonic = false,
                     Text = T(change.Entry.Caption) + ": " + Value(change.Before) + " → " + Value(change.After) });
                 if (change.Entry.IsTable)
@@ -102,8 +104,8 @@ namespace CyrFlip
             foreach (var issue in Plan.Issues)
                 _changes.Controls.Add(new Label { AutoSize = true, MaximumSize = new Size(width - 24, 0), UseMnemonic = false,
                     Text = issue.Key + ": " + T(Reason(issue.Reason)) });
-            _status.Text = Localization.Format(T, "Без изменений: {0}; неизвестных ключей: {1}", Plan.Unchanged, unknown);
-            if (Plan.Changes.Count == 0) _status.Text += "\n" + T("Настройки уже совпадают.");
+            _status.Text = Localization.Format(T, "Unchanged: {0}; unknown keys: {1}", Plan.Unchanged, unknown);
+            if (Plan.Changes.Count == 0) _status.Text += "\n" + T("Settings already match.");
             _apply.Enabled = Plan.Changes.Count > 0; _apply.Visible = _choices.Count > 0;
             _changes.ResumeLayout(true);
         }
@@ -111,11 +113,11 @@ namespace CyrFlip
         {
             switch (code)
             {
-                case "clamped": return "Число ограничено допустимым диапазоном.";
-                case "chord": return "Аккорд недопустим или занят. Локальное сочетание сохранено; строки таблицы отключены без сочетания.";
-                case "windows": return "Сочетание занято Windows. Импортировать его только с вашего согласия.";
-                case "layout": return "Раскладка не установлена.";
-                default: return "Значение недопустимо; пропущено.";
+                case "clamped": return "Number clamped to the allowed range.";
+                case "chord": return "Shortcut invalid or in use; local value kept. Table rows are disabled without a shortcut.";
+                case "windows": return "Windows owns this shortcut. Import it only with your consent.";
+                case "layout": return "Keyboard layout is not installed.";
+                default: return "Invalid value; skipped.";
             }
         }
         protected override void Dispose(bool disposing)
@@ -128,24 +130,25 @@ namespace CyrFlip
             switch (id)
             {
                 case "translate/ollama": return "Ollama";
-                case "translate/directions": return "Направления перевода";
-                case "translate/result": return "Результат";
-                case "notes/opening": return "Как открывать";
-                case "notes/editor": return "Редактор";
-                case "notes/storage": return "Экспорт и хранение";
-                case "graphics/capture": return "Снимок области экрана";
+                case "translate/directions": return "Translation directions";
+                case "translate/result": return "Result";
+                case "notes/opening": return "How to open it";
+                case "notes/editor": return "Editor";
+                case "notes/storage": return "Export and storage";
+                case "graphics/capture": return "Screen region capture";
                 // S0062: the groups the regrouped pages are made of.
-                case "general/language": return "Язык и тема";
-                case "general/power": return "Питание и экран";
-                case "hotkeys/switches": return "Общие выключатели";
-                case "conversions/table": return "Таблица раскладок";
-                case "conversions/after": return "После конвертации";
-                case "conversions/symbols": return "Знаки препинания";
-                case "conversions/case": return "Регистр";
-                case "clipboard/recording": return "Запись";
-                case "clipboard/window": return "Окно истории";
-                case "selection/mouse": return "Меню над выделением";
-                case "selection/keyboard": return "С клавиатуры";
+                case "general/language": return "Language and theme";
+                case "general/power": return "Power and screen";
+                case "hotkeys/switches": return "Main switches";
+                case "conversions/table": return "Layout table";
+                case "conversions/after": return "After conversion";
+                case "conversions/symbols": return "Punctuation";
+                case "conversions/case": return "Letter case";
+                case "clipboard/recording": return "Recording";
+                case "clipboard/window": return "History window";
+                case "selection/mouse": return "Menu over a selection";
+                case "selection/keyboard": return "From the keyboard";
+                case "trafficlight/targets": return "Targets";
             }
             return PageCaption(id);
         }
@@ -155,11 +158,12 @@ namespace CyrFlip
         {
             switch (id.Split('/')[0])
             {
-                case "general": return "Общие"; case "indicators": return "Индикаторы";
-                case "hotkeys": return "Горячие клавиши"; case "conversions": return "Исправление текста";
-                case "clipboard": return "Буфер обмена"; case "selection": return "Меню для выделенного";
-                case "translate": return "Перевод"; case "notes": return "Быстрые заметки";
-                default: return "Снимки экрана";
+                case "general": return "General"; case "indicators": return "Indicators";
+                case "hotkeys": return "Hotkeys"; case "conversions": return "Text correction";
+                case "clipboard": return "Clipboard"; case "selection": return "Selection menu";
+                case "translate": return "Translation"; case "notes": return "Quick notes";
+                case "trafficlight": return "Availability traffic light";
+                default: return "Screenshots";
             }
         }
     }

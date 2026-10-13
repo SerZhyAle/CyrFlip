@@ -22,7 +22,7 @@ namespace CyrFlip
         internal string Group { get; }
         internal string Caption { get; }
         internal PropertyInfo Property => typeof(AppConfig).GetProperty(Key)!;
-        internal bool IsTable => Key == "LayoutConversionProfiles" || Key == "TranslateProfiles";
+        internal bool IsTable => Key == "LayoutConversionProfiles" || Key == "TranslateProfiles" || Key == "TrafficLightTargets";
     }
 
     // Ordered allow-list. Adding a property cannot make it leave the machine; the inventory test
@@ -30,32 +30,35 @@ namespace CyrFlip
     internal static class SettingsFileInventory
     {
         internal static readonly SettingsFileEntry[] Exported = {
-            E("UiLanguage", "general/language", "Язык интерфейса:"), E("Theme", "general/language", "Тема:"),
-            E("KeepSystemAwake", "general/power", "Не давать компьютеру засыпать"), E("KeepScreenOn", "general/power", "Не блокировать экран (как при видео)"),
-            E("EnableCursorChange", "indicators/preferences", "Показывать раскладку на текстовом курсоре мыши"),
-            E("EnableCaretOverlay", "indicators/preferences", "Показывать метку раскладки рядом с кареткой"), E("CaretDotMode", "indicators/preferences", "Компактная точка вместо букв раскладки"),
-            E("CursorSize", "indicators/preferences", "Размер метки:"), E("EnableLanguageSwitch", "conversions/after", "Менять раскладку после конвертации текста"),
-            E("FlipCapsLockAfter", "conversions/case", "Синхронизировать CapsLock после исправления регистра"),
-            E("EnableHotkeys", "hotkeys/switches", "Слушать глобальные горячие клавиши"), E("EnableCaseHotkey", "conversions/case", "Исправить CapsLock"),
-            E("CaseHotkey", "conversions/case", "Задать хоткей регистра"), E("EnableHistoryHotkey", "clipboard/window", "Менеджер буфера"),
-            E("ClipboardHistoryHotkey", "clipboard/window", "Задать хоткей истории буфера"), E("DeferToRemoteDesktop", "hotkeys/switches", "Уступать хоткеи удалённому рабочему столу (mstsc/msrdc)"),
-            E("ConvertSymbols", "conversions/symbols", "Конвертировать знаки препинания вместе с текстом"), E("LayoutConversionProfiles", "conversions/table", "Конвертация раскладок"),
-            E("EnableClipboardHistory", "clipboard/recording", "Включить историю буфера"), E("PauseClipboardHistory", "clipboard/recording", "Приостановить захват истории"),
-            E("ShowClipboardHistoryOnStartup", "clipboard/window", "Показывать окно менеджера буфера при запуске"), E("ClipboardHistoryOpacity", "clipboard/window", "Непрозрачность"),
-            E("EnableContextMenu", "selection/mouse", "Своё контекстное меню над выделенным текстом"), E("ContextMenuChord", "selection/mouse", "Аккорд мыши:"),
-            E("EnableTextMenuHotkey", "selection/keyboard", "Открыть меню с клавиатуры"), E("TextMenuHotkey", "selection/keyboard", "Задать хоткей контекстного меню"),
-            E("EnableTranslate", "translate/ollama", "Включить перевод выделенного текста"), E("TranslateEndpoint", "translate/ollama", "Адрес сервера:"), E("TranslateModel", "translate/ollama", "Модель:"),
-            E("TranslateTimeoutSeconds", "translate/ollama", "Ждать загрузки модели не дольше (с):"), E("TranslateKeepAliveMinutes", "translate/ollama", "Держать модель в памяти (мин):"),
-            E("TranslateAutoStartServer", "translate/ollama", "Запускать Ollama автоматически при переводе"), E("TranslateProfiles", "translate/directions", "Направления перевода"),
-            E("TranslateCopyResult", "translate/result", "Класть перевод в буфер обмена"), E("TranslatePasteResult", "translate/result", "Сразу вставлять перевод вместо выделения"),
-            E("TranslateShowSource", "translate/result", "Показывать исходный текст рядом с переводом"), E("TranslateWindowTimeout", "translate/result", "Закрывать окно через (с):"),
-            E("TranslateWindowOpacity", "translate/result", "Непрозрачность"),
-            E("EnableQuickNotes", "notes/opening", "Включить быстрые заметки"), E("EnableQuickNotesHotkey", "notes/opening", "Быстрые заметки"),
-            E("QuickNotesHotkey", "notes/opening", "Задать хоткей быстрых заметок"), E("QuickNotesWordWrap", "notes/editor", "Переносить длинные строки в редакторе"),
-            E("ExchangeNotesWarningOff", "notes/storage", "Больше не предупреждать для заметок"),
-            E("EnableScreenshotHotkey", "graphics/capture", "Снимок области экрана"), E("ScreenshotHotkey", "graphics/capture", "Снимок области экрана"),
-            E("EnableScreenshotFolderHotkey", "graphics/capture", "Открыть папку со снимками"), E("ScreenshotFolderHotkey", "graphics/capture", "Открыть папку со снимками"),
-            E("ScreenshotSaveEnabled", "graphics/capture", "Также сохранять снимки в папку")
+            E("UiLanguage", "general/language", "Interface language:"), E("Theme", "general/language", "Theme:"),
+            E("KeepSystemAwake", "general/power", "Keep the computer awake"), E("KeepScreenOn", "general/power", "Keep the screen on (like video)"),
+            E("EnableCursorChange", "indicators/preferences", "Show layout on the text mouse cursor"),
+            E("EnableCaretOverlay", "indicators/preferences", "Show layout label near the caret"), E("CaretDotMode", "indicators/preferences", "Compact dot instead of language letters"),
+            E("CursorSize", "indicators/preferences", "Marker size:"), E("EnableLanguageSwitch", "conversions/after", "Change layout after converting text"),
+            E("FlipCapsLockAfter", "conversions/case", "Synchronize CapsLock after case correction"),
+            E("EnableHotkeys", "hotkeys/switches", "Listen for global hotkeys"), E("EnableCaseHotkey", "conversions/case", "Fix CapsLock"),
+            E("CaseHotkey", "conversions/case", "Set case hotkey"), E("EnableHistoryHotkey", "clipboard/window", "Clipboard manager"),
+            E("ClipboardHistoryHotkey", "clipboard/window", "Set clipboard history hotkey"), E("DeferToRemoteDesktop", "hotkeys/switches", "Yield hotkeys to the remote desktop (mstsc/msrdc)"),
+            E("ConvertSymbols", "conversions/symbols", "Convert punctuation along with the text"), E("LayoutConversionProfiles", "conversions/table", "Layout conversions"),
+            E("EnableClipboardHistory", "clipboard/recording", "Enable clipboard history"), E("PauseClipboardHistory", "clipboard/recording", "Pause history capture"),
+            E("ShowClipboardHistoryOnStartup", "clipboard/window", "Show clipboard manager on startup"), E("ClipboardHistoryOpacity", "clipboard/window", "Opacity"),
+            E("EnableContextMenu", "selection/mouse", "CyrFlip's own context menu over the selected text"), E("ContextMenuChord", "selection/mouse", "Mouse chord:"),
+            E("EnableTextMenuHotkey", "selection/keyboard", "Open the menu from the keyboard"), E("TextMenuHotkey", "selection/keyboard", "Set the context-menu hotkey"),
+            E("EnableTranslate", "translate/ollama", "Enable translation of the selected text"), E("TranslateEndpoint", "translate/ollama", "Server address:"), E("TranslateModel", "translate/ollama", "Model:"),
+            E("TranslateTimeoutSeconds", "translate/ollama", "Wait for the model to load no longer than (s):"), E("TranslateKeepAliveMinutes", "translate/ollama", "Keep the model in memory (min):"),
+            E("TranslateAutoStartServer", "translate/ollama", "Start Ollama automatically when translating"), E("TranslateProfiles", "translate/directions", "Translation directions"),
+            E("TranslateCopyResult", "translate/result", "Put the translation on the clipboard"), E("TranslatePasteResult", "translate/result", "Paste the translation over the selection right away"),
+            E("TranslateShowSource", "translate/result", "Show the source text next to the translation"), E("TranslateWindowTimeout", "translate/result", "Close the window after (s):"),
+            E("TranslateWindowOpacity", "translate/result", "Opacity"),
+            E("EnableQuickNotes", "notes/opening", "Enable the quick notes"), E("EnableQuickNotesHotkey", "notes/opening", "Quick notes"),
+            E("QuickNotesHotkey", "notes/opening", "Set the quick-notes hotkey"), E("QuickNotesWordWrap", "notes/editor", "Wrap long lines in the editor"),
+            E("ExchangeNotesWarningOff", "notes/storage", "Don't warn again for notes"),
+            E("EnableScreenshotHotkey", "graphics/capture", "Screen region capture"), E("ScreenshotHotkey", "graphics/capture", "Screen region capture"),
+            E("EnableScreenshotFolderHotkey", "graphics/capture", "Open the screenshots folder"), E("ScreenshotFolderHotkey", "graphics/capture", "Open the screenshots folder"),
+            E("ScreenshotSaveEnabled", "graphics/capture", "Also save captures to a folder"),
+            // The one slice that is opt-in on both ends (S0069 D10): the list names the user's own infrastructure,
+            // so an export carries it only when asked, and an import takes it only on an explicit yes.
+            E("TrafficLightTargets", "trafficlight/targets", "Availability traffic light targets")
         };
         private static SettingsFileEntry E(string key, string group, string caption) => new SettingsFileEntry(key, group, caption);
         internal static readonly Dictionary<string, string> Excluded = Classify();
@@ -63,12 +66,14 @@ namespace CyrFlip
         {
             var result = new Dictionary<string, string>(StringComparer.Ordinal);
             void Add(string reason, string names) { foreach (string name in names.Split(' ')) result.Add(name, reason); }
-            Add("navigation", "SettingsTab SettingsPageId SettingsGroupsState SettingsViewport SettingsWindowX SettingsWindowY SettingsWindowWidth SettingsWindowHeight ClipboardHistoryX ClipboardHistoryY ClipboardHistoryWidth ClipboardHistoryHeight QuickNotesX QuickNotesY QuickNotesWidth QuickNotesHeight QuickNotesSelected TranslateWindowWidth TranslateWindowHeight SymbolsX SymbolsY SymbolsWidth SymbolsHeight SymbolsCategory");
+            Add("navigation", "SettingsTab SettingsPageId SettingsGroupsState SettingsViewport SettingsWindowX SettingsWindowY SettingsWindowWidth SettingsWindowHeight ClipboardHistoryX ClipboardHistoryY ClipboardHistoryWidth ClipboardHistoryHeight QuickNotesX QuickNotesY QuickNotesWidth QuickNotesHeight QuickNotesSelected TranslateWindowWidth TranslateWindowHeight SymbolsX SymbolsY SymbolsWidth SymbolsHeight SymbolsCategory TrafficLightX TrafficLightY TrafficLightVisible");
             Add("usage", "FlipCount CaseFlipCount TranslateCount QuickNoteCount ScreenshotCount SymbolsCount");
-            Add("machine history", "QuickNotesNoticeShown TranslateSeeded LauncherFirstEnableDone DataFolderMigrated ShortcutsCreated WelcomeShown");
+            Add("machine history", "QuickNotesNoticeShown ClipboardHistoryNoticeShown CursorNoticeShown TranslateSeeded LauncherFirstEnableDone DataFolderMigrated ShortcutsCreated WelcomeShown");
             Add("Windows state", "LanguageHotkeysBackup InputLayoutsBackup InputMethodOverrideWritten");
             Add("machine path", "ScreenshotFolder"); Add("launcher excluded in v1", "EnableScenarioLauncher");
             Add("symbols window not in v1", "EnableSymbols EnableSymbolsHotkey SymbolsHotkey SymbolsHideTypable SymbolsCloseOnPick");
+            // The module switch itself is never part of the slice: an import into an off module leaves it off (D10).
+            Add("traffic light preferences not in v1", "EnableTrafficLight EnableTrafficLightHotkey TrafficLightHotkey TrafficLightPinned TrafficLightTileSize TrafficLightColumns");
             return result;
         }
         internal static void Copy(AppConfig source, AppConfig target)

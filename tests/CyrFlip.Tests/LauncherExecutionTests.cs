@@ -22,7 +22,7 @@ namespace CyrFlip.Tests
         public void EmptyPathIsRejected()
         {
             Assert.False(LauncherExecution.TryResolveTarget("", null, Identity, out string? error));
-            Assert.Equal("У сценария не задан путь.", error);
+            Assert.Equal("The scenario has no path set.", error);
         }
 
         [Fact]

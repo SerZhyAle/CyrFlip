@@ -7,13 +7,18 @@ namespace CyrFlip
     /// <summary>
     /// The single localization layer for the whole app: settings window, tray menu and every dialog.
     ///
-    /// The key is the <b>Russian</b> source string, so call sites keep reading like plain text and no
+    /// The key is the <b>English</b> source string (ticket S0070): code is English, English is the source
+    /// language, and Russian is a translation like Ukrainian. Call sites read like plain text and no
     /// resource-id indirection is needed; the value is one translation per supported language. Adding
     /// a language means one column here instead of a ternary in every file - which is exactly why the
     /// old <c>ru ? ... : uk ? ...</c> pattern was replaced.
     ///
     /// The set of UI languages is the curated world set (see <see cref="WorldLayouts.Popular"/>) plus
     /// Russian, so a user who can type a language can also read the interface in it.
+    ///
+    /// A key never holds Cyrillic. When two surfaces need one English word in two grammatical forms of
+    /// another language (<c>Large</c> for a marker and for the tiles), the second gets a distinct key with a
+    /// context in parentheses and an <c>en:</c> display override that keeps the English text unchanged.
     /// </summary>
     internal static partial class Localization
     {
@@ -24,7 +29,7 @@ namespace CyrFlip
             "Português", "العربية", "हिन्दी", "বাংলা", "اردو", "中文",
         };
 
-        /// <summary>ISO codes parallel to <see cref="Names"/>; index 0 is the key language (Russian).</summary>
+        /// <summary>ISO codes parallel to <see cref="Names"/>; index 1 is the source language (English).</summary>
         public static readonly string[] Codes =
         {
             "ru", "en", "uk", "de", "it", "es", "fr", "pt", "ar", "hi", "bn", "ur", "zh",
@@ -32,7 +37,8 @@ namespace CyrFlip
 
         private const int English = 1;
 
-        // Values exclude Russian (index 0 is the key itself), so Values[i - 1] is language i.
+        // One row per key, parallel to Names: Values[i] is language i. Values[English] is the key itself, or its
+        // `en:` display override, so it is never empty and is where an empty translation falls back to.
         private static readonly Dictionary<string, string[]> Map = new Dictionary<string, string[]>(StringComparer.Ordinal);
 
         static Localization()
@@ -57,9 +63,10 @@ namespace CyrFlip
             AddSymbolsStrings();
             AddHotkeysOverviewStrings();
             AddTrayPopupStrings();
+            AddTrafficLightStrings();
         }
 
-        /// <summary>Every registered source string with its translations - used by the localization test.</summary>
+        /// <summary>Every registered source string with its translations (parallel to <see cref="Names"/>) - used by the localization tests.</summary>
         public static IEnumerable<KeyValuePair<string, string[]>> All => Map;
 
         public static int IndexOf(string? language)
@@ -72,30 +79,28 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// Translate a Russian source string. An unknown key returns the source unchanged (so a new
+        /// Translate an English source string. An unknown key returns the source unchanged (so a new
         /// string is visible but never crashes), and a language with no translation yet falls back to
-        /// English rather than showing Russian to, say, a German user.
+        /// the source language (<c>LOCALIZATION</c> section 1), never to Russian.
         /// </summary>
-        public static string Translate(string language, string ru)
+        public static string Translate(string language, string en)
         {
-            if (string.IsNullOrEmpty(ru)) return string.Empty;
-            int index = IndexOf(language);
-            if (index == 0) return ru;
-            if (!Map.TryGetValue(ru, out string[]? values)) return ru;
-            string value = values[index - 1];
-            if (value.Length == 0) value = values[English - 1];
-            return value.Length == 0 ? ru : value;
+            if (string.IsNullOrEmpty(en)) return string.Empty;
+            if (!Map.TryGetValue(en, out string[]? values)) return en;
+            string value = values[IndexOf(language)];
+            if (value.Length == 0) value = values[English];
+            return value.Length == 0 ? en : value;
         }
 
         /// <summary>
         /// Safely formats a translated string with the given arguments (APP-BEHAVIOUR rule 7).
         /// If formatting fails (e.g. broken placeholder in template), catches <see cref="FormatException"/>
-        /// and falls back to formatting the Russian template or returning the template as-is.
+        /// and falls back to formatting the English template or returning the template as-is.
         /// </summary>
-        public static string Format(string language, string? ru, params object?[] args)
+        public static string Format(string language, string? en, params object?[] args)
         {
-            if (string.IsNullOrEmpty(ru)) return string.Empty;
-            return FormatTemplate(Translate(language, ru!), ru!, args);
+            if (string.IsNullOrEmpty(en)) return string.Empty;
+            return FormatTemplate(Translate(language, en!), en!, args);
         }
 
         /// <summary>
@@ -103,14 +108,14 @@ namespace CyrFlip
         /// the <c>T</c> helper of a window, or the <c>translate</c> seam the launcher and the menu builder
         /// take so a test can run them without a UI language.
         /// </summary>
-        public static string Format(Func<string, string> translate, string? ru, params object?[] args)
+        public static string Format(Func<string, string> translate, string? en, params object?[] args)
         {
-            if (string.IsNullOrEmpty(ru)) return string.Empty;
-            string template = translate(ru!);
-            return FormatTemplate(string.IsNullOrEmpty(template) ? ru! : template, ru!, args);
+            if (string.IsNullOrEmpty(en)) return string.Empty;
+            string template = translate(en!);
+            return FormatTemplate(string.IsNullOrEmpty(template) ? en! : template, en!, args);
         }
 
-        private static string FormatTemplate(string template, string ru, object?[] args)
+        private static string FormatTemplate(string template, string en, object?[] args)
         {
             try
             {
@@ -118,7 +123,7 @@ namespace CyrFlip
             }
             catch (FormatException)
             {
-                try { return string.Format(ru, args); }
+                try { return string.Format(en, args); }
                 catch { return template; }
             }
         }
@@ -206,13 +211,16 @@ namespace CyrFlip
             return index >= 0 ? Names[index] : null;
         }
 
-        private static void Add(string ru, string en, string uk, string de, string it, string es, string fr,
-            string pt, string ar, string hi, string bn, string ur, string zh)
+        /// <param name="source">The English source text - the key.</param>
+        /// <param name="en">The English display text, only for a key that carries a context in parentheses
+        /// to tell it from another key of the same English wording; otherwise the key is the English text.</param>
+        private static void Add(string source, string ru, string uk, string de, string it, string es, string fr,
+            string pt, string ar, string hi, string bn, string ur, string zh, string? en = null)
         {
             // Last wins, so a second registration would silently replace the first translation;
             // the test suite asserts this list stays empty (S0029 RB-10).
-            if (Map.ContainsKey(ru)) DuplicateKeys.Add(ru);
-            Map[ru] = new[] { en, uk, de, it, es, fr, pt, ar, hi, bn, ur, zh };
+            if (Map.ContainsKey(source)) DuplicateKeys.Add(source);
+            Map[source] = new[] { ru, en ?? source, uk, de, it, es, fr, pt, ar, hi, bn, ur, zh };
         }
 
         /// <summary>Keys registered more than once - always empty in a correct build.</summary>

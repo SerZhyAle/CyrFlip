@@ -121,11 +121,11 @@ namespace CyrFlip
 
                 var store = new LauncherScenarioStore();
                 LauncherScenario? scenario = store.Find(id);
-                string T(string ru) => Localization.Translate(config.UiLanguage, ru);
+                string T(string en) => Localization.Translate(config.UiLanguage, en);
                 if (scenario == null)
                 {
                     LauncherLog.Log("One-shot: scenario not found: " + id);
-                    ConfirmDialog.Show(config.UiLanguage, T("Сценарий не найден — обновите Jump List, открыв CyrFlip."),
+                    ConfirmDialog.Show(config.UiLanguage, T("The scenario was not found — open CyrFlip to refresh the Jump List."),
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
@@ -136,7 +136,7 @@ namespace CyrFlip
                     return prompt.ShowDialog() == DialogResult.OK ? prompt.Link : null;
                 });
                 if (!result.Success && !result.Cancelled)
-                    ConfirmDialog.Show(config.UiLanguage, Localization.Format(T, "Не удалось запустить «{0}»: {1}", scenario.Name, result.ErrorMessage),
+                    ConfirmDialog.Show(config.UiLanguage, Localization.Format(T, "Couldn't start \"{0}\": {1}", scenario.Name, result.ErrorMessage),
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
@@ -183,7 +183,7 @@ namespace CyrFlip
         /// <summary>The localized fatal sentence (S0065 E-1) - testable without closing anything.</summary>
         internal static string FatalBoxText(string language)
             => Localization.Translate(language,
-                "CyrFlip столкнулся с непредвиденной ошибкой и закрывается. Все горячие клавиши отключены — запустите CyrFlip снова.");
+                "CyrFlip hit an unexpected error and is closing. Every hotkey is now off - start CyrFlip again.");
 
         /// <summary>
         /// The saved UI language, which is what the fatal box speaks; the OS default when even the

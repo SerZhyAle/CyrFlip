@@ -30,9 +30,9 @@ namespace CyrFlip
         {
             _all = available ?? InputLayouts.ListAvailable();
             _installed = new HashSet<string>(alreadyInstalled, StringComparer.OrdinalIgnoreCase);
-            string T(string ru) => Localization.Translate(uiLanguage, ru);
+            string T(string en) => Localization.Translate(uiLanguage, en);
 
-            Text = T("Добавить раскладку");
+            Text = T("Add layout");
             FormBorderStyle = FormBorderStyle.SizableToolWindow;
             StartPosition = FormStartPosition.CenterParent;
             ShowInTaskbar = false;
@@ -47,7 +47,7 @@ namespace CyrFlip
             int width = Math.Max(Localization.Scaled(uiLanguage, 460), TextWidth(new string('W', 30)));
             var hint = new Label
             {
-                Text = T("Введите язык или название раскладки для фильтра"),
+                Text = T("Type a language or layout name to filter"),
                 ForeColor = ThemePalette.Light.TextMuted, AutoSize = true,
                 MaximumSize = new Size(width - 30, 0), // wrap rather than widen without limit
                 Margin = new Padding(3, 3, 3, 4),
@@ -56,8 +56,8 @@ namespace CyrFlip
             _list.DoubleClick += (_, _) => Accept();
             _list.Format += (_, e) => { if (e.ListItem is InputLayouts.Available a) e.Value = Format(a); };
 
-            var add = Command(T("Добавить"), DialogResult.OK, AppGlyphs.Add);
-            var cancel = Command(T("Отмена"), DialogResult.Cancel);
+            var add = Command(T("Add"), DialogResult.OK, AppGlyphs.Add);
+            var cancel = Command(T("Cancel"), DialogResult.Cancel);
             add.Click += (_, _) => Accept();
 
             // RightToLeft flow puts the first control added on the right; WinForms mirrors it for RTL UIs.

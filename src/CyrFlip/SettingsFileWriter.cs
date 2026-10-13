@@ -13,13 +13,18 @@ namespace CyrFlip
         internal const string Format = "CyrFlip Settings";
         internal static string DefaultFileName(DateTime savedAtLocal)
             => "CyrFlip-settings-" + savedAtLocal.ToString("yy-MM-dd_HHmm", CultureInfo.InvariantCulture) + ".json";
-        internal static string Write(AppConfig config, DateTime utc, string app)
+        /// <param name="includeTrafficLightTargets">
+        /// The traffic light's list of targets names the user's own hosts, folders and sites, so it is in the file
+        /// only when the person said so at the export (S0069 D10) - never by default, never silently.
+        /// </param>
+        internal static string Write(AppConfig config, DateTime utc, string app, bool includeTrafficLightTargets = false)
         {
             var settings = new Dictionary<string, object>();
             var tables = new Dictionary<string, object>();
             var registry = MemoryConfigKey.Capture(config);
             foreach (SettingsFileEntry entry in SettingsFileInventory.Exported)
             {
+                if (entry.Key == "TrafficLightTargets" && !includeTrafficLightTargets) continue;
                 object value = registry.Values[entry.Key];
                 if (entry.Key == "TranslateEndpoint" && ((string)value).Length > 0
                     && (!Uri.TryCreate((string)value, UriKind.Absolute, out Uri? endpoint)
@@ -64,8 +69,8 @@ namespace CyrFlip
             }
             return result.Append('"').ToString();
         }
-        internal static void Save(string path, AppConfig config)
-            => SaveText(path, Write(config, DateTime.UtcNow, typeof(AppConfig).Assembly.GetName().Version!.ToString()));
+        internal static void Save(string path, AppConfig config, bool includeTrafficLightTargets = false)
+            => SaveText(path, Write(config, DateTime.UtcNow, typeof(AppConfig).Assembly.GetName().Version!.ToString(), includeTrafficLightTargets));
         internal static void SaveText(string path, string text)
         {
             // Validate our own output as well: never offer an export our reader would refuse.

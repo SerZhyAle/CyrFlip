@@ -5,25 +5,25 @@ namespace CyrFlip
     {
         private static void AddThemeStrings()
         {
-            Add("Тема:",
-                en: "Theme:", uk: "Тема:", de: "Design:", it: "Tema:", es: "Tema:", fr: "Thème :",
+            Add("Theme:",
+                ru: "Тема:", uk: "Тема:", de: "Design:", it: "Tema:", es: "Tema:", fr: "Thème :",
                 pt: "Tema:", ar: "السمة:", hi: "थीम:", bn: "থিম:", ur: "تھیم:", zh: "主题：");
 
-            Add("Как в Windows",
-                en: "Same as Windows", uk: "Як у Windows", de: "Wie Windows", it: "Come Windows",
+            Add("Same as Windows",
+                ru: "Как в Windows", uk: "Як у Windows", de: "Wie Windows", it: "Come Windows",
                 es: "Como Windows", fr: "Comme Windows", pt: "Igual ao Windows", ar: "مثل Windows",
                 hi: "Windows जैसा", bn: "Windows-এর মতো", ur: "Windows کی طرح", zh: "跟随 Windows");
 
-            Add("Светлая",
-                en: "Light", uk: "Світла", de: "Hell", it: "Chiaro", es: "Claro", fr: "Clair",
+            Add("Light",
+                ru: "Светлая", uk: "Світла", de: "Hell", it: "Chiaro", es: "Claro", fr: "Clair",
                 pt: "Claro", ar: "فاتح", hi: "हल्का", bn: "হালকা", ur: "ہلکا", zh: "浅色");
 
-            Add("Тёмная",
-                en: "Dark", uk: "Темна", de: "Dunkel", it: "Scuro", es: "Oscuro", fr: "Sombre",
+            Add("Dark",
+                ru: "Тёмная", uk: "Темна", de: "Dunkel", it: "Scuro", es: "Oscuro", fr: "Sombre",
                 pt: "Escuro", ar: "داكن", hi: "गहरा", bn: "গাঢ়", ur: "گہرا", zh: "深色");
 
-            Add("«Как в Windows» - CyrFlip светлый или тёмный вместе с Windows и переключается вслед за ней без перезапуска. Контрастные темы Windows всегда важнее этой настройки. Метка раскладки у курсора и каретки от темы не зависит: её цвет обозначает раскладку.",
-                en: "“Same as Windows” - CyrFlip is light or dark with Windows and follows it when it switches, without a restart. Windows contrast themes always take precedence over this setting. The layout marker at the cursor and caret does not change with the theme: its colour names the layout.",
+            Add("“Same as Windows” - CyrFlip is light or dark with Windows and follows it when it switches, without a restart. Windows contrast themes always take precedence over this setting. The layout marker at the cursor and caret does not change with the theme: its colour names the layout.",
+                ru: "«Как в Windows» - CyrFlip светлый или тёмный вместе с Windows и переключается вслед за ней без перезапуска. Контрастные темы Windows всегда важнее этой настройки. Метка раскладки у курсора и каретки от темы не зависит: её цвет обозначает раскладку.",
                 uk: "«Як у Windows» - CyrFlip світлий або темний разом із Windows і перемикається слідом за нею без перезапуску. Контрастні теми Windows завжди важливіші за це налаштування. Мітка розкладки біля курсора та каретки від теми не залежить: її колір позначає розкладку.",
                 de: "„Wie Windows“ - CyrFlip ist hell oder dunkel wie Windows und wechselt ohne Neustart mit. Kontrastdesigns von Windows haben immer Vorrang vor dieser Einstellung. Die Layoutmarke an Mauszeiger und Textcursor ändert sich mit dem Design nicht: Ihre Farbe steht für das Layout.",
                 it: "«Come Windows» - CyrFlip è chiaro o scuro come Windows e lo segue quando cambia, senza riavvio. I temi a contrasto di Windows hanno sempre la precedenza su questa impostazione. L'indicatore del layout vicino al puntatore e al cursore di testo non cambia con il tema: il suo colore indica il layout.",
@@ -36,12 +36,12 @@ namespace CyrFlip
                 ur: "«Windows کی طرح» - CyrFlip Windows کے ساتھ ہلکا یا گہرا رہتا ہے اور ری اسٹارٹ کے بغیر اس کے ساتھ بدل جاتا ہے۔ Windows کی کنٹراسٹ تھیمز ہمیشہ اس ترتیب پر مقدم ہیں۔ کرسر اور کیرٹ کے پاس لے آؤٹ کا نشان تھیم کے ساتھ نہیں بدلتا: اس کا رنگ لے آؤٹ بتاتا ہے۔",
                 zh: "“跟随 Windows” - CyrFlip 随 Windows 显示浅色或深色，并在 Windows 切换时同步切换，无需重启。Windows 的对比度主题始终优先于此设置。光标和插入点旁的布局标记不随主题变化：它的颜色代表布局。");
 
-            Add("Да",
-                en: "Yes", uk: "Так", de: "Ja", it: "Sì", es: "Sí", fr: "Oui",
+            Add("Yes",
+                ru: "Да", uk: "Так", de: "Ja", it: "Sì", es: "Sí", fr: "Oui",
                 pt: "Sim", ar: "نعم", hi: "हाँ", bn: "হ্যাঁ", ur: "ہاں", zh: "是");
 
-            Add("Нет",
-                en: "No", uk: "Ні", de: "Nein", it: "No", es: "No", fr: "Non",
+            Add("No",
+                ru: "Нет", uk: "Ні", de: "Nein", it: "No", es: "No", fr: "Non",
                 pt: "Não", ar: "لا", hi: "नहीं", bn: "না", ur: "نہیں", zh: "否");
         }
     }

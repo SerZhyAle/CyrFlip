@@ -69,13 +69,13 @@ namespace CyrFlip.Tests
 
                 Assert.Equal(new[]
                 {
-                    "Копировать", "Вырезать", "Вставить",
+                    "Copy", "Cut", "Paste",
                     "---",
-                    "EN ⇄ RU", "Исправить CapsLock", "Перевести на English",
+                    "EN ⇄ RU", "Fix CapsLock", "Translate into English",
                     "---",
-                    "Быстрый запуск", "Менеджер буфера",
+                    "Quick launch", "Clipboard manager",
                     "---",
-                    "Настройки",
+                    "Settings",
                 }, Captions(menu));
             });
         }
@@ -101,17 +101,17 @@ namespace CyrFlip.Tests
                 using var menu = new ContextMenuStrip();
                 Build(menu, FullState(SelectionState.Absent));
 
-                Assert.False(Item(menu, "Копировать").Enabled);
-                Assert.False(Item(menu, "Вырезать").Enabled);
+                Assert.False(Item(menu, "Copy").Enabled);
+                Assert.False(Item(menu, "Cut").Enabled);
                 Assert.False(Item(menu, "EN ⇄ RU").Enabled);
-                Assert.False(Item(menu, "Исправить CapsLock").Enabled);
-                Assert.False(Item(menu, "Перевести на English").Enabled);
+                Assert.False(Item(menu, "Fix CapsLock").Enabled);
+                Assert.False(Item(menu, "Translate into English").Enabled);
 
                 // Present, just unavailable - and the rest of the menu is unaffected.
                 Assert.Equal(12, menu.Items.Count);
-                Assert.True(Item(menu, "Вставить").Enabled);
-                Assert.True(Item(menu, "Менеджер буфера").Enabled);
-                Assert.True(Item(menu, "Настройки").Enabled);
+                Assert.True(Item(menu, "Paste").Enabled);
+                Assert.True(Item(menu, "Clipboard manager").Enabled);
+                Assert.True(Item(menu, "Settings").Enabled);
             });
         }
 
@@ -128,11 +128,11 @@ namespace CyrFlip.Tests
                 using var menu = new ContextMenuStrip();
                 Build(menu, FullState(SelectionState.Unknown));
 
-                Assert.True(Item(menu, "Копировать").Enabled);
-                Assert.True(Item(menu, "Вырезать").Enabled);
+                Assert.True(Item(menu, "Copy").Enabled);
+                Assert.True(Item(menu, "Cut").Enabled);
                 Assert.True(Item(menu, "EN ⇄ RU").Enabled);
-                Assert.True(Item(menu, "Исправить CapsLock").Enabled);
-                Assert.True(Item(menu, "Перевести на English").Enabled);
+                Assert.True(Item(menu, "Fix CapsLock").Enabled);
+                Assert.True(Item(menu, "Translate into English").Enabled);
             });
         }
 
@@ -144,13 +144,13 @@ namespace CyrFlip.Tests
                 using var withText = new ContextMenuStrip();
                 TextContextMenuState state = FullState(SelectionState.Absent);
                 Build(withText, state);
-                Assert.True(Item(withText, "Вставить").Enabled);
+                Assert.True(Item(withText, "Paste").Enabled);
 
                 using var empty = new ContextMenuStrip();
                 state.ClipboardHasText = false;
                 state.Selection = SelectionState.Present;
                 Build(empty, state);
-                Assert.False(Item(empty, "Вставить").Enabled);
+                Assert.False(Item(empty, "Paste").Enabled);
             });
         }
 
@@ -170,11 +170,11 @@ namespace CyrFlip.Tests
 
                 Assert.Equal(new[]
                 {
-                    "Копировать", "Вырезать", "Вставить",
+                    "Copy", "Cut", "Paste",
                     "---",
-                    "Исправить CapsLock",
+                    "Fix CapsLock",
                     "---",
-                    "Настройки",
+                    "Settings",
                 }, Captions(menu));
             });
         }
@@ -193,7 +193,7 @@ namespace CyrFlip.Tests
                 using var menu = new ContextMenuStrip();
                 Build(menu, FullState(SelectionState.Present));   // ShowQuickNotes defaults to false
 
-                Assert.DoesNotContain("Сохранить выделение в быстрые заметки", Captions(menu));
+                Assert.DoesNotContain("Save the selection to quick notes", Captions(menu));
             });
         }
 
@@ -209,11 +209,11 @@ namespace CyrFlip.Tests
                 Build(menu, state, saveToNotes: () => saved = true);
 
                 string[] captions = Captions(menu);
-                int notes = Array.IndexOf(captions, "Сохранить выделение в быстрые заметки");
+                int notes = Array.IndexOf(captions, "Save the selection to quick notes");
                 Assert.True(notes >= 0, "the command is there while the module is on");
-                Assert.Equal(notes - 1, Array.IndexOf(captions, "Перевести на English"));
+                Assert.Equal(notes - 1, Array.IndexOf(captions, "Translate into English"));
 
-                ToolStripItem item = Item(menu, "Сохранить выделение в быстрые заметки");
+                ToolStripItem item = Item(menu, "Save the selection to quick notes");
                 Assert.False(item.Enabled);   // greyed, not hidden - nothing is selected
 
                 // Enabled with a selection, and it runs the action it was handed.
@@ -221,7 +221,7 @@ namespace CyrFlip.Tests
                 TextContextMenuState present = FullState(SelectionState.Present);
                 present.ShowQuickNotes = true;
                 Build(live, present, saveToNotes: () => saved = true);
-                ToolStripItem liveItem = Item(live, "Сохранить выделение в быстрые заметки");
+                ToolStripItem liveItem = Item(live, "Save the selection to quick notes");
                 Assert.True(liveItem.Enabled);
                 liveItem.PerformClick();
                 Assert.True(saved);
@@ -238,7 +238,7 @@ namespace CyrFlip.Tests
                 state.Translations = new List<TextMenuRow>();
                 Build(menu, state);
 
-                Assert.DoesNotContain(Captions(menu), c => c.StartsWith("Перевести"));
+                Assert.DoesNotContain(Captions(menu), c => c.StartsWith("Translate"));
                 Assert.Contains("EN ⇄ RU", Captions(menu));
             });
         }
@@ -266,8 +266,8 @@ namespace CyrFlip.Tests
 
                 Item(menu, "EN ⇄ RU").PerformClick();
                 Item(menu, "EN ⇄ UK").PerformClick();
-                Item(menu, "Перевести на English").PerformClick();
-                Item(menu, "Перевести на Deutsch").PerformClick();
+                Item(menu, "Translate into English").PerformClick();
+                Item(menu, "Translate into Deutsch").PerformClick();
 
                 Assert.Equal(new[] { "conv-1", "conv-2" }, converted);
                 Assert.Equal(new[] { "tr-1", "tr-2" }, translated);
@@ -283,9 +283,9 @@ namespace CyrFlip.Tests
                 var sent = new List<ClipboardHandler.EditCommand>();
                 Build(menu, FullState(SelectionState.Present), edit: sent.Add);
 
-                Item(menu, "Копировать").PerformClick();
-                Item(menu, "Вырезать").PerformClick();
-                Item(menu, "Вставить").PerformClick();
+                Item(menu, "Copy").PerformClick();
+                Item(menu, "Cut").PerformClick();
+                Item(menu, "Paste").PerformClick();
 
                 Assert.Equal(new[]
                 {
@@ -304,9 +304,9 @@ namespace CyrFlip.Tests
                 using var menu = new ContextMenuStrip();
                 Build(menu, FullState(SelectionState.Present));
 
-                Assert.Equal("Ctrl+C", ((ToolStripMenuItem)Item(menu, "Копировать")).ShortcutKeyDisplayString);
+                Assert.Equal("Ctrl+C", ((ToolStripMenuItem)Item(menu, "Copy")).ShortcutKeyDisplayString);
                 Assert.Equal("Ctrl+Shift+F12", ((ToolStripMenuItem)Item(menu, "EN ⇄ RU")).ShortcutKeyDisplayString);
-                Assert.Equal("Ctrl+Shift+F11", ((ToolStripMenuItem)Item(menu, "Исправить CapsLock")).ShortcutKeyDisplayString);
+                Assert.Equal("Ctrl+Shift+F11", ((ToolStripMenuItem)Item(menu, "Fix CapsLock")).ShortcutKeyDisplayString);
             });
         }
 
@@ -321,7 +321,7 @@ namespace CyrFlip.Tests
                 state.CaseShortcut = "";
                 Build(menu, state);
 
-                var item = (ToolStripMenuItem)Item(menu, "Исправить CapsLock");
+                var item = (ToolStripMenuItem)Item(menu, "Fix CapsLock");
                 Assert.True(string.IsNullOrEmpty(item.ShortcutKeyDisplayString));
             });
         }
@@ -334,8 +334,8 @@ namespace CyrFlip.Tests
                 using var menu = new ContextMenuStrip();
                 Build(menu, FullState(SelectionState.Present));
 
-                var launcher = (ToolStripMenuItem)Item(menu, "Быстрый запуск");
-                Assert.Equal(new[] { "Calc", "---", "Управление сценариями..." },
+                var launcher = (ToolStripMenuItem)Item(menu, "Quick launch");
+                Assert.Equal(new[] { "Calc", "---", "Manage scenarios..." },
                     launcher.DropDownItems.Cast<ToolStripItem>()
                         .Select(i => i is ToolStripSeparator ? "---" : i.Text).ToArray());
             });
@@ -351,8 +351,8 @@ namespace CyrFlip.Tests
                 Build(menu, FullState(SelectionState.Present),
                     history: () => historyShown++, settings: () => settingsShown++);
 
-                Item(menu, "Менеджер буфера").PerformClick();
-                Item(menu, "Настройки").PerformClick();
+                Item(menu, "Clipboard manager").PerformClick();
+                Item(menu, "Settings").PerformClick();
 
                 Assert.Equal(1, historyShown);
                 Assert.Equal(1, settingsShown);
@@ -387,11 +387,11 @@ namespace CyrFlip.Tests
                 state.SelectionChars = 128;
                 Build(menu, state);
 
-                Assert.Equal("Копировать", Captions(menu)[0]);
-                Assert.Equal(new[] { "Настройки", "---", "Выделено строк: 3", "символов: 128" },
+                Assert.Equal("Copy", Captions(menu)[0]);
+                Assert.Equal(new[] { "Settings", "---", "Lines selected: 3", "characters: 128" },
                     Captions(menu).Skip(Captions(menu).Length - 4).ToArray());
-                Assert.False(Item(menu, "Выделено строк: 3").CanSelect);
-                Assert.False(Item(menu, "символов: 128").CanSelect);
+                Assert.False(Item(menu, "Lines selected: 3").CanSelect);
+                Assert.False(Item(menu, "characters: 128").CanSelect);
             });
         }
 
@@ -408,8 +408,8 @@ namespace CyrFlip.Tests
                 using var menu = new ContextMenuStrip();
                 Build(menu, FullState(SelectionState.Present)); // no counts set
 
-                Assert.DoesNotContain(Captions(menu), c => c.StartsWith("Выделено"));
-                Assert.Equal("Настройки", Captions(menu)[Captions(menu).Length - 1]); // no dangling separator
+                Assert.DoesNotContain(Captions(menu), c => c.StartsWith("Lines selected"));
+                Assert.Equal("Settings", Captions(menu)[Captions(menu).Length - 1]); // no dangling separator
             });
         }
 
@@ -425,8 +425,8 @@ namespace CyrFlip.Tests
                 state.SelectionTruncated = true;
                 Build(menu, state);
 
-                Assert.Contains("Выделено строк: 900+", Captions(menu));
-                Assert.Contains("символов: 65536+", Captions(menu));
+                Assert.Contains("Lines selected: 900+", Captions(menu));
+                Assert.Contains("characters: 65536+", Captions(menu));
             });
         }
 
@@ -438,7 +438,7 @@ namespace CyrFlip.Tests
                 using var menu = new ContextMenuStrip();
                 Build(menu, FullState(SelectionState.Present));
 
-                Assert.DoesNotContain(Captions(menu), c => c.StartsWith("Открыть «"));
+                Assert.DoesNotContain(Captions(menu), c => c.StartsWith("Open “"));
                 Assert.Equal(12, menu.Items.Count);
             });
         }
@@ -455,15 +455,15 @@ namespace CyrFlip.Tests
 
                 Assert.Equal(new[]
                 {
-                    "Копировать", "Вырезать", "Вставить",
+                    "Copy", "Cut", "Paste",
                     "---",
-                    "Открыть «example.com»",
+                    "Open “example.com”",
                     "---",
-                    "EN ⇄ RU", "Исправить CapsLock", "Перевести на English",
+                    "EN ⇄ RU", "Fix CapsLock", "Translate into English",
                     "---",
-                    "Быстрый запуск", "Менеджер буфера",
+                    "Quick launch", "Clipboard manager",
                     "---",
-                    "Настройки",
+                    "Settings",
                 }, Captions(menu));
             });
         }
@@ -482,7 +482,7 @@ namespace CyrFlip.Tests
                 state.Launch = new LaunchTarget("https://example.com/?a=1&b=2", "example.com/?a=1&b=2", LaunchKind.Url);
                 Build(menu, state);
 
-                Assert.Contains("Открыть «example.com/?a=1&&b=2»", Captions(menu));
+                Assert.Contains("Open “example.com/?a=1&&b=2”", Captions(menu));
             });
         }
 
@@ -498,7 +498,7 @@ namespace CyrFlip.Tests
                 state.Launch = target;
                 Build(menu, state, launch: t => launched.Add(t.Target + "|" + t.Kind));
 
-                Item(menu, "Открыть «setup.exe»").PerformClick();
+                Item(menu, "Open “setup.exe”").PerformClick();
 
                 Assert.Equal(new[] { @"C:\tools\setup.exe|Program" }, launched);
             });
@@ -521,7 +521,7 @@ namespace CyrFlip.Tests
                     menuState.Launch = new LaunchTarget("https://example.com/", "example.com", LaunchKind.Url);
                     Build(menu, menuState);
 
-                    Assert.True(Item(menu, "Открыть «example.com»").Enabled);
+                    Assert.True(Item(menu, "Open “example.com”").Enabled);
                 }
             });
         }

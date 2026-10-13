@@ -61,6 +61,11 @@ namespace CyrFlip
         public const string DefaultTextMenuHotkey = "Ctrl+Shift+Alt+M";
         /// <summary>Default hotkey for the symbols palette (ticket S0056 section 9).</summary>
         public const string DefaultSymbolsHotkey = "Ctrl+Shift+F9";
+        /// <summary>
+        /// Default hotkey of the traffic light board (ticket S0069 D11): T for the board, in the quick notes'
+        /// and the text menu's Ctrl+Shift+Alt family - free among every shipped default.
+        /// </summary>
+        public const string DefaultTrafficLightHotkey = "Ctrl+Shift+Alt+T";
         internal const string UsKlid = "00000409";
         internal const string RussianKlid = "00000419";
         /// <summary>The case flip's shipped chord (<c>Hotkey.CaseDefault</c>) as the token the registry stores.</summary>
@@ -107,6 +112,8 @@ namespace CyrFlip
         public int SettingsWindowWidth { get; set; } = 0;
         public int SettingsWindowHeight { get; set; } = 0;
         public bool EnableClipboardHistory { get; set; } = false;
+        /// <summary>One-time marker: the recording notice was shown when the feature was first enabled (S0067, CU-2-06).</summary>
+        public bool ClipboardHistoryNoticeShown { get; set; } = false;
         public bool PauseClipboardHistory { get; set; } = false;
         public bool ShowClipboardHistoryOnStartup { get; set; } = true;
         public int ClipboardHistoryX { get; set; } = int.MinValue;
@@ -117,6 +124,8 @@ namespace CyrFlip
         public int ClipboardHistoryOpacity { get; set; } = 100;
         public int CursorSize { get; set; } = 24;
         public bool EnableCursorChange { get; set; } = false;
+        /// <summary>One-time marker: the system-wide I-beam notice was shown when the marker was first enabled (S0067, CU-2-08).</summary>
+        public bool CursorNoticeShown { get; set; } = false;
         public bool EnableCaretOverlay { get; set; } = true;
         public bool CaretDotMode { get; set; } = false;
         public bool EnableLanguageSwitch { get; set; } = false;
@@ -331,6 +340,30 @@ namespace CyrFlip
         public int SymbolsHeight { get; set; } = 0;
         public int SymbolsCount { get; set; } = 0;
 
+        // ---- The traffic light: a board of last known reachability (ticket S0069). Off by default ----
+        /// <summary>
+        /// The module switch. Off = no timer, no chord, no tray item, no window object and no network or power
+        /// event subscription: a user who never switches it on pays nothing (D6).
+        /// </summary>
+        public bool EnableTrafficLight { get; set; } = false;
+        public string TrafficLightHotkey { get; set; } = DefaultTrafficLightHotkey;
+        public bool EnableTrafficLightHotkey { get; set; } = true;
+        /// <summary>The user's targets, one JSON value (section 4); <c>[]</c> after the user emptied it.</summary>
+        public List<TrafficLightTarget> TrafficLightTargets { get; set; } = new List<TrafficLightTarget>();
+        /// <summary>The board was left visible; it reopens (without taking focus) at the next start.</summary>
+        public bool TrafficLightVisible { get; set; } = false;
+        /// <summary>Always on top of other windows. A switch, not a second window (D3).</summary>
+        public bool TrafficLightPinned { get; set; } = true;
+        /// <summary>0 small (a bare square), 1 medium, 2 large.</summary>
+        public int TrafficLightTileSize { get; set; } = 1;
+        /// <summary>Tiles in a row. The rows follow from the number of targets, and the window fits the grid.</summary>
+        public int TrafficLightColumns { get; set; } = DefaultTrafficLightColumns;
+        public const int DefaultTrafficLightColumns = 3;
+        public const int MinTrafficLightColumns = 1;
+        public const int MaxTrafficLightColumns = 12;
+        public int TrafficLightX { get; set; } = int.MinValue;
+        public int TrafficLightY { get; set; } = int.MinValue;
+
         /// <summary>
         /// UI language default for a fresh install (no saved value): follow the OS UI language when
         /// CyrFlip is translated into it, else English (see <see cref="Localization.DefaultLanguage"/>).
@@ -429,6 +462,7 @@ namespace CyrFlip
                     cfg.SettingsWindowWidth = Math.Max(0, Math.Min(10000, cfg.ReadInt(key, "SettingsWindowWidth", cfg.SettingsWindowWidth)));
                     cfg.SettingsWindowHeight = Math.Max(0, Math.Min(10000, cfg.ReadInt(key, "SettingsWindowHeight", cfg.SettingsWindowHeight)));
                     cfg.EnableClipboardHistory = cfg.ReadBool(key, "EnableClipboardHistory", cfg.EnableClipboardHistory);
+                    cfg.ClipboardHistoryNoticeShown = cfg.ReadBool(key, "ClipboardHistoryNoticeShown", cfg.ClipboardHistoryNoticeShown);
                     cfg.PauseClipboardHistory = cfg.ReadBool(key, "PauseClipboardHistory", cfg.PauseClipboardHistory);
                     cfg.ShowClipboardHistoryOnStartup = cfg.ReadBool(key, "ShowClipboardHistoryOnStartup", cfg.ShowClipboardHistoryOnStartup);
                     cfg.ClipboardHistoryX = cfg.ReadInt(key, "ClipboardHistoryX", cfg.ClipboardHistoryX);
@@ -440,6 +474,7 @@ namespace CyrFlip
                     // of 0 px cannot be drawn, and a timeout past ~24.8 days overflows Timer.Interval.
                     cfg.CursorSize = Math.Max(12, Math.Min(128, cfg.ReadInt(key, "CursorSize", cfg.CursorSize)));
                     cfg.EnableCursorChange = cfg.ReadBool(key, "EnableCursorChange", cfg.EnableCursorChange);
+                    cfg.CursorNoticeShown = cfg.ReadBool(key, "CursorNoticeShown", cfg.CursorNoticeShown);
                     cfg.EnableCaretOverlay = cfg.ReadBool(key, "EnableCaretOverlay", cfg.EnableCaretOverlay);
                     cfg.CaretDotMode = cfg.ReadBool(key, "CaretDotMode", cfg.CaretDotMode);
                     cfg.EnableLanguageSwitch = cfg.ReadBool(key, "EnableLanguageSwitch", cfg.EnableLanguageSwitch);
@@ -534,6 +569,18 @@ namespace CyrFlip
                     cfg.SymbolsWidth = cfg.ReadInt(key, "SymbolsWidth", cfg.SymbolsWidth);
                     cfg.SymbolsHeight = cfg.ReadInt(key, "SymbolsHeight", cfg.SymbolsHeight);
                     cfg.SymbolsCount = cfg.ReadInt(key, "SymbolsCount", cfg.SymbolsCount);
+
+                    cfg.EnableTrafficLight = cfg.ReadBool(key, "EnableTrafficLight", cfg.EnableTrafficLight);
+                    cfg.TrafficLightHotkey = cfg.ReadHotkey(key, "TrafficLightHotkey", cfg.TrafficLightHotkey);
+                    cfg.EnableTrafficLightHotkey = cfg.ReadBool(key, "EnableTrafficLightHotkey", cfg.EnableTrafficLightHotkey);
+                    cfg.TrafficLightTargets = cfg.ReadTable<TrafficLightTarget>(key, "TrafficLightTargets", TrafficLightTargetList.Sanitize, ref repaired);
+                    cfg.TrafficLightVisible = cfg.ReadBool(key, "TrafficLightVisible", cfg.TrafficLightVisible);
+                    cfg.TrafficLightPinned = cfg.ReadBool(key, "TrafficLightPinned", cfg.TrafficLightPinned);
+                    cfg.TrafficLightTileSize = Math.Max(0, Math.Min(2, cfg.ReadInt(key, "TrafficLightTileSize", cfg.TrafficLightTileSize)));
+                    cfg.TrafficLightColumns = Math.Max(MinTrafficLightColumns, Math.Min(MaxTrafficLightColumns,
+                        cfg.ReadInt(key, "TrafficLightColumns", cfg.TrafficLightColumns)));
+                    cfg.TrafficLightX = cfg.ReadInt(key, "TrafficLightX", cfg.TrafficLightX);
+                    cfg.TrafficLightY = cfg.ReadInt(key, "TrafficLightY", cfg.TrafficLightY);
                 }
             }
             mustSave = seeded || repaired;
@@ -574,6 +621,7 @@ namespace CyrFlip
                 key.SetValue("SettingsWindowWidth", SettingsWindowWidth, RegistryValueKind.DWord);
                 key.SetValue("SettingsWindowHeight", SettingsWindowHeight, RegistryValueKind.DWord);
                 key.SetValue("EnableClipboardHistory", EnableClipboardHistory ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ClipboardHistoryNoticeShown", ClipboardHistoryNoticeShown ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("PauseClipboardHistory", PauseClipboardHistory ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ShowClipboardHistoryOnStartup", ShowClipboardHistoryOnStartup ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ClipboardHistoryX", ClipboardHistoryX, RegistryValueKind.DWord);
@@ -583,6 +631,7 @@ namespace CyrFlip
                 key.SetValue("ClipboardHistoryOpacity", ClipboardHistoryOpacity, RegistryValueKind.DWord);
                 key.SetValue("CursorSize", CursorSize, RegistryValueKind.DWord);
                 key.SetValue("EnableCursorChange", EnableCursorChange ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("CursorNoticeShown", CursorNoticeShown ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableCaretOverlay", EnableCaretOverlay ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("CaretDotMode", CaretDotMode ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableLanguageSwitch", EnableLanguageSwitch ? 1 : 0, RegistryValueKind.DWord);
@@ -659,6 +708,23 @@ namespace CyrFlip
                     key.SetValue("SymbolsWidth", SymbolsWidth, RegistryValueKind.DWord);
                     key.SetValue("SymbolsHeight", SymbolsHeight, RegistryValueKind.DWord);
                     key.SetValue("SymbolsCount", SymbolsCount, RegistryValueKind.DWord);
+                }
+
+                // The list of targets is the one traffic light value that is always written: it is an exported
+                // key of the settings file, and the export, snapshot and rollback machinery reads every exported
+                // key. Everything else of the module waits until it has been switched on (D6).
+                WritePreserved(key, "TrafficLightTargets", TrafficLightTargetList.Serialize(TrafficLightTargets));
+                if (EnableTrafficLight || Has(key, "EnableTrafficLight"))
+                {
+                    key.SetValue("EnableTrafficLight", EnableTrafficLight ? 1 : 0, RegistryValueKind.DWord);
+                    key.SetValue("TrafficLightHotkey", TrafficLightHotkey, RegistryValueKind.String);
+                    key.SetValue("EnableTrafficLightHotkey", EnableTrafficLightHotkey ? 1 : 0, RegistryValueKind.DWord);
+                    key.SetValue("TrafficLightVisible", TrafficLightVisible ? 1 : 0, RegistryValueKind.DWord);
+                    key.SetValue("TrafficLightPinned", TrafficLightPinned ? 1 : 0, RegistryValueKind.DWord);
+                    key.SetValue("TrafficLightTileSize", TrafficLightTileSize, RegistryValueKind.DWord);
+                    key.SetValue("TrafficLightColumns", TrafficLightColumns, RegistryValueKind.DWord);
+                    key.SetValue("TrafficLightX", TrafficLightX, RegistryValueKind.DWord);
+                    key.SetValue("TrafficLightY", TrafficLightY, RegistryValueKind.DWord);
                 }
             }
         }
@@ -931,6 +997,32 @@ namespace CyrFlip
                 key.SetValue("SymbolsY", SymbolsY, RegistryValueKind.DWord);
                 key.SetValue("SymbolsWidth", SymbolsWidth, RegistryValueKind.DWord);
                 key.SetValue("SymbolsHeight", SymbolsHeight, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
+        /// <summary>The board's own position, written at the end of a drag and on hide (one value group, not <see cref="Save"/>). Its size is the grid's, never stored.</summary>
+        public void SaveTrafficLightWindow()
+        {
+            if (_unreadable.Contains("*")) return;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                if (key == null) return;
+                key.SetValue("TrafficLightX", TrafficLightX, RegistryValueKind.DWord);
+                key.SetValue("TrafficLightY", TrafficLightY, RegistryValueKind.DWord);
+            }
+            catch { }
+        }
+
+        /// <summary>Whether the board was left visible - the one value that changes every time it is shown or hidden.</summary>
+        public void SaveTrafficLightVisible()
+        {
+            if (_unreadable.Contains("*")) return;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("TrafficLightVisible", TrafficLightVisible ? 1 : 0, RegistryValueKind.DWord);
             }
             catch { }
         }

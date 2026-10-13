@@ -97,6 +97,7 @@ namespace CyrFlip
         // (ticket S0056, B1) are made from one condition and cannot drift apart when a module gets a switch.
         public static bool QuickNotesLive(AppConfig config) => config.EnableQuickNotes && config.EnableQuickNotesHotkey;
         public static bool SymbolsLive(AppConfig config) => config.EnableSymbols && config.EnableSymbolsHotkey;
+        public static bool TrafficLightLive(AppConfig config) => config.EnableTrafficLight && config.EnableTrafficLightHotkey;
         public static bool ScreenshotLive(AppConfig config) => config.EnableScreenshotHotkey;
         public static bool ScreenshotFolderLive(AppConfig config) => config.ScreenshotSaveEnabled && config.EnableScreenshotFolderHotkey;
         public static bool TextMenuLive(AppConfig config) => config.EnableContextMenu && config.EnableTextMenuHotkey;
@@ -112,6 +113,9 @@ namespace CyrFlip
 
         public static bool IsSymbolsActive(AppConfig config)
             => config.EnableHotkeys && SymbolsLive(config) && Hotkey.TryParse(config.SymbolsHotkey, out _);
+
+        public static bool IsTrafficLightActive(AppConfig config)
+            => config.EnableHotkeys && TrafficLightLive(config) && Hotkey.TryParse(config.TrafficLightHotkey, out _);
 
         public static bool IsScreenshotActive(AppConfig config)
             => config.EnableHotkeys && ScreenshotLive(config) && Hotkey.TryParse(config.ScreenshotHotkey, out _);

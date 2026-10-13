@@ -47,8 +47,8 @@ namespace CyrFlip
         /// <param name="notesAvailable">False while the quick notes are switched off: their journal is not read for an export.</param>
         public ExchangeExportDialog(string language, bool notesAvailable, bool notesWarningOff)
         {
-            string T(string ru) => Localization.Translate(language, ru);
-            Text = T("Экспорт в файл обмена");
+            string T(string en) => Localization.Translate(language, en);
+            Text = T("Export to exchange file");
             FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false; MinimizeBox = false;
             ShowIcon = false; ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
@@ -64,15 +64,15 @@ namespace CyrFlip
 
             var intro = new Label
             {
-                Text = T("Один открытый текстовый файл: его можно прочитать в любом редакторе или на телефоне и импортировать в CyrFlip на другом компьютере. CyrFlip никуда его не отправляет."),
+                Text = T("One open text file: you can read it in any editor or on a phone and import it into CyrFlip on another computer. CyrFlip does not send it anywhere."),
                 AutoSize = true, MaximumSize = new Size(wrap, 0), Margin = new Padding(3, 3, 3, 8),
             };
-            _notes.Text = T("Быстрые заметки");
-            _pinned.Text = T("Закреплённые элементы истории");
-            _rest.Text = T("Остальная история буфера");
+            _notes.Text = T("Quick notes");
+            _pinned.Text = T("Pinned history items");
+            _rest.Text = T("The rest of the clipboard history");
             _scope.Items.AddRange(new object[]
             {
-                T("последние 50"), T("последние 100"), T("за последние 7 дней"), T("вся история"),
+                T("last 50"), T("last 100"), T("last 7 days"), T("entire history"),
             });
             _scope.SelectedIndex = 0;
             _scope.Width = WidestItem() + SystemInformation.VerticalScrollBarWidth + 12;
@@ -81,13 +81,13 @@ namespace CyrFlip
                 _notes.Checked = false;
                 _notes.Enabled = false;
             }
-            _warning.Text = T("Файл будет обычным незашифрованным текстом. Не передавайте его через небезопасные каналы и удалите после переноса, если он больше не нужен.");
+            _warning.Text = T("The file will be ordinary unencrypted text. Do not send it over insecure channels, and delete it after the transfer if you no longer need it.");
             _warning.MaximumSize = new Size(wrap, 0);
-            _noNotesWarning.Text = T("Больше не предупреждать для заметок");
+            _noNotesWarning.Text = T("Don't warn again for notes");
             _noNotesWarning.Checked = notesWarningOff;
 
-            _ok = Command(T("Экспортировать..."), DialogResult.OK, AppGlyphs.Export);
-            Button cancel = Command(T("Отмена"), DialogResult.Cancel);
+            _ok = Command(T("Export..."), DialogResult.OK, AppGlyphs.Export);
+            Button cancel = Command(T("Cancel"), DialogResult.Cancel);
             var buttons = new FlowLayoutPanel
             {
                 FlowDirection = FlowDirection.RightToLeft, AutoSize = true,

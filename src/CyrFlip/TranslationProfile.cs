@@ -182,9 +182,9 @@ namespace CyrFlip
         {
             string value = (code ?? "").Trim();
             if (value.Length == 0 || string.Equals(value, UiToken, StringComparison.OrdinalIgnoreCase))
-                return Localization.Translate(uiLanguage, "Язык интерфейса");
+                return Localization.Translate(uiLanguage, "Interface language");
             if (string.Equals(value, ActiveToken, StringComparison.OrdinalIgnoreCase))
-                return Localization.Translate(uiLanguage, "Язык активной раскладки");
+                return Localization.Translate(uiLanguage, "Active layout language");
 
             int index = Array.IndexOf(Localization.Codes, value.ToLowerInvariant());
             // The endonym is the label everywhere else in CyrFlip's language pickers.

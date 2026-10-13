@@ -121,6 +121,7 @@ namespace CyrFlip
                 object before = original.Values[entry.Key], after = normalized.Values[entry.Key];
                 if (Equals(before, after)) { plan.Unchanged++; continue; }
                 bool optIn = (entry.Key == "EnableClipboardHistory" || entry.Key == "EnableQuickNotes") && (int)after != 0
+                    || entry.Key == "TrafficLightTargets"
                     || entry.Key == "TranslateEndpoint" && RemoteEndpoint((string)after) || windowsConsent.Contains(entry.Key);
                 plan.Changes.Add(new SettingsImportChange(entry, before, after, optIn));
             }

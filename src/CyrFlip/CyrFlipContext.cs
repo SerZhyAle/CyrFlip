@@ -160,6 +160,7 @@ namespace CyrFlip
                 _clipboardHistoryHotkey = new Hotkey(true, true, false, false, 0x79, "F10");
             _quickNotesHotkey = Hotkey.TryParse(_config.QuickNotesHotkey, out Hotkey notesChord) ? notesChord : Hotkey.Parse(AppConfig.DefaultQuickNotesHotkey);
             _symbolsHotkey = Hotkey.TryParse(_config.SymbolsHotkey, out Hotkey symChord) ? symChord : Hotkey.Parse(AppConfig.DefaultSymbolsHotkey);
+            _trafficLightHotkey = Hotkey.TryParse(_config.TrafficLightHotkey, out Hotkey tlChord) ? tlChord : Hotkey.Parse(AppConfig.DefaultTrafficLightHotkey);
             _screenshotHotkey = Hotkey.TryParse(_config.ScreenshotHotkey, out Hotkey shotChord) ? shotChord : Hotkey.Parse(AppConfig.DefaultScreenshotHotkey);
             _screenshotFolderHotkey = Hotkey.TryParse(_config.ScreenshotFolderHotkey, out Hotkey folderChord) ? folderChord : Hotkey.Parse(AppConfig.DefaultScreenshotFolderHotkey);
             _translateWasOn = _config.EnableTranslate;
@@ -270,6 +271,7 @@ namespace CyrFlip
             {
                 Visible = _config.EnableSymbols,
             };
+            ToolStripMenuItem trafficLightItem = CreateTrafficLightItem();
             _screenshotItem = new ToolStripMenuItem(null, null, (_, _) => StartRegionCaptureDeferred());
             _screenshotDelay.Tick += (_, _) => { _screenshotDelay.Stop(); StartRegionCapture(); };
             _hotkeysOverviewItem = new ToolStripMenuItem(null, null, (_, _) => ShowTrayHotkeysFromKeyboard());
@@ -297,6 +299,7 @@ namespace CyrFlip
             menu.Items.Add(_translateClipboardItem);
             menu.Items.Add(_quickNotesItem);
             menu.Items.Add(_symbolsItem);
+            menu.Items.Add(trafficLightItem);
             menu.Items.Add(_screenshotItem);
             menu.Items.Add(_hotkeysOverviewItem);
             menu.Items.Add(_settingsItem);
@@ -319,6 +322,7 @@ namespace CyrFlip
                 _showHistoryItem.ShortcutKeyDisplayString = _config.EnableHotkeys && _config.EnableHistoryHotkey ? _clipboardHistoryHotkey.Display : null;
                 _quickNotesItem.ShortcutKeyDisplayString = _config.EnableHotkeys && QuickNotesChordLive ? _quickNotesHotkey.Display : null;
                 _symbolsItem.ShortcutKeyDisplayString = _config.EnableHotkeys && SymbolsChordLive ? _symbolsHotkey.Display : null;
+                UpdateTrafficLightTray();
             };
             menu.Closed += (_, _) => _trayHover.OnMenuClosed();
 
@@ -334,7 +338,7 @@ namespace CyrFlip
             // D3 containment (S0065 E-2): the one balloon a contained UI-thread fault shows - the
             // tray lives, the hooks are re-armed by their own watchdog, the user is told once.
             FaultContainment.RegisterReporter(_ => _tray.ShowBalloonTip(4000, "CyrFlip",
-                T("Команда не выполнена из-за внутренней ошибки. CyrFlip продолжает работу — если горячие клавиши молчат, перезапустите его."),
+                T("A command failed on an internal error. CyrFlip keeps running - if the hotkeys go quiet, restart it."),
                 ToolTipIcon.Error));
 
             // ---- Tray hover popup wiring (S0059) ----
@@ -415,6 +419,7 @@ namespace CyrFlip
             _hook.ClipboardHistoryHotkeyPressed += (_, _) => _ui?.Post(_ => _clipboardHistoryWindow.ToggleVisible(), null);
             _hook.QuickNotesHotkeyPressed += (_, _) => _ui?.Post(_ => ShowQuickNotes(startNew: true), null);
             _hook.SymbolsHotkeyPressed += (_, _) => _ui?.Post(_ => OnSymbolsHotkeyPressed(), null);
+            _hook.TrafficLightHotkeyPressed += (_, _) => _ui?.Post(_ => OnTrafficLightHotkeyPressed(), null);
             // The chord starts the grab at once - that is what freezes a tooltip or an open menu (S0026 scenario 2).
             _hook.ScreenshotHotkeyPressed += (_, _) => _ui?.Post(_ => StartRegionCapture(), null);
             _hook.ScreenshotFolderHotkeyPressed += (_, _) => _ui?.Post(_ => OpenScreenshotFolder(), null);
@@ -461,14 +466,14 @@ namespace CyrFlip
                     _ui?.Post(_ => RestoreTargetForeground(), null);
                 _textMenuFromKeyboard = false;
             };
-            _clipboardHistory.ItemTooLarge += (_, _) => _tray.ShowBalloonTip(2000, "CyrFlip", T("Фрагмент слишком велик для истории (>128 КБ)."), ToolTipIcon.Info);
+            _clipboardHistory.ItemTooLarge += (_, _) => _tray.ShowBalloonTip(2000, "CyrFlip", T("Fragment is too large for history (>128 KB)."), ToolTipIcon.Info);
             _clipboardHistory.ClearFailed += (_, _) => _tray.ShowBalloonTip(3000, "CyrFlip",
-                T("Файл истории буфера занят другой программой, и он не удалён. Повторите очистку."), ToolTipIcon.Warning);
+                T("The clipboard history file is in use by another program and was not deleted. Try clearing again."), ToolTipIcon.Warning);
             // Once per session: the service raises it for the first failed write only (S0031 CH2-4).
             _clipboardHistory.WriteFailed += (_, _) => _tray.ShowBalloonTip(4000, "CyrFlip",
-                T("Запись в файл истории буфера не удалась - новые записи могут не сохраниться после перезапуска."), ToolTipIcon.Warning);
+                T("Writing to the clipboard history file failed - new entries may not survive a restart."), ToolTipIcon.Warning);
             _clipboardHistory.EraseFailed += (_, _) => _tray.ShowBalloonTip(4000, "CyrFlip",
-                T("Не удалось удалить запись истории буфера. Повторите."), ToolTipIcon.Warning);
+                T("Could not delete the clipboard history entry. Try again."), ToolTipIcon.Warning);
             // Once per session, like the quick notes: a damaged line now costs only itself (S0005 CH-2).
             // The replay finishes on the pool now (S0064 H-5), so the count arrives with its
             // ReplayFinished instead of being read out of the service's constructor.
@@ -476,14 +481,14 @@ namespace CyrFlip
             {
                 if (_clipboardHistory.SkippedRecords > 0)
                     _tray.ShowBalloonTip(4000, "CyrFlip",
-                        Localization.Format(T, "Не прочитано записей истории буфера: {0}. Остальная история на месте.",
+                        Localization.Format(T, "Unreadable clipboard history records: {0}. The rest of the history is there.",
                             _clipboardHistory.SkippedRecords), ToolTipIcon.Warning);
             };
             // Once per start while any stored value is unreadable (S0007 CF-1): each fell back to its
             // own default, and the tables and snapshots among them stay untouched on disk.
             if (_config.UnreadableValues.Count > 0)
                 _tray.ShowBalloonTip(4000, "CyrFlip",
-                    T("Часть настроек CyrFlip не удалось прочитать - они оставлены как есть."), ToolTipIcon.Warning);
+                    T("Some CyrFlip settings could not be read and were left as they are."), ToolTipIcon.Warning);
             _caretOverlay.Start();
             _indicator.Start();
 
@@ -505,6 +510,8 @@ namespace CyrFlip
                 _config.DeferToRemoteDesktop, _config.EnableHotkeys,
                 _config.EnableCaseHotkey, _config.EnableHistoryHotkey, QuickNotesChordLive);
             _hook.UpdateSymbolsHotkey(_symbolsHotkey);
+            // The traffic light's chord and - only when switched on - its module (S0069 D6).
+            StartTrafficLightAtLaunch();
             _hook.UpdateScreenshotHotkey(_screenshotHotkey);
             _hook.UpdateScreenshotEnabled(ScreenshotChordLive);
             _hook.UpdateScreenshotFolderHotkey(_screenshotFolderHotkey);
@@ -648,7 +655,7 @@ namespace CyrFlip
                 {
                     _busyNoticeShownAtMs = now;
                     _tray.ShowBalloonTip(2000, "CyrFlip",
-                        T("Другая операция с буфером ещё не закончилась. Повторите через секунду."), ToolTipIcon.Info);
+                        T("Another clipboard operation has not finished yet. Try again in a second."), ToolTipIcon.Info);
                 }
                 return;
             }
@@ -741,7 +748,7 @@ namespace CyrFlip
             _hookReinstallFailures++;
             if (_hookReinstallFailures != HookFailuresBeforeWarning) return;
             _tray.ShowBalloonTip(4000, "CyrFlip",
-                T("Windows не отдаёт перехват клавиатуры — горячие клавиши могут не работать. Помогает перезапуск CyrFlip."),
+                T("Windows will not grant the keyboard hook — the hotkeys may not work. Restarting CyrFlip usually helps."),
                 ToolTipIcon.Warning);
         }
 
@@ -766,15 +773,15 @@ namespace CyrFlip
             switch (result)
             {
                 case ClipboardHandler.FlipResult.NoSelection:
-                    return (translate("Ничего не выделено. Я переворачиваю текст, а не воздух — сначала выделите что-нибудь."), ToolTipIcon.Info, 1500);
+                    return (translate("Nothing selected. I flip text, not thin air — highlight something first."), ToolTipIcon.Info, 1500);
                 case ClipboardHandler.FlipResult.Failed:
-                    return (translate("Не удалось прочитать или заменить выделение. У буфера обмена были другие планы."), ToolTipIcon.Warning, 2000);
+                    return (translate("Couldn't read or replace the selection. The clipboard had other plans."), ToolTipIcon.Warning, 2000);
                 case ClipboardHandler.FlipResult.TooLarge:
-                    return (translate("Выделение слишком большое для конвертации (больше миллиона символов). Выделите часть."), ToolTipIcon.Info, 2500);
+                    return (translate("The selection is too large to convert (over a million characters). Select a part of it."), ToolTipIcon.Info, 2500);
                 case ClipboardHandler.FlipResult.NoChange:
-                    return (translate("Текст уже в этой раскладке — конвертировать нечего."), ToolTipIcon.Info, 1500);
+                    return (translate("The text is already in this layout - nothing to convert."), ToolTipIcon.Info, 1500);
                 case ClipboardHandler.FlipResult.Cancelled:
-                    return (translate("Окно сменилось — конвертация отменена."), ToolTipIcon.Info, 1500);
+                    return (translate("The window changed - the conversion was cancelled."), ToolTipIcon.Info, 1500);
                 default:
                     return null;
             }
@@ -815,7 +822,7 @@ namespace CyrFlip
                 {
                     // A hook Windows refuses is a feature that does not work, not a crash.
                     _tray.ShowBalloonTip(3000, "CyrFlip",
-                        T("Не удалось перехватить мышь, контекстное меню не будет открываться."),
+                        T("Could not hook the mouse; the context menu will not open."),
                         ToolTipIcon.Warning);
                 }
                 return;
@@ -1077,7 +1084,7 @@ namespace CyrFlip
         {
             if (target.Kind == LaunchKind.Program
                 && ConfirmDialog.Show(_config.UiLanguage,
-                    Localization.Format(T, "Запустить программу из выделенного текста?\n\n{0}\n\nCyrFlip не проверяет, что это за файл.",
+                    Localization.Format(T, "Run a program from the selected text?\n\n{0}\n\nCyrFlip does not check what this file is.",
                         target.Target),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
             {
@@ -1103,7 +1110,7 @@ namespace CyrFlip
                 {
                     TextMenuLog.Log("launch failed: " + ex.Message);
                     _ui?.Post(_ => ShowWarningBalloon(3000,
-                        Localization.Format(T, "Не удалось запустить «{0}»: {1}", target.Display, FailureCause.Describe(ex, _config.UiLanguage))), null);
+                        Localization.Format(T, "Couldn't start \"{0}\": {1}", target.Display, FailureCause.Describe(ex, _config.UiLanguage))), null);
                 }
             });
         }
@@ -1152,7 +1159,7 @@ namespace CyrFlip
             Bitmap? frame = ScreenCapture.Grab(screen);
             if (frame == null)
             {
-                ShowWarningBalloon(3000, T("Не удалось сделать снимок экрана."));
+                ShowWarningBalloon(3000, T("Could not capture the screen."));
                 return;
             }
 
@@ -1161,7 +1168,7 @@ namespace CyrFlip
             catch
             {
                 frame.Dispose();
-                ShowWarningBalloon(3000, T("Не удалось сделать снимок экрана."));
+                ShowWarningBalloon(3000, T("Could not capture the screen."));
                 return;
             }
             _regionOverlay = overlay;
@@ -1206,7 +1213,7 @@ namespace CyrFlip
                     }
                     catch
                     {
-                        _ui?.Post(_ => ShowWarningBalloon(3000, T("Не удалось сделать снимок экрана.")), null);
+                        _ui?.Post(_ => ShowWarningBalloon(3000, T("Could not capture the screen.")), null);
                         return;
                     }
                     finally { cropped.Dispose(); }
@@ -1222,7 +1229,7 @@ namespace CyrFlip
                         _config.IncrementScreenshotCount();
                     else
                         _ui?.Post(_ => ShowWarningBalloon(3000,
-                            T("Не удалось положить снимок в буфер обмена - он занят другой программой. Повторите.")), null);
+                            T("Could not put the capture on the clipboard - another program holds it. Try again.")), null);
 
                     if (save)
                     {
@@ -1233,7 +1240,7 @@ namespace CyrFlip
                             // Where the folder chord opens when the configured folder is gone (S0057 3.2, D4).
                             _lastScreenshotFolder = result.Folder;
                             _ui?.Post(_ => ShowInfoBalloon(5000,
-                                Localization.Format(T, "Папка для снимков недоступна - снимок сохранён сюда: {0}", result.Folder)), null);
+                                Localization.Format(T, "The capture folder is unreachable - the capture was saved here instead: {0}", result.Folder)), null);
                         }
                         else if (result.Outcome == ScreenshotSaver.Outcome.Failed)
                         {
@@ -1241,7 +1248,7 @@ namespace CyrFlip
                             // types and timeouts, never a path.
                             ScreenshotLog.Log("save failed: " + result.Reason);
                             _ui?.Post(_ => ShowWarningBalloon(5000,
-                                T("Снимок в буфере обмена, но сохранить файл не удалось ни в одну папку.")), null);
+                                T("The capture is on the clipboard, but the file could not be saved into any folder.")), null);
                         }
                     }
                 }
@@ -1262,7 +1269,7 @@ namespace CyrFlip
             catch
             {
                 cropped.Dispose();
-                ShowWarningBalloon(3000, T("Не удалось сделать снимок экрана."));
+                ShowWarningBalloon(3000, T("Could not capture the screen."));
             }
         }
 
@@ -1330,7 +1337,7 @@ namespace CyrFlip
         /// <summary>The text menu's keyboard chord, set from the settings tab and checked against every other owner.</summary>
         private void OnSetTextMenuHotkey()
         {
-            using var dlg = new HotkeyDialog(ParsedTextMenuHotkey().Display, T("Задать хоткей контекстного меню"), _config.UiLanguage);
+            using var dlg = new HotkeyDialog(ParsedTextMenuHotkey().Display, T("Set the context-menu hotkey"), _config.UiLanguage);
             if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
             if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.TextMenu)) return;
 
@@ -1343,7 +1350,7 @@ namespace CyrFlip
         /// <summary>The capture chord, set from the settings tab and checked against every other owner.</summary>
         private void OnSetScreenshotHotkey()
         {
-            using var dlg = new HotkeyDialog(_screenshotHotkey.Display, T("Задать хоткей снимка области экрана"), _config.UiLanguage);
+            using var dlg = new HotkeyDialog(_screenshotHotkey.Display, T("Set the screen region capture hotkey"), _config.UiLanguage);
             if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
             if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.Screenshot)) return;
 
@@ -1358,7 +1365,7 @@ namespace CyrFlip
         /// <summary>The folder-opening chord, set from the settings tab and checked against every other owner (S0057).</summary>
         private void OnSetScreenshotFolderHotkey()
         {
-            using var dlg = new HotkeyDialog(ParsedScreenshotFolderHotkey().Display, T("Задать хоткей папки со снимками"), _config.UiLanguage);
+            using var dlg = new HotkeyDialog(ParsedScreenshotFolderHotkey().Display, T("Set the screenshots folder hotkey"), _config.UiLanguage);
             if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
             if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.ScreenshotFolder)) return;
 
@@ -1404,12 +1411,12 @@ namespace CyrFlip
                 {
                     var lines = new List<string>();
                     if (service.ReadFailure != null)
-                        lines.Add(T("Не удалось прочитать журнал быстрых заметок. Запись отключена до перезапуска.")
+                        lines.Add(T("Could not read the quick notes journal. Saving is disabled until restart.")
                             + " " + FailureCause.Describe(service.ReadFailure, _config.UiLanguage));
                     if (service.RecoveredFromBackup)
-                        lines.Add(T("Журнал быстрых заметок не найден - заметки восстановлены из резервной копии."));
+                        lines.Add(T("The quick-notes journal was missing - the notes were restored from its backup."));
                     if (service.SkippedRecords > 0)
-                        lines.Add(Localization.Format(T, "Не прочитано записей быстрых заметок: {0}. Остальные заметки на месте.",
+                        lines.Add(Localization.Format(T, "Unreadable quick-note records: {0}. Every other note is there.",
                             service.SkippedRecords));
                     if (lines.Count > 0 && ReferenceEquals(service, _quickNotes))
                         _tray.ShowBalloonTip(4000, "CyrFlip", string.Join("\n", lines), ToolTipIcon.Warning);
@@ -1441,7 +1448,7 @@ namespace CyrFlip
             if (Interlocked.CompareExchange(ref _busy, 1, 0) != 0)
             {
                 _tray.ShowBalloonTip(2000, "CyrFlip",
-                    T("Другая операция с буфером ещё не закончилась. Повторите через секунду."), ToolTipIcon.Info);
+                    T("Another clipboard operation has not finished yet. Try again in a second."), ToolTipIcon.Info);
                 return;
             }
             StartClipboardWorker(() =>
@@ -1484,9 +1491,9 @@ namespace CyrFlip
             {
                 _config.QuickNotesNoticeShown = true;
                 ConfirmDialog.Show(_config.UiLanguage,
-                    T("Заметки хранятся только на этом компьютере, в зашифрованном DPAPI файле вашей учётной записи Windows. CyrFlip не отправляет их в сеть и ничем их не индексирует.")
+                    T("Notes live only on this computer, in a file encrypted with the DPAPI of your Windows account. CyrFlip never sends them anywhere and indexes them with nothing.")
                     + "\n\n"
-                    + T("Это не хранилище секретов: не сохраняйте здесь пароли, боевые токены и приватные ключи."),
+                    + T("This is not a secret store: do not keep passwords, production tokens or private keys here."),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
@@ -1627,7 +1634,7 @@ namespace CyrFlip
                 // hotkey - the single worst way for this feature to fail (spec §12.2).
                 TranslateLog.Log("capture skipped: another clipboard operation is still running");
                 _tray.ShowBalloonTip(2000, "CyrFlip",
-                    T("Другая операция с буфером ещё не закончилась. Повторите через секунду."), ToolTipIcon.Info);
+                    T("Another clipboard operation has not finished yet. Try again in a second."), ToolTipIcon.Info);
                 return;
             }
             StartClipboardWorker(() =>
@@ -1655,7 +1662,7 @@ namespace CyrFlip
                         // Also used to be silent. The user pressed a chord; they are owed an answer
                         // even when the answer is "you switched windows while I was copying".
                         _tray.ShowBalloonTip(2000, "CyrFlip",
-                            T("Окно сменилось, пока я забирал выделение. Перевод отменён."), ToolTipIcon.Info);
+                            T("The window changed while I was taking the selection. The translation was cancelled."), ToolTipIcon.Info);
                         return;
                     }
                     if (result != ClipboardHandler.CaptureResult.Captured || selection.Trim().Length == 0)
@@ -1674,7 +1681,7 @@ namespace CyrFlip
             if (!_config.EnableTranslate) return;
             if (!Win32Clipboard.TryGetText(out string text) || text.Trim().Length == 0)
             {
-                _tray.ShowBalloonTip(1500, "CyrFlip", T("В буфере обмена нет текста для перевода."), ToolTipIcon.Info);
+                _tray.ShowBalloonTip(1500, "CyrFlip", T("There is no text on the clipboard to translate."), ToolTipIcon.Info);
                 return;
             }
             BeginTranslate(text, IntPtr.Zero, TranslationLanguages.Resolve(FirstTranslationTarget(), _config.UiLanguage, _currentLayout));
@@ -1697,7 +1704,7 @@ namespace CyrFlip
 
             TranslationResultWindow window = EnsureTranslateWindow();
             window.ShowSourcePanel(_config.TranslateShowSource);
-            window.ShowTranslating(code, text, T("Перевожу… (Esc — отмена)"), target);
+            window.ShowTranslating(code, text, T("Translating... (Esc to cancel)"), target);
             // The popup never takes focus, so its own Esc never fires; the hook watches for it while
             // the model is writing, and only then.
             _hook.UpdateCancelKeyWatch(true);
@@ -1830,7 +1837,7 @@ namespace CyrFlip
                     {
                         if (window.IsDisposed || !window.Visible) return;
                         window.ShowResult(window.ResultText,
-                            T("Не удалось прочитать или заменить выделение. У буфера обмена были другие планы."));
+                            T("Couldn't read or replace the selection. The clipboard had other plans."));
                     }, null);
                     return;
                 }
@@ -1890,10 +1897,10 @@ namespace CyrFlip
                 {
                     if (window.IsDisposed || !window.Visible) return;
                     window.ShowResult(window.ResultText, copyFailed
-                        ? T("Не удалось скопировать текст в буфер обмена. Повторите.")
+                        ? T("Could not copy the text to the clipboard. Try again.")
                         : failed
-                            ? T("Не удалось прочитать или заменить выделение. У буфера обмена были другие планы.")
-                            : T("Фокус сменился — вставьте перевод вручную."));
+                            ? T("Couldn't read or replace the selection. The clipboard had other plans.")
+                            : T("The focus has moved - paste the translation by hand."));
                 }, null);
             })
             {
@@ -1938,9 +1945,9 @@ namespace CyrFlip
         {
             string note = TranslationLanguages.Label(_translateCode, _config.UiLanguage);
             if (result.Partial)
-                note += " — " + T("модель перестала отвечать - перевод может быть неполным");
+                note += " — " + T("the model stopped answering - the translation may be incomplete");
             if (result.Truncated)
-                note += " — " + Localization.Format(T, "переведены первые {0} из {1} символов",
+                note += " — " + Localization.Format(T, "the first {0} of {1} characters were translated",
                     TranslationService.MaxChars, result.SourceLength);
             // Only worth saying when it isn't the model the settings promise.
             if (result.Model.Length > 0 && !TranslationService.ModelMatches(result.Model, (_config.TranslateModel ?? "").Trim()))
@@ -1954,21 +1961,21 @@ namespace CyrFlip
         {
             switch (status)
             {
-                case TranslationStatus.NoText: return T("Нет текста для перевода.");
-                case TranslationStatus.NotInstalled: return T("Не найден Ollama — локальный переводчик. Его нужно установить один раз.");
-                case TranslationStatus.NotRunning: return T("Ollama не запущен.");
-                case TranslationStatus.StartFailed: return T("Не удалось запустить Ollama.");
+                case TranslationStatus.NoText: return T("There is no text to translate.");
+                case TranslationStatus.NotInstalled: return T("Ollama, the local translator, was not found. It has to be installed once.");
+                case TranslationStatus.NotRunning: return T("Ollama is not running.");
+                case TranslationStatus.StartFailed: return T("Could not start Ollama.");
                 // A server on another machine: CyrFlip does not start it and says whose it is (S0010 TD-6).
                 case TranslationStatus.Unreachable:
-                    return Localization.Format(T, "Сервер {0} не отвечает. Проверьте адрес в настройках и что Ollama там запущен.", error);
-                case TranslationStatus.NoModel: return T("Не установлена ни одна модель. Рекомендуем aya-expanse:8b (~4,7 ГБ) — загрузите её в настройках.");
-                case TranslationStatus.Timeout: return T("Модель не ответила вовремя. Возможно, она слишком велика для этого компьютера.");
+                    return Localization.Format(T, "The server {0} does not answer. Check the address in the settings and that Ollama is running there.", error);
+                case TranslationStatus.NoModel: return T("No model is installed. We recommend aya-expanse:8b (~4.7 GB) - download it in the settings.");
+                case TranslationStatus.Timeout: return T("The model did not answer in time. It may be too large for this computer.");
                 // The server's own words, when it gave any: "model not found" is worth reading verbatim.
                 case TranslationStatus.ServerError:
                     return error.Length > 0
-                        ? T("Ollama ответил ошибкой:") + " " + error
-                        : T("Ollama не принял запрос. Проверьте адрес сервера и модель в настройках.");
-                default: return T("Модель не справилась с этим текстом.");
+                        ? T("Ollama answered with an error:") + " " + error
+                        : T("Ollama refused the request. Check the server address and the model in the settings.");
+                default: return T("The model could not handle this text.");
             }
         }
 
@@ -2070,7 +2077,7 @@ namespace CyrFlip
         /// </summary>
         private void OnSetQuickNotesHotkey()
         {
-            using var dlg = new HotkeyDialog(_quickNotesHotkey.Display, T("Задать хоткей быстрых заметок"), _config.UiLanguage);
+            using var dlg = new HotkeyDialog(_quickNotesHotkey.Display, T("Set the quick-notes hotkey"), _config.UiLanguage);
             if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
             if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.QuickNotes)) return;
 
@@ -2084,7 +2091,7 @@ namespace CyrFlip
 
         private void OnSetSymbolsHotkey()
         {
-            using var dlg = new HotkeyDialog(_symbolsHotkey.Display, T("Задать хоткей окна символов"), _config.UiLanguage);
+            using var dlg = new HotkeyDialog(_symbolsHotkey.Display, T("Set symbols window hotkey"), _config.UiLanguage);
             if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
             if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.Symbols)) return;
 
@@ -2217,6 +2224,17 @@ namespace CyrFlip
         private void OnHistoryEnabledToggle(object? sender, EventArgs e)
         {
             _config.EnableClipboardHistory = _historyEnabledItem.Checked;
+            // S0067 CU-2-06: from here on every copy is recorded, so the first enable says so - once,
+            // the way the quick notes' notice does (tray, settings and the tour all pass through here).
+            if (_historyEnabledItem.Checked && !_config.ClipboardHistoryNoticeShown)
+            {
+                _config.ClipboardHistoryNoticeShown = true;
+                ConfirmDialog.Show(_config.UiLanguage,
+                    T("From now on CyrFlip records every text you copy into a local file on this computer. Nothing is sent anywhere.")
+                    + "\n\n"
+                    + T("Nothing is ever trimmed: a copied password stays until you delete its entry or clear the history."),
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
             _historyPauseItem.Enabled = _historyEnabledItem.Checked;
             _clipboardHistory.SetEnabled(_historyEnabledItem.Checked);
             if (_historyEnabledItem.Checked && !_clipboardHistoryWindow.Visible)
@@ -2267,33 +2285,37 @@ namespace CyrFlip
             RefreshLauncherSurfaces();
         }
 
-        /// <summary>Localized text for a Russian source string - see <see cref="Localization"/>.</summary>
-        private string T(string ru) => Localization.Translate(_config.UiLanguage, ru);
+        /// <summary>Localized text for an English source string - see <see cref="Localization"/>.</summary>
+        private string T(string en) => Localization.Translate(_config.UiLanguage, en);
 
         private void UpdateTrayTexts()
         {
-            _showHistoryItem.Text = T(_clipboardHistoryWindow.Visible ? "Скрыть историю" : "Показать историю");
-            _historyEnabledItem.Text = T("История буфера");
-            _historyPauseItem.Text = T("Приостановить захват истории");
-            _cursorItem.Text = T("Курсор: индикатор раскладки");
-            _caretItem.Text = T("Каретка: метка раскладки");
-            _dotModeItem.Text = T("Каретка: стиль точки");
-            _keepAwakeItem.Text = T("Не давать компьютеру засыпать");
-            _keepScreenItem.Text = T("Не блокировать экран (как при видео)");
-            _translateClipboardItem.Text = T("Перевести буфер обмена");
-            _quickNotesItem.Text = T("Быстрые заметки");
-            _symbolsItem.Text = T("Символы");
+            _showHistoryItem.Text = T(_clipboardHistoryWindow.Visible ? "Hide history" : "Show history");
+            _historyEnabledItem.Text = T("Clipboard history");
+            _historyPauseItem.Text = T("Pause history capture");
+            _cursorItem.Text = T("Cursor: layout indicator");
+            _caretItem.Text = T("Caret: overlay label");
+            _dotModeItem.Text = T("Caret: dot style");
+            _keepAwakeItem.Text = T("Keep the computer awake");
+            _keepScreenItem.Text = T("Keep the screen on (like video)");
+            _translateClipboardItem.Text = T("Translate the clipboard");
+            _quickNotesItem.Text = T("Quick notes");
+            _symbolsItem.Text = T("Symbols");
             _symbolsItem.Visible = _config.EnableSymbols;
             _symbolsItem.ShortcutKeyDisplayString = _config.EnableHotkeys && SymbolsChordLive ? _symbolsHotkey.Display : null;
-            _screenshotItem.Text = T("Снимок области экрана");
+            _screenshotItem.Text = T("Screen region capture");
             _screenshotItem.ShortcutKeyDisplayString = _config.EnableHotkeys && ScreenshotChordLive ? _screenshotHotkey.Display : null;
             if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed)
                 _quickNotesWindow.ApplyLanguage(_config.UiLanguage);
             if (_symbolsWindow != null && !_symbolsWindow.IsDisposed)
                 _symbolsWindow.ApplyLanguage(_config.UiLanguage);
-            _hotkeysOverviewItem.Text = T("Комбинации клавиш");
-            _settingsItem.Text = T("Настройки...");
-            _exitItem.Text = T("Выйти");
+            if (_trafficWindow != null && !_trafficWindow.IsDisposed)
+                _trafficWindow.ApplyLanguage(_config.UiLanguage);
+            _trafficTrayText = "";
+            UpdateTrafficLightTray();
+            _hotkeysOverviewItem.Text = T("Hotkeys (tray menu)");
+            _settingsItem.Text = T("Settings...");
+            _exitItem.Text = T("Exit");
             if (_tray.ContextMenuStrip != null)
                 _tray.ContextMenuStrip.RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
             _textMenu.RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
@@ -2321,9 +2343,9 @@ namespace CyrFlip
             // Keep-awake has no chord, so the tooltip is its only ambient
             // sign it's on. "Screen stays on" implies the system is awake too, so it wins when both.
             if (KeepAwake.KeepScreenOn)
-                lines.Add(T("экран не гаснет"));
+                lines.Add(T("screen stays on"));
             else if (KeepAwake.KeepSystemAwake)
-                lines.Add(T("не даёт засыпать"));
+                lines.Add(T("keeping awake"));
 
             SetTrayText(head.ToString(), lines);
             if (_trayPopup != null && _trayPopup.Visible)
@@ -2443,7 +2465,7 @@ namespace CyrFlip
         {
             if (Autostart.ManagedByWindows) { OnOpenStartupSettings(null, EventArgs.Empty); return; }
             try { Autostart.Set(value); _autostartItem.Checked = value; }
-            catch (Exception ex) { ConfirmDialog.Show(_config.UiLanguage, T("Не удалось изменить автозапуск Windows:") + "\n" + FailureCause.Describe(ex, _config.UiLanguage), MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+            catch (Exception ex) { ConfirmDialog.Show(_config.UiLanguage, T("Couldn't update Windows startup:") + "\n" + FailureCause.Describe(ex, _config.UiLanguage), MessageBoxButtons.OK, MessageBoxIcon.Warning); }
         }
 
         /// <summary>
@@ -2457,7 +2479,7 @@ namespace CyrFlip
             bool switched = LayoutSwitcher.SwitchToNext(_indicator.LastActiveWindow);
             if (!switched)
                 _tray.ShowBalloonTip(2000, "CyrFlip",
-                    T("Переключать не на что: в Windows установлена только одна раскладка."), ToolTipIcon.Info);
+                    T("Nothing to switch to: Windows has only one keyboard layout installed."), ToolTipIcon.Info);
         }
 
         private void ShowSettings()
@@ -2497,6 +2519,7 @@ namespace CyrFlip
             settings.ChordsEdited += (_, _) => OnChordsEdited();
             settings.SymbolsHotkeyChangeRequested += (_, _) => OnSetSymbolsHotkey();
             settings.OpenSymbolsRequested += (_, _) => ToggleSymbols();
+            WireTrafficLightSettings(settings);
             settings.GraphicsChanged += (_, _) => OnGraphicsChanged();
             settings.ScreenshotHotkeyChangeRequested += (_, _) => OnSetScreenshotHotkey();
             settings.ScreenshotFolderHotkeyChangeRequested += (_, _) => OnSetScreenshotFolderHotkey();
@@ -2645,11 +2668,20 @@ namespace CyrFlip
         /// the layout-conversion chords are captured by <see cref="LayoutConversionDialog"/>.
         /// </summary>
         private string HotkeyTitle(string which)
-            => T(which == "history" ? "Задать хоткей истории буфера" : "Задать хоткей регистра");
+            => T(which == "history" ? "Set clipboard history hotkey" : "Set case hotkey");
 
         private void OnCursorToggle(object? sender, EventArgs e)
         {
             _config.EnableCursorChange = _cursorItem.Checked;
+            // S0067 CU-2-08: the badge swaps the I-beam of every program, so the first enable names
+            // the change and the way back - once, before the marker is applied.
+            if (_cursorItem.Checked && !_config.CursorNoticeShown)
+            {
+                _config.CursorNoticeShown = true;
+                ConfirmDialog.Show(_config.UiLanguage,
+                    T("The I-beam is replaced in every program by a cursor with a layout badge; untick to restore."),
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
             if (_cursorItem.Checked)
             {
                 if (_currentLayout.Length > 0) _layoutCursor.Apply(_currentLayout, _currentKlid, _capsOn);
@@ -2749,13 +2781,13 @@ namespace CyrFlip
                 return;
 
             _tray.ShowBalloonTip(3000, "CyrFlip",
-                T("Идёт запись ~7 секунд. Щёлкните в непокорное поле ввода и наберите что-нибудь или подвигайте каретку — покажите, где она прячется."),
+                T("Capturing for ~7s. Click into that uncooperative input box and type or wiggle the caret — show me where it's hiding."),
                 ToolTipIcon.Info);
 
             bool started = CaretDiagnostics.Run(
                 onDone: path => _ui?.Post(_ =>
                 {
-                    _tray.ShowBalloonTip(5000, "CyrFlip", T("Диагностика каретки сохранена — укрытие каретки раскрыто. Открываю:") + "\n" + path, ToolTipIcon.Info);
+                    _tray.ShowBalloonTip(5000, "CyrFlip", T("Caret diagnostics saved — the caret's hiding spot is exposed. Opening:") + "\n" + path, ToolTipIcon.Info);
                     try
                     {
                         System.Diagnostics.Process.Start(
@@ -2764,10 +2796,10 @@ namespace CyrFlip
                     catch { /* best effort - the balloon still shows the path */ }
                 }, null),
                 onError: ex => _ui?.Post(_ =>
-                    _tray.ShowBalloonTip(5000, "CyrFlip", T("Диагностика каретки не удалась (каретка выиграла этот раунд):") + " " + FailureCause.Describe(ex, _config.UiLanguage), ToolTipIcon.Warning), null));
+                    _tray.ShowBalloonTip(5000, "CyrFlip", T("Caret diagnostics failed (the caret won this round):") + " " + FailureCause.Describe(ex, _config.UiLanguage), ToolTipIcon.Warning), null));
 
             if (!started)
-                _tray.ShowBalloonTip(2000, "CyrFlip", T("Спокойно — одна диагностика уже идёт."), ToolTipIcon.Info);
+                _tray.ShowBalloonTip(2000, "CyrFlip", T("Easy — one diagnostics capture is already snooping around."), ToolTipIcon.Info);
         }
 
         /// <summary>
@@ -2784,7 +2816,7 @@ namespace CyrFlip
             {
                 if (!OllamaManager.ServerStartedByCyrFlip) return;
                 if (ConfirmDialog.Show(_config.UiLanguage,
-                        T("CyrFlip запустил сервер перевода (ollama serve). Остановить его вместе с CyrFlip, чтобы освободить его память?"),
+                        T("CyrFlip started the translation server (ollama serve). Stop it together with CyrFlip to free its memory?"),
                         MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                     return;
                 OllamaManager.StopStartedServer();
@@ -2801,7 +2833,7 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 _autostartItem.Checked = Autostart.IsEnabled; // revert the checkmark on failure
-                ConfirmDialog.Show(_config.UiLanguage, T("Не удалось изменить автозапуск Windows:") + "\n" + FailureCause.Describe(ex, _config.UiLanguage),
+                ConfirmDialog.Show(_config.UiLanguage, T("Couldn't update Windows startup:") + "\n" + FailureCause.Describe(ex, _config.UiLanguage),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
@@ -2833,14 +2865,14 @@ namespace CyrFlip
                 if (_launcherStore.Count == 0 && LauncherMigration.SourceExists())
                 {
                     if (ConfirmDialog.Show(_config.UiLanguage,
-                            Localization.Format(T, "Найдены сценарии OneClickRunner ({0} шт.). Перенести их в CyrFlip? Исходные файлы останутся без изменений.",
+                            Localization.Format(T, "Found OneClickRunner scenarios ({0}). Bring them into CyrFlip? The source files stay untouched.",
                                 LauncherMigration.SourceCount()),
                             MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                         ShowMigrationSummary(LauncherMigration.Import(_launcherStore, chords: Chords));
                 }
                 if (_launcherStore.Count == 0)
                 {
-                    Exception? failure = _launcherStore.SeedSample(T("Калькулятор"));
+                    Exception? failure = _launcherStore.SeedSample(T("Calculator"));
                     if (failure != null) _tray.ShowBalloonTip(4000, "CyrFlip",
                         FailureCause.Describe(failure, _config.UiLanguage), ToolTipIcon.Warning);
                 }
@@ -2866,16 +2898,16 @@ namespace CyrFlip
 
         private void ShowMigrationSummary(LauncherMigration.Result result)
         {
-            string summary = Localization.Format(T, "Перенесено сценариев: {0}.", result.Imported);
+            string summary = Localization.Format(T, "Scenarios imported: {0}.", result.Imported);
             if (result.AlreadyPresent > 0)
-                summary += "\n" + Localization.Format(T, "Уже перенесены ранее: {0}.", result.AlreadyPresent);
+                summary += "\n" + Localization.Format(T, "Already imported earlier: {0}.", result.AlreadyPresent);
             if (result.Skipped.Count > 0)
-                summary += "\n" + Localization.Format(T, "Пропущено повреждённых файлов: {0}.", result.Skipped.Count)
+                summary += "\n" + Localization.Format(T, "Corrupt files skipped: {0}.", result.Skipped.Count)
                     + "\n" + string.Join(", ", result.Skipped);
             if (result.NewIds > 0)
-                summary += "\n" + Localization.Format(T, "Из-за совпадения идентификаторов назначены новые: {0}.", result.NewIds);
+                summary += "\n" + Localization.Format(T, "New ids assigned because of collisions: {0}.", result.NewIds);
             if (result.ChordsDropped > 0)
-                summary += "\n" + Localization.Format(T, "Комбинации уже заняты, поэтому не перенесены: {0}.", result.ChordsDropped);
+                summary += "\n" + Localization.Format(T, "Shortcuts already taken, so not carried over: {0}.", result.ChordsDropped);
             foreach (var failure in result.SaveFailures)
                 summary += "\n" + failure.Key + ": " + FailureCause.Describe(failure.Value, _config.UiLanguage);
             ConfirmDialog.Show(_config.UiLanguage, summary, MessageBoxButtons.OK,
@@ -3026,7 +3058,7 @@ namespace CyrFlip
                     : LauncherLaunchResult.Fail(task.Exception != null ? FailureCause.Describe(task.Exception.GetBaseException(), _config.UiLanguage) : "");
                 if (!result.Success && !result.Cancelled)
                     _ui?.Post(_ => ShowWarningBalloon(4000,
-                        Localization.Format(T, "Не удалось запустить «{0}»: {1}", name, result.ErrorMessage)), null);
+                        Localization.Format(T, "Couldn't start \"{0}\": {1}", name, result.ErrorMessage)), null);
             }, System.Threading.Tasks.TaskScheduler.Default);
         }
 
@@ -3168,6 +3200,9 @@ namespace CyrFlip
                 _quickNotes?.Dispose();
                 _symbolsWindow?.Dispose();
                 _symbolsWindow = null;
+                // The traffic light: the scheduler's tick and its network and power subscriptions first, then
+                // the journal (drained), then the board (S0069 D6).
+                StopTrafficLight();
                 // A retirement still compacting on the pool finishes before the process goes (S0030 HT-6).
                 try { _quickNotesRetired?.Wait(2000); } catch { }
                 _settings?.Dispose();

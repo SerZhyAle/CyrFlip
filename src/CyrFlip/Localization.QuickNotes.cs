@@ -2,16 +2,16 @@ namespace CyrFlip
 {
     /// <summary>
     /// The quick notes: the window, the tray entry, the context-menu command and the settings tab.
-    /// Strings already registered elsewhere ("Текст", "Копировать", "Удалить", "Настройки",
-    /// "Экспорт...", "Найдено: {0}", "Изменить...") are not repeated here - the key is the Russian
+    /// Strings already registered elsewhere ("Text", "Copy", "Delete", "Settings",
+    /// "Export...", "Found: {0}", "Edit...") are not repeated here - the key is the English
     /// source string, so a second registration would simply overwrite the first.
     /// </summary>
     internal static partial class Localization
     {
         private static void AddQuickNotesStrings()
         {
-            Add("Не удалось прочитать журнал быстрых заметок. Запись отключена до перезапуска.",
-                en: "Could not read the quick notes journal. Saving is disabled until restart.",
+            Add("Could not read the quick notes journal. Saving is disabled until restart.",
+                ru: "Не удалось прочитать журнал быстрых заметок. Запись отключена до перезапуска.",
                 uk: "Не вдалося прочитати журнал швидких нотаток. Запис вимкнено до перезапуску.",
                 de: "Das Schnellnotizen-Journal konnte nicht gelesen werden. Speichern ist bis zum Neustart deaktiviert.",
                 it: "Impossibile leggere il registro delle note rapide. Il salvataggio è disattivato fino al riavvio.",
@@ -24,8 +24,8 @@ namespace CyrFlip
                 ur: "فوری نوٹس کا جرنل پڑھا نہیں جا سکا۔ دوبارہ شروع کرنے تک محفوظ کرنا بند ہے۔",
                 zh: "无法读取快速笔记日志。保存功能已停用，直到重新启动。");
 
-            Add("Заметок ещё не записано на диск: {0}. Они будут дописаны, пока CyrFlip работает.",
-                en: "Notes not yet saved to disk: {0}. CyrFlip will retry while it is running.",
+            Add("Notes not yet saved to disk: {0}. CyrFlip will retry while it is running.",
+                ru: "Заметок ещё не записано на диск: {0}. Они будут дописаны, пока CyrFlip работает.",
                 uk: "Нотаток ще не записано на диск: {0}. CyrFlip повторюватиме запис, поки працює.",
                 de: "Noch nicht gespeicherte Notizen: {0}. CyrFlip versucht es erneut, solange es läuft.",
                 it: "Note non ancora salvate su disco: {0}. CyrFlip riproverà finché è in esecuzione.",
@@ -38,8 +38,8 @@ namespace CyrFlip
                 ur: "ابھی تک ڈسک پر محفوظ نہ ہونے والے نوٹس: {0}۔ CyrFlip چلتے رہنے تک دوبارہ کوشش کرے گا۔",
                 zh: "尚未保存到磁盘的笔记：{0}。CyrFlip 将在运行期间重试。");
 
-            Add("Не удалось скопировать текст в буфер обмена. Повторите.",
-                en: "Could not copy the text to the clipboard. Try again.",
+            Add("Could not copy the text to the clipboard. Try again.",
+                ru: "Не удалось скопировать текст в буфер обмена. Повторите.",
                 uk: "Не вдалося скопіювати текст до буфера обміну. Повторіть.",
                 de: "Der Text konnte nicht in die Zwischenablage kopiert werden. Versuchen Sie es erneut.",
                 it: "Impossibile copiare il testo negli appunti. Riprova.",
@@ -52,69 +52,69 @@ namespace CyrFlip
                 ur: "متن کلپ بورڈ پر کاپی نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
                 zh: "无法将文本复制到剪贴板。请重试。");
 
-            Add("Быстрые заметки",
-                en: "Quick notes", uk: "Швидкі нотатки", de: "Schnellnotizen", it: "Note rapide",
+            Add("Quick notes",
+                ru: "Быстрые заметки", uk: "Швидкі нотатки", de: "Schnellnotizen", it: "Note rapide",
                 es: "Notas rápidas", fr: "Notes rapides", pt: "Notas rápidas",
                 ar: "ملاحظات سريعة", hi: "त्वरित नोट्स", bn: "দ্রুত নোট", ur: "فوری نوٹس", zh: "快速笔记");
 
-            Add("Заметка",
-                en: "Note", uk: "Нотатка", de: "Notiz", it: "Nota",
+            Add("Note",
+                ru: "Заметка", uk: "Нотатка", de: "Notiz", it: "Nota",
                 es: "Nota", fr: "Note", pt: "Nota",
                 ar: "ملاحظة", hi: "नोट", bn: "নোট", ur: "نوٹ", zh: "笔记");
 
-            Add("Чек-лист",
-                en: "Checklist", uk: "Чек-лист", de: "Checkliste", it: "Lista di controllo",
+            Add("Checklist",
+                ru: "Чек-лист", uk: "Чек-лист", de: "Checkliste", it: "Lista di controllo",
                 es: "Lista de verificación", fr: "Liste de contrôle", pt: "Lista de verificação",
                 ar: "قائمة مراجعة", hi: "चेकलिस्ट", bn: "চেকলিস্ট", ur: "چیک لسٹ", zh: "待办清单");
 
-            Add("Пункт",
-                en: "Item", uk: "Пункт", de: "Eintrag", it: "Voce",
+            Add("Item",
+                ru: "Пункт", uk: "Пункт", de: "Eintrag", it: "Voce",
                 es: "Elemento", fr: "Élément", pt: "Item",
                 ar: "عنصر", hi: "आइटम", bn: "আইটেম", ur: "آئٹم", zh: "条目");
 
-            Add("Создана",
-                en: "Created", uk: "Створено", de: "Erstellt", it: "Creata",
+            Add("Created",
+                ru: "Создана", uk: "Створено", de: "Erstellt", it: "Creata",
                 es: "Creada", fr: "Créée", pt: "Criada",
                 ar: "أُنشئت", hi: "बनाई गई", bn: "তৈরি", ur: "بنائی گئی", zh: "创建于");
 
-            Add("Имя (необязательно)",
-                en: "Name (optional)", uk: "Ім'я (необов'язково)", de: "Name (optional)", it: "Nome (facoltativo)",
+            Add("Name (optional)",
+                ru: "Имя (необязательно)", uk: "Ім'я (необов'язково)", de: "Name (optional)", it: "Nome (facoltativo)",
                 es: "Nombre (opcional)", fr: "Nom (facultatif)", pt: "Nome (opcional)",
                 ar: "الاسم (اختياري)", hi: "नाम (वैकल्पिक)", bn: "নাম (ঐচ্ছিক)", ur: "نام (اختیاری)", zh: "名称（可选）");
 
-            Add("Добавить пункт",
-                en: "Add item", uk: "Додати пункт", de: "Eintrag hinzufügen", it: "Aggiungi voce",
+            Add("Add item",
+                ru: "Добавить пункт", uk: "Додати пункт", de: "Eintrag hinzufügen", it: "Aggiungi voce",
                 es: "Añadir elemento", fr: "Ajouter un élément", pt: "Adicionar item",
                 ar: "إضافة عنصر", hi: "आइटम जोड़ें", bn: "আইটেম যোগ করুন", ur: "آئٹم شامل کریں", zh: "添加条目");
 
-            Add("Удалить пункт",
-                en: "Remove item", uk: "Видалити пункт", de: "Eintrag entfernen", it: "Rimuovi voce",
+            Add("Remove item",
+                ru: "Удалить пункт", uk: "Видалити пункт", de: "Eintrag entfernen", it: "Rimuovi voce",
                 es: "Eliminar elemento", fr: "Supprimer l'élément", pt: "Remover item",
                 ar: "حذف العنصر", hi: "आइटम हटाएँ", bn: "আইটেম মুছুন", ur: "آئٹم حذف کریں", zh: "删除条目");
 
-            Add("Копировать для Google Keep",
-                en: "Copy for Google Keep", uk: "Копіювати для Google Keep", de: "Für Google Keep kopieren",
+            Add("Copy for Google Keep",
+                ru: "Копировать для Google Keep", uk: "Копіювати для Google Keep", de: "Für Google Keep kopieren",
                 it: "Copia per Google Keep", es: "Copiar para Google Keep", fr: "Copier pour Google Keep",
                 pt: "Copiar para o Google Keep", ar: "نسخ لـ Google Keep", hi: "Google Keep के लिए कॉपी करें",
                 bn: "Google Keep-এর জন্য কপি করুন", ur: "Google Keep کے لیے کاپی کریں", zh: "复制到 Google Keep");
 
-            Add("Заметок: {0}",
-                en: "Notes: {0}", uk: "Нотаток: {0}", de: "Notizen: {0}", it: "Note: {0}",
+            Add("Notes: {0}",
+                ru: "Заметок: {0}", uk: "Нотаток: {0}", de: "Notizen: {0}", it: "Note: {0}",
                 es: "Notas: {0}", fr: "Notes : {0}", pt: "Notas: {0}",
                 ar: "الملاحظات: {0}", hi: "नोट्स: {0}", bn: "নোট: {0}", ur: "نوٹس: {0}", zh: "笔记数：{0}");
 
-            Add("(пусто)",
-                en: "(empty)", uk: "(порожньо)", de: "(leer)", it: "(vuota)",
+            Add("(empty)",
+                ru: "(пусто)", uk: "(порожньо)", de: "(leer)", it: "(vuota)",
                 es: "(vacía)", fr: "(vide)", pt: "(vazia)",
                 ar: "(فارغة)", hi: "(खाली)", bn: "(খালি)", ur: "(خالی)", zh: "（空）");
 
-            Add("Новая заметка",
-                en: "New note", uk: "Нова нотатка", de: "Neue Notiz", it: "Nuova nota",
+            Add("New note",
+                ru: "Новая заметка", uk: "Нова нотатка", de: "Neue Notiz", it: "Nuova nota",
                 es: "Nota nueva", fr: "Nouvelle note", pt: "Nota nova",
                 ar: "ملاحظة جديدة", hi: "नया नोट", bn: "নতুন নোট", ur: "نیا نوٹ", zh: "新建笔记");
 
-            Add("Создана {0}, изменена {1}",
-                en: "Created {0}, changed {1}", uk: "Створено {0}, змінено {1}",
+            Add("Created {0}, changed {1}",
+                ru: "Создана {0}, изменена {1}", uk: "Створено {0}, змінено {1}",
                 de: "Erstellt {0}, geändert {1}", it: "Creata il {0}, modificata il {1}",
                 es: "Creada el {0}, modificada el {1}", fr: "Créée le {0}, modifiée le {1}",
                 pt: "Criada em {0}, alterada em {1}",
@@ -122,8 +122,8 @@ namespace CyrFlip
                 bn: "{0}-এ তৈরি, {1}-এ পরিবর্তিত", ur: "{0} کو بنائی گئی، {1} کو تبدیل ہوئی",
                 zh: "创建于 {0}，修改于 {1}");
 
-            Add("Создана {0}, изменена {1} | Строк: {2}, символов: {3}",
-                en: "Created {0}, changed {1} | Lines: {2}, chars: {3}",
+            Add("Created {0}, changed {1} | Lines: {2}, chars: {3}",
+                ru: "Создана {0}, изменена {1} | Строк: {2}, символов: {3}",
                 uk: "Створено {0}, змінено {1} | Рядків: {2}, символів: {3}",
                 de: "Erstellt {0}, geändert {1} | Zeilen: {2}, Zeichen: {3}",
                 it: "Creata il {0}, modificata il {1} | Righe: {2}, caratteri: {3}",
@@ -136,8 +136,8 @@ namespace CyrFlip
                 ur: "{0} کو بنائی گئی، {1} کو تبدیل ہوئی | سطریں: {2}, حروف: {3}",
                 zh: "创建于 {0}，修改于 {1} | 行数：{2}，字符数：{3}");
 
-            Add("Фрагмент больше {0} КБ и в заметку не помещается.",
-                en: "The fragment is larger than {0} KB and does not fit in a note.",
+            Add("The fragment is larger than {0} KB and does not fit in a note.",
+                ru: "Фрагмент больше {0} КБ и в заметку не помещается.",
                 uk: "Фрагмент більший за {0} КБ і в нотатку не вміщується.",
                 de: "Der Ausschnitt ist größer als {0} KB und passt nicht in eine Notiz.",
                 it: "Il frammento supera {0} KB e non entra in una nota.",
@@ -150,8 +150,8 @@ namespace CyrFlip
                 ur: "یہ ٹکڑا {0} KB سے بڑا ہے اور نوٹ میں نہیں سماتا۔",
                 zh: "该片段超过 {0} KB，放不进一条笔记。");
 
-            Add("Отметки выполнения при переходе к тексту не сохранятся. Продолжить?",
-                en: "The tick marks cannot survive the switch to text. Continue?",
+            Add("The tick marks cannot survive the switch to text. Continue?",
+                ru: "Отметки выполнения при переходе к тексту не сохранятся. Продолжить?",
                 uk: "Позначки виконання під час переходу до тексту не збережуться. Продовжити?",
                 de: "Die Häkchen gehen beim Wechsel zu Text verloren. Fortfahren?",
                 it: "Le spunte non sopravvivono al passaggio a testo. Continuare?",
@@ -164,8 +164,8 @@ namespace CyrFlip
                 ur: "متن میں تبدیل کرنے پر مکمل ہونے کے نشان باقی نہیں رہیں گے۔ جاری رکھیں؟",
                 zh: "切换为文本后，勾选标记将无法保留。要继续吗？");
 
-            Add("Пункты списка не хранят переносы строк: текст вернётся с обычными переводами строк. Продолжить?",
-                en: "List items hold no line endings: the text will come back with plain newlines. Continue?",
+            Add("List items hold no line endings: the text will come back with plain newlines. Continue?",
+                ru: "Пункты списка не хранят переносы строк: текст вернётся с обычными переводами строк. Продолжить?",
                 uk: "Пункти списку не зберігають символи кінця рядка: текст повернеться зі звичайними переводами рядків. Продовжити?",
                 de: "Listeneinträge speichern keine Zeilenenden: Der Text kommt mit einfachen Zeilenumbrüchen zurück. Fortfahren?",
                 it: "Le voci dell'elenco non conservano i fine riga: il testo tornerà con semplici a capo. Continuare?",
@@ -178,8 +178,8 @@ namespace CyrFlip
                 ur: "فہرست کے آئٹمز سطر کے اختتام محفوظ نہیں رکھتے: متن عام نئی سطروں کے ساتھ واپس آئے گا۔ جاری رکھیں؟",
                 zh: "清单条目不保存换行符：文本将以普通换行返回。要继续吗？");
 
-            Add("Текст скопирован. Создайте заметку в Google Keep и вставьте его.",
-                en: "The text is on the clipboard. Create a note in Google Keep and paste it there.",
+            Add("The text is on the clipboard. Create a note in Google Keep and paste it there.",
+                ru: "Текст скопирован. Создайте заметку в Google Keep и вставьте его.",
                 uk: "Текст скопійовано. Створіть нотатку в Google Keep і вставте його.",
                 de: "Der Text ist in der Zwischenablage. Erstellen Sie eine Notiz in Google Keep und fügen Sie ihn ein.",
                 it: "Il testo è negli appunti. Crea una nota in Google Keep e incollalo.",
@@ -192,8 +192,8 @@ namespace CyrFlip
                 ur: "متن کلپ بورڈ میں ہے۔ Google Keep میں نوٹ بنائیں اور اسے پیسٹ کریں۔",
                 zh: "文本已复制。请在 Google Keep 中新建一条笔记并粘贴。");
 
-            Add("Отметки выполнения в Google Keep не переносятся.",
-                en: "The tick marks do not travel to Google Keep.",
+            Add("The tick marks do not travel to Google Keep.",
+                ru: "Отметки выполнения в Google Keep не переносятся.",
                 uk: "Позначки виконання до Google Keep не переносяться.",
                 de: "Die Häkchen werden nicht nach Google Keep übertragen.",
                 it: "Le spunte non vengono trasferite in Google Keep.",
@@ -206,44 +206,44 @@ namespace CyrFlip
                 ur: "مکمل ہونے کے نشان Google Keep میں منتقل نہیں ہوتے۔",
                 zh: "勾选标记不会带到 Google Keep。");
 
-            Add("Открыть Google Keep в браузере?",
-                en: "Open Google Keep in the browser?", uk: "Відкрити Google Keep у браузері?",
+            Add("Open Google Keep in the browser?",
+                ru: "Открыть Google Keep в браузере?", uk: "Відкрити Google Keep у браузері?",
                 de: "Google Keep im Browser öffnen?", it: "Aprire Google Keep nel browser?",
                 es: "¿Abrir Google Keep en el navegador?", fr: "Ouvrir Google Keep dans le navigateur ?",
                 pt: "Abrir o Google Keep no navegador?", ar: "هل تريد فتح Google Keep في المتصفح؟",
                 hi: "ब्राउज़र में Google Keep खोलें?", bn: "ব্রাউজারে Google Keep খুলবেন?",
                 ur: "براؤزر میں Google Keep کھولیں؟", zh: "在浏览器中打开 Google Keep？");
 
-            Add("Экспорт заметки",
-                en: "Export the note", uk: "Експорт нотатки", de: "Notiz exportieren", it: "Esporta la nota",
+            Add("Export the note",
+                ru: "Экспорт заметки", uk: "Експорт нотатки", de: "Notiz exportieren", it: "Esporta la nota",
                 es: "Exportar la nota", fr: "Exporter la note", pt: "Exportar a nota",
                 ar: "تصدير الملاحظة", hi: "नोट निर्यात करें", bn: "নোট রপ্তানি করুন", ur: "نوٹ برآمد کریں", zh: "导出笔记");
 
-            Add("Экспорт всех заметок",
-                en: "Export every note", uk: "Експорт усіх нотаток", de: "Alle Notizen exportieren",
+            Add("Export every note",
+                ru: "Экспорт всех заметок", uk: "Експорт усіх нотаток", de: "Alle Notizen exportieren",
                 it: "Esporta tutte le note", es: "Exportar todas las notas", fr: "Exporter toutes les notes",
                 pt: "Exportar todas as notas", ar: "تصدير كل الملاحظات", hi: "सभी नोट्स निर्यात करें",
                 bn: "সব নোট রপ্তানি করুন", ur: "تمام نوٹس برآمد کریں", zh: "导出全部笔记");
 
-            Add("Текстовый файл",
-                en: "Text file", uk: "Текстовий файл", de: "Textdatei", it: "File di testo",
+            Add("Text file",
+                ru: "Текстовый файл", uk: "Текстовий файл", de: "Textdatei", it: "File di testo",
                 es: "Archivo de texto", fr: "Fichier texte", pt: "Arquivo de texto",
                 ar: "ملف نصي", hi: "पाठ फ़ाइल", bn: "টেক্সট ফাইল", ur: "متنی فائل", zh: "文本文件");
 
-            Add("Заметка сохранена: {0}",
-                en: "Note saved: {0}", uk: "Нотатку збережено: {0}", de: "Notiz gespeichert: {0}",
+            Add("Note saved: {0}",
+                ru: "Заметка сохранена: {0}", uk: "Нотатку збережено: {0}", de: "Notiz gespeichert: {0}",
                 it: "Nota salvata: {0}", es: "Nota guardada: {0}", fr: "Note enregistrée : {0}",
                 pt: "Nota salva: {0}", ar: "تم حفظ الملاحظة: {0}", hi: "नोट सहेजा गया: {0}",
                 bn: "নোট সংরক্ষিত: {0}", ur: "نوٹ محفوظ ہو گیا: {0}", zh: "笔记已保存：{0}");
 
-            Add("Заметки сохранены: {0}",
-                en: "Notes saved: {0}", uk: "Нотатки збережено: {0}", de: "Notizen gespeichert: {0}",
+            Add("Notes saved: {0}",
+                ru: "Заметки сохранены: {0}", uk: "Нотатки збережено: {0}", de: "Notizen gespeichert: {0}",
                 it: "Note salvate: {0}", es: "Notas guardadas: {0}", fr: "Notes enregistrées : {0}",
                 pt: "Notas salvas: {0}", ar: "تم حفظ الملاحظات: {0}", hi: "नोट्स सहेजे गए: {0}",
                 bn: "নোট সংরক্ষিত: {0}", ur: "نوٹس محفوظ ہو گئے: {0}", zh: "笔记已保存：{0}");
 
-            Add("Этот файл не защищён DPAPI — его прочитает любой, у кого есть доступ к папке.",
-                en: "This file is not protected by DPAPI - anyone with access to the folder can read it.",
+            Add("This file is not protected by DPAPI - anyone with access to the folder can read it.",
+                ru: "Этот файл не защищён DPAPI — его прочитает любой, у кого есть доступ к папке.",
                 uk: "Цей файл не захищений DPAPI — його прочитає будь-хто, хто має доступ до теки.",
                 de: "Diese Datei ist nicht durch DPAPI geschützt - jeder mit Zugriff auf den Ordner kann sie lesen.",
                 it: "Questo file non è protetto da DPAPI: può leggerlo chiunque abbia accesso alla cartella.",
@@ -256,16 +256,16 @@ namespace CyrFlip
                 ur: "یہ فائل DPAPI سے محفوظ نہیں ہے — فولڈر تک رسائی رکھنے والا کوئی بھی اسے پڑھ سکتا ہے۔",
                 zh: "该文件不受 DPAPI 保护——任何能访问该文件夹的人都能读取它。");
 
-            Add("Не удалось сохранить файл: {0}",
-                en: "Could not save the file: {0}", uk: "Не вдалося зберегти файл: {0}",
+            Add("Could not save the file: {0}",
+                ru: "Не удалось сохранить файл: {0}", uk: "Не вдалося зберегти файл: {0}",
                 de: "Die Datei konnte nicht gespeichert werden: {0}", it: "Impossibile salvare il file: {0}",
                 es: "No se pudo guardar el archivo: {0}", fr: "Impossible d'enregistrer le fichier : {0}",
                 pt: "Não foi possível salvar o arquivo: {0}", ar: "تعذر حفظ الملف: {0}",
                 hi: "फ़ाइल सहेजी नहीं जा सकी: {0}", bn: "ফাইল সংরক্ষণ করা যায়নি: {0}",
                 ur: "فائل محفوظ نہیں ہو سکی: {0}", zh: "无法保存文件：{0}");
 
-            Add("Удалить эту заметку? Отменить удаление нельзя.",
-                en: "Delete this note? There is no undo.",
+            Add("Delete this note? There is no undo.",
+                ru: "Удалить эту заметку? Отменить удаление нельзя.",
                 uk: "Видалити цю нотатку? Скасувати видалення не можна.",
                 de: "Diese Notiz löschen? Es gibt kein Rückgängig.",
                 it: "Eliminare questa nota? Non è possibile annullare.",
@@ -278,8 +278,8 @@ namespace CyrFlip
                 ur: "یہ نوٹ حذف کریں؟ واپسی ممکن نہیں۔",
                 zh: "删除这条笔记？无法撤销。");
 
-            Add("Удалить все быстрые заметки, журнал и резервную копию? Отменить это нельзя.",
-                en: "Delete every quick note, the journal and its backup? There is no undo.",
+            Add("Delete every quick note, the journal and its backup? There is no undo.",
+                ru: "Удалить все быстрые заметки, журнал и резервную копию? Отменить это нельзя.",
                 uk: "Видалити всі швидкі нотатки, журнал і резервну копію? Скасувати це не можна.",
                 de: "Alle Schnellnotizen, das Journal und dessen Sicherung löschen? Es gibt kein Rückgängig.",
                 it: "Eliminare tutte le note rapide, il registro e la sua copia di riserva? Non è possibile annullare.",
@@ -292,8 +292,8 @@ namespace CyrFlip
                 ur: "تمام فوری نوٹس، جرنل اور اس کا بیک اپ حذف کریں؟ واپسی ممکن نہیں۔",
                 zh: "删除全部快速笔记、日志及其备份？无法撤销。");
 
-            Add("Сохранить выделение в быстрые заметки",
-                en: "Save the selection to quick notes",
+            Add("Save the selection to quick notes",
+                ru: "Сохранить выделение в быстрые заметки",
                 uk: "Зберегти виділене у швидкі нотатки",
                 de: "Auswahl in den Schnellnotizen speichern",
                 it: "Salva la selezione nelle note rapide",
@@ -306,32 +306,32 @@ namespace CyrFlip
                 ur: "منتخب متن کو فوری نوٹس میں محفوظ کریں",
                 zh: "把选中的文本存入快速笔记");
 
-            Add("Задать хоткей быстрых заметок",
-                en: "Set the quick-notes hotkey", uk: "Задати хоткей швидких нотаток",
+            Add("Set the quick-notes hotkey",
+                ru: "Задать хоткей быстрых заметок", uk: "Задати хоткей швидких нотаток",
                 de: "Tastenkombination für Schnellnotizen festlegen", it: "Imposta la combinazione per le note rapide",
                 es: "Definir la combinación de las notas rápidas", fr: "Définir le raccourci des notes rapides",
                 pt: "Definir o atalho das notas rápidas", ar: "تعيين اختصار الملاحظات السريعة",
                 hi: "त्वरित नोट्स की हॉटकी तय करें", bn: "দ্রুত নোটের হটকি নির্ধারণ করুন",
                 ur: "فوری نوٹس کی ہاٹ کی مقرر کریں", zh: "设置快速笔记的快捷键");
 
-            Add("быстрые заметки",
-                en: "quick notes", uk: "швидкі нотатки", de: "Schnellnotizen", it: "note rapide",
+            Add("quick notes",
+                ru: "быстрые заметки", uk: "швидкі нотатки", de: "Schnellnotizen", it: "note rapide",
                 es: "notas rápidas", fr: "notes rapides", pt: "notas rápidas",
                 ar: "ملاحظات سريعة", hi: "त्वरित नोट्स", bn: "দ্রুত নোট", ur: "فوری نوٹس", zh: "快速笔记");
 
-            Add("быстрыми заметками",
-                en: "the quick notes", uk: "швидкими нотатками", de: "den Schnellnotizen", it: "le note rapide",
+            Add("the quick notes",
+                ru: "быстрыми заметками", uk: "швидкими нотатками", de: "den Schnellnotizen", it: "le note rapide",
                 es: "las notas rápidas", fr: "les notes rapides", pt: "as notas rápidas",
                 ar: "الملاحظات السريعة", hi: "त्वरित नोट्स", bn: "দ্রুত নোট", ur: "فوری نوٹس", zh: "快速笔记");
 
-            Add("Загрузка заметок..",
-                en: "Loading notes..", uk: "Завантаження нотаток..", de: "Notizen werden geladen..",
+            Add("Loading notes..",
+                ru: "Загрузка заметок..", uk: "Завантаження нотаток..", de: "Notizen werden geladen..",
                 it: "Caricamento delle note..", es: "Cargando notas..", fr: "Chargement des notes..",
                 pt: "Carregando notas..", ar: "جارٍ تحميل الملاحظات..", hi: "नोट्स लोड हो रहे हैं..",
                 bn: "নোট লোড হচ্ছে..", ur: "نوٹس لوڈ ہو رہے ہیں..", zh: "正在加载笔记..");
 
-            Add("Заметка не сохранена на диск - подробности в журнале диагностики.",
-                en: "The note was not saved to disk - see the diagnostic log for details.",
+            Add("The note was not saved to disk - see the diagnostic log for details.",
+                ru: "Заметка не сохранена на диск - подробности в журнале диагностики.",
                 uk: "Нотатку не збережено на диск - подробиці в журналі діагностики.",
                 de: "Die Notiz wurde nicht auf dem Datenträger gespeichert - Details im Diagnoseprotokoll.",
                 it: "La nota non è stata salvata su disco - dettagli nel registro di diagnostica.",
@@ -344,8 +344,8 @@ namespace CyrFlip
                 ur: "نوٹ ڈسک پر محفوظ نہیں ہوا - تفصیل تشخیصی لاگ میں ہے۔",
                 zh: "笔记未保存到磁盘 - 详情见诊断日志。");
 
-            Add("Журнал быстрых заметок не найден - заметки восстановлены из резервной копии.",
-                en: "The quick-notes journal was missing - the notes were restored from its backup.",
+            Add("The quick-notes journal was missing - the notes were restored from its backup.",
+                ru: "Журнал быстрых заметок не найден - заметки восстановлены из резервной копии.",
                 uk: "Журнал швидких нотаток не знайдено - нотатки відновлено з резервної копії.",
                 de: "Das Schnellnotiz-Journal fehlte - die Notizen wurden aus der Sicherung wiederhergestellt.",
                 it: "Il registro delle note rapide mancava - le note sono state ripristinate dalla copia di riserva.",
@@ -358,8 +358,8 @@ namespace CyrFlip
                 ur: "فوری نوٹس کا جرنل نہیں ملا - نوٹس بیک اپ سے بحال کر دیے گئے۔",
                 zh: "未找到快速笔记日志 - 已从备份中恢复笔记。");
 
-            Add("Не прочитано записей быстрых заметок: {0}. Остальные заметки на месте.",
-                en: "Unreadable quick-note records: {0}. Every other note is there.",
+            Add("Unreadable quick-note records: {0}. Every other note is there.",
+                ru: "Не прочитано записей быстрых заметок: {0}. Остальные заметки на месте.",
                 uk: "Не прочитано записів швидких нотаток: {0}. Решта нотаток на місці.",
                 de: "Unlesbare Schnellnotiz-Einträge: {0}. Alle anderen Notizen sind da.",
                 it: "Record di note rapide illeggibili: {0}. Tutte le altre note ci sono.",
@@ -372,8 +372,8 @@ namespace CyrFlip
                 ur: "ناقابلِ مطالعہ فوری نوٹ ریکارڈ: {0}۔ باقی تمام نوٹس موجود ہیں۔",
                 zh: "无法读取的快速笔记记录：{0} 条。其余笔记都在。");
 
-            Add("Заметки хранятся только на этом компьютере, в зашифрованном DPAPI файле вашей учётной записи Windows. CyrFlip не отправляет их в сеть и ничем их не индексирует.",
-                en: "Notes live only on this computer, in a file encrypted with the DPAPI of your Windows account. CyrFlip never sends them anywhere and indexes them with nothing.",
+            Add("Notes live only on this computer, in a file encrypted with the DPAPI of your Windows account. CyrFlip never sends them anywhere and indexes them with nothing.",
+                ru: "Заметки хранятся только на этом компьютере, в зашифрованном DPAPI файле вашей учётной записи Windows. CyrFlip не отправляет их в сеть и ничем их не индексирует.",
                 uk: "Нотатки зберігаються лише на цьому комп'ютері, у зашифрованому DPAPI файлі вашого облікового запису Windows. CyrFlip не надсилає їх у мережу і нічим їх не індексує.",
                 de: "Notizen liegen nur auf diesem Computer, in einer mit der DPAPI Ihres Windows-Kontos verschlüsselten Datei. CyrFlip sendet sie nirgendwohin und indiziert sie mit nichts.",
                 it: "Le note restano solo su questo computer, in un file cifrato con la DPAPI del tuo account Windows. CyrFlip non le invia da nessuna parte e non le indicizza con nulla.",
@@ -386,8 +386,8 @@ namespace CyrFlip
                 ur: "نوٹس صرف اسی کمپیوٹر پر رہتے ہیں، آپ کے Windows اکاؤنٹ کی DPAPI سے خفیہ کردہ فائل میں۔ CyrFlip انہیں کہیں نہیں بھیجتا اور کسی چیز سے فہرست بند نہیں کرتا۔",
                 zh: "笔记只保存在这台电脑上，存于用你的 Windows 账户 DPAPI 加密的文件中。CyrFlip 不会把它们发往任何地方，也不用任何方式为它们建立索引。");
 
-            Add("Это не хранилище секретов: не сохраняйте здесь пароли, боевые токены и приватные ключи.",
-                en: "This is not a secret store: do not keep passwords, production tokens or private keys here.",
+            Add("This is not a secret store: do not keep passwords, production tokens or private keys here.",
+                ru: "Это не хранилище секретов: не сохраняйте здесь пароли, боевые токены и приватные ключи.",
                 uk: "Це не сховище секретів: не зберігайте тут паролі, бойові токени та приватні ключі.",
                 de: "Dies ist kein Geheimnisspeicher: Bewahren Sie hier keine Passwörter, Produktionstoken oder privaten Schlüssel auf.",
                 it: "Questo non è un archivio di segreti: non conservare qui password, token di produzione o chiavi private.",
@@ -400,8 +400,8 @@ namespace CyrFlip
                 ur: "یہ رازوں کا ذخیرہ نہیں ہے: یہاں پاس ورڈ، پروڈکشن ٹوکن اور نجی کلیدیں محفوظ نہ کریں۔",
                 zh: "这不是密钥保管库：不要在这里保存密码、生产环境令牌和私钥。");
 
-            Add("Заметки хранятся только на этом компьютере и шифруются DPAPI. Не храните здесь пароли, боевые токены и приватные ключи.",
-                en: "Notes live only on this computer and are encrypted with DPAPI. Do not keep passwords, production tokens or private keys here.",
+            Add("Notes live only on this computer and are encrypted with DPAPI. Do not keep passwords, production tokens or private keys here.",
+                ru: "Заметки хранятся только на этом компьютере и шифруются DPAPI. Не храните здесь пароли, боевые токены и приватные ключи.",
                 uk: "Нотатки зберігаються лише на цьому комп'ютері й шифруються DPAPI. Не зберігайте тут паролі, бойові токени та приватні ключі.",
                 de: "Notizen liegen nur auf diesem Computer und sind mit DPAPI verschlüsselt. Bewahren Sie hier keine Passwörter, Produktionstoken oder privaten Schlüssel auf.",
                 it: "Le note restano solo su questo computer e sono cifrate con DPAPI. Non conservare qui password, token di produzione o chiavi private.",
@@ -416,8 +416,8 @@ namespace CyrFlip
 
             // ---- The settings tab ----
 
-            Add("Маленький локальный блокнот: по хоткею открыть, бросить фрагмент кода или мысль, закрыть. Текст хранится как есть — без разметки, подсветки и автоформатирования, — поэтому его можно вставить обратно в код без единого изменения.",
-                en: "A small local notepad: open it with a chord, drop in a fragment of code or a thought, close it. The text is stored exactly as it is - no markup, no highlighting, no auto-formatting - so it can be pasted back into the code without a single change.",
+            Add("A small local notepad: open it with a chord, drop in a fragment of code or a thought, close it. The text is stored exactly as it is - no markup, no highlighting, no auto-formatting - so it can be pasted back into the code without a single change.",
+                ru: "Маленький локальный блокнот: по хоткею открыть, бросить фрагмент кода или мысль, закрыть. Текст хранится как есть — без разметки, подсветки и автоформатирования, — поэтому его можно вставить обратно в код без единого изменения.",
                 uk: "Маленький локальний блокнот: за хоткеєм відкрити, кинути фрагмент коду чи думку, закрити. Текст зберігається як є — без розмітки, підсвічування й автоформатування, — тому його можна вставити назад у код без жодної зміни.",
                 de: "Ein kleiner lokaler Notizblock: per Tastenkombination öffnen, einen Codeausschnitt oder Gedanken hineinwerfen, schließen. Der Text wird unverändert gespeichert - ohne Markup, Hervorhebung und Autoformatierung -, sodass er ohne eine einzige Änderung zurück in den Code eingefügt werden kann.",
                 it: "Un piccolo blocco note locale: apri con una combinazione, butta dentro un frammento di codice o un pensiero, chiudi. Il testo è conservato così com'è - senza markup, evidenziazione o formattazione automatica - quindi può essere incollato di nuovo nel codice senza una sola modifica.",
@@ -430,14 +430,14 @@ namespace CyrFlip
                 ur: "ایک چھوٹی مقامی نوٹ بک: ہاٹ کی سے کھولیں، کوڈ کا ٹکڑا یا کوئی خیال ڈالیں، بند کر دیں۔ متن جوں کا توں محفوظ ہوتا ہے - بغیر مارک اپ، ہائی لائٹنگ اور خودکار فارمیٹنگ کے - اس لیے اسے بغیر کسی تبدیلی کے کوڈ میں واپس چسپاں کیا جا سکتا ہے۔",
                 zh: "一个小小的本地记事本：用快捷键打开，扔进一段代码或一个想法，关掉。文本原样保存——没有标记、没有语法着色、没有自动排版——因此可以一字不差地贴回代码里。");
 
-            Add("Включить быстрые заметки",
-                en: "Enable the quick notes", uk: "Увімкнути швидкі нотатки", de: "Schnellnotizen aktivieren",
+            Add("Enable the quick notes",
+                ru: "Включить быстрые заметки", uk: "Увімкнути швидкі нотатки", de: "Schnellnotizen aktivieren",
                 it: "Attiva le note rapide", es: "Activar las notas rápidas", fr: "Activer les notes rapides",
                 pt: "Ativar as notas rápidas", ar: "تفعيل الملاحظات السريعة", hi: "त्वरित नोट्स चालू करें",
                 bn: "দ্রুত নোট চালু করুন", ur: "فوری نوٹس فعال کریں", zh: "启用快速笔记");
 
-            Add("Пока выключено, CyrFlip не читает и не создаёт файл заметок, в трее нет пункта заметок и комбинация не назначена. Уже сохранённые заметки остаются на диске.",
-                en: "While it is off, CyrFlip neither reads nor creates the notes file, the tray has no notes entry and the chord is not bound. Notes already saved stay on disk.",
+            Add("While it is off, CyrFlip neither reads nor creates the notes file, the tray has no notes entry and the chord is not bound. Notes already saved stay on disk.",
+                ru: "Пока выключено, CyrFlip не читает и не создаёт файл заметок, в трее нет пункта заметок и комбинация не назначена. Уже сохранённые заметки остаются на диске.",
                 uk: "Поки вимкнено, CyrFlip не читає і не створює файл нотаток, у треї немає пункту нотаток, а комбінація не призначена. Уже збережені нотатки залишаються на диску.",
                 de: "Solange es aus ist, liest und erstellt CyrFlip die Notizdatei nicht, das Infobereichsmenü hat keinen Notizeintrag und die Tastenkombination ist nicht belegt. Bereits gespeicherte Notizen bleiben auf der Festplatte.",
                 it: "Finché è disattivato, CyrFlip non legge né crea il file delle note, l'area di notifica non ha la voce note e la combinazione non è assegnata. Le note già salvate restano sul disco.",
@@ -450,13 +450,13 @@ namespace CyrFlip
                 ur: "جب تک یہ بند ہے، CyrFlip نوٹس فائل نہ پڑھتا ہے نہ بناتا ہے، ٹرے میں نوٹس کا اندراج نہیں ہوتا اور مجموعہ مقرر نہیں ہوتا۔ پہلے سے محفوظ نوٹس ڈسک پر باقی رہتے ہیں۔",
                 zh: "关闭时，CyrFlip 既不读取也不创建笔记文件，托盘中没有笔记项，快捷键也不会绑定。已保存的笔记仍留在磁盘上。");
 
-            Add("Как открывать",
-                en: "How to open it", uk: "Як відкривати", de: "Wie man sie öffnet", it: "Come aprirle",
+            Add("How to open it",
+                ru: "Как открывать", uk: "Як відкривати", de: "Wie man sie öffnet", it: "Come aprirle",
                 es: "Cómo abrirlas", fr: "Comment les ouvrir", pt: "Como abrir",
                 ar: "كيفية الفتح", hi: "कैसे खोलें", bn: "কীভাবে খুলবেন", ur: "کیسے کھولیں", zh: "如何打开");
 
-            Add("Сразу создаёт новую заметку и ставит курсор в поле текста — записать мысль можно, ничего больше не нажимая. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
-                en: "Creates a new note at once and puts the caret in the body - the thought can be written down without pressing anything else. One chord cannot be given to two CyrFlip actions.",
+            Add("Creates a new note at once and puts the caret in the body - the thought can be written down without pressing anything else. One chord cannot be given to two CyrFlip actions.",
+                ru: "Сразу создаёт новую заметку и ставит курсор в поле текста — записать мысль можно, ничего больше не нажимая. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
                 uk: "Одразу створює нову нотатку й ставить курсор у поле тексту — записати думку можна, більше нічого не натискаючи. Одну комбінацію не можна віддати двом діям CyrFlip.",
                 de: "Erstellt sofort eine neue Notiz und setzt die Schreibmarke in den Text - der Gedanke lässt sich festhalten, ohne noch etwas zu drücken. Eine Kombination kann nicht zwei CyrFlip-Aktionen gehören.",
                 it: "Crea subito una nuova nota e mette il cursore nel testo: il pensiero si annota senza premere altro. Una combinazione non può appartenere a due azioni di CyrFlip.",
@@ -469,13 +469,13 @@ namespace CyrFlip
                 ur: "فوراً نیا نوٹ بناتا ہے اور کرسر متن میں رکھ دیتا ہے — خیال لکھنے کے لیے مزید کچھ دبانے کی ضرورت نہیں۔ ایک مجموعہ CyrFlip کے دو کاموں کو نہیں دیا جا سکتا۔",
                 zh: "立即新建一条笔记并把光标放进正文——不用再按别的就能把想法写下来。同一个组合键不能同时分配给两个 CyrFlip 动作。");
 
-            Add("Открыть заметки",
-                en: "Open the notes", uk: "Відкрити нотатки", de: "Notizen öffnen", it: "Apri le note",
+            Add("Open the notes",
+                ru: "Открыть заметки", uk: "Відкрити нотатки", de: "Notizen öffnen", it: "Apri le note",
                 es: "Abrir las notas", fr: "Ouvrir les notes", pt: "Abrir as notas",
                 ar: "فتح الملاحظات", hi: "नोट्स खोलें", bn: "নোট খুলুন", ur: "نوٹس کھولیں", zh: "打开笔记");
 
-            Add("То же, что пункт «Быстрые заметки» в меню трея: открывает список без создания новой заметки.",
-                en: "The same as the \"Quick notes\" entry in the tray menu: it opens the list without creating a new note.",
+            Add("The same as the \"Quick notes\" entry in the tray menu: it opens the list without creating a new note.",
+                ru: "То же, что пункт «Быстрые заметки» в меню трея: открывает список без создания новой заметки.",
                 uk: "Те саме, що пункт «Швидкі нотатки» в меню трея: відкриває список, не створюючи нову нотатку.",
                 de: "Dasselbe wie der Eintrag „Schnellnotizen“ im Infobereichsmenü: Er öffnet die Liste, ohne eine neue Notiz anzulegen.",
                 it: "Come la voce «Note rapide» nel menu dell'area di notifica: apre l'elenco senza creare una nota nuova.",
@@ -488,21 +488,21 @@ namespace CyrFlip
                 ur: "ٹرے مینو کے «فوری نوٹس» اندراج جیسا: نیا نوٹ بنائے بغیر فہرست کھولتا ہے۔",
                 zh: "与托盘菜单中的「快速笔记」相同：打开列表，不新建笔记。");
 
-            Add("Редактор",
-                en: "Editor", uk: "Редактор", de: "Editor", it: "Editor",
+            Add("Editor",
+                ru: "Редактор", uk: "Редактор", de: "Editor", it: "Editor",
                 es: "Editor", fr: "Éditeur", pt: "Editor",
                 ar: "المحرر", hi: "संपादक", bn: "সম্পাদক", ur: "ایڈیٹر", zh: "编辑器");
 
-            Add("Переносить длинные строки в редакторе",
-                en: "Wrap long lines in the editor", uk: "Переносити довгі рядки в редакторі",
+            Add("Wrap long lines in the editor",
+                ru: "Переносить длинные строки в редакторе", uk: "Переносити довгі рядки в редакторі",
                 de: "Lange Zeilen im Editor umbrechen", it: "Manda a capo le righe lunghe nell'editor",
                 es: "Ajustar las líneas largas en el editor", fr: "Renvoyer les longues lignes à la ligne dans l'éditeur",
                 pt: "Quebrar linhas longas no editor", ar: "التفاف الأسطر الطويلة في المحرر",
                 hi: "संपादक में लंबी पंक्तियाँ लपेटें", bn: "সম্পাদকে লম্বা লাইন মুড়ে দিন",
                 ur: "ایڈیٹر میں لمبی سطریں لپیٹیں", zh: "在编辑器中自动换行");
 
-            Add("По умолчанию выключено: тело заметки чаще код, чем проза, а перенесённую строку кода приходится мысленно собирать обратно. Включите, если пишете здесь текст.",
-                en: "Off by default: the body of a note is more often code than prose, and a wrapped line of code is one you have to mentally un-wrap. Turn it on if you write prose here.",
+            Add("Off by default: the body of a note is more often code than prose, and a wrapped line of code is one you have to mentally un-wrap. Turn it on if you write prose here.",
+                ru: "По умолчанию выключено: тело заметки чаще код, чем проза, а перенесённую строку кода приходится мысленно собирать обратно. Включите, если пишете здесь текст.",
                 uk: "Типово вимкнено: тіло нотатки частіше код, ніж проза, а перенесений рядок коду доводиться подумки збирати назад. Увімкніть, якщо пишете тут текст.",
                 de: "Standardmäßig aus: Der Inhalt einer Notiz ist häufiger Code als Prosa, und eine umbrochene Codezeile muss man im Kopf wieder zusammensetzen. Schalten Sie es ein, wenn Sie hier Text schreiben.",
                 it: "Disattivato per impostazione predefinita: il corpo di una nota è più spesso codice che prosa, e una riga di codice mandata a capo va ricomposta a mente. Attivalo se qui scrivi testo.",
@@ -515,22 +515,22 @@ namespace CyrFlip
                 ur: "بطور طے شدہ بند: نوٹ کا متن نثر سے زیادہ اکثر کوڈ ہوتا ہے، اور لپٹی ہوئی کوڈ کی سطر ذہن میں دوبارہ جوڑنی پڑتی ہے۔ اگر آپ یہاں نثر لکھتے ہیں تو اسے فعال کریں۔",
                 zh: "默认关闭：笔记正文多半是代码而非散文，而折行的代码要在脑子里再拼回去。若你在这里写文字，请打开它。");
 
-            Add("Экспорт и хранение",
-                en: "Export and storage", uk: "Експорт і зберігання", de: "Export und Speicherung",
+            Add("Export and storage",
+                ru: "Экспорт и хранение", uk: "Експорт і зберігання", de: "Export und Speicherung",
                 it: "Esportazione e archiviazione", es: "Exportación y almacenamiento", fr: "Export et stockage",
                 pt: "Exportação e armazenamento", ar: "التصدير والتخزين", hi: "निर्यात और भंडारण",
                 bn: "রপ্তানি ও সংরক্ষণ", ur: "برآمد اور ذخیرہ", zh: "导出与存储");
 
-            Add("Добавлять даты при экспорте",
-                en: "Add the dates when exporting", uk: "Додавати дати під час експорту",
+            Add("Add the dates when exporting",
+                ru: "Добавлять даты при экспорте", uk: "Додавати дати під час експорту",
                 de: "Beim Export die Daten hinzufügen", it: "Aggiungi le date all'esportazione",
                 es: "Añadir las fechas al exportar", fr: "Ajouter les dates lors de l'export",
                 pt: "Adicionar as datas ao exportar", ar: "إضافة التواريخ عند التصدير",
                 hi: "निर्यात करते समय तिथियाँ जोड़ें", bn: "রপ্তানির সময় তারিখ যোগ করুন",
                 ur: "برآمد کرتے وقت تاریخیں شامل کریں", zh: "导出时附上日期");
 
-            Add("По умолчанию в экспорт идут только имя и текст: так фрагмент кода вставляется обратно без правок. С флажком к каждой заметке добавляется дата создания.",
-                en: "By default only the name and the text are exported, so a fragment of code pastes back without edits. With the box ticked, each note also carries its creation date.",
+            Add("By default only the name and the text are exported, so a fragment of code pastes back without edits. With the box ticked, each note also carries its creation date.",
+                ru: "По умолчанию в экспорт идут только имя и текст: так фрагмент кода вставляется обратно без правок. С флажком к каждой заметке добавляется дата создания.",
                 uk: "Типово в експорт ідуть лише ім'я та текст: так фрагмент коду вставляється назад без правок. З прапорцем до кожної нотатки додається дата створення.",
                 de: "Standardmäßig werden nur Name und Text exportiert, damit ein Codeausschnitt ohne Änderungen wieder eingefügt werden kann. Mit gesetztem Häkchen trägt jede Notiz zusätzlich ihr Erstellungsdatum.",
                 it: "Per impostazione predefinita si esportano solo il nome e il testo, così un frammento di codice si reincolla senza modifiche. Con la casella spuntata ogni nota porta anche la data di creazione.",
@@ -543,16 +543,16 @@ namespace CyrFlip
                 ur: "بطور طے شدہ صرف نام اور متن برآمد ہوتے ہیں، تاکہ کوڈ کا ٹکڑا بغیر ترمیم کے واپس چسپاں ہو۔ خانہ منتخب کرنے پر ہر نوٹ کے ساتھ اس کی تخلیق کی تاریخ بھی جاتی ہے۔",
                 zh: "默认只导出名称和正文，这样代码片段可以原样贴回。勾选后，每条笔记还会附上创建日期。");
 
-            Add("Экспортировать все заметки в Markdown...",
-                en: "Export every note to Markdown...", uk: "Експортувати всі нотатки в Markdown...",
+            Add("Export every note to Markdown...",
+                ru: "Экспортировать все заметки в Markdown...", uk: "Експортувати всі нотатки в Markdown...",
                 de: "Alle Notizen nach Markdown exportieren...", it: "Esporta tutte le note in Markdown...",
                 es: "Exportar todas las notas a Markdown...", fr: "Exporter toutes les notes en Markdown...",
                 pt: "Exportar todas as notas para Markdown...", ar: "تصدير كل الملاحظات إلى Markdown...",
                 hi: "सभी नोट्स Markdown में निर्यात करें...", bn: "সব নোট Markdown-এ রপ্তানি করুন...",
                 ur: "تمام نوٹس Markdown میں برآمد کریں...", zh: "把全部笔记导出为 Markdown...");
 
-            Add("Один файл со всеми заметками по порядку. Экспортированный файл уже не защищён DPAPI — его прочитает любой, у кого есть доступ к папке.",
-                en: "One file with every note in order. The exported file is no longer protected by DPAPI - anyone with access to the folder can read it.",
+            Add("One file with every note in order. The exported file is no longer protected by DPAPI - anyone with access to the folder can read it.",
+                ru: "Один файл со всеми заметками по порядку. Экспортированный файл уже не защищён DPAPI — его прочитает любой, у кого есть доступ к папке.",
                 uk: "Один файл з усіма нотатками по порядку. Експортований файл уже не захищений DPAPI — його прочитає будь-хто, хто має доступ до теки.",
                 de: "Eine Datei mit allen Notizen der Reihe nach. Die exportierte Datei ist nicht mehr durch DPAPI geschützt - jeder mit Zugriff auf den Ordner kann sie lesen.",
                 it: "Un solo file con tutte le note in ordine. Il file esportato non è più protetto da DPAPI: può leggerlo chiunque abbia accesso alla cartella.",
@@ -565,15 +565,15 @@ namespace CyrFlip
                 ur: "ترتیب سے تمام نوٹس پر مشتمل ایک فائل۔ برآمد شدہ فائل اب DPAPI سے محفوظ نہیں — فولڈر تک رسائی رکھنے والا کوئی بھی اسے پڑھ سکتا ہے۔",
                 zh: "一个文件，按顺序包含全部笔记。导出的文件不再受 DPAPI 保护——任何能访问该文件夹的人都能读取它。");
 
-            Add("Удалить все быстрые заметки",
-                en: "Delete every quick note", uk: "Видалити всі швидкі нотатки",
+            Add("Delete every quick note",
+                ru: "Удалить все быстрые заметки", uk: "Видалити всі швидкі нотатки",
                 de: "Alle Schnellnotizen löschen", it: "Elimina tutte le note rapide",
                 es: "Eliminar todas las notas rápidas", fr: "Supprimer toutes les notes rapides",
                 pt: "Excluir todas as notas rápidas", ar: "حذف كل الملاحظات السريعة",
                 hi: "सभी त्वरित नोट्स हटाएँ", bn: "সব দ্রুত নোট মুছুন", ur: "تمام فوری نوٹس حذف کریں", zh: "删除全部快速笔记");
 
-            Add("Удаляет все заметки, журнал и его резервную копию. Отменить это нельзя.",
-                en: "Deletes every note, the journal and its backup. There is no undo.",
+            Add("Deletes every note, the journal and its backup. There is no undo.",
+                ru: "Удаляет все заметки, журнал и его резервную копию. Отменить это нельзя.",
                 uk: "Видаляє всі нотатки, журнал і його резервну копію. Скасувати це не можна.",
                 de: "Löscht alle Notizen, das Journal und dessen Sicherung. Es gibt kein Rückgängig.",
                 it: "Elimina tutte le note, il registro e la sua copia di riserva. Non è possibile annullare.",
@@ -586,8 +586,8 @@ namespace CyrFlip
                 ur: "تمام نوٹس، جرنل اور اس کا بیک اپ حذف کر دیتا ہے۔ واپسی ممکن نہیں۔",
                 zh: "删除全部笔记、日志及其备份。无法撤销。");
 
-            Add("Заметки лежат только на этом компьютере и шифруются Windows DPAPI для вашей учётной записи. CyrFlip не отправляет их в сеть, не индексирует их поиском Windows и не превращает записи истории буфера в заметки — для этого есть отдельная команда. Это не хранилище секретов: не сохраняйте здесь пароли, боевые токены и приватные ключи.",
-                en: "Notes lie only on this computer and are encrypted with Windows DPAPI for your account. CyrFlip does not send them anywhere, does not index them with Windows Search and does not turn clipboard-history entries into notes - there is a separate command for that. This is not a secret store: do not keep passwords, production tokens or private keys here.",
+            Add("Notes lie only on this computer and are encrypted with Windows DPAPI for your account. CyrFlip does not send them anywhere, does not index them with Windows Search and does not turn clipboard-history entries into notes - there is a separate command for that. This is not a secret store: do not keep passwords, production tokens or private keys here.",
+                ru: "Заметки лежат только на этом компьютере и шифруются Windows DPAPI для вашей учётной записи. CyrFlip не отправляет их в сеть, не индексирует их поиском Windows и не превращает записи истории буфера в заметки — для этого есть отдельная команда. Это не хранилище секретов: не сохраняйте здесь пароли, боевые токены и приватные ключи.",
                 uk: "Нотатки лежать лише на цьому комп'ютері й шифруються Windows DPAPI для вашого облікового запису. CyrFlip не надсилає їх у мережу, не індексує їх пошуком Windows і не перетворює записи історії буфера на нотатки — для цього є окрема команда. Це не сховище секретів: не зберігайте тут паролі, бойові токени та приватні ключі.",
                 de: "Notizen liegen nur auf diesem Computer und werden mit der Windows-DPAPI für Ihr Konto verschlüsselt. CyrFlip sendet sie nirgendwohin, indiziert sie nicht mit der Windows-Suche und macht aus Einträgen des Zwischenablageverlaufs keine Notizen - dafür gibt es einen eigenen Befehl. Dies ist kein Geheimnisspeicher: Bewahren Sie hier keine Passwörter, Produktionstoken oder privaten Schlüssel auf.",
                 it: "Le note restano solo su questo computer e sono cifrate con la DPAPI di Windows per il tuo account. CyrFlip non le invia da nessuna parte, non le indicizza con la ricerca di Windows e non trasforma le voci della cronologia degli appunti in note: per questo c'è un comando a parte. Questo non è un archivio di segreti: non conservare qui password, token di produzione o chiavi private.",
@@ -600,8 +600,8 @@ namespace CyrFlip
                 ur: "نوٹس صرف اسی کمپیوٹر پر رہتے ہیں اور آپ کے اکاؤنٹ کے لیے Windows DPAPI سے خفیہ کیے جاتے ہیں۔ CyrFlip انہیں کہیں نہیں بھیجتا، Windows تلاش سے فہرست بند نہیں کرتا اور کلپ بورڈ تاریخ کے اندراجات کو نوٹس میں تبدیل نہیں کرتا — اس کے لیے الگ کمانڈ ہے۔ یہ رازوں کا ذخیرہ نہیں ہے: یہاں پاس ورڈ، پروڈکشن ٹوکن اور نجی کلیدیں محفوظ نہ کریں۔",
                 zh: "笔记只存放在这台电脑上，并用你账户的 Windows DPAPI 加密。CyrFlip 不会把它们发往任何地方，不用 Windows 搜索为其建立索引，也不会把剪贴板历史条目变成笔记——那有单独的命令。这不是密钥保管库：不要在这里保存密码、生产环境令牌和私钥。");
 
-            Add("Заметок нет.",
-                en: "No notes found.",
+            Add("No notes found.",
+                ru: "Заметок нет.",
                 uk: "Нотаток немає.",
                 de: "Keine Notizen vorhanden.",
                 it: "Nessuna nota presente.",

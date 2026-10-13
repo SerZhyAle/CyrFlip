@@ -74,14 +74,24 @@ namespace CyrFlip
             catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is DecoderFallbackException)
             { throw new SettingsFileException("format"); }
         }
+        private static readonly string[] StringRowKeys =
+        {
+            "Id", "Hotkey", "SourceKlid", "TargetKlid", "TargetLang",
+            "Label", "Kind", "Address", "Fingerprint", "Group", "AcceptedStatusCodes",
+        };
+        private static readonly string[] IntRowKeys = { "Ordinal", "IntervalSeconds", "TimeoutMs", "YellowThresholdMs", "FailuresBeforeDown" };
+        private static readonly string[] BoolRowKeys = { "AllowUntrustedCertificate", "Notify", "RecordHistory" };
+
         private static bool ValidRow(object raw, string table)
         {
             if (!(raw is Dictionary<string, object> row)) return false;
+            // Only the keys the row's own table knows are judged here; the loader sanitizes the rest. A wrong
+            // kind of value costs the whole table key, never the other settings.
             foreach (var pair in row)
             {
-                if (pair.Key == "Enabled") { if (!(pair.Value is bool)) return false; }
-                else if (new[] { "Id", "Hotkey", "SourceKlid", "TargetKlid", "TargetLang" }.Contains(pair.Key)
-                    && pair.Value != null && !(pair.Value is string)) return false;
+                if (pair.Key == "Enabled" || BoolRowKeys.Contains(pair.Key)) { if (!(pair.Value is bool)) return false; }
+                else if (IntRowKeys.Contains(pair.Key)) { if (!(pair.Value is int)) return false; }
+                else if (StringRowKeys.Contains(pair.Key) && pair.Value != null && !(pair.Value is string)) return false;
             }
             return true;
         }

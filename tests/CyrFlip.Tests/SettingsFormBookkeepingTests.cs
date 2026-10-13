@@ -53,14 +53,14 @@ namespace CyrFlip.Tests
 
         /// <summary>
         /// A value label - a chord, the version, the marker size - is filled by Reload. Registered as a
-        /// "Russian original", every re-translation would put its first value back over the live one.
+        /// "source original", every re-translation would put its first value back over the live one.
         /// </summary>
         [Fact]
         public void NoValueLabelIsRememberedAsACaption()
         {
             OnSta(form =>
             {
-                var remembered = (Dictionary<Control, string>)typeof(SettingsForm).GetField("_russianTexts", Private)!.GetValue(form)!;
+                var remembered = (Dictionary<Control, string>)typeof(SettingsForm).GetField("_sourceTexts", Private)!.GetValue(form)!;
                 foreach (string field in new[] { "_caseHotkeyValue", "_historyHotkeyValue", "_quickNotesHotkeyValue", "_markerSizeValue", "_version", "_opacityValue" })
                 {
                     var label = (Control)typeof(SettingsForm).GetField(field, Private)!.GetValue(form)!;

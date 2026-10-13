@@ -6,40 +6,40 @@ namespace CyrFlip
         private static void AddGeneralStrings()
         {
             // S0062: the groups of the General page.
-            Add("Язык и тема",
-                en: "Language and theme", uk: "Мова й тема", de: "Sprache und Design", it: "Lingua e tema",
+            Add("Language and theme",
+                ru: "Язык и тема", uk: "Мова й тема", de: "Sprache und Design", it: "Lingua e tema",
                 es: "Idioma y tema", fr: "Langue et thème", pt: "Idioma e tema",
                 ar: "اللغة والسمة", hi: "भाषा और थीम", bn: "ভাষা ও থিম", ur: "زبان اور تھیم", zh: "语言与主题");
 
-            Add("Запуск",
-                en: "Startup", uk: "Запуск", de: "Start", it: "Avvio",
+            Add("Startup",
+                ru: "Запуск", uk: "Запуск", de: "Start", it: "Avvio",
                 es: "Inicio", fr: "Démarrage", pt: "Arranque",
                 ar: "التشغيل", hi: "प्रारंभ", bn: "চালু করা", ur: "آغاز", zh: "启动");
 
-            Add("Питание и экран",
-                en: "Power and screen", uk: "Живлення й екран", de: "Energie und Bildschirm", it: "Alimentazione e schermo",
+            Add("Power and screen",
+                ru: "Питание и экран", uk: "Живлення й екран", de: "Energie und Bildschirm", it: "Alimentazione e schermo",
                 es: "Energía y pantalla", fr: "Alimentation et écran", pt: "Energia e ecrã",
                 ar: "الطاقة والشاشة", hi: "पावर और स्क्रीन", bn: "পাওয়ার ও স্ক্রিন", ur: "پاور اور اسکرین", zh: "电源与屏幕");
 
-            Add("Настройки CyrFlip",
-                en: "CyrFlip Settings", uk: "Налаштування CyrFlip", de: "CyrFlip-Einstellungen", it: "Impostazioni CyrFlip",
+            Add("CyrFlip Settings",
+                ru: "Настройки CyrFlip", uk: "Налаштування CyrFlip", de: "CyrFlip-Einstellungen", it: "Impostazioni CyrFlip",
                 es: "Configuración de CyrFlip", fr: "Paramètres de CyrFlip", pt: "Configurações do CyrFlip",
                 ar: "إعدادات CyrFlip", hi: "CyrFlip सेटिंग्स", bn: "CyrFlip সেটিংস", ur: "CyrFlip کی ترتیبات", zh: "CyrFlip 设置");
 
-            Add("Общие",
-                en: "General", uk: "Загальні", de: "Allgemein", it: "Generale", es: "General", fr: "Général",
+            Add("General",
+                ru: "Общие", uk: "Загальні", de: "Allgemein", it: "Generale", es: "General", fr: "Général",
                 pt: "Geral", ar: "عام", hi: "सामान्य", bn: "সাধারণ", ur: "عام", zh: "常规");
 
-            Add("Переместить вверх",
-                en: "Move up", uk: "Перемістити вгору", de: "Nach oben verschieben", it: "Sposta su", es: "Mover arriba", fr: "Monter",
+            Add("Move up",
+                ru: "Переместить вверх", uk: "Перемістити вгору", de: "Nach oben verschieben", it: "Sposta su", es: "Mover arriba", fr: "Monter",
                 pt: "Mover para cima", ar: "نقل لأعلى", hi: "ऊपर ले जाएँ", bn: "উপরে সরান", ur: "اوپر منتقل کریں", zh: "上移");
 
-            Add("Переместить вниз",
-                en: "Move down", uk: "Перемістити вниз", de: "Nach unten verschieben", it: "Sposta giù", es: "Mover abajo", fr: "Descendre",
+            Add("Move down",
+                ru: "Переместить вниз", uk: "Перемістити вниз", de: "Nach unten verschieben", it: "Sposta giù", es: "Mover abajo", fr: "Descendre",
                 pt: "Mover para baixo", ar: "نقل لأسفل", hi: "नीचे ले जाएँ", bn: "নিচে সরান", ur: "نیچے منتقل کریں", zh: "下移");
 
-            Add("Основные параметры приложения. Все изменения применяются сразу.",
-                en: "Core app settings. Changes take effect immediately.",
+            Add("Core app settings. Changes take effect immediately.",
+                ru: "Основные параметры приложения. Все изменения применяются сразу.",
                 uk: "Основні параметри застосунку. Зміни застосовуються одразу.",
                 de: "Grundeinstellungen der App. Änderungen wirken sofort.",
                 it: "Impostazioni principali dell'app. Le modifiche hanno effetto immediato.",
@@ -52,16 +52,16 @@ namespace CyrFlip
                 ur: "ایپ کی بنیادی ترتیبات۔ تبدیلیاں فوراً لاگو ہوتی ہیں۔",
                 zh: "应用的基本设置。更改会立即生效。");
 
-            Add("Запускать CyrFlip вместе с Windows",
-                en: "Start CyrFlip with Windows", uk: "Запускати CyrFlip разом із Windows",
+            Add("Start CyrFlip with Windows",
+                ru: "Запускать CyrFlip вместе с Windows", uk: "Запускати CyrFlip разом із Windows",
                 de: "CyrFlip mit Windows starten", it: "Avvia CyrFlip con Windows",
                 es: "Iniciar CyrFlip con Windows", fr: "Lancer CyrFlip avec Windows",
                 pt: "Iniciar o CyrFlip com o Windows", ar: "تشغيل CyrFlip مع بدء Windows",
                 hi: "Windows के साथ CyrFlip शुरू करें", bn: "Windows-এর সঙ্গে CyrFlip চালু করুন",
                 ur: "Windows کے ساتھ CyrFlip چلائیں", zh: "随 Windows 启动 CyrFlip");
 
-            Add("Добавляет CyrFlip в автозагрузку только текущего пользователя Windows. При следующем входе утилита запустится в фоне и появится в системном трее.",
-                en: "Adds CyrFlip to startup for the current Windows user only. It starts in the background and appears in the notification area at the next sign-in.",
+            Add("Adds CyrFlip to startup for the current Windows user only. It starts in the background and appears in the notification area at the next sign-in.",
+                ru: "Добавляет CyrFlip в автозагрузку только текущего пользователя Windows. При следующем входе утилита запустится в фоне и появится в системном трее.",
                 uk: "Додає CyrFlip до автозавантаження лише поточного користувача Windows. Під час наступного входу застосунок запуститься у фоні та з'явиться в треї.",
                 de: "Fügt CyrFlip nur für den aktuellen Windows-Benutzer zum Autostart hinzu. Beim nächsten Anmelden startet die App im Hintergrund und erscheint im Infobereich.",
                 it: "Aggiunge CyrFlip all'avvio solo per l'utente Windows corrente. Al prossimo accesso l'app parte in background e compare nell'area di notifica.",
@@ -74,24 +74,24 @@ namespace CyrFlip
                 ur: "CyrFlip کو صرف موجودہ Windows صارف کے اسٹارٹ اپ میں شامل کرتا ہے۔ اگلی بار سائن اِن پر یہ پس منظر میں چلے گا اور نوٹیفکیشن ایریا میں نظر آئے گا۔",
                 zh: "仅为当前 Windows 用户添加开机启动。下次登录时程序将在后台运行并出现在通知区域。");
 
-            Add("Ярлык CyrFlip в меню «Пуск»",
-                en: "CyrFlip shortcut in the Start menu", uk: "Ярлик CyrFlip у меню «Пуск»",
+            Add("CyrFlip shortcut in the Start menu",
+                ru: "Ярлык CyrFlip в меню «Пуск»", uk: "Ярлик CyrFlip у меню «Пуск»",
                 de: "CyrFlip-Verknüpfung im Startmenü", it: "Collegamento a CyrFlip nel menu Start",
                 es: "Acceso directo de CyrFlip en el menú Inicio", fr: "Raccourci CyrFlip dans le menu Démarrer",
                 pt: "Atalho do CyrFlip no menu Iniciar", ar: "اختصار CyrFlip في قائمة «ابدأ»",
                 hi: "Start मेनू में CyrFlip शॉर्टकट", bn: "Start মেনুতে CyrFlip শর্টকাট",
                 ur: "Start مینو میں CyrFlip شارٹ کٹ", zh: "“开始”菜单中的 CyrFlip 快捷方式");
 
-            Add("Ярлык CyrFlip на рабочем столе",
-                en: "CyrFlip shortcut on the desktop", uk: "Ярлик CyrFlip на робочому столі",
+            Add("CyrFlip shortcut on the desktop",
+                ru: "Ярлык CyrFlip на рабочем столе", uk: "Ярлик CyrFlip на робочому столі",
                 de: "CyrFlip-Verknüpfung auf dem Desktop", it: "Collegamento a CyrFlip sul desktop",
                 es: "Acceso directo de CyrFlip en el escritorio", fr: "Raccourci CyrFlip sur le bureau",
                 pt: "Atalho do CyrFlip na área de trabalho", ar: "اختصار CyrFlip على سطح المكتب",
                 hi: "डेस्कटॉप पर CyrFlip शॉर्टकट", bn: "ডেস্কটপে CyrFlip শর্টকাট",
                 ur: "ڈیسک ٹاپ پر CyrFlip شارٹ کٹ", zh: "桌面上的 CyrFlip 快捷方式");
 
-            Add("CyrFlip ставится без установщика, поэтому ярлыки в меню «Пуск» и на рабочем столе создаёт он сам при первом запуске. Если перенести папку с программой, ярлыки при следующем запуске сами укажут на новое место.",
-                en: "CyrFlip has no installer, so it creates its Start menu and desktop shortcuts itself on the first run. If you move the program's folder, the shortcuts follow it on the next start.",
+            Add("CyrFlip has no installer, so it creates its Start menu and desktop shortcuts itself on the first run. If you move the program's folder, the shortcuts follow it on the next start.",
+                ru: "CyrFlip ставится без установщика, поэтому ярлыки в меню «Пуск» и на рабочем столе создаёт он сам при первом запуске. Если перенести папку с программой, ярлыки при следующем запуске сами укажут на новое место.",
                 uk: "CyrFlip не має інсталятора, тому ярлики в меню «Пуск» і на робочому столі створює сам під час першого запуску. Якщо перенести теку з програмою, ярлики під час наступного запуску самі вкажуть на нове місце.",
                 de: "CyrFlip hat kein Installationsprogramm und legt die Verknüpfungen im Startmenü und auf dem Desktop beim ersten Start selbst an. Wird der Programmordner verschoben, zeigen sie beim nächsten Start auf den neuen Ort.",
                 it: "CyrFlip non ha un programma di installazione, quindi crea da sé i collegamenti nel menu Start e sul desktop al primo avvio. Se sposti la cartella del programma, al successivo avvio i collegamenti puntano alla nuova posizione.",
@@ -104,8 +104,8 @@ namespace CyrFlip
                 ur: "CyrFlip کا کوئی انسٹالر نہیں، اس لیے پہلی بار چلنے پر یہ Start مینو اور ڈیسک ٹاپ کے شارٹ کٹ خود بناتا ہے۔ پروگرام کا فولڈر منتقل کرنے پر اگلی بار شروع ہوتے ہی شارٹ کٹ نئی جگہ کی طرف اشارہ کریں گے۔",
                 zh: "CyrFlip 没有安装程序，因此首次运行时会自行创建“开始”菜单和桌面快捷方式。移动程序文件夹后，下次启动时快捷方式会自动指向新位置。");
 
-            Add("Удалённый ярлык CyrFlip сам больше не создаёт - вернуть его можно только этим флажком.",
-                en: "A shortcut you delete is never recreated by CyrFlip on its own - only this checkbox brings it back.",
+            Add("A shortcut you delete is never recreated by CyrFlip on its own - only this checkbox brings it back.",
+                ru: "Удалённый ярлык CyrFlip сам больше не создаёт - вернуть его можно только этим флажком.",
                 uk: "Видалений ярлик CyrFlip сам більше не створює - повернути його можна лише цим прапорцем.",
                 de: "Eine gelöschte Verknüpfung legt CyrFlip nicht von selbst wieder an - nur dieses Kästchen stellt sie wieder her.",
                 it: "CyrFlip non ricrea da sé un collegamento eliminato: lo riporta solo questa casella.",
@@ -118,8 +118,8 @@ namespace CyrFlip
                 ur: "حذف کیا گیا شارٹ کٹ CyrFlip خود دوبارہ نہیں بناتا - اسے صرف یہ چیک باکس واپس لاتا ہے۔",
                 zh: "已删除的快捷方式 CyrFlip 不会自行重新创建，只有此复选框能恢复它。");
 
-            Add("Автозапуском версии из Microsoft Store управляет сама Windows. Флажок показывает текущее состояние, а нажатие открывает «Параметры ▸ Приложения ▸ Автозагрузка», где автозапуск включается и выключается.",
-                en: "Windows itself owns autostart for the Microsoft Store build. The checkbox shows the current state, and clicking it opens Settings ▸ Apps ▸ Startup, where autostart is turned on or off.",
+            Add("Windows itself owns autostart for the Microsoft Store build. The checkbox shows the current state, and clicking it opens Settings ▸ Apps ▸ Startup, where autostart is turned on or off.",
+                ru: "Автозапуском версии из Microsoft Store управляет сама Windows. Флажок показывает текущее состояние, а нажатие открывает «Параметры ▸ Приложения ▸ Автозагрузка», где автозапуск включается и выключается.",
                 uk: "Автозапуском версії з Microsoft Store керує сама Windows. Прапорець показує поточний стан, а натискання відкриває «Параметри ▸ Застосунки ▸ Автозавантаження», де автозапуск вмикається та вимикається.",
                 de: "Bei der Microsoft-Store-Version verwaltet Windows den Autostart selbst. Das Kontrollkästchen zeigt den aktuellen Zustand, ein Klick öffnet „Einstellungen ▸ Apps ▸ Autostart“, wo er ein- und ausgeschaltet wird.",
                 it: "Per la versione del Microsoft Store è Windows a gestire l'avvio automatico. La casella mostra lo stato attuale e il clic apre «Impostazioni ▸ App ▸ Avvio», dove si attiva o disattiva.",
@@ -132,16 +132,16 @@ namespace CyrFlip
                 ur: "Microsoft Store ورژن کا خودکار آغاز خود Windows سنبھالتا ہے۔ چیک باکس موجودہ حالت دکھاتا ہے، اور کلک کرنے پر «ترتیبات ▸ ایپس ▸ اسٹارٹ اپ» کھلتا ہے جہاں اسے آن یا آف کیا جاتا ہے۔",
                 zh: "Microsoft Store 版本的开机启动由 Windows 自己管理。复选框显示当前状态，点击会打开“设置 ▸ 应用 ▸ 启动”，在那里开启或关闭。");
 
-            Add("Не давать компьютеру засыпать",
-                en: "Keep the computer awake", uk: "Не давати комп'ютеру засинати",
+            Add("Keep the computer awake",
+                ru: "Не давать компьютеру засыпать", uk: "Не давати комп'ютеру засинати",
                 de: "Computer wach halten", it: "Impedisci la sospensione del computer",
                 es: "Evitar que el equipo se suspenda", fr: "Empêcher la mise en veille de l'ordinateur",
                 pt: "Impedir que o computador durma", ar: "منع الكمبيوتر من الدخول في وضع السكون",
                 hi: "कंप्यूटर को स्लीप में न जाने दें", bn: "কম্পিউটারকে ঘুমাতে দেবেন না",
                 ur: "کمپیوٹر کو سلیپ میں نہ جانے دیں", zh: "阻止计算机进入睡眠");
 
-            Add("Пока включено, Windows не уходит в сон или гибернацию по простою — удобно для долгих загрузок, копирования или рендера. Состояние сохраняется: забытый включённым переключатель не даст компьютеру уснуть и после перезапуска - следить за вашей батареей CyrFlip не станет.",
-                en: "While on, Windows will not sleep or hibernate on idle — handy for long downloads, copies or renders. The state is saved: a switch left on keeps the computer awake after a restart too - CyrFlip will not watch your battery for you.",
+            Add("While on, Windows will not sleep or hibernate on idle — handy for long downloads, copies or renders. The state is saved: a switch left on keeps the computer awake after a restart too - CyrFlip will not watch your battery for you.",
+                ru: "Пока включено, Windows не уходит в сон или гибернацию по простою — удобно для долгих загрузок, копирования или рендера. Состояние сохраняется: забытый включённым переключатель не даст компьютеру уснуть и после перезапуска - следить за вашей батареей CyrFlip не станет.",
                 uk: "Поки ввімкнено, Windows не переходить у сон чи гібернацію під час простою — зручно для довгих завантажень, копіювання чи рендеру. Стан зберігається: забутий увімкненим перемикач не дасть комп'ютеру заснути й після перезапуску - стежити за вашою батареєю CyrFlip не буде.",
                 de: "Solange aktiv, wechselt Windows im Leerlauf nicht in den Energiespar- oder Ruhezustand — praktisch bei langen Downloads, Kopiervorgängen oder Renderings. Der Zustand wird gespeichert: ein eingeschaltet vergessener Schalter hält den Computer auch nach einem Neustart wach - CyrFlip überwacht Ihren Akku nicht für Sie.",
                 it: "Finché è attiva, Windows non va in sospensione o ibernazione durante l'inattività — comodo per download, copie o rendering lunghi. Lo stato viene salvato: un interruttore lasciato attivo tiene sveglio il computer anche dopo un riavvio - CyrFlip non sorveglia la batteria al posto tuo.",
@@ -154,16 +154,16 @@ namespace CyrFlip
                 ur: "جب تک آن ہے، بے عملی پر Windows سلیپ یا ہائبرنیٹ نہیں ہوگا — لمبے ڈاؤن لوڈ، کاپی یا رینڈر کے لیے مفید۔ حالت محفوظ ہوتی ہے: آن چھوڑا گیا سوئچ دوبارہ چلانے کے بعد بھی کمپیوٹر کو جاگتا رکھے گا - CyrFlip آپ کی بیٹری کی نگرانی نہیں کرے گا۔",
                 zh: "启用后，Windows 在空闲时不会睡眠或休眠——适合长时间下载、复制或渲染。状态会被保存：忘记关闭的开关在重启后仍会让计算机保持唤醒——CyrFlip 不会替你盯着电池。");
 
-            Add("Не блокировать экран (как при видео)",
-                en: "Keep the screen on (like video)", uk: "Не блокувати екран (як під час відео)",
+            Add("Keep the screen on (like video)",
+                ru: "Не блокировать экран (как при видео)", uk: "Не блокувати екран (як під час відео)",
                 de: "Bildschirm anlassen (wie bei Video)", it: "Mantieni lo schermo acceso (come nei video)",
                 es: "Mantener la pantalla encendida (como en un vídeo)", fr: "Garder l'écran allumé (comme pour une vidéo)",
                 pt: "Manter a tela ligada (como em vídeo)", ar: "إبقاء الشاشة مضاءة (كما أثناء الفيديو)",
                 hi: "स्क्रीन चालू रखें (वीडियो की तरह)", bn: "স্ক্রিন চালু রাখুন (ভিডিওর মতো)",
                 ur: "اسکرین آن رکھیں (ویڈیو کی طرح)", zh: "保持屏幕常亮（如播放视频时）");
 
-            Add("Экран не гаснет и не блокируется по бездействию, как во время просмотра видео. Блокировку по паролю (Win+L или политику безопасности) это не отменяет. Состояние сохраняется: забытый включённым переключатель не даст экрану погаснуть и после перезапуска.",
-                en: "The screen does not turn off or lock on idle, just like while watching a video. It does not override a password lock (Win+L or a security policy). The state is saved: a switch left on keeps the screen alive after a restart too.",
+            Add("The screen does not turn off or lock on idle, just like while watching a video. It does not override a password lock (Win+L or a security policy). The state is saved: a switch left on keeps the screen alive after a restart too.",
+                ru: "Экран не гаснет и не блокируется по бездействию, как во время просмотра видео. Блокировку по паролю (Win+L или политику безопасности) это не отменяет. Состояние сохраняется: забытый включённым переключатель не даст экрану погаснуть и после перезапуска.",
                 uk: "Екран не гасне й не блокується під час бездіяльності, як під час перегляду відео. Блокування паролем (Win+L або політику безпеки) це не скасовує. Стан зберігається: забутий увімкненим перемикач не дасть екрану згаснути й після перезапуску.",
                 de: "Der Bildschirm wird bei Inaktivität weder ausgeschaltet noch gesperrt, genau wie beim Ansehen eines Videos. Eine Kennwortsperre (Win+L oder eine Sicherheitsrichtlinie) wird dadurch nicht aufgehoben. Der Zustand wird gespeichert: ein eingeschaltet vergessener Schalter hält den Bildschirm auch nach einem Neustart an.",
                 it: "Lo schermo non si spegne né si blocca durante l'inattività, come quando guardi un video. Non annulla il blocco con password (Win+L o un criterio di sicurezza). Lo stato viene salvato: un interruttore lasciato attivo tiene acceso lo schermo anche dopo un riavvio.",
@@ -176,14 +176,14 @@ namespace CyrFlip
                 ur: "بے عملی پر اسکرین بند یا لاک نہیں ہوتی، بالکل ویڈیو دیکھنے کی طرح۔ یہ پاس ورڈ لاک (Win+L یا سیکیورٹی پالیسی) کو منسوخ نہیں کرتا۔ حالت محفوظ ہوتی ہے: آن چھوڑا گیا سوئچ دوبارہ چلانے کے بعد بھی اسکرین آن رکھے گا۔",
                 zh: "屏幕在空闲时不会熄灭或锁定，就像观看视频时一样。这不会取消密码锁定（Win+L 或安全策略）。状态会被保存：忘记关闭的开关在重启后仍会让屏幕保持常亮。");
 
-            Add("Язык интерфейса:",
-                en: "Interface language:", uk: "Мова інтерфейсу:", de: "Sprache der Oberfläche:",
+            Add("Interface language:",
+                ru: "Язык интерфейса:", uk: "Мова інтерфейсу:", de: "Sprache der Oberfläche:",
                 it: "Lingua dell'interfaccia:", es: "Idioma de la interfaz:", fr: "Langue de l'interface :",
                 pt: "Idioma da interface:", ar: "لغة الواجهة:", hi: "इंटरफ़ेस की भाषा:",
                 bn: "ইন্টারফেসের ভাষা:", ur: "انٹرفیس کی زبان:", zh: "界面语言：");
 
-            Add("Выберите язык интерфейса CyrFlip. Значение сохраняется вместе с остальными настройками и применяется также к меню в трее.",
-                en: "Choose the CyrFlip interface language. The choice is saved and also applies to the tray menu.",
+            Add("Choose the CyrFlip interface language. The choice is saved and also applies to the tray menu.",
+                ru: "Выберите язык интерфейса CyrFlip. Значение сохраняется вместе с остальными настройками и применяется также к меню в трее.",
                 uk: "Оберіть мову інтерфейсу CyrFlip. Вибір зберігається та застосовується також до меню в треї.",
                 de: "Wählen Sie die Sprache der CyrFlip-Oberfläche. Die Auswahl wird gespeichert und gilt auch für das Menü im Infobereich.",
                 it: "Scegli la lingua dell'interfaccia di CyrFlip. La scelta viene salvata e vale anche per il menu nell'area di notifica.",
@@ -196,13 +196,13 @@ namespace CyrFlip
                 ur: "CyrFlip کے انٹرفیس کی زبان منتخب کریں۔ انتخاب محفوظ ہوتا ہے اور ٹرے مینو پر بھی لاگو ہوتا ہے۔",
                 zh: "选择 CyrFlip 的界面语言。该选择会被保存，并同样应用于托盘菜单。");
 
-            Add("Индикаторы",
-                en: "Indicators", uk: "Індикатори", de: "Anzeigen", it: "Indicatori", es: "Indicadores",
+            Add("Indicators",
+                ru: "Индикаторы", uk: "Індикатори", de: "Anzeigen", it: "Indicatori", es: "Indicadores",
                 fr: "Indicateurs", pt: "Indicadores", ar: "المؤشرات", hi: "संकेतक", bn: "নির্দেশক",
                 ur: "اشارے", zh: "指示器");
 
-            Add("Параметры, которые помогают увидеть активную раскладку до ввода текста.",
-                en: "Options that help you see the active layout before typing.",
+            Add("Options that help you see the active layout before typing.",
+                ru: "Параметры, которые помогают увидеть активную раскладку до ввода текста.",
                 uk: "Параметри, що допомагають побачити активну розкладку до введення тексту.",
                 de: "Optionen, mit denen Sie das aktive Tastaturlayout schon vor dem Tippen sehen.",
                 it: "Opzioni che ti aiutano a vedere il layout attivo prima di digitare.",
@@ -215,8 +215,8 @@ namespace CyrFlip
                 ur: "ایسے اختیارات جو ٹائپ کرنے سے پہلے فعال لے آؤٹ دیکھنے میں مدد دیتے ہیں۔",
                 zh: "帮助你在输入前看清当前键盘布局的选项。");
 
-            Add("Показывать раскладку на текстовом курсоре мыши",
-                en: "Show layout on the text mouse cursor", uk: "Показувати розкладку на текстовому курсорі миші",
+            Add("Show layout on the text mouse cursor",
+                ru: "Показывать раскладку на текстовом курсоре мыши", uk: "Показувати розкладку на текстовому курсорі миші",
                 de: "Layout am Textcursor der Maus anzeigen", it: "Mostra il layout sul cursore di testo del mouse",
                 es: "Mostrar la distribución en el cursor de texto del ratón",
                 fr: "Afficher la disposition sur le curseur de texte de la souris",
@@ -225,8 +225,8 @@ namespace CyrFlip
                 bn: "মাউসের টেক্সট কার্সরে লেআউট দেখান", ur: "ماؤس کے ٹیکسٹ کرسر پر لے آؤٹ دکھائیں",
                 zh: "在鼠标文本光标上显示布局");
 
-            Add("Заменяет стандартный текстовый курсор I-beam на курсор с маленькой меткой текущей раскладки. Обычная стрелка мыши не меняется.",
-                en: "Replaces the standard I-beam with a cursor carrying a small language marker. The normal mouse arrow is unchanged.",
+            Add("Replaces the standard I-beam with a cursor carrying a small language marker. The normal mouse arrow is unchanged.",
+                ru: "Заменяет стандартный текстовый курсор I-beam на курсор с маленькой меткой текущей раскладки. Обычная стрелка мыши не меняется.",
                 uk: "Замінює стандартний курсор I-beam курсором із невеликою міткою мови. Звичайна стрілка миші не змінюється.",
                 de: "Ersetzt den Standard-Textcursor (I-Beam) durch einen Cursor mit einer kleinen Sprachmarkierung. Der normale Mauszeiger bleibt unverändert.",
                 it: "Sostituisce il cursore di testo standard con uno che porta un piccolo indicatore di lingua. La normale freccia del mouse non cambia.",
@@ -239,8 +239,24 @@ namespace CyrFlip
                 ur: "معیاری I-beam ٹیکسٹ کرسر کو چھوٹے زبان کے نشان والے کرسر سے بدل دیتا ہے۔ عام ماؤس تیر تبدیل نہیں ہوتا۔",
                 zh: "将标准的 I 形文本光标替换为带有小语言标记的光标。普通鼠标箭头保持不变。");
 
-            Add("Показывать метку раскладки рядом с кареткой",
-                en: "Show layout label near the caret", uk: "Показувати мітку розкладки біля каретки",
+            // S0067 CU-2-08: the tray switch swaps the I-beam of every program - the first enable
+            // names the change and the way back, once, the way the modules' notices do.
+            Add("The I-beam is replaced in every program by a cursor with a layout badge; untick to restore.",
+                ru: "Курсор с меткой раскладки заменит обычный I-beam во всех программах. Снимите галочку, чтобы вернуть обычный курсор.",
+                uk: "Курсор із міткою розкладки замінить звичайний I-beam в усіх програмах. Зніміть галочку, щоб повернути звичайний курсор.",
+                de: "Der Cursor mit dem Layout-Abzeichen ersetzt den gewohnten I-Beam in allen Programmen. Zum Zurücksetzen den Haken entfernen.",
+                it: "Il cursore con l'etichetta del layout sostituirà l'I-beam in tutti i programmi. Deseleziona per ripristinare il cursore normale.",
+                es: "El cursor con la marca de distribución sustituirá al cursor en forma de I en todos los programas. Desmarca la casilla para restaurarlo.",
+                fr: "Le curseur avec le badge de disposition remplacera le curseur en I dans tous les programmes. Décochez pour le restaurer.",
+                pt: "O cursor com o selo de layout substituirá o cursor em forma de I em todos os programas. Desmarque para restaurar.",
+                ar: "سيستبدل المؤشر بشارة التخطيط مؤشر I-beam المعتاد في جميع البرامج. أزل علامة الاختيار لاستعادة المؤشر العادي.",
+                hi: "लेआउट बैज वाला कर्सर हर प्रोग्राम में सामान्य I-beam की जगह लेगा। सामान्य कर्सर वापस पाने के लिए चिह्न हटाएँ।",
+                bn: "লেআউট ব্যাজসহ কার্সর সব প্রোগ্রামে সাধারণ I-beam-এর জায়গা নেবে। সাধারণ কার্সর ফিরে পেতে টিক চিহ্ন সরান।",
+                ur: "لے آؤٹ بیج والا کرسر ہر پروگرام میں عام I-beam کی جگہ لے گا۔ عام کرسر واپس پانے کے لیے نشان ہٹا دیں۔",
+                zh: "带有布局徽标的光标将取代所有程序中常见的 I 形光标。取消勾选即可恢复。");
+
+            Add("Show layout label near the caret",
+                ru: "Показывать метку раскладки рядом с кареткой", uk: "Показувати мітку розкладки біля каретки",
                 de: "Layout-Markierung neben der Schreibmarke anzeigen", it: "Mostra l'indicatore del layout accanto al cursore di testo",
                 es: "Mostrar la marca de distribución junto al cursor de texto",
                 fr: "Afficher le marqueur de disposition près du point d'insertion",
@@ -249,8 +265,8 @@ namespace CyrFlip
                 bn: "ক্যারেটের পাশে লেআউটের চিহ্ন দেখান", ur: "کیریٹ کے پاس لے آؤٹ کا نشان دکھائیں",
                 zh: "在文本插入点旁显示布局标记");
 
-            Add("Рисует небольшую метку рядом с мигающей кареткой в поле ввода. Работает в приложениях, которые передают Windows положение каретки.",
-                en: "Draws a small marker beside the blinking caret. It works in apps that expose the caret position to Windows.",
+            Add("Draws a small marker beside the blinking caret. It works in apps that expose the caret position to Windows.",
+                ru: "Рисует небольшую метку рядом с мигающей кареткой в поле ввода. Работает в приложениях, которые передают Windows положение каретки.",
                 uk: "Малює невелику мітку біля миготливої каретки. Працює в застосунках, що передають Windows положення каретки.",
                 de: "Zeichnet eine kleine Markierung neben der blinkenden Schreibmarke. Funktioniert in Apps, die ihre Cursorposition an Windows melden.",
                 it: "Disegna un piccolo indicatore accanto al cursore lampeggiante. Funziona nelle app che comunicano a Windows la posizione del cursore.",
@@ -263,28 +279,28 @@ namespace CyrFlip
                 ur: "ان پٹ فیلڈ میں جھپکتے کیریٹ کے پاس ایک چھوٹا نشان بناتا ہے۔ یہ اُن ایپس میں کام کرتا ہے جو کیریٹ کی جگہ Windows کو بتاتی ہیں۔",
                 zh: "在输入框中闪烁的插入点旁绘制一个小标记。适用于向 Windows 报告插入点位置的应用。");
 
-            Add("Размер метки:",
-                en: "Marker size:", uk: "Розмір мітки:",
+            Add("Marker size:",
+                ru: "Размер метки:", uk: "Розмір мітки:",
                 de: "Markierungsgröße:", it: "Dimensione dell'indicatore:",
                 es: "Tamaño de la marca:", fr: "Taille du marqueur :",
                 pt: "Tamanho da marca:", ar: "حجم العلامة:",
                 hi: "चिह्न का आकार:", bn: "চিহ্নের আকার:",
                 ur: "نشان کا سائز:", zh: "标记大小：");
 
-            Add("Маленькая",
-                en: "Small", uk: "Маленька", de: "Klein", it: "Piccola", es: "Pequeña", fr: "Petite",
+            Add("Small",
+                ru: "Маленькая", uk: "Маленька", de: "Klein", it: "Piccola", es: "Pequeña", fr: "Petite",
                 pt: "Pequena", ar: "صغيرة", hi: "छोटा", bn: "ছোট", ur: "چھوٹا", zh: "小");
 
-            Add("Средняя",
-                en: "Medium", uk: "Середня", de: "Mittel", it: "Media", es: "Mediana", fr: "Moyenne",
+            Add("Medium",
+                ru: "Средняя", uk: "Середня", de: "Mittel", it: "Media", es: "Mediana", fr: "Moyenne",
                 pt: "Média", ar: "متوسطة", hi: "मध्यम", bn: "মাঝারি", ur: "درمیانہ", zh: "中");
 
-            Add("Крупная",
-                en: "Large", uk: "Велика", de: "Groß", it: "Grande", es: "Grande", fr: "Grande",
+            Add("Large",
+                ru: "Крупная", uk: "Велика", de: "Groß", it: "Grande", es: "Grande", fr: "Grande",
                 pt: "Grande", ar: "كبيرة", hi: "बड़ा", bn: "বড়", ur: "بڑا", zh: "大");
 
-            Add("Размер метки у каретки и на текстовом курсоре мыши. Он дополнительно подстраивается под масштаб экрана, а курсор мыши - ещё и под размер указателя из специальных возможностей Windows. Применяется сразу.",
-                en: "Size of the marker beside the caret and on the text mouse pointer. It also follows the display scaling, and the mouse pointer follows the pointer size from Windows accessibility settings too. Applied immediately.",
+            Add("Size of the marker beside the caret and on the text mouse pointer. It also follows the display scaling, and the mouse pointer follows the pointer size from Windows accessibility settings too. Applied immediately.",
+                ru: "Размер метки у каретки и на текстовом курсоре мыши. Он дополнительно подстраивается под масштаб экрана, а курсор мыши - ещё и под размер указателя из специальных возможностей Windows. Применяется сразу.",
                 uk: "Розмір мітки біля каретки та на текстовому курсорі миші. Він додатково підлаштовується під масштаб екрана, а курсор миші - ще й під розмір вказівника зі спеціальних можливостей Windows. Застосовується одразу.",
                 de: "Größe der Markierung neben der Schreibmarke und am Text-Mauszeiger. Sie folgt zusätzlich der Anzeigeskalierung, der Mauszeiger außerdem der Zeigergröße aus den Windows-Bedienungshilfen. Wirkt sofort.",
                 it: "Dimensione dell'indicatore accanto al cursore di testo e sul puntatore del mouse. Segue anche il ridimensionamento dello schermo, e il puntatore segue pure la dimensione impostata nell'accessibilità di Windows. Si applica subito.",
@@ -297,8 +313,8 @@ namespace CyrFlip
                 ur: "کیریٹ کے پاس اور ماؤس کے ٹیکسٹ پوائنٹر پر نشان کا سائز۔ یہ ڈسپلے اسکیلنگ کے مطابق بھی بدلتا ہے، اور ماؤس پوائنٹر Windows کی رسائی کی ترتیبات میں پوائنٹر کے سائز کے مطابق بھی۔ فوراً لاگو ہوتا ہے۔",
                 zh: "插入点旁和文本鼠标指针上标记的大小。它还会跟随显示缩放，鼠标指针另外跟随 Windows 辅助功能中的指针大小。立即生效。");
 
-            Add("Компактная точка вместо букв раскладки",
-                en: "Compact dot instead of language letters", uk: "Компактна крапка замість літер мови",
+            Add("Compact dot instead of language letters",
+                ru: "Компактная точка вместо букв раскладки", uk: "Компактна крапка замість літер мови",
                 de: "Kompakter Punkt statt Sprachkürzel", it: "Punto compatto al posto delle lettere della lingua",
                 es: "Punto compacto en lugar de las letras del idioma",
                 fr: "Point compact au lieu des lettres de langue",
@@ -307,8 +323,8 @@ namespace CyrFlip
                 bn: "ভাষার অক্ষরের বদলে ছোট বিন্দু", ur: "زبان کے حروف کی جگہ چھوٹا نقطہ",
                 zh: "用小圆点代替语言字母");
 
-            Add("Вместо букв раскладки рядом с кареткой показывает компактную цветную точку — удобно, если буквы отвлекают.",
-                en: "Shows a compact colour dot beside the caret instead of the language letters — handy if the letters distract you.",
+            Add("Shows a compact colour dot beside the caret instead of the language letters — handy if the letters distract you.",
+                ru: "Вместо букв раскладки рядом с кареткой показывает компактную цветную точку — удобно, если буквы отвлекают.",
                 uk: "Показує компактну кольорову крапку біля каретки замість літер мови — зручно, якщо літери відволікають.",
                 de: "Zeigt neben der Schreibmarke einen kompakten farbigen Punkt statt der Sprachkürzel — praktisch, wenn die Buchstaben ablenken.",
                 it: "Mostra un punto colorato compatto accanto al cursore invece delle lettere della lingua — utile se le lettere distraggono.",
@@ -321,8 +337,8 @@ namespace CyrFlip
                 ur: "کیریٹ کے پاس زبان کے حروف کی جگہ ایک چھوٹا رنگین نقطہ دکھاتا ہے — اگر حروف توجہ بھٹکاتے ہوں تو مفید۔",
                 zh: "在插入点旁显示一个紧凑的彩色圆点，而不是语言字母——如果字母让你分心，这很方便。");
 
-            Add("Менять раскладку после конвертации текста",
-                en: "Change layout after converting text", uk: "Змінювати розкладку після перетворення тексту",
+            Add("Change layout after converting text",
+                ru: "Менять раскладку после конвертации текста", uk: "Змінювати розкладку після перетворення тексту",
                 de: "Layout nach dem Umwandeln des Textes wechseln", it: "Cambia layout dopo la conversione del testo",
                 es: "Cambiar la distribución después de convertir el texto",
                 fr: "Changer de disposition après la conversion du texte",
@@ -331,8 +347,8 @@ namespace CyrFlip
                 bn: "টেক্সট রূপান্তরের পরে লেআউট বদলান", ur: "متن بدلنے کے بعد لے آؤٹ تبدیل کریں",
                 zh: "转换文本后切换键盘布局");
 
-            Add("После конвертации текста переключает раскладку активного окна на ту, в которой текст теперь набран, чтобы можно было сразу продолжить печатать.",
-                en: "After a conversion, switches the active window to the layout the text now reads in, so you can carry on typing right away.",
+            Add("After a conversion, switches the active window to the layout the text now reads in, so you can carry on typing right away.",
+                ru: "После конвертации текста переключает раскладку активного окна на ту, в которой текст теперь набран, чтобы можно было сразу продолжить печатать.",
                 uk: "Після перетворення перемикає активне вікно на ту розкладку, у якій текст тепер набрано, щоб можна було одразу продовжити друкувати.",
                 de: "Wechselt das aktive Fenster nach der Umwandlung zu dem Layout, in dem der Text jetzt steht, damit Sie sofort weitertippen können.",
                 it: "Dopo la conversione porta la finestra attiva sul layout in cui il testo è ora scritto, così puoi continuare subito a digitare.",
@@ -345,8 +361,8 @@ namespace CyrFlip
                 ur: "تبدیلی کے بعد فعال ونڈو کو اُس لے آؤٹ پر لے جاتا ہے جس میں متن اب لکھا ہے، تاکہ آپ فوراً لکھنا جاری رکھ سکیں۔",
                 zh: "转换之后，把活动窗口切换到文本现在所属的布局，让你可以立即继续输入。");
 
-            Add("Синхронизировать CapsLock после исправления регистра",
-                en: "Synchronize CapsLock after case correction", uk: "Синхронізувати CapsLock після виправлення регістру",
+            Add("Synchronize CapsLock after case correction",
+                ru: "Синхронизировать CapsLock после исправления регистра", uk: "Синхронізувати CapsLock після виправлення регістру",
                 de: "CapsLock nach der Groß-/Kleinschreibkorrektur angleichen",
                 it: "Sincronizza CapsLock dopo la correzione delle maiuscole",
                 es: "Sincronizar CapsLock tras corregir las mayúsculas",
@@ -356,8 +372,8 @@ namespace CyrFlip
                 bn: "কেস সংশোধনের পরে CapsLock সমন্বয় করুন", ur: "کیس درست کرنے کے بعد CapsLock ہم آہنگ کریں",
                 zh: "更正大小写后同步 CapsLock");
 
-            Add("После исправления регистра меняет физическое состояние CapsLock, чтобы следующие нажатия соответствовали исправленному тексту.",
-                en: "Changes the physical CapsLock state after case correction, so subsequent keystrokes match the corrected text.",
+            Add("Changes the physical CapsLock state after case correction, so subsequent keystrokes match the corrected text.",
+                ru: "После исправления регистра меняет физическое состояние CapsLock, чтобы следующие нажатия соответствовали исправленному тексту.",
                 uk: "Змінює фізичний стан CapsLock після виправлення регістру, щоб наступні натискання відповідали виправленому тексту.",
                 de: "Ändert nach der Korrektur den physischen CapsLock-Zustand, damit weitere Tastenanschläge zum korrigierten Text passen.",
                 it: "Dopo la correzione cambia lo stato fisico di CapsLock, così i tasti successivi corrispondono al testo corretto.",
@@ -370,19 +386,19 @@ namespace CyrFlip
                 ur: "کیس درست کرنے کے بعد CapsLock کی حقیقی حالت بدل دیتا ہے، تاکہ آگے کی ٹائپنگ درست متن سے میل کھائے۔",
                 zh: "更正大小写后改变 CapsLock 的实际状态，使后续按键与更正后的文本一致。");
 
-            Add("Параметры",
-                en: "Options", uk: "Параметри", de: "Optionen",
+            Add("Options",
+                ru: "Параметры", uk: "Параметри", de: "Optionen",
                 it: "Opzioni", es: "Opciones", fr: "Options",
                 pt: "Opções", ar: "الخيارات", hi: "विकल्प",
                 bn: "বিকল্প", ur: "اختیارات", zh: "选项");
-            Add("О программе",
-                en: "About", uk: "Про програму", de: "Info",
+            Add("About",
+                ru: "О программе", uk: "Про програму", de: "Info",
                 it: "Informazioni", es: "Acerca de", fr: "À propos",
                 pt: "Sobre", ar: "حول", hi: "बारे में",
                 bn: "সম্পর্কে", ur: "تعارف", zh: "关于");
 
-            Add("CyrFlip - набор инструментов в трее для клавиатуры и рабочего стола: показывает активную раскладку у каретки, исправляет текст, набранный в неверной раскладке или с включённым CapsLock, и снимает область экрана; меню над выделением, локальный переводчик, быстрые заметки, история буфера и быстрый запуск - необязательные модули, которые вы включаете сами.\n\nПриложение не передаёт историю буфера в сеть. Если история включена, записи защищены Windows DPAPI и читаются только той же учётной записью Windows.",
-                en: "CyrFlip is a tray toolkit for your keyboard and desktop: it shows the active layout at the caret, fixes text typed in the wrong layout or with CapsLock on, and captures a screen region; a selection menu, a local translator, quick notes, clipboard history and quick launch are optional modules you switch on yourself.\n\nThe app never sends clipboard history over the network. When history is on, entries are protected by Windows DPAPI and readable only by the same Windows account.",
+            Add("CyrFlip is a tray toolkit for your keyboard and desktop: it shows the active layout at the caret, fixes text typed in the wrong layout or with CapsLock on, and captures a screen region; a selection menu, a local translator, quick notes, clipboard history and quick launch are optional modules you switch on yourself.\n\nThe app never sends clipboard history over the network. When history is on, entries are protected by Windows DPAPI and readable only by the same Windows account.",
+                ru: "CyrFlip - набор инструментов в трее для клавиатуры и рабочего стола: показывает активную раскладку у каретки, исправляет текст, набранный в неверной раскладке или с включённым CapsLock, и снимает область экрана; меню над выделением, локальный переводчик, быстрые заметки, история буфера и быстрый запуск - необязательные модули, которые вы включаете сами.\n\nПриложение не передаёт историю буфера в сеть. Если история включена, записи защищены Windows DPAPI и читаются только той же учётной записью Windows.",
                 uk: "CyrFlip - набір інструментів у треї для клавіатури та робочого столу: показує активну розкладку біля каретки, виправляє текст, набраний у хибній розкладці чи з увімкненим CapsLock, і знімає область екрана; меню над виділенням, локальний перекладач, швидкі нотатки, історія буфера та швидкий запуск - необов'язкові модулі, які ви вмикаєте самі.\n\nЗастосунок не передає історію буфера в мережу. Якщо історію ввімкнено, записи захищені Windows DPAPI і читаються лише тим самим обліковим записом Windows.",
                 de: "CyrFlip ist ein Werkzeugkasten im Infobereich für Tastatur und Desktop: Er zeigt das aktive Layout an der Schreibmarke, korrigiert Text, der im falschen Layout oder mit eingeschaltetem CapsLock getippt wurde, und nimmt Bildschirmausschnitte auf; Auswahlmenü, lokaler Übersetzer, Schnellnotizen, Zwischenablage-Verlauf und Schnellstart sind optionale Module, die Sie selbst einschalten.\n\nDie App sendet die Historie nie über das Netzwerk. Ist sie aktiviert, sind die Einträge durch Windows DPAPI geschützt und nur mit demselben Windows-Konto lesbar.",
                 it: "CyrFlip è un set di strumenti nell'area di notifica per tastiera e desktop: mostra il layout attivo accanto al cursore, corregge il testo digitato nel layout sbagliato o con CapsLock attivo e cattura un'area dello schermo; menu sulla selezione, traduttore locale, note rapide, cronologia degli appunti e avvio rapido sono moduli opzionali che attivi tu.\n\nL'app non invia mai la cronologia in rete. Quando è attiva, le voci sono protette da Windows DPAPI e leggibili solo dallo stesso account Windows.",
@@ -397,44 +413,44 @@ namespace CyrFlip
 
             // The About tab's version line. The number itself is the YY.M.D.HHmm build stamp and is
             // substituted in, so only the word around it is translated.
-            Add("Версия {0}",
-                en: "Version {0}", uk: "Версія {0}", de: "Version {0}",
+            Add("Version {0}",
+                ru: "Версия {0}", uk: "Версія {0}", de: "Version {0}",
                 it: "Versione {0}", es: "Versión {0}", fr: "Version {0}",
                 pt: "Versão {0}", ar: "الإصدار {0}", hi: "संस्करण {0}",
                 bn: "সংস্করণ {0}", ur: "ورژن {0}", zh: "版本 {0}");
 
-            Add("Разработчик: SerZhyAle",
-                en: "Developer: SerZhyAle", uk: "Розробник: SerZhyAle", de: "Entwickler: SerZhyAle",
+            Add("Developer: SerZhyAle",
+                ru: "Разработчик: SerZhyAle", uk: "Розробник: SerZhyAle", de: "Entwickler: SerZhyAle",
                 it: "Sviluppatore: SerZhyAle", es: "Desarrollador: SerZhyAle", fr: "Développeur : SerZhyAle",
                 pt: "Desenvolvedor: SerZhyAle", ar: "المطوّر: SerZhyAle", hi: "डेवलपर: SerZhyAle",
                 bn: "ডেভেলপার: SerZhyAle", ur: "ڈویلپر: SerZhyAle", zh: "开发者：SerZhyAle");
 
-            Add("Сайт программы: serzhyale.github.io/CyrFlip",
-                en: "App website: serzhyale.github.io/CyrFlip", uk: "Сайт програми: serzhyale.github.io/CyrFlip",
+            Add("App website: serzhyale.github.io/CyrFlip",
+                ru: "Сайт программы: serzhyale.github.io/CyrFlip", uk: "Сайт програми: serzhyale.github.io/CyrFlip",
                 de: "Website der App: serzhyale.github.io/CyrFlip", it: "Sito dell'app: serzhyale.github.io/CyrFlip",
                 es: "Sitio de la aplicación: serzhyale.github.io/CyrFlip", fr: "Site de l'application : serzhyale.github.io/CyrFlip",
                 pt: "Site do aplicativo: serzhyale.github.io/CyrFlip", ar: "موقع التطبيق: serzhyale.github.io/CyrFlip",
                 hi: "ऐप की वेबसाइट: serzhyale.github.io/CyrFlip", bn: "অ্যাপের ওয়েবসাইট: serzhyale.github.io/CyrFlip",
                 ur: "ایپ کی ویب سائٹ: serzhyale.github.io/CyrFlip", zh: "程序网站：serzhyale.github.io/CyrFlip");
 
-            Add("Сторонние компоненты: значки Material Icons (Apache-2.0)",
-                en: "Third-party notices: Material Icons glyphs (Apache-2.0)", uk: "Сторонні компоненти: значки Material Icons (Apache-2.0)",
+            Add("Third-party notices: Material Icons glyphs (Apache-2.0)",
+                ru: "Сторонние компоненты: значки Material Icons (Apache-2.0)", uk: "Сторонні компоненти: значки Material Icons (Apache-2.0)",
                 de: "Drittanbieter-Hinweise: Material-Icons-Symbole (Apache-2.0)", it: "Componenti di terze parti: icone Material Icons (Apache-2.0)",
                 es: "Componentes de terceros: iconos Material Icons (Apache-2.0)", fr: "Composants tiers : icônes Material Icons (Apache-2.0)",
                 pt: "Componentes de terceiros: ícones Material Icons (Apache-2.0)", ar: "مكوّنات الجهات الخارجية: أيقونات Material Icons (Apache-2.0)",
                 hi: "तृतीय-पक्ष घटक: Material Icons के चिह्न (Apache-2.0)", bn: "তৃতীয় পক্ষের উপাদান: Material Icons-এর চিহ্ন (Apache-2.0)",
                 ur: "تھرڈ پارٹی اجزا: Material Icons کے نشانات (Apache-2.0)", zh: "第三方组件：Material Icons 图标 (Apache-2.0)");
 
-            Add("Сайт разработчика: sza.od.ua",
-                en: "Developer website: sza.od.ua", uk: "Сайт розробника: sza.od.ua",
+            Add("Developer website: sza.od.ua",
+                ru: "Сайт разработчика: sza.od.ua", uk: "Сайт розробника: sza.od.ua",
                 de: "Website des Entwicklers: sza.od.ua", it: "Sito dello sviluppatore: sza.od.ua",
                 es: "Sitio del desarrollador: sza.od.ua", fr: "Site du développeur : sza.od.ua",
                 pt: "Site do desenvolvedor: sza.od.ua", ar: "موقع المطوّر: sza.od.ua",
                 hi: "डेवलपर की वेबसाइट: sza.od.ua", bn: "ডেভেলপারের ওয়েবসাইট: sza.od.ua",
                 ur: "ڈویلپر کی ویب سائٹ: sza.od.ua", zh: "开发者网站：sza.od.ua");
 
-            Add("CyrFlip работает локально, без телеметрии и сетевой синхронизации истории буфера.",
-                en: "CyrFlip runs locally, with no telemetry and no network sync of clipboard history.",
+            Add("CyrFlip runs locally, with no telemetry and no network sync of clipboard history.",
+                ru: "CyrFlip работает локально, без телеметрии и сетевой синхронизации истории буфера.",
                 uk: "CyrFlip працює локально, без телеметрії та мережевої синхронізації історії буфера.",
                 de: "CyrFlip arbeitet lokal, ohne Telemetrie und ohne Netzwerksynchronisierung der Zwischenablage-Historie.",
                 it: "CyrFlip funziona in locale, senza telemetria e senza sincronizzazione in rete della cronologia degli appunti.",
@@ -447,8 +463,8 @@ namespace CyrFlip
                 ur: "CyrFlip مقامی طور پر چلتا ہے — نہ کوئی ٹیلی میٹری اور نہ کلپ بورڈ تاریخ کی نیٹ ورک ہم آہنگی۔",
                 zh: "CyrFlip 完全在本地运行，没有遥测，也不会通过网络同步剪贴板历史。");
 
-            Add("Редкие действия и техническая диагностика.",
-                en: "Occasional actions and technical diagnostics.",
+            Add("Occasional actions and technical diagnostics.",
+                ru: "Редкие действия и техническая диагностика.",
                 uk: "Рідкісні дії та технічна діагностика.",
                 de: "Selten benötigte Aktionen und technische Diagnose.",
                 it: "Azioni occasionali e diagnostica tecnica.",
@@ -461,16 +477,16 @@ namespace CyrFlip
                 ur: "کبھی کبھار کے اقدامات اور تکنیکی تشخیص۔",
                 zh: "偶尔使用的操作与技术诊断。");
 
-            Add("Диагностика положения каретки...",
-                en: "Diagnose caret position...", uk: "Діагностика положення каретки...",
+            Add("Diagnose caret position...",
+                ru: "Диагностика положения каретки...", uk: "Діагностика положення каретки...",
                 de: "Position der Schreibmarke diagnostizieren...", it: "Diagnostica la posizione del cursore...",
                 es: "Diagnosticar la posición del cursor...", fr: "Diagnostiquer la position du curseur...",
                 pt: "Diagnosticar a posição do cursor...", ar: "تشخيص موضع مؤشر الكتابة...",
                 hi: "कैरेट की स्थिति की जाँच...", bn: "ক্যারেটের অবস্থান নির্ণয়...",
                 ur: "کیریٹ کی جگہ کی تشخیص...", zh: "诊断插入点位置...");
 
-            Add("Создаёт локальный отчёт о том, как Windows и UI Automation видят каретку. Нужен только если метка не появляется или рисуется не там в конкретной программе.",
-                en: "Creates a local report of how Windows and UI Automation see the caret. Use it only when the marker is missing or misplaced in a particular app.",
+            Add("Creates a local report of how Windows and UI Automation see the caret. Use it only when the marker is missing or misplaced in a particular app.",
+                ru: "Создаёт локальный отчёт о том, как Windows и UI Automation видят каретку. Нужен только если метка не появляется или рисуется не там в конкретной программе.",
                 uk: "Створює локальний звіт про те, як Windows та UI Automation бачать каретку. Потрібен лише якщо мітка не з'являється або малюється не там у певній програмі.",
                 de: "Erstellt einen lokalen Bericht darüber, wie Windows und UI Automation die Schreibmarke sehen. Nur nötig, wenn die Markierung in einer bestimmten App fehlt oder falsch sitzt.",
                 it: "Crea un report locale su come Windows e UI Automation vedono il cursore. Serve solo se in una determinata app l'indicatore manca o è fuori posto.",
@@ -484,8 +500,8 @@ namespace CyrFlip
                 zh: "生成一份本地报告，说明 Windows 和 UI Automation 如何识别插入点。仅当标记在某个应用中不显示或位置错误时才需要。");
 
             // ---- Caret-diagnostics balloons ----
-            Add("Идёт запись ~7 секунд. Щёлкните в непокорное поле ввода и наберите что-нибудь или подвигайте каретку — покажите, где она прячется.",
-                en: "Capturing for ~7s. Click into that uncooperative input box and type or wiggle the caret — show me where it's hiding.",
+            Add("Capturing for ~7s. Click into that uncooperative input box and type or wiggle the caret — show me where it's hiding.",
+                ru: "Идёт запись ~7 секунд. Щёлкните в непокорное поле ввода и наберите что-нибудь или подвигайте каретку — покажите, где она прячется.",
                 uk: "Триває запис ~7 секунд. Клацніть у непокірне поле введення та наберіть щось або порухайте кареткою — покажіть, де вона ховається.",
                 de: "Aufzeichnung läuft ~7 s. Klicken Sie in das störrische Eingabefeld und tippen Sie etwas oder bewegen Sie die Schreibmarke — zeigen Sie, wo sie sich versteckt.",
                 it: "Registrazione per ~7 s. Fai clic nel campo di input ostinato e digita qualcosa o muovi il cursore: mostrami dove si nasconde.",
@@ -498,8 +514,8 @@ namespace CyrFlip
                 ur: "تقریباً 7 سیکنڈ ریکارڈنگ جاری ہے۔ اُس ضدی ان پٹ فیلڈ میں کلک کر کے کچھ لکھیں یا کیریٹ ہلائیں — دکھائیں وہ کہاں چھپا ہے۔",
                 zh: "正在采集约 7 秒。请点进那个不听话的输入框，随便输入或移动一下插入点——让我看看它藏在哪里。");
 
-            Add("Диагностика каретки сохранена — укрытие каретки раскрыто. Открываю:",
-                en: "Caret diagnostics saved — the caret's hiding spot is exposed. Opening:",
+            Add("Caret diagnostics saved — the caret's hiding spot is exposed. Opening:",
+                ru: "Диагностика каретки сохранена — укрытие каретки раскрыто. Открываю:",
                 uk: "Діагностику каретки збережено — сховок каретки розкрито. Відкриваю:",
                 de: "Schreibmarken-Diagnose gespeichert — das Versteck ist aufgedeckt. Wird geöffnet:",
                 it: "Diagnostica del cursore salvata: il nascondiglio è scoperto. Apro:",
@@ -512,8 +528,8 @@ namespace CyrFlip
                 ur: "کیریٹ کی تشخیص محفوظ ہو گئی — اس کی چھپنے کی جگہ کھل گئی۔ کھولا جا رہا ہے:",
                 zh: "插入点诊断已保存——它的藏身之处已经暴露。正在打开：");
 
-            Add("Диагностика каретки не удалась (каретка выиграла этот раунд):",
-                en: "Caret diagnostics failed (the caret won this round):",
+            Add("Caret diagnostics failed (the caret won this round):",
+                ru: "Диагностика каретки не удалась (каретка выиграла этот раунд):",
                 uk: "Діагностика каретки не вдалася (каретка виграла цей раунд):",
                 de: "Schreibmarken-Diagnose fehlgeschlagen (diese Runde geht an die Schreibmarke):",
                 it: "Diagnostica del cursore fallita (questo round lo vince il cursore):",
@@ -526,8 +542,8 @@ namespace CyrFlip
                 ur: "کیریٹ کی تشخیص ناکام رہی (یہ راؤنڈ کیریٹ جیت گیا):",
                 zh: "插入点诊断失败（这一回合插入点赢了）：");
 
-            Add("Спокойно — одна диагностика уже идёт.",
-                en: "Easy — one diagnostics capture is already snooping around.",
+            Add("Easy — one diagnostics capture is already snooping around.",
+                ru: "Спокойно — одна диагностика уже идёт.",
                 uk: "Спокійно — одна діагностика вже триває.",
                 de: "Ruhig — eine Diagnose schnüffelt bereits herum.",
                 it: "Calma: una diagnostica è già in corso.",
@@ -540,8 +556,8 @@ namespace CyrFlip
                 ur: "آرام سے — ایک تشخیص پہلے ہی جاری ہے۔",
                 zh: "别急——已经有一次诊断在进行了。");
 
-            Add("Нет доступа к файлу или папке.",
-                en: "Access to file or folder is denied.",
+            Add("Access to file or folder is denied.",
+                ru: "Нет доступа к файлу или папке.",
                 uk: "Немає доступу до файлу або папки.",
                 de: "Zugriff auf Datei oder Ordner verweigert.",
                 it: "Accesso a file o cartella negato.",
@@ -554,8 +570,8 @@ namespace CyrFlip
                 ur: "فائل یا فولڈر تک رسائی مسترد کر دی گئی۔",
                 zh: "无法访问文件或文件夹。");
 
-            Add("Ошибка чтения или записи на диск.",
-                en: "Disk read or write error.",
+            Add("Disk read or write error.",
+                ru: "Ошибка чтения или записи на диск.",
                 uk: "Помилка читання або запису на диск.",
                 de: "Fehler beim Lesen oder Schreiben auf den Datenträger.",
                 it: "Errore di lettura o scrittura sul disco.",
@@ -568,8 +584,8 @@ namespace CyrFlip
                 ur: "ڈسک پڑھنے یا لکھنے میں خرابی۔",
                 zh: "磁盘读取或写入错误。");
 
-            Add("Сетевая ошибка или сервер недоступен.",
-                en: "Network error or server is unavailable.",
+            Add("Network error or server is unavailable.",
+                ru: "Сетевая ошибка или сервер недоступен.",
                 uk: "Мережева помилка або сервер недоступний.",
                 de: "Netzwerkfehler oder Server nicht erreichbar.",
                 it: "Errore di rete o server non disponibile.",
@@ -582,8 +598,8 @@ namespace CyrFlip
                 ur: "نیٹ ورک کی خرابی یا سرور دستیاب نہیں ہے۔",
                 zh: "网络错误或服务器不可用。");
 
-            Add("Не удалось запустить процесс.",
-                en: "Could not start process.",
+            Add("Could not start process.",
+                ru: "Не удалось запустить процесс.",
                 uk: "Не вдалося запустити процес.",
                 de: "Prozess konnte nicht gestartet werden.",
                 it: "Impossibile avviare il processo.",
@@ -596,8 +612,8 @@ namespace CyrFlip
                 ur: "عمل شروع نہیں کیا جا سکا۔",
                 zh: "无法启动进程。");
 
-            Add("Произошла непредвиденная ошибка.",
-                en: "An unexpected error occurred.",
+            Add("An unexpected error occurred.",
+                ru: "Произошла непредвиденная ошибка.",
                 uk: "Сталася непередбачена помилка.",
                 de: "Ein unerwarteter Fehler ist aufgetreten.",
                 it: "Si è verificato un errore imprevisto.",
@@ -613,8 +629,8 @@ namespace CyrFlip
             // The IOException split (S0065 E-8): one sentence for every disk failure used to read as
             // "disk error" - a file another program holds, a full disk and a path too long each have
             // their own next step.
-            Add("Файл занят другой программой.",
-                en: "The file is in use by another program.",
+            Add("The file is in use by another program.",
+                ru: "Файл занят другой программой.",
                 uk: "Файл зайнятий іншою програмою.",
                 de: "Die Datei wird von einem anderen Programm verwendet.",
                 it: "Il file è in uso da un altro programma.",
@@ -627,8 +643,8 @@ namespace CyrFlip
                 ur: "فائل کسی اور پروگرام کے استعمال میں ہے۔",
                 zh: "文件正被另一个程序使用。");
 
-            Add("Диск заполнен — освободите место.",
-                en: "The disk is full - free some space.",
+            Add("The disk is full - free some space.",
+                ru: "Диск заполнен — освободите место.",
                 uk: "Диск заповнено — звільніть місце.",
                 de: "Der Datenträger ist voll - schaffen Sie Platz.",
                 it: "Il disco è pieno - liberi dello spazio.",
@@ -641,8 +657,8 @@ namespace CyrFlip
                 ur: "ڈسک بھر چکا ہے - کچھ جگہ خالی کریں۔",
                 zh: "磁盘已满 - 请释放空间。");
 
-            Add("Слишком длинный путь к файлу.",
-                en: "The path to the file is too long.",
+            Add("The path to the file is too long.",
+                ru: "Слишком длинный путь к файлу.",
                 uk: "Шлях до файлу задовгий.",
                 de: "Der Pfad zur Datei ist zu lang.",
                 it: "Il percorso del file è troppo lungo.",
@@ -657,8 +673,8 @@ namespace CyrFlip
 
             // What the flip chord answers when nothing changed (S0065 E-4): the chord was consumed,
             // so the user hears that instead of wondering whether the hotkey died.
-            Add("Текст уже в этой раскладке — конвертировать нечего.",
-                en: "The text is already in this layout - nothing to convert.",
+            Add("The text is already in this layout - nothing to convert.",
+                ru: "Текст уже в этой раскладке — конвертировать нечего.",
                 uk: "Текст уже в цій розкладці — конвертувати нічого.",
                 de: "Der Text ist bereits in diesem Layout - nichts zu konvertieren.",
                 it: "Il testo è già in questo layout - niente da convertire.",
@@ -671,8 +687,8 @@ namespace CyrFlip
                 ur: "متن پہلے ہی اسی لے آؤٹ میں ہے - تبدیل کرنے کو کچھ نہیں۔",
                 zh: "文本已是这种布局 - 无需转换。");
 
-            Add("Окно сменилось — конвертация отменена.",
-                en: "The window changed - the conversion was cancelled.",
+            Add("The window changed - the conversion was cancelled.",
+                ru: "Окно сменилось — конвертация отменена.",
                 uk: "Вікно змінилося — конвертацію скасовано.",
                 de: "Das Fenster hat gewechselt - die Konvertierung wurde abgebrochen.",
                 it: "La finestra è cambiata - la conversione è stata annullata.",
@@ -687,8 +703,8 @@ namespace CyrFlip
 
             // The contained-fault balloon (S0065 E-2): one fault in one handler costs that handler,
             // not the process - the tray, the indicator and both hooks live on.
-            Add("Команда не выполнена из-за внутренней ошибки. CyrFlip продолжает работу — если горячие клавиши молчат, перезапустите его.",
-                en: "A command failed on an internal error. CyrFlip keeps running - if the hotkeys go quiet, restart it.",
+            Add("A command failed on an internal error. CyrFlip keeps running - if the hotkeys go quiet, restart it.",
+                ru: "Команда не выполнена из-за внутренней ошибки. CyrFlip продолжает работу — если горячие клавиши молчат, перезапустите его.",
                 uk: "Команда не виконана через внутрішню помилку. CyrFlip продовжує роботу — якщо гарячі клавіші мовчать, перезапустіть його.",
                 de: "Ein Befehl ist an einem internen Fehler gescheitert. CyrFlip läuft weiter - werden die Hotkeys still, starten Sie es neu.",
                 it: "Un comando non è riuscito per un errore interno. CyrFlip continua a funzionare - se le scorciatoie smettono di rispondere, lo riavvii.",
@@ -704,8 +720,8 @@ namespace CyrFlip
             // The fatal box (S0065 E-1): localized from the saved UI language, no data-folder path,
             // and the one thing the old English text never said - that every hotkey went with the
             // process, so CyrFlip has to be started again.
-            Add("CyrFlip столкнулся с непредвиденной ошибкой и закрывается. Все горячие клавиши отключены — запустите CyrFlip снова.",
-                en: "CyrFlip hit an unexpected error and is closing. Every hotkey is now off - start CyrFlip again.",
+            Add("CyrFlip hit an unexpected error and is closing. Every hotkey is now off - start CyrFlip again.",
+                ru: "CyrFlip столкнулся с непредвиденной ошибкой и закрывается. Все горячие клавиши отключены — запустите CyrFlip снова.",
                 uk: "CyrFlip зіткнувся з непередбаченою помилкою і закривається. Усі гарячі клавіші вимкнені — запустіть CyrFlip знову.",
                 de: "CyrFlip ist auf einen unerwarteten Fehler gestoßen und wird beendet. Alle Hotkeys sind jetzt aus - starten Sie CyrFlip erneut.",
                 it: "CyrFlip ha riscontrato un errore imprevisto e si chiude. Tutte le scorciatoie sono disattivate - avvii di nuovo CyrFlip.",
@@ -720,8 +736,8 @@ namespace CyrFlip
 
             // A setting change that did not reach the registry (S0065 E-9): said once, not on every
             // toggle of a machine whose registry is denied.
-            Add("Настройку не удалось сохранить — она будет работать до перезапуска CyrFlip.",
-                en: "The setting could not be saved - it will work until CyrFlip is restarted.",
+            Add("The setting could not be saved - it will work until CyrFlip is restarted.",
+                ru: "Настройку не удалось сохранить — она будет работать до перезапуска CyrFlip.",
                 uk: "Налаштування не вдалося зберегти — воно працюватиме до перезапуску CyrFlip.",
                 de: "Die Einstellung ließ sich nicht speichern - sie gilt bis zum Neustart von CyrFlip.",
                 it: "L'impostazione non è stata salvata - funzionerà fino al riavvio di CyrFlip.",

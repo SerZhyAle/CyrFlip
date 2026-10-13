@@ -293,7 +293,7 @@ namespace CyrFlip
             BuildModules();
             BuildTray();
 
-            _back.Text = T("Назад"); _next.Text = T("Далее"); _cancel.Text = T("Пропустить");
+            _back.Text = T("Back"); _next.Text = T("Next"); _cancel.Text = T("Skip");
             // Measure all pages while visible, then reserve the tallest for the entire language.
             int height = 0;
             foreach (var page in _pages)
@@ -317,29 +317,29 @@ namespace CyrFlip
 
         private void BuildWelcome()
         {
-            var welcome = Page("Добро пожаловать в CyrFlip", AppGlyphs.Info, _appIcon);
+            var welcome = Page("Welcome to CyrFlip", AppGlyphs.Info, _appIcon);
             // The whole product in one index, one line per feature, in the pillars' order of
             // POSITIONING.md; the tour's own pages tell each of them in detail right after.
-            Row(welcome, AppGlyphs.LayoutIndicator, null, null, T("Показывает активный язык у каретки и в трее"), plate: 28, vPad: 2);
-            Row(welcome, null, "I", null, T("Показывает раскладку и на курсоре мыши"), plate: 28, vPad: 2);
-            Row(welcome, AppGlyphs.ConvertLayout, null, null, T("Исправляет текст, набранный в неверной раскладке"), plate: 28, vPad: 2);
-            Row(welcome, null, "Aa", null, T("Исправляет регистр, если забыли про CapsLock"), plate: 28, vPad: 2);
-            Row(welcome, null, "≡", null, T("Показывает своё меню над выделенным текстом"), plate: 28, vPad: 2);
-            Row(welcome, AppGlyphs.Translate, null, null, T("Переводит выделенный текст"), plate: 28, vPad: 2);
-            Row(welcome, AppGlyphs.ClipboardHistory, null, null, T("Ведёт историю буфера обмена"), plate: 28, vPad: 2);
-            Row(welcome, AppGlyphs.Note, null, null, T("Хранит быстрые заметки"), plate: 28, vPad: 2);
-            Row(welcome, AppGlyphs.Screenshot, null, null, T("Делает снимок области экрана"), plate: 28, vPad: 2);
-            Row(welcome, AppGlyphs.QuickLaunch, null, null, T("Запускает программы и сценарии одним щелчком"), plate: 28, vPad: 2);
-            Row(welcome, AppGlyphs.Apps, null, null, T("Живёт в трее и не мешает работе"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.LayoutIndicator, null, null, T("Shows the active language at the caret and in the tray"), plate: 28, vPad: 2);
+            Row(welcome, null, "I", null, T("Shows the layout on the mouse pointer as well"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.ConvertLayout, null, null, T("Fixes text typed in the wrong layout"), plate: 28, vPad: 2);
+            Row(welcome, null, "Aa", null, T("Fixes the case when CapsLock was left on"), plate: 28, vPad: 2);
+            Row(welcome, null, "≡", null, T("Shows its own menu over selected text"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.Translate, null, null, T("Translates the selected text"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.ClipboardHistory, null, null, T("Keeps a history of the clipboard"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.Note, null, null, T("Keeps quick notes"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.Screenshot, null, null, T("Captures a region of the screen"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.QuickLaunch, null, null, T("Launches programs and scenarios in one click"), plate: 28, vPad: 2);
+            Row(welcome, AppGlyphs.Apps, null, null, T("Lives in the tray and stays out of your way"), plate: 28, vPad: 2);
 
             // The one control on this page: the interface language, with the globe the settings use for it.
             var language = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = false,
                 Margin = new Padding(0, Px(10), 0, Px(4)), Font = Font, RightToLeft = RightToLeft };
             language.Controls.Add(new GlyphBadge(AppGlyphs.InputLanguage, null, Px(34), false) { Margin = new Padding(3, 2, Px(10), 2), Anchor = AnchorStyles.Left });
-            language.Controls.Add(new Label { Text = T("Язык интерфейса:"), AutoSize = true, UseMnemonic = false, Anchor = AnchorStyles.Left,
+            language.Controls.Add(new Label { Text = T("Interface language:"), AutoSize = true, UseMnemonic = false, Anchor = AnchorStyles.Left,
                 Margin = new Padding(0, 0, Px(8), 0) });
             var languages = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = Math.Min(_wrap / 2, Px(240)),
-                AccessibleName = T("Язык интерфейса:"), Anchor = AnchorStyles.Left };
+                AccessibleName = T("Interface language:"), Anchor = AnchorStyles.Left };
             languages.Items.AddRange(Localization.Names); languages.SelectedIndex = Localization.IndexOf(_facts.Config.UiLanguage);
             language.Controls.Add(languages);
             welcome.Controls.Add(language);
@@ -351,96 +351,98 @@ namespace CyrFlip
                 // Dispose the triggering control after its event has unwound.
                 BeginInvoke(new Action(() => { Rebuild(); Place(); }));
             };
-            Note(welcome, T("Всё можно изменить позже."));
+            Note(welcome, T("You can change everything later."));
         }
 
         private void BuildIndicators()
         {
             var config = _facts.Config;
-            var indicators = Page("Индикаторы", AppGlyphs.LayoutIndicator);
+            var indicators = Page("Indicators", AppGlyphs.LayoutIndicator);
             var badges = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = false,
                 Margin = new Padding(0, 0, 0, Px(4)), Font = Font };
             foreach (var layout in _facts.Layouts) badges.Controls.Add(LayoutBadge(layout.Klid, layout.LanguageName, Px(66), Px(36)));
             indicators.Controls.Add(badges);
             // S0055's live gate: CaretOverlay intentionally excludes our own windows. The
             // operator observed no marker here, so retain the specified static-example fallback.
-            Note(indicators, T("Переключите раскладку в своём редакторе и посмотрите на метку."));
-            Row(indicators, AppGlyphs.LayoutIndicator, null, T("Метка у каретки"), T("Рядом с мигающим курсором ввода"),
-                trailing: Trailing(null, WelcomeSwitch.CaretMarker, null, T("Метка у каретки")), open: SettingsPageKey.Indicators);
+            Note(indicators, T("Switch the layout in your editor and watch the marker."));
+            Row(indicators, AppGlyphs.LayoutIndicator, null, T("Caret marker"), T("Next to the blinking text cursor"),
+                trailing: Trailing(null, WelcomeSwitch.CaretMarker, null, T("Caret marker")), open: SettingsPageKey.Indicators);
             // The mouse pointer being replaced is the I-beam itself, so the plate carries its letter.
-            Row(indicators, null, "I", T("Курсор мыши"), T("Меняется во всей системе"),
-                trailing: Trailing(null, WelcomeSwitch.MouseCursor, null, T("Курсор мыши")), open: SettingsPageKey.Indicators);
-            Row(indicators, AppGlyphs.InputLanguage, null, T("Значок в трее"), T("Всегда показывает текущую раскладку"));
+            Row(indicators, null, "I", T("Mouse cursor"), T("A system-wide change"),
+                trailing: Trailing(null, WelcomeSwitch.MouseCursor, null, T("Mouse cursor")), open: SettingsPageKey.Indicators);
+            Row(indicators, AppGlyphs.InputLanguage, null, T("Tray icon"), T("Always shows the current layout"));
         }
 
         private void BuildConversions()
         {
             var config = _facts.Config;
-            var conversions = Page("Конвертация раскладок", AppGlyphs.ConvertLayout);
+            var conversions = Page("Layout conversions", AppGlyphs.ConvertLayout);
             var rows = _facts.ConversionRows();
             if (rows.Count == 0)
             {
-                Paragraph(conversions, T("Таблица конвертации пуста. Добавьте пару в настройках."));
-                Row(conversions, AppGlyphs.ConvertLayout, null, T("Конвертация раскладок"), null, open: SettingsPageKey.Conversions);
+                Paragraph(conversions, T("The conversion table is empty. Add a pair in settings."));
+                Row(conversions, AppGlyphs.ConvertLayout, null, T("Layout conversions"), null, open: SettingsPageKey.Conversions);
             }
             else
             {
-                Note(conversions, T("Выделите текст и нажмите комбинацию."));
+                Note(conversions, T("Select text and press the shortcut."));
                 foreach (var row in rows)
                     Row(conversions, AppGlyphs.ConvertLayout, null, row.Source + " ⇄ " + row.Target, null,
                         detail: new KeyCaps(row.Hotkey), trailing: Trailing(null, WelcomeSwitch.Conversion, row.Id, row.Source + " ⇄ " + row.Target),
                         open: SettingsPageKey.Conversions);
             }
-            Row(conversions, null, "Aa", T("Смена регистра"), T("Если оставили CapsLock включённым"),
-                detail: new KeyCaps(config.CaseHotkey), trailing: Trailing(null, WelcomeSwitch.CaseFlip, null, T("Смена регистра")),
+            Row(conversions, null, "Aa", T("Change case"), T("If you left CapsLock on"),
+                detail: new KeyCaps(config.CaseHotkey), trailing: Trailing(null, WelcomeSwitch.CaseFlip, null, T("Change case")),
                 open: SettingsPageKey.Conversions);
-            Paragraph(conversions, F("Пример: выделите {0}, затем нажмите комбинацию выше.", "ghbdtn")).Margin = new Padding(3, Px(8), 3, Px(4));
+            Paragraph(conversions, F("Example: select {0}, then press the shortcut above.", "ghbdtn")).Margin = new Padding(3, Px(8), 3, Px(4));
             var example = new ConversionExample("ghbdtn", "привет") { Margin = new Padding(3, 0, 3, Px(6)), Font = Font, RightToLeft = RightToLeft };
             conversions.Controls.Add(example);
-            Note(conversions, T("CyrFlip копирует, преобразует и вставляет текст, затем возвращает буфер обмена."));
+            Note(conversions, T("CyrFlip copies, converts and pastes text, then restores the clipboard."));
         }
 
         private void BuildModules()
         {
             var config = _facts.Config;
-            var modules = Page("Дополнительные возможности", AppGlyphs.Apps);
-            Row(modules, AppGlyphs.Screenshot, null, T("Снимок области экрана"), null,
-                trailing: Trailing(config.ScreenshotHotkey, WelcomeSwitch.Screenshot, null, T("Снимок области экрана")), open: SettingsPageKey.Graphics);
-            Row(modules, AppGlyphs.ClipboardHistory, null, T("Буфер обмена"), null,
-                trailing: Trailing(config.ClipboardHistoryHotkey, WelcomeSwitch.ClipboardHistory, null, T("Буфер обмена")), open: SettingsPageKey.Clipboard);
-            Row(modules, AppGlyphs.Note, null, T("Быстрые заметки"), null,
-                trailing: Trailing(config.QuickNotesHotkey, WelcomeSwitch.QuickNotes, null, T("Быстрые заметки")), open: SettingsPageKey.QuickNotes);
-            Row(modules, AppGlyphs.Symbols, null, T("Символы"), null,
-                trailing: Trailing(config.SymbolsHotkey, WelcomeSwitch.Symbols, null, T("Символы")), open: SettingsPageKey.Symbols);
-            Row(modules, AppGlyphs.Translate, null, T("Перевод"), null,
-                trailing: Trailing(null, WelcomeSwitch.Translate, null, T("Перевод")), open: SettingsPageKey.Translate);
-            Row(modules, AppGlyphs.QuickLaunch, null, T("Быстрый запуск"), null,
-                trailing: Trailing(null, WelcomeSwitch.QuickLaunch, null, T("Быстрый запуск")), open: SettingsPageKey.Launcher);
-            Row(modules, null, "≡", T("Своё контекстное меню над выделенным текстом"), null,
-                trailing: Trailing(null, WelcomeSwitch.ContextMenu, null, T("Своё контекстное меню над выделенным текстом")), open: SettingsPageKey.SelectionMenu);
-            Note(modules, T("Нажмите на название, чтобы открыть настройки модуля."));
-            BrowserLink(modules, "Политика конфиденциальности", "https://serzhyale.github.io/CyrFlip/privacy.html");
-            BrowserLink(modules, "Установка и предупреждение SmartScreen", "https://serzhyale.github.io/CyrFlip/trust.html");
+            var modules = Page("Optional features", AppGlyphs.Apps);
+            // S0067 CU-2-07: every row carries its consequence line, so a switch on this page is
+            // never just a name.
+            Row(modules, AppGlyphs.Screenshot, null, T("Screen region capture"), T("Copies a screen region to the clipboard, ready to paste."),
+                trailing: Trailing(config.ScreenshotHotkey, WelcomeSwitch.Screenshot, null, T("Screen region capture")), open: SettingsPageKey.Graphics);
+            Row(modules, AppGlyphs.ClipboardHistory, null, T("Clipboard"), T("Records every text you copy, on this computer only."),
+                trailing: Trailing(config.ClipboardHistoryHotkey, WelcomeSwitch.ClipboardHistory, null, T("Clipboard")), open: SettingsPageKey.Clipboard);
+            Row(modules, AppGlyphs.Note, null, T("Quick notes"), T("A small local notepad: open it with a shortcut, paste text in."),
+                trailing: Trailing(config.QuickNotesHotkey, WelcomeSwitch.QuickNotes, null, T("Quick notes")), open: SettingsPageKey.QuickNotes);
+            Row(modules, AppGlyphs.Symbols, null, T("Symbols"), T("Finds the character your keyboard lacks by name or code and copies it."),
+                trailing: Trailing(config.SymbolsHotkey, WelcomeSwitch.Symbols, null, T("Symbols")), open: SettingsPageKey.Symbols);
+            Row(modules, AppGlyphs.Translate, null, T("Translation"), T("Translates a selection on your own local Ollama model; nothing goes to a cloud."),
+                trailing: Trailing(null, WelcomeSwitch.Translate, null, T("Translation")), open: SettingsPageKey.Translate);
+            Row(modules, AppGlyphs.QuickLaunch, null, T("Quick launch"), T("Runs your programs and scripts from the tray menu."),
+                trailing: Trailing(null, WelcomeSwitch.QuickLaunch, null, T("Quick launch")), open: SettingsPageKey.Launcher);
+            Row(modules, null, "≡", T("CyrFlip's own context menu over the selected text"), T("Opens CyrFlip's menu over a selection; the mouse is watched only while it is on."),
+                trailing: Trailing(null, WelcomeSwitch.ContextMenu, null, T("CyrFlip's own context menu over the selected text")), open: SettingsPageKey.SelectionMenu);
+            Note(modules, T("Click a name to open that module’s settings."));
+            BrowserLink(modules, "Privacy policy", "https://serzhyale.github.io/CyrFlip/privacy.html");
+            BrowserLink(modules, "Installation and the SmartScreen warning", "https://serzhyale.github.io/CyrFlip/trust.html");
         }
 
         private void BuildTray()
         {
-            var tray = Page("Где находится CyrFlip", AppGlyphs.Settings);
-            Row(tray, AppGlyphs.InputLanguage, null, T("Щелчок"), T("Переключает язык"));
-            Row(tray, AppGlyphs.Settings, null, T("Двойной щелчок"), T("Открывает настройки"));
+            var tray = Page("Where CyrFlip lives", AppGlyphs.Settings);
+            Row(tray, AppGlyphs.InputLanguage, null, T("Click"), T("Switches the language"));
+            Row(tray, AppGlyphs.Settings, null, T("Double-click"), T("Opens settings"));
             // The menu has no picture in the vocabulary yet, so its plate carries the menu's own letter-shaped mark.
-            Row(tray, null, "≡", T("Правый щелчок"), T("Открывает меню"));
-            Row(tray, AppGlyphs.Info, null, null, T("Windows 11 может скрыть новый значок за стрелкой ^. Перетащите его наружу, чтобы видеть постоянно."));
-            if (_facts.ShortcutsExist) Row(tray, AppGlyphs.Apps, null, null, T("Ярлыки CyrFlip доступны в меню «Пуск» или на рабочем столе."));
+            Row(tray, null, "≡", T("Right-click"), T("Opens the menu"));
+            Row(tray, AppGlyphs.Info, null, null, T("Windows 11 may hide a new icon behind the ^ arrow. Drag it out to keep it visible."));
+            if (_facts.ShortcutsExist) Row(tray, AppGlyphs.Apps, null, null, T("CyrFlip shortcuts are available in Start or on the desktop."));
             if (_facts.Transient)
             {
-                Row(tray, AppGlyphs.Info, null, null, T("Сначала распакуйте CyrFlip в постоянную папку: временная папка исчезнет, и автозапуск с ярлыками перестанут работать."));
+                Row(tray, AppGlyphs.Info, null, null, T("Unpack CyrFlip to a permanent folder first: a temporary folder will disappear, breaking startup and shortcuts."));
             }
             if (!_facts.Packaged)
             {
                 // The one switch here that is not a feature of the app: it lives in Windows' own startup list,
                 // so its state is read back from there after every flip.
-                string caption = T("Запускать CyrFlip вместе с Windows");
+                string caption = T("Start CyrFlip with Windows");
                 var startup = new ToggleSwitch(_autostartEnabled()) { AccessibleName = caption, Font = Font, RightToLeft = RightToLeft };
                 bool updating = false;
                 startup.Toggled += (_, _) =>
@@ -469,10 +471,10 @@ namespace CyrFlip
             _buttons.Controls.SetChildIndex(_cancel, 2);
             // The last step's button names where it goes - the settings - and wears their gear, not an arrow.
             bool last = PageIndex == PageCount - 1;
-            _next.Text = T(last ? "Открыть настройки" : "Далее"); _next.Glyph = last ? AppGlyphs.Settings : AppGlyphs.Forward;
-            _cancel.Text = T(last ? "Закрыть" : "Пропустить");
+            _next.Text = T(last ? "Open settings" : "Next"); _next.Glyph = last ? AppGlyphs.Settings : AppGlyphs.Forward;
+            _cancel.Text = T(last ? "Close" : "Skip");
             RefreshSwitches();
-            _step.Text = F("Шаг {0} из {1}", PageIndex + 1, PageCount);
+            _step.Text = F("Step {0} of {1}", PageIndex + 1, PageCount);
             _dots.Current = PageIndex;
             _buttons.ResumeLayout(true);
             _next.Focus();

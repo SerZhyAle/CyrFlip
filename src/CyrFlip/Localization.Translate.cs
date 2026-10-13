@@ -9,8 +9,8 @@ namespace CyrFlip
         private static void AddTranslateStrings()
         {
             // ---- Tab, master switch and the Ollama block ----
-            Add("Перевод",
-                en: "Translation",
+            Add("Translation",
+                ru: "Перевод",
                 uk: "Переклад",
                 de: "Übersetzung",
                 it: "Traduzione",
@@ -23,8 +23,8 @@ namespace CyrFlip
                 ur: "ترجمہ",
                 zh: "翻译");
 
-            Add("Перевод выделенного текста локальной моделью Ollama: текст никуда не отправляется, кроме сервера, указанного ниже (по умолчанию это ваш же компьютер). Сам Ollama и языковую модель нужно установить один раз — кнопками ниже.",
-                en: "Translate the selected text with a local Ollama model: the text goes nowhere except the server below, which is your own computer by default. Ollama itself and a language model have to be installed once, with the buttons below.",
+            Add("Translate the selected text with a local Ollama model: the text goes nowhere except the server below, which is your own computer by default. Ollama itself and a language model have to be installed once, with the buttons below.",
+                ru: "Перевод выделенного текста локальной моделью Ollama: текст никуда не отправляется, кроме сервера, указанного ниже (по умолчанию это ваш же компьютер). Сам Ollama и языковую модель нужно установить один раз — кнопками ниже.",
                 uk: "Переклад виділеного тексту локальною моделлю Ollama: текст нікуди не надсилається, окрім сервера, указаного нижче (за замовчуванням це ваш же комп'ютер). Сам Ollama і мовну модель потрібно встановити один раз — кнопками нижче.",
                 de: "Übersetzung des ausgewählten Textes durch ein lokales Ollama-Modell: Der Text wird an nichts anderes gesendet als an den unten angegebenen Server (standardmäßig ist das Ihr eigener Computer). Ollama selbst und das Sprachmodell müssen Sie einmalig installieren — mit den Schaltflächen unten.",
                 it: "Traduzione del testo selezionato con un modello Ollama locale: il testo non viene inviato da nessuna parte, tranne che al server indicato qui sotto (per impostazione predefinita è il tuo computer). Ollama e il modello linguistico vanno installati una volta sola, con i pulsanti qui sotto.",
@@ -37,8 +37,8 @@ namespace CyrFlip
                 ur: "منتخب متن کا ترجمہ مقامی Ollama ماڈل کے ذریعے: متن نیچے دیے گئے سرور کے علاوہ کہیں نہیں بھیجا جاتا (طے شدہ طور پر یہ آپ ہی کا کمپیوٹر ہے)۔ Ollama اور زبان کا ماڈل ایک بار انسٹال کرنے ہوتے ہیں — نیچے دیے گئے بٹنوں سے۔",
                 zh: "使用本地 Ollama 模型翻译选中的文本：文本不会发送到别处，只会发往下方指定的服务器（默认就是您自己的电脑）。Ollama 本身和语言模型需要用下方的按钮安装一次。");
 
-            Add("Включить перевод выделенного текста",
-                en: "Enable translation of the selected text",
+            Add("Enable translation of the selected text",
+                ru: "Включить перевод выделенного текста",
                 uk: "Увімкнути переклад виділеного тексту",
                 de: "Übersetzung des ausgewählten Textes aktivieren",
                 it: "Attiva la traduzione del testo selezionato",
@@ -51,8 +51,8 @@ namespace CyrFlip
                 ur: "منتخب متن کا ترجمہ فعال کریں",
                 zh: "启用选中文本的翻译");
 
-            Add("Пока выключено, комбинации перевода не назначены, в трее нет пункта перевода и CyrFlip не открывает ни одного сетевого соединения.",
-                en: "While this is off no translation chord is bound, the tray has no translate entry, and CyrFlip opens no network connection at all.",
+            Add("While this is off no translation chord is bound, the tray has no translate entry, and CyrFlip opens no network connection at all.",
+                ru: "Пока выключено, комбинации перевода не назначены, в трее нет пункта перевода и CyrFlip не открывает ни одного сетевого соединения.",
                 uk: "Поки вимкнено, комбінації перекладу не призначені, у треї немає пункту перекладу, і CyrFlip не відкриває жодного мережевого з'єднання.",
                 de: "Solange dies ausgeschaltet ist, sind keine Übersetzungskombinationen zugewiesen, im Infobereich gibt es keinen Übersetzungseintrag und CyrFlip öffnet keine einzige Netzwerkverbindung.",
                 it: "Finché è disattivata, non viene assegnata alcuna combinazione per la traduzione, l'area di notifica non mostra la voce di traduzione e CyrFlip non apre alcuna connessione di rete.",
@@ -65,8 +65,8 @@ namespace CyrFlip
                 ur: "جب تک یہ بند ہے، ترجمے کا کوئی کلیدی مجموعہ مقرر نہیں ہوتا، ٹرے مینو میں ترجمے کا کوئی اندراج نہیں آتا اور CyrFlip کوئی نیٹ ورک کنکشن نہیں کھولتا۔",
                 zh: "关闭时不会分配任何翻译组合键，托盘中不会出现翻译菜单项，CyrFlip 也不会建立任何网络连接。");
 
-            Add("Адрес сервера:",
-                en: "Server address:",
+            Add("Server address:",
+                ru: "Адрес сервера:",
                 uk: "Адреса сервера:",
                 de: "Serveradresse:",
                 it: "Indirizzo del server:",
@@ -79,8 +79,8 @@ namespace CyrFlip
                 ur: "سرور کا پتہ:",
                 zh: "服务器地址：");
 
-            Add("Пусто — http://localhost:11434, то есть Ollama на этом компьютере. Если указать другой адрес, выделенный текст будет отправлен на ту машину.",
-                en: "Empty means http://localhost:11434, that is Ollama on this computer. Enter another address and the selected text will be sent to that machine.",
+            Add("Empty means http://localhost:11434, that is Ollama on this computer. Enter another address and the selected text will be sent to that machine.",
+                ru: "Пусто — http://localhost:11434, то есть Ollama на этом компьютере. Если указать другой адрес, выделенный текст будет отправлен на ту машину.",
                 uk: "Порожньо — http://localhost:11434, тобто Ollama на цьому комп'ютері. Якщо вказати іншу адресу, виділений текст буде надіслано на ту машину.",
                 de: "Leer bedeutet http://localhost:11434, also Ollama auf diesem Computer. Geben Sie eine andere Adresse an, wird der ausgewählte Text an jenen Rechner gesendet.",
                 it: "Vuoto significa http://localhost:11434, cioè Ollama su questo computer. Se indichi un altro indirizzo, il testo selezionato verrà inviato a quella macchina.",
@@ -93,8 +93,8 @@ namespace CyrFlip
                 ur: "خالی چھوڑنے کا مطلب http://localhost:11434 ہے، یعنی اسی کمپیوٹر پر موجود Ollama۔ کوئی دوسرا پتہ درج کرنے پر منتخب متن اُسی مشین کو بھیجا جائے گا۔",
                 zh: "留空表示 http://localhost:11434，即本机上的 Ollama。如果填写其他地址，选中的文本就会被发送到那台机器。");
 
-            Add("Модель:",
-                en: "Model:",
+            Add("Model:",
+                ru: "Модель:",
                 uk: "Модель:",
                 de: "Modell:",
                 it: "Modello:",
@@ -107,8 +107,8 @@ namespace CyrFlip
                 ur: "ماڈل:",
                 zh: "模型：");
 
-            Add("Загрузить модель",
-                en: "Download the model",
+            Add("Download the model",
+                ru: "Загрузить модель",
                 uk: "Завантажити модель",
                 de: "Modell herunterladen",
                 it: "Scarica il modello",
@@ -121,8 +121,8 @@ namespace CyrFlip
                 ur: "ماڈل ڈاؤن لوڈ کریں",
                 zh: "下载模型");
 
-            Add("Рекомендуемые: aya-expanse:8b (~4,7 ГБ, по умолчанию - лучший перевод из проверенных), gemma2:9b (~5 ГБ). Модели меньше 4 ГБ проверку на русском и украинском не прошли: gemma2:2b (~1,5 ГБ) берите, только если места мало, и ждите ошибок. Модель занимает память процесса Ollama, а не CyrFlip.",
-                en: "Recommended: aya-expanse:8b (~4.7 GB, the default - the best translation of those tested), gemma2:9b (~5 GB). Models under 4 GB failed the Russian and Ukrainian check: take gemma2:2b (~1.5 GB) only if space is tight, and expect mistakes. The model occupies the memory of the Ollama process, not of CyrFlip.",
+            Add("Recommended: aya-expanse:8b (~4.7 GB, the default - the best translation of those tested), gemma2:9b (~5 GB). Models under 4 GB failed the Russian and Ukrainian check: take gemma2:2b (~1.5 GB) only if space is tight, and expect mistakes. The model occupies the memory of the Ollama process, not of CyrFlip.",
+                ru: "Рекомендуемые: aya-expanse:8b (~4,7 ГБ, по умолчанию - лучший перевод из проверенных), gemma2:9b (~5 ГБ). Модели меньше 4 ГБ проверку на русском и украинском не прошли: gemma2:2b (~1,5 ГБ) берите, только если места мало, и ждите ошибок. Модель занимает память процесса Ollama, а не CyrFlip.",
                 uk: "Рекомендовані: aya-expanse:8b (~4,7 ГБ, за замовчуванням - найкращий переклад із перевірених), gemma2:9b (~5 ГБ). Моделі менші за 4 ГБ перевірки українською та російською не пройшли: gemma2:2b (~1,5 ГБ) беріть, лише якщо мало місця, і чекайте помилок. Модель займає пам'ять процесу Ollama, а не CyrFlip.",
                 de: "Empfohlen: aya-expanse:8b (~4,7 GB, Standard - die beste Übersetzung im Test), gemma2:9b (~5 GB). Modelle unter 4 GB fielen bei Russisch und Ukrainisch durch: gemma2:2b (~1,5 GB) nur bei knappem Speicher, und mit Fehlern ist zu rechnen. Das Modell belegt den Speicher des Ollama-Prozesses, nicht den von CyrFlip.",
                 it: "Consigliati: aya-expanse:8b (~4,7 GB, predefinito - la traduzione migliore tra quelle provate), gemma2:9b (~5 GB). I modelli sotto i 4 GB non hanno superato la prova su russo e ucraino: prendi gemma2:2b (~1,5 GB) solo se hai poco spazio, e aspettati errori. Il modello occupa la memoria del processo Ollama, non quella di CyrFlip.",
@@ -135,8 +135,8 @@ namespace CyrFlip
                 ur: "تجویز کردہ: aya-expanse:8b (~4.7 جی بی، طے شدہ - آزمائے گئے ماڈلوں میں بہترین ترجمہ)، gemma2:9b (~5 جی بی)۔ 4 جی بی سے چھوٹے ماڈل روسی اور یوکرینی کے امتحان میں ناکام رہے: gemma2:2b (~1.5 جی بی) صرف اُس وقت لیں جب جگہ کم ہو، اور غلطیوں کی توقع رکھیں۔ ماڈل Ollama کے پروسیس کی میموری گھیرتا ہے، CyrFlip کی نہیں۔",
                 zh: "推荐：aya-expanse:8b（约 4.7 GB，默认——实测中翻译最好）、gemma2:9b（约 5 GB）。小于 4 GB 的模型没能通过俄语和乌克兰语的检验：只有在空间紧张时才选 gemma2:2b（约 1.5 GB），并且要预期出错。模型占用的是 Ollama 进程的内存，而不是 CyrFlip 的内存。");
 
-            Add("Установить Ollama",
-                en: "Install Ollama",
+            Add("Install Ollama",
+                ru: "Установить Ollama",
                 uk: "Встановити Ollama",
                 de: "Ollama installieren",
                 it: "Installa Ollama",
@@ -149,8 +149,8 @@ namespace CyrFlip
                 ur: "Ollama انسٹال کریں",
                 zh: "安装 Ollama");
 
-            Add("Запустить Ollama",
-                en: "Start Ollama",
+            Add("Start Ollama",
+                ru: "Запустить Ollama",
                 uk: "Запустити Ollama",
                 de: "Ollama starten",
                 it: "Avvia Ollama",
@@ -163,8 +163,8 @@ namespace CyrFlip
                 ur: "Ollama چلائیں",
                 zh: "启动 Ollama");
 
-            Add("Проверить связь",
-                en: "Check the connection",
+            Add("Check the connection",
+                ru: "Проверить связь",
                 uk: "Перевірити зв'язок",
                 de: "Verbindung prüfen",
                 it: "Verifica la connessione",
@@ -177,8 +177,8 @@ namespace CyrFlip
                 ur: "کنکشن جانچیں",
                 zh: "检查连接");
 
-            Add("Запускать Ollama автоматически при переводе",
-                en: "Start Ollama automatically when translating",
+            Add("Start Ollama automatically when translating",
+                ru: "Запускать Ollama автоматически при переводе",
                 uk: "Запускати Ollama автоматично під час перекладу",
                 de: "Ollama beim Übersetzen automatisch starten",
                 it: "Avvia Ollama automaticamente al momento della traduzione",
@@ -191,8 +191,8 @@ namespace CyrFlip
                 ur: "ترجمے کے وقت Ollama خودکار طور پر چلائیں",
                 zh: "翻译时自动启动 Ollama");
 
-            Add("Если сервер не отвечает в момент перевода, CyrFlip один раз попробует запустить его сам и подождёт до восьми секунд.",
-                en: "If the server does not answer when a translation starts, CyrFlip tries to start it once and waits up to eight seconds.",
+            Add("If the server does not answer when a translation starts, CyrFlip tries to start it once and waits up to eight seconds.",
+                ru: "Если сервер не отвечает в момент перевода, CyrFlip один раз попробует запустить его сам и подождёт до восьми секунд.",
                 uk: "Якщо сервер не відповідає в момент перекладу, CyrFlip один раз спробує запустити його сам і зачекає до восьми секунд.",
                 de: "Antwortet der Server im Moment der Übersetzung nicht, versucht CyrFlip einmal, ihn selbst zu starten, und wartet bis zu acht Sekunden.",
                 it: "Se il server non risponde quando parte una traduzione, CyrFlip proverà una volta ad avviarlo da sé e attenderà fino a otto secondi.",
@@ -205,8 +205,8 @@ namespace CyrFlip
                 ur: "اگر ترجمے کے وقت سرور جواب نہ دے تو CyrFlip ایک بار خود اسے چلانے کی کوشش کرے گا اور آٹھ سیکنڈ تک انتظار کرے گا۔",
                 zh: "如果开始翻译时服务器没有响应，CyrFlip 会自行尝试启动一次，并最多等待八秒。");
 
-            Add("Держать модель в памяти (мин):",
-                en: "Keep the model in memory (min):",
+            Add("Keep the model in memory (min):",
+                ru: "Держать модель в памяти (мин):",
                 uk: "Тримати модель у пам'яті (хв):",
                 de: "Modell im Speicher halten (Min.):",
                 it: "Mantieni il modello in memoria (min):",
@@ -219,8 +219,8 @@ namespace CyrFlip
                 ur: "ماڈل کو میموری میں رکھیں (منٹ):",
                 zh: "保持模型驻留内存（分钟）：");
 
-            Add("Сколько Ollama держит модель загруженной после перевода. Больше — следующий перевод почти мгновенный, но несколько гигабайт памяти заняты. 0 — выгружать сразу.",
-                en: "How long Ollama keeps the model loaded after a translation. A larger value makes the next translation nearly instant but keeps several gigabytes of memory in use. 0 unloads it at once.",
+            Add("How long Ollama keeps the model loaded after a translation. A larger value makes the next translation nearly instant but keeps several gigabytes of memory in use. 0 unloads it at once.",
+                ru: "Сколько Ollama держит модель загруженной после перевода. Больше — следующий перевод почти мгновенный, но несколько гигабайт памяти заняты. 0 — выгружать сразу.",
                 uk: "Скільки Ollama тримає модель завантаженою після перекладу. Більше — наступний переклад майже миттєвий, але кілька гігабайтів пам'яті зайнято. 0 — вивантажувати одразу.",
                 de: "Wie lange Ollama das Modell nach einer Übersetzung geladen lässt. Ein höherer Wert macht die nächste Übersetzung nahezu sofort, belegt aber mehrere Gigabyte Arbeitsspeicher. 0 entlädt es sofort.",
                 it: "Per quanto tempo Ollama tiene il modello caricato dopo una traduzione. Un valore più alto rende la traduzione successiva quasi immediata, ma tiene occupati diversi gigabyte di memoria. 0 lo scarica subito.",
@@ -233,8 +233,8 @@ namespace CyrFlip
                 ur: "ترجمے کے بعد Ollama ماڈل کو کتنی دیر لوڈ رکھے۔ زیادہ قدر سے اگلا ترجمہ تقریباً فوری ہو جاتا ہے، مگر کئی جی بی میموری گھری رہتی ہے۔ 0 کا مطلب فوراً اَن لوڈ کرنا ہے۔",
                 zh: "翻译完成后 Ollama 保持模型加载的时长。数值越大，下一次翻译几乎瞬间完成，但会一直占用数 GB 内存。设为 0 则立即卸载。");
 
-            Add("Ждать ответа не дольше (с):",
-                en: "Wait for an answer no longer than (s):",
+            Add("Wait for an answer no longer than (s):",
+                ru: "Ждать ответа не дольше (с):",
                 uk: "Чекати на відповідь не довше (с):",
                 de: "Maximale Wartezeit auf Antwort (Sek.):",
                 it: "Attendi la risposta al massimo (s):",
@@ -247,8 +247,8 @@ namespace CyrFlip
                 ur: "جواب کا زیادہ سے زیادہ انتظار (سیکنڈ):",
                 zh: "响应等待上限（秒）：");
 
-            Add("Если модель не ответила за это время, перевод прерывается и окно предлагает повторить.",
-                en: "If the model has not answered within this time the translation is aborted and the window offers to try again.",
+            Add("If the model has not answered within this time the translation is aborted and the window offers to try again.",
+                ru: "Если модель не ответила за это время, перевод прерывается и окно предлагает повторить.",
                 uk: "Якщо модель не відповіла за цей час, переклад переривається, і вікно пропонує повторити.",
                 de: "Antwortet das Modell nicht innerhalb dieser Zeit, wird die Übersetzung abgebrochen und das Fenster bietet einen neuen Versuch an.",
                 it: "Se il modello non risponde entro questo tempo, la traduzione viene interrotta e la finestra propone di riprovare.",
@@ -261,8 +261,8 @@ namespace CyrFlip
                 ur: "اگر ماڈل نے اس دوران جواب نہ دیا تو ترجمہ روک دیا جاتا ہے اور ونڈو دوبارہ کوشش کرنے کی پیشکش کرتی ہے۔",
                 zh: "如果模型在此时间内没有响应，翻译将中止，窗口会提示您重试。");
 
-            Add("Направления перевода",
-                en: "Translation directions",
+            Add("Translation directions",
+                ru: "Направления перевода",
                 uk: "Напрямки перекладу",
                 de: "Übersetzungsrichtungen",
                 it: "Direzioni di traduzione",
@@ -275,8 +275,8 @@ namespace CyrFlip
                 ur: "ترجمے کی سمتیں",
                 zh: "翻译方向");
 
-            Add("Добавить направление...",
-                en: "Add a direction...",
+            Add("Add a direction...",
+                ru: "Добавить направление...",
                 uk: "Додати напрямок...",
                 de: "Richtung hinzufügen...",
                 it: "Aggiungi direzione...",
@@ -289,8 +289,8 @@ namespace CyrFlip
                 ur: "سمت شامل کریں...",
                 zh: "添加方向...");
 
-            Add("«Язык интерфейса» и «Язык активной раскладки» вычисляются в момент нажатия. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
-                en: "\"Interface language\" and \"Active layout language\" are resolved at the moment the chord is pressed. One chord cannot be given to two CyrFlip actions.",
+            Add("\"Interface language\" and \"Active layout language\" are resolved at the moment the chord is pressed. One chord cannot be given to two CyrFlip actions.",
+                ru: "«Язык интерфейса» и «Язык активной раскладки» вычисляются в момент нажатия. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
                 uk: "«Мова інтерфейсу» та «Мова активної розкладки» визначаються в момент натискання. Одну комбінацію не можна віддати двом діям CyrFlip.",
                 de: "«Oberflächensprache» und «Sprache des aktiven Layouts» werden im Moment des Tastendrucks ermittelt. Eine Kombination lässt sich nicht zwei CyrFlip-Aktionen zuweisen.",
                 it: "«Lingua dell'interfaccia» e «Lingua del layout attivo» vengono determinate nel momento in cui premi la combinazione. Una stessa combinazione non può essere assegnata a due azioni di CyrFlip.",
@@ -303,8 +303,8 @@ namespace CyrFlip
                 ur: "”انٹرفیس کی زبان“ اور ”فعال لے آؤٹ کی زبان“ کا تعین کلید دبانے کے لمحے ہوتا ہے۔ ایک ہی کلیدی مجموعہ CyrFlip کے دو کاموں کو نہیں دیا جا سکتا۔",
                 zh: "「界面语言」和「当前键盘布局语言」在按下组合键的瞬间确定。同一个组合键不能分配给 CyrFlip 的两个操作。");
 
-            Add("Результат",
-                en: "Result",
+            Add("Result",
+                ru: "Результат",
                 uk: "Результат",
                 de: "Ergebnis",
                 it: "Risultato",
@@ -317,8 +317,8 @@ namespace CyrFlip
                 ur: "نتیجہ",
                 zh: "结果");
 
-            Add("Класть перевод в буфер обмена",
-                en: "Put the translation on the clipboard",
+            Add("Put the translation on the clipboard",
+                ru: "Класть перевод в буфер обмена",
                 uk: "Класти переклад у буфер обміну",
                 de: "Übersetzung in die Zwischenablage legen",
                 it: "Copia la traduzione negli appunti",
@@ -331,8 +331,8 @@ namespace CyrFlip
                 ur: "ترجمہ کلپ بورڈ میں رکھیں",
                 zh: "将翻译放入剪贴板");
 
-            Add("Перевод попадает в буфер обмена обычной записью — и, если история включена, сохраняется в ней, как любое другое копирование.",
-                en: "The translation lands on the clipboard as an ordinary entry and, when the history is on, is stored there like any other copy.",
+            Add("The translation lands on the clipboard as an ordinary entry and, when the history is on, is stored there like any other copy.",
+                ru: "Перевод попадает в буфер обмена обычной записью — и, если история включена, сохраняется в ней, как любое другое копирование.",
                 uk: "Переклад потрапляє в буфер обміну звичайним записом — і, якщо історію ввімкнено, зберігається в ній, як будь-яке інше копіювання.",
                 de: "Die Übersetzung landet als gewöhnlicher Eintrag in der Zwischenablage — und wird, wenn der Verlauf aktiv ist, dort wie jeder andere Kopiervorgang gespeichert.",
                 it: "La traduzione finisce negli appunti come una voce qualsiasi e, se la cronologia è attiva, vi resta salvata come qualunque altra copia.",
@@ -345,8 +345,8 @@ namespace CyrFlip
                 ur: "ترجمہ ایک عام اندراج کے طور پر کلپ بورڈ میں چلا جاتا ہے — اور اگر ہسٹری فعال ہو تو کسی بھی دوسری کاپی کی طرح اُس میں محفوظ ہو جاتا ہے۔",
                 zh: "翻译会作为普通内容写入剪贴板；如果启用了历史记录，它也会像其他复制操作一样被保存下来。");
 
-            Add("Сразу вставлять перевод вместо выделения",
-                en: "Paste the translation over the selection right away",
+            Add("Paste the translation over the selection right away",
+                ru: "Сразу вставлять перевод вместо выделения",
                 uk: "Одразу вставляти переклад замість виділення",
                 de: "Übersetzung sofort anstelle der Auswahl einfügen",
                 it: "Incolla subito la traduzione al posto della selezione",
@@ -359,8 +359,8 @@ namespace CyrFlip
                 ur: "ترجمہ فوراً منتخب متن کی جگہ چسپاں کریں",
                 zh: "立即用翻译替换选中的文本");
 
-            Add("Сразу заменяет выделение переводом. Если к моменту ответа фокус ушёл в другое окно, вставки не будет — окно предложит вставить вручную.",
-                en: "Replaces the selection with the translation. If the focus has moved to another window by the time the answer arrives nothing is pasted, and the window offers to paste it by hand.",
+            Add("Replaces the selection with the translation. If the focus has moved to another window by the time the answer arrives nothing is pasted, and the window offers to paste it by hand.",
+                ru: "Сразу заменяет выделение переводом. Если к моменту ответа фокус ушёл в другое окно, вставки не будет — окно предложит вставить вручную.",
                 uk: "Одразу замінює виділення перекладом. Якщо на момент відповіді фокус перейшов в інше вікно, вставки не буде — вікно запропонує вставити вручну.",
                 de: "Ersetzt die Auswahl unmittelbar durch die Übersetzung. Liegt der Fokus zum Zeitpunkt der Antwort in einem anderen Fenster, wird nichts eingefügt — das Fenster bietet dann das manuelle Einfügen an.",
                 it: "Sostituisce subito la selezione con la traduzione. Se al momento della risposta il focus è passato a un'altra finestra, non viene incollato nulla: la finestra proporrà di incollare manualmente.",
@@ -373,8 +373,8 @@ namespace CyrFlip
                 ur: "منتخب متن کو فوراً ترجمے سے بدل دیتا ہے۔ اگر جواب آنے تک فوکس کسی دوسری ونڈو میں چلا گیا ہو تو کچھ چسپاں نہیں ہوگا — ونڈو خود سے چسپاں کرنے کی پیشکش کرے گی۔",
                 zh: "直接用翻译替换选中的文本。如果收到结果时焦点已切换到其他窗口，则不会粘贴，窗口会提示您手动粘贴。");
 
-            Add("Показывать исходный текст рядом с переводом",
-                en: "Show the source text next to the translation",
+            Add("Show the source text next to the translation",
+                ru: "Показывать исходный текст рядом с переводом",
                 uk: "Показувати вихідний текст поряд із перекладом",
                 de: "Ausgangstext neben der Übersetzung anzeigen",
                 it: "Mostra il testo originale accanto alla traduzione",
@@ -387,8 +387,8 @@ namespace CyrFlip
                 ur: "اصل متن ترجمے کے ساتھ دکھائیں",
                 zh: "在翻译旁显示原文");
 
-            Add("Показывает исходный текст в верхней части окна результата.",
-                en: "Shows the source text at the top of the result window.",
+            Add("Shows the source text at the top of the result window.",
+                ru: "Показывает исходный текст в верхней части окна результата.",
                 uk: "Показує вихідний текст у верхній частині вікна результату.",
                 de: "Zeigt den Ausgangstext im oberen Teil des Ergebnisfensters.",
                 it: "Mostra il testo originale nella parte superiore della finestra del risultato.",
@@ -401,8 +401,8 @@ namespace CyrFlip
                 ur: "اصل متن نتیجے کی ونڈو کے اوپری حصے میں دکھاتا ہے۔",
                 zh: "在结果窗口顶部显示原文。");
 
-            Add("Закрывать окно через (с):",
-                en: "Close the window after (s):",
+            Add("Close the window after (s):",
+                ru: "Закрывать окно через (с):",
                 uk: "Закривати вікно через (с):",
                 de: "Fenster schließen nach (Sek.):",
                 it: "Chiudi la finestra dopo (s):",
@@ -415,8 +415,8 @@ namespace CyrFlip
                 ur: "ونڈو بند کرنے کا وقفہ (سیکنڈ):",
                 zh: "自动关闭窗口（秒）：");
 
-            Add("Отсчёт идёт с момента, когда перевод получен, и замирает, пока указатель мыши над окном. 0 — не закрывать по таймеру: окно всё равно закроется по Esc, по кнопке закрытия или когда вы перейдёте в другое окно.",
-                en: "The countdown starts when the translation arrives and pauses while the mouse pointer is over the window. 0 means no timer: the window still closes on Esc, on its close button, or when you move to another window.",
+            Add("The countdown starts when the translation arrives and pauses while the mouse pointer is over the window. 0 means no timer: the window still closes on Esc, on its close button, or when you move to another window.",
+                ru: "Отсчёт идёт с момента, когда перевод получен, и замирает, пока указатель мыши над окном. 0 — не закрывать по таймеру: окно всё равно закроется по Esc, по кнопке закрытия или когда вы перейдёте в другое окно.",
                 uk: "Відлік починається з моменту, коли переклад отримано, і зупиняється, доки вказівник миші над вікном. 0 — не закривати за таймером: вікно все одно закриється за Esc, кнопкою закриття або коли ви перейдете в інше вікно.",
                 de: "Die Zeit läuft ab dem Eintreffen der Übersetzung und pausiert, solange der Mauszeiger über dem Fenster steht. 0 bedeutet kein Timer: Das Fenster schließt trotzdem mit Esc, über seine Schaltfläche oder wenn Sie zu einem anderen Fenster wechseln.",
                 it: "Il conteggio parte da quando arriva la traduzione e si ferma finché il puntatore del mouse è sulla finestra. 0 significa nessun timer: la finestra si chiude comunque con Esc, con il pulsante di chiusura o quando passi a un'altra finestra.",
@@ -432,8 +432,8 @@ namespace CyrFlip
 
 
             // ---- The direction table ----
-            Add("На язык",
-                en: "Into language",
+            Add("Into language",
+                ru: "На язык",
                 uk: "На мову",
                 de: "Zielsprache",
                 it: "Lingua di destinazione",
@@ -446,8 +446,8 @@ namespace CyrFlip
                 ur: "کس زبان میں",
                 zh: "目标语言");
 
-            Add("Направлений пока нет — добавьте первое, чтобы назначить комбинацию.",
-                en: "No directions yet - add the first one to assign a chord.",
+            Add("No directions yet - add the first one to assign a chord.",
+                ru: "Направлений пока нет — добавьте первое, чтобы назначить комбинацию.",
                 uk: "Напрямків поки немає — додайте перший, щоб призначити комбінацію.",
                 de: "Noch keine Richtungen — fügen Sie die erste hinzu, um eine Kombination zuzuweisen.",
                 it: "Non c'è ancora nessuna direzione: aggiungi la prima per assegnare una combinazione.",
@@ -461,8 +461,8 @@ namespace CyrFlip
                 zh: "尚未添加任何方向，请先添加第一个以分配组合键。");
 
             // ---- The Ollama status line (one label for the whole tab) ----
-            Add("Ollama уже установлен — нажмите «Запустить Ollama».",
-                en: "Ollama is already installed - press \"Start Ollama\".",
+            Add("Ollama is already installed - press \"Start Ollama\".",
+                ru: "Ollama уже установлен — нажмите «Запустить Ollama».",
                 uk: "Ollama вже встановлено — натисніть «Запустити Ollama».",
                 de: "Ollama ist bereits installiert — klicken Sie auf «Ollama starten».",
                 it: "Ollama è già installato: fai clic su «Avvia Ollama».",
@@ -475,8 +475,8 @@ namespace CyrFlip
                 ur: "Ollama پہلے سے انسٹال ہے — ”Ollama چلائیں“ دبائیں۔",
                 zh: "Ollama 已安装，请点击「启动 Ollama」。");
 
-            Add("Открываю сайт Ollama — установите его оттуда.",
-                en: "Opening the Ollama website - install it from there.",
+            Add("Opening the Ollama website - install it from there.",
+                ru: "Открываю сайт Ollama — установите его оттуда.",
                 uk: "Відкриваю сайт Ollama — встановіть його звідти.",
                 de: "Die Ollama-Website wird geöffnet — installieren Sie Ollama von dort.",
                 it: "Apertura del sito di Ollama: installalo da lì.",
@@ -489,8 +489,8 @@ namespace CyrFlip
                 ur: "Ollama کی ویب سائٹ کھولی جا رہی ہے — اسے وہیں سے انسٹال کریں۔",
                 zh: "正在打开 Ollama 官网，请从那里安装。");
 
-            Add("Скачать и установить Ollama? Это несколько сотен мегабайт, загрузка может занять время.",
-                en: "Download and install Ollama? This is several hundred megabytes and may take a while.",
+            Add("Download and install Ollama? This is several hundred megabytes and may take a while.",
+                ru: "Скачать и установить Ollama? Это несколько сотен мегабайт, загрузка может занять время.",
                 uk: "Завантажити та встановити Ollama? Це кілька сотень мегабайтів, завантаження може тривати деякий час.",
                 de: "Ollama herunterladen und installieren? Das sind mehrere Hundert Megabyte, der Download kann eine Weile dauern.",
                 it: "Scaricare e installare Ollama? Sono diverse centinaia di megabyte, il download può richiedere tempo.",
@@ -503,8 +503,8 @@ namespace CyrFlip
                 ur: "Ollama ڈاؤن لوڈ کر کے انسٹال کریں؟ یہ کئی سو میگا بائٹ ہے اور ڈاؤن لوڈ میں وقت لگ سکتا ہے۔",
                 zh: "要下载并安装 Ollama 吗？文件有几百 MB，下载可能需要一些时间。");
 
-            Add("Скачиваю Ollama...",
-                en: "Downloading Ollama...",
+            Add("Downloading Ollama...",
+                ru: "Скачиваю Ollama...",
                 uk: "Завантажую Ollama...",
                 de: "Ollama wird heruntergeladen...",
                 it: "Download di Ollama in corso...",
@@ -517,8 +517,8 @@ namespace CyrFlip
                 ur: "Ollama ڈاؤن لوڈ ہو رہا ہے...",
                 zh: "正在下载 Ollama...");
 
-            Add("Загрузка остановлена.",
-                en: "Download stopped.",
+            Add("Download stopped.",
+                ru: "Загрузка остановлена.",
                 uk: "Завантаження зупинено.",
                 de: "Download angehalten.",
                 it: "Download interrotto.",
@@ -531,8 +531,8 @@ namespace CyrFlip
                 ur: "ڈاؤن لوڈ روک دیا گیا۔",
                 zh: "下载已停止。");
 
-            Add("Скачиваю Ollama:",
-                en: "Downloading Ollama:",
+            Add("Downloading Ollama:",
+                ru: "Скачиваю Ollama:",
                 uk: "Завантажую Ollama:",
                 de: "Ollama wird heruntergeladen:",
                 it: "Download di Ollama:",
@@ -545,8 +545,8 @@ namespace CyrFlip
                 ur: "Ollama ڈاؤن لوڈ ہو رہا ہے:",
                 zh: "正在下载 Ollama：");
 
-            Add("Запускаю установщик Ollama...",
-                en: "Launching the Ollama installer...",
+            Add("Launching the Ollama installer...",
+                ru: "Запускаю установщик Ollama...",
                 uk: "Запускаю інсталятор Ollama...",
                 de: "Das Ollama-Installationsprogramm wird gestartet...",
                 it: "Avvio del programma di installazione di Ollama...",
@@ -559,8 +559,8 @@ namespace CyrFlip
                 ur: "Ollama کا انسٹالر چلایا جا رہا ہے...",
                 zh: "正在启动 Ollama 安装程序...");
 
-            Add("Не удалось скачать. Открываю сайт Ollama...",
-                en: "The download failed. Opening the Ollama website...",
+            Add("The download failed. Opening the Ollama website...",
+                ru: "Не удалось скачать. Открываю сайт Ollama...",
                 uk: "Не вдалося завантажити. Відкриваю сайт Ollama...",
                 de: "Der Download ist fehlgeschlagen. Die Ollama-Website wird geöffnet...",
                 it: "Download non riuscito. Apertura del sito di Ollama...",
@@ -573,8 +573,8 @@ namespace CyrFlip
                 ur: "ڈاؤن لوڈ نہیں ہو سکا۔ Ollama کی ویب سائٹ کھولی جا رہی ہے...",
                 zh: "下载失败。正在打开 Ollama 官网...");
 
-            Add("Ollama не установлен — нажмите «Установить Ollama».",
-                en: "Ollama is not installed - press \"Install Ollama\".",
+            Add("Ollama is not installed - press \"Install Ollama\".",
+                ru: "Ollama не установлен — нажмите «Установить Ollama».",
                 uk: "Ollama не встановлено — натисніть «Встановити Ollama».",
                 de: "Ollama ist nicht installiert — klicken Sie auf «Ollama installieren».",
                 it: "Ollama non è installato: fai clic su «Installa Ollama».",
@@ -587,8 +587,8 @@ namespace CyrFlip
                 ur: "Ollama انسٹال نہیں ہے — ”Ollama انسٹال کریں“ دبائیں۔",
                 zh: "尚未安装 Ollama，请点击「安装 Ollama」。");
 
-            Add("Запускаю Ollama...",
-                en: "Starting Ollama...",
+            Add("Starting Ollama...",
+                ru: "Запускаю Ollama...",
                 uk: "Запускаю Ollama...",
                 de: "Ollama wird gestartet...",
                 it: "Avvio di Ollama in corso...",
@@ -601,8 +601,8 @@ namespace CyrFlip
                 ur: "Ollama چلایا جا رہا ہے...",
                 zh: "正在启动 Ollama...");
 
-            Add("Не удалось запустить Ollama.",
-                en: "Could not start Ollama.",
+            Add("Could not start Ollama.",
+                ru: "Не удалось запустить Ollama.",
                 uk: "Не вдалося запустити Ollama.",
                 de: "Ollama konnte nicht gestartet werden.",
                 it: "Non è stato possibile avviare Ollama.",
@@ -615,8 +615,8 @@ namespace CyrFlip
                 ur: "Ollama چلایا نہیں جا سکا۔",
                 zh: "无法启动 Ollama。");
 
-            Add("Ollama не запущен — нажмите «Запустить Ollama».",
-                en: "Ollama is not running - press \"Start Ollama\".",
+            Add("Ollama is not running - press \"Start Ollama\".",
+                ru: "Ollama не запущен — нажмите «Запустить Ollama».",
                 uk: "Ollama не запущено — натисніть «Запустити Ollama».",
                 de: "Ollama läuft nicht — klicken Sie auf «Ollama starten».",
                 it: "Ollama non è in esecuzione: fai clic su «Avvia Ollama».",
@@ -629,8 +629,8 @@ namespace CyrFlip
                 ur: "Ollama چل نہیں رہا — ”Ollama چلائیں“ دبائیں۔",
                 zh: "Ollama 未在运行，请点击「启动 Ollama」。");
 
-            Add("Ollama не найден — нажмите «Установить Ollama».",
-                en: "Ollama was not found - press \"Install Ollama\".",
+            Add("Ollama was not found - press \"Install Ollama\".",
+                ru: "Ollama не найден — нажмите «Установить Ollama».",
                 uk: "Ollama не знайдено — натисніть «Встановити Ollama».",
                 de: "Ollama wurde nicht gefunden — klicken Sie auf «Ollama installieren».",
                 it: "Ollama non è stato trovato: fai clic su «Installa Ollama».",
@@ -643,8 +643,8 @@ namespace CyrFlip
                 ur: "Ollama نہیں ملا — ”Ollama انسٹال کریں“ دبائیں۔",
                 zh: "未找到 Ollama，请点击「安装 Ollama」。");
 
-            Add("Укажите имя модели, например aya-expanse:8b.",
-                en: "Enter a model name, for example aya-expanse:8b.",
+            Add("Enter a model name, for example aya-expanse:8b.",
+                ru: "Укажите имя модели, например aya-expanse:8b.",
                 uk: "Укажіть назву моделі, наприклад aya-expanse:8b.",
                 de: "Geben Sie einen Modellnamen an, zum Beispiel aya-expanse:8b.",
                 it: "Indica il nome di un modello, ad esempio aya-expanse:8b.",
@@ -657,8 +657,8 @@ namespace CyrFlip
                 ur: "ماڈل کا نام درج کریں، مثلاً aya-expanse:8b۔",
                 zh: "请填写模型名称，例如 aya-expanse:8b。");
 
-            Add("Загружаю модель:",
-                en: "Downloading the model:",
+            Add("Downloading the model:",
+                ru: "Загружаю модель:",
                 uk: "Завантажую модель:",
                 de: "Modell wird heruntergeladen:",
                 it: "Download del modello:",
@@ -671,8 +671,8 @@ namespace CyrFlip
                 ur: "ماڈل ڈاؤن لوڈ ہو رہا ہے:",
                 zh: "正在下载模型：");
 
-            Add("Модель установлена:",
-                en: "Model installed:",
+            Add("Model installed:",
+                ru: "Модель установлена:",
                 uk: "Модель встановлено:",
                 de: "Modell installiert:",
                 it: "Modello installato:",
@@ -685,8 +685,8 @@ namespace CyrFlip
                 ur: "ماڈل انسٹال ہو گیا:",
                 zh: "模型已安装：");
 
-            Add("Не удалось загрузить модель. Ollama запущен?",
-                en: "Could not download the model. Is Ollama running?",
+            Add("Could not download the model. Is Ollama running?",
+                ru: "Не удалось загрузить модель. Ollama запущен?",
                 uk: "Не вдалося завантажити модель. Ollama запущено?",
                 de: "Das Modell konnte nicht heruntergeladen werden. Läuft Ollama?",
                 it: "Non è stato possibile scaricare il modello. Ollama è in esecuzione?",
@@ -699,8 +699,8 @@ namespace CyrFlip
                 ur: "ماڈل ڈاؤن لوڈ نہیں ہو سکا۔ کیا Ollama چل رہا ہے؟",
                 zh: "无法下载模型。Ollama 正在运行吗？");
 
-            Add("Ollama работает. Установленные модели:",
-                en: "Ollama is running. Installed models:",
+            Add("Ollama is running. Installed models:",
+                ru: "Ollama работает. Установленные модели:",
                 uk: "Ollama працює. Встановлені моделі:",
                 de: "Ollama läuft. Installierte Modelle:",
                 it: "Ollama è in esecuzione. Modelli installati:",
@@ -713,8 +713,8 @@ namespace CyrFlip
                 ur: "Ollama چل رہا ہے۔ انسٹال شدہ ماڈل:",
                 zh: "Ollama 正在运行。已安装的模型：");
 
-            Add("Ollama работает, но ни одна модель не установлена — нажмите «Загрузить модель».",
-                en: "Ollama is running but no model is installed - press \"Download the model\".",
+            Add("Ollama is running but no model is installed - press \"Download the model\".",
+                ru: "Ollama работает, но ни одна модель не установлена — нажмите «Загрузить модель».",
                 uk: "Ollama працює, але жодної моделі не встановлено — натисніть «Завантажити модель».",
                 de: "Ollama läuft, aber es ist kein Modell installiert — klicken Sie auf «Modell herunterladen».",
                 it: "Ollama è in esecuzione, ma non è installato alcun modello: fai clic su «Scarica il modello».",
@@ -728,8 +728,8 @@ namespace CyrFlip
                 zh: "Ollama 正在运行，但尚未安装任何模型，请点击「下载模型」。");
 
             // ---- The row editor ----
-            Add("Новое направление перевода",
-                en: "New translation direction",
+            Add("New translation direction",
+                ru: "Новое направление перевода",
                 uk: "Новий напрямок перекладу",
                 de: "Neue Übersetzungsrichtung",
                 it: "Nuova direzione di traduzione",
@@ -742,8 +742,8 @@ namespace CyrFlip
                 ur: "ترجمے کی نئی سمت",
                 zh: "新建翻译方向");
 
-            Add("Изменить направление перевода",
-                en: "Edit the translation direction",
+            Add("Edit the translation direction",
+                ru: "Изменить направление перевода",
                 uk: "Змінити напрямок перекладу",
                 de: "Übersetzungsrichtung bearbeiten",
                 it: "Modifica la direzione di traduzione",
@@ -756,8 +756,8 @@ namespace CyrFlip
                 ur: "ترجمے کی سمت میں ترمیم",
                 zh: "编辑翻译方向");
 
-            Add("Переводить на:",
-                en: "Translate into:",
+            Add("Translate into:",
+                ru: "Переводить на:",
                 uk: "Перекладати на:",
                 de: "Übersetzen in:",
                 it: "Traduci in:",
@@ -770,8 +770,8 @@ namespace CyrFlip
                 ur: "اس زبان میں ترجمہ کریں:",
                 zh: "翻译成：");
 
-            Add("Комбинация для перевода",
-                en: "Translation chord",
+            Add("Translation chord",
+                ru: "Комбинация для перевода",
                 uk: "Комбінація для перекладу",
                 de: "Kombination für die Übersetzung",
                 it: "Combinazione per la traduzione",
@@ -785,8 +785,8 @@ namespace CyrFlip
                 zh: "翻译组合键");
 
             // ---- The result window near the cursor ----
-            Add("Копировать",
-                en: "Copy",
+            Add("Copy",
+                ru: "Копировать",
                 uk: "Копіювати",
                 de: "Kopieren",
                 it: "Copia",
@@ -799,8 +799,8 @@ namespace CyrFlip
                 ur: "کاپی کریں",
                 zh: "复制");
 
-            Add("Вставить",
-                en: "Paste",
+            Add("Paste",
+                ru: "Вставить",
                 uk: "Вставити",
                 de: "Einfügen",
                 it: "Incolla",
@@ -813,8 +813,8 @@ namespace CyrFlip
                 ur: "چسپاں کریں",
                 zh: "粘贴");
 
-            Add("Ещё раз",
-                en: "Again",
+            Add("Again",
+                ru: "Ещё раз",
                 uk: "Ще раз",
                 de: "Wiederholen",
                 it: "Ripeti",
@@ -827,8 +827,8 @@ namespace CyrFlip
                 ur: "دوبارہ",
                 zh: "重新翻译");
 
-            Add("Настройки",
-                en: "Settings",
+            Add("Settings",
+                ru: "Настройки",
                 uk: "Налаштування",
                 de: "Einstellungen",
                 it: "Impostazioni",
@@ -841,8 +841,8 @@ namespace CyrFlip
                 ur: "ترتیبات",
                 zh: "设置");
 
-            Add("Язык интерфейса",
-                en: "Interface language",
+            Add("Interface language",
+                ru: "Язык интерфейса",
                 uk: "Мова інтерфейсу",
                 de: "Oberflächensprache",
                 it: "Lingua dell'interfaccia",
@@ -855,8 +855,8 @@ namespace CyrFlip
                 ur: "انٹرفیس کی زبان",
                 zh: "界面语言");
 
-            Add("Язык активной раскладки",
-                en: "Active layout language",
+            Add("Active layout language",
+                ru: "Язык активной раскладки",
                 uk: "Мова активної розкладки",
                 de: "Sprache des aktiven Layouts",
                 it: "Lingua del layout attivo",
@@ -870,8 +870,8 @@ namespace CyrFlip
                 zh: "当前键盘布局语言");
 
             // ---- Tray entry, progress and the messages the result window shows ----
-            Add("Сколько Ollama держит модель загруженной после перевода. -1 держит её всегда, и это значение по умолчанию: первая загрузка на машине без подходящей видеокарты занимает минуты, и платить за неё заново каждые несколько минут хуже, чем занятые гигабайты. 0 выгружает сразу.",
-                en: "How long Ollama keeps the model loaded after a translation. -1 keeps it forever, and that is the default: the first load on a machine without a suitable graphics card takes minutes, and paying it again every few minutes is worse than the gigabytes it holds. 0 unloads it at once.",
+            Add("How long Ollama keeps the model loaded after a translation. -1 keeps it forever, and that is the default: the first load on a machine without a suitable graphics card takes minutes, and paying it again every few minutes is worse than the gigabytes it holds. 0 unloads it at once.",
+                ru: "Сколько Ollama держит модель загруженной после перевода. -1 держит её всегда, и это значение по умолчанию: первая загрузка на машине без подходящей видеокарты занимает минуты, и платить за неё заново каждые несколько минут хуже, чем занятые гигабайты. 0 выгружает сразу.",
                 uk: "Скільки Ollama тримає модель завантаженою після перекладу. -1 тримає її завжди, і це значення за замовчуванням: перше завантаження на машині без придатної відеокартки триває хвилини, і платити за нього знову кожні кілька хвилин гірше, ніж зайняті гігабайти. 0 вивантажує одразу.",
                 de: "Wie lange Ollama das Modell nach einer Übersetzung geladen hält. -1 behält es dauerhaft und ist die Voreinstellung: Das erste Laden dauert auf einem Rechner ohne geeignete Grafikkarte Minuten, und das alle paar Minuten erneut zu zahlen ist schlimmer als die belegten Gigabyte. 0 entlädt sofort.",
                 it: "Per quanto tempo Ollama tiene il modello caricato dopo una traduzione. -1 lo tiene per sempre ed è il valore predefinito: il primo caricamento su una macchina senza una scheda grafica adatta richiede minuti, e ripagarlo ogni pochi minuti è peggio dei gigabyte occupati. 0 lo scarica subito.",
@@ -884,8 +884,8 @@ namespace CyrFlip
                 ur: "ترجمے کے بعد Ollama ماڈل کو کتنی دیر میموری میں رکھتا ہے۔ -1 اسے ہمیشہ رکھتا ہے اور یہی طے شدہ قدر ہے: مناسب گرافکس کارڈ کے بغیر پہلی لوڈنگ منٹ لیتی ہے، اور ہر چند منٹ بعد اسے دوبارہ ادا کرنا مختص گیگابائٹس سے بدتر ہے۔ 0 فوراً اتار دیتا ہے۔",
                 zh: "翻译结束后 Ollama 让模型在内存中停留多久。-1 表示一直保留，这也是默认值：在没有合适显卡的机器上首次加载需要数分钟，每隔几分钟重付一次这个代价，比占用的那几个 GB 更糟。0 表示立即卸载。");
 
-            Add("Ждать загрузки модели не дольше (с):",
-                en: "Wait for the model to load no longer than (s):",
+            Add("Wait for the model to load no longer than (s):",
+                ru: "Ждать загрузки модели не дольше (с):",
                 uk: "Чекати завантаження моделі не довше (с):",
                 de: "Auf das Laden des Modells höchstens warten (s):",
                 it: "Attendere il caricamento del modello al massimo (s):",
@@ -898,8 +898,8 @@ namespace CyrFlip
                 ur: "ماڈل لوڈ ہونے کا زیادہ سے زیادہ انتظار (سیکنڈ):",
                 zh: "等待模型加载最长时间（秒）：");
 
-            Add("Это время на первый ответ модели, то есть почти целиком на её загрузку в память. Дальше перевод идёт, пока модель пишет: он прерывается, только если она замолчит на 30 секунд, и тогда уже написанное остаётся на экране.",
-                en: "This is the allowance for the model's first token, i.e. almost entirely for loading it into memory. After that the translation runs for as long as the model keeps writing: it is only cut off if the model goes silent for 30 seconds, and then whatever it has written stays on screen.",
+            Add("This is the allowance for the model's first token, i.e. almost entirely for loading it into memory. After that the translation runs for as long as the model keeps writing: it is only cut off if the model goes silent for 30 seconds, and then whatever it has written stays on screen.",
+                ru: "Это время на первый ответ модели, то есть почти целиком на её загрузку в память. Дальше перевод идёт, пока модель пишет: он прерывается, только если она замолчит на 30 секунд, и тогда уже написанное остаётся на экране.",
                 uk: "Це час на першу відповідь моделі, тобто майже цілком на її завантаження в пам'ять. Далі переклад триває, поки модель пише: він переривається, лише якщо вона замовкне на 30 секунд, і тоді вже написане лишається на екрані.",
                 de: "Das ist die Zeit für die erste Antwort des Modells, also fast vollständig für das Laden in den Speicher. Danach läuft die Übersetzung, solange das Modell schreibt: Sie wird nur abgebrochen, wenn es 30 Sekunden lang schweigt, und dann bleibt das bereits Geschriebene auf dem Bildschirm.",
                 it: "È il tempo concesso alla prima risposta del modello, cioè quasi tutto al suo caricamento in memoria. Poi la traduzione prosegue finché il modello scrive: si interrompe solo se tace per 30 secondi, e in quel caso ciò che ha già scritto resta sullo schermo.",
@@ -912,8 +912,8 @@ namespace CyrFlip
                 ur: "یہ ماڈل کے پہلے جواب کا وقت ہے، یعنی تقریباً پورا وقت اسے میموری میں لوڈ کرنے کا۔ اس کے بعد ترجمہ تب تک چلتا ہے جب تک ماڈل لکھتا رہے: یہ صرف تب رکتا ہے جب ماڈل 30 سیکنڈ خاموش رہے، اور تب جو لکھا جا چکا ہے وہ اسکرین پر رہتا ہے۔",
                 zh: "这是留给模型首个回复的时间，也就是几乎全部用于把它加载进内存。此后只要模型还在输出，翻译就会继续：只有模型沉默 30 秒才会中断，而已经写出的内容会留在屏幕上。");
 
-            Add("модель перестала отвечать - перевод может быть неполным",
-                en: "the model stopped answering - the translation may be incomplete",
+            Add("the model stopped answering - the translation may be incomplete",
+                ru: "модель перестала отвечать - перевод может быть неполным",
                 uk: "модель перестала відповідати - переклад може бути неповним",
                 de: "das Modell antwortet nicht mehr - die Übersetzung ist womöglich unvollständig",
                 it: "il modello ha smesso di rispondere - la traduzione potrebbe essere incompleta",
@@ -926,8 +926,8 @@ namespace CyrFlip
                 ur: "ماڈل نے جواب دینا بند کر دیا - ترجمہ نامکمل ہو سکتا ہے",
                 zh: "模型已停止回复 - 译文可能不完整");
 
-            Add("Сервер {0} не отвечает. Проверьте адрес в настройках и что Ollama там запущен.",
-                en: "The server {0} does not answer. Check the address in the settings and that Ollama is running there.",
+            Add("The server {0} does not answer. Check the address in the settings and that Ollama is running there.",
+                ru: "Сервер {0} не отвечает. Проверьте адрес в настройках и что Ollama там запущен.",
                 uk: "Сервер {0} не відповідає. Перевірте адресу в налаштуваннях і що Ollama там запущено.",
                 de: "Der Server {0} antwortet nicht. Prüfen Sie die Adresse in den Einstellungen und ob Ollama dort läuft.",
                 it: "Il server {0} non risponde. Controlli l'indirizzo nelle impostazioni e che Ollama sia avviato lì.",
@@ -940,8 +940,8 @@ namespace CyrFlip
                 ur: "سرور {0} جواب نہیں دے رہا۔ ترتیبات میں پتہ اور یہ کہ وہاں Ollama چل رہا ہے، جانچیں۔",
                 zh: "服务器 {0} 没有响应。请检查设置中的地址，并确认 Ollama 已在该处运行。");
 
-            Add("Скачанный установщик не подписан Ollama - он удалён. Открываю сайт Ollama...",
-                en: "The downloaded installer is not signed by Ollama - it has been deleted. Opening the Ollama website...",
+            Add("The downloaded installer is not signed by Ollama - it has been deleted. Opening the Ollama website...",
+                ru: "Скачанный установщик не подписан Ollama - он удалён. Открываю сайт Ollama...",
                 uk: "Завантажений інсталятор не підписаний Ollama - його видалено. Відкриваю сайт Ollama...",
                 de: "Das heruntergeladene Installationsprogramm ist nicht von Ollama signiert - es wurde gelöscht. Die Ollama-Website wird geöffnet...",
                 it: "Il programma di installazione scaricato non è firmato da Ollama - è stato eliminato. Apro il sito di Ollama...",
@@ -954,8 +954,8 @@ namespace CyrFlip
                 ur: "ڈاؤن لوڈ کیا گیا انسٹالر Ollama کا دستخط شدہ نہیں - اسے حذف کر دیا گیا۔ Ollama کی سائٹ کھول رہے ہیں...",
                 zh: "下载的安装程序没有 Ollama 的签名 - 已将其删除。正在打开 Ollama 网站...");
 
-            Add("Другая операция с буфером ещё не закончилась. Повторите через секунду.",
-                en: "Another clipboard operation has not finished yet. Try again in a second.",
+            Add("Another clipboard operation has not finished yet. Try again in a second.",
+                ru: "Другая операция с буфером ещё не закончилась. Повторите через секунду.",
                 uk: "Інша операція з буфером ще не завершилася. Повторіть за секунду.",
                 de: "Ein anderer Zwischenablage-Vorgang läuft noch. Versuchen Sie es in einer Sekunde erneut.",
                 it: "Un'altra operazione sugli appunti non è ancora finita. Riprova tra un secondo.",
@@ -968,8 +968,8 @@ namespace CyrFlip
                 ur: "کلپ بورڈ کا دوسرا عمل ابھی مکمل نہیں ہوا۔ ایک سیکنڈ بعد دوبارہ کوشش کریں۔",
                 zh: "另一个剪贴板操作尚未完成。请一秒后重试。");
 
-            Add("Окно сменилось, пока я забирал выделение. Перевод отменён.",
-                en: "The window changed while I was taking the selection. The translation was cancelled.",
+            Add("The window changed while I was taking the selection. The translation was cancelled.",
+                ru: "Окно сменилось, пока я забирал выделение. Перевод отменён.",
                 uk: "Вікно змінилося, поки я забирав виділення. Переклад скасовано.",
                 de: "Das Fenster wechselte, während ich die Auswahl geholt habe. Die Übersetzung wurde abgebrochen.",
                 it: "La finestra è cambiata mentre prendevo la selezione. La traduzione è stata annullata.",
@@ -982,8 +982,8 @@ namespace CyrFlip
                 ur: "انتخاب لیتے وقت ونڈو بدل گئی۔ ترجمہ منسوخ کر دیا گیا۔",
                 zh: "取选中内容时窗口切换了，翻译已取消。");
 
-            Add("Перевести буфер обмена",
-                en: "Translate the clipboard",
+            Add("Translate the clipboard",
+                ru: "Перевести буфер обмена",
                 uk: "Перекласти буфер обміну",
                 de: "Zwischenablage übersetzen",
                 it: "Traduci gli appunti",
@@ -996,8 +996,8 @@ namespace CyrFlip
                 ur: "کلپ بورڈ کا ترجمہ کریں",
                 zh: "翻译剪贴板内容");
 
-            Add("В буфере обмена нет текста для перевода.",
-                en: "There is no text on the clipboard to translate.",
+            Add("There is no text on the clipboard to translate.",
+                ru: "В буфере обмена нет текста для перевода.",
                 uk: "У буфері обміну немає тексту для перекладу.",
                 de: "In der Zwischenablage befindet sich kein Text zum Übersetzen.",
                 it: "Negli appunti non c'è testo da tradurre.",
@@ -1010,8 +1010,8 @@ namespace CyrFlip
                 ur: "کلپ بورڈ میں ترجمے کے لیے کوئی متن نہیں ہے۔",
                 zh: "剪贴板中没有可翻译的文本。");
 
-            Add("Перевожу… (Esc — отмена)",
-                en: "Translating... (Esc to cancel)",
+            Add("Translating... (Esc to cancel)",
+                ru: "Перевожу… (Esc — отмена)",
                 uk: "Перекладаю… (Esc — скасувати)",
                 de: "Übersetzung läuft… (Esc zum Abbrechen)",
                 it: "Traduzione in corso… (Esc per annullare)",
@@ -1024,8 +1024,8 @@ namespace CyrFlip
                 ur: "ترجمہ ہو رہا ہے... (Esc سے منسوخ کریں)",
                 zh: "正在翻译…（按 Esc 取消）");
 
-            Add("переведены первые {0} из {1} символов",
-                en: "the first {0} of {1} characters were translated",
+            Add("the first {0} of {1} characters were translated",
+                ru: "переведены первые {0} из {1} символов",
                 uk: "перекладено перші {0} з {1} символів",
                 de: "die ersten {0} von {1} Zeichen wurden übersetzt",
                 it: "tradotti i primi {0} caratteri su {1}",
@@ -1038,8 +1038,8 @@ namespace CyrFlip
                 ur: "{1} میں سے پہلے {0} حروف کا ترجمہ ہوا",
                 zh: "已翻译前 {0} 个字符（共 {1} 个）");
 
-            Add("Фокус сменился — вставьте перевод вручную.",
-                en: "The focus has moved - paste the translation by hand.",
+            Add("The focus has moved - paste the translation by hand.",
+                ru: "Фокус сменился — вставьте перевод вручную.",
                 uk: "Фокус змінився — вставте переклад вручну.",
                 de: "Der Fokus hat gewechselt — fügen Sie die Übersetzung manuell ein.",
                 it: "Il focus è cambiato: incolla la traduzione manualmente.",
@@ -1052,8 +1052,8 @@ namespace CyrFlip
                 ur: "فوکس بدل گیا — ترجمہ خود سے چسپاں کریں۔",
                 zh: "焦点已切换，请手动粘贴翻译。");
 
-            Add("Нет текста для перевода.",
-                en: "There is no text to translate.",
+            Add("There is no text to translate.",
+                ru: "Нет текста для перевода.",
                 uk: "Немає тексту для перекладу.",
                 de: "Kein Text zum Übersetzen.",
                 it: "Non c'è testo da tradurre.",
@@ -1066,8 +1066,8 @@ namespace CyrFlip
                 ur: "ترجمے کے لیے کوئی متن نہیں ہے۔",
                 zh: "没有可翻译的文本。");
 
-            Add("Не найден Ollama — локальный переводчик. Его нужно установить один раз.",
-                en: "Ollama, the local translator, was not found. It has to be installed once.",
+            Add("Ollama, the local translator, was not found. It has to be installed once.",
+                ru: "Не найден Ollama — локальный переводчик. Его нужно установить один раз.",
                 uk: "Не знайдено Ollama — локальний перекладач. Його потрібно встановити один раз.",
                 de: "Ollama, der lokale Übersetzer, wurde nicht gefunden. Es muss einmalig installiert werden.",
                 it: "Ollama, il traduttore locale, non è stato trovato. Va installato una volta sola.",
@@ -1080,8 +1080,8 @@ namespace CyrFlip
                 ur: "مقامی مترجم Ollama نہیں ملا۔ اسے ایک بار انسٹال کرنا ہوگا۔",
                 zh: "未找到本地翻译工具 Ollama。它需要先安装一次。");
 
-            Add("Ollama не запущен.",
-                en: "Ollama is not running.",
+            Add("Ollama is not running.",
+                ru: "Ollama не запущен.",
                 uk: "Ollama не запущено.",
                 de: "Ollama läuft nicht.",
                 it: "Ollama non è in esecuzione.",
@@ -1094,8 +1094,8 @@ namespace CyrFlip
                 ur: "Ollama چل نہیں رہا۔",
                 zh: "Ollama 未在运行。");
 
-            Add("Не установлена ни одна модель. Рекомендуем aya-expanse:8b (~4,7 ГБ) — загрузите её в настройках.",
-                en: "No model is installed. We recommend aya-expanse:8b (~4.7 GB) - download it in the settings.",
+            Add("No model is installed. We recommend aya-expanse:8b (~4.7 GB) - download it in the settings.",
+                ru: "Не установлена ни одна модель. Рекомендуем aya-expanse:8b (~4,7 ГБ) — загрузите её в настройках.",
                 uk: "Не встановлено жодної моделі. Рекомендуємо aya-expanse:8b (~4,7 ГБ) — завантажте її в налаштуваннях.",
                 de: "Es ist kein Modell installiert. Wir empfehlen aya-expanse:8b (~4,7 GB) - laden Sie es in den Einstellungen herunter.",
                 it: "Non è installato alcun modello. Consigliamo aya-expanse:8b (~4,7 GB): scaricalo nelle impostazioni.",
@@ -1108,8 +1108,8 @@ namespace CyrFlip
                 ur: "کوئی ماڈل انسٹال نہیں ہے۔ ہم aya-expanse:8b (~4.7 GB) تجویز کرتے ہیں — اسے ترتیبات میں ڈاؤن لوڈ کریں۔",
                 zh: "尚未安装任何模型。建议使用 aya-expanse:8b（约 4.7 GB），请在设置中下载。");
 
-            Add("Ollama ответил ошибкой:",
-                en: "Ollama answered with an error:",
+            Add("Ollama answered with an error:",
+                ru: "Ollama ответил ошибкой:",
                 uk: "Ollama відповів помилкою:",
                 de: "Ollama hat mit einem Fehler geantwortet:",
                 it: "Ollama ha risposto con un errore:",
@@ -1122,8 +1122,8 @@ namespace CyrFlip
                 ur: "Ollama نے خرابی کے ساتھ جواب دیا:",
                 zh: "Ollama 返回了错误：");
 
-            Add("Ollama не принял запрос. Проверьте адрес сервера и модель в настройках.",
-                en: "Ollama refused the request. Check the server address and the model in the settings.",
+            Add("Ollama refused the request. Check the server address and the model in the settings.",
+                ru: "Ollama не принял запрос. Проверьте адрес сервера и модель в настройках.",
                 uk: "Ollama не прийняв запит. Перевірте адресу сервера й модель у налаштуваннях.",
                 de: "Ollama hat die Anfrage abgelehnt. Prüfen Sie Serveradresse und Modell in den Einstellungen.",
                 it: "Ollama ha rifiutato la richiesta. Controlla l'indirizzo del server e il modello nelle impostazioni.",
@@ -1136,8 +1136,8 @@ namespace CyrFlip
                 ur: "Ollama نے درخواست قبول نہیں کی۔ ترتیبات میں سرور کا پتہ اور ماڈل جانچیں۔",
                 zh: "Ollama 拒绝了该请求。请在设置中检查服务器地址和模型。");
 
-            Add("Модель не ответила вовремя. Возможно, она слишком велика для этого компьютера.",
-                en: "The model did not answer in time. It may be too large for this computer.",
+            Add("The model did not answer in time. It may be too large for this computer.",
+                ru: "Модель не ответила вовремя. Возможно, она слишком велика для этого компьютера.",
                 uk: "Модель не відповіла вчасно. Можливо, вона завелика для цього комп'ютера.",
                 de: "Das Modell hat nicht rechtzeitig geantwortet. Möglicherweise ist es zu groß für diesen Computer.",
                 it: "Il modello non ha risposto in tempo. Forse è troppo grande per questo computer.",
@@ -1150,8 +1150,8 @@ namespace CyrFlip
                 ur: "ماڈل نے وقت پر جواب نہیں دیا۔ ممکن ہے یہ اس کمپیوٹر کے لیے بہت بڑا ہو۔",
                 zh: "模型未能及时响应。它可能对这台电脑来说太大了。");
 
-            Add("Модель не справилась с этим текстом.",
-                en: "The model could not handle this text.",
+            Add("The model could not handle this text.",
+                ru: "Модель не справилась с этим текстом.",
                 uk: "Модель не впоралася з цим текстом.",
                 de: "Das Modell kam mit diesem Text nicht zurecht.",
                 it: "Il modello non è riuscito a gestire questo testo.",
@@ -1164,8 +1164,8 @@ namespace CyrFlip
                 ur: "ماڈل اس متن کا ترجمہ نہیں کر سکا۔",
                 zh: "模型无法处理这段文本。");
 
-            Add("переводом текста",
-                en: "text translation",
+            Add("text translation",
+                ru: "переводом текста",
                 uk: "перекладом тексту",
                 de: "die Textübersetzung",
                 it: "una traduzione del testo",
@@ -1180,8 +1180,8 @@ namespace CyrFlip
 
             // CyrFlip offers every language and promises none: coverage belongs to the model, and the
             // model's own page is the only honest answer to "does it know mine?" (spec §3.3.3).
-            Add("Какие языки понимает модель - в её описании",
-                en: "Which languages the model knows is in its own description",
+            Add("Which languages the model knows is in its own description",
+                ru: "Какие языки понимает модель - в её описании",
                 uk: "Які мови розуміє модель - у її описі",
                 de: "Welche Sprachen das Modell kann, steht in seiner Beschreibung",
                 it: "Quali lingue conosce il modello è scritto nella sua descrizione",
@@ -1194,8 +1194,8 @@ namespace CyrFlip
                 ur: "ماڈل کون سی زبانیں سمجھتا ہے، یہ اس کی تفصیل میں لکھا ہے",
                 zh: "模型支持哪些语言，写在它自己的说明里");
 
-            Add("Удалить строку перевода «{0}»? Отменить удаление нельзя.",
-                en: "Delete the translation row \"{0}\"? This cannot be undone.",
+            Add("Delete the translation row \"{0}\"? This cannot be undone.",
+                ru: "Удалить строку перевода «{0}»? Отменить удаление нельзя.",
                 uk: "Видалити рядок перекладу «{0}»? Скасувати видалення не можна.",
                 de: "Übersetzungszeile \"{0}\" löschen? Das lässt sich nicht rückgängig machen.",
                 it: "Eliminare la riga di traduzione \"{0}\"? L'operazione non si può annullare.",

@@ -9,8 +9,8 @@ namespace CyrFlip
         private static void AddGraphicsStrings()
         {
             // S0062: the page is named for its one tool, not for a category (it was "Графика").
-            Add("Снимки экрана",
-                en: "Screenshots",
+            Add("Screenshots",
+                ru: "Снимки экрана",
                 uk: "Знімки екрана",
                 de: "Screenshots",
                 it: "Schermate",
@@ -23,8 +23,8 @@ namespace CyrFlip
                 ur: "اسکرین شاٹس",
                 zh: "屏幕截图");
 
-            Add("Снимок выделенной области экрана. Всё остаётся на этом компьютере.",
-                en: "A snapshot of a selected screen region. Everything stays on this computer.",
+            Add("A snapshot of a selected screen region. Everything stays on this computer.",
+                ru: "Снимок выделенной области экрана. Всё остаётся на этом компьютере.",
                 uk: "Знімок виділеної області екрана. Усе залишається на цьому комп'ютері.",
                 de: "Ein Screenshot eines ausgewählten Bildschirmbereichs. Alles bleibt auf diesem Computer.",
                 it: "Un'acquisizione di un'area selezionata dello schermo. Tutto resta su questo computer.",
@@ -37,8 +37,8 @@ namespace CyrFlip
                 ur: "اسکرین کے منتخب حصے کا اسنیپ شاٹ۔ سب کچھ اسی کمپیوٹر پر رہتا ہے۔",
                 zh: "对所选屏幕区域的截图。所有内容都留在这台电脑上。");
 
-            Add("Снимок области экрана",
-                en: "Screen region capture",
+            Add("Screen region capture",
+                ru: "Снимок области экрана",
                 uk: "Знімок області екрана",
                 de: "Bildschirmausschnitt aufnehmen",
                 it: "Cattura di un'area dello schermo",
@@ -51,8 +51,8 @@ namespace CyrFlip
                 ur: "اسکرین کے حصے کا اسکرین شاٹ",
                 zh: "屏幕区域截图");
 
-            Add("снимок области экрана",
-                en: "screen region capture",
+            Add("screen region capture",
+                ru: "снимок области экрана",
                 uk: "знімок області екрана",
                 de: "Bildschirmausschnitt",
                 it: "cattura di un'area dello schermo",
@@ -65,8 +65,8 @@ namespace CyrFlip
                 ur: "اسکرین کے حصے کا اسکرین شاٹ",
                 zh: "屏幕区域截图");
 
-            Add("Экран замирает, вы выделяете прямоугольник мышью, и картинка сразу в буфере обмена. Esc или правая кнопка - отмена. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
-                en: "The screen freezes, you drag a rectangle with the mouse, and the picture is on the clipboard at once. Esc or the right button cancels. One chord cannot belong to two CyrFlip actions.",
+            Add("The screen freezes, you drag a rectangle with the mouse, and the picture is on the clipboard at once. Esc or the right button cancels. One chord cannot belong to two CyrFlip actions.",
+                ru: "Экран замирает, вы выделяете прямоугольник мышью, и картинка сразу в буфере обмена. Esc или правая кнопка - отмена. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
                 uk: "Екран завмирає, ви виділяєте прямокутник мишею, і зображення одразу в буфері обміну. Esc або права кнопка - скасування. Одну комбінацію не можна віддати двом діям CyrFlip.",
                 de: "Der Bildschirm friert ein, Sie ziehen mit der Maus ein Rechteck auf, und das Bild liegt sofort in der Zwischenablage. Esc oder die rechte Maustaste bricht ab. Eine Kombination kann nicht zwei CyrFlip-Aktionen gehören.",
                 it: "Lo schermo si blocca, trascini un rettangolo con il mouse e l'immagine è subito negli appunti. Esc o il tasto destro annullano. Una combinazione non può appartenere a due azioni di CyrFlip.",
@@ -79,8 +79,8 @@ namespace CyrFlip
                 ur: "اسکرین رک جاتی ہے، آپ ماؤس سے ایک مستطیل کھینچتے ہیں، اور تصویر فوراً کلپ بورڈ پر ہوتی ہے۔ Esc یا دایاں بٹن منسوخ کرتا ہے۔ ایک مجموعہ CyrFlip کے دو کاموں کو نہیں دیا جا سکتا۔",
                 zh: "屏幕会定格，您用鼠标拖出一个矩形，图片立即进入剪贴板。按 Esc 或鼠标右键取消。同一组合键不能分配给 CyrFlip 的两个操作。");
 
-            Add("Сделать снимок области",
-                en: "Capture a region",
+            Add("Capture a region",
+                ru: "Сделать снимок области",
                 uk: "Зробити знімок області",
                 de: "Ausschnitt aufnehmen",
                 it: "Cattura un'area",
@@ -93,8 +93,8 @@ namespace CyrFlip
                 ur: "حصے کا اسکرین شاٹ لیں",
                 zh: "截取区域");
 
-            Add("То же, что пункт в меню трея. Всплывающую подсказку или открытое меню поймает только комбинация: щелчок по трею их закрывает.",
-                en: "The same as the tray menu item. Only the chord catches a tooltip or an open menu: a click on the tray closes them.",
+            Add("The same as the tray menu item. Only the chord catches a tooltip or an open menu: a click on the tray closes them.",
+                ru: "То же, что пункт в меню трея. Всплывающую подсказку или открытое меню поймает только комбинация: щелчок по трею их закрывает.",
                 uk: "Те саме, що пункт у меню трею. Спливну підказку чи відкрите меню впіймає лише комбінація: клацання по трею їх закриває.",
                 de: "Dasselbe wie der Eintrag im Infobereichsmenü. Eine QuickInfo oder ein offenes Menü erfasst nur die Tastenkombination: Ein Klick auf den Infobereich schließt sie.",
                 it: "Uguale alla voce del menu nell'area di notifica. Solo la combinazione cattura un suggerimento o un menu aperto: un clic sull'area di notifica li chiude.",
@@ -107,8 +107,8 @@ namespace CyrFlip
                 ur: "ٹرے مینو کے آئٹم جیسا ہی۔ کھلا ٹول ٹپ یا مینو صرف مجموعے سے پکڑا جاتا ہے: ٹرے پر کلک انہیں بند کر دیتا ہے۔",
                 zh: "与托盘菜单项相同。只有组合键能截到工具提示或打开的菜单：点击托盘会把它们关掉。");
 
-            Add("Также сохранять снимки в папку",
-                en: "Also save captures to a folder",
+            Add("Also save captures to a folder",
+                ru: "Также сохранять снимки в папку",
                 uk: "Також зберігати знімки в папку",
                 de: "Aufnahmen auch in einem Ordner speichern",
                 it: "Salva le catture anche in una cartella",
@@ -121,8 +121,8 @@ namespace CyrFlip
                 ur: "اسکرین شاٹس کسی فولڈر میں بھی محفوظ کریں",
                 zh: "同时将截图保存到文件夹");
 
-            Add("По умолчанию выключено: снимок попадает только в буфер обмена. С флажком каждый выделенный фрагмент также сохраняется как PNG в папку ниже.",
-                en: "Off by default: a capture goes to the clipboard only. With this on, every selected region is also saved as a PNG into the folder below.",
+            Add("Off by default: a capture goes to the clipboard only. With this on, every selected region is also saved as a PNG into the folder below.",
+                ru: "По умолчанию выключено: снимок попадает только в буфер обмена. С флажком каждый выделенный фрагмент также сохраняется как PNG в папку ниже.",
                 uk: "За замовчуванням вимкнено: знімок потрапляє лише в буфер обміну. З прапорцем кожен виділений фрагмент також зберігається як PNG у папку нижче.",
                 de: "Standardmäßig aus: Eine Aufnahme landet nur in der Zwischenablage. Ist dies eingeschaltet, wird jeder ausgewählte Ausschnitt zusätzlich als PNG im Ordner unten gespeichert.",
                 it: "Disattivato per impostazione predefinita: la cattura va solo negli appunti. Se attivo, ogni area selezionata viene salvata anche come PNG nella cartella qui sotto.",
@@ -135,8 +135,8 @@ namespace CyrFlip
                 ur: "طے شدہ طور پر بند: اسکرین شاٹ صرف کلپ بورڈ پر جاتا ہے۔ اسے فعال کرنے پر ہر منتخب حصہ نیچے والے فولڈر میں PNG کے طور پر بھی محفوظ ہوتا ہے۔",
                 zh: "默认关闭：截图只进入剪贴板。开启后，每个选中的区域还会以 PNG 保存到下方的文件夹。");
 
-            Add("Выбрать...",
-                en: "Choose...",
+            Add("Choose...",
+                ru: "Выбрать...",
                 uk: "Вибрати...",
                 de: "Auswählen...",
                 it: "Scegli...",
@@ -149,8 +149,8 @@ namespace CyrFlip
                 ur: "منتخب کریں...",
                 zh: "选择...");
 
-            Add("Открыть папку",
-                en: "Open folder",
+            Add("Open folder",
+                ru: "Открыть папку",
                 uk: "Відкрити папку",
                 de: "Ordner öffnen",
                 it: "Apri cartella",
@@ -163,8 +163,8 @@ namespace CyrFlip
                 ur: "فولڈر کھولیں",
                 zh: "打开文件夹");
 
-            Add("Снимок всегда попадает в буфер обмена и не записывается в историю буфера. На диск он пишется, только если включено сохранение, и только выделенный фрагмент - в показанную папку (а если она недоступна - в «Изображения\\Снимки экрана» или «Загрузки», и CyrFlip сразу скажет, куда). Файлы не шифруются, CyrFlip их не удаляет и никуда не отправляет. Содержимое, которое защищает Windows (видео с DRM, окно UAC), получается чёрным.",
-                en: "A capture always goes to the clipboard and is not recorded in the clipboard history. It is written to disk only while saving is on, and only the selected region - into the folder shown (or, when that folder is unreachable, into Pictures\\Screenshots or Downloads, and CyrFlip tells you which at once). The files are not encrypted; CyrFlip never deletes or sends them anywhere. Content Windows protects (DRM video, the UAC prompt) comes out black.",
+            Add("A capture always goes to the clipboard and is not recorded in the clipboard history. It is written to disk only while saving is on, and only the selected region - into the folder shown (or, when that folder is unreachable, into Pictures\\Screenshots or Downloads, and CyrFlip tells you which at once). The files are not encrypted; CyrFlip never deletes or sends them anywhere. Content Windows protects (DRM video, the UAC prompt) comes out black.",
+                ru: "Снимок всегда попадает в буфер обмена и не записывается в историю буфера. На диск он пишется, только если включено сохранение, и только выделенный фрагмент - в показанную папку (а если она недоступна - в «Изображения\\Снимки экрана» или «Загрузки», и CyrFlip сразу скажет, куда). Файлы не шифруются, CyrFlip их не удаляет и никуда не отправляет. Содержимое, которое защищает Windows (видео с DRM, окно UAC), получается чёрным.",
                 uk: "Знімок завжди потрапляє в буфер обміну і не записується в історію буфера. На диск він пишеться, лише якщо ввімкнено збереження, і лише виділений фрагмент - у показану папку (а якщо вона недоступна - у «Зображення\\Знімки екрана» або «Завантаження», і CyrFlip одразу скаже, куди). Файли не шифруються, CyrFlip їх не видаляє і нікуди не надсилає. Вміст, який захищає Windows (відео з DRM, вікно UAC), виходить чорним.",
                 de: "Eine Aufnahme landet immer in der Zwischenablage und wird nicht im Zwischenablageverlauf gespeichert. Auf die Festplatte wird sie nur geschrieben, wenn das Speichern eingeschaltet ist, und nur der ausgewählte Ausschnitt - in den angezeigten Ordner (oder, wenn er nicht erreichbar ist, nach „Bilder\\Screenshots“ bzw. „Downloads“, und CyrFlip sagt sofort, wohin). Die Dateien werden nicht verschlüsselt; CyrFlip löscht sie nie und sendet sie nirgendwohin. Von Windows geschützte Inhalte (DRM-Video, das UAC-Fenster) erscheinen schwarz.",
                 it: "La cattura va sempre negli appunti e non viene registrata nella cronologia degli appunti. Viene scritta su disco solo se il salvataggio è attivo, e solo l'area selezionata - nella cartella mostrata (oppure, se non è raggiungibile, in Immagini\\Screenshot o Download, e CyrFlip ti dice subito dove). I file non sono cifrati; CyrFlip non li elimina né li invia da nessuna parte. I contenuti protetti da Windows (video con DRM, la finestra UAC) risultano neri.",
@@ -177,8 +177,8 @@ namespace CyrFlip
                 ur: "اسکرین شاٹ ہمیشہ کلپ بورڈ پر جاتا ہے اور کلپ بورڈ کی تاریخ میں درج نہیں ہوتا۔ ڈسک پر وہ صرف تب لکھا جاتا ہے جب محفوظ کرنا فعال ہو، اور صرف منتخب حصہ - دکھائے گئے فولڈر میں (یا، اگر وہ دستیاب نہ ہو، تو «تصاویر\\اسکرین شاٹس» یا «ڈاؤن لوڈز» میں، اور CyrFlip فوراً بتاتا ہے کہاں)۔ فائلیں خفیہ نہیں کی جاتیں؛ CyrFlip انہیں نہ حذف کرتا ہے نہ کہیں بھیجتا ہے۔ Windows کا محفوظ کردہ مواد (DRM ویڈیو، UAC ونڈو) سیاہ آتا ہے۔",
                 zh: "截图总是进入剪贴板，且不会记入剪贴板历史。只有开启保存时才写入磁盘，而且只写选中的区域 - 写入所示文件夹（若该文件夹无法访问，则写入“图片\\屏幕截图”或“下载”，CyrFlip 会立即告诉您写到了哪里）。文件不加密；CyrFlip 从不删除它们，也不发送到任何地方。受 Windows 保护的内容（DRM 视频、UAC 窗口）截出来是黑色的。");
 
-            Add("Папка для снимков области экрана",
-                en: "Folder for screen region captures",
+            Add("Folder for screen region captures",
+                ru: "Папка для снимков области экрана",
                 uk: "Папка для знімків області екрана",
                 de: "Ordner für Bildschirmausschnitte",
                 it: "Cartella per le catture dello schermo",
@@ -191,8 +191,8 @@ namespace CyrFlip
                 ur: "اسکرین شاٹس کا فولڈر",
                 zh: "屏幕区域截图的文件夹");
 
-            Add("Этой папки пока нет - она появится при первом сохранённом снимке.",
-                en: "This folder does not exist yet - it appears with the first saved capture.",
+            Add("This folder does not exist yet - it appears with the first saved capture.",
+                ru: "Этой папки пока нет - она появится при первом сохранённом снимке.",
                 uk: "Цієї папки ще немає - вона з'явиться з першим збереженим знімком.",
                 de: "Diesen Ordner gibt es noch nicht - er entsteht mit der ersten gespeicherten Aufnahme.",
                 it: "Questa cartella non esiste ancora: verrà creata con la prima cattura salvata.",
@@ -206,8 +206,8 @@ namespace CyrFlip
                 zh: "此文件夹尚不存在 - 保存第一张截图时才会创建。");
 
             // ---- The screenshots folder chord (S0057) ----
-            Add("Открыть папку со снимками",
-                en: "Open the screenshots folder",
+            Add("Open the screenshots folder",
+                ru: "Открыть папку со снимками",
                 uk: "Відкрити папку зі знімками",
                 de: "Screenshots-Ordner öffnen",
                 it: "Apri la cartella degli screenshot",
@@ -220,8 +220,8 @@ namespace CyrFlip
                 ur: "اسکرین شاٹ فولڈر کھولیں",
                 zh: "打开屏幕截图文件夹");
 
-            Add("Работает, пока включено сохранение снимков в папку. Открывает ту папку, в которую CyrFlip пишет снимки. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
-                en: "Works while saving captures to a folder is on. It opens the folder CyrFlip writes the captures into. One chord cannot be given to two CyrFlip actions.",
+            Add("Works while saving captures to a folder is on. It opens the folder CyrFlip writes the captures into. One chord cannot be given to two CyrFlip actions.",
+                ru: "Работает, пока включено сохранение снимков в папку. Открывает ту папку, в которую CyrFlip пишет снимки. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
                 uk: "Працює, поки ввімкнено збереження знімків у папку. Відкриває ту папку, в яку CyrFlip пише знімки. Одну комбінацію не можна віддати двом діям CyrFlip.",
                 de: "Funktioniert nur, solange das Speichern der Aufnahmen in einen Ordner eingeschaltet ist. Öffnet den Ordner, in den CyrFlip die Aufnahmen schreibt. Eine Kombination kann nicht zwei CyrFlip-Aktionen gehören.",
                 it: "Funziona finché il salvataggio delle catture in una cartella è attivo. Apre la cartella in cui CyrFlip scrive le catture. Una combinazione non può essere assegnata a due azioni di CyrFlip.",
@@ -234,8 +234,8 @@ namespace CyrFlip
                 ur: "اسکرین شاٹ کے فولڈر میں محفوظ کرنے کے چالو ہونے تک کام کرتا ہے۔ وہ فولڈر کھولتا ہے جس میں CyrFlip اسکرین شاٹ لکھتا ہے۔ ایک ہی کمبینیشن دو CyrFlip عملوں کو نہیں دی جا سکتی۔",
                 zh: "仅在开启将截图保存到文件夹时有效。打开 CyrFlip 写入截图的那个文件夹。一个组合键不能同时属于两个 CyrFlip 操作。");
 
-            Add("Задать хоткей снимка области экрана",
-                en: "Set the screen region capture hotkey",
+            Add("Set the screen region capture hotkey",
+                ru: "Задать хоткей снимка области экрана",
                 uk: "Задати хоткей знімка області екрана",
                 de: "Tastenkombination für den Bildschirmausschnitt festlegen",
                 it: "Imposta la scorciatoia per la cattura di un'area",
@@ -248,8 +248,8 @@ namespace CyrFlip
                 ur: "اسکرین کے حصے کے اسکرین شاٹ کی ہاٹ کی مقرر کریں",
                 zh: "设置屏幕区域截图的快捷键");
 
-            Add("Задать хоткей папки со снимками",
-                en: "Set the screenshots folder hotkey",
+            Add("Set the screenshots folder hotkey",
+                ru: "Задать хоткей папки со снимками",
                 uk: "Задати хоткей папки зі знімками",
                 de: "Tastenkombination für den Screenshots-Ordner festlegen",
                 it: "Imposta la scorciatoia per la cartella degli screenshot",
@@ -263,8 +263,8 @@ namespace CyrFlip
                 zh: "设置屏幕截图文件夹的快捷键");
 
             // ---- Balloons ----
-            Add("Не удалось сделать снимок экрана.",
-                en: "Could not capture the screen.",
+            Add("Could not capture the screen.",
+                ru: "Не удалось сделать снимок экрана.",
                 uk: "Не вдалося зробити знімок екрана.",
                 de: "Der Bildschirm konnte nicht aufgenommen werden.",
                 it: "Impossibile catturare lo schermo.",
@@ -277,8 +277,8 @@ namespace CyrFlip
                 ur: "اسکرین شاٹ نہیں لیا جا سکا۔",
                 zh: "无法截取屏幕。");
 
-            Add("Не удалось положить снимок в буфер обмена - он занят другой программой. Повторите.",
-                en: "Could not put the capture on the clipboard - another program holds it. Try again.",
+            Add("Could not put the capture on the clipboard - another program holds it. Try again.",
+                ru: "Не удалось положить снимок в буфер обмена - он занят другой программой. Повторите.",
                 uk: "Не вдалося покласти знімок у буфер обміну - його зайняла інша програма. Повторіть.",
                 de: "Die Aufnahme konnte nicht in die Zwischenablage gelegt werden - ein anderes Programm belegt sie. Versuchen Sie es erneut.",
                 it: "Impossibile mettere la cattura negli appunti: li occupa un altro programma. Riprova.",
@@ -291,8 +291,8 @@ namespace CyrFlip
                 ur: "اسکرین شاٹ کلپ بورڈ پر نہیں رکھا جا سکا - اسے کوئی اور پروگرام استعمال کر رہا ہے۔ دوبارہ کوشش کریں۔",
                 zh: "无法把截图放入剪贴板 - 它被另一个程序占用。请重试。");
 
-            Add("Папка для снимков недоступна - снимок сохранён сюда: {0}",
-                en: "The capture folder is unreachable - the capture was saved here instead: {0}",
+            Add("The capture folder is unreachable - the capture was saved here instead: {0}",
+                ru: "Папка для снимков недоступна - снимок сохранён сюда: {0}",
                 uk: "Папка для знімків недоступна - знімок збережено сюди: {0}",
                 de: "Der Ordner für Aufnahmen ist nicht erreichbar - die Aufnahme wurde stattdessen hier gespeichert: {0}",
                 it: "La cartella delle catture non è raggiungibile: la cattura è stata salvata qui: {0}",
@@ -306,8 +306,8 @@ namespace CyrFlip
                 zh: "截图文件夹无法访问 - 截图已改存到这里：{0}");
 
             // S0057: the folder chord's own naming of a configured folder that is not there.
-            Add("Папка для снимков недоступна: {0}",
-                en: "The screenshots folder is unavailable: {0}",
+            Add("The screenshots folder is unavailable: {0}",
+                ru: "Папка для снимков недоступна: {0}",
                 uk: "Папка для знімків недоступна: {0}",
                 de: "Der Ordner für Aufnahmen ist nicht verfügbar: {0}",
                 it: "La cartella delle catture non è disponibile: {0}",
@@ -320,8 +320,8 @@ namespace CyrFlip
                 ur: "اسکرین شاٹس کا فولڈر دستیاب نہیں: {0}",
                 zh: "截图文件夹不可用：{0}");
 
-            Add("Снимок в буфере обмена, но сохранить файл не удалось ни в одну папку.",
-                en: "The capture is on the clipboard, but the file could not be saved into any folder.",
+            Add("The capture is on the clipboard, but the file could not be saved into any folder.",
+                ru: "Снимок в буфере обмена, но сохранить файл не удалось ни в одну папку.",
                 uk: "Знімок у буфері обміну, але зберегти файл не вдалося в жодну папку.",
                 de: "Die Aufnahme liegt in der Zwischenablage, aber die Datei konnte in keinem Ordner gespeichert werden.",
                 it: "La cattura è negli appunti, ma non è stato possibile salvare il file in nessuna cartella.",

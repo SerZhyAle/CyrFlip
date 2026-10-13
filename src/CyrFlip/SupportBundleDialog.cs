@@ -31,7 +31,7 @@ namespace CyrFlip
             _uiLanguage = uiLanguage;
             _result = result;
 
-            Text = T("Логи для автора");
+            Text = T("Logs for the author");
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -47,9 +47,9 @@ namespace CyrFlip
                 MultiSelect = false, Size = new Size(TextWidth, 190), Margin = new Padding(3, 6, 3, 10),
                 ShowItemToolTips = true,
             };
-            files.Columns.Add(T("Файл"), 170);
-            files.Columns.Add(T("Размер"), 70, HorizontalAlignment.Right);
-            files.Columns.Add(T("Что внутри"), 300);
+            files.Columns.Add(T("File"), 170);
+            files.Columns.Add(T("Size"), 70, HorizontalAlignment.Right);
+            files.Columns.Add(T("What it holds"), 300);
             // What each file holds is part of the consent (S0010 TD-1): the user is shown the kind of
             // data, one line per file, not only a name and a size. The whole line is the tooltip,
             // since a translation can outgrow the column.
@@ -60,8 +60,8 @@ namespace CyrFlip
                 string contents = Describe(entry.Name);
                 if (entry.Truncated)
                     contents = contents.Length == 0
-                        ? T("обрезан — сохранён только конец файла")
-                        : contents + " (" + T("обрезан — сохранён только конец файла") + ")";
+                        ? T("truncated - only the tail was kept")
+                        : contents + " (" + T("truncated - only the tail was kept") + ")";
                 item.SubItems.Add(contents);
                 item.ToolTipText = contents;
                 files.Items.Add(item);
@@ -70,15 +70,15 @@ namespace CyrFlip
             {
                 var item = new ListViewItem(dropped);
                 item.SubItems.Add("");
-                item.SubItems.Add(T("не вошёл — превышен общий размер"));
+                item.SubItems.Add(T("left out - the total size limit was reached"));
                 item.ForeColor = ThemePalette.Light.TextMuted;
                 files.Items.Add(item);
             }
 
-            var create = Button(T("Создать письмо"), DialogResult.OK, AppGlyphs.Email);
-            var open = Button(T("Открыть папку с архивом"), DialogResult.None, AppGlyphs.Folder);
+            var create = Button(T("Create the message"), DialogResult.OK, AppGlyphs.Email);
+            var open = Button(T("Open the archive folder"), DialogResult.None, AppGlyphs.Folder);
             open.Click += (_, _) => Reveal();
-            var close = Button(T("Закрыть"), DialogResult.Cancel);
+            var close = Button(T("Close"), DialogResult.Cancel);
 
             // RightToLeft flow, so the first control added sits rightmost - and WinForms mirrors the
             // whole row for Arabic and Urdu, which is what those UIs expect.
@@ -97,10 +97,10 @@ namespace CyrFlip
                 ColumnCount = 1, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Dock = DockStyle.Fill, Padding = new Padding(12),
             };
-            grid.Controls.Add(Prose(T("Архив с логами собран:")), 0, 0);
+            grid.Controls.Add(Prose(T("The log archive is ready:")), 0, 0);
             grid.Controls.Add(Prose(result.ArchivePath + "  (" + SupportBundle.FormatSize(result.ArchiveBytes) + ")"), 0, 1);
             grid.Controls.Add(files, 0, 2);
-            grid.Controls.Add(Prose(T("Письмо отправляете вы сами - CyrFlip ничего не передаёт в сеть. История буфера обмена и быстрые заметки в архив не включены; пути и аргументы сценариев, заголовки окон и выделенный текст в логи не пишутся. Внутри логов встречаются пути к файлам - привычные уже без имени вашей учётной записи Windows, но непривычный путь его может сохранить.")), 0, 3);
+            grid.Controls.Add(Prose(T("You send the message yourself - CyrFlip transmits nothing over the network. Clipboard history and quick notes are not part of the archive; scenario paths and arguments, window titles and selected text are never written to the logs. The logs do contain file paths - the usual ones no longer carry your Windows account name, but one in an unusual shape still can.")), 0, 3);
             grid.Controls.Add(buttons, 0, 4);
             Controls.Add(grid);
 
@@ -145,9 +145,9 @@ namespace CyrFlip
         }
 
         private string Describe(string fileName)
-            => SupportBundle.Contents.TryGetValue(fileName, out string? ru) ? T(ru) : "";
+            => SupportBundle.Contents.TryGetValue(fileName, out string? en) ? T(en) : "";
 
-        private string T(string ru) => Localization.Translate(_uiLanguage, ru);
+        private string T(string en) => Localization.Translate(_uiLanguage, en);
 
         protected override void Dispose(bool disposing)
         {

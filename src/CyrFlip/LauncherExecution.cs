@@ -33,7 +33,7 @@ namespace CyrFlip
     /// <c>pwsh -File tool.ps1</c>, which does not search PATH; and <c>runas</c> on a bare name
     /// elevated whatever ShellExecute's own search found rather than the file that was checked.
     ///
-    /// Error messages go through the <c>translate</c> callback (Russian source strings, see
+    /// Error messages go through the <c>translate</c> callback (English source strings, see
     /// <see cref="Localization"/>) because this service does not know the UI language.
     /// </summary>
     internal static class LauncherExecution
@@ -189,7 +189,7 @@ namespace CyrFlip
         {
             link = null;
             if (promptForLink == null)
-                return LauncherLaunchResult.Fail(translate("Сценарию yt-dlp нужен запрос ссылки, недоступный в этом контексте."));
+                return LauncherLaunchResult.Fail(translate("A yt-dlp scenario needs the link prompt, which is unavailable in this context."));
 
             string? answer = promptForLink();
             if (string.IsNullOrWhiteSpace(answer))
@@ -211,7 +211,7 @@ namespace CyrFlip
             string? ytDlp = ResolveOnPath("yt-dlp");
             // cmd expands a '%' even inside quotes, so a path carrying one is not handed to it.
             if (ytDlp == null || ytDlp.IndexOf('%') >= 0 || ytDlp.IndexOf('"') >= 0)
-                return LauncherLaunchResult.Fail(translate("yt-dlp не найден в PATH. Установите его, чтобы команда yt-dlp работала в терминале."));
+                return LauncherLaunchResult.Fail(translate("yt-dlp was not found on PATH. Install it so the yt-dlp command works in a terminal."));
 
             if (!IsValidYtDlpFormat(item.YtDlpFormat))
                 LauncherLog.Log($"yt-dlp: the stored extra parameters of {Describe(item)} are not passed (characters outside the allowed set)");
@@ -224,7 +224,7 @@ namespace CyrFlip
             catch (Exception ex)
             {
                 return LauncherLaunchResult.Fail(Localization.Format(translate,
-                    "Не удалось использовать папку загрузки «{0}»: {1}", outputFolder, FailureCause.Describe(ex, translate)));
+                    "Cannot use the download folder \"{0}\": {1}", outputFolder, FailureCause.Describe(ex, translate)));
             }
 
             try
@@ -254,10 +254,10 @@ namespace CyrFlip
         internal static string? ValidateYtDlpLink(string link, Func<string, string> translate)
         {
             if (link.IndexOf('"') >= 0 || ContainsControlChar(link))
-                return translate("Ссылка содержит недопустимые символы (кавычки или управляющие).");
+                return translate("The link contains characters that are not allowed (quotes or control characters).");
             if (!Uri.TryCreate(link, UriKind.Absolute, out Uri? uri) || uri == null
                 || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-                return translate("Ссылка должна быть адресом http:// или https://.");
+                return translate("The link must be an http:// or https:// address.");
             return null;
         }
 
@@ -420,7 +420,7 @@ namespace CyrFlip
             string path = rawPath?.Trim() ?? string.Empty;
             if (path.Length == 0)
             {
-                error = translate("У сценария не задан путь.");
+                error = translate("The scenario has no path set.");
                 return false;
             }
 
@@ -440,7 +440,7 @@ namespace CyrFlip
             {
                 if (TryFullPathOfFile(path, out resolved)) return true;
                 // A rooted path that does not exist is definitely broken.
-                error = Localization.Format(translate, "Файл не найден: {0}", path);
+                error = Localization.Format(translate, "File not found: {0}", path);
                 return false;
             }
 
@@ -462,7 +462,7 @@ namespace CyrFlip
             if (resolved != null)
                 return true;
 
-            error = Localization.Format(translate, "«{0}» не найден ни как файл, ни в PATH.", path);
+            error = Localization.Format(translate, "\"{0}\" was not found as a file or on PATH.", path);
             return false;
         }
 

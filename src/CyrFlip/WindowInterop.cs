@@ -843,6 +843,14 @@ namespace CyrFlip
         public const int MA_NOACTIVATE = 3;
         public const int MA_NOACTIVATEANDEAT = 4;
 
+        // ---- Traffic light board: drag the window by an empty area (S0069) ----
+        public const uint WM_NCLBUTTONDOWN = 0x00A1;
+        public const int HTCAPTION = 2;
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ReleaseCapture();
+
         public const uint GGI_MARK_NONEXISTING_GLYPHS = 0x0001;
 
         [DllImport("gdi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]

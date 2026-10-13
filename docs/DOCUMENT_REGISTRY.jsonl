@@ -16,6 +16,7 @@
 {"file": "docs/bn/index.html", "topic": "index", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/bn/privacy.html", "topic": "privacy", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/bn/trust.html", "topic": "trust", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
+{"file": "docs/contracts/ANYWHERE-ACCESS.md", "topic": "ANYWHERE ACCESS", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/APP-ACTIVATION.md", "topic": "APP ACTIVATION", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/APP-BEHAVIOUR.md", "topic": "APP BEHAVIOUR", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/APP-SETTINGS.md", "topic": "APP SETTINGS", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
@@ -26,6 +27,7 @@
 {"file": "docs/contracts/CHECK-PLACEMENT.md", "topic": "CHECK PLACEMENT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/CHECK-VERDICT.md", "topic": "CHECK VERDICT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/CLIPBOARD-GUARD.md", "topic": "CLIPBOARD GUARD", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/DEVICE-EXCHANGE.md", "topic": "DEVICE EXCHANGE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/DIAGNOSTIC-REPORT.md", "topic": "DIAGNOSTIC REPORT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/DOC-QUALITY.md", "topic": "DOC QUALITY", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/ICON-EXTERNAL.md", "topic": "ICON EXTERNAL", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}

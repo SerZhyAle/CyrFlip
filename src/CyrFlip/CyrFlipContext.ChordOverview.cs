@@ -21,6 +21,8 @@ namespace CyrFlip
             _screenshotFolderHotkey = ParsedScreenshotFolderHotkey();
             _symbolsHotkey = Hotkey.TryParse(_config.SymbolsHotkey, out Hotkey symbolsChord)
                 ? symbolsChord : Hotkey.Parse(AppConfig.DefaultSymbolsHotkey);
+            _trafficLightHotkey = Hotkey.TryParse(_config.TrafficLightHotkey, out Hotkey trafficLightChord)
+                ? trafficLightChord : Hotkey.Parse(AppConfig.DefaultTrafficLightHotkey);
 
             _hook.UpdateCaseHotkey(_caseHotkey);
             _hook.UpdateClipboardHistoryHotkey(_clipboardHistoryHotkey);
@@ -29,6 +31,7 @@ namespace CyrFlip
             _hook.UpdateScreenshotFolderHotkey(_screenshotFolderHotkey);
             _hook.UpdateTextMenuHotkey(ParsedTextMenuHotkey());
             _hook.UpdateSymbolsHotkey(_symbolsHotkey);
+            _hook.UpdateTrafficLightHotkey(_trafficLightHotkey);
 
             _hook.UpdateEnabled(_config.EnableHotkeys);
             _hook.UpdateCaseEnabled(_config.EnableCaseHotkey);
@@ -38,17 +41,20 @@ namespace CyrFlip
             _hook.UpdateScreenshotFolderEnabled(ScreenshotFolderChordLive);
             _hook.UpdateTextMenuEnabled(TextMenuChordLive);
             _hook.UpdateSymbolsEnabled(_config.EnableHotkeys && SymbolsChordLive);
+            _hook.UpdateTrafficLightEnabled(_config.EnableHotkeys && TrafficLightChordLive);
 
             _quickNotesChordWasLive = QuickNotesChordLive;
             _screenshotChordWasLive = ScreenshotChordLive;
             _screenshotFolderChordWasLive = ScreenshotFolderChordLive;
             _textMenuChordWasLive = TextMenuChordLive;
             _symbolsChordWasLive = SymbolsChordLive;
+            _trafficLightChordWasLive = TrafficLightChordLive;
 
             _hook.UpdateConversionProfiles(_config.LayoutConversionProfiles);
             BindTranslationHotkeys();
             RefreshContextMenuBinding();
             RefreshLauncherSurfaces();
+            ApplyTrafficLightModule();
             UpdateTrayTexts();
             UpdateTrayTooltip();
             _settings?.Reload();

@@ -54,3 +54,8 @@ content.folder
 content.checklist
 app.help
 feature.selection-menu
+feature.network-monitor
+status.ok
+status.warning
+status.error
+status.unknown

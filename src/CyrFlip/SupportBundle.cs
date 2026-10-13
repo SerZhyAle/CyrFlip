@@ -17,7 +17,7 @@ namespace CyrFlip
     ///
     /// Two rules are load-bearing:
     ///
-    /// 1. <b><see cref="ExcludedFiles"/> (clipboard-history.log, quick-notes.log) never go in.</b> They are literally
+    /// 1. <b><see cref="ExcludedFiles"/> (clipboard-history.log, quick-notes.log, traffic-light-history.txt) never go in.</b> They are literally
     ///    everything the user ever copied - passwords, messages, card numbers. It is DPAPI-protected
     ///    and unreadable off this account anyway, but that is not the reason: it is not our data.
     ///    The file list is therefore an explicit whitelist (<see cref="LogFiles"/>), never a
@@ -87,42 +87,44 @@ namespace CyrFlip
         };
 
         /// <summary>
-        /// The files that are never collected, whatever else is. Both hold the user's own text:
+        /// The files that are never collected, whatever else is. Each holds the user's own text:
         /// <c>clipboard-history.log</c> is everything they ever copied, <c>quick-notes.log</c> is
-        /// everything they deliberately kept. The two <i>diagnostics</i> files are in the whitelist
-        /// above and hold no user text - only counts (records that failed to replay, marked copies skipped).
+        /// everything they deliberately kept, <c>traffic-light-history.txt</c> names the hosts, folders and
+        /// addresses of their own infrastructure (ticket S0069 D19). The two <i>diagnostics</i> files are in
+        /// the whitelist above and hold no user text - only counts (records that failed to replay, marked
+        /// copies skipped).
         /// </summary>
         public static readonly string[] ExcludedFiles =
         {
-            "clipboard-history.log", "quick-notes.log",
+            "clipboard-history.log", "quick-notes.log", "traffic-light-history.txt",
         };
 
         private const string LauncherLogName = "launcher.log";
 
         /// <summary>
         /// What each collected file holds, as the pre-send dialog tells the user - one short line per
-        /// file, a Russian source key for <see cref="Localization"/>. Every whitelisted file has an
+        /// file, an English source key for <see cref="Localization"/>. Every whitelisted file has an
         /// entry (<c>SupportBundleTests</c>), since a file the dialog cannot describe is a file the
         /// user is asked to send blind.
         /// </summary>
         public static readonly IReadOnlyDictionary<string, string> Contents = new Dictionary<string, string>
         {
-            [ReportName] = "версия, Windows, раскладки, включённые функции и настройки CyrFlip",
-            [EnvironmentName] = "версия, Windows и счётчики в виде строк ключ=значение - без текста",
-            ["launcher.log"] = "запуски сценариев: имя, тип, результат - без путей и аргументов",
-            ["context-menu.log"] = "контекстное меню: команды, классы окон и числа - без текста",
-            ["translate.log"] = "переводы: языки, модель, длины и исход - без текста",
-            ["quick-notes-diagnostics.log"] = "быстрые заметки: только счётчики",
-            ["clipboard-history-diagnostics.log"] = "история буфера: только счётчики",
-            ["clipboard-flip.log"] = "конвертации выделения: длины и имена процессов - без текста",
-            ["screenshot.log"] = "снимки экрана: исход сохранения файла - без путей",
-            ["caret-diagnostics.txt"] = "диагностика каретки: классы окон и процессы - заголовки только длиной",
-            ["settings-file.log"] = "перенос настроек: счётчики, имена ключей и коды причин - без значений",
+            [ReportName] = "version, Windows, layouts, enabled features and CyrFlip settings",
+            [EnvironmentName] = "version, Windows and counters as key=value lines - no text",
+            ["launcher.log"] = "scenario launches: name, kind, outcome - no paths or arguments",
+            ["context-menu.log"] = "context menu: commands, window classes and numbers - no text",
+            ["translate.log"] = "translations: languages, model, lengths and outcome - no text",
+            ["quick-notes-diagnostics.log"] = "quick notes: counts only",
+            ["clipboard-history-diagnostics.log"] = "clipboard history: counts only",
+            ["clipboard-flip.log"] = "selection conversions: lengths and process names - no text",
+            ["screenshot.log"] = "screen captures: the file save outcome - no paths",
+            ["caret-diagnostics.txt"] = "caret diagnostics: window classes and processes - titles only as a length",
+            ["settings-file.log"] = "settings transfer: counts, key names and reason codes - no values",
             // S0065 E-11: the bundle a user mails after a crash used to hold no crash - Fatal writes
             // the exception to crash.log, which was never in the whitelist. It passes the redactor
             // like every file (the profile becomes <USER>), so the stack can keep its paths.
-            ["crash.log"] = "аварийные остановки: тип и стек последней ошибки - без текста",
-            ["layout.txt"] = "код текущей раскладки",
+            ["crash.log"] = "fatal stops: the type and stack of the last error - no text",
+            ["layout.txt"] = "the current layout's code",
         };
 
         private const string Guid36 = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";

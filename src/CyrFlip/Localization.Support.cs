@@ -8,16 +8,16 @@ namespace CyrFlip
     {
         private static void AddSupportStrings()
         {
-            Add("Отправить логи автору..",
-                en: "Send logs to the author..", uk: "Надіслати логи автору..",
+            Add("Send logs to the author..",
+                ru: "Отправить логи автору..", uk: "Надіслати логи автору..",
                 de: "Protokolle an den Autor senden..", it: "Invia i log all'autore..",
                 es: "Enviar los registros al autor..", fr: "Envoyer les journaux à l'auteur..",
                 pt: "Enviar os logs ao autor..", ar: "إرسال السجلات إلى المؤلف..",
                 hi: "लॉग लेखक को भेजें..", bn: "লগ লেখকের কাছে পাঠান..",
                 ur: "لاگز مصنف کو بھیجیں..", zh: "将日志发送给作者..");
 
-            Add("Собирает логи CyrFlip в один архив и открывает письмо автору с этим вложением. Письмо отправляете вы сами — CyrFlip ничего не передаёт в сеть. История буфера обмена в архив не попадает.",
-                en: "Collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network. Clipboard history never goes into the archive.",
+            Add("Collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network. Clipboard history never goes into the archive.",
+                ru: "Собирает логи CyrFlip в один архив и открывает письмо автору с этим вложением. Письмо отправляете вы сами — CyrFlip ничего не передаёт в сеть. История буфера обмена в архив не попадает.",
                 uk: "Збирає логи CyrFlip в один архів і відкриває лист до автора з цим вкладенням. Лист надсилаєте ви самі - CyrFlip нічого не передає в мережу. Історія буфера обміну до архіву не потрапляє.",
                 de: "Fasst die Protokolle von CyrFlip in einem Archiv zusammen und öffnet eine Nachricht an den Autor mit diesem Anhang. Gesendet wird sie von Ihnen - CyrFlip überträgt nichts ins Netz. Der Zwischenablage-Verlauf kommt nie ins Archiv.",
                 it: "Raccoglie i log di CyrFlip in un unico archivio e apre un messaggio all'autore con quell'allegato. Il messaggio lo invia lei - CyrFlip non trasmette nulla in rete. La cronologia degli appunti non finisce mai nell'archivio.",
@@ -30,36 +30,36 @@ namespace CyrFlip
                 ur: "CyrFlip کے لاگز کو ایک آرکائیو میں جمع کرتا ہے اور اسے منسلک کر کے مصنف کے لیے پیغام کھولتا ہے۔ پیغام آپ خود بھیجتے ہیں - CyrFlip نیٹ ورک پر کچھ نہیں بھیجتا۔ کلپ بورڈ کی تاریخ آرکائیو میں کبھی شامل نہیں ہوتی۔",
                 zh: "把 CyrFlip 的日志打包成一个压缩包，并打开一封已附加该文件的给作者的邮件。邮件由您自己发送 - CyrFlip 不会向网络传输任何内容。剪贴板历史绝不会进入压缩包。");
 
-            Add("Логи для автора",
-                en: "Logs for the author", uk: "Логи для автора", de: "Protokolle für den Autor",
+            Add("Logs for the author",
+                ru: "Логи для автора", uk: "Логи для автора", de: "Protokolle für den Autor",
                 it: "Log per l'autore", es: "Registros para el autor", fr: "Journaux pour l'auteur",
                 pt: "Logs para o autor", ar: "سجلات للمؤلف", hi: "लेखक के लिए लॉग",
                 bn: "লেখকের জন্য লগ", ur: "مصنف کے لیے لاگز", zh: "发送给作者的日志");
 
-            Add("Архив с логами собран:",
-                en: "The log archive is ready:", uk: "Архів із логами створено:",
+            Add("The log archive is ready:",
+                ru: "Архив с логами собран:", uk: "Архів із логами створено:",
                 de: "Das Protokollarchiv ist fertig:", it: "L'archivio dei log è pronto:",
                 es: "El archivo con los registros está listo:", fr: "L'archive des journaux est prête :",
                 pt: "O arquivo com os logs está pronto:", ar: "أرشيف السجلات جاهز:",
                 hi: "लॉग का संग्रह तैयार है:", bn: "লগের আর্কাইভ তৈরি:",
                 ur: "لاگز کا آرکائیو تیار ہے:", zh: "日志压缩包已生成：");
 
-            Add("Файл",
-                en: "File", uk: "Файл", de: "Datei", it: "File", es: "Archivo", fr: "Fichier",
+            Add("File",
+                ru: "Файл", uk: "Файл", de: "Datei", it: "File", es: "Archivo", fr: "Fichier",
                 pt: "Arquivo", ar: "ملف", hi: "फ़ाइल", bn: "ফাইল", ur: "فائل", zh: "文件");
 
-            Add("Размер",
-                en: "Size", uk: "Розмір", de: "Größe", it: "Dimensione", es: "Tamaño", fr: "Taille",
+            Add("Size",
+                ru: "Размер", uk: "Розмір", de: "Größe", it: "Dimensione", es: "Tamaño", fr: "Taille",
                 pt: "Tamanho", ar: "الحجم", hi: "आकार", bn: "আকার", ur: "سائز", zh: "大小");
 
-            Add("Что внутри",
-                en: "What it holds", uk: "Що всередині", de: "Inhalt", it: "Contenuto", es: "Contenido",
+            Add("What it holds",
+                ru: "Что внутри", uk: "Що всередині", de: "Inhalt", it: "Contenuto", es: "Contenido",
                 fr: "Contenu", pt: "Conteúdo", ar: "المحتوى", hi: "इसमें क्या है", bn: "ভেতরে কী আছে",
                 ur: "اس میں کیا ہے", zh: "包含内容");
 
             // What each collected file holds - SupportBundle.Contents, one line per file (S0010 TD-1).
-            Add("версия, Windows, раскладки, включённые функции и настройки CyrFlip",
-                en: "version, Windows, layouts, enabled features and CyrFlip settings",
+            Add("version, Windows, layouts, enabled features and CyrFlip settings",
+                ru: "версия, Windows, раскладки, включённые функции и настройки CyrFlip",
                 uk: "версія, Windows, розкладки, увімкнені функції та налаштування CyrFlip",
                 de: "Version, Windows, Tastaturlayouts, aktive Funktionen und CyrFlip-Einstellungen",
                 it: "versione, Windows, layout, funzioni attive e impostazioni di CyrFlip",
@@ -72,8 +72,8 @@ namespace CyrFlip
                 ur: "ورژن، Windows، لے آؤٹس، فعال خصوصیات اور CyrFlip کی ترتیبات",
                 zh: "版本、Windows、键盘布局、已启用的功能和 CyrFlip 设置");
 
-            Add("версия, Windows и счётчики в виде строк ключ=значение - без текста",
-                en: "version, Windows and counters as key=value lines - no text",
+            Add("version, Windows and counters as key=value lines - no text",
+                ru: "версия, Windows и счётчики в виде строк ключ=значение - без текста",
                 uk: "версія, Windows і лічильники у вигляді рядків ключ=значення - без тексту",
                 de: "Version, Windows und Zähler als Zeilen Schlüssel=Wert - ohne Text",
                 it: "versione, Windows e contatori come righe chiave=valore - senza testo",
@@ -86,8 +86,8 @@ namespace CyrFlip
                 ur: "ورژن، Windows اور گنتیاں key=value سطروں میں - کوئی متن نہیں",
                 zh: "版本、Windows 和计数，以 key=value 行记录 - 不含文本");
 
-            Add("запуски сценариев: имя, тип, результат - без путей и аргументов",
-                en: "scenario launches: name, kind, outcome - no paths or arguments",
+            Add("scenario launches: name, kind, outcome - no paths or arguments",
+                ru: "запуски сценариев: имя, тип, результат - без путей и аргументов",
                 uk: "запуски сценаріїв: назва, тип, результат - без шляхів і аргументів",
                 de: "Szenariostarts: Name, Art, Ergebnis - ohne Pfade und Argumente",
                 it: "avvii degli scenari: nome, tipo, esito - senza percorsi né argomenti",
@@ -100,8 +100,8 @@ namespace CyrFlip
                 ur: "منظرنامے چلانا: نام، قسم، نتیجہ - راستوں اور آرگیومنٹس کے بغیر",
                 zh: "场景启动：名称、类型、结果 - 不含路径和参数");
 
-            Add("контекстное меню: команды, классы окон и числа - без текста",
-                en: "context menu: commands, window classes and numbers - no text",
+            Add("context menu: commands, window classes and numbers - no text",
+                ru: "контекстное меню: команды, классы окон и числа - без текста",
                 uk: "контекстне меню: команди, класи вікон і числа - без тексту",
                 de: "Kontextmenü: Befehle, Fensterklassen und Zahlen - kein Text",
                 it: "menu contestuale: comandi, classi di finestra e numeri - nessun testo",
@@ -114,8 +114,8 @@ namespace CyrFlip
                 ur: "سیاقی مینو: کمانڈز، ونڈو کلاسز اور اعداد - کوئی متن نہیں",
                 zh: "右键菜单：命令、窗口类名和数字 - 不含文本");
 
-            Add("переводы: языки, модель, длины и исход - без текста",
-                en: "translations: languages, model, lengths and outcome - no text",
+            Add("translations: languages, model, lengths and outcome - no text",
+                ru: "переводы: языки, модель, длины и исход - без текста",
                 uk: "переклади: мови, модель, довжини і результат - без тексту",
                 de: "Übersetzungen: Sprachen, Modell, Längen und Ergebnis - kein Text",
                 it: "traduzioni: lingue, modello, lunghezze ed esito - nessun testo",
@@ -128,24 +128,24 @@ namespace CyrFlip
                 ur: "ترجمے: زبانیں، ماڈل، لمبائیاں اور نتیجہ - کوئی متن نہیں",
                 zh: "翻译：语言、模型、长度和结果 - 不含文本");
 
-            Add("быстрые заметки: только счётчики",
-                en: "quick notes: counts only", uk: "швидкі нотатки: лише лічильники",
+            Add("quick notes: counts only",
+                ru: "быстрые заметки: только счётчики", uk: "швидкі нотатки: лише лічильники",
                 de: "Schnellnotizen: nur Zähler", it: "note rapide: solo conteggi",
                 es: "notas rápidas: solo recuentos", fr: "notes rapides : compteurs uniquement",
                 pt: "notas rápidas: apenas contagens", ar: "الملاحظات السريعة: أعداد فقط",
                 hi: "त्वरित नोट्स: केवल गिनती", bn: "দ্রুত নোট: শুধু গণনা",
                 ur: "فوری نوٹس: صرف گنتی", zh: "快速笔记：仅计数");
 
-            Add("история буфера: только счётчики",
-                en: "clipboard history: counts only", uk: "історія буфера: лише лічильники",
+            Add("clipboard history: counts only",
+                ru: "история буфера: только счётчики", uk: "історія буфера: лише лічильники",
                 de: "Zwischenablage-Verlauf: nur Zähler", it: "cronologia appunti: solo conteggi",
                 es: "historial del portapapeles: solo recuentos", fr: "historique du presse-papiers : compteurs uniquement",
                 pt: "histórico da área de transferência: apenas contagens", ar: "سجل الحافظة: أعداد فقط",
                 hi: "क्लिपबोर्ड इतिहास: केवल गिनती", bn: "ক্লিপবোর্ডের ইতিহাস: শুধু গণনা",
                 ur: "کلپ بورڈ کی تاریخ: صرف گنتی", zh: "剪贴板历史：仅计数");
 
-            Add("конвертации выделения: длины и имена процессов - без текста",
-                en: "selection conversions: lengths and process names - no text",
+            Add("selection conversions: lengths and process names - no text",
+                ru: "конвертации выделения: длины и имена процессов - без текста",
                 uk: "конвертації виділення: довжини й імена процесів - без тексту",
                 de: "Umwandlungen der Auswahl: Längen und Prozessnamen - kein Text",
                 it: "conversioni della selezione: lunghezze e nomi dei processi - nessun testo",
@@ -158,8 +158,8 @@ namespace CyrFlip
                 ur: "انتخاب کی تبدیلیاں: لمبائیاں اور پروسیس کے نام - کوئی متن نہیں",
                 zh: "选区转换：长度和进程名 - 不含文本");
 
-            Add("снимки экрана: исход сохранения файла - без путей",
-                en: "screen captures: the file save outcome - no paths",
+            Add("screen captures: the file save outcome - no paths",
+                ru: "снимки экрана: исход сохранения файла - без путей",
                 uk: "знімки екрана: підсумок збереження файлу - без шляхів",
                 de: "Bildschirmaufnahmen: Ausgang des Dateispeicherns - keine Pfade",
                 it: "acquisizioni dello schermo: esito del salvataggio del file - nessun percorso",
@@ -172,8 +172,8 @@ namespace CyrFlip
                 ur: "اسکرین کیپچر: فائل محفوظ کرنے کا نتیجہ - راستے نہیں",
                 zh: "屏幕捕获：文件保存结果 - 不含路径");
 
-            Add("диагностика каретки: классы окон и процессы - заголовки только длиной",
-                en: "caret diagnostics: window classes and processes - titles only as a length",
+            Add("caret diagnostics: window classes and processes - titles only as a length",
+                ru: "диагностика каретки: классы окон и процессы - заголовки только длиной",
                 uk: "діагностика каретки: класи вікон і процеси - заголовки лише довжиною",
                 de: "Caret-Diagnose: Fensterklassen und Prozesse - Titel nur als Länge",
                 it: "diagnostica del cursore: classi di finestra e processi - titoli solo come lunghezza",
@@ -186,8 +186,8 @@ namespace CyrFlip
                 ur: "کیرٹ کی تشخیص: ونڈو کلاسز اور پروسیسز - عنوان صرف لمبائی کے طور پر",
                 zh: "光标诊断：窗口类名和进程 - 标题只记录长度");
 
-            Add("аварийные остановки: тип и стек последней ошибки - без текста",
-                en: "fatal stops: the type and stack of the last error - no text",
+            Add("fatal stops: the type and stack of the last error - no text",
+                ru: "аварийные остановки: тип и стек последней ошибки - без текста",
                 uk: "аварійні зупинки: тип і стек останньої помилки - без тексту",
                 de: "Abstürze: Typ und Stapel des letzten Fehlers - ohne Text",
                 it: "arresti fatali: tipo e stack dell'ultimo errore - senza testo",
@@ -200,17 +200,17 @@ namespace CyrFlip
                 ur: "مہلک رکاوٹیں: آخری خرابی کی قسم اور اسٹیک - کوئی متن نہیں",
                 zh: "致命停止：最后一次错误的类型和堆栈 - 不含文本");
 
-            Add("код текущей раскладки",
+            Add("the current layout's code",
 
-                en: "the current layout's code", uk: "код поточної розкладки",
+                ru: "код текущей раскладки", uk: "код поточної розкладки",
                 de: "Kürzel des aktuellen Layouts", it: "codice del layout attuale",
                 es: "código de la distribución actual", fr: "code de la disposition actuelle",
                 pt: "código do layout atual", ar: "رمز التخطيط الحالي",
                 hi: "मौजूदा लेआउट का कोड", bn: "বর্তমান লেআউটের কোড",
                 ur: "موجودہ لے آؤٹ کا کوڈ", zh: "当前布局的代码");
 
-            Add("обрезан — сохранён только конец файла",
-                en: "truncated - only the tail was kept", uk: "обрізаний - збережено лише кінець файлу",
+            Add("truncated - only the tail was kept",
+                ru: "обрезан — сохранён только конец файла", uk: "обрізаний - збережено лише кінець файлу",
                 de: "gekürzt - nur das Ende der Datei", it: "troncato - conservata solo la parte finale",
                 es: "recortado - solo se conservó el final", fr: "tronqué - seule la fin a été conservée",
                 pt: "truncado - só o final foi mantido", ar: "مقتطع - تم الاحتفاظ بنهاية الملف فقط",
@@ -218,16 +218,16 @@ namespace CyrFlip
                 bn: "কাটা হয়েছে - শুধু ফাইলের শেষ অংশ রাখা হয়েছে",
                 ur: "کاٹا گیا - صرف فائل کا آخری حصہ رکھا گیا", zh: "已截断 - 仅保留文件末尾");
 
-            Add("не вошёл — превышен общий размер",
-                en: "left out - the total size limit was reached", uk: "не увійшов - перевищено загальний розмір",
+            Add("left out - the total size limit was reached",
+                ru: "не вошёл — превышен общий размер", uk: "не увійшов - перевищено загальний розмір",
                 de: "nicht enthalten - Gesamtgröße überschritten", it: "escluso - superata la dimensione totale",
                 es: "excluido - se superó el tamaño total", fr: "exclu - taille totale dépassée",
                 pt: "não incluído - tamanho total excedido", ar: "غير مُضمَّن - تم تجاوز الحجم الإجمالي",
                 hi: "शामिल नहीं - कुल आकार की सीमा पार", bn: "যোগ করা হয়নি - মোট আকারের সীমা ছাড়িয়েছে",
                 ur: "شامل نہیں - کل سائز کی حد سے زیادہ", zh: "未包含 - 超出总大小上限");
 
-            Add("Письмо отправляете вы сами - CyrFlip ничего не передаёт в сеть. История буфера обмена и быстрые заметки в архив не включены; пути и аргументы сценариев, заголовки окон и выделенный текст в логи не пишутся. Внутри логов встречаются пути к файлам - привычные уже без имени вашей учётной записи Windows, но непривычный путь его может сохранить.",
-                en: "You send the message yourself - CyrFlip transmits nothing over the network. Clipboard history and quick notes are not part of the archive; scenario paths and arguments, window titles and selected text are never written to the logs. The logs do contain file paths - the usual ones no longer carry your Windows account name, but one in an unusual shape still can.",
+            Add("You send the message yourself - CyrFlip transmits nothing over the network. Clipboard history and quick notes are not part of the archive; scenario paths and arguments, window titles and selected text are never written to the logs. The logs do contain file paths - the usual ones no longer carry your Windows account name, but one in an unusual shape still can.",
+                ru: "Письмо отправляете вы сами - CyrFlip ничего не передаёт в сеть. История буфера обмена и быстрые заметки в архив не включены; пути и аргументы сценариев, заголовки окон и выделенный текст в логи не пишутся. Внутри логов встречаются пути к файлам - привычные уже без имени вашей учётной записи Windows, но непривычный путь его может сохранить.",
                 uk: "Лист надсилаєте ви самі - CyrFlip нічого не передає в мережу. Історія буфера обміну і швидкі нотатки до архіву не входять; шляхи й аргументи сценаріїв, заголовки вікон і виділений текст у логи не пишуться. У логах є шляхи до файлів - звичні вже без імені вашого облікового запису Windows, але непривичний шлях може його зберегти.",
                 de: "Gesendet wird die Nachricht von Ihnen - CyrFlip überträgt nichts ins Netz. Zwischenablage-Verlauf und Schnellnotizen sind nicht Teil des Archivs; Szenariopfade und -argumente, Fenstertitel und markierter Text werden nie protokolliert. In den Protokollen stehen Dateipfade - in den üblichen steht Ihr Windows-Kontoname nicht mehr, doch ein ungewöhnlich geformter Pfad kann ihn noch enthalten.",
                 it: "Il messaggio lo invia lei - CyrFlip non trasmette nulla in rete. La cronologia degli appunti e le note rapide non fanno parte dell'archivio; percorsi e argomenti degli scenari, titoli delle finestre e testo selezionato non vengono mai scritti nei log. Nei log ci sono percorsi di file - in quelli usuali il nome del suo account Windows non compare più, ma un percorso di forma insolita può ancora contenerlo.",
@@ -240,22 +240,22 @@ namespace CyrFlip
                 ur: "پیغام آپ خود بھیجتے ہیں - CyrFlip نیٹ ورک پر کچھ نہیں بھیجتا۔ کلپ بورڈ کی تاریخ اور فوری نوٹس آرکائیو کا حصہ نہیں؛ منظرناموں کے راستے اور آرگیومنٹس، ونڈو کے عنوان اور منتخب متن کبھی لاگز میں نہیں لکھے جاتے۔ لاگز میں فائلوں کے راستے ہوتے ہیں - عام راستوں میں آپ کے Windows اکاؤنٹ کا نام اب نہیں ہوتا، لیکن غیر معمولی شکل کا راستہ اسے اب بھی رکھ سکتا ہے۔",
                 zh: "邮件由您自己发送 - CyrFlip 不会向网络传输任何内容。剪贴板历史和快速笔记不在压缩包内；场景的路径和参数、窗口标题以及选中的文本从不写入日志。日志中含有文件路径 - 常见形式的路径已不再带有您的 Windows 账户名，但形式少见的路径仍可能保留它。");
 
-            Add("Создать письмо",
-                en: "Create the message", uk: "Створити лист", de: "Nachricht erstellen",
+            Add("Create the message",
+                ru: "Создать письмо", uk: "Створити лист", de: "Nachricht erstellen",
                 it: "Crea il messaggio", es: "Crear el mensaje", fr: "Créer le message",
                 pt: "Criar a mensagem", ar: "إنشاء الرسالة", hi: "संदेश बनाएँ",
                 bn: "বার্তা তৈরি করুন", ur: "پیغام بنائیں", zh: "创建邮件");
 
-            Add("Открыть папку с архивом",
-                en: "Open the archive folder", uk: "Відкрити папку з архівом",
+            Add("Open the archive folder",
+                ru: "Открыть папку с архивом", uk: "Відкрити папку з архівом",
                 de: "Archivordner öffnen", it: "Apri la cartella dell'archivio",
                 es: "Abrir la carpeta del archivo", fr: "Ouvrir le dossier de l'archive",
                 pt: "Abrir a pasta do arquivo", ar: "فتح مجلد الأرشيف",
                 hi: "संग्रह का फ़ोल्डर खोलें", bn: "আর্কাইভের ফোল্ডার খুলুন",
                 ur: "آرکائیو کا فولڈر کھولیں", zh: "打开压缩包所在文件夹");
 
-            Add("Не удалось собрать архив с логами:",
-                en: "Could not build the log archive:", uk: "Не вдалося створити архів із логами:",
+            Add("Could not build the log archive:",
+                ru: "Не удалось собрать архив с логами:", uk: "Не вдалося створити архів із логами:",
                 de: "Das Protokollarchiv konnte nicht erstellt werden:",
                 it: "Non è stato possibile creare l'archivio dei log:",
                 es: "No se pudo crear el archivo con los registros:",
@@ -265,8 +265,8 @@ namespace CyrFlip
                 bn: "লগের আর্কাইভ তৈরি করা যায়নি:", ur: "لاگز کا آرکائیو نہیں بنایا جا سکا:",
                 zh: "无法生成日志压缩包：");
 
-            Add("Ваша почтовая программа не принимает вложение из ссылки. Письмо открыто, а архив выделен в проводнике — перетащите его в письмо перед отправкой.",
-                en: "Your mail program does not accept an attachment from a link. The message is open and the archive is selected in Explorer - drag it into the message before sending.",
+            Add("Your mail program does not accept an attachment from a link. The message is open and the archive is selected in Explorer - drag it into the message before sending.",
+                ru: "Ваша почтовая программа не принимает вложение из ссылки. Письмо открыто, а архив выделен в проводнике — перетащите его в письмо перед отправкой.",
                 uk: "Ваша поштова програма не приймає вкладення з посилання. Лист відкрито, а архів виділено в проводнику - перетягніть його в лист перед надсиланням.",
                 de: "Ihr Mailprogramm nimmt keinen Anhang aus einem Link an. Die Nachricht ist offen und das Archiv im Explorer markiert - ziehen Sie es vor dem Senden in die Nachricht.",
                 it: "Il suo programma di posta non accetta un allegato da un link. Il messaggio è aperto e l'archivio è selezionato in Esplora file: lo trascini nel messaggio prima di inviarlo.",
@@ -279,8 +279,8 @@ namespace CyrFlip
                 ur: "آپ کا میل پروگرام لنک سے منسلکہ قبول نہیں کرتا۔ پیغام کھلا ہے اور آرکائیو Explorer میں منتخب ہے - بھیجنے سے پہلے اسے پیغام میں کھینچ کر ڈالیں۔",
                 zh: "您的邮件程序不接受来自链接的附件。邮件已打开，压缩包已在资源管理器中选中 - 发送前请把它拖入邮件。");
 
-            Add("Не удалось открыть почтовую программу. Отправьте архив вручную на адрес:",
-                en: "The mail program could not be opened. Please send the archive by hand to:",
+            Add("The mail program could not be opened. Please send the archive by hand to:",
+                ru: "Не удалось открыть почтовую программу. Отправьте архив вручную на адрес:",
                 uk: "Не вдалося відкрити поштову програму. Надішліть архів вручну на адресу:",
                 de: "Das Mailprogramm konnte nicht geöffnet werden. Senden Sie das Archiv bitte manuell an:",
                 it: "Non è stato possibile aprire il programma di posta. Invii l'archivio manualmente a:",

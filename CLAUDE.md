@@ -402,6 +402,84 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    file inventory group ids moved with the settings (preview captions only; the file format is untouched). Spec:
    [PLAN/S0062_settings-tab-regrouping.md](PLAN/S0062_settings-tab-regrouping.md).
 
+15. **The traffic light - "Светофор доступности", a board of last known reachability (ticket S0069), opt-in and off
+   by default.** `EnableTrafficLight=0` means **no engine, no scheduler (so no timer and no network or power event
+   subscription), no journal, no window object, no tray item and no chord** - a user who never switches it on pays
+   nothing. Enabled, the user lists **their own** targets - seven kinds: `ping` (one ICMP echo), `tcp` (one connect),
+   `http` (HEAD, then GET headers-only on a 4xx/5xx **that is not already accepted**, sent to where HEAD's redirects
+   ended; redirects up to 5; system proxy; no cookies, no credentials; the **final** status is judged against
+   `acceptedStatusCodes`, default `200-399`), `folder` (one enumeration - exists and enumerable, **at most one entry
+   read**, nothing written), `drive` (by **letter only**), `sftp` (TCP connect and the server's
+   identification line - proves "an SSH server answers", not "this is the share") and `exchange` (TLS handshake only,
+   SHA-256 of the leaf compared with an optional `fingerprint`; **no application byte is ever sent**) - and each is
+   polled on its own interval (default 60 s, **floor 2 s - a typo guard, not a speed limit**, 0 = manual only). Six
+   decisions carry it:
+   - **The engine is pure** (`TrafficLightEngine`): a clock and the targets in, lights out. A tile keeps its last
+     known state while a re-check is in flight and changes only on a **completed** check; a failure reaching
+     `failuresBeforeDown` (default 1) turns it red, below that the tile keeps its state ("confirming k/N") and the next
+     check is due after `min(interval, 10 s)`; one success clears the streak. The interval counts from the
+     **completion** of the previous check, so checks never overlap. **Stale** is derived, not stored (3 intervals,
+     manual-only 1 hour, or a network target while offline) and dims a tile without changing its colour. Results live
+     in memory only. A result that comes back for a target whose identity changed meanwhile is dropped (`Generation`).
+   - **One scheduler timer, bounded workers** (`TrafficLightScheduler`): a 1-second tick, network probes asynchronous
+     and capped at **16 in flight** (a due target over the cap simply waits for the next tick - that is the cold-start
+     stagger), `folder` and `drive` calls on **4 dedicated threads** created only once such a target exists. Those
+     calls cannot be cancelled, so the hard timeout **abandons** them: the check completes as `timeout` at once while
+     the worker and the target's slot stay occupied until the call really returns. Network events
+     (`NetworkChange`, `PowerModeChanged`) are subscribed only between `Start` and `Stop`, debounced 2 s, and make
+     every target due. While Windows reports no network the network kinds are **paused, not red** (`computer-offline`
+     is a note, not a verdict) and no balloon fires.
+   - **Recognition is pure and offline** (`TargetRecognizer`, D24): one text field, Enter adds with that kind's
+     defaults, Shift+Enter opens the details panel first. `D:\` a drive; `\\HOST` a machine (`ping`, else `tcp` 445 -
+     **the one fallback, no other port is ever tried**); `\\HOST\SHARE` / `//nas/x` a folder; `192,168,1,100` an IP
+     (commas read as dots, said so on the status line); `google.com` a website; `host:port` a `tcp` target; `sftp://`
+     links, `FMSEXCH1:` and `FMSSFTP1/2:` strings are read **by their contracts' vectors** (`ExchangeConnectionString`,
+     `SftpDescriptor`; byte-exact copies under `tests/CyrFlip.Tests/Fixtures/`) and **every secret - `u`, `pw`, `fp`
+     of a share, `sid`, a link's login - is dropped at parse time and the raw text is never stored or logged**. A
+     `.fmscfg` document is refused unread. A broken contract string is refused **whole**.
+   - **The board** (`TrafficLightWindow`, `TrafficLightBoard`, `TrafficLightTitleBar`): one non-activating,
+     **borderless** tool window - `ShowWithoutActivation` and `WM_MOUSEACTIVATE`->`MA_NOACTIVATE`, so the mouse
+     never steals the focus - pinned on top as a **switch** (`TrafficLightPinned`), **excluded from every capture and
+     screen share** (`WDA_EXCLUDEFROMCAPTURE`, D9: it is a map of the user's network, so a balloon names the
+     **label, never the address**). It has **its own title area** (`TrafficLightTitleBar`) that drags the window,
+     as does any empty part of the board, and carries four **icon buttons** from the vocabulary: add a target
+     (`action.add` - a small window for an address and a label, `TrafficLightQuickAddDialog`, the recognition live
+     under it; every other option of a target stays on the settings page), edit (`action.edit` - the settings window,
+     on this module's page), pin on top (`action.pin` / `action.pin--off`, a switch) and close (`nav.close`).
+     **Its size is the grid's**: `TrafficLightColumns` (default 3, 1..12) tiles in a row and as many rows as the
+     targets make - three columns and four to six targets are two rows at once - never more columns than the
+     widest group has tiles; the window refits whenever the targets, the columns or the tile size change, stays on
+     the screen, and only its **position** is remembered. The small tile size is a **bare square**: no label, and
+     "available" is plain green with **no mark** (a tick on green repeats the hue; owner, 2026-10-13), while every
+     other state keeps its glyph - no mark is itself the reading, so the state still never rests on colour alone -
+     and a switched-off target has a dashed edge (`TrafficLightBoard.MarkShown`); the name and the state are on
+     hover - and on that step there is no status line ("all available: ..") and no title text, only the buttons. The **chord** (`Ctrl+Shift+Alt+T`) and the tray item take
+     the focus onto it (arrows, Enter = check, F5 = all, Esc = hand the focus back, the Menu key = the context menu,
+     which holds every button's command too): hidden - show and focus; visible and
+     unfocused - focus; focused - hide. The state is **never colour alone**: each tile carries the vocabulary glyph
+     of its state (`status.ok`, `status.warning`, `status.error`, `status.unknown`, drawn by `GlyphRenderer` in
+     `StatusInk`; a switched-off target has none, an invalid address shows `status.error` on the muted plate -
+     `TrafficLightBoard.GlyphOf`; the typographic marks of `MarkOf` remain only for the settings table's text
+     column and as the fallback of a glyph that cannot be drawn) and the tooltip and the accessible value carry
+     the word. The hover tips of the tiles and of the title bar's buttons are the controls' **own tools**
+     (`ToolTip.SetToolTip`, `ShowAlways`), never `ToolTip.Show(.., window, ..)`: that one answers only while the
+     window is the active one, and the mouse never activates the board - it showed nothing until the chord had
+     focused it (`Test-TrafficLight.ps1` hovers a real pointer over a board nobody focused). The fills are new theme roles (`StatusOkFill`, `StatusWarningFill`,
+     `StatusErrorFill`, `StatusUnknownFill`, `StatusInk`), **not** the `success`/`warning`/`danger` ink roles.
+   - **Balloons** are per target (`notify`, default off): only a **settled** change into or out of `down`, never a
+     baseline (the first settled state after start), never while offline, coalesced to one per 15 s naming up to three
+     labels; the tray item carries the summary ("недоступно: 1 из 12").
+   - **The change journal** (`TrafficLightJournal`, per-target `recordHistory`, default off) is **plain unencrypted
+     text** in `traffic-light-history.txt` of the data folder, written by one background writer in order, split at
+     5 MB, never deleted automatically and **never in a support bundle, a settings export or a diagnostic log**
+     (`SupportBundle.ExcludedFiles` holds three names now). Keys are invariant codes, so the file reads the same in
+     every UI language. A swallowed fault anywhere in the feature goes to `traffic-light.log` by site and exception
+     type only (`TrafficLightLog`, one line a minute per site).
+   The list of targets is **opt-in on both ends of the settings file** (D10): an export asks before it includes it,
+   an import takes it only on an explicit yes, and the module switch itself is never part of the slice (importing
+   into an off module leaves it off). An imported or hand-edited address that fails validation is shown as an
+   invalid tile and **never probed**. Spec: [PLAN/S0069_network-traffic-light.md](PLAN/S0069_network-traffic-light.md).
+
 It runs in the **system tray** (the icon also shows the layout; right-click menu = the history controls, the three indicator toggles, the two keep-awake switches, the **Launcher** submenu and **"Перевести буфер обмена"** - each visible only while its module is enabled - then Settings and Exit). **Tray mouse:** a **single left click switches the input language to the next one in Windows' rotation** (`LayoutSwitcher.SwitchToNext`), a **double click opens Settings**. Since the shell also delivers the first click of a double click as an ordinary click, the switch is deferred by `SystemInformation.DoubleClickTime` and cancelled when the double click arrives - and it targets `CursorIndicator.LastActiveWindow`, not the foreground window, because clicking the notification area moves the focus to the taskbar. See [PLAN/done/Spec_v1.1_Cursor_and_Caret.md](PLAN/done/Spec_v1.1_Cursor_and_Caret.md) for the indicator design.
 
 **On the mouse cursor (important):** `SetSystemCursor` is **global** - it changes every app's I-beam until restored. The default cursors are reloaded (`SystemParametersInfo(SPI_SETCURSORS)`) on `Dispose`, `Application.ApplicationExit`, `AppDomain.ProcessExit`, `UnhandledException` and the session end (see `LayoutCursor.ForceRestore`) - **but only when CyrFlip replaced the I-beam since the last reload**: `SPI_SETCURSORS` reloads the whole scheme, undoing cursors other tools set, so with the cursor change off (the default) it is never called. The one unavoidable gap is a hard `TerminateProcess` (kill). Only `OCR_IBEAM` is replaced (not the arrow). The *displayed* I-beam only repaints on `WM_SETCURSOR` (mouse move), so after a layout change `LayoutCursor` sends a zero-delta `SendInput` mouse move (`ForceCursorRefresh`) to repaint it in place.
@@ -493,7 +571,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   clipboard strip's search / close / pin / delete (`HistoryStripGlyphs`, exposed to a screen reader as an
   `AccessibleObject` with four kinds of child), the order buttons of the layout list, the launcher list and
   the notes window (`action.move-up` / `action.move-down` in the theme's text colour, drawn again when the
-  theme changes), all thirteen settings tabs (`SettingsForm.TabGlyphId`; "Меню для выделенного" was the last caption-only tab until its record `feature.selection-menu` landed on 2026-10-11 - S0062 D7; the guides show the same glyph
+  theme changes), all fourteen settings tabs (`SettingsForm.TabGlyphId`; "Меню для выделенного" was the last caption-only tab until its record `feature.selection-menu` landed on 2026-10-11 - S0062 D7, and the traffic light's `feature.network-monitor` and its four `status.*` tile marks were vendored from the catalog's glyph files on 2026-10-13 - S0069; the guides show the same glyph
   beside the tab's name), and the Jump List's Manage / Exit / yt-dlp / unreadable-program icons - written as
   `.ico` files into `icons\` beside `layout.txt` (`LauncherShortcutIcons`, the MSIX-aware folder; the name
   carries a revision), because the shell wants a file location and an SDK-style net48 project embeds one
@@ -861,14 +939,24 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   broken: it opened the system page and then "unticked" itself even though Windows was starting CyrFlip.
 - **KeepAwake.cs** - the two "don't sleep / don't blank the screen (like video)" toggles. Two independent switches (`KeepSystemAwake`/`KeepScreenOn`) OR-ed into one `SetThreadExecutionState` call: `ES_SYSTEM_REQUIRED` (system won't sleep) and `ES_DISPLAY_REQUIRED` (display won't blank/lock on idle). `ES_CONTINUOUS` makes the request sticky (one call per change, no polling); it is bound to the calling thread (the tray UI thread), so a hard kill clears it for free, and `Reset()` restores the normal idle policy on exit and when both are off. **Both switches are persisted** (`AppConfig.KeepSystemAwake`/`KeepScreenOn`) and re-applied at startup by `Restore(system, screen)` - **one** call carrying both bits, never two, so a launch with both on never asks Windows for half the policy first. That reverses spec §5's original "memory only, off on every launch" (changed 2026-07-28): a switch that silently forgot itself read as broken, which is exactly how it was reported. The old safety argument now lives in the UI text instead - the settings hint says outright that a forgotten switch keeps the machine awake after a restart too and that CyrFlip will not watch your battery for you. `KeepAwake` still persists nothing itself: `CyrFlipContext` writes the config and hands the state back, so the P/Invoke seam (`SetExecutionState`) stays the only thing to fake in tests. No admin rights; the two registry values are ordinary `AppConfig` state. Driven by two checkable tray items + two "General"-tab checkboxes; see [PLAN/done/KeepAwake_Spec_Idea_v0.1.md](PLAN/done/KeepAwake_Spec_Idea_v0.1.md). **Only `powercfg /requests` (admin) can confirm the request landed** - `SetThreadExecutionState` returns the previous state, never a confirmation; `tools/uitest/Test-KeepAwake.ps1` is that check.
 - **WindowInterop.cs** - all `[DllImport]`s + interop structs. The `INPUT` union includes `MOUSEINPUT` so `Marshal.SizeOf(INPUT)` matches the real struct on x64 (else `SendInput` silently fails).
-- **AppConfig.cs** - persists settings to `HKCU\Software\CyrFlip`. A failed key open marks the entire config unreadable and blocks every save, snapshot capture and first-run tour until restart (S0063). On first run with no registry key, migrates from a legacy `config.json` (from `%APPDATA%\CyrFlip\` or beside the exe) and seeds the conversion table (`NeedsFlipRow`/`FlipRow`, called from `Load()`; see feature 2). Fields: `CaseHotkey` (default **Ctrl+Shift+F11**), `CursorSize`, `EnableCursorChange` (default **false**), `EnableCaretOverlay` (default **true**), `CaretDotMode` (default **false**), `EnableLanguageSwitch` (default **false**), `FlipCapsLockAfter` (default **false**), `ConvertSymbols` (default **true**), the hotkey switches `EnableHotkeys`/`EnableCaseHotkey`/`EnableHistoryHotkey` (all default **true**), `DeferToRemoteDesktop` (default **false**), `FlipCount` + `CaseFlipCount` + `TranslateCount` (usage counters), and the translator block (`EnableTranslate`, `TranslateSeeded`, `TranslateProfiles`, `TranslateEndpoint`, `TranslateModel`, the timeouts and the result-window options - see the config table). `UiLanguage` holds the language **endonym** ("Русский", "Deutsch", "中文", ..) and defaults to the OS UI language via `Localization.DefaultLanguage()` (any of the 13 translated languages, else **English** - never Russian, which is only the translation table's source language). The **user's display language** (`CurrentUICulture`) wins over the language Windows was installed in (`InstalledUICulture`), which is the only one that is right for an English Windows switched to a Russian desktop; regional variants resolve to their language, so de-AT, pt-BR and zh-Hans-CN all find their translation. `SettingsTab` remembers which settings page was open (restored on the next launch too, clamped against the live page count - the tab strip grows between versions). `Save()` writes all fields; `IncrementFlipCount()`/`IncrementCaseFlipCount()`/`IncrementTranslateCount()`/`SaveSettingsTab()` write only that one value (cheap). `SaveSettingsUiState()` is the settings window's UI-context write (ticket S0048, WINDOWS-UI section 3): group expansion (`SettingsGroupsState`), per-page scroll anchors (`SettingsViewport`) and the window rectangle (`SettingsWindowX/Y/Width/Height`), written when the window hides, never while the user drags it; anchors are stable group ids/row ordinals, not translated captions. **Every value is read on its own** (`LoadFrom`/`SaveTo` over the `IConfigKey` seam, `AppConfigLoadTests`; ticket S0007 CF-1): a value of the wrong kind falls back to its own default and lands in `UnreadableValues` (one balloon per start), where it used to abort the whole load and let the next save wipe the conversion table and the one-time Windows snapshots. A table or snapshot that is present but unreadable is **never saved over** until the user edits it; window geometry values are clamped by their windows rather than on load, other numbers are clamped to their UI's range; and the two profile tables are sanitized on load - null rows dropped, null strings made `""`, duplicate ids regenerated, the repaired form written back (CF-2).
+- **AppConfig.cs** - persists settings to `HKCU\Software\CyrFlip`. A failed key open marks the entire config unreadable and blocks every save, snapshot capture and first-run tour until restart (S0063). On first run with no registry key, migrates from a legacy `config.json` (from `%APPDATA%\CyrFlip\` or beside the exe) and seeds the conversion table (`NeedsFlipRow`/`FlipRow`, called from `Load()`; see feature 2). Fields: `CaseHotkey` (default **Ctrl+Shift+F11**), `CursorSize`, `EnableCursorChange` (default **false**), `EnableCaretOverlay` (default **true**), `CaretDotMode` (default **false**), `EnableLanguageSwitch` (default **false**), `FlipCapsLockAfter` (default **false**), `ConvertSymbols` (default **true**), the hotkey switches `EnableHotkeys`/`EnableCaseHotkey`/`EnableHistoryHotkey` (all default **true**), `DeferToRemoteDesktop` (default **false**), `FlipCount` + `CaseFlipCount` + `TranslateCount` (usage counters), and the translator block (`EnableTranslate`, `TranslateSeeded`, `TranslateProfiles`, `TranslateEndpoint`, `TranslateModel`, the timeouts and the result-window options - see the config table). `UiLanguage` holds the language **endonym** ("Русский", "Deutsch", "中文", ..) and defaults to the OS UI language via `Localization.DefaultLanguage()` (any of the 13 translated languages, else **English**, the source language of the translation table - never Russian). The **user's display language** (`CurrentUICulture`) wins over the language Windows was installed in (`InstalledUICulture`), which is the only one that is right for an English Windows switched to a Russian desktop; regional variants resolve to their language, so de-AT, pt-BR and zh-Hans-CN all find their translation. `SettingsTab` remembers which settings page was open (restored on the next launch too, clamped against the live page count - the tab strip grows between versions). `Save()` writes all fields; `IncrementFlipCount()`/`IncrementCaseFlipCount()`/`IncrementTranslateCount()`/`SaveSettingsTab()` write only that one value (cheap). `SaveSettingsUiState()` is the settings window's UI-context write (ticket S0048, WINDOWS-UI section 3): group expansion (`SettingsGroupsState`), per-page scroll anchors (`SettingsViewport`) and the window rectangle (`SettingsWindowX/Y/Width/Height`), written when the window hides, never while the user drags it; anchors are stable group ids/row ordinals, not translated captions. **Every value is read on its own** (`LoadFrom`/`SaveTo` over the `IConfigKey` seam, `AppConfigLoadTests`; ticket S0007 CF-1): a value of the wrong kind falls back to its own default and lands in `UnreadableValues` (one balloon per start), where it used to abort the whole load and let the next save wipe the conversion table and the one-time Windows snapshots. A table or snapshot that is present but unreadable is **never saved over** until the user edits it; window geometry values are clamped by their windows rather than on load, other numbers are clamped to their UI's range; and the two profile tables are sanitized on load - null rows dropped, null strings made `""`, duplicate ids regenerated, the repaired form written back (CF-2).
 - **Localization.cs (+ `Localization.*.cs` partials)** - the **single localization layer** for the whole
   app: settings window, tray menu and every dialog read from it, so adding a language is one column
   instead of a ternary in each file (the old `ru ? ... : uk ? ...` pattern is gone). The **key is the
-  Russian source string** - call sites stay readable and no resource ids are needed - and the value is one
-  translation per language. `Names`/`Codes` list the **13 UI languages** (the curated world set plus
-  Russian, matching `WorldLayouts.Popular`); an unknown key returns the source unchanged and an empty
-  translation falls back to English, never to Russian. Three helpers carry the script-specific bits:
+  English source string** (ticket S0070: code is English, English is the source language, Russian is a
+  translation like Ukrainian) - call sites stay readable and no resource ids are needed - and the value
+  is one translation per language, `ru:` and `uk:` being columns like the others. A row is `Add("Recording",
+  ru: "Запись", uk: ..., zh: ...)` and `Values` is parallel to `Names`. `Names`/`Codes` list the **13 UI
+  languages** (the curated world set plus Russian, matching `WorldLayouts.Popular`); an unknown key returns
+  the source unchanged and an empty translation falls back to the key itself (English), never to Russian.
+  **A key never holds Cyrillic**, and a Cyrillic string literal lives only in a `ru:`/`uk:` column, in
+  `Symbols.g.cs` or in the declared samples of `LocalizationSourceGateTests.DeclaredData` - the gate scans
+  every string literal, not only the ones in a translating call. Two surfaces that need one English word
+  in two grammatical forms of another language (`Large` for the marker, `Large (tiles)` for the traffic-light
+  tiles; seven pairs, `PLAN/S0070_english-source-strings/research/decisions.tsv`) get distinct keys, the
+  second with a context in parentheses and an `en:` display text that keeps the English UI unchanged.
+  **Rewording an English caption renames its key**: `tools/l10n/Rename-SourceKey.ps1`. Three helpers carry
+  the script-specific bits:
   `IsRightToLeft` (ar/ur → `RightToLeft` + `RightToLeftLayout` on every form), `FontFamily`
   (Nirmala UI for hi/bn, Microsoft YaHei UI for zh; null = the default font is fine) and
   `WidthScale`/`Scaled` (the tables' fixed pixel columns were measured against Russian, and German or
@@ -1111,6 +1199,7 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `UiLanguage` | `REG_SZ` | Windows UI language, else `English` | Interface language endonym |
 | `ClipboardHistoryHotkey` | `REG_SZ` | `Ctrl+Shift+F10` | Opens clipboard history |
 | `EnableClipboardHistory` | `REG_DWORD` | `0` | Enables local clipboard history |
+| `ClipboardHistoryNoticeShown` | `REG_DWORD` | `0` | One-time marker: the "records everything you copy, local only, never trimmed" notice was shown on the first enable (S0067) |
 | `PauseClipboardHistory` | `REG_DWORD` | `0` | Temporarily stops recording clipboard changes |
 | `ShowClipboardHistoryOnStartup` | `REG_DWORD` | `1` | Opens the history window at startup when history is enabled |
 | `ClipboardHistoryX` / `ClipboardHistoryY` | `REG_DWORD` | `MinValue` / `MinValue` | Last history window position |
@@ -1124,6 +1213,7 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `SettingsWindowWidth` / `SettingsWindowHeight` | `REG_DWORD` | `0` | The settings window's last normal-state size; `0` = never user-sized. A maximized close never overwrites these |
 | `CursorSize` | `REG_DWORD` | `24` | Base size of the I-beam cursor and caret overlay marker (px at 100%); the "Размер метки" slider on the "Индикаторы" tab writes 18 / 24 / 32. The badge is scaled by its monitor's DPI, the I-beam by the primary monitor's DPI and the Windows pointer size (`CursorBaseSize`) - `MarkerSize`, S0011 LI-3 |
 | `EnableCursorChange` | `REG_DWORD` | `0` | 1 = replace the system I-beam with the layout-branded cursor |
+| `CursorNoticeShown` | `REG_DWORD` | `0` | One-time marker: the "replaces the I-beam in every program" notice was shown on the first enable (S0067) |
 | `EnableCaretOverlay` | `REG_DWORD` | `1` | 1 = show the layout marker next to the blinking text caret |
 | `CaretDotMode` | `REG_DWORD` | `0` | 1 = use a solid colour dot instead of EN/RU/UK text in the overlay |
 | `EnableLanguageSwitch` | `REG_DWORD` | `0` | 1 = after a conversion, also switch the target window to the layout the text now reads in |
@@ -1190,6 +1280,15 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `SymbolsHideTypable` | `REG_DWORD` | `0` | 1 = hide the characters a single key combination of an installed layout already types |
 | `SymbolsX` / `SymbolsY` / `SymbolsWidth` / `SymbolsHeight` | `REG_DWORD` | `MinValue` / `MinValue` / `0` / `0` | Window geometry, saved at the end of a gesture and on hide; a position no live monitor covers is clamped, a size only ever grown to the measured minimum |
 | `SymbolsCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful copy |
+| `EnableTrafficLight` | `REG_DWORD` | `0` | 1 = the traffic light module is on; 0 = no timer, no chord, no tray item, no window, no network or power event subscription (S0069). The block is written only once the module has been on |
+| `TrafficLightHotkey` | `REG_SZ` | `Ctrl+Shift+Alt+T` | Shows and focuses the board, and hides it from itself; checked against every other chord owner |
+| `EnableTrafficLightHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound (only while `EnableTrafficLight`=1) |
+| `TrafficLightTargets` | `REG_SZ` | *(empty)* | JSON array of the targets (label, kind, address, optional fingerprint, group, ordinal, switch, interval, timeout, thresholds, failures before down, accepted HTTP codes, untrusted-certificate option, balloon, journal). `[]` after the user emptied it; an unreadable value is never saved over until the user edits it |
+| `TrafficLightVisible` | `REG_DWORD` | `0` | The board was left visible; it reopens (without taking the focus) at the next start |
+| `TrafficLightPinned` | `REG_DWORD` | `1` | 1 = the board stays on top of other windows |
+| `TrafficLightTileSize` | `REG_DWORD` | `1` | 0 small (a bare square: no label, no mark on "available", the glyph of any other state, no status line), 1 medium, 2 large |
+| `TrafficLightColumns` | `REG_DWORD` | `3` | Tiles in a row, 1..12; the rows follow from the number of targets and the window fits the grid |
+| `TrafficLightX` / `TrafficLightY` | `REG_DWORD` | `MinValue` / `MinValue` | The board's position, written at the end of a drag and on hide; a position no live monitor covers is clamped. Its size is the grid's and is never stored (`TrafficLightWidth` / `TrafficLightHeight` of the first build are no longer read) |
 
 Legacy `config.json` (still accepted on first run for migration):
 ```json
@@ -1282,8 +1381,7 @@ note plus a `.bak`, "delete everything" taking the `.bak` with it, and nothing r
 beside the encrypted record - title included) and `QuickNotesServiceTests` (an empty draft never
 created while an existing note the user emptied still is, the creation date assigned once, the
 debounce flushed by `Dispose` rather than lost). `QuickNotesWindowTests` builds the real window in
-**each of the 13 languages** and walks it for surviving Cyrillic - the window lives outside the
-settings control tree, so nothing else would catch an untranslated caption in it. The theme (S0020):
+**each of the 13 languages** and walks it for surviving Cyrillic - the window lives outside the settings control tree, so nothing else would catch a Cyrillic literal that bypassed the table in it. The theme (S0020):
 `ThemeModeTests` (the token round trip incl. the registry, unknown -> `system`, the resolve matrix with
 high contrast winning), `ThemePaletteTests` (every role in all three palettes, every text/surface pair at
 4.5:1 - the ratios are printed - dark dark, light light, the marks distinguishable from body text, every
@@ -1308,7 +1406,7 @@ settings window that came back half-built (an empty version label). The collecti
 classes run one at a time; the fix is deliberately in the tests, since the app has no concurrency
 here to fix. It reproduced in 5 of 8 full runs before, and 0 of 15 after.
 
-**Verified live on 2026-07-25** (the tech plan's Фаза 3 gate - a build alone never proves this): with one scenario staged, the shell's own `%APPDATA%\Microsoft\Windows\Recent\CustomDestinations\*.customDestinations-ms` came back holding the task title, `/launcher-run:{guid}`, `/launcher-settings`, the exe path and the resolved icon path - i.e. every `IShellLinkW`/`IPropertyStore` slot landed where intended (a wrong vtable slot fails *silently*, so this is the only real proof). A Jump List click on a live instance dispatched over the pipe without creating a second process; with no instance it one-shot launched and left no process; switching the launcher off **deleted** that shell file and a stale task was then received but not executed. Two localization guards in `SettingsLocalizationTests`: every string registered in `Localization` has a non-empty translation in **all 13** languages, every dynamically built string is actually registered, and the live settings window is constructed **in each language** and walked for surviving Cyrillic (a Latin/Arabic/Indic/CJK build showing Cyrillic = an untranslated label; "ЙЦУКЕН" is allowed). The hook, clipboard flip, layout detection, and the live layout install/remove are interop-bound - verify those manually (see below).
+**Verified live on 2026-07-25** (the tech plan's Фаза 3 gate - a build alone never proves this): with one scenario staged, the shell's own `%APPDATA%\Microsoft\Windows\Recent\CustomDestinations\*.customDestinations-ms` came back holding the task title, `/launcher-run:{guid}`, `/launcher-settings`, the exe path and the resolved icon path - i.e. every `IShellLinkW`/`IPropertyStore` slot landed where intended (a wrong vtable slot fails *silently*, so this is the only real proof). A Jump List click on a live instance dispatched over the pipe without creating a second process; with no instance it one-shot launched and left no process; switching the launcher off **deleted** that shell file and a stale task was then received but not executed. Two localization guards in `SettingsLocalizationTests`: every string registered in `Localization` has a non-empty translation in **all 13** languages, every dynamically built string is actually registered, and the live settings window is constructed **in each language** and walked for surviving Cyrillic (a Latin/Arabic/Indic/CJK build showing Cyrillic = a Russian literal that bypassed the table; "ЙЦУКЕН" is allowed - an untranslated label now reads English, which `LocalizationSourceGateTests` catches at the source: no Cyrillic literal outside the translation data, every literal of a translating call a registered key, every row with its `ru` and `uk`). The hook, clipboard flip, layout detection, and the live layout install/remove are interop-bound - verify those manually (see below).
 
 **Translator verified live on 2026-07-26** against the real Ollama on the dev machine (`qwen2.5:3b`): probe, model listing and a streamed completion all came back through the production code path - RU→EN, EN→RU, DE→UK and a two-letter string that legitimately translates to itself. First call 26 s (the model being loaded), then ~300-400 ms, which is `keep_alive` doing its job. What that check does **not** cover, and still needs a human at the keyboard: the chord itself, the synthesized copy/paste, the popup's placement and focus behaviour, and the clipboard-history interaction (spec §12.2).
 - **Desktop-driving checks** (`tools/uitest/`, PowerShell): the interop that xUnit cannot reach -

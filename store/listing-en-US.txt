@@ -15,7 +15,7 @@ Type in the right layout. A live layout marker sits next to the blinking text ca
 
 Select text typed in the wrong layout and press Ctrl+Shift+F12: CyrFlip converts it in place, in both directions and even for mixed text. Add as many "from layout to layout" pairs as you like, each with its own shortcut; text is converted by physical key position, so AZERTY and QWERTZ are handled correctly. A separate hotkey fixes accidental CapsLock. The Windows languages tab installs, reorders and removes keyboard layouts (nothing is downloaded - they ship with Windows) and assigns per-language shortcuts that Windows itself handles, so they keep working even when CyrFlip is closed.
 
-Act on what you selected. Hold Ctrl and right-click a selection, and CyrFlip's own menu opens at the pointer: copy, cut and paste, your layout conversions, the case fix, translation, Quick launch and the clipboard history - without taking the focus, so the selection survives. A keyboard chord opens the same menu at the caret. Off by default.
+Act on what you selected. Hold Ctrl and right-click a selection, and CyrFlip's own menu opens at the pointer: copy, cut and paste, your layout conversions, the case fix, translation, Quick launch and the clipboard history - without taking the focus, so the selection survives. A keyboard chord opens the same menu at the caret. Off by default. The optional symbols window finds the character your keyboard lacks by name, keyword or Unicode code and copies it with a click.
 
 The built-in translator is optional too. Select text anywhere in Windows, press its shortcut, and the translation appears in a small window next to the mouse pointer, filling in as the model writes. It runs on Ollama, a free program you install once on your own computer: CyrFlip does not bundle it, has no account and no key, and by default talks only to http://localhost:11434 - your own machine. Directions are an open table with a shortcut each, and the result can be copied to the clipboard or pasted over the selection. aya-expanse:8b (~4.7 GB) is the default model. Fair warning: the quality is the local model's, the first translation after a cold start takes a while, and the memory the model uses belongs to the Ollama process, not to CyrFlip.
 
@@ -23,7 +23,7 @@ Keep what you copy and write. The optional clipboard history keeps recent text l
 
 Launch and capture. Ctrl+PrintScreen freezes the screen, you drag a region, and the picture lands on the clipboard - optionally also saved as a PNG to a folder. Ctrl+Shift+PrintScreen opens that folder while saving is on. Quick launch, an optional module, turns your programs, scripts and yt-dlp downloads into scenarios you start from the tray, from a hotkey of their own or from the taskbar Jump List; scenarios from the standalone OneClickRunner tool can be imported without touching the originals. Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
 
-Yours alone. Optional modules stay off until you switch them on, every hotkey can be switched off on its own, and CyrFlip can hand its hotkeys to a focused Remote Desktop window. The interface is available in 13 languages, right-to-left ones included, with a light, dark or Windows-matching theme. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11.
+Yours alone. Optional modules stay off until you switch them on, every hotkey can be switched off on its own, and CyrFlip can hand its hotkeys to a focused Remote Desktop window. The interface is available in 13 languages, right-to-left ones included, with a light, dark or Windows-matching theme. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11. Every hotkey with its state sits in one Settings list, where any chord can be reset to its default.
 
 Privacy: CyrFlip uses a keyboard hook and the clipboard only to detect the active layout and perform actions you trigger. It does not log keystrokes, and it opens no network connection unless you enable the translator, which talks only to the Ollama server you point it at - your own computer by default. If something goes wrong, the settings window collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network, and clipboard history never goes into the archive. Open source: https://github.com/SerZhyAle/CyrFlip
 
@@ -34,8 +34,8 @@ On General, export CyrFlip settings to JSON, preview changes before importing, o
 
 PRODUCT FEATURES (max 200 chars each)
 -------------------------------------
-• Live layout marker next to the text caret - works in browsers and the VS Code chat
-• 13 curated languages, each with its own colour; any other Windows layout gets its code too
+• Live layout marker next to the text caret - 13 curated languages with their own colours; works in browsers and the VS Code chat
+• Optional symbols window: search by name, keyword or Unicode code, a click copies the character
 • One key fixes text typed in the wrong layout, in place and in both directions
 • A table of layout conversions: any pairs, each with its own shortcut, by physical key position
 • Separate hotkey fixes accidental CapsLock (swaps UPPER/lower case)
@@ -47,8 +47,8 @@ PRODUCT FEATURES (max 200 chars each)
 • Optional quick notes that keep text exactly as given, so code pastes back unchanged; encrypted on disk
 • Move notes and clipboard history to another computer in one plain-text exchange file
 • Screen-region capture to the clipboard on Ctrl+PrintScreen, optionally saved as PNG
-• Optional Quick launch: programs, scripts and yt-dlp downloads as one-click scenarios
-• Start a scenario from the tray, its own global hotkey, or the taskbar Jump List
+• Optional Quick launch: programs, scripts and yt-dlp downloads as scenarios from the tray, a hotkey or the Jump List
+• Every hotkey in one list: what it does, whether it works, change or reset it there
 • Two keep-awake switches: no sleep and no screen blanking while you work
 • Light, dark or Windows-matching theme for every window, dialog and menu
 • Interface in 13 languages, right-to-left included; follows your Windows language

@@ -34,6 +34,14 @@ namespace CyrFlip
         public const string Symbols = "feature.symbols";
         public const string ShortcutOverview = "app.shortcut-overview";
         public const string SelectionMenu = "feature.selection-menu";
+        public const string NetworkMonitor = "feature.network-monitor";
+        // The four states of a reachability tile (S0069): the shape carries the state, the fill role only
+        // supplements it. The vocabulary's own words: ok "works, granted or verified", warning "works, but with a
+        // risk", error "something failed and needs attention", unknown "no result yet".
+        public const string StatusOk = "status.ok";
+        public const string StatusWarning = "status.warning";
+        public const string StatusError = "status.error";
+        public const string StatusUnknown = "status.unknown";
         // Disclosure chevrons (WINDOWS-UI section 3: a collapsed group shows nav.expand, an open one
         // nav.collapse - the glyph names the action a click performs). Both records are rtl: fixed.
         public const string Expand = "nav.expand";

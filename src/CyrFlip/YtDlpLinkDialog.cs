@@ -25,7 +25,7 @@ namespace CyrFlip
 
         public YtDlpLinkDialog(string uiLanguage)
         {
-            Text = Localization.Translate(uiLanguage, "Загрузка yt-dlp");
+            Text = Localization.Translate(uiLanguage, "yt-dlp download");
             FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false; MinimizeBox = false;
             StartPosition = FormStartPosition.CenterParent; ShowInTaskbar = false;
             AutoSize = true; AutoSizeMode = AutoSizeMode.GrowAndShrink;
@@ -39,17 +39,17 @@ namespace CyrFlip
 
             var caption = new Label
             {
-                Text = Localization.Translate(uiLanguage, "Ссылка для скачивания:"),
+                Text = Localization.Translate(uiLanguage, "Link to download:"),
                 AutoSize = true, Margin = new Padding(3, 3, 3, 6),
             };
             _link.Width = TextWidth(new string('W', 42));
             _link.Margin = new Padding(3, 0, 3, 3);
             _link.TextChanged += (_, _) => _ok!.Enabled = _link.Text.Trim().Length > 0;
 
-            _ok = Command(Localization.Translate(uiLanguage, "Начать"), DialogResult.OK, AppGlyphs.Run);
+            _ok = Command(Localization.Translate(uiLanguage, "Start"), DialogResult.OK, AppGlyphs.Run);
             _ok.Enabled = false;
             _ok.Click += (_, _) => Link = _link.Text.Trim();
-            Button cancel = Command(Localization.Translate(uiLanguage, "Отмена"), DialogResult.Cancel);
+            Button cancel = Command(Localization.Translate(uiLanguage, "Cancel"), DialogResult.Cancel);
 
             var buttons = new FlowLayoutPanel
             {

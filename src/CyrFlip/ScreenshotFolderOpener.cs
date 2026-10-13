@@ -79,13 +79,13 @@ namespace CyrFlip
                     return;
                 case ScreenshotFolderTarget.Outcome.Unavailable:
                     // The balloon eats a lone ampersand the way a label does; a path may carry one.
-                    _balloon(4000, Localization.Format(_translate, "Папка для снимков недоступна: {0}",
+                    _balloon(4000, Localization.Format(_translate, "The screenshots folder is unavailable: {0}",
                         (resolution.Configured ?? "").Replace("&", "&&")), ToolTipIcon.Warning);
                     return;
                 default:
                     // The very line the settings button has always shown, so the two never word it
                     // differently (section 3.2.3).
-                    _balloon(4000, _translate("Этой папки пока нет - она появится при первом сохранённом снимке."),
+                    _balloon(4000, _translate("This folder does not exist yet - it appears with the first saved capture."),
                         ToolTipIcon.Info);
                     return;
             }

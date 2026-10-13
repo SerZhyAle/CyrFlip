@@ -73,11 +73,11 @@ namespace CyrFlip
             }
             Size = new Size(Math.Max(MinimumSize.Width, width), Math.Max(MinimumSize.Height, height));
 
-            _copy = Command("Копировать", AppGlyphs.Copy, () => CopyRequested?.Invoke(this, EventArgs.Empty));
-            _paste = Command("Вставить", AppGlyphs.Paste, () => PasteRequested?.Invoke(this, EventArgs.Empty));
-            _retry = Command("Ещё раз", AppGlyphs.Refresh, () => RetryRequested?.Invoke(this, EventArgs.Empty));
-            _start = Command("Запустить Ollama", AppGlyphs.Run, () => StartServerRequested?.Invoke(this, EventArgs.Empty));
-            _settings = Command("Настройки", AppGlyphs.Settings, () => SettingsRequested?.Invoke(this, EventArgs.Empty));
+            _copy = Command("Copy", AppGlyphs.Copy, () => CopyRequested?.Invoke(this, EventArgs.Empty));
+            _paste = Command("Paste", AppGlyphs.Paste, () => PasteRequested?.Invoke(this, EventArgs.Empty));
+            _retry = Command("Again", AppGlyphs.Refresh, () => RetryRequested?.Invoke(this, EventArgs.Empty));
+            _start = Command("Start Ollama", AppGlyphs.Run, () => StartServerRequested?.Invoke(this, EventArgs.Empty));
+            _settings = Command("Settings", AppGlyphs.Settings, () => SettingsRequested?.Invoke(this, EventArgs.Empty));
 
             _language.SelectedIndexChanged += (_, _) =>
             {
@@ -441,12 +441,12 @@ namespace CyrFlip
 
         private void ApplyTexts()
         {
-            Text = T("Перевод");
-            _copy.Text = T("Копировать");
-            _paste.Text = T("Вставить");
-            _retry.Text = T("Ещё раз");
-            _start.Text = T("Запустить Ollama");
-            _settings.Text = T("Настройки");
+            Text = T("Translation");
+            _copy.Text = T("Copy");
+            _paste.Text = T("Paste");
+            _retry.Text = T("Again");
+            _start.Text = T("Start Ollama");
+            _settings.Text = T("Settings");
             ReloadLanguages();
         }
 
@@ -504,11 +504,11 @@ namespace CyrFlip
             catch { /* the font is missing on this machine - keep the default */ }
         }
 
-        private Button Command(string russian, string glyph, Action action)
+        private Button Command(string english, string glyph, Action action)
         {
             var button = new Button
             {
-                Text = T(russian),
+                Text = T(english),
                 AutoSize = true,
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Margin = new Padding(3, 3, 6, 3),
@@ -520,7 +520,7 @@ namespace CyrFlip
             return button;
         }
 
-        private string T(string ru) => Localization.Translate(_uiLanguage, ru);
+        private string T(string en) => Localization.Translate(_uiLanguage, en);
 
         /// <summary>Combo entry: shows the language label, carries the code the profile stores.</summary>
         private sealed class LanguageItem

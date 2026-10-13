@@ -25,7 +25,7 @@ namespace CyrFlip
             if (IsTypable && !string.IsNullOrEmpty(Chord))
             {
                 string layout = !string.IsNullOrEmpty(LayoutName) ? LayoutName! : "";
-                return Localization.Format(uiLanguage, "Набирается: {0} ({1})", Chord, layout);
+                return Localization.Format(uiLanguage, "Can be typed: {0} ({1})", Chord, layout);
             }
             // Unicode names are shown as published, regardless of the UI language.
             return symbolName;

@@ -65,10 +65,10 @@ namespace CyrFlip.Tests
         {
             var table = Localization.All.ToDictionary(e => e.Key, e => e.Value);
             foreach (string caption in SettingsFileInventory.Exported.Select(e => e.Caption)
-                .Concat(new[] { "Перенос настроек", "Экспортировать настройки...", "Импортировать настройки...", "Вернуть настройки до импорта..." }))
+                .Concat(new[] { "Settings transfer", "Export settings...", "Import settings...", "Restore settings before import..." }))
             {
                 Assert.True(table.ContainsKey(caption), caption);
-                Assert.Equal(12, table[caption].Length); Assert.All(table[caption], value => Assert.NotEmpty(value));
+                Assert.Equal(Localization.Names.Length, table[caption].Length); Assert.All(table[caption], value => Assert.NotEmpty(value));
             }
         }
         [Fact]

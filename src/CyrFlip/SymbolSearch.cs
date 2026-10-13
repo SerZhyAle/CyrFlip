@@ -52,7 +52,7 @@ namespace CyrFlip
             var categoryLocalizedWords = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
             foreach (SymbolCategory cat in SymbolsData.Categories)
             {
-                string localized = Localization.Translate(uiLanguage, cat.TitleRu);
+                string localized = Localization.Translate(uiLanguage, cat.Title);
                 categoryLocalizedWords[cat.Key] = SplitWords(localized);
             }
 

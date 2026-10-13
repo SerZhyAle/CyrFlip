@@ -90,35 +90,38 @@ namespace CyrFlip
             var textRows = new List<TrayChordRow>();
             if (!config.EnableHotkeys)
             {
-                textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, "", T("горячие клавиши выключены"), isMuted: true));
+                textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, "", T("hotkeys are off"), isMuted: true));
             }
             else
             {
                 if (ChordBinding.IsCaseActive(config) && Hotkey.TryParse(config.CaseHotkey, out Hotkey caseChord))
-                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, caseChord.Display, T("регистр"), kind: ChordKind.Case, parsedChord: caseChord));
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, caseChord.Display, T("case"), kind: ChordKind.Case, parsedChord: caseChord));
 
                 if (ChordBinding.IsHistoryActive(config) && Hotkey.TryParse(config.ClipboardHistoryHotkey, out Hotkey histChord))
-                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, histChord.Display, T("менеджер буфера"), kind: ChordKind.History, parsedChord: histChord));
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, histChord.Display, T("clipboard manager"), kind: ChordKind.History, parsedChord: histChord));
 
                 if (ChordBinding.IsQuickNotesActive(config) && Hotkey.TryParse(config.QuickNotesHotkey, out Hotkey qnChord))
-                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, qnChord.Display, T("быстрые заметки"), kind: ChordKind.QuickNotes, parsedChord: qnChord));
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, qnChord.Display, T("quick notes"), kind: ChordKind.QuickNotes, parsedChord: qnChord));
 
                 if (ChordBinding.IsSymbolsActive(config) && Hotkey.TryParse(config.SymbolsHotkey, out Hotkey symChord))
-                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, symChord.Display, T("окно символов"), kind: ChordKind.Symbols, parsedChord: symChord));
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, symChord.Display, T("symbols window"), kind: ChordKind.Symbols, parsedChord: symChord));
+
+                if (ChordBinding.IsTrafficLightActive(config) && Hotkey.TryParse(config.TrafficLightHotkey, out Hotkey tlChord))
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, tlChord.Display, T("availability traffic light"), kind: ChordKind.TrafficLight, parsedChord: tlChord));
 
                 if (ChordBinding.IsScreenshotActive(config) && Hotkey.TryParse(config.ScreenshotHotkey, out Hotkey scChord))
-                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, scChord.Display, T("снимок области экрана"), kind: ChordKind.Screenshot, parsedChord: scChord));
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, scChord.Display, T("screen region capture"), kind: ChordKind.Screenshot, parsedChord: scChord));
 
                 if (ChordBinding.IsScreenshotFolderActive(config) && Hotkey.TryParse(config.ScreenshotFolderHotkey, out Hotkey scfChord))
-                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, scfChord.Display, T("папка со снимками"), kind: ChordKind.ScreenshotFolder, parsedChord: scfChord));
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, scfChord.Display, T("screenshots folder"), kind: ChordKind.ScreenshotFolder, parsedChord: scfChord));
 
                 if (ChordBinding.IsTextMenuActive(config) && Hotkey.TryParse(config.TextMenuHotkey, out Hotkey tmChord))
-                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, tmChord.Display, T("контекстное меню текста"), kind: ChordKind.TextMenu, parsedChord: tmChord));
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, tmChord.Display, T("text context menu"), kind: ChordKind.TextMenu, parsedChord: tmChord));
             }
 
             if (textRows.Count > 0)
             {
-                groups.Add(new TrayChordGroup(TrayChordGroupKind.Text, T("Текст"), textRows));
+                groups.Add(new TrayChordGroup(TrayChordGroupKind.Text, T("Text"), textRows));
                 allRows.AddRange(textRows);
             }
 
@@ -137,7 +140,7 @@ namespace CyrFlip
                 }
                 if (convRows.Count > 0)
                 {
-                    groups.Add(new TrayChordGroup(TrayChordGroupKind.Conversions, T("Конвертация"), convRows));
+                    groups.Add(new TrayChordGroup(TrayChordGroupKind.Conversions, T("Conversion"), convRows));
                     allRows.AddRange(convRows);
                 }
             }
@@ -157,7 +160,7 @@ namespace CyrFlip
                 }
                 if (transRows.Count > 0)
                 {
-                    groups.Add(new TrayChordGroup(TrayChordGroupKind.Translation, T("Перевод"), transRows));
+                    groups.Add(new TrayChordGroup(TrayChordGroupKind.Translation, T("Translation"), transRows));
                     allRows.AddRange(transRows);
                 }
             }
@@ -176,7 +179,7 @@ namespace CyrFlip
                 }
                 if (launchRows.Count > 0)
                 {
-                    groups.Add(new TrayChordGroup(TrayChordGroupKind.Launcher, T("Сценарии"), launchRows));
+                    groups.Add(new TrayChordGroup(TrayChordGroupKind.Launcher, T("Scenarios"), launchRows));
                     allRows.AddRange(launchRows);
                 }
             }
@@ -185,14 +188,14 @@ namespace CyrFlip
             var mouseRows = new List<TrayChordRow>();
             if (config.EnableContextMenu && MouseChord.TryParse(config.ContextMenuChord, out MouseChord mChord))
             {
-                mouseRows.Add(new TrayChordRow(TrayChordGroupKind.Mouse, mChord.Display(T), T("контекстное меню текста")));
+                mouseRows.Add(new TrayChordRow(TrayChordGroupKind.Mouse, mChord.Display(T), T("text context menu")));
             }
-            mouseRows.Add(new TrayChordRow(TrayChordGroupKind.Mouse, T("ЛКМ"), T("следующая раскладка")));
-            mouseRows.Add(new TrayChordRow(TrayChordGroupKind.Mouse, T("2×ЛКМ"), T("настройки")));
+            mouseRows.Add(new TrayChordRow(TrayChordGroupKind.Mouse, T("Left Click"), T("next layout")));
+            mouseRows.Add(new TrayChordRow(TrayChordGroupKind.Mouse, T("Double Click"), T("settings")));
 
             if (mouseRows.Count > 0)
             {
-                groups.Add(new TrayChordGroup(TrayChordGroupKind.Mouse, T("Мышь"), mouseRows));
+                groups.Add(new TrayChordGroup(TrayChordGroupKind.Mouse, T("Mouse"), mouseRows));
                 allRows.AddRange(mouseRows);
             }
 
@@ -214,11 +217,11 @@ namespace CyrFlip
 
             string toggle = windowsToggleCode ?? "3";
             if (toggle == "1")
-                winRows.Add(new TrayChordRow(TrayChordGroupKind.Windows, "Alt+Shift", T("переключение раскладки"), isMuted: true));
+                winRows.Add(new TrayChordRow(TrayChordGroupKind.Windows, "Alt+Shift", T("switch layout"), isMuted: true));
             else if (toggle == "2")
-                winRows.Add(new TrayChordRow(TrayChordGroupKind.Windows, "Ctrl+Shift", T("переключение раскладки"), isMuted: true));
+                winRows.Add(new TrayChordRow(TrayChordGroupKind.Windows, "Ctrl+Shift", T("switch layout"), isMuted: true));
             else if (toggle == "4")
-                winRows.Add(new TrayChordRow(TrayChordGroupKind.Windows, "`", T("переключение раскладки"), isMuted: true));
+                winRows.Add(new TrayChordRow(TrayChordGroupKind.Windows, "`", T("switch layout"), isMuted: true));
 
             if (winRows.Count > 0)
             {
@@ -267,27 +270,33 @@ namespace CyrFlip
 
             if (!config.EnableHotkeys)
             {
-                lines.Add(T("горячие клавиши выключены"));
+                lines.Add(T("hotkeys are off"));
             }
             else
             {
                 if (config.EnableCaseHotkey && Hotkey.TryParse(config.CaseHotkey, out Hotkey caseChord))
-                    lines.Add(caseChord.Display + " - " + T("регистр"));
+                    lines.Add(caseChord.Display + " - " + T("case"));
 
                 if (config.EnableHistoryHotkey && Hotkey.TryParse(config.ClipboardHistoryHotkey, out Hotkey histChord))
-                    lines.Add(histChord.Display + " - " + T("менеджер буфера"));
+                    lines.Add(histChord.Display + " - " + T("clipboard manager"));
 
                 if (ChordBinding.IsQuickNotesActive(config) && Hotkey.TryParse(config.QuickNotesHotkey, out Hotkey qnChord))
-                    lines.Add(qnChord.Display + " - " + T("быстрые заметки"));
+                    lines.Add(qnChord.Display + " - " + T("quick notes"));
 
                 if (ChordBinding.IsSymbolsActive(config) && Hotkey.TryParse(config.SymbolsHotkey, out Hotkey symChord))
-                    lines.Add(symChord.Display + " - " + T("окно символов"));
+                    lines.Add(symChord.Display + " - " + T("symbols window"));
+
+                if (ChordBinding.IsTrafficLightActive(config) && Hotkey.TryParse(config.TrafficLightHotkey, out Hotkey tlChord))
+                    lines.Add(tlChord.Display + " - " + T("availability traffic light"));
 
                 if (ChordBinding.IsScreenshotActive(config) && Hotkey.TryParse(config.ScreenshotHotkey, out Hotkey scChord))
-                    lines.Add(scChord.Display + " - " + T("снимок области экрана"));
+                    lines.Add(scChord.Display + " - " + T("screen region capture"));
+
+                if (ChordBinding.IsScreenshotFolderActive(config) && Hotkey.TryParse(config.ScreenshotFolderHotkey, out Hotkey scfChord))
+                    lines.Add(scfChord.Display + " - " + T("screenshots folder"));
 
                 if (ChordBinding.IsTextMenuActive(config) && Hotkey.TryParse(config.TextMenuHotkey, out Hotkey tmChord))
-                    lines.Add(tmChord.Display + " - " + T("контекстное меню текста"));
+                    lines.Add(tmChord.Display + " - " + T("text context menu"));
 
                 if (config.LayoutConversionProfiles != null)
                 {

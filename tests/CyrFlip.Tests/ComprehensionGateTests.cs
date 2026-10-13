@@ -16,10 +16,12 @@ namespace CyrFlip.Tests
     /// is for catches: today's number is pinned, a change may only lower it, and each scanner has a
     /// guard fact that it sees what it claims to see - a gate that cannot fail is a finding.
     ///
-    /// No wording is judged or rewritten here. The items the audit marked red are carried in the
-    /// documented exception sets below (each with its finding id and the owner decision it waits
-    /// for, S0067 section 2 / S0058): the gate fails the day a **new** red item arrives, and the
-    /// exception entry is deleted the day the wording lands.
+    /// No wording is judged or rewritten here. The one item still red is the termbase concept term
+    /// the app's English never says, carried in <see cref="ConceptTermKnownMissing"/> with its
+    /// finding id and the owner decision it waits for (S0067 section 2.3, D-CU3): the gate fails
+    /// the day a **new** red item arrives, and the entry is deleted the day the wording lands.
+    /// The audit's other two carried items (the history hint, the ScreenshotFolder tooltip) landed
+    /// in S0067 and their exception sets are gone.
     /// </summary>
     public class ComprehensionGateTests
     {
@@ -85,7 +87,7 @@ namespace CyrFlip.Tests
 
             // And over the real table: the clipboard page description the audit counted (CU-2-01) is found.
             string en = Localization.Translate("English",
-                "История хранится только локально и шифруется Windows DPAPI для вашей учётной записи.");
+                "History is stored locally only and encrypted with Windows DPAPI for your account.");
             Assert.Contains("DPAPI", en);
             Assert.True(JargonWord.IsMatch(en) || JargonAcronym.IsMatch(en));
         }
@@ -130,7 +132,7 @@ namespace CyrFlip.Tests
         public void TheLengthScanSeesTheLongestHint()
         {
             string en = Localization.Translate("English",
-                "Клавиша, которая в обеих раскладках даёт знак, а не букву, не говорит о том, в какой раскладке её нажали: за «/» на русской клавише стоит точка, а «/» с цифрового блока вообще одинаков везде и в скопированном тексте неотличим от обычного. Пока флажок стоит, такие знаки конвертируются вместе с текстом - так CyrFlip вёл себя всегда. Снимите его, если чаще набираете их намеренно: тогда «/ghbdtn» сохранит свой слеш вместо того, чтобы начаться с точки. Знаки, на клавише которых в другой раскладке стоит буква (запятая, скобки), конвертируются в любом случае.");
+                "A key that gives a symbol rather than a letter in both layouts says nothing about the layout it was pressed in: the Russian key behind «/» carries a full stop, and the «/» of the numeric keypad is the same everywhere and cannot be told from the ordinary one once the text is copied. While this is ticked, such symbols are converted along with the text - the way CyrFlip has always behaved. Clear it if you type them on purpose more often: «/ghbdtn» then keeps its slash instead of starting with a full stop. Symbols whose key carries a letter in the other layout (the comma, the brackets) are converted either way.");
             Assert.True(WordCount(en) > 20 && en.Length > 140,
                 "the punctuation hint (CU-2-34, 114 words) is not over the ceiling - the scan is looking at the wrong string");
         }
@@ -199,28 +201,26 @@ namespace CyrFlip.Tests
         private static readonly (string Switch, string HintKey)[] OptInModules =
         {
             ("EnableContextMenu",
-                "Меню CyrFlip над выделенным текстом: копирование, вырезание, вставка, конвертация, регистр, перевод и быстрый запуск. Выключено по умолчанию: пока оно снято, CyrFlip не следит за мышью."),
+                "CyrFlip's own menu over the selected text: copy, cut, paste, conversion, case, translation and quick launch. Off by default: while it is off, CyrFlip does not watch the mouse."),
             ("ScreenshotSaveEnabled",
-                "По умолчанию выключено: снимок попадает только в буфер обмена. С флажком каждый выделенный фрагмент также сохраняется как PNG в папку ниже."),
+                "Off by default: a capture goes to the clipboard only. With this on, every selected region is also saved as a PNG into the folder below."),
             ("EnableQuickNotes",
-                "Пока выключено, CyrFlip не читает и не создаёт файл заметок, в трее нет пункта заметок и комбинация не назначена. Уже сохранённые заметки остаются на диске."),
+                "While it is off, CyrFlip neither reads nor creates the notes file, the tray has no notes entry and the chord is not bound. Notes already saved stay on disk."),
             ("EnableTranslate",
-                "Пока выключено, комбинации перевода не назначены, в трее нет пункта перевода и CyrFlip не открывает ни одного сетевого соединения."),
+                "While this is off no translation chord is bound, the tray has no translate entry, and CyrFlip opens no network connection at all."),
             ("EnableScenarioLauncher",
-                "Ваши программы, скрипты и загрузки yt-dlp: запуск из меню в трее, из этой таблицы, по глобальной комбинации и из Jump List значка CyrFlip на панели задач. Пока выключатель снят, CyrFlip ведёт себя как раньше — ни пункта в трее, ни задач в Jump List."),
+                "Your programs, scripts and yt-dlp downloads: run them from the tray menu, from this table, with a global shortcut, or from the Jump List of the CyrFlip taskbar icon. While the switch is off, CyrFlip behaves exactly as before — no tray entry and no Jump List tasks."),
             ("EnableSymbols",
-                "Пока выключено, окно символов не создаётся, в трее и контекстном меню нет пункта символов и комбинация не назначена."),
+                "While disabled, the symbols window is not created, no symbols item appears in the tray or context menu, and the hotkey is not bound."),
+            ("EnableTrafficLight",
+                "While off, there is no timer, no shortcut, no tray item and no window, and CyrFlip makes no network checks."),
             ("EnableClipboardHistory",
-                "CyrFlip сохраняет только Unicode-текст, скопированный после включения функции. Изображения, файлы и другие форматы не записываются."),
+                "Off by default: while off, nothing is kept. When on: text only, never images or files, and nothing is trimmed."),
         };
 
-        // The one red item of the audit (CU-2-16, P2): the clipboard history's first-screen text says
-        // neither that it is off nor what is lost while it is. The wording is the owner's (S0067
-        // section 2.5, S0058): when it lands, delete this entry and the gate goes green by itself.
-        private static readonly HashSet<string> ModuleDefaultKnownRed = new HashSet<string>(StringComparer.Ordinal)
-        {
-            "EnableClipboardHistory",
-        };
+        // The audit's one red item here (CU-2-16, P2) landed in S0067: the history hint now says
+        // that it is off and that nothing is trimmed, so no exception is carried - a module whose
+        // first-screen text goes silent fails the test below the day it happens.
 
         // Bool config values that default to off and are NOT opt-in modules of the audit's 2d table -
         // each needs its reason or it belongs in the module list above.
@@ -240,8 +240,7 @@ namespace CyrFlip.Tests
         /// <summary>
         /// Every opt-in module's first-screen text says that it is off and what that costs (CU-2d):
         /// the hint matches "off by default" or a "while it/this/the switch/disabled/off ..."
-        /// clause. 6 of 7 today; the clipboard history is the audit's red item and sits in the
-        /// documented exception above until the owner words it.
+        /// clause. 7 of 7 since S0067 worded the history hint (the audit's day-one count was 6).
         /// </summary>
         [Fact]
         public void EveryOptInModulesFirstScreenTextSaysWhatIsOff()
@@ -250,9 +249,9 @@ namespace CyrFlip.Tests
             foreach ((string switchName, string hintKey) in OptInModules)
             {
                 string en = Localization.Translate("English", hintKey);
-                if (en == hintKey)
+                if (!Localization.All.Any(e => e.Key == hintKey))
                     problems.Add(switchName + ": the hint key is not registered - fix the key in ComprehensionGateTests.OptInModules");
-                else if (!SaysOff.IsMatch(en) && !ModuleDefaultKnownRed.Contains(switchName))
+                else if (!SaysOff.IsMatch(en))
                     problems.Add(switchName + ": \"" + en + "\" says neither that the module is off nor what is lost while it is (CU-2d)");
             }
 
@@ -295,14 +294,9 @@ namespace CyrFlip.Tests
 
         // ------------------------------------------------------------- G-CU5: chord in tooltip
 
-        // The tray popup rows that have no line in the native tray tooltip today. The audit's one
-        // gap (CU-2-29, P3): the screenshots-folder chord is in the hover popup but not in the shell
-        // tooltip. Building the line is a fix for the finding's ticket - delete the entry here when
-        // it lands, and the gate fails the day a second popup chord loses its tooltip line.
-        private static readonly HashSet<ChordKind> TooltipChordKnownMissing = new HashSet<ChordKind>
-        {
-            ChordKind.ScreenshotFolder,
-        };
+        // The audit's one gap here (CU-2-29, P3) landed in S0067: BuildTooltipLines carries the
+        // screenshots-folder line, so no exception is carried - the test below fails the day a
+        // popup chord loses its tooltip line.
 
         /// <summary>
         /// With every chord and module switched on, every Text / Conversions / Translation /
@@ -338,7 +332,6 @@ namespace CyrFlip.Tests
                     && row.Group != TrayChordGroupKind.Launcher) continue;
                 if (string.IsNullOrEmpty(row.ChordDisplay)) continue;
                 if (tooltip.Any(l => l.StartsWith(row.ChordDisplay + " - ", StringComparison.Ordinal))) continue;
-                if (row.Kind != null && TooltipChordKnownMissing.Contains(row.Kind.Value)) continue;
                 missing.Add(row.ChordDisplay + " - " + row.ActionDisplay);
             }
 
@@ -357,6 +350,8 @@ namespace CyrFlip.Tests
             config.EnableQuickNotesHotkey = true;
             config.EnableSymbols = true;
             config.EnableSymbolsHotkey = true;
+            config.EnableTrafficLight = true;
+            config.EnableTrafficLightHotkey = true;
             config.EnableScreenshotHotkey = true;
             config.ScreenshotSaveEnabled = true;
             config.EnableScreenshotFolderHotkey = true;
@@ -389,7 +384,7 @@ namespace CyrFlip.Tests
             return ((System.Collections.IEnumerable)map[key]).Cast<object>().Select(o => (string)o!).ToArray();
         }
 
-        /// <summary>The values a given language shows: the key for Russian, the column for the rest.</summary>
+        /// <summary>The values a given language shows: its column, the key's own English text for English.</summary>
         private static HashSet<string> RegisteredValues(string code)
         {
             int index = Array.IndexOf(Localization.Codes, code);
@@ -397,8 +392,7 @@ namespace CyrFlip.Tests
             var values = new HashSet<string>(StringComparer.Ordinal);
             foreach (KeyValuePair<string, string[]> entry in Localization.All)
             {
-                if (index == 0) values.Add(entry.Key);
-                else if (index - 1 < entry.Value.Length) values.Add(entry.Value[index - 1]);
+                if (index < entry.Value.Length) values.Add(entry.Value[index]);
             }
             return values;
         }
@@ -409,7 +403,7 @@ namespace CyrFlip.Tests
             var texts = new List<string>();
             foreach (KeyValuePair<string, string[]> entry in Localization.All)
             {
-                texts.Add(index == 0 ? entry.Key : entry.Value[index - 1]);
+                texts.Add(entry.Value[index]);
             }
             return texts;
         }
@@ -499,6 +493,6 @@ namespace CyrFlip.Tests
         // ------------------------------------------------------------------ shared
 
         private static string EnglishOf(KeyValuePair<string, string[]> entry)
-            => entry.Value.Length > 0 ? entry.Value[0] : string.Empty;
+            => entry.Value.Length > 1 ? entry.Value[Array.IndexOf(Localization.Codes, "en")] : string.Empty;
     }
 }

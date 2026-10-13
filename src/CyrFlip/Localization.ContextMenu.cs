@@ -6,16 +6,16 @@ namespace CyrFlip
         private static void AddContextMenuStrings()
         {
             // S0062: the page of CyrFlip's own menu over the selection ("Меню над выделением" is registered
-            // with the hotkeys overview, where the same words name the mouse chord's row). The Russian key
+            // with the hotkeys overview, where the same words name the mouse chord's row). The Russian text
             // reads "для выделенного" (2026-10-11): "Меню выделения" read as a genitive of "выделение" and
             // was one word away from the clipboard's page.
-            Add("Меню для выделенного",
-                en: "Selection menu", uk: "Меню виділення", de: "Auswahlmenü", it: "Menu di selezione",
+            Add("Selection menu",
+                ru: "Меню для выделенного", uk: "Меню виділення", de: "Auswahlmenü", it: "Menu di selezione",
                 es: "Menú de selección", fr: "Menu de sélection", pt: "Menu de seleção",
                 ar: "قائمة التحديد", hi: "चयन मेनू", bn: "নির্বাচন মেনু", ur: "انتخاب مینو", zh: "选区菜单");
 
-            Add("Меню CyrFlip над выделенным текстом: копирование, вырезание, вставка, конвертация, регистр, перевод и быстрый запуск. Выключено по умолчанию: пока оно снято, CyrFlip не следит за мышью.",
-                en: "CyrFlip's own menu over the selected text: copy, cut, paste, conversion, case, translation and quick launch. Off by default: while it is off, CyrFlip does not watch the mouse.",
+            Add("CyrFlip's own menu over the selected text: copy, cut, paste, conversion, case, translation and quick launch. Off by default: while it is off, CyrFlip does not watch the mouse.",
+                ru: "Меню CyrFlip над выделенным текстом: копирование, вырезание, вставка, конвертация, регистр, перевод и быстрый запуск. Выключено по умолчанию: пока оно снято, CyrFlip не следит за мышью.",
                 uk: "Меню CyrFlip над виділеним текстом: копіювання, вирізання, вставлення, перетворення, регістр, переклад і швидкий запуск. Типово вимкнено: поки його знято, CyrFlip не стежить за мишею.",
                 de: "Das CyrFlip-Menü über dem markierten Text: Kopieren, Ausschneiden, Einfügen, Umwandlung, Groß- und Kleinschreibung, Übersetzung und Schnellstart. Standardmäßig aus: Solange es aus ist, beobachtet CyrFlip die Maus nicht.",
                 it: "Il menu di CyrFlip sul testo selezionato: copia, taglia, incolla, conversione, maiuscole e minuscole, traduzione e avvio rapido. Disattivato per impostazione predefinita: finché è spento, CyrFlip non controlla il mouse.",
@@ -28,41 +28,41 @@ namespace CyrFlip
                 ur: "منتخب متن پر CyrFlip کا اپنا مینو: کاپی، کٹ، پیسٹ، تبدیلی، حروف کی حالت، ترجمہ اور فوری لانچ۔ بطورِ طے شدہ بند: جب تک یہ بند ہے، CyrFlip ماؤس پر نظر نہیں رکھتا۔",
                 zh: "CyrFlip 在选中文本上方的专属菜单：复制、剪切、粘贴、转换、大小写、翻译和快速启动。默认关闭：关闭期间，CyrFlip 不监视鼠标。");
 
-            Add("С клавиатуры",
-                en: "From the keyboard", uk: "З клавіатури", de: "Per Tastatur", it: "Da tastiera",
+            Add("From the keyboard",
+                ru: "С клавиатуры", uk: "З клавіатури", de: "Per Tastatur", it: "Da tastiera",
                 es: "Con el teclado", fr: "Au clavier", pt: "Pelo teclado",
                 ar: "من لوحة المفاتيح", hi: "कीबोर्ड से", bn: "কীবোর্ড থেকে", ur: "کی بورڈ سے", zh: "通过键盘");
 
-            // "Копировать", "Вставить" and "Настройки" are already registered by the translator tab;
+            // "Copy", "Paste" and "Settings" are already registered by the translator tab;
             // only the commands this menu adds are new.
-            Add("Вырезать",
-                en: "Cut", uk: "Вирізати", de: "Ausschneiden", it: "Taglia",
+            Add("Cut",
+                ru: "Вырезать", uk: "Вирізати", de: "Ausschneiden", it: "Taglia",
                 es: "Cortar", fr: "Couper", pt: "Recortar",
                 ar: "قص", hi: "काटें", bn: "কাটুন", ur: "کاٹیں", zh: "剪切");
 
             // The launch item names its target, so the caption is a format string like every other.
             // The two report lines above the commands. They are captions, not commands - see
             // TextContextMenu.StatsGroup.
-            Add("Выделено строк: {0}",
-                en: "Lines selected: {0}", uk: "Виділено рядків: {0}", de: "Markierte Zeilen: {0}",
+            Add("Lines selected: {0}",
+                ru: "Выделено строк: {0}", uk: "Виділено рядків: {0}", de: "Markierte Zeilen: {0}",
                 it: "Righe selezionate: {0}", es: "Líneas seleccionadas: {0}",
                 fr: "Lignes sélectionnées : {0}", pt: "Linhas selecionadas: {0}",
                 ar: "الأسطر المحددة: {0}", hi: "चयनित पंक्तियाँ: {0}", bn: "নির্বাচিত লাইন: {0}",
                 ur: "منتخب سطریں: {0}", zh: "已选行数：{0}");
 
-            Add("символов: {0}",
-                en: "characters: {0}", uk: "символів: {0}", de: "Zeichen: {0}",
+            Add("characters: {0}",
+                ru: "символов: {0}", uk: "символів: {0}", de: "Zeichen: {0}",
                 it: "caratteri: {0}", es: "caracteres: {0}", fr: "caractères : {0}",
                 pt: "caracteres: {0}", ar: "الأحرف: {0}", hi: "अक्षर: {0}", bn: "অক্ষর: {0}",
                 ur: "حروف: {0}", zh: "字符数：{0}");
 
-            Add("Открыть «{0}»",
-                en: "Open “{0}”", uk: "Відкрити «{0}»", de: "„{0}“ öffnen", it: "Apri «{0}»",
+            Add("Open “{0}”",
+                ru: "Открыть «{0}»", uk: "Відкрити «{0}»", de: "„{0}“ öffnen", it: "Apri «{0}»",
                 es: "Abrir «{0}»", fr: "Ouvrir « {0} »", pt: "Abrir «{0}»",
                 ar: "فتح «{0}»", hi: "«{0}» खोलें", bn: "«{0}» খুলুন", ur: "«{0}» کھولیں", zh: "打开「{0}」");
 
-            Add("Запустить программу из выделенного текста?\n\n{0}\n\nCyrFlip не проверяет, что это за файл.",
-                en: "Run a program from the selected text?\n\n{0}\n\nCyrFlip does not check what this file is.",
+            Add("Run a program from the selected text?\n\n{0}\n\nCyrFlip does not check what this file is.",
+                ru: "Запустить программу из выделенного текста?\n\n{0}\n\nCyrFlip не проверяет, что это за файл.",
                 uk: "Запустити програму з виділеного тексту?\n\n{0}\n\nCyrFlip не перевіряє, що це за файл.",
                 de: "Ein Programm aus dem markierten Text starten?\n\n{0}\n\nCyrFlip prüft nicht, was diese Datei ist.",
                 it: "Avviare un programma dal testo selezionato?\n\n{0}\n\nCyrFlip non verifica che cosa sia questo file.",
@@ -75,14 +75,14 @@ namespace CyrFlip
                 ur: "منتخب متن سے پروگرام چلائیں؟\n\n{0}\n\nCyrFlip یہ جانچ نہیں کرتا کہ یہ فائل کیا ہے۔",
                 zh: "从选中的文本运行程序？\n\n{0}\n\nCyrFlip 不会检查这个文件是什么。");
 
-            Add("Перевести на {0}",
-                en: "Translate into {0}", uk: "Перекласти на {0}", de: "Übersetzen nach {0}",
+            Add("Translate into {0}",
+                ru: "Перевести на {0}", uk: "Перекласти на {0}", de: "Übersetzen nach {0}",
                 it: "Traduci in {0}", es: "Traducir al {0}", fr: "Traduire en {0}",
                 pt: "Traduzir para {0}", ar: "الترجمة إلى {0}", hi: "{0} में अनुवाद करें",
                 bn: "{0}-এ অনুবাদ করুন", ur: "{0} میں ترجمہ کریں", zh: "翻译成 {0}");
 
-            Add("Своё контекстное меню над выделенным текстом",
-                en: "CyrFlip's own context menu over the selected text",
+            Add("CyrFlip's own context menu over the selected text",
+                ru: "Своё контекстное меню над выделенным текстом",
                 uk: "Власне контекстне меню над виділеним текстом",
                 de: "Eigenes Kontextmenü über dem markierten Text",
                 it: "Menu contestuale di CyrFlip sul testo selezionato",
@@ -95,8 +95,8 @@ namespace CyrFlip
                 ur: "منتخب متن پر CyrFlip کا اپنا سیاق مینو",
                 zh: "在选中文本上显示 CyrFlip 自己的右键菜单");
 
-            Add("Аккорд мыши открывает меню CyrFlip рядом с указателем: копировать, вырезать, вставить, конвертация раскладок, регистр, перевод, быстрый запуск. Родное меню приложения при этом не появляется. Пока флажок снят, CyrFlip вообще не следит за мышью.",
-                en: "The mouse chord opens CyrFlip's menu next to the pointer: copy, cut, paste, layout conversion, letter case, translation, quick launch. The application's own menu does not appear. While the box is clear, CyrFlip does not watch the mouse at all.",
+            Add("The mouse chord opens CyrFlip's menu next to the pointer: copy, cut, paste, layout conversion, letter case, translation, quick launch. The application's own menu does not appear. While the box is clear, CyrFlip does not watch the mouse at all.",
+                ru: "Аккорд мыши открывает меню CyrFlip рядом с указателем: копировать, вырезать, вставить, конвертация раскладок, регистр, перевод, быстрый запуск. Родное меню приложения при этом не появляется. Пока флажок снят, CyrFlip вообще не следит за мышью.",
                 uk: "Акорд миші відкриває меню CyrFlip поруч із вказівником: копіювати, вирізати, вставити, конвертація розкладок, регістр, переклад, швидкий запуск. Рідне меню застосунку при цьому не з'являється. Поки прапорець знято, CyrFlip взагалі не стежить за мишею.",
                 de: "Der Maus-Akkord öffnet das Menü von CyrFlip neben dem Zeiger: Kopieren, Ausschneiden, Einfügen, Layout-Konvertierung, Groß- und Kleinschreibung, Übersetzung, Schnellstart. Das eigene Menü der Anwendung erscheint dabei nicht. Solange das Kästchen leer ist, beobachtet CyrFlip die Maus überhaupt nicht.",
                 it: "La combinazione del mouse apre il menu di CyrFlip accanto al puntatore: copia, taglia, incolla, conversione dei layout, maiuscole e minuscole, traduzione, avvio rapido. Il menu dell'applicazione non compare. Finché la casella è deselezionata, CyrFlip non osserva affatto il mouse.",
@@ -109,14 +109,14 @@ namespace CyrFlip
                 ur: "ماؤس کا مجموعہ پوائنٹر کے پاس CyrFlip کا مینو کھولتا ہے: کاپی، کاٹیں، پیسٹ، لے آؤٹ کی تبدیلی، حروف کی حالت، ترجمہ، فوری آغاز۔ ایپلیکیشن کا اپنا مینو ظاہر نہیں ہوتا۔ جب تک یہ خانہ خالی ہے، CyrFlip ماؤس پر بالکل نظر نہیں رکھتا۔",
                 zh: "鼠标组合键在指针旁打开 CyrFlip 的菜单：复制、剪切、粘贴、键盘布局转换、大小写、翻译、快速启动。应用程序自带的菜单不会出现。未勾选时，CyrFlip 完全不监视鼠标。");
 
-            Add("Аккорд мыши:",
-                en: "Mouse chord:", uk: "Акорд миші:", de: "Maus-Akkord:", it: "Combinazione mouse:",
+            Add("Mouse chord:",
+                ru: "Аккорд мыши:", uk: "Акорд миші:", de: "Maus-Akkord:", it: "Combinazione mouse:",
                 es: "Combinación del ratón:", fr: "Combinaison souris :", pt: "Combinação do mouse:",
                 ar: "تركيبة الفأرة:", hi: "माउस संयोजन:", bn: "মাউস কম্বিনেশন:",
                 ur: "ماؤس کا مجموعہ:", zh: "鼠标组合键：");
 
-            Add("Ctrl и правая кнопка ничем в Windows не заняты. Shift и правая кнопка отберут у Проводника расширенное меню, а средняя кнопка отберёт автоскролл и открытие ссылки в новой вкладке.",
-                en: "Ctrl with the right button is claimed by nothing in Windows. Shift with the right button takes the extended menu away from File Explorer, and the middle button takes away autoscroll and opening a link in a new tab.",
+            Add("Ctrl with the right button is claimed by nothing in Windows. Shift with the right button takes the extended menu away from File Explorer, and the middle button takes away autoscroll and opening a link in a new tab.",
+                ru: "Ctrl и правая кнопка ничем в Windows не заняты. Shift и правая кнопка отберут у Проводника расширенное меню, а средняя кнопка отберёт автоскролл и открытие ссылки в новой вкладке.",
                 uk: "Ctrl і права кнопка ні для чого у Windows не зайняті. Shift і права кнопка відберуть у Провідника розширене меню, а середня кнопка відбере автопрокручування та відкриття посилання в новій вкладці.",
                 de: "Strg mit der rechten Taste ist in Windows von nichts belegt. Umschalt mit der rechten Taste nimmt dem Explorer das erweiterte Menü, und die mittlere Taste nimmt den Autoscroll und das Öffnen eines Links in einem neuen Tab.",
                 it: "Ctrl con il tasto destro non è occupato da nulla in Windows. Maiusc con il tasto destro toglie a Esplora file il menu esteso e il tasto centrale toglie lo scorrimento automatico e l'apertura di un collegamento in una nuova scheda.",
@@ -130,21 +130,21 @@ namespace CyrFlip
                 zh: "Ctrl 加右键在 Windows 中没有任何占用。Shift 加右键会夺走文件资源管理器的扩展菜单，中键则会夺走自动滚动和在新标签页打开链接。");
 
             Add(MouseChord.RightButtonName,
-                en: "right mouse button", uk: "права кнопка миші", de: "rechte Maustaste",
+                ru: "правая кнопка мыши", uk: "права кнопка миші", de: "rechte Maustaste",
                 it: "tasto destro del mouse", es: "botón derecho del ratón",
                 fr: "bouton droit de la souris", pt: "botão direito do mouse",
                 ar: "زر الفأرة الأيمن", hi: "दायाँ माउस बटन", bn: "ডান মাউস বোতাম",
                 ur: "دایاں ماؤس بٹن", zh: "鼠标右键");
 
             Add(MouseChord.MiddleButtonName,
-                en: "middle mouse button", uk: "середня кнопка миші", de: "mittlere Maustaste",
+                ru: "средняя кнопка мыши", uk: "середня кнопка миші", de: "mittlere Maustaste",
                 it: "tasto centrale del mouse", es: "botón central del ratón",
                 fr: "bouton du milieu de la souris", pt: "botão do meio do mouse",
                 ar: "زر الفأرة الأوسط", hi: "मध्य माउस बटन", bn: "মধ্য মাউস বোতাম",
                 ur: "درمیانی ماؤس بٹن", zh: "鼠标中键");
 
-            Add("Не удалось перехватить мышь, контекстное меню не будет открываться.",
-                en: "Could not hook the mouse; the context menu will not open.",
+            Add("Could not hook the mouse; the context menu will not open.",
+                ru: "Не удалось перехватить мышь, контекстное меню не будет открываться.",
                 uk: "Не вдалося перехопити мишу, контекстне меню не відкриватиметься.",
                 de: "Die Maus konnte nicht abgefangen werden; das Kontextmenü lässt sich nicht öffnen.",
                 it: "Non è stato possibile intercettare il mouse: il menu contestuale non si aprirà.",
@@ -158,16 +158,16 @@ namespace CyrFlip
                 zh: "无法挂钩鼠标，右键菜单将无法打开。");
 
             // The keyboard chord that opens the same menu at the caret (S0045 K2).
-            Add("Открыть меню с клавиатуры",
-                en: "Open the menu from the keyboard", uk: "Відкрити меню з клавіатури",
+            Add("Open the menu from the keyboard",
+                ru: "Открыть меню с клавиатуры", uk: "Відкрити меню з клавіатури",
                 de: "Menü über die Tastatur öffnen", it: "Apri il menu dalla tastiera",
                 es: "Abrir el menú desde el teclado", fr: "Ouvrir le menu au clavier",
                 pt: "Abrir o menu pelo teclado", ar: "فتح القائمة من لوحة المفاتيح",
                 hi: "कीबोर्ड से मेनू खोलें", bn: "কিবোর্ড থেকে মেনু খুলুন",
                 ur: "کی بورڈ سے مینو کھولیں", zh: "用键盘打开菜单");
 
-            Add("То же меню с клавиатуры: открывается у текстового курсора, а где его не видно - у указателя мыши. Стрелки выбирают пункт, Enter выполняет, Esc закрывает.",
-                en: "The same menu from the keyboard: it opens at the text cursor, or at the mouse pointer where the cursor cannot be found. The arrows pick an item, Enter runs it, Esc closes the menu.",
+            Add("The same menu from the keyboard: it opens at the text cursor, or at the mouse pointer where the cursor cannot be found. The arrows pick an item, Enter runs it, Esc closes the menu.",
+                ru: "То же меню с клавиатуры: открывается у текстового курсора, а где его не видно - у указателя мыши. Стрелки выбирают пункт, Enter выполняет, Esc закрывает.",
                 uk: "Те саме меню з клавіатури: відкривається біля текстового курсора, а де його не видно - біля вказівника миші. Стрілки вибирають пункт, Enter виконує, Esc закриває.",
                 de: "Dasselbe Menü über die Tastatur: Es öffnet sich an der Einfügemarke oder, wo sie nicht zu finden ist, am Mauszeiger. Die Pfeiltasten wählen einen Eintrag, Enter führt ihn aus, Esc schließt das Menü.",
                 it: "Lo stesso menu dalla tastiera: si apre al cursore di testo o, dove non si trova, al puntatore del mouse. Le frecce scelgono una voce, Invio la esegue, Esc chiude il menu.",
@@ -180,8 +180,8 @@ namespace CyrFlip
                 ur: "وہی مینو کی بورڈ سے: یہ ٹیکسٹ کرسر کے پاس کھلتا ہے، اور جہاں کرسر نہ ملے وہاں ماؤس پوائنٹر کے پاس۔ تیر آئٹم چنتے ہیں، Enter اسے چلاتا ہے، Esc مینو بند کرتا ہے۔",
                 zh: "用键盘打开同一个菜单：它出现在文本光标处，找不到光标时出现在鼠标指针处。方向键选择项目，Enter 执行，Esc 关闭菜单。");
 
-            Add("Задать хоткей контекстного меню",
-                en: "Set the context-menu hotkey", uk: "Задати хоткей контекстного меню",
+            Add("Set the context-menu hotkey",
+                ru: "Задать хоткей контекстного меню", uk: "Задати хоткей контекстного меню",
                 de: "Tastenkombination für das Kontextmenü festlegen", it: "Imposta la combinazione per il menu contestuale",
                 es: "Definir la combinación del menú contextual", fr: "Définir le raccourci du menu contextuel",
                 pt: "Definir o atalho do menu de contexto", ar: "تعيين اختصار قائمة السياق",

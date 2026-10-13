@@ -143,7 +143,7 @@ namespace CyrFlip
             }
 
             if (capped && totalActiveRows > displayedActiveRows)
-                rows.Add(RowSpec.Cap(Localization.Format(_uiLanguage, "ещё {0} — в настройках", totalActiveRows - displayedActiveRows)));
+                rows.Add(RowSpec.Cap(Localization.Format(_uiLanguage, "{0} more in Settings", totalActiveRows - displayedActiveRows)));
 
             // One measure per string with the one font every label uses; the chord and action
             // columns take the widest of their cells, and a spanning row wider than the pair

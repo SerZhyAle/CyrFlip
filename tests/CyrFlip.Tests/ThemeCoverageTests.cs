@@ -263,6 +263,12 @@ namespace CyrFlip.Tests
             yield return ("ClipboardHistorySearchWindow", () => new ClipboardHistorySearchWindow(History(), "English", (_, _) => { }));
             yield return ("QuickNotesWindow", () => new QuickNotesWindow(Notes(), config, () => { }, () => { }, (_, _) => { }));
             yield return ("SymbolsWindow", () => new SymbolsWindow(config, "English", (_, _) => { }));
+            yield return ("TrafficLightWindow", () => new TrafficLightWindow(config, new TrafficLightBoardActions(), "English"));
+            yield return ("TrafficLightQuickAddDialog", () => new TrafficLightQuickAddDialog("English",
+                () => Array.Empty<TrafficLightTarget>(), TrafficLightProbeSet.CreateDefault(), "nas.local", "NAS"));
+            yield return ("TrafficLightTargetDialog", () => new TrafficLightTargetDialog(
+                new TrafficLightTarget { Kind = "ping", Address = "192.168.1.1", Label = "Router" }, new[] { "Office" }, "English",
+                (_, _) => System.Threading.Tasks.Task.FromResult(ProbeOutcome.Good(1)), isNew: true));
             yield return ("TrayHotkeysPopup", () =>
             {
                 var popup = new TrayHotkeysPopup("English");

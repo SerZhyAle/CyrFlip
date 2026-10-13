@@ -52,12 +52,12 @@ namespace CyrFlip
     internal sealed class SymbolCategory
     {
         public string Key { get; }
-        public string TitleRu { get; }
+        public string Title { get; }
 
-        public SymbolCategory(string key, string titleRu)
+        public SymbolCategory(string key, string title)
         {
             Key = key;
-            TitleRu = titleRu;
+            Title = title;
         }
     }
 
@@ -84,18 +84,18 @@ namespace CyrFlip
 
         public static readonly SymbolCategory[] Categories =
         {
-            new SymbolCategory(CategoryPunctuation, "Пунктуация и типографика"),
-            new SymbolCategory(CategoryCurrency, "Валюты"),
-            new SymbolCategory(CategoryMath, "Математика"),
-            new SymbolCategory(CategoryArrows, "Стрелки"),
-            new SymbolCategory(CategoryGreek, "Греческие"),
-            new SymbolCategory(CategoryLatin, "Латиница с диакритикой"),
-            new SymbolCategory(CategoryCyrillic, "Кириллица (редкая)"),
-            new SymbolCategory(CategoryCombining, "Диакритика (комбинируемая)"),
-            new SymbolCategory(CategorySymbols, "Знаки и символы"),
-            new SymbolCategory(CategoryNumbers, "Дроби, индексы, цифры"),
-            new SymbolCategory(CategoryInvisible, "Пробелы и невидимые"),
-            new SymbolCategory(CategoryBox, "Рамки и блоки"),
+            new SymbolCategory(CategoryPunctuation, "Punctuation & typography"),
+            new SymbolCategory(CategoryCurrency, "Currencies"),
+            new SymbolCategory(CategoryMath, "Math"),
+            new SymbolCategory(CategoryArrows, "Arrows"),
+            new SymbolCategory(CategoryGreek, "Greek"),
+            new SymbolCategory(CategoryLatin, "Latin with diacritics"),
+            new SymbolCategory(CategoryCyrillic, "Cyrillic (rare)"),
+            new SymbolCategory(CategoryCombining, "Diacritics (combining)"),
+            new SymbolCategory(CategorySymbols, "Signs & symbols"),
+            new SymbolCategory(CategoryNumbers, "Fractions, scripts, digits"),
+            new SymbolCategory(CategoryInvisible, "Spaces & invisible"),
+            new SymbolCategory(CategoryBox, "Box & block elements"),
         };
 
         private static readonly Dictionary<string, SymbolEntry> ByText =
@@ -105,7 +105,7 @@ namespace CyrFlip
             Table.ToDictionary(e => e.CodePoint);
 
         private static readonly Dictionary<string, string> CategoryNames =
-            Categories.ToDictionary(c => c.Key, c => c.TitleRu, StringComparer.OrdinalIgnoreCase);
+            Categories.ToDictionary(c => c.Key, c => c.Title, StringComparer.OrdinalIgnoreCase);
 
         /// <summary>Looks up a curated symbol by exact text representation.</summary>
         public static SymbolEntry? FindByText(string text) =>
@@ -115,8 +115,8 @@ namespace CyrFlip
         public static SymbolEntry? FindByCodePoint(int codePoint) =>
             ByCodePoint.TryGetValue(codePoint, out SymbolEntry? entry) ? entry : null;
 
-        /// <summary>Returns the Russian source category name for localization.</summary>
-        public static string CategoryTitleRu(string categoryKey) =>
+        /// <summary>Returns the English source category name for localization.</summary>
+        public static string CategoryTitle(string categoryKey) =>
             CategoryNames.TryGetValue(categoryKey, out string? name) ? name : string.Empty;
 
         /// <summary>The group a stored key names; anything else (empty, damaged, a group a later version dropped) is <see cref="AllCategories"/>.</summary>

@@ -56,10 +56,10 @@ namespace CyrFlip
             // The two fixed tasks stand for their meanings - settings and exit - on a plate, never for the
             // app's own mark (ICON-SET rule 7, S0022 A6). exePath stays in the signature: it is what the
             // link launches, which is Apply's business.
-            tasks.Add(new TaskSpec(translate("Управление сценариями..."), LauncherIpc.SettingsCommand,
-                translate("Управление сценариями..."), probes.VocabularyIcon(AppGlyphs.Settings) ?? "", 0));
-            tasks.Add(new TaskSpec(translate("Выйти из CyrFlip"), LauncherIpc.ExitCommand,
-                translate("Выйти из CyrFlip"), probes.VocabularyIcon(AppGlyphs.Exit) ?? "", 0));
+            tasks.Add(new TaskSpec(translate("Manage scenarios..."), LauncherIpc.SettingsCommand,
+                translate("Manage scenarios..."), probes.VocabularyIcon(AppGlyphs.Settings) ?? "", 0));
+            tasks.Add(new TaskSpec(translate("Exit CyrFlip"), LauncherIpc.ExitCommand,
+                translate("Exit CyrFlip"), probes.VocabularyIcon(AppGlyphs.Exit) ?? "", 0));
             return tasks;
         }
 

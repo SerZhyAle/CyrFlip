@@ -36,6 +36,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The source gates (LocalizationSourceGateTests) read string literals with the lexer of the migration tool,
+         so a literal is found wherever it stands and the tool and the gate cannot disagree about what one is. -->
+    <Compile Include="..\..\tools\l10n\CsLexer.cs" Link="Tools\CsLexer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Byte-exact OneClickRunner scenario XMLs (Фаза 0) - the launcher migration fixtures. -->
     <None Update="Fixtures\**\*.xml" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixtures\SettingsFile\*.json" CopyToOutputDirectory="PreserveNewest" />

@@ -6,13 +6,13 @@ namespace CyrFlip
         private static void AddConversionStrings()
         {
             // S0062: the page that holds both fixes of mistyped text - the layout table and the case fix.
-            Add("Исправление текста",
-                en: "Text correction", uk: "Виправлення тексту", de: "Textkorrektur", it: "Correzione del testo",
+            Add("Text correction",
+                ru: "Исправление текста", uk: "Виправлення тексту", de: "Textkorrektur", it: "Correzione del testo",
                 es: "Corrección de texto", fr: "Correction de texte", pt: "Correção de texto",
                 ar: "تصحيح النص", hi: "पाठ सुधार", bn: "লেখা সংশোধন", ur: "متن کی درستی", zh: "文本纠正");
 
-            Add("Текст, набранный не в той раскладке или при включённом CapsLock, исправляется одной комбинацией. Здесь таблица пар раскладок с их комбинациями и исправление регистра. Каждая пара работает в обе стороны.",
-                en: "Text typed in the wrong layout or with CapsLock on is fixed with one hotkey. Here are the table of layout pairs with their hotkeys and the case fix. Every pair works both ways.",
+            Add("Text typed in the wrong layout or with CapsLock on is fixed with one hotkey. Here are the table of layout pairs with their hotkeys and the case fix. Every pair works both ways.",
+                ru: "Текст, набранный не в той раскладке или при включённом CapsLock, исправляется одной комбинацией. Здесь таблица пар раскладок с их комбинациями и исправление регистра. Каждая пара работает в обе стороны.",
                 uk: "Текст, набраний не в тій розкладці або з увімкненим CapsLock, виправляється однією комбінацією. Тут таблиця пар розкладок з їхніми комбінаціями та виправлення регістру. Кожна пара працює в обидва боки.",
                 de: "Text, der im falschen Layout oder bei eingeschaltetem CapsLock getippt wurde, wird mit einem Tastenkürzel korrigiert. Hier stehen die Tabelle der Layoutpaare mit ihren Kürzeln und die Korrektur der Groß- und Kleinschreibung. Jedes Paar funktioniert in beide Richtungen.",
                 it: "Il testo digitato nel layout sbagliato o con CapsLock attivo si corregge con una sola scorciatoia. Qui trovi la tabella delle coppie di layout con le relative scorciatoie e la correzione di maiuscole e minuscole. Ogni coppia funziona in entrambe le direzioni.",
@@ -25,34 +25,34 @@ namespace CyrFlip
                 ur: "غلط لے آؤٹ میں یا CapsLock آن ہونے پر ٹائپ کیا گیا متن ایک ہی شارٹ کٹ سے درست ہو جاتا ہے۔ یہاں لے آؤٹ جوڑوں کی جدول ان کے شارٹ کٹس کے ساتھ اور حروف کی حالت کی درستی ہے۔ ہر جوڑا دونوں سمتوں میں کام کرتا ہے۔",
                 zh: "在错误布局下或开着 CapsLock 时输入的文本，用一个快捷键即可纠正。这里有布局对表及其快捷键，以及大小写纠正。每一对都可双向使用。");
 
-            Add("Таблица раскладок",
-                en: "Layout table", uk: "Таблиця розкладок", de: "Layout-Tabelle", it: "Tabella dei layout",
+            Add("Layout table",
+                ru: "Таблица раскладок", uk: "Таблиця розкладок", de: "Layout-Tabelle", it: "Tabella dei layout",
                 es: "Tabla de distribuciones", fr: "Tableau des dispositions", pt: "Tabela de layouts",
                 ar: "جدول التخطيطات", hi: "लेआउट तालिका", bn: "লেআউট টেবিল", ur: "لے آؤٹ جدول", zh: "布局表");
 
-            Add("После конвертации",
-                en: "After conversion", uk: "Після перетворення", de: "Nach der Umwandlung", it: "Dopo la conversione",
+            Add("After conversion",
+                ru: "После конвертации", uk: "Після перетворення", de: "Nach der Umwandlung", it: "Dopo la conversione",
                 es: "Después de convertir", fr: "Après la conversion", pt: "Depois da conversão",
                 ar: "بعد التحويل", hi: "रूपांतरण के बाद", bn: "রূপান্তরের পরে", ur: "تبدیلی کے بعد", zh: "转换之后");
 
-            Add("Знаки препинания",
-                en: "Punctuation", uk: "Розділові знаки", de: "Satzzeichen", it: "Punteggiatura",
+            Add("Punctuation",
+                ru: "Знаки препинания", uk: "Розділові знаки", de: "Satzzeichen", it: "Punteggiatura",
                 es: "Signos de puntuación", fr: "Ponctuation", pt: "Pontuação",
                 ar: "علامات الترقيم", hi: "विराम चिह्न", bn: "যতিচিহ্ন", ur: "رموزِ اوقاف", zh: "标点符号");
 
-            Add("Регистр",
-                en: "Letter case", uk: "Регістр", de: "Groß- und Kleinschreibung", it: "Maiuscole e minuscole",
+            Add("Letter case",
+                ru: "Регистр", uk: "Регістр", de: "Groß- und Kleinschreibung", it: "Maiuscole e minuscole",
                 es: "Mayúsculas y minúsculas", fr: "Casse", pt: "Maiúsculas e minúsculas",
                 ar: "حالة الأحرف", hi: "अक्षर केस", bn: "অক্ষরের কেস", ur: "حروف کی حالت", zh: "大小写");
 
-            Add("Конвертация раскладок",
-                en: "Layout conversions", uk: "Перетворення розкладок", de: "Layout-Umwandlung",
+            Add("Layout conversions",
+                ru: "Конвертация раскладок", uk: "Перетворення розкладок", de: "Layout-Umwandlung",
                 it: "Conversione layout", es: "Conversión de distribuciones", fr: "Conversion de dispositions",
                 pt: "Conversão de layouts", ar: "تحويل التخطيطات", hi: "लेआउट रूपांतरण",
                 bn: "লেআউট রূপান্তর", ur: "لے آؤٹ تبدیلی", zh: "布局转换");
 
-            Add("Таблица преобразований: сколько угодно пар раскладок, у каждой своя горячая клавиша. Строка EN ⇄ RU на Ctrl+Shift+F12 создаётся при первом запуске — её можно изменить или удалить, как любую другую. Каждая пара работает в обе стороны: если активна вторая раскладка пары, та же комбинация конвертирует обратно. Текст переводится по физическим клавишам выбранных раскладок.",
-                en: "A table of conversions: as many layout pairs as you like, each with its own hotkey. The EN ⇄ RU row on Ctrl+Shift+F12 is created on the first run — you can edit or delete it like any other. Every pair works both ways: when the second layout of the pair is active, the same shortcut converts back. Text is converted by the physical keys of the chosen layouts.",
+            Add("A table of conversions: as many layout pairs as you like, each with its own hotkey. The EN ⇄ RU row on Ctrl+Shift+F12 is created on the first run — you can edit or delete it like any other. Every pair works both ways: when the second layout of the pair is active, the same shortcut converts back. Text is converted by the physical keys of the chosen layouts.",
+                ru: "Таблица преобразований: сколько угодно пар раскладок, у каждой своя горячая клавиша. Строка EN ⇄ RU на Ctrl+Shift+F12 создаётся при первом запуске — её можно изменить или удалить, как любую другую. Каждая пара работает в обе стороны: если активна вторая раскладка пары, та же комбинация конвертирует обратно. Текст переводится по физическим клавишам выбранных раскладок.",
                 uk: "Таблиця перетворень: скільки завгодно пар розкладок, кожна зі своїм сполученням. Рядок EN ⇄ RU на Ctrl+Shift+F12 створюється під час першого запуску — його можна змінити або видалити, як і будь-який інший. Кожна пара працює в обидва боки: якщо активна друга розкладка пари, те саме сполучення перетворює назад. Текст перетворюється за фізичними клавішами обраних розкладок.",
                 de: "Eine Tabelle von Umwandlungen: beliebig viele Layout-Paare, jedes mit eigenem Tastenkürzel. Die Zeile EN ⇄ RU auf Strg+Umschalt+F12 wird beim ersten Start angelegt — Sie können sie wie jede andere ändern oder löschen. Jedes Paar wirkt in beide Richtungen: Ist das zweite Layout des Paares aktiv, wandelt dasselbe Kürzel zurück. Der Text wird über die physischen Tasten der gewählten Layouts übersetzt.",
                 it: "Una tabella di conversioni: quante coppie di layout vuoi, ognuna con la sua scorciatoia. La riga EN ⇄ RU su Ctrl+Maiusc+F12 viene creata al primo avvio: puoi modificarla o eliminarla come qualsiasi altra. Ogni coppia funziona nei due sensi: se è attivo il secondo layout della coppia, la stessa scorciatoia riconverte. Il testo viene tradotto in base ai tasti fisici dei layout scelti.",
@@ -65,16 +65,16 @@ namespace CyrFlip
                 ur: "تبدیلیوں کی ایک فہرست: جتنے چاہیں لے آؤٹ جوڑے، ہر ایک کا اپنا شارٹ کٹ۔ Ctrl+Shift+F12 پر EN ⇄ RU کی سطر پہلی بار چلانے پر بن جاتی ہے — اسے کسی بھی دوسری سطر کی طرح بدلا یا حذف کیا جا سکتا ہے۔ ہر جوڑا دونوں سمتوں میں کام کرتا ہے: اگر جوڑے کا دوسرا لے آؤٹ فعال ہو تو وہی شارٹ کٹ واپس بدل دیتا ہے۔ متن منتخب لے آؤٹس کی حقیقی کیز کے مطابق بدلا جاتا ہے۔",
                 zh: "一张转换表：可以添加任意多的布局配对，每对都有自己的快捷键。Ctrl+Shift+F12 上的 EN ⇄ RU 一行在首次启动时创建——可以像其他任何一行那样修改或删除。每一对都是双向的：当该对的第二个布局处于激活状态时，同一个快捷键会反向转换。文本按所选布局的物理按键进行转换。");
 
-            Add("Конвертировать знаки препинания вместе с текстом",
-                en: "Convert punctuation along with the text", uk: "Перетворювати розділові знаки разом із текстом",
+            Add("Convert punctuation along with the text",
+                ru: "Конвертировать знаки препинания вместе с текстом", uk: "Перетворювати розділові знаки разом із текстом",
                 de: "Satzzeichen zusammen mit dem Text umwandeln", it: "Convertire la punteggiatura insieme al testo",
                 es: "Convertir la puntuación junto con el texto", fr: "Convertir la ponctuation avec le texte",
                 pt: "Converter a pontuação junto com o texto", ar: "تحويل علامات الترقيم مع النص",
                 hi: "पाठ के साथ विराम चिह्न भी बदलें", bn: "লেখার সঙ্গে যতিচিহ্নও রূপান্তর করা হবে",
                 ur: "متن کے ساتھ اوقاف کے نشانات بھی تبدیل کریں", zh: "连同文本一起转换标点符号");
 
-            Add("Клавиша, которая в обеих раскладках даёт знак, а не букву, не говорит о том, в какой раскладке её нажали: за «/» на русской клавише стоит точка, а «/» с цифрового блока вообще одинаков везде и в скопированном тексте неотличим от обычного. Пока флажок стоит, такие знаки конвертируются вместе с текстом - так CyrFlip вёл себя всегда. Снимите его, если чаще набираете их намеренно: тогда «/ghbdtn» сохранит свой слеш вместо того, чтобы начаться с точки. Знаки, на клавише которых в другой раскладке стоит буква (запятая, скобки), конвертируются в любом случае.",
-                en: "A key that gives a symbol rather than a letter in both layouts says nothing about the layout it was pressed in: the Russian key behind «/» carries a full stop, and the «/» of the numeric keypad is the same everywhere and cannot be told from the ordinary one once the text is copied. While this is ticked, such symbols are converted along with the text - the way CyrFlip has always behaved. Clear it if you type them on purpose more often: «/ghbdtn» then keeps its slash instead of starting with a full stop. Symbols whose key carries a letter in the other layout (the comma, the brackets) are converted either way.",
+            Add("A key that gives a symbol rather than a letter in both layouts says nothing about the layout it was pressed in: the Russian key behind «/» carries a full stop, and the «/» of the numeric keypad is the same everywhere and cannot be told from the ordinary one once the text is copied. While this is ticked, such symbols are converted along with the text - the way CyrFlip has always behaved. Clear it if you type them on purpose more often: «/ghbdtn» then keeps its slash instead of starting with a full stop. Symbols whose key carries a letter in the other layout (the comma, the brackets) are converted either way.",
+                ru: "Клавиша, которая в обеих раскладках даёт знак, а не букву, не говорит о том, в какой раскладке её нажали: за «/» на русской клавише стоит точка, а «/» с цифрового блока вообще одинаков везде и в скопированном тексте неотличим от обычного. Пока флажок стоит, такие знаки конвертируются вместе с текстом - так CyrFlip вёл себя всегда. Снимите его, если чаще набираете их намеренно: тогда «/ghbdtn» сохранит свой слеш вместо того, чтобы начаться с точки. Знаки, на клавише которых в другой раскладке стоит буква (запятая, скобки), конвертируются в любом случае.",
                 uk: "Клавіша, яка в обох розкладках дає знак, а не літеру, нічого не каже про те, в якій розкладці її натиснули: за «/» на російській клавіші стоїть крапка, а «/» з цифрового блоку взагалі однаковий скрізь і в скопійованому тексті не відрізняється від звичайного. Поки прапорець стоїть, такі знаки перетворюються разом із текстом - так CyrFlip поводився завжди. Зніміть його, якщо частіше набираєте їх навмисно: тоді «/ghbdtn» збереже свій слеш замість того, щоб початися з крапки. Знаки, на клавіші яких в іншій розкладці стоїть літера (кома, дужки), перетворюються в будь-якому разі.",
                 de: "Eine Taste, die in beiden Layouts ein Zeichen statt eines Buchstabens liefert, sagt nichts darüber aus, in welchem Layout sie gedrückt wurde: hinter «/» liegt auf der russischen Taste ein Punkt, und das «/» des Ziffernblocks ist überall dasselbe und im kopierten Text nicht vom gewöhnlichen zu unterscheiden. Solange dies angehakt ist, werden solche Zeichen mit dem Text umgewandelt - so hat sich CyrFlip immer verhalten. Nehmen Sie den Haken weg, wenn Sie sie öfter absichtlich tippen: «/ghbdtn» behält dann seinen Schrägstrich, statt mit einem Punkt zu beginnen. Zeichen, auf deren Taste im anderen Layout ein Buchstabe liegt (Komma, Klammern), werden in jedem Fall umgewandelt.",
                 it: "Un tasto che in entrambi i layout dà un segno anziché una lettera non dice nulla su quale layout fosse attivo: dietro «/» il tasto russo ha un punto, e la «/» del tastierino numerico è la stessa ovunque e nel testo copiato non si distingue da quella normale. Finché la casella è spuntata, questi segni vengono convertiti insieme al testo: è così che CyrFlip si è sempre comportato. Toglila se li digiti apposta più spesso: «/ghbdtn» manterrà allora la sua barra invece di iniziare con un punto. I segni sul cui tasto l''altro layout ha una lettera (la virgola, le parentesi) vengono convertiti in ogni caso.",
@@ -87,8 +87,8 @@ namespace CyrFlip
                 ur: "جو کلید دونوں لے آؤٹس میں حرف کے بجائے نشان دیتی ہے، وہ یہ نہیں بتاتی کہ اسے کس لے آؤٹ میں دبایا گیا تھا: «/» والی روسی کلید پر وقفہ ہوتا ہے، اور نمبر پیڈ کا «/» ہر جگہ ایک جیسا ہے اور نقل کیے گئے متن میں عام سے الگ نہیں پہچانا جا سکتا۔ جب تک یہ نشان زد ہے، ایسے نشانات متن کے ساتھ تبدیل ہوتے ہیں - CyrFlip ہمیشہ سے یہی کرتا آیا ہے۔ اگر آپ انہیں جان بوجھ کر زیادہ لکھتے ہیں تو نشان ہٹا دیں: تب «/ghbdtn» وقفے سے شروع ہونے کے بجائے اپنی سلیش برقرار رکھے گا۔ جن نشانات کی کلید پر دوسرے لے آؤٹ میں حرف ہوتا ہے (کوما، قوسین) وہ ہر صورت تبدیل ہوتے ہیں۔",
                 zh: "在两种布局下都给出符号而非字母的按键，说明不了它是在哪种布局下按下的：「/」所在的俄语键上是句号，而数字小键盘的「/」在哪里都一样，复制成文本后与普通的那个无法区分。勾选时，这类符号会随文本一起转换 - CyrFlip 一直都是这样。如果你更多是有意输入它们，就取消勾选：这时「/ghbdtn」会保留它的斜杠，而不是以句号开头。而按键在另一种布局下对应字母的符号（逗号、方括号）无论如何都会被转换。");
 
-            Add("Работают только установленные в Windows раскладки — добавьте нужные на вкладке «Языки Windows». Одну комбинацию нельзя отдать двум действиям CyrFlip.",
-                en: "Only layouts installed in Windows work here — add the ones you need on the «Windows languages» tab. One shortcut cannot be shared by two CyrFlip actions.",
+            Add("Only layouts installed in Windows work here — add the ones you need on the «Windows languages» tab. One shortcut cannot be shared by two CyrFlip actions.",
+                ru: "Работают только установленные в Windows раскладки — добавьте нужные на вкладке «Языки Windows». Одну комбинацию нельзя отдать двум действиям CyrFlip.",
                 uk: "Працюють лише встановлені у Windows розкладки — додайте потрібні на вкладці «Мови Windows». Одне сполучення не можна віддати двом діям CyrFlip.",
                 de: "Es funktionieren nur in Windows installierte Layouts — fügen Sie die gewünschten auf der Registerkarte «Windows-Sprachen» hinzu. Ein Kürzel kann nicht von zwei CyrFlip-Aktionen genutzt werden.",
                 it: "Funzionano solo i layout installati in Windows: aggiungi quelli che ti servono nella scheda «Lingue di Windows». Una scorciatoia non può essere assegnata a due azioni di CyrFlip.",
@@ -101,18 +101,18 @@ namespace CyrFlip
                 ur: "یہاں صرف Windows میں نصب لے آؤٹس کام کرتے ہیں — ضروری لے آؤٹس «Windows کی زبانیں» ٹیب میں شامل کریں۔ ایک شارٹ کٹ CyrFlip کے دو کاموں کو نہیں دیا جا سکتا۔",
                 zh: "这里只有已安装在 Windows 中的布局才有效——请在《Windows 语言》选项卡中添加所需布局。一个快捷键不能同时用于 CyrFlip 的两个操作。");
 
-            Add("Пара раскладок",
-                en: "Layout pair", uk: "Пара розкладок", de: "Layout-Paar", it: "Coppia di layout",
+            Add("Layout pair",
+                ru: "Пара раскладок", uk: "Пара розкладок", de: "Layout-Paar", it: "Coppia di layout",
                 es: "Par de distribuciones", fr: "Paire de dispositions", pt: "Par de layouts",
                 ar: "زوج التخطيطات", hi: "लेआउट जोड़ा", bn: "লেআউট জোড়া", ur: "لے آؤٹ جوڑا", zh: "布局配对");
 
-            Add("Комбинация",
-                en: "Shortcut", uk: "Сполучення", de: "Kürzel", it: "Scorciatoia", es: "Atajo",
+            Add("Shortcut",
+                ru: "Комбинация", uk: "Сполучення", de: "Kürzel", it: "Scorciatoia", es: "Atajo",
                 fr: "Raccourci", pt: "Atalho", ar: "الاختصار", hi: "शॉर्टकट", bn: "শর্টকাট",
                 ur: "شارٹ کٹ", zh: "快捷键");
 
-            Add("Таблица пуста — ни одна комбинация сейчас не конвертирует текст.",
-                en: "The table is empty — no shortcut converts text right now.",
+            Add("The table is empty — no shortcut converts text right now.",
+                ru: "Таблица пуста — ни одна комбинация сейчас не конвертирует текст.",
                 uk: "Таблиця порожня — жодне сполучення зараз не перетворює текст.",
                 de: "Die Tabelle ist leer — derzeit wandelt kein Kürzel Text um.",
                 it: "La tabella è vuota: al momento nessuna scorciatoia converte il testo.",
@@ -125,20 +125,20 @@ namespace CyrFlip
                 ur: "فہرست خالی ہے — اس وقت کوئی شارٹ کٹ متن نہیں بدلتا۔",
                 zh: "表格为空——目前没有任何快捷键会转换文本。");
 
-            Add("(не установлена)",
-                en: "(not installed)", uk: "(не встановлена)", de: "(nicht installiert)",
+            Add("(not installed)",
+                ru: "(не установлена)", uk: "(не встановлена)", de: "(nicht installiert)",
                 it: "(non installato)", es: "(no instalada)", fr: "(non installée)",
                 pt: "(não instalado)", ar: "(غير مثبَّت)", hi: "(स्थापित नहीं)",
                 bn: "(ইনস্টল করা নেই)", ur: "(نصب نہیں)", zh: "（未安装）");
 
-            Add("Добавить конвертацию...",
-                en: "Add conversion...", uk: "Додати перетворення...", de: "Umwandlung hinzufügen...",
+            Add("Add conversion...",
+                ru: "Добавить конвертацию...", uk: "Додати перетворення...", de: "Umwandlung hinzufügen...",
                 it: "Aggiungi conversione...", es: "Añadir conversión...", fr: "Ajouter une conversion...",
                 pt: "Adicionar conversão...", ar: "إضافة تحويل...", hi: "रूपांतरण जोड़ें...",
                 bn: "রূপান্তর যোগ করুন...", ur: "تبدیلی شامل کریں...", zh: "添加转换...");
 
-            Add("Для конвертации установите как минимум две раскладки.",
-                en: "Install at least two layouts to create a conversion.",
+            Add("Install at least two layouts to create a conversion.",
+                ru: "Для конвертации установите как минимум две раскладки.",
                 uk: "Установіть щонайменше дві розкладки, щоб створити перетворення.",
                 de: "Installieren Sie mindestens zwei Layouts, um eine Umwandlung anzulegen.",
                 it: "Installa almeno due layout per creare una conversione.",
@@ -151,8 +151,8 @@ namespace CyrFlip
                 ur: "تبدیلی بنانے کے لیے کم از کم دو لے آؤٹ نصب کریں۔",
                 zh: "请至少安装两个布局才能创建转换。");
 
-            Add("Комбинация {0} уже занята действием «{1}».",
-                en: "The {0} combination is already used by «{1}».",
+            Add("The {0} combination is already used by «{1}».",
+                ru: "Комбинация {0} уже занята действием «{1}».",
                 uk: "Комбінацію {0} уже зайнято дією «{1}».",
                 de: "Die Kombination {0} wird bereits von «{1}» verwendet.",
                 it: "La combinazione {0} è già usata da «{1}».",
@@ -166,43 +166,43 @@ namespace CyrFlip
                 zh: "组合键 {0} 已被「{1}」占用。");
 
             // ---- LayoutConversionDialog ----
-            Add("Новая конвертация раскладок",
-                en: "New layout conversion", uk: "Нове перетворення розкладок", de: "Neue Layout-Umwandlung",
+            Add("New layout conversion",
+                ru: "Новая конвертация раскладок", uk: "Нове перетворення розкладок", de: "Neue Layout-Umwandlung",
                 it: "Nuova conversione di layout", es: "Nueva conversión de distribuciones",
                 fr: "Nouvelle conversion de dispositions", pt: "Nova conversão de layouts",
                 ar: "تحويل تخطيطات جديد", hi: "नया लेआउट रूपांतरण", bn: "নতুন লেআউট রূপান্তর",
                 ur: "نئی لے آؤٹ تبدیلی", zh: "新建布局转换");
 
-            Add("Изменить конвертацию",
-                en: "Edit layout conversion", uk: "Змінити перетворення", de: "Layout-Umwandlung bearbeiten",
+            Add("Edit layout conversion",
+                ru: "Изменить конвертацию", uk: "Змінити перетворення", de: "Layout-Umwandlung bearbeiten",
                 it: "Modifica conversione di layout", es: "Editar conversión de distribuciones",
                 fr: "Modifier la conversion de dispositions", pt: "Editar conversão de layouts",
                 ar: "تعديل تحويل التخطيطات", hi: "लेआउट रूपांतरण संपादित करें",
                 bn: "লেআউট রূপান্তর সম্পাদনা", ur: "لے آؤٹ تبدیلی میں ترمیم", zh: "编辑布局转换");
 
-            Add("Из раскладки:",
-                en: "From layout:", uk: "З розкладки:", de: "Von Layout:", it: "Dal layout:",
+            Add("From layout:",
+                ru: "Из раскладки:", uk: "З розкладки:", de: "Von Layout:", it: "Dal layout:",
                 es: "Desde la distribución:", fr: "Depuis la disposition :", pt: "Do layout:",
                 ar: "من التخطيط:", hi: "किस लेआउट से:", bn: "যে লেআউট থেকে:", ur: "کس لے آؤٹ سے:", zh: "源布局：");
 
-            Add("В раскладку:",
-                en: "To layout:", uk: "У розкладку:", de: "Zu Layout:", it: "Al layout:",
+            Add("To layout:",
+                ru: "В раскладку:", uk: "У розкладку:", de: "Zu Layout:", it: "Al layout:",
                 es: "Hacia la distribución:", fr: "Vers la disposition :", pt: "Para o layout:",
                 ar: "إلى التخطيط:", hi: "किस लेआउट में:", bn: "যে লেআউটে:", ur: "کس لے آؤٹ میں:", zh: "目标布局：");
 
-            Add("Комбинация:",
-                en: "Hotkey:", uk: "Сполучення:", de: "Kürzel:", it: "Scorciatoia:", es: "Atajo:",
+            Add("Hotkey:",
+                ru: "Комбинация:", uk: "Сполучення:", de: "Kürzel:", it: "Scorciatoia:", es: "Atajo:",
                 fr: "Raccourci :", pt: "Atalho:", ar: "الاختصار:", hi: "शॉर्टकट:", bn: "শর্টকাট:",
                 ur: "شارٹ کٹ:", zh: "快捷键：");
 
-            Add("Сочетание конвертации",
-                en: "Conversion hotkey", uk: "Сполучення перетворення", de: "Kürzel für die Umwandlung",
+            Add("Conversion hotkey",
+                ru: "Сочетание конвертации", uk: "Сполучення перетворення", de: "Kürzel für die Umwandlung",
                 it: "Scorciatoia di conversione", es: "Atajo de conversión", fr: "Raccourci de conversion",
                 pt: "Atalho de conversão", ar: "اختصار التحويل", hi: "रूपांतरण का शॉर्टकट",
                 bn: "রূপান্তরের শর্টকাট", ur: "تبدیلی کا شارٹ کٹ", zh: "转换快捷键");
 
-            Add("Исходная и целевая раскладки должны отличаться.",
-                en: "The source and target layouts must be different.",
+            Add("The source and target layouts must be different.",
+                ru: "Исходная и целевая раскладки должны отличаться.",
                 uk: "Вихідна та цільова розкладки мають відрізнятися.",
                 de: "Ausgangs- und Ziellayout müssen sich unterscheiden.",
                 it: "Il layout di origine e quello di destinazione devono essere diversi.",
@@ -215,8 +215,8 @@ namespace CyrFlip
                 ur: "ماخذ اور ہدف لے آؤٹ مختلف ہونے چاہئیں۔",
                 zh: "源布局和目标布局必须不同。");
 
-            Add("Сначала задайте комбинацию клавиш.",
-                en: "Set a hotkey first.",
+            Add("Set a hotkey first.",
+                ru: "Сначала задайте комбинацию клавиш.",
                 uk: "Спершу задайте сполучення клавіш.",
                 de: "Legen Sie zuerst ein Tastenkürzel fest.",
                 it: "Imposta prima una scorciatoia da tastiera.",
@@ -229,8 +229,8 @@ namespace CyrFlip
                 ur: "پہلے کی بورڈ شارٹ کٹ مقرر کریں۔",
                 zh: "请先设置快捷键。");
 
-            Add("Комбинация «{0}» не распознана.",
-                en: "The hotkey \"{0}\" was not recognized.",
+            Add("The hotkey \"{0}\" was not recognized.",
+                ru: "Комбинация «{0}» не распознана.",
                 uk: "Сполучення «{0}» не розпізнано.",
                 de: "Das Tastenkürzel „{0}“ wurde nicht erkannt.",
                 it: "La scorciatoia \"{0}\" non è stata riconosciuta.",
@@ -243,8 +243,8 @@ namespace CyrFlip
                 ur: "شارٹ کٹ \"{0}\" پہچانا نہیں گیا۔",
                 zh: "无法识别快捷键“{0}”。");
 
-            Add("Часть настроек CyrFlip не удалось прочитать - они оставлены как есть.",
-                en: "Some CyrFlip settings could not be read and were left as they are.",
+            Add("Some CyrFlip settings could not be read and were left as they are.",
+                ru: "Часть настроек CyrFlip не удалось прочитать - они оставлены как есть.",
                 uk: "Частину налаштувань CyrFlip не вдалося прочитати - їх залишено як є.",
                 de: "Einige CyrFlip-Einstellungen konnten nicht gelesen werden und bleiben unverändert.",
                 it: "Alcune impostazioni di CyrFlip non sono leggibili e sono state lasciate come sono.",
@@ -257,8 +257,8 @@ namespace CyrFlip
                 ur: "CyrFlip کی کچھ ترتیبات پڑھی نہ جا سکیں اور انہیں جوں کا توں چھوڑ دیا گیا۔",
                 zh: "部分 CyrFlip 设置无法读取，已保持原样。");
 
-            Add("Удалить строку конвертации «{0}»? Отменить удаление нельзя.",
-                en: "Delete the conversion row \"{0}\"? This cannot be undone.",
+            Add("Delete the conversion row \"{0}\"? This cannot be undone.",
+                ru: "Удалить строку конвертации «{0}»? Отменить удаление нельзя.",
                 uk: "Видалити рядок конвертації «{0}»? Скасувати видалення не можна.",
                 de: "Konvertierungszeile \"{0}\" löschen? Das lässt sich nicht rückgängig machen.",
                 it: "Eliminare la riga di conversione \"{0}\"? L'operazione non si può annullare.",

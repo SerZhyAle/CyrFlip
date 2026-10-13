@@ -34,7 +34,9 @@ namespace CyrFlip
             Add("live config in exchange dialog", "ExchangeNotesWarningOff");
             Add("_hook.UpdateScreenshotHotkey", "ScreenshotHotkey"); Add("_hook.UpdateScreenshotEnabled", "EnableScreenshotHotkey");
             Add("_hook.UpdateScreenshotFolderHotkey", "ScreenshotFolderHotkey"); Add("_hook.UpdateScreenshotFolderEnabled", "EnableScreenshotFolderHotkey");
-            Add("live config at screenshot dispatch", "ScreenshotSaveEnabled"); return result;
+            Add("live config at screenshot dispatch", "ScreenshotSaveEnabled");
+            Add("ApplyTrafficLightTargets", "TrafficLightTargets");
+            return result;
         }
     }
 }

@@ -202,7 +202,7 @@ namespace CyrFlip
         {
             _split.Enabled = !loading;
             _newText.Enabled = _newList.Enabled = _search.Enabled = !loading;
-            if (loading) _count.Text = T("Загрузка заметок..");
+            if (loading) _count.Text = T("Loading notes..");
         }
 
         private void OnUi(Action action)
@@ -393,7 +393,7 @@ namespace CyrFlip
         public void ApplyLanguage(string language)
         {
             _language = language;
-            Text = T("Быстрые заметки") + " (" + _config.QuickNotesHotkey + ")";
+            Text = T("Quick notes") + " (" + _config.QuickNotesHotkey + ")";
             RightToLeft = Localization.IsRightToLeft(language) ? RightToLeft.Yes : RightToLeft.No;
             RightToLeftLayout = RightToLeft == RightToLeft.Yes;
             _transferMenu.RightToLeft = RightToLeft;
@@ -415,27 +415,27 @@ namespace CyrFlip
                 if (_editorFont != null) { _editor.Font = _editorFont; _items.Font = _editorFont; }
             }
 
-            _newText.Text = T("Заметка");
-            _newList.Text = T("Чек-лист");
-            _settings.Text = T("Настройки");
-            _transfer.Text = T("Перенос...");
-            _transferExport.Text = T("Экспортировать...");
-            _transferImport.Text = T("Импортировать...");
-            _title.PlaceholderTextSafe(T("Имя (необязательно)"));
-            _kindText.Text = T("Текст");
-            _kindList.Text = T("Чек-лист");
-            _addItem.Text = T("Добавить пункт");
-            _removeItem.Text = T("Удалить пункт");
-            _itemUp.AccessibleName = T("Переместить вверх");
-            _itemDown.AccessibleName = T("Переместить вниз");
+            _newText.Text = T("Note");
+            _newList.Text = T("Checklist");
+            _settings.Text = T("Settings");
+            _transfer.Text = T("Transfer...");
+            _transferExport.Text = T("Export...");
+            _transferImport.Text = T("Import...");
+            _title.PlaceholderTextSafe(T("Name (optional)"));
+            _kindText.Text = T("Text");
+            _kindList.Text = T("Checklist");
+            _addItem.Text = T("Add item");
+            _removeItem.Text = T("Remove item");
+            _itemUp.AccessibleName = T("Move up");
+            _itemDown.AccessibleName = T("Move down");
             ApplyMoveGlyphs();
-            _copy.Text = T("Копировать");
-            _keep.Text = T("Копировать для Google Keep");
-            _export.Text = T("Экспорт...");
-            _delete.Text = T("Удалить");
-            _list.Columns[0].Text = T("Заметка");
-            _list.Columns[1].Text = T("Создана");
-            _items.Columns[0].Text = T("Пункт");
+            _copy.Text = T("Copy");
+            _keep.Text = T("Copy for Google Keep");
+            _export.Text = T("Export... (short form)");
+            _delete.Text = T("Delete");
+            _list.Columns[0].Text = T("Note");
+            _list.Columns[1].Text = T("Created");
+            _items.Columns[0].Text = T("Item");
             RefreshList();
             RefreshDates();
             // Every caption above just changed length, so the floor has to be measured again.
@@ -448,7 +448,7 @@ namespace CyrFlip
             _editor.ScrollBars = wrap ? ScrollBars.Vertical : ScrollBars.Both;
         }
 
-        private string T(string ru) => Localization.Translate(_language, ru);
+        private string T(string en) => Localization.Translate(_language, en);
 
         // ---- Showing ----
 
@@ -495,7 +495,7 @@ namespace CyrFlip
             if (QuickNote.ExceedsLimit(text))
             {
                 ConfirmDialog.Show(this, _language,
-                    Localization.Format(T, "Фрагмент больше {0} КБ и в заметку не помещается.", QuickNote.MaxBytes / 1024),
+                    Localization.Format(T, "The fragment is larger than {0} KB and does not fit in a note.", QuickNote.MaxBytes / 1024),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
@@ -576,10 +576,10 @@ namespace CyrFlip
             }
             _list.EndUpdate();
             _loading = loading;
-            _count.Text = !_service.IsLoaded ? T("Загрузка заметок..")
+            _count.Text = !_service.IsLoaded ? T("Loading notes..")
                 : _search.Text.Trim().Length == 0
-                ? Localization.Format(T, "Заметок: {0}", found.Count)
-                : Localization.Format(T, "Найдено: {0}", found.Count);
+                ? Localization.Format(T, "Notes: {0}", found.Count)
+                : Localization.Format(T, "Found: {0}", found.Count);
         }
 
         /// <summary>
@@ -590,7 +590,7 @@ namespace CyrFlip
         {
             string preview = note.Preview(PreviewLength);
             string mark = note.Kind == QuickNoteKind.Checklist ? "☑ " : "";
-            return preview.Length > 0 ? mark + preview : mark + T("(пусто)");
+            return preview.Length > 0 ? mark + preview : mark + T("(empty)");
         }
 
         private void OnListSelectionChanged()
@@ -689,7 +689,7 @@ namespace CyrFlip
                 if (QuickNote.ExceedsLimit(_editor.Text))
                 {
                     ConfirmDialog.Show(this, _language,
-                        Localization.Format(T, "Фрагмент больше {0} КБ и в заметку не помещается.", QuickNote.MaxBytes / 1024),
+                        Localization.Format(T, "The fragment is larger than {0} KB and does not fit in a note.", QuickNote.MaxBytes / 1024),
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _loading = true;
                     _editor.Text = _editorOriginal;
@@ -737,7 +737,7 @@ namespace CyrFlip
             {
                 e.CancelEdit = true;
                 ConfirmDialog.Show(this, _language,
-                    Localization.Format(T, "Фрагмент больше {0} КБ и в заметку не помещается.", QuickNote.MaxBytes / 1024),
+                    Localization.Format(T, "The fragment is larger than {0} KB and does not fit in a note.", QuickNote.MaxBytes / 1024),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
@@ -761,8 +761,8 @@ namespace CyrFlip
             if (_current.LosesDataConvertingTo(kind)
                 && ConfirmDialog.Show(this, _language,
                     kind == QuickNoteKind.Text
-                        ? T("Отметки выполнения при переходе к тексту не сохранятся. Продолжить?")
-                        : T("Пункты списка не хранят переносы строк: текст вернётся с обычными переводами строк. Продолжить?"),
+                        ? T("The tick marks cannot survive the switch to text. Continue?")
+                        : T("List items hold no line endings: the text will come back with plain newlines. Continue?"),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
             {
                 _loading = true;
@@ -821,15 +821,15 @@ namespace CyrFlip
         {
             if (_service.SaveFailing)
             {
-                _dates.Text = T("Заметка не сохранена на диск - подробности в журнале диагностики.");
+                _dates.Text = T("The note was not saved to disk - see the diagnostic log for details.");
                 return;
             }
             if (_current == null || _current.CreatedAtUtc == default)
             {
-                _dates.Text = T("Новая заметка");
+                _dates.Text = T("New note");
                 return;
             }
-            _dates.Text = Localization.Format(T, "Создана {0}, изменена {1} | Строк: {2}, символов: {3}",
+            _dates.Text = Localization.Format(T, "Created {0}, changed {1} | Lines: {2}, chars: {3}",
                 _current.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
                 _current.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
                 _current.LineCount,
@@ -905,7 +905,7 @@ namespace CyrFlip
         }
 
         private void CopyFailed()
-            => ConfirmDialog.Show(this, _language, T("Не удалось скопировать текст в буфер обмена. Повторите."),
+            => ConfirmDialog.Show(this, _language, T("Could not copy the text to the clipboard. Try again."),
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
         private void CopyCurrent()
@@ -918,12 +918,12 @@ namespace CyrFlip
         {
             if (_current == null) return;
             if (!TryCopyText(Win32Clipboard.TrySetText, _current.ToKeepText(), CopyFailed)) return;
-            string message = T("Текст скопирован. Создайте заметку в Google Keep и вставьте его.");
+            string message = T("The text is on the clipboard. Create a note in Google Keep and paste it there.");
             // Said out loud rather than discovered in Keep: pasted lines become list items there,
             // and the tick marks have nowhere to travel.
             if (_current.Kind == QuickNoteKind.Checklist && _current.HasCheckedItems)
-                message += "\n\n" + T("Отметки выполнения в Google Keep не переносятся.");
-            message += "\n\n" + T("Открыть Google Keep в браузере?");
+                message += "\n\n" + T("The tick marks do not travel to Google Keep.");
+            message += "\n\n" + T("Open Google Keep in the browser?");
             if (ConfirmDialog.Show(this, _language, message, MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes)
                 return;
             try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://keep.google.com/") { UseShellExecute = true }); }
@@ -935,8 +935,8 @@ namespace CyrFlip
             if (_current == null) return;
             using var dialog = new SaveFileDialog
             {
-                Title = T("Экспорт заметки"),
-                Filter = T("Текстовый файл") + " (*.txt)|*.txt|Markdown (*.md)|*.md",
+                Title = T("Export the note"),
+                Filter = T("Text file") + " (*.txt)|*.txt|Markdown (*.md)|*.md",
                 FileName = SafeFileName(_current),
             };
             if (dialog.ShowDialog(this) != DialogResult.OK) return;
@@ -947,13 +947,13 @@ namespace CyrFlip
                     markdown ? _current.ToMarkdown() : _current.ToPlainText(), System.Text.Encoding.UTF8);
                 // The one thing worth saying about an export: what leaves here is no longer encrypted.
                 ConfirmDialog.Show(this, _language,
-                    Localization.Format(T, "Заметка сохранена: {0}", dialog.FileName) + "\n\n"
-                    + T("Этот файл не защищён DPAPI — его прочитает любой, у кого есть доступ к папке."),
+                    Localization.Format(T, "Note saved: {0}", dialog.FileName) + "\n\n"
+                    + T("This file is not protected by DPAPI - anyone with access to the folder can read it."),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                ConfirmDialog.Show(this, _language, Localization.Format(T, "Не удалось сохранить файл: {0}", FailureCause.Describe(ex, _language)),
+                ConfirmDialog.Show(this, _language, Localization.Format(T, "Could not save the file: {0}", FailureCause.Describe(ex, _language)),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
@@ -971,7 +971,7 @@ namespace CyrFlip
         {
             if (_current == null) return;
             if (!_service.IsDraft(_current)
-                && ConfirmDialog.Show(this, _language, T("Удалить эту заметку? Отменить удаление нельзя."),
+                && ConfirmDialog.Show(this, _language, T("Delete this note? There is no undo."),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
             _service.Delete(_current);

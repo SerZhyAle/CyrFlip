@@ -58,7 +58,7 @@ namespace CyrFlip.Tests
         [Fact]
         public void ARefusedRestoreSaysSo()
         {
-            Assert.Equal("Не удалось скопировать текст в буфер обмена. Повторите.",
+            Assert.Equal("Could not copy the text to the clipboard. Try again.",
                 ClipboardHistoryWindow.RestoreNotice(false, ru => ru));
             Assert.Equal("Could not copy the text to the clipboard. Try again.",
                 ClipboardHistoryWindow.RestoreNotice(false, English));

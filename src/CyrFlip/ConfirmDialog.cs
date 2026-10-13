@@ -37,7 +37,7 @@ namespace CyrFlip
             _message = message;
             _icon = icon;
             _owned = owned;
-            string T(string ru) => Localization.Translate(language, ru);
+            string T(string en) => Localization.Translate(language, en);
 
             Text = "CyrFlip";
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -108,8 +108,8 @@ namespace CyrFlip
             {
                 case MessageBoxButtons.YesNo:
                 {
-                    Button yes = Answer(T("Да"), DialogResult.Yes, AppGlyphs.Confirm, danger ? ButtonLook.Acting : ButtonLook.Affirmative);
-                    Button no = Answer(T("Нет"), DialogResult.No, AppGlyphs.Cancel, danger ? ButtonLook.DismissingSafe : ButtonLook.Dismissing);
+                    Button yes = Answer(T("Yes"), DialogResult.Yes, AppGlyphs.Confirm, danger ? ButtonLook.Acting : ButtonLook.Affirmative);
+                    Button no = Answer(T("No"), DialogResult.No, AppGlyphs.Cancel, danger ? ButtonLook.DismissingSafe : ButtonLook.Dismissing);
                     if (danger) MarkDanger(yes);
                     Buttons = new[] { yes, no };
                     AcceptButton = danger ? no : yes;
@@ -119,7 +119,7 @@ namespace CyrFlip
                 case MessageBoxButtons.OKCancel:
                 {
                     Button ok = Answer("OK", DialogResult.OK, AppGlyphs.Confirm, danger ? ButtonLook.Acting : ButtonLook.Affirmative);
-                    Button cancel = Answer(T("Отмена"), DialogResult.Cancel, AppGlyphs.Cancel, danger ? ButtonLook.DismissingSafe : ButtonLook.Dismissing);
+                    Button cancel = Answer(T("Cancel"), DialogResult.Cancel, AppGlyphs.Cancel, danger ? ButtonLook.DismissingSafe : ButtonLook.Dismissing);
                     if (danger) MarkDanger(ok);
                     Buttons = new[] { ok, cancel };
                     AcceptButton = danger ? cancel : ok;

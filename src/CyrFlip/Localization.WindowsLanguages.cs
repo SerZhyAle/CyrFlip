@@ -5,14 +5,14 @@ namespace CyrFlip
     {
         private static void AddWindowsLanguageStrings()
         {
-            Add("Языки Windows",
-                en: "Windows languages", uk: "Мови Windows", de: "Windows-Sprachen", it: "Lingue di Windows",
+            Add("Windows languages",
+                ru: "Языки Windows", uk: "Мови Windows", de: "Windows-Sprachen", it: "Lingue di Windows",
                 es: "Idiomas de Windows", fr: "Langues Windows", pt: "Idiomas do Windows",
                 ar: "لغات Windows", hi: "Windows की भाषाएँ", bn: "Windows-এর ভাষা",
                 ur: "Windows کی زبانیں", zh: "Windows 语言");
 
-            Add("Всё, что раньше требовало раздела «Язык и регион» в параметрах Windows: раскладки клавиатуры, порядок между ними и сочетания переключения. Раскладки уже входят в состав Windows — ничего не скачивается. Установка языка интерфейса (перевод самой Windows) остаётся за кнопкой «Открыть настройки Windows».",
-                en: "Everything that used to need the Windows «Language & region» pane: keyboard layouts, their order, and the switch shortcuts. The layouts already ship with Windows — nothing is downloaded. Installing a display language (translating Windows itself) stays behind the «Open Windows settings» button.",
+            Add("Everything that used to need the Windows «Language & region» pane: keyboard layouts, their order, and the switch shortcuts. The layouts already ship with Windows — nothing is downloaded. Installing a display language (translating Windows itself) stays behind the «Open Windows settings» button.",
+                ru: "Всё, что раньше требовало раздела «Язык и регион» в параметрах Windows: раскладки клавиатуры, порядок между ними и сочетания переключения. Раскладки уже входят в состав Windows — ничего не скачивается. Установка языка интерфейса (перевод самой Windows) остаётся за кнопкой «Открыть настройки Windows».",
                 uk: "Усе, що раніше вимагало розділу «Мова й регіон» у параметрах Windows: розкладки клавіатури, їхній порядок і сполучення перемикання. Розкладки вже входять до складу Windows — нічого не завантажується. Встановлення мови інтерфейсу (переклад самої Windows) лишається за кнопкою «Відкрити налаштування Windows».",
                 de: "Alles, wofür früher der Windows-Bereich «Sprache und Region» nötig war: Tastaturlayouts, ihre Reihenfolge und die Umschaltkürzel. Die Layouts sind bereits Teil von Windows — es wird nichts heruntergeladen. Das Installieren einer Anzeigesprache (die Übersetzung von Windows selbst) bleibt hinter der Schaltfläche «Windows-Einstellungen öffnen».",
                 it: "Tutto ciò che prima richiedeva la sezione «Lingua e area geografica» di Windows: i layout di tastiera, il loro ordine e le scorciatoie di commutazione. I layout sono già inclusi in Windows: non si scarica nulla. L'installazione di una lingua di visualizzazione (la traduzione di Windows stesso) resta dietro il pulsante «Apri le impostazioni di Windows».",
@@ -25,8 +25,8 @@ namespace CyrFlip
                 ur: "وہ سب کچھ جو پہلے Windows کے «زبان اور علاقہ» صفحے میں کرنا پڑتا تھا: کی بورڈ لے آؤٹ، اُن کی ترتیب اور تبدیلی کے شارٹ کٹس۔ لے آؤٹ پہلے ہی Windows کے ساتھ آتے ہیں — کچھ بھی ڈاؤن لوڈ نہیں ہوتا۔ ڈسپلے زبان نصب کرنا (یعنی خود Windows کا ترجمہ) «Windows کی ترتیبات کھولیں» بٹن کے پیچھے ہی رہتا ہے۔",
                 zh: "以前必须在 Windows 的《语言和区域》面板里做的一切：键盘布局、它们的顺序以及切换快捷键。这些布局本来就随 Windows 提供——不会下载任何内容。安装显示语言（即翻译 Windows 本身）仍然在《打开 Windows 设置》按钮之后。");
 
-            Add("Версия из Microsoft Store работает в контейнере, поэтому Windows может перенаправить запись в реестр внутрь пакета. Если раскладка или сочетание не подхватились даже после повторного входа в систему, задайте их в настройках Windows кнопкой внизу.",
-                en: "The Microsoft Store build runs in a container, so Windows may redirect the registry write into the package. If a layout or shortcut is not picked up even after signing out and back in, set it in the Windows settings using the button below.",
+            Add("The Microsoft Store build runs in a container, so Windows may redirect the registry write into the package. If a layout or shortcut is not picked up even after signing out and back in, set it in the Windows settings using the button below.",
+                ru: "Версия из Microsoft Store работает в контейнере, поэтому Windows может перенаправить запись в реестр внутрь пакета. Если раскладка или сочетание не подхватились даже после повторного входа в систему, задайте их в настройках Windows кнопкой внизу.",
                 uk: "Версія з Microsoft Store працює в контейнері, тому Windows може перенаправити запис у реєстр усередину пакета. Якщо розкладка або сполучення не підхопилися навіть після повторного входу в систему, задайте їх у налаштуваннях Windows кнопкою внизу.",
                 de: "Die Version aus dem Microsoft Store läuft in einem Container, daher kann Windows den Registrierungsschreibvorgang in das Paket umleiten. Wird ein Layout oder Kürzel selbst nach einer erneuten Anmeldung nicht übernommen, legen Sie es über die Schaltfläche unten in den Windows-Einstellungen fest.",
                 it: "La versione dal Microsoft Store gira in un container, quindi Windows può reindirizzare la scrittura nel registro dentro il pacchetto. Se un layout o una scorciatoia non vengono applicati nemmeno dopo aver rieseguito l'accesso, impostali nelle impostazioni di Windows con il pulsante in basso.",
@@ -39,40 +39,40 @@ namespace CyrFlip
                 ur: "Microsoft Store والا ورژن ایک کنٹینر میں چلتا ہے، اس لیے Windows رجسٹری کی لکھائی کو پیکیج کے اندر منتقل کر سکتا ہے۔ اگر سائن آؤٹ کر کے دوبارہ سائن اِن کرنے کے بعد بھی لے آؤٹ یا شارٹ کٹ لاگو نہ ہو تو نیچے دیے بٹن سے Windows کی ترتیبات میں مقرر کریں۔",
                 zh: "Microsoft Store 版本运行在容器中，因此 Windows 可能会把注册表写入重定向到程序包内部。如果注销并重新登录后布局或快捷键仍未生效，请用下面的按钮在 Windows 设置中进行设置。");
 
-            Add("Открыть настройки Windows",
-                en: "Open Windows settings", uk: "Відкрити налаштування Windows", de: "Windows-Einstellungen öffnen",
+            Add("Open Windows settings",
+                ru: "Открыть настройки Windows", uk: "Відкрити налаштування Windows", de: "Windows-Einstellungen öffnen",
                 it: "Apri le impostazioni di Windows", es: "Abrir la configuración de Windows",
                 fr: "Ouvrir les paramètres Windows", pt: "Abrir as configurações do Windows",
                 ar: "فتح إعدادات Windows", hi: "Windows सेटिंग्स खोलें", bn: "Windows সেটিংস খুলুন",
                 ur: "Windows کی ترتیبات کھولیں", zh: "打开 Windows 设置");
 
-            Add("Раскладки клавиатуры",
-                en: "Keyboard layouts", uk: "Розкладки клавіатури", de: "Tastaturlayouts",
+            Add("Keyboard layouts",
+                ru: "Раскладки клавиатуры", uk: "Розкладки клавіатури", de: "Tastaturlayouts",
                 it: "Layout di tastiera", es: "Distribuciones de teclado", fr: "Dispositions de clavier",
                 pt: "Layouts de teclado", ar: "تخطيطات لوحة المفاتيح", hi: "कीबोर्ड लेआउट",
                 bn: "কীবোর্ড লেআউট", ur: "کی بورڈ لے آؤٹ", zh: "键盘布局");
 
-            Add("Добавить раскладку...",
-                en: "Add layout...", uk: "Додати розкладку...", de: "Layout hinzufügen...",
+            Add("Add layout...",
+                ru: "Добавить раскладку...", uk: "Додати розкладку...", de: "Layout hinzufügen...",
                 it: "Aggiungi layout...", es: "Añadir distribución...", fr: "Ajouter une disposition...",
                 pt: "Adicionar layout...", ar: "إضافة تخطيط...", hi: "लेआउट जोड़ें...",
                 bn: "লেআউট যোগ করুন...", ur: "لے آؤٹ شامل کریں...", zh: "添加布局...");
 
-            Add("Добавить раскладку",
-                en: "Add layout", uk: "Додати розкладку", de: "Layout hinzufügen",
+            Add("Add layout",
+                ru: "Добавить раскладку", uk: "Додати розкладку", de: "Layout hinzufügen",
                 it: "Aggiungi layout", es: "Añadir distribución", fr: "Ajouter une disposition",
                 pt: "Adicionar layout", ar: "إضافة تخطيط", hi: "लेआउट जोड़ें",
                 bn: "লেআউট যোগ করুন", ur: "لے آؤٹ شامل کریں", zh: "添加布局");
 
-            Add("Добавить популярные языки",
-                en: "Add popular languages", uk: "Додати популярні мови", de: "Beliebte Sprachen hinzufügen",
+            Add("Add popular languages",
+                ru: "Добавить популярные языки", uk: "Додати популярні мови", de: "Beliebte Sprachen hinzufügen",
                 it: "Aggiungi le lingue più diffuse", es: "Añadir los idiomas más usados",
                 fr: "Ajouter les langues les plus courantes", pt: "Adicionar os idiomas mais usados",
                 ar: "إضافة اللغات الأكثر انتشارًا", hi: "लोकप्रिय भाषाएँ जोड़ें",
                 bn: "জনপ্রিয় ভাষা যোগ করুন", ur: "مقبول زبانیں شامل کریں", zh: "添加常用语言");
 
-            Add("English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, German, Italian и Ukrainian. Для языков с популярными вариантами (например, US International, Spanish Latin American) используйте «Добавить раскладку...».",
-                en: "English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, German, Italian and Ukrainian. For popular variants (for example US International and Spanish Latin American), use «Add layout...».",
+            Add("English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, German, Italian and Ukrainian. For popular variants (for example US International and Spanish Latin American), use «Add layout...».",
+                ru: "English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, German, Italian и Ukrainian. Для языков с популярными вариантами (например, US International, Spanish Latin American) используйте «Добавить раскладку...».",
                 uk: "English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, German, Italian та Ukrainian. Для популярних варіантів (наприклад US International і Spanish Latin American) скористайтеся «Додати розкладку...».",
                 de: "English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, German, Italian und Ukrainian. Für beliebte Varianten (etwa US International oder Spanish Latin American) verwenden Sie «Layout hinzufügen...».",
                 it: "English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, German, Italian e Ukrainian. Per le varianti più diffuse (ad esempio US International e Spanish Latin American) usa «Aggiungi layout...».",
@@ -85,8 +85,8 @@ namespace CyrFlip
                 ur: "‏English، Chinese، Hindi، Spanish، French، Arabic، Bengali، Portuguese، Russian، Urdu، German، Italian اور Ukrainian۔ مقبول اقسام (مثلاً US International یا Spanish Latin American) کے لیے «لے آؤٹ شامل کریں...» استعمال کریں۔",
                 zh: "English、Chinese、Hindi、Spanish、French、Arabic、Bengali、Portuguese、Russian、Urdu、German、Italian 和 Ukrainian。若需要常见变体（例如 US International 或 Spanish Latin American），请使用《添加布局...》。");
 
-            Add("Введите язык или название раскладки для фильтра",
-                en: "Type a language or layout name to filter",
+            Add("Type a language or layout name to filter",
+                ru: "Введите язык или название раскладки для фильтра",
                 uk: "Введіть мову або назву розкладки для фільтра",
                 de: "Sprache oder Layoutnamen zum Filtern eingeben",
                 it: "Digita una lingua o il nome di un layout per filtrare",
@@ -99,35 +99,35 @@ namespace CyrFlip
                 ur: "فلٹر کے لیے زبان یا لے آؤٹ کا نام لکھیں",
                 zh: "输入语言或布局名称以筛选");
 
-            Add("Добавить",
-                en: "Add", uk: "Додати", de: "Hinzufügen", it: "Aggiungi", es: "Añadir", fr: "Ajouter",
+            Add("Add",
+                ru: "Добавить", uk: "Додати", de: "Hinzufügen", it: "Aggiungi", es: "Añadir", fr: "Ajouter",
                 pt: "Adicionar", ar: "إضافة", hi: "जोड़ें", bn: "যোগ করুন", ur: "شامل کریں", zh: "添加");
 
-            Add("Отмена",
-                en: "Cancel", uk: "Скасувати", de: "Abbrechen", it: "Annulla", es: "Cancelar",
+            Add("Cancel",
+                ru: "Отмена", uk: "Скасувати", de: "Abbrechen", it: "Annulla", es: "Cancelar",
                 fr: "Annuler", pt: "Cancelar", ar: "إلغاء", hi: "रद्द करें", bn: "বাতিল",
                 ur: "منسوخ کریں", zh: "取消");
 
-            Add("По умолчанию",
-                en: "Set default", uk: "За замовчуванням", de: "Als Standard", it: "Predefinito",
+            Add("Set default",
+                ru: "По умолчанию", uk: "За замовчуванням", de: "Als Standard", it: "Predefinito",
                 es: "Predeterminada", fr: "Par défaut", pt: "Padrão", ar: "تعيين كافتراضي",
                 hi: "डिफ़ॉल्ट बनाएँ", bn: "ডিফল্ট করুন", ur: "ڈیفالٹ بنائیں", zh: "设为默认");
 
-            Add("Удалить",
-                en: "Delete", uk: "Видалити", de: "Entfernen", it: "Elimina", es: "Eliminar",
+            Add("Delete",
+                ru: "Удалить", uk: "Видалити", de: "Entfernen", it: "Elimina", es: "Eliminar",
                 fr: "Supprimer", pt: "Excluir", ar: "حذف", hi: "हटाएँ", bn: "মুছুন",
                 ur: "حذف کریں", zh: "删除");
 
-            Add("Удалить раскладку «{0}» из Windows?",
-                en: "Remove the «{0}» layout from Windows?", uk: "Видалити розкладку «{0}» з Windows?",
+            Add("Remove the «{0}» layout from Windows?",
+                ru: "Удалить раскладку «{0}» из Windows?", uk: "Видалити розкладку «{0}» з Windows?",
                 de: "Das Layout «{0}» aus Windows entfernen?", it: "Rimuovere il layout «{0}» da Windows?",
                 es: "¿Quitar la distribución «{0}» de Windows?", fr: "Supprimer la disposition «{0}» de Windows ?",
                 pt: "Remover o layout «{0}» do Windows?", ar: "هل تريد إزالة التخطيط «{0}» من Windows؟",
                 hi: "क्या «{0}» लेआउट को Windows से हटाएँ?", bn: "«{0}» লেআউটটি Windows থেকে সরাবেন?",
                 ur: "کیا «{0}» لے آؤٹ کو Windows سے ہٹا دیا جائے؟", zh: "要从 Windows 中移除「{0}」布局吗？");
 
-            Add("Windows должна оставить хотя бы одну раскладку — эту удалить нельзя.",
-                en: "Windows must keep at least one layout — this one cannot be removed.",
+            Add("Windows must keep at least one layout — this one cannot be removed.",
+                ru: "Windows должна оставить хотя бы одну раскладку — эту удалить нельзя.",
                 uk: "Windows має залишити принаймні одну розкладку — цю видалити не можна.",
                 de: "Windows muss mindestens ein Layout behalten — dieses lässt sich nicht entfernen.",
                 it: "Windows deve mantenere almeno un layout: questo non può essere rimosso.",
@@ -140,8 +140,8 @@ namespace CyrFlip
                 ur: "Windows کو کم از کم ایک لے آؤٹ رکھنا ہی ہوگا — اسے ہٹایا نہیں جا سکتا۔",
                 zh: "Windows 必须至少保留一个布局——该布局无法移除。");
 
-            Add("Изменение применено к раскладкам Windows. Обычно оно вступает в силу сразу; если что-то выглядит не так, выйдите из Windows и войдите снова.",
-                en: "The change has been applied to the Windows layouts. It usually takes effect immediately; if something looks off, sign out of Windows and back in.",
+            Add("The change has been applied to the Windows layouts. It usually takes effect immediately; if something looks off, sign out of Windows and back in.",
+                ru: "Изменение применено к раскладкам Windows. Обычно оно вступает в силу сразу; если что-то выглядит не так, выйдите из Windows и войдите снова.",
                 uk: "Зміну застосовано до розкладок Windows. Зазвичай вона діє одразу; якщо щось виглядає не так, вийдіть із Windows і увійдіть знову.",
                 de: "Die Änderung wurde auf die Windows-Layouts angewendet. Sie wirkt normalerweise sofort; sieht etwas falsch aus, melden Sie sich bei Windows ab und wieder an.",
                 it: "La modifica è stata applicata ai layout di Windows. Di solito ha effetto subito; se qualcosa non torna, esci da Windows e rientra.",
@@ -154,15 +154,15 @@ namespace CyrFlip
                 ur: "تبدیلی Windows کے لے آؤٹس پر لاگو کر دی گئی ہے۔ عام طور پر یہ فوراً اثر کرتی ہے؛ اگر کچھ غلط لگے تو Windows سے سائن آؤٹ کر کے دوبارہ سائن اِن کریں۔",
                 zh: "更改已应用到 Windows 的布局。通常会立即生效；如果看起来不对，请注销 Windows 后重新登录。");
 
-            Add("Вернуть раскладки как было",
-                en: "Restore layouts", uk: "Повернути розкладки", de: "Layouts zurücksetzen",
+            Add("Restore layouts",
+                ru: "Вернуть раскладки как было", uk: "Повернути розкладки", de: "Layouts zurücksetzen",
                 it: "Ripristina i layout", es: "Restaurar las distribuciones",
                 fr: "Restaurer les dispositions", pt: "Restaurar os layouts",
                 ar: "استعادة التخطيطات", hi: "लेआउट पुनर्स्थापित करें",
                 bn: "লেআউট পুনরুদ্ধার করুন", ur: "لے آؤٹ بحال کریں", zh: "还原布局");
 
-            Add("Вернуть раскладки Windows в исходное состояние?",
-                en: "Restore the Windows layouts to their original state?",
+            Add("Restore the Windows layouts to their original state?",
+                ru: "Вернуть раскладки Windows в исходное состояние?",
                 uk: "Повернути розкладки Windows до початкового стану?",
                 de: "Die Windows-Layouts in den ursprünglichen Zustand zurücksetzen?",
                 it: "Ripristinare i layout di Windows allo stato originale?",
@@ -175,22 +175,22 @@ namespace CyrFlip
                 ur: "کیا Windows کے لے آؤٹس کو اصل حالت میں واپس لایا جائے؟",
                 zh: "要把 Windows 的布局还原到最初状态吗？");
 
-            Add("Переключение по кругу",
-                en: "Cycle switch", uk: "Перемикання по колу", de: "Reihum umschalten",
+            Add("Cycle switch",
+                ru: "Переключение по кругу", uk: "Перемикання по колу", de: "Reihum umschalten",
                 it: "Commutazione ciclica", es: "Cambio cíclico", fr: "Bascule cyclique",
                 pt: "Troca cíclica", ar: "التبديل الدوري", hi: "चक्रीय स्विच",
                 bn: "চক্রাকার পরিবর্তন", ur: "چکری تبدیلی", zh: "循环切换");
 
-            Add("Сочетание для перебора языков:",
-                en: "Chord to cycle languages:", uk: "Сполучення для перебору мов:",
+            Add("Chord to cycle languages:",
+                ru: "Сочетание для перебора языков:", uk: "Сполучення для перебору мов:",
                 de: "Kürzel zum Durchschalten der Sprachen:", it: "Scorciatoia per scorrere le lingue:",
                 es: "Atajo para recorrer los idiomas:", fr: "Raccourci pour faire défiler les langues :",
                 pt: "Atalho para percorrer os idiomas:", ar: "اختصار التنقل بين اللغات:",
                 hi: "भाषाओं में चक्र लगाने का शॉर्टकट:", bn: "ভাষা বদলানোর শর্টকাট:",
                 ur: "زبانیں بدلنے کا شارٹ کٹ:", zh: "循环切换语言的快捷键：");
 
-            Add("Одно сочетание перебирает установленные языки по кругу. Это штатная настройка Windows (Alt+Shift, Ctrl+Shift или «`»); «—» отключает перебор.",
-                en: "One chord cycles through the installed languages. This is the built-in Windows setting (Alt+Shift, Ctrl+Shift or «`»); «—» turns cycling off.",
+            Add("One chord cycles through the installed languages. This is the built-in Windows setting (Alt+Shift, Ctrl+Shift or «`»); «—» turns cycling off.",
+                ru: "Одно сочетание перебирает установленные языки по кругу. Это штатная настройка Windows (Alt+Shift, Ctrl+Shift или «`»); «—» отключает перебор.",
                 uk: "Одне сполучення перебирає встановлені мови по колу. Це штатне налаштування Windows (Alt+Shift, Ctrl+Shift або «`»); «—» вимикає перебір.",
                 de: "Ein Kürzel schaltet der Reihe nach durch die installierten Sprachen. Das ist die eingebaute Windows-Einstellung (Alt+Umschalt, Strg+Umschalt oder «`»); «—» schaltet das Durchschalten ab.",
                 it: "Una sola scorciatoia scorre in ciclo le lingue installate. È l'impostazione integrata di Windows (Alt+Maiusc, Ctrl+Maiusc o «`»); «—» disattiva il ciclo.",
@@ -203,16 +203,16 @@ namespace CyrFlip
                 ur: "ایک ہی شارٹ کٹ نصب زبانوں میں باری باری بدلتا ہے۔ یہ Windows کی اپنی ترتیب ہے (Alt+Shift، Ctrl+Shift یا «`»)؛ «—» اس چکر کو بند کر دیتا ہے۔",
                 zh: "一个快捷键在已安装的语言之间循环切换。这是 Windows 自带的设置（Alt+Shift、Ctrl+Shift 或「`」）；选择「—」则关闭循环。");
 
-            Add("Прямые сочетания на язык",
-                en: "Direct per-language shortcuts", uk: "Прямі сполучення на мову",
+            Add("Direct per-language shortcuts",
+                ru: "Прямые сочетания на язык", uk: "Прямі сполучення на мову",
                 de: "Direkte Kürzel je Sprache", it: "Scorciatoie dirette per lingua",
                 es: "Atajos directos por idioma", fr: "Raccourcis directs par langue",
                 pt: "Atalhos diretos por idioma", ar: "اختصارات مباشرة لكل لغة",
                 hi: "प्रति भाषा सीधे शॉर्टकट", bn: "প্রতি ভাষার সরাসরি শর্টকাট",
                 ur: "ہر زبان کے لیے براہِ راست شارٹ کٹ", zh: "各语言的直达快捷键");
 
-            Add("Эти сочетания обрабатывает сама Windows: они работают, даже когда CyrFlip закрыт. Комбинацию вы выбираете сами — в отличие от штатного окна, здесь не только Ctrl+Shift+цифра.",
-                en: "Windows itself handles these shortcuts: they work even when CyrFlip is closed. You choose the combination yourself — unlike the built-in dialog, it is not limited to Ctrl+Shift+digit.",
+            Add("Windows itself handles these shortcuts: they work even when CyrFlip is closed. You choose the combination yourself — unlike the built-in dialog, it is not limited to Ctrl+Shift+digit.",
+                ru: "Эти сочетания обрабатывает сама Windows: они работают, даже когда CyrFlip закрыт. Комбинацию вы выбираете сами — в отличие от штатного окна, здесь не только Ctrl+Shift+цифра.",
                 uk: "Ці сполучення обробляє сама Windows: вони працюють навіть коли CyrFlip закрито. Комбінацію ви обираєте самі — на відміну від штатного вікна, тут не лише Ctrl+Shift+цифра.",
                 de: "Diese Kürzel verarbeitet Windows selbst: Sie funktionieren auch, wenn CyrFlip geschlossen ist. Die Kombination wählen Sie frei — anders als im Windows-Dialog ist sie nicht auf Strg+Umschalt+Ziffer beschränkt.",
                 it: "Queste scorciatoie le gestisce Windows stesso: funzionano anche con CyrFlip chiuso. La combinazione la scegli tu — a differenza della finestra di sistema, non è limitata a Ctrl+Maiusc+cifra.",
@@ -225,39 +225,39 @@ namespace CyrFlip
                 ur: "ان شارٹ کٹس کو Windows خود سنبھالتا ہے: یہ اُس وقت بھی کام کرتے ہیں جب CyrFlip بند ہو۔ مجموعہ آپ خود منتخب کرتے ہیں — Windows کے اپنے ڈائیلاگ کے برعکس یہ صرف Ctrl+Shift+ہندسہ تک محدود نہیں۔",
                 zh: "这些快捷键由 Windows 自己处理：即使关闭 CyrFlip 也依然有效。组合由你自行决定——不像系统自带对话框那样只能用 Ctrl+Shift+数字。");
 
-            Add("Не назначено",
-                en: "Not assigned", uk: "Не призначено", de: "Nicht zugewiesen", it: "Non assegnata",
+            Add("Not assigned",
+                ru: "Не назначено", uk: "Не призначено", de: "Nicht zugewiesen", it: "Non assegnata",
                 es: "Sin asignar", fr: "Non attribué", pt: "Não atribuído", ar: "غير معيَّن",
                 hi: "निर्धारित नहीं", bn: "নির্ধারিত নয়", ur: "مقرر نہیں", zh: "未分配");
 
-            Add("Задать...",
-                en: "Assign...", uk: "Призначити...", de: "Zuweisen...", it: "Assegna...",
+            Add("Assign...",
+                ru: "Задать...", uk: "Призначити...", de: "Zuweisen...", it: "Assegna...",
                 es: "Asignar...", fr: "Attribuer...", pt: "Atribuir...", ar: "تعيين...",
                 hi: "निर्धारित करें...", bn: "নির্ধারণ করুন...", ur: "مقرر کریں...", zh: "分配...");
 
-            Add("Очистить",
-                en: "Clear", uk: "Очистити", de: "Löschen", it: "Cancella", es: "Borrar",
+            Add("Clear",
+                ru: "Очистить", uk: "Очистити", de: "Löschen", it: "Cancella", es: "Borrar",
                 fr: "Effacer", pt: "Limpar", ar: "مسح", hi: "साफ़ करें", bn: "মুছে ফেলুন",
                 ur: "صاف کریں", zh: "清除");
 
-            Add("{0} → раскладка {1} (не установлена)",
-                en: "{0} → layout {1} (not installed)", uk: "{0} → розкладка {1} (не встановлена)",
+            Add("{0} → layout {1} (not installed)",
+                ru: "{0} → раскладка {1} (не установлена)", uk: "{0} → розкладка {1} (не встановлена)",
                 de: "{0} → Layout {1} (nicht installiert)", it: "{0} → layout {1} (non installato)",
                 es: "{0} → distribución {1} (no instalada)", fr: "{0} → disposition {1} (non installée)",
                 pt: "{0} → layout {1} (não instalado)", ar: "{0} ← التخطيط {1} (غير مثبَّت)",
                 hi: "{0} → लेआउट {1} (स्थापित नहीं)", bn: "{0} → লেআউট {1} (ইনস্টল করা নেই)",
                 ur: "{0} ← لے آؤٹ {1} (نصب نہیں)", zh: "{0} → 布局 {1}（未安装）");
 
-            Add("Сочетание для переключения на язык",
-                en: "Shortcut for switching to this language", uk: "Сполучення для перемикання на цю мову",
+            Add("Shortcut for switching to this language",
+                ru: "Сочетание для переключения на язык", uk: "Сполучення для перемикання на цю мову",
                 de: "Kürzel zum Wechsel in diese Sprache", it: "Scorciatoia per passare a questa lingua",
                 es: "Atajo para cambiar a este idioma", fr: "Raccourci pour basculer vers cette langue",
                 pt: "Atalho para mudar para este idioma", ar: "اختصار التبديل إلى هذه اللغة",
                 hi: "इस भाषा पर स्विच करने का शॉर्टकट", bn: "এই ভাষায় যাওয়ার শর্টকাট",
                 ur: "اس زبان پر جانے کا شارٹ کٹ", zh: "切换到该语言的快捷键");
 
-            Add("Комбинация {0} уже занята горячей клавишей CyrFlip «{1}» — Windows её не получит.",
-                en: "The {0} combination is already used by the CyrFlip hotkey «{1}» — Windows would never receive it.",
+            Add("The {0} combination is already used by the CyrFlip hotkey «{1}» — Windows would never receive it.",
+                ru: "Комбинация {0} уже занята горячей клавишей CyrFlip «{1}» — Windows её не получит.",
                 uk: "Комбінацію {0} вже зайнято гарячою клавішею CyrFlip «{1}» — Windows її не отримає.",
                 de: "Die Kombination {0} wird bereits vom CyrFlip-Kürzel «{1}» belegt — Windows würde sie nie erhalten.",
                 it: "La combinazione {0} è già usata dalla scorciatoia di CyrFlip «{1}»: Windows non la riceverebbe mai.",
@@ -270,8 +270,8 @@ namespace CyrFlip
                 ur: "مجموعہ {0} پہلے ہی CyrFlip کے شارٹ کٹ «{1}» کے پاس ہے — Windows تک یہ کبھی نہیں پہنچے گا۔",
                 zh: "组合键 {0} 已被 CyrFlip 的快捷键「{1}」占用——Windows 永远收不到它。");
 
-            Add("Комбинация {0} уже назначена языку «{1}».",
-                en: "The {0} combination is already assigned to «{1}».",
+            Add("The {0} combination is already assigned to «{1}».",
+                ru: "Комбинация {0} уже назначена языку «{1}».",
                 uk: "Комбінацію {0} вже призначено мові «{1}».",
                 de: "Die Kombination {0} ist bereits der Sprache «{1}» zugewiesen.",
                 it: "La combinazione {0} è già assegnata alla lingua «{1}».",
@@ -284,8 +284,8 @@ namespace CyrFlip
                 ur: "مجموعہ {0} پہلے ہی زبان «{1}» کو دیا گیا ہے۔",
                 zh: "组合键 {0} 已分配给语言「{1}」。");
 
-            Add("В Windows не осталось свободных слотов для языковых сочетаний.",
-                en: "Windows has no free slots left for language shortcuts.",
+            Add("Windows has no free slots left for language shortcuts.",
+                ru: "В Windows не осталось свободных слотов для языковых сочетаний.",
                 uk: "У Windows не лишилося вільних слотів для мовних сполучень.",
                 de: "In Windows sind keine freien Plätze für Sprachkürzel mehr vorhanden.",
                 it: "In Windows non restano slot liberi per le scorciatoie di lingua.",
@@ -298,8 +298,8 @@ namespace CyrFlip
                 ur: "Windows میں زبان کے شارٹ کٹس کے لیے کوئی خالی جگہ باقی نہیں۔",
                 zh: "Windows 中已没有可用于语言快捷键的空位。");
 
-            Add("Не удалось записать сочетание в реестр Windows.",
-                en: "Could not write the shortcut to the Windows registry.",
+            Add("Could not write the shortcut to the Windows registry.",
+                ru: "Не удалось записать сочетание в реестр Windows.",
                 uk: "Не вдалося записати сполучення до реєстру Windows.",
                 de: "Das Kürzel konnte nicht in die Windows-Registrierung geschrieben werden.",
                 it: "Impossibile scrivere la scorciatoia nel registro di Windows.",
@@ -312,8 +312,8 @@ namespace CyrFlip
                 ur: "شارٹ کٹ کو Windows رجسٹری میں لکھا نہیں جا سکا۔",
                 zh: "无法把快捷键写入 Windows 注册表。");
 
-            Add("Сочетание записано в настройки Windows — обрабатывать его будет система, а не CyrFlip. Если оно не сработало сразу, выйдите из Windows и войдите снова.",
-                en: "The shortcut has been written to the Windows settings — the system will handle it, not CyrFlip. If it does not work right away, sign out of Windows and back in.",
+            Add("The shortcut has been written to the Windows settings — the system will handle it, not CyrFlip. If it does not work right away, sign out of Windows and back in.",
+                ru: "Сочетание записано в настройки Windows — обрабатывать его будет система, а не CyrFlip. Если оно не сработало сразу, выйдите из Windows и войдите снова.",
                 uk: "Сполучення записано в налаштування Windows — його оброблятиме система, а не CyrFlip. Якщо воно не спрацювало одразу, вийдіть із Windows і увійдіть знову.",
                 de: "Das Kürzel wurde in die Windows-Einstellungen geschrieben — es wird vom System verarbeitet, nicht von CyrFlip. Wirkt es nicht sofort, melden Sie sich bei Windows ab und wieder an.",
                 it: "La scorciatoia è stata scritta nelle impostazioni di Windows: la gestirà il sistema, non CyrFlip. Se non funziona subito, esci da Windows e rientra.",
@@ -326,14 +326,14 @@ namespace CyrFlip
                 ur: "شارٹ کٹ Windows کی ترتیبات میں لکھ دیا گیا ہے — اسے سسٹم سنبھالے گا، CyrFlip نہیں۔ اگر یہ فوراً کام نہ کرے تو Windows سے سائن آؤٹ کر کے دوبارہ سائن اِن کریں۔",
                 zh: "快捷键已写入 Windows 设置——由系统处理，而不是 CyrFlip。如果没有立即生效，请注销 Windows 后重新登录。");
 
-            Add("Вернуть хоткеи как было",
-                en: "Restore hotkeys", uk: "Повернути хоткеї", de: "Kürzel zurücksetzen",
+            Add("Restore hotkeys",
+                ru: "Вернуть хоткеи как было", uk: "Повернути хоткеї", de: "Kürzel zurücksetzen",
                 it: "Ripristina le scorciatoie", es: "Restaurar los atajos", fr: "Restaurer les raccourcis",
                 pt: "Restaurar os atalhos", ar: "استعادة الاختصارات", hi: "शॉर्टकट पुनर्स्थापित करें",
                 bn: "শর্টকাট পুনরুদ্ধার করুন", ur: "شارٹ کٹس بحال کریں", zh: "还原快捷键");
 
-            Add("Возвращает языковые сочетания Windows в то состояние, в котором они были до первого изменения из CyrFlip.",
-                en: "Returns the Windows language shortcuts to the state they were in before CyrFlip first changed them.",
+            Add("Returns the Windows language shortcuts to the state they were in before CyrFlip first changed them.",
+                ru: "Возвращает языковые сочетания Windows в то состояние, в котором они были до первого изменения из CyrFlip.",
                 uk: "Повертає мовні сполучення Windows до стану, у якому вони були до першої зміни з CyrFlip.",
                 de: "Setzt die Windows-Sprachkürzel auf den Stand vor der ersten Änderung durch CyrFlip zurück.",
                 it: "Riporta le scorciatoie di lingua di Windows allo stato precedente alla prima modifica fatta da CyrFlip.",
@@ -347,8 +347,8 @@ namespace CyrFlip
                 zh: "把 Windows 的语言快捷键恢复到 CyrFlip 首次修改之前的状态。");
 
             // Ticket S0007 WL-8..WL-11, CF-4.
-            Add("Это метод ввода (IME), которым управляет Windows: удалённый здесь, он вернётся при следующем входе. Удалите его в параметрах Windows «Язык и регион».",
-                en: "This is an input method (IME) that Windows manages: removed here, it would come back at the next sign-in. Remove it in the Windows «Language & region» settings.",
+            Add("This is an input method (IME) that Windows manages: removed here, it would come back at the next sign-in. Remove it in the Windows «Language & region» settings.",
+                ru: "Это метод ввода (IME), которым управляет Windows: удалённый здесь, он вернётся при следующем входе. Удалите его в параметрах Windows «Язык и регион».",
                 uk: "Це метод введення (IME), яким керує Windows: видалений тут, він повернеться під час наступного входу. Видаліть його в параметрах Windows «Мова й регіон».",
                 de: "Dies ist eine Eingabemethode (IME), die Windows verwaltet: hier entfernt, käme sie bei der nächsten Anmeldung zurück. Entfernen Sie sie in den Windows-Einstellungen «Sprache und Region».",
                 it: "Questo è un metodo di input (IME) gestito da Windows: rimosso qui, tornerebbe al prossimo accesso. Rimuovilo nelle impostazioni di Windows «Lingua e area geografica».",
@@ -361,8 +361,8 @@ namespace CyrFlip
                 ur: "یہ ایک ان پٹ طریقہ (IME) ہے جسے Windows چلاتا ہے: یہاں ہٹانے پر یہ اگلے سائن اِن پر واپس آ جائے گا۔ اسے Windows کی «زبان اور علاقہ» سیٹنگز میں ہٹائیں۔",
                 zh: "这是由 Windows 管理的输入法 (IME)：在这里移除，下次登录时它还会回来。请在 Windows 的「语言和区域」设置中移除它。");
 
-            Add("Список раскладок Windows не удалось прочитать полностью — CyrFlip ничего не изменил.",
-                en: "The Windows layout list could not be read in full — CyrFlip changed nothing.",
+            Add("The Windows layout list could not be read in full — CyrFlip changed nothing.",
+                ru: "Список раскладок Windows не удалось прочитать полностью — CyrFlip ничего не изменил.",
                 uk: "Список розкладок Windows не вдалося прочитати повністю — CyrFlip нічого не змінив.",
                 de: "Die Windows-Layoutliste konnte nicht vollständig gelesen werden — CyrFlip hat nichts geändert.",
                 it: "Non è stato possibile leggere per intero l'elenco dei layout di Windows: CyrFlip non ha modificato nulla.",
@@ -375,8 +375,8 @@ namespace CyrFlip
                 ur: "Windows کی لے آؤٹ فہرست پوری طرح پڑھی نہیں جا سکی — CyrFlip نے کچھ نہیں بدلا۔",
                 zh: "无法完整读取 Windows 布局列表——CyrFlip 未做任何更改。");
 
-            Add("Не удалось сохранить исходное состояние настроек Windows — CyrFlip ничего не изменил.",
-                en: "The original state of the Windows settings could not be saved — CyrFlip changed nothing.",
+            Add("The original state of the Windows settings could not be saved — CyrFlip changed nothing.",
+                ru: "Не удалось сохранить исходное состояние настроек Windows — CyrFlip ничего не изменил.",
                 uk: "Не вдалося зберегти початковий стан налаштувань Windows — CyrFlip нічого не змінив.",
                 de: "Der ursprüngliche Zustand der Windows-Einstellungen konnte nicht gesichert werden — CyrFlip hat nichts geändert.",
                 it: "Non è stato possibile salvare lo stato originale delle impostazioni di Windows: CyrFlip non ha modificato nulla.",
@@ -389,8 +389,8 @@ namespace CyrFlip
                 ur: "Windows سیٹنگز کی اصل حالت محفوظ نہیں ہو سکی — CyrFlip نے کچھ نہیں بدلا۔",
                 zh: "无法保存 Windows 设置的原始状态——CyrFlip 未做任何更改。");
 
-            Add("Резервную копию не удалось прочитать — ничего не изменено.",
-                en: "The backup could not be read — nothing was changed.",
+            Add("The backup could not be read — nothing was changed.",
+                ru: "Резервную копию не удалось прочитать — ничего не изменено.",
                 uk: "Резервну копію не вдалося прочитати — нічого не змінено.",
                 de: "Die Sicherung konnte nicht gelesen werden — es wurde nichts geändert.",
                 it: "Non è stato possibile leggere il backup: non è stato modificato nulla.",
@@ -403,8 +403,8 @@ namespace CyrFlip
                 ur: "بیک اپ پڑھا نہیں جا سکا — کچھ نہیں بدلا گیا۔",
                 zh: "无法读取备份——未做任何更改。");
 
-            Add("Стрелки меняют порядок раскладок внутри одного языка. Порядок самих языков задаёт Windows и восстанавливает его при входе в систему — меняйте его в параметрах Windows.",
-                en: "The arrows reorder the layouts within one language. The order of the languages themselves belongs to Windows, which restores it at sign-in — change it in the Windows settings.",
+            Add("The arrows reorder the layouts within one language. The order of the languages themselves belongs to Windows, which restores it at sign-in — change it in the Windows settings.",
+                ru: "Стрелки меняют порядок раскладок внутри одного языка. Порядок самих языков задаёт Windows и восстанавливает его при входе в систему — меняйте его в параметрах Windows.",
                 uk: "Стрілки змінюють порядок розкладок усередині однієї мови. Порядок самих мов задає Windows і відновлює його під час входу — змінюйте його в параметрах Windows.",
                 de: "Die Pfeile ändern die Reihenfolge der Layouts innerhalb einer Sprache. Die Reihenfolge der Sprachen selbst legt Windows fest und stellt sie bei der Anmeldung wieder her — ändern Sie sie in den Windows-Einstellungen.",
                 it: "Le frecce cambiano l'ordine dei layout all'interno di una lingua. L'ordine delle lingue stesse lo decide Windows, che lo ripristina all'accesso: cambialo nelle impostazioni di Windows.",
@@ -417,8 +417,8 @@ namespace CyrFlip
                 ur: "تیر ایک ہی زبان کے اندر لے آؤٹس کی ترتیب بدلتے ہیں۔ خود زبانوں کی ترتیب Windows طے کرتا ہے اور سائن اِن پر اسے بحال کر دیتا ہے — اسے Windows سیٹنگز میں بدلیں۔",
                 zh: "箭头只调整同一语言内布局的顺序。语言本身的顺序由 Windows 决定，并会在登录时恢复——请在 Windows 设置中更改。");
 
-            Add("Вернуть языковые сочетания Windows в исходное состояние?",
-                en: "Restore the Windows language shortcuts to their original state?",
+            Add("Restore the Windows language shortcuts to their original state?",
+                ru: "Вернуть языковые сочетания Windows в исходное состояние?",
                 uk: "Повернути мовні сполучення Windows до початкового стану?",
                 de: "Die Windows-Sprachkürzel in den ursprünglichen Zustand zurücksetzen?",
                 it: "Ripristinare le scorciatoie di lingua di Windows allo stato originale?",

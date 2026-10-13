@@ -216,7 +216,7 @@ namespace CyrFlip.Tests
         }
     }
 
-    /// <summary>S0062 section 4: thirteen pages, in the pillar order, the About page last.</summary>
+    /// <summary>S0062 section 4 and S0069: fourteen pages, in the pillar order, the About page last.</summary>
     [Collection(SharedGdiCollection.Name)]
     public class SettingsPageOrderTests
     {
@@ -233,6 +233,7 @@ namespace CyrFlip.Tests
             (SettingsPageKey.QuickNotes, "Быстрые заметки"),
             (SettingsPageKey.Graphics, "Снимки экрана"),
             (SettingsPageKey.Launcher, "Быстрый запуск"),
+            (SettingsPageKey.TrafficLight, "Светофор доступности"),
             (SettingsPageKey.Hotkeys, "Горячие клавиши"),
             (SettingsPageKey.About, "О программе"),
         };
@@ -244,7 +245,7 @@ namespace CyrFlip.Tests
             {
                 using SettingsForm form = TestForms.NewSettings(RegroupingHarness.Config());
                 var pages = form.Tabs!.TabPages.Cast<TabPage>().ToList();
-                Assert.Equal(13, pages.Count);
+                Assert.Equal(14, pages.Count);
                 Assert.Equal(Expected.Select(e => (object)e.Key), pages.Select(p => p.Tag!));
                 Assert.Equal(Expected.Select(e => e.Title), pages.Select(p => p.Text));
                 Assert.Equal(SettingsPageKey.About, pages[pages.Count - 1].Tag);
@@ -275,6 +276,7 @@ namespace CyrFlip.Tests
             [ChordKind.History] = "setting.history-chord",
             [ChordKind.QuickNotes] = "setting.quick-notes-chord",
             [ChordKind.Symbols] = "setting.symbols-chord",
+            [ChordKind.TrafficLight] = "setting.traffic-light-chord",
             [ChordKind.Screenshot] = "group.graphics-capture",
             [ChordKind.ScreenshotFolder] = "setting.screenshot-folder-chord",
             [ChordKind.TextMenu] = "setting.keyboard-menu-chord",

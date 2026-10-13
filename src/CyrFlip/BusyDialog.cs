@@ -32,7 +32,7 @@ namespace CyrFlip
         internal BusyDialog(string language, Task task)
         {
             _task = task;
-            string T(string ru) => Localization.Translate(language, ru);
+            string T(string en) => Localization.Translate(language, en);
             Text = "CyrFlip";
             FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false; MinimizeBox = false;
             ControlBox = false; ShowIcon = false; ShowInTaskbar = false;
@@ -56,7 +56,7 @@ namespace CyrFlip
             // be one more declared exception to the theme (S0020) for a window seen for a second.
             layout.Controls.Add(new Label
             {
-                Text = T("Подождите, CyrFlip обрабатывает данные.."),
+                Text = T("Please wait, CyrFlip is processing the data.."),
                 AutoSize = true, MaximumSize = new Size(wrap, 0), Margin = new Padding(3, 3, 3, 3), UseMnemonic = false,
             });
             Controls.Add(layout);

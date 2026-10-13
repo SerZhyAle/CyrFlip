@@ -19,15 +19,18 @@
   amendment. Twelve of CyrFlip's asked meanings are such records (nine of them since 0.17, `action.convert-layout` and `system.input-language` since 0.23, `feature.selection-menu` asked 2026-10-11), and the app draws eight of them.
 - **Names follow the record** in all 13 interface languages.
 
-Held: all thirteen settings tabs draw a vocabulary glyph - Settings (`app.settings`), Indicators
+Held: all fourteen settings tabs draw a vocabulary glyph - Settings (`app.settings`), Indicators
 (`feature.layout-indicator`), Hotkeys (`app.shortcuts`), Conversions (`action.convert-layout`), Windows languages
 (`system.input-language`), the selection menu (`feature.selection-menu`, asked 2026-10-11; the tab drew its
 caption alone until the record existed - S0062 D7), Symbols (`feature.symbols`), Clipboard
 (`feature.clipboard-history`), Quick notes (`content.note`), Translation
-(`action.translate`), Quick launch (`feature.quick-launch`), Graphics (`system.screenshot`) and About
-(`app.info`); no private tab drawing is left in the code. The clipboard strip's four glyphs, the order buttons of
-the layout list, the launcher list and the notes window (`action.move-up` / `action.move-down`) are vocabulary
-glyphs too, and the guides show a tab's glyph beside its name.
+(`action.translate`), Quick launch (`feature.quick-launch`), Graphics (`system.screenshot`), the availability
+traffic light (`feature.network-monitor`, S0069) and About (`app.info`); no private tab drawing is left in the
+code. The clipboard strip's four glyphs, the order buttons of the layout list, the launcher list and the notes
+window (`action.move-up` / `action.move-down`) are vocabulary glyphs too, and the guides show a tab's glyph beside
+its name. The traffic-light board's tiles draw the four state records - `status.ok`, `status.warning`,
+`status.error`, `status.unknown` - so a state never rests on colour alone; the glyph files and records were already
+in the catalog (all `active`) and `tools/IconGen` vendored them without a proposal (S0069).
 
 **Declared (decision of 2026-10-07, item 2, option (a)):** the launcher's page header and CyrFlip's own taskbar
 button carry OneClickRunner's mark - the absorbed product's identity artwork, kept deliberately

@@ -19,13 +19,15 @@ not a local edit and not a local copy kept "in sync".
 | [`INPUT-CHORD.md`](INPUT-CHORD.md) | `INPUT-CHORD` | Owner, Producer and Consumer - chord token, refusals, chord ownership, global hooks |
 | [`INPUT-PARITY.md`](INPUT-PARITY.md) | `INPUT-PARITY` | Producer; steward of the keyboard and mouse columns of a shared device table; rules 1-2 held in the code since S0045, live walk owed |
 | [`SCENARIO-FILE.md`](SCENARIO-FILE.md) | `SCENARIO-FILE` | Producer and Consumer - launcher store, export and OneClickRunner import; 0.11 read, rule 8 on a repeated migration is in the text (item H) and held |
+| [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | Consumer of one text format - the `FMSEXCH1` connection string (section 5.5) that the traffic light's one-field add reads; 0.19 read 2026-10-13, the vector replayed, no frame of the wire is ever sent; a question on the handshake probe is filed |
+| [`ANYWHERE-ACCESS.md`](ANYWHERE-ACCESS.md) | `ANYWHERE-ACCESS` | Consumer of one text format - the `FMSSFTP1/2` share code (section 4.1) that the traffic light's one-field add reads, every secret dropped at parse time; 0.13 read 2026-10-13, the vector replayed; a question on the banner read is filed |
 | [`DIAGNOSTIC-REPORT.md`](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | Producer / Implementer - session log rotation, count-only environment report, support bundle ZIP |
 | [`APP-BEHAVIOUR.md`](APP-BEHAVIOUR.md) | `APP-BEHAVIOUR` | Consumer - the shared desktop-app moments; the tray tool windows are the rule-1 companion-surface class (0.11); every irreversible delete is confirmed, table rows included (rule 5) |
 | [`APP-STYLE.md`](APP-STYLE.md) | `APP-STYLE` | Consumer - the app theme (sections 2-5, shipped since v26.10.1); the layout marker is out of theme |
 | [`APP-SETTINGS.md`](APP-SETTINGS.md) | `APP-SETTINGS` | Owner, Producer and reference implementation - the persistent settings surface; 0.3 read 2026-10-07 - sections 1-8 held (S0048 walk 2026-10-06), section 9 (an irreversible operation on a page) held by reading the handlers, rung 1 (file and line pins) owed |
 | [`WINDOWS-UI.md`](WINDOWS-UI.md) | `WINDOWS-UI` | Consumer - the shared Windows UI profile; sections 2-7 implemented 2026-10-06 (ticket `S0048`), section 8 not applicable; open items in the pointer |
 | [`CAPTURE-OUTPUT.md`](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | Producer of the `screenshot` kind - the region capture's file name, folder chain and PNG `tIME` chunk (rule 16, 0.5, held) |
-| [`ICON-SET.md`](ICON-SET.md) | `ICON-SET` | Consumer - glyphs and names map to the vocabulary (all eleven tabs); two product-text decisions open |
+| [`ICON-SET.md`](ICON-SET.md) | `ICON-SET` | Consumer - glyphs and names map to the vocabulary (all fourteen tabs, the traffic light's tiles included); two product-text decisions open |
 | [`ICON-RENDER.md`](ICON-RENDER.md) | `ICON-RENDER` | Consumer - how glyphs are drawn and coloured; the layout badge is out |
 | [`ICON-EXTERNAL.md`](ICON-EXTERNAL.md) | `ICON-EXTERNAL` | Consumer - launcher scenario icons and their fallbacks |
 | [`WINDOWS-STORE.md`](WINDOWS-STORE.md) | `WINDOWS-STORE` | Producer - the MSIX and the Partner Center listing import; adopted 2026-10-03, the six exceptions closed the same day (ticket `S0047`); rules 15 and 18 still await their artifacts |

@@ -167,9 +167,9 @@ namespace CyrFlip
         public void ApplyLanguage(string uiLanguage)
         {
             _uiLanguage = uiLanguage;
-            Text = Localization.Translate(_uiLanguage, "Окно символов");
+            Text = Localization.Translate(_uiLanguage, "Symbols window");
 
-            _fieldCaption.Text = Localization.Translate(_uiLanguage, "Текущий буфер обмена");
+            _fieldCaption.Text = Localization.Translate(_uiLanguage, "Current clipboard");
             _textField.AccessibleName = _fieldCaption.Text;
             _toolTips.SetToolTip(_fieldCaption, _fieldCaption.Text);
             _toolTips.SetToolTip(_textField, _fieldCaption.Text);
@@ -180,10 +180,10 @@ namespace CyrFlip
             try
             {
                 _setBox.Items.Clear();
-                _setBox.Items.Add(Localization.Translate(_uiLanguage, "Все"));
+                _setBox.Items.Add(Localization.Translate(_uiLanguage, "All"));
                 foreach (SymbolCategory cat in SymbolsData.Categories)
                 {
-                    _setBox.Items.Add(Localization.Translate(_uiLanguage, SymbolsData.CategoryTitleRu(cat.Key)));
+                    _setBox.Items.Add(Localization.Translate(_uiLanguage, SymbolsData.CategoryTitle(cat.Key)));
                 }
                 _setBox.SelectedIndex = CategoryIndex(_category);
             }
@@ -191,13 +191,13 @@ namespace CyrFlip
             {
                 _settingCategory = false;
             }
-            _setBox.AccessibleName = Localization.Translate(_uiLanguage, "Набор символов");
+            _setBox.AccessibleName = Localization.Translate(_uiLanguage, "Symbol set");
             _toolTips.SetToolTip(_setBox, _setBox.AccessibleName);
 
-            _searchBox.AccessibleName = Localization.Translate(_uiLanguage, "Поиск символов");
+            _searchBox.AccessibleName = Localization.Translate(_uiLanguage, "Search symbols");
             _searchBox.PlaceholderTextSafe(_searchBox.AccessibleName + "…");
-            _toolTips.SetToolTip(_searchBox, Localization.Translate(_uiLanguage, "Поиск по названию, ключевым словам или коду Unicode"));
-            _closeOnPick.Text = Localization.Translate(_uiLanguage, "Закрыть по выбору");
+            _toolTips.SetToolTip(_searchBox, Localization.Translate(_uiLanguage, "Search by name, keywords or Unicode code"));
+            _closeOnPick.Text = Localization.Translate(_uiLanguage, "Close on pick");
             _toolTips.SetToolTip(_closeOnPick, _closeOnPick.Text);
             _grid.SetLanguage(_uiLanguage);
 
@@ -352,7 +352,7 @@ namespace CyrFlip
             if (entry == null)
             {
                 _statusLabel.Text = "";
-                _toolTips.SetToolTip(_grid, Localization.Translate(_uiLanguage, "Сетка символов"));
+                _toolTips.SetToolTip(_grid, Localization.Translate(_uiLanguage, "Symbols grid"));
                 return;
             }
 
@@ -366,7 +366,7 @@ namespace CyrFlip
         {
             if (_copyPending)
             {
-                _statusLabel.Text = Localization.Translate(_uiLanguage, "Буфер обмена занят, повторите");
+                _statusLabel.Text = Localization.Translate(_uiLanguage, "Clipboard is busy, please retry");
                 return;
             }
 
@@ -387,7 +387,7 @@ namespace CyrFlip
 
             if (!success)
             {
-                _statusLabel.Text = Localization.Translate(_uiLanguage, "Буфер обмена занят, повторите");
+                _statusLabel.Text = Localization.Translate(_uiLanguage, "Clipboard is busy, please retry");
                 return;
             }
 
@@ -401,7 +401,7 @@ namespace CyrFlip
             _textField.Text = text;
             _textField.SelectionStart = text.Length;
             _grid.FlashSymbol(entry);
-            _statusLabel.Text = Localization.Format(_uiLanguage, "Скопировано: {0}", entry.Text);
+            _statusLabel.Text = Localization.Format(_uiLanguage, "Copied: {0}", entry.Text);
 
             if (hadFocus)
             {

@@ -62,7 +62,7 @@ namespace CyrFlip
             Action<string>? tellRestoreFailed = null)
         {
             _service = service; _config = config; _openSearch = openSearch; _tellRestoreFailed = tellRestoreFailed;
-            Text = Localization.Translate(config.UiLanguage, "Менеджер буфера"); TopMost = true; ShowInTaskbar = false;
+            Text = Localization.Translate(config.UiLanguage, "Clipboard manager"); TopMost = true; ShowInTaskbar = false;
             RightToLeft = Localization.IsRightToLeft(config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
             // WinForms otherwise paints a second, native title bar above our owner-drawn header.
             // This owner-painted surface handles WM_DPICHANGED itself: the net48 app does
@@ -109,7 +109,7 @@ namespace CyrFlip
         /// <summary>Re-reads the UI language for the title and the owner-painted header, with no restart.</summary>
         public void ApplyLanguage()
         {
-            Text = Localization.Translate(_config.UiLanguage, "Менеджер буфера");
+            Text = Localization.Translate(_config.UiLanguage, "Clipboard manager");
             RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
             ApplyUiFont();
             RefreshHeader();
@@ -169,7 +169,7 @@ namespace CyrFlip
 
         /// <summary>The sentence a refused restore says, or null when it restored - the pure core.</summary>
         internal static string? RestoreNotice(bool restored, Func<string, string> translate)
-            => restored ? null : translate("Не удалось скопировать текст в буфер обмена. Повторите.");
+            => restored ? null : translate("Could not copy the text to the clipboard. Try again.");
 
         private void MoveCursor(int index, int count)
         {
@@ -268,7 +268,7 @@ namespace CyrFlip
             // One Entries read per paint: the list is cached by the service, but the local keeps this
             // paint consistent (the caption count and the cells can't disagree).
             IReadOnlyList<ClipboardHistoryEntry> entries = _service.Entries;
-            string caption = Localization.Translate(_config.UiLanguage, "Менеджер буфера") + " (" + entries.Count + ")";
+            string caption = Localization.Translate(_config.UiLanguage, "Clipboard manager") + " (" + entries.Count + ")";
             // Keep the two actions before the caption: they remain reachable at every allowed width.
             // Vocabulary glyphs (ICON-SET), each centred in the zone the mouse hit test uses.
             HistoryStripGlyphs.DrawSearch(e.Graphics, SearchZone, palette, Scale(20));
@@ -287,6 +287,17 @@ namespace CyrFlip
             var items = VisibleItems();
             for (int i = 0; i < items.Count; i++) DrawCell(e.Graphics, items[i], _firstVisible + i,
                 new Rectangle(0, HeaderHeight + i * CellHeight, ClientSize.Width, CellHeight), palette);
+            // S0067 CU-2-16: the tray opens this strip while the module is off - the empty body names
+            // the switch that starts the recording instead of showing an unexplained blank.
+            if (items.Count == 0 && !_config.EnableClipboardHistory)
+            {
+                string off = Localization.Translate(_config.UiLanguage,
+                    "History is off - tick \"Clipboard history\" in the tray menu to start recording.");
+                using var offBrush = new SolidBrush(palette.TextMuted);
+                e.Graphics.DrawString(off, hotkeyFont, offBrush,
+                    new RectangleF(Scale(8), HeaderHeight + Scale(8), ClientSize.Width - Scale(16), ClientSize.Height - HeaderHeight - Scale(16)),
+                    BodyFormat);
+            }
             if (_cursor >= _firstVisible && _cursor < _firstVisible + items.Count)
             {
                 using var focusPen = new Pen(palette.TextPrimary, Scale(1)) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dot };
@@ -411,8 +422,8 @@ namespace CyrFlip
             string language = _config.UiLanguage;
             var parts = new List<StripPart>
             {
-                new StripPart { Name = Localization.Translate(language, "Поиск по истории"), Client = SearchZone, Invoke = _openSearch },
-                new StripPart { Name = Localization.Translate(language, "Закрыть"), Client = HideZone, Invoke = Hide },
+                new StripPart { Name = Localization.Translate(language, "Search history"), Client = SearchZone, Invoke = _openSearch },
+                new StripPart { Name = Localization.Translate(language, "Close"), Client = HideZone, Invoke = Hide },
             };
             List<ClipboardHistoryEntry> items = VisibleItems();
             for (int i = 0; i < items.Count; i++)
@@ -422,12 +433,12 @@ namespace CyrFlip
                 string preview = item.Preview.Length <= 80 ? item.Preview : item.Preview.Substring(0, 80);
                 parts.Add(new StripPart
                 {
-                    Name = Localization.Translate(language, "Закрепить"), Description = preview, Role = AccessibleRole.CheckButton,
+                    Name = Localization.Translate(language, "Pin"), Description = preview, Role = AccessibleRole.CheckButton,
                     Checked = item.IsPinned, Client = PinZone(cell), Invoke = () => _service.TogglePin(item),
                 });
                 parts.Add(new StripPart
                 {
-                    Name = Localization.Translate(language, "Удалить"), Description = preview,
+                    Name = Localization.Translate(language, "Delete"), Description = preview,
                     Client = DeleteZone(cell), Invoke = () => _service.Delete(item),
                 });
             }

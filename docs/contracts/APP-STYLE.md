@@ -20,7 +20,12 @@
   `success` (promoted to contract in 0.11) and `surface.alternate` (added in 0.11 from CyrFlip's own
   proposal). `danger` is on the destructive answer of the app's own confirmation dialog, whose safe answer
   holds the default focus. Contrast is measured per text/surface pair (`ThemePaletteTests`, 4.5:1; 3:1 for
-  disabled text).
+  disabled text). Five more roles are **proposed** and CyrFlip-only until the owner answers
+  (`PROPOSAL-2026-10-13-cyrflip-status-fill-roles.md`, ticket S0069): `status.ok.fill`, `status.warning.fill`,
+  `status.error.fill`, `status.unknown.fill` and `status.ink`, the fills of the traffic-light board's tiles and
+  the ink drawn on them - **fills, not the `success` / `warning` / `danger` ink roles**, which are text colours.
+  The state is never colour alone: each tile also carries its `status.*` vocabulary glyph
+  (`TrafficLightPaletteTests` gates the pairs; high contrast draws the tile in system colours).
 - **Section 5 - declared out of theme.** The layout marker: its colours are `LAYOUT-PALETTE`'s and never
   follow the window theme - the marker names a layout. Declared at `LayoutStyle.cs` and `CaretOverlay.cs`.
 - **Section 10 (0.12) - complete live coverage.** Nested children, native internal editors, popups, menus and

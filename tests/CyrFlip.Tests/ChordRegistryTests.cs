@@ -209,7 +209,7 @@ namespace CyrFlip.Tests
             Assert.Equal("Calc", ChordRegistry.Label(owner, "English", klid => klid));
 
             ChordOwner caseOwner = registry.CyrFlipOwnerOf(Hotkey.Parse("Ctrl+Shift+F1"), ChordKind.History)!;
-            Assert.Equal(Localization.Translate("English", "Исправить CapsLock"), ChordRegistry.Label(caseOwner, "English", klid => klid));
+            Assert.Equal(Localization.Translate("English", "Fix CapsLock"), ChordRegistry.Label(caseOwner, "English", klid => klid));
         }
     }
 }

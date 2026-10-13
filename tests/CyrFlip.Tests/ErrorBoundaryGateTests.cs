@@ -36,7 +36,9 @@ namespace CyrFlip.Tests
         // its reason written beside it). File name -> silent catches.
         private static readonly Dictionary<string, int> Reviewed = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
         {
-            { "AppConfig.cs", 18 },
+            // +2 (S0069): SaveTrafficLightWindow and SaveTrafficLightVisible - the same "a registry that cannot be
+            // written costs this one cheap value" shape as every incremental save above.
+            { "AppConfig.cs", 20 },
             { "AppShortcuts.cs", 2 },
             { "BusyDialog.cs", 3 },
             { "ButtonGlyphs.cs", 1 },
@@ -106,6 +108,7 @@ namespace CyrFlip.Tests
             { "TranslationProfile.cs", 1 },
             { "TranslationResultWindow.cs", 1 },
             { "TranslationService.cs", 2 },
+            { "TrafficLightLog.cs", 1 },   // a diagnostic that fails must not throw into the code it describes
             { "TrayLog.cs", 1 },
             { "UiaCaretCom.cs", 1 },
             // S0067 follow-up: +1 LoadAppIcon - a failed read of the embedded app-ico resource is

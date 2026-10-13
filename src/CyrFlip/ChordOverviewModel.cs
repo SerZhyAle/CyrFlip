@@ -38,11 +38,11 @@ namespace CyrFlip
         {
             switch (group)
             {
-                case ChordGroup.Fixed: return "Основные комбинации";
-                case ChordGroup.Mouse: return "Мышь";
-                case ChordGroup.Conversions: return "Конвертация раскладок";
-                case ChordGroup.Translations: return "Перевод";
-                case ChordGroup.Launcher: return "Быстрый запуск";
+                case ChordGroup.Fixed: return "Main hotkeys";
+                case ChordGroup.Mouse: return "Mouse";
+                case ChordGroup.Conversions: return "Layout conversions";
+                case ChordGroup.Translations: return "Translation";
+                case ChordGroup.Launcher: return "Quick launch";
                 default: return "Windows";
             }
         }
@@ -118,17 +118,17 @@ namespace CyrFlip
             switch (State)
             {
                 case ChordBindingState.Active: text = ""; break;
-                case ChordBindingState.OffByRow: text = translate("выключено"); break;
-                case ChordBindingState.OffByModule: text = translate("модуль выключен"); break;
-                case ChordBindingState.OffByMaster: text = translate("горячие клавиши выключены"); break;
-                case ChordBindingState.NoChord: text = translate("не назначена"); break;
-                case ChordBindingState.Unparsable: text = translate("не распознана"); break;
-                case ChordBindingState.Incomplete: text = translate("не заполнена"); break;
+                case ChordBindingState.OffByRow: text = translate("off"); break;
+                case ChordBindingState.OffByModule: text = translate("module is off"); break;
+                case ChordBindingState.OffByMaster: text = translate("hotkeys are off"); break;
+                case ChordBindingState.NoChord: text = translate("not assigned"); break;
+                case ChordBindingState.Unparsable: text = translate("not recognised"); break;
+                case ChordBindingState.Incomplete: text = translate("incomplete"); break;
                 default: text = ""; break;
             }
             if (ClashWith != null)
             {
-                string clash = Localization.Format(translate, "совпадает с: {0}", ClashWith);
+                string clash = Localization.Format(translate, "same as: {0}", ClashWith);
                 text = text.Length == 0 ? clash : text + "; " + clash;
             }
             return text;
@@ -167,6 +167,8 @@ namespace CyrFlip
                 config.QuickNotesHotkey, config.EnableQuickNotesHotkey, config.EnableQuickNotes, SettingsPageKey.QuickNotes);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.Symbols,
                 config.SymbolsHotkey, config.EnableSymbolsHotkey, config.EnableSymbols, SettingsPageKey.Symbols);
+            AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.TrafficLight,
+                config.TrafficLightHotkey, config.EnableTrafficLightHotkey, config.EnableTrafficLight, SettingsPageKey.TrafficLight);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.Screenshot,
                 config.ScreenshotHotkey, config.EnableScreenshotHotkey, true, SettingsPageKey.Graphics);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.ScreenshotFolder,
@@ -179,7 +181,7 @@ namespace CyrFlip
             rows.Add(new ChordOverviewRow
             {
                 Group = ChordGroup.Mouse, Kind = null, Id = "", IsMouse = true,
-                Caption = T("Меню над выделением"),
+                Caption = T("Menu over a selection"),
                 StoredChord = mouse.Token, ChordText = mouse.Display(T),
                 State = config.EnableContextMenu ? ChordBindingState.Active : ChordBindingState.OffByModule,
                 ModulePage = SettingsPageKey.SelectionMenu,
@@ -255,7 +257,7 @@ namespace CyrFlip
                 rows.Add(new ChordOverviewRow
                 {
                     Group = ChordGroup.Windows, Kind = null, Id = "toggle",
-                    Caption = T("Переключение раскладок Windows"),
+                    Caption = T("Windows layout switch"),
                     StoredChord = cycle, ChordText = cycle,
                     State = ChordBindingState.Active, ReadOnly = true, ModulePage = SettingsPageKey.WindowsLanguages,
                 });
@@ -319,6 +321,7 @@ namespace CyrFlip
                 case ChordKind.ScreenshotFolder: return config.ScreenshotFolderHotkey;
                 case ChordKind.TextMenu: return config.TextMenuHotkey;
                 case ChordKind.Symbols: return config.SymbolsHotkey;
+                case ChordKind.TrafficLight: return config.TrafficLightHotkey;
                 default: throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a fixed chord");
             }
         }
@@ -334,6 +337,7 @@ namespace CyrFlip
                 case ChordKind.ScreenshotFolder: config.ScreenshotFolderHotkey = token; break;
                 case ChordKind.TextMenu: config.TextMenuHotkey = token; break;
                 case ChordKind.Symbols: config.SymbolsHotkey = token; break;
+                case ChordKind.TrafficLight: config.TrafficLightHotkey = token; break;
                 default: throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a fixed chord");
             }
         }
@@ -349,6 +353,7 @@ namespace CyrFlip
                 case ChordKind.ScreenshotFolder: return config.EnableScreenshotFolderHotkey;
                 case ChordKind.TextMenu: return config.EnableTextMenuHotkey;
                 case ChordKind.Symbols: return config.EnableSymbolsHotkey;
+                case ChordKind.TrafficLight: return config.EnableTrafficLightHotkey;
                 default: throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a fixed chord");
             }
         }
@@ -364,6 +369,7 @@ namespace CyrFlip
                 case ChordKind.ScreenshotFolder: config.EnableScreenshotFolderHotkey = on; break;
                 case ChordKind.TextMenu: config.EnableTextMenuHotkey = on; break;
                 case ChordKind.Symbols: config.EnableSymbolsHotkey = on; break;
+                case ChordKind.TrafficLight: config.EnableTrafficLightHotkey = on; break;
                 default: throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a fixed chord");
             }
         }

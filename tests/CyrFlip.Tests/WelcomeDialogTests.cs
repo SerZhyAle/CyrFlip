@@ -140,15 +140,15 @@ namespace CyrFlip.Tests
                 AppConfig config = NewConfig("English");
                 using var dialog = New(config); dialog.Show();
                 Assert.True(config.EnableCaretOverlay);
-                SwitchNamed(dialog, Localization.Translate("English", "Метка у каретки")).Toggle();
+                SwitchNamed(dialog, Localization.Translate("English", "Caret marker")).Toggle();
                 Assert.False(config.EnableCaretOverlay);
-                SwitchNamed(dialog, Localization.Translate("English", "Курсор мыши")).Toggle();
+                SwitchNamed(dialog, Localization.Translate("English", "Mouse cursor")).Toggle();
                 Assert.True(config.EnableCursorChange);
                 SwitchNamed(dialog, "EN ⇄ RU").Toggle();
                 Assert.False(config.LayoutConversionProfiles[0].Enabled);
-                SwitchNamed(dialog, Localization.Translate("English", "Быстрые заметки")).Toggle();
+                SwitchNamed(dialog, Localization.Translate("English", "Quick notes")).Toggle();
                 Assert.True(config.EnableQuickNotes);
-                Assert.True(SwitchNamed(dialog, Localization.Translate("English", "Быстрые заметки")).Checked);
+                Assert.True(SwitchNamed(dialog, Localization.Translate("English", "Quick notes")).Checked);
             });
         }
 
@@ -161,7 +161,7 @@ namespace CyrFlip.Tests
                 var asked = new List<(WelcomeSwitch, bool)>();
                 using var dialog = New(config, apply: (which, _, on) => asked.Add((which, on)));
                 dialog.Show();
-                ToggleSwitch caret = SwitchNamed(dialog, Localization.Translate("English", "Метка у каретки"));
+                ToggleSwitch caret = SwitchNamed(dialog, Localization.Translate("English", "Caret marker"));
                 caret.Toggle();
                 Assert.Equal((WelcomeSwitch.CaretMarker, false), Assert.Single(asked));
                 Assert.True(caret.Checked, "the owner changed nothing, so the switch must show the real state");
@@ -290,7 +290,7 @@ namespace CyrFlip.Tests
                     typeof(Form).GetMethod("ProcessDialogKey", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(dialog, new object[] { Keys.Enter });
                 }
                 Assert.Equal(SettingsPageKey.General, dialog.RequestedPage);
-                string startup = Localization.Translate("English", "Запускать CyrFlip вместе с Windows");
+                string startup = Localization.Translate("English", "Start CyrFlip with Windows");
                 Assert.DoesNotContain(Walk(dialog).OfType<ToggleSwitch>(), s => s.AccessibleName == startup);
                 using var portable = New("English", false); portable.Show();
                 SwitchNamed(portable, startup);

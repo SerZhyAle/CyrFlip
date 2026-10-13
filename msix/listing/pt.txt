@@ -7,7 +7,7 @@ Digite no layout certo. Uma marca de layout ao vivo fica ao lado do cursor de te
 
 Selecione o texto digitado no layout errado e pressione Ctrl+Shift+F12: o CyrFlip o converte no lugar, nos dois sentidos e até em texto misturado. Adicione quantos pares "de um layout para outro" quiser, cada um com seu próprio atalho; o texto é convertido pela posição física das teclas, então AZERTY e QWERTZ são tratados corretamente. Um atalho separado corrige um CapsLock ligado sem querer. A guia "Idiomas do Windows" instala, reordena e remove layouts de teclado (nada é baixado - eles já vêm com o Windows) e atribui atalhos por idioma que o próprio Windows processa, de modo que continuam funcionando mesmo com o CyrFlip fechado.
 
-Aja sobre o que você selecionou. Segure Ctrl e clique com o botão direito em uma seleção, e o próprio menu do CyrFlip se abre junto ao ponteiro: copiar, recortar e colar, suas conversões de layout, a correção de maiúsculas e minúsculas, a tradução, o Início rápido e o histórico da área de transferência - sem tirar o foco, então a seleção continua lá. Uma combinação de teclas abre o mesmo menu junto ao cursor de texto. Desativado por padrão.
+Aja sobre o que você selecionou. Segure Ctrl e clique com o botão direito em uma seleção, e o próprio menu do CyrFlip se abre junto ao ponteiro: copiar, recortar e colar, suas conversões de layout, a correção de maiúsculas e minúsculas, a tradução, o Início rápido e o histórico da área de transferência - sem tirar o foco, então a seleção continua lá. Uma combinação de teclas abre o mesmo menu junto ao cursor de texto. Desativado por padrão. A janela de símbolos opcional encontra, pelo nome, palavra-chave ou código Unicode, o caractere que falta no seu teclado e o copia com um clique.
 
 O tradutor integrado também é opcional. Selecione um texto em qualquer lugar do Windows, pressione o atalho dele, e a tradução aparece em uma janelinha ao lado do ponteiro do mouse, preenchendo-se conforme o modelo escreve. Ele funciona no Ollama, um programa gratuito que você instala uma vez no seu próprio computador: o CyrFlip não o inclui, não tem conta nem chave e, por padrão, fala apenas com http://localhost:11434 - a sua própria máquina. As direções formam uma tabela aberta, cada uma com seu atalho, e o resultado pode ser copiado para a área de transferência ou colado sobre a seleção. O modelo padrão é o aya-expanse:8b (~4,7 GB). Um aviso honesto: a qualidade é a do modelo local, a primeira tradução após uma partida a frio demora um pouco, e a memória usada pelo modelo pertence ao processo do Ollama, não ao CyrFlip.
 
@@ -15,7 +15,7 @@ Guarde o que você copia e escreve. O histórico opcional da área de transferê
 
 Inicie e capture. Ctrl+PrintScreen congela a tela, você arrasta uma região e a imagem vai para a área de transferência - e, se quiser, também é salva como PNG em uma pasta. O Início rápido, um módulo opcional, transforma seus programas, scripts e downloads do yt-dlp em cenários que você inicia pela área de notificação, por um atalho próprio ou pela Jump List da barra de tarefas; os cenários da ferramenta independente OneClickRunner podem ser importados sem tocar nos originais. Dois interruptores anti-suspensão impedem que o Windows durma ou apague a tela enquanto você trabalha.
 
-Só seu. Os módulos opcionais ficam desligados até você ativá-los, cada atalho pode ser desligado separadamente, e o CyrFlip pode ceder seus atalhos a uma janela de Área de Trabalho Remota em primeiro plano. A interface está disponível em 13 idiomas, incluindo os escritos da direita para a esquerda, com tema claro, escuro ou igual ao do Windows. Ele roda na área de notificação, usa pouca memória e não exige nada extra instalado no Windows 10/11.
+Só seu. Os módulos opcionais ficam desligados até você ativá-los, cada atalho pode ser desligado separadamente, e o CyrFlip pode ceder seus atalhos a uma janela de Área de Trabalho Remota em primeiro plano. A interface está disponível em 13 idiomas, incluindo os escritos da direita para a esquerda, com tema claro, escuro ou igual ao do Windows. Ele roda na área de notificação, usa pouca memória e não exige nada extra instalado no Windows 10/11. Todos os atalhos, com o seu estado, ficam em uma única lista de configurações, onde qualquer um pode ser restaurado.
 
 Privacidade: o CyrFlip usa um hook de teclado apenas para reconhecer os próprios atalhos, a área de transferência apenas para as ações que você aciona e - somente enquanto você mantiver ligado o menu de contexto opcional - um hook de mouse para a única combinação que abre esse menu. Ele não registra as teclas digitadas e não abre nenhuma conexão de rede, a menos que você ative o tradutor, que fala somente com o servidor Ollama que você indicar - o seu próprio computador, por padrão. Se algo der errado, a janela de configurações reúne os logs do CyrFlip em um único arquivo e abre uma mensagem ao autor com esse anexo. Você mesmo envia a mensagem - o CyrFlip não transmite nada pela rede e o histórico da área de transferência nunca entra no arquivo. Código aberto: https://github.com/SerZhyAle/CyrFlip
 
@@ -24,9 +24,9 @@ Na primeira execução, uma apresentação de cinco etapas mostra o CyrFlip e of
 Em Geral, exporte as configurações do CyrFlip para JSON, confira as alterações antes de importar ou restaure as configurações anteriores. As três cópias mais recentes ficam locais. Não inclui notas, histórico da área de transferência, cenários, caminhos locais ou ajustes do Windows. A gravação e outro servidor de tradução exigem consentimento separado.
 
 @@Feature1
-Marca de layout ao vivo junto ao cursor de texto - funciona em navegadores e no chat do VS Code
+Marca de layout ao vivo junto ao cursor de texto - 13 idiomas selecionados com cor própria; funciona em navegadores e no chat do VS Code
 @@Feature2
-13 idiomas selecionados, cada um com sua cor; qualquer outro layout do Windows também recebe seu código
+Janela de símbolos opcional: busca por nome, palavra-chave ou código Unicode, um clique copia o caractere
 @@Feature3
 Uma tecla corrige o texto digitado no layout errado, no lugar e nos dois sentidos
 @@Feature4
@@ -50,9 +50,9 @@ Leve notas e histórico da área de transferência para outro computador em um �
 @@Feature13
 Captura de uma região da tela para a área de transferência com Ctrl+PrintScreen, com opção de salvar em PNG
 @@Feature14
-Início rápido opcional: programas, scripts e downloads do yt-dlp como cenários de um clique
+Início rápido opcional: programas, scripts e downloads do yt-dlp como cenários - pela área de notificação, por atalho ou pela Jump List
 @@Feature15
-Inicie um cenário pela área de notificação, por um atalho global próprio ou pela Jump List da barra de tarefas
+Todos os atalhos em uma única lista: o que cada um faz, se funciona, alterar ou restaurar por ali
 @@Feature16
 Dois interruptores anti-suspensão: sem dormir e sem apagar a tela enquanto você trabalha
 @@Feature17

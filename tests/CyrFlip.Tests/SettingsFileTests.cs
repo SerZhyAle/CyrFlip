@@ -17,7 +17,8 @@ namespace CyrFlip.Tests
             // SaveTo writes the symbols block only once the module has been enabled, so a plain
             // default capture would never see those values - capture both shapes.
             var written = MemoryConfigKey.Capture(new AppConfig()).Values.Keys
-                .Concat(MemoryConfigKey.Capture(new AppConfig { EnableSymbols = true }).Values.Keys).Distinct();
+                .Concat(MemoryConfigKey.Capture(new AppConfig { EnableSymbols = true }).Values.Keys)
+                .Concat(MemoryConfigKey.Capture(new AppConfig { EnableTrafficLight = true }).Values.Keys).Distinct();
             var classified = SettingsFileInventory.Exported.Select(e => e.Key).Concat(SettingsFileInventory.Excluded.Keys).ToArray();
             Assert.Equal(classified.Length, classified.Distinct().Count());
             Assert.Equal(written.OrderBy(k => k), classified.OrderBy(k => k));
@@ -43,7 +44,9 @@ namespace CyrFlip.Tests
             Assert.Contains("\"EnableCaretOverlay\": true", output); Assert.Contains("\"CursorSize\": 24", output);
             Assert.Contains("Українська", output); Assert.DoesNotContain("WelcomeShown", output);
             var read = SettingsFileReader.Read(Encoding.UTF8.GetBytes(output));
-            Assert.Equal(SettingsFileInventory.Exported.Length, read.Values.Count);
+            // The list of traffic light targets names the user's infrastructure: not in the file unless asked for (S0069 D10).
+            Assert.Equal(SettingsFileInventory.Exported.Count(e => e.Key != "TrafficLightTargets"), read.Values.Count);
+            Assert.False(read.Values.ContainsKey("TrafficLightTargets"));
             var plan = SettingsImportPlan.Build(local, read); Assert.Empty(plan.Changes); Assert.Empty(plan.Issues);
             Assert.Equal(output, SettingsFileWriter.Write(local, new DateTime(2026, 10, 7, 10, 15, 0, DateTimeKind.Utc), "26.10.7.1015"));
         }

@@ -21,9 +21,9 @@ namespace CyrFlip
     /// </summary>
     internal readonly struct MouseChord
     {
-        /// <summary>The Russian source strings the button names are translated from.</summary>
-        public const string RightButtonName = "правая кнопка мыши";
-        public const string MiddleButtonName = "средняя кнопка мыши";
+        /// <summary>The English source strings the button names are translated from.</summary>
+        public const string RightButtonName = "right mouse button";
+        public const string MiddleButtonName = "middle mouse button";
 
         public bool Ctrl { get; }
         public bool Shift { get; }
@@ -66,11 +66,11 @@ namespace CyrFlip
             }
         }
 
-        /// <summary>The Russian source string for this chord's button, to be run through Localization.</summary>
+        /// <summary>The English source string for this chord's button, to be run through Localization.</summary>
         public string ButtonNameKey
             => Button == MouseChordButton.Right ? RightButtonName : MiddleButtonName;
 
-        /// <summary>"Ctrl + правая кнопка мыши" - modifiers stay Latin, the button name is translated.</summary>
+        /// <summary>"Ctrl + right mouse button" - modifiers stay Latin, the button name is translated.</summary>
         public string Display(Func<string, string> translate)
         {
             var parts = new List<string>(4);

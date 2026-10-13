@@ -224,7 +224,7 @@ namespace CyrFlip.Tests
                 Assert.Equal("Все", list.GetItemText(list.Items[0]));
                 for (int i = 0; i < SymbolsData.Categories.Length; i++)
                 {
-                    Assert.Equal(SymbolsData.CategoryTitleRu(SymbolsData.Categories[i].Key), list.GetItemText(list.Items[i + 1]));
+                    Assert.Equal(Localization.Translate("Русский", SymbolsData.CategoryTitle(SymbolsData.Categories[i].Key)), list.GetItemText(list.Items[i + 1]));
                 }
             });
         }

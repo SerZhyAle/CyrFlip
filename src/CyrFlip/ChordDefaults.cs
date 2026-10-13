@@ -13,7 +13,7 @@ namespace CyrFlip
     /// </summary>
     internal static class ChordDefaults
     {
-        /// <summary>True for the seven chords that always exist and always have a chord.</summary>
+        /// <summary>True for the eight chords that always exist and always have a chord.</summary>
         public static bool IsFixed(ChordKind kind)
         {
             switch (kind)
@@ -25,6 +25,7 @@ namespace CyrFlip
                 case ChordKind.ScreenshotFolder:
                 case ChordKind.TextMenu:
                 case ChordKind.Symbols:
+                case ChordKind.TrafficLight:
                     return true;
                 default:
                     return false;
@@ -47,6 +48,7 @@ namespace CyrFlip
                 case ChordKind.ScreenshotFolder: return AppConfig.DefaultScreenshotFolderHotkey;
                 case ChordKind.TextMenu: return AppConfig.DefaultTextMenuHotkey;
                 case ChordKind.Symbols: return AppConfig.DefaultSymbolsHotkey;
+                case ChordKind.TrafficLight: return AppConfig.DefaultTrafficLightHotkey;
                 default: throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a fixed chord");
             }
         }

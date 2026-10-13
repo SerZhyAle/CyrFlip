@@ -17,11 +17,13 @@ namespace CyrFlip.Tests
     [Collection(SharedGdiCollection.Name)]
     public class TabGlyphTests
     {
-        private static readonly int[] Kinds = { 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14 };
+        private static readonly int[] Kinds = { 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15 };
         // Kind 14 is the selection menu: its record (feature.selection-menu) landed on 2026-10-11; before that
         // the tab drew its caption alone (S0062 D7). Kind 13, the overview page, is gone - it merged into
         // Hotkeys (kind 2, app.shortcuts).
-        private static readonly int[] WithoutARecord = { };
+        // Kind 15 is the traffic light (S0069): feature.network-monitor, vendored from the catalog's glyph file
+        // (ICON-SET 0.30). Every destination draws a vocabulary glyph now.
+        private static readonly int[] WithoutARecord = Array.Empty<int>();
 
         [Fact]
         public void EveryMappedPageHasAVendoredGlyphAndNoTwoPagesShareOne()
@@ -32,6 +34,7 @@ namespace CyrFlip.Tests
                 "app.settings", "feature.layout-indicator", "app.shortcuts", "feature.clipboard-history", "app.info",
                 "feature.quick-launch", "action.translate", "content.note", "system.screenshot",
                 "system.input-language", "action.convert-layout", "feature.symbols", "feature.selection-menu",
+                "feature.network-monitor",
             }.OrderBy(i => i), ids.OrderBy(i => i));
             Assert.Equal(ids.Length, ids.Distinct().Count());
             foreach (string id in ids) Assert.True(GlyphRenderer.Has(id), id);

@@ -31,7 +31,7 @@ namespace CyrFlip
         public LayoutConversionDialog(List<InputLayouts.Installed> layouts, LayoutConversionProfile? existing, string uiLanguage)
         {
             _uiLanguage = uiLanguage;
-            Text = T(existing == null ? "Новая конвертация раскладок" : "Изменить конвертацию");
+            Text = T(existing == null ? "New layout conversion" : "Edit layout conversion");
             FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false; MinimizeBox = false;
             StartPosition = FormStartPosition.CenterParent; ShowInTaskbar = false;
             AutoSize = true; AutoSizeMode = AutoSizeMode.GrowAndShrink;
@@ -47,16 +47,16 @@ namespace CyrFlip
             AddMissing(existing?.SourceKlid); AddMissing(existing?.TargetKlid);
             _source.Width = _target.Width = ComboWidth();
             SelectKlid(_source, existing?.SourceKlid); SelectKlid(_target, existing?.TargetKlid);
-            _hotkey.Text = existing?.Hotkey ?? T("Не назначено");
+            _hotkey.Text = existing?.Hotkey ?? T("Not assigned");
             _hotkey.MinimumSize = new Size(TextWidth(HotkeyDialog.LongestChord), 0); // the longest chord we can produce
 
-            var set = new Button { Text = T("Задать..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(8, 3, 3, 3) };
+            var set = new Button { Text = T("Assign..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(8, 3, 3, 3) };
             set.Click += (_, _) => SetHotkey();
             ButtonGlyphs.Attach(set, AppGlyphs.Edit);
 
             var ok = ButtonGlyphs.Answer(new Button { Text = "OK", AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = DialogResult.OK });
             ok.Click += (_, _) => BuildProfile(existing);
-            var cancel = ButtonGlyphs.Answer(new Button { Text = T("Отмена"), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = DialogResult.Cancel });
+            var cancel = ButtonGlyphs.Answer(new Button { Text = T("Cancel"), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(TextWidth("Cancel"), 0), DialogResult = DialogResult.Cancel });
 
             // RightToLeft flow, so the first control added sits rightmost - and WinForms mirrors the whole
             // thing for Arabic and Urdu, which puts OK on the left, as those UIs expect.
@@ -68,11 +68,11 @@ namespace CyrFlip
                 ColumnCount = 3, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Dock = DockStyle.Fill, Padding = new Padding(12),
             };
-            grid.Controls.Add(Caption(T("Из раскладки:")), 0, 0);
+            grid.Controls.Add(Caption(T("From layout:")), 0, 0);
             grid.Controls.Add(_source, 1, 0); grid.SetColumnSpan(_source, 2);
-            grid.Controls.Add(Caption(T("В раскладку:")), 0, 1);
+            grid.Controls.Add(Caption(T("To layout:")), 0, 1);
             grid.Controls.Add(_target, 1, 1); grid.SetColumnSpan(_target, 2);
-            grid.Controls.Add(Caption(T("Комбинация:")), 0, 2);
+            grid.Controls.Add(Caption(T("Hotkey:")), 0, 2);
             grid.Controls.Add(_hotkey, 1, 2);
             grid.Controls.Add(set, 2, 2);
             grid.Controls.Add(buttons, 0, 3); grid.SetColumnSpan(buttons, 3);
@@ -81,7 +81,7 @@ namespace CyrFlip
             AcceptButton = ok; CancelButton = cancel;
         }
 
-        private string T(string ru) => Localization.Translate(_uiLanguage, ru);
+        private string T(string en) => Localization.Translate(_uiLanguage, en);
 
         protected override void Dispose(bool disposing)
         {
@@ -96,7 +96,7 @@ namespace CyrFlip
             foreach (object item in _source.Items)
                 if (((LayoutItem)item).Klid.Equals(klid, StringComparison.OrdinalIgnoreCase)) return;
             string code = WorldLayouts.CodeForKlid(klid!);
-            string label = (code.Length > 0 ? code : klid) + " " + T("(не установлена)") + "  (" + klid + ")";
+            string label = (code.Length > 0 ? code : klid) + " " + T("(not installed)") + "  (" + klid + ")";
             _source.Items.Add(new LayoutItem(klid!, label)); _target.Items.Add(new LayoutItem(klid!, label));
         }
 
@@ -137,7 +137,7 @@ namespace CyrFlip
 
         private void SetHotkey()
         {
-            using var dialog = new HotkeyDialog(_hotkey.Text, T("Сочетание конвертации"), _uiLanguage);
+            using var dialog = new HotkeyDialog(_hotkey.Text, T("Conversion hotkey"), _uiLanguage);
             if (dialog.ShowDialog(this) == DialogResult.OK && dialog.CapturedHotkey != null) _hotkey.Text = dialog.CapturedHotkey;
         }
 
@@ -151,7 +151,7 @@ namespace CyrFlip
             // Every refused OK says why; it used to do nothing, silently (DL-4).
             if (!Hotkey.TryParse(_hotkey.Text, out _))
             {
-                ConfirmDialog.Show(this, _uiLanguage, T("Сначала задайте комбинацию клавиш."),
+                ConfirmDialog.Show(this, _uiLanguage, T("Set a hotkey first."),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 DialogResult = DialogResult.None;
                 return;
@@ -160,7 +160,7 @@ namespace CyrFlip
             // Converting a layout into itself would spend a clipboard round trip to change nothing.
             if (string.Equals(source.Klid, target.Klid, StringComparison.OrdinalIgnoreCase))
             {
-                ConfirmDialog.Show(this, _uiLanguage, T("Исходная и целевая раскладки должны отличаться."),
+                ConfirmDialog.Show(this, _uiLanguage, T("The source and target layouts must be different."),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 DialogResult = DialogResult.None;
                 return;

@@ -124,8 +124,8 @@ namespace CyrFlip.Tests
                 using var form = TestForms.NewSettings(config);
                 Control find = Walk(form).First(c => c.Name == "settingsSearch");
                 // The header commands are glyph-only buttons: the caption is the accessible name, not the text.
-                string English() => Localization.Translate("English", "Найти настройку...").TrimEnd('.', ' ');
-                string German() => Localization.Translate("Deutsch", "Найти настройку...").TrimEnd('.', ' ');
+                string English() => Localization.Translate("English", "Find a setting...").TrimEnd('.', ' ');
+                string German() => Localization.Translate("Deutsch", "Find a setting...").TrimEnd('.', ' ');
                 Assert.Equal(English(), find.AccessibleName);
 
                 config.UiLanguage = "Deutsch";
@@ -133,7 +133,7 @@ namespace CyrFlip.Tests
 
                 Assert.Equal(German(), find.AccessibleName);
                 Assert.NotEqual(English(), find.AccessibleName);
-                LinkLabel licence = Walk(form).OfType<LinkLabel>().First(l => l.Text == Localization.Translate("Deutsch", "Лицензия: MIT"));
+                LinkLabel licence = Walk(form).OfType<LinkLabel>().First(l => l.Text == Localization.Translate("Deutsch", "Licence: MIT"));
                 Assert.NotNull(licence);
             });
         }

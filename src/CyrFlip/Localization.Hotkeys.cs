@@ -6,13 +6,13 @@ namespace CyrFlip
         private static void AddHotkeyStrings()
         {
             // S0062: the group on top of the merged page - the master switch and the RDP option.
-            Add("Общие выключатели",
-                en: "Main switches", uk: "Загальні перемикачі", de: "Allgemeine Schalter", it: "Interruttori generali",
+            Add("Main switches",
+                ru: "Общие выключатели", uk: "Загальні перемикачі", de: "Allgemeine Schalter", it: "Interruttori generali",
                 es: "Interruptores generales", fr: "Interrupteurs généraux", pt: "Interruptores gerais",
                 ar: "المفاتيح العامة", hi: "सामान्य स्विच", bn: "সাধারণ সুইচ", ur: "عمومی سوئچ", zh: "总开关");
 
-            Add("Горячие клавиши",
-                en: "Hotkeys", uk: "Гарячі клавіші", de: "Tastenkürzel", it: "Scorciatoie",
+            Add("Hotkeys",
+                ru: "Горячие клавиши", uk: "Гарячі клавіші", de: "Tastenkürzel", it: "Scorciatoie",
                 es: "Atajos de teclado", fr: "Raccourcis clavier", pt: "Atalhos de teclado",
                 ar: "اختصارات لوحة المفاتيح", hi: "शॉर्टकट कुंजियाँ", bn: "শর্টকাট কী",
                 ur: "شارٹ کٹ کیز", zh: "快捷键");
@@ -20,8 +20,8 @@ namespace CyrFlip
             // The hook watchdog's only voice: Windows drops a low-level hook that overran its
             // timeout and tells nobody, so a re-arm that keeps failing is the one thing the user has
             // to hear about - the chords are dead until CyrFlip restarts.
-            Add("Windows не отдаёт перехват клавиатуры — горячие клавиши могут не работать. Помогает перезапуск CyrFlip.",
-                en: "Windows will not grant the keyboard hook — the hotkeys may not work. Restarting CyrFlip usually helps.",
+            Add("Windows will not grant the keyboard hook — the hotkeys may not work. Restarting CyrFlip usually helps.",
+                ru: "Windows не отдаёт перехват клавиатуры — горячие клавиши могут не работать. Помогает перезапуск CyrFlip.",
                 uk: "Windows не віддає перехоплення клавіатури — гарячі клавіші можуть не працювати. Допомагає перезапуск CyrFlip.",
                 de: "Windows gibt den Tastatur-Hook nicht frei — die Tastenkürzel funktionieren möglicherweise nicht. Ein Neustart von CyrFlip hilft meist.",
                 it: "Windows non concede l'aggancio della tastiera: le scorciatoie potrebbero non funzionare. Di solito basta riavviare CyrFlip.",
@@ -34,16 +34,16 @@ namespace CyrFlip
                 ur: "Windows کی بورڈ ہک نہیں دے رہا — شارٹ کٹس شاید کام نہ کریں۔ عام طور پر CyrFlip دوبارہ شروع کرنے سے مدد ملتی ہے۔",
                 zh: "Windows 未授予键盘挂钩 — 快捷键可能失效。重启 CyrFlip 通常可以解决。");
 
-            Add("Слушать глобальные горячие клавиши",
-                en: "Listen for global hotkeys", uk: "Слухати глобальні гарячі клавіші",
+            Add("Listen for global hotkeys",
+                ru: "Слушать глобальные горячие клавиши", uk: "Слухати глобальні гарячі клавіші",
                 de: "Auf globale Tastenkürzel reagieren", it: "Ascolta le scorciatoie globali",
                 es: "Escuchar los atajos globales", fr: "Écouter les raccourcis globaux",
                 pt: "Ouvir os atalhos globais", ar: "الاستماع للاختصارات على مستوى النظام",
                 hi: "वैश्विक शॉर्टकट सुनें", bn: "গ্লোবাল শর্টকাট শুনুন",
                 ur: "عالمی شارٹ کٹس سنیں", zh: "监听全局快捷键");
 
-            Add("Общий выключатель всех горячих клавиш. Когда снят, CyrFlip не перехватывает ни одной комбинации — клавиши проходят в приложение как обычно.",
-                en: "Master switch for all hotkeys. When off, CyrFlip intercepts none of the chords — keys reach the app as usual.",
+            Add("Master switch for all hotkeys. When off, CyrFlip intercepts none of the chords — keys reach the app as usual.",
+                ru: "Общий выключатель всех горячих клавиш. Когда снят, CyrFlip не перехватывает ни одной комбинации — клавиши проходят в приложение как обычно.",
                 uk: "Загальний вимикач усіх гарячих клавіш. Коли знято, CyrFlip не перехоплює жодної комбінації — клавіші потрапляють у застосунок як звичайно.",
                 de: "Hauptschalter für alle Tastenkürzel. Ist er aus, fängt CyrFlip keine Kombination ab — die Tasten erreichen die Anwendung wie gewohnt.",
                 it: "Interruttore generale di tutte le scorciatoie. Se disattivato, CyrFlip non intercetta nessuna combinazione: i tasti arrivano all'applicazione come sempre.",
@@ -56,14 +56,14 @@ namespace CyrFlip
                 ur: "تمام شارٹ کٹس کا مرکزی سوئچ۔ بند ہونے پر CyrFlip کوئی مجموعہ نہیں روکتا — کیز حسبِ معمول ایپ تک پہنچتی ہیں۔",
                 zh: "所有快捷键的总开关。关闭后，CyrFlip 不会拦截任何组合键——按键将照常传递给应用。");
 
-            Add("Исправить CapsLock",
-                en: "Fix CapsLock", uk: "Виправити CapsLock", de: "CapsLock korrigieren",
+            Add("Fix CapsLock",
+                ru: "Исправить CapsLock", uk: "Виправити CapsLock", de: "CapsLock korrigieren",
                 it: "Correggi CapsLock", es: "Corregir CapsLock", fr: "Corriger Verr. Maj.",
                 pt: "Corrigir CapsLock", ar: "تصحيح CapsLock", hi: "CapsLock ठीक करें",
                 bn: "CapsLock ঠিক করুন", ur: "CapsLock درست کریں", zh: "修正 CapsLock");
 
-            Add("Меняет верхний и нижний регистр у выделенного текста. Удобно для случайно включённого CapsLock.",
-                en: "Swaps upper and lower case in the selection; useful after accidentally enabling CapsLock.",
+            Add("Swaps upper and lower case in the selection; useful after accidentally enabling CapsLock.",
+                ru: "Меняет верхний и нижний регистр у выделенного текста. Удобно для случайно включённого CapsLock.",
                 uk: "Змінює верхній і нижній регістр виділеного тексту; зручно після випадково ввімкненого CapsLock.",
                 de: "Vertauscht Groß- und Kleinschreibung in der Auswahl; hilfreich nach versehentlich aktiviertem CapsLock.",
                 it: "Inverte maiuscole e minuscole nella selezione; utile dopo aver attivato CapsLock per errore.",
@@ -76,14 +76,14 @@ namespace CyrFlip
                 ur: "منتخب متن کے بڑے اور چھوٹے حروف آپس میں بدل دیتا ہے؛ غلطی سے CapsLock آن رہ جانے پر مفید۔",
                 zh: "交换所选文本的大小写；不小心开着 CapsLock 时很有用。");
 
-            Add("Менеджер буфера",
-                en: "Clipboard manager", uk: "Менеджер буфера", de: "Zwischenablage-Manager",
+            Add("Clipboard manager",
+                ru: "Менеджер буфера", uk: "Менеджер буфера", de: "Zwischenablage-Manager",
                 it: "Gestore appunti", es: "Gestor del portapapeles", fr: "Gestionnaire du presse-papiers",
                 pt: "Gerenciador da área de transferência", ar: "مدير الحافظة", hi: "क्लिपबोर्ड प्रबंधक",
                 bn: "ক্লিপবোর্ড ম্যানেজার", ur: "کلپ بورڈ مینیجر", zh: "剪贴板管理器");
 
-            Add("Показывает или скрывает окно текстовой истории. Двум действиям CyrFlip нельзя назначить одну комбинацию.",
-                en: "Shows or hides the text-history window. Two CyrFlip actions cannot share one shortcut.",
+            Add("Shows or hides the text-history window. Two CyrFlip actions cannot share one shortcut.",
+                ru: "Показывает или скрывает окно текстовой истории. Двум действиям CyrFlip нельзя назначить одну комбинацию.",
                 uk: "Показує або ховає вікно текстової історії. Двом діям CyrFlip не можна призначити одну комбінацію.",
                 de: "Blendet das Fenster mit dem Textverlauf ein oder aus. Zwei CyrFlip-Aktionen können sich kein Kürzel teilen.",
                 it: "Mostra o nasconde la finestra della cronologia testi. Due azioni di CyrFlip non possono condividere una scorciatoia.",
@@ -96,8 +96,8 @@ namespace CyrFlip
                 ur: "متن کی تاریخ کی ونڈو دکھاتا یا چھپاتا ہے۔ CyrFlip کے دو کاموں کو ایک ہی شارٹ کٹ نہیں دیا جا سکتا۔",
                 zh: "显示或隐藏文本历史窗口。CyrFlip 的两个操作不能共用同一个快捷键。");
 
-            Add("Уступать хоткеи удалённому рабочему столу (mstsc/msrdc)",
-                en: "Yield hotkeys to the remote desktop (mstsc/msrdc)",
+            Add("Yield hotkeys to the remote desktop (mstsc/msrdc)",
+                ru: "Уступать хоткеи удалённому рабочему столу (mstsc/msrdc)",
                 uk: "Поступатися хоткеями віддаленому робочому столу (mstsc/msrdc)",
                 de: "Tastenkürzel an den Remotedesktop abgeben (mstsc/msrdc)",
                 it: "Cedi le scorciatoie al desktop remoto (mstsc/msrdc)",
@@ -110,8 +110,8 @@ namespace CyrFlip
                 ur: "ریموٹ ڈیسک ٹاپ (mstsc/msrdc) کو شارٹ کٹس دے دیں",
                 zh: "把快捷键让给远程桌面（mstsc/msrdc）");
 
-            Add("Когда в фокусе окно клиента удалённого рабочего стола (mstsc/msrdc), CyrFlip не перехватывает хоткеи — клавиша уходит в удалённый сеанс, где её обработает CyrFlip на той машине. Включите, если утилита запущена на обеих сторонах RDP.",
-                en: "When a remote-desktop client window (mstsc/msrdc) is focused, CyrFlip does not intercept the hotkeys — the key travels to the remote session where that machine's CyrFlip handles it. Enable this if the app runs on both ends of the RDP connection.",
+            Add("When a remote-desktop client window (mstsc/msrdc) is focused, CyrFlip does not intercept the hotkeys — the key travels to the remote session where that machine's CyrFlip handles it. Enable this if the app runs on both ends of the RDP connection.",
+                ru: "Когда в фокусе окно клиента удалённого рабочего стола (mstsc/msrdc), CyrFlip не перехватывает хоткеи — клавиша уходит в удалённый сеанс, где её обработает CyrFlip на той машине. Включите, если утилита запущена на обеих сторонах RDP.",
                 uk: "Коли у фокусі вікно клієнта віддаленого робочого столу (mstsc/msrdc), CyrFlip не перехоплює хоткеї — клавіша йде у віддалений сеанс, де її обробить CyrFlip на тій машині. Увімкніть, якщо застосунок запущено на обох боках RDP.",
                 de: "Wenn ein Remotedesktop-Fenster (mstsc/msrdc) den Fokus hat, fängt CyrFlip die Kürzel nicht ab — die Taste gelangt in die Remotesitzung, wo das dortige CyrFlip sie verarbeitet. Aktivieren Sie das, wenn die App auf beiden Seiten der RDP-Verbindung läuft.",
                 it: "Quando è attiva una finestra del client desktop remoto (mstsc/msrdc), CyrFlip non intercetta le scorciatoie: il tasto raggiunge la sessione remota, dove lo gestisce il CyrFlip di quella macchina. Attiva l'opzione se l'app è in esecuzione su entrambi i lati della connessione RDP.",
@@ -124,14 +124,14 @@ namespace CyrFlip
                 ur: "جب ریموٹ ڈیسک ٹاپ کلائنٹ (mstsc/msrdc) کی ونڈو فوکس میں ہو تو CyrFlip شارٹ کٹس نہیں روکتا — کی ریموٹ سیشن تک جاتی ہے جہاں وہاں کا CyrFlip اسے سنبھالتا ہے۔ اگر ایپ RDP کنکشن کے دونوں سروں پر چل رہی ہو تو یہ آن کریں۔",
                 zh: "当远程桌面客户端窗口（mstsc/msrdc）处于前台时，CyrFlip 不拦截快捷键——按键会传到远程会话，由那台机器上的 CyrFlip 处理。如果两端都运行本程序，请启用此项。");
 
-            Add("Изменить...",
-                en: "Change...", uk: "Змінити...", de: "Ändern...", it: "Modifica...", es: "Cambiar...",
+            Add("Change...",
+                ru: "Изменить...", uk: "Змінити...", de: "Ändern...", it: "Modifica...", es: "Cambiar...",
                 fr: "Modifier...", pt: "Alterar...", ar: "تغيير...", hi: "बदलें...", bn: "বদলান...",
                 ur: "تبدیل کریں...", zh: "更改...");
 
             // ---- HotkeyDialog ----
-            Add("Новая комбинация (модификатор обязателен):",
-                en: "New combo (a modifier is required):", uk: "Нова комбінація (модифікатор обов'язковий):",
+            Add("New combo (a modifier is required):",
+                ru: "Новая комбинация (модификатор обязателен):", uk: "Нова комбінація (модифікатор обов'язковий):",
                 de: "Neue Kombination (Modifikatortaste erforderlich):",
                 it: "Nuova combinazione (un modificatore è obbligatorio):",
                 es: "Nueva combinación (se requiere un modificador):",
@@ -141,15 +141,15 @@ namespace CyrFlip
                 bn: "নতুন সংমিশ্রণ (একটি মডিফায়ার আবশ্যক):", ur: "نیا مجموعہ (ایک موڈیفائر لازمی ہے):",
                 zh: "新组合键（必须包含修饰键）：");
 
-            Add("Задать хоткей регистра",
-                en: "Set case hotkey", uk: "Задати хоткей регістру", de: "Kürzel für Groß-/Kleinschreibung festlegen",
+            Add("Set case hotkey",
+                ru: "Задать хоткей регистра", uk: "Задати хоткей регістру", de: "Kürzel für Groß-/Kleinschreibung festlegen",
                 it: "Imposta la scorciatoia delle maiuscole", es: "Definir el atajo de mayúsculas",
                 fr: "Définir le raccourci de casse", pt: "Definir o atalho de maiúsculas",
                 ar: "تعيين اختصار حالة الأحرف", hi: "केस शॉर्टकट सेट करें",
                 bn: "কেস শর্টকাট নির্ধারণ", ur: "کیس کا شارٹ کٹ مقرر کریں", zh: "设置大小写快捷键");
 
-            Add("Задать хоткей истории буфера",
-                en: "Set clipboard history hotkey", uk: "Задати хоткей історії буфера",
+            Add("Set clipboard history hotkey",
+                ru: "Задать хоткей истории буфера", uk: "Задати хоткей історії буфера",
                 de: "Kürzel für den Zwischenablage-Verlauf festlegen",
                 it: "Imposta la scorciatoia della cronologia appunti",
                 es: "Definir el atajo del historial del portapapeles",
@@ -160,8 +160,8 @@ namespace CyrFlip
                 zh: "设置剪贴板历史快捷键");
 
             // ---- Chord clash ----
-            Add("Эта комбинация уже занята {0}. Их нельзя объединять — выберите другую.",
-                en: "That combination is already taken by {0}. They can't share — pick another one.",
+            Add("That combination is already taken by {0}. They can't share — pick another one.",
+                ru: "Эта комбинация уже занята {0}. Их нельзя объединять — выберите другую.",
                 uk: "Цю комбінацію вже зайнято {0}. Їх не можна поєднувати — оберіть іншу.",
                 de: "Diese Kombination ist bereits durch {0} belegt. Sie lässt sich nicht teilen — wählen Sie eine andere.",
                 it: "Questa combinazione è già usata da {0}. Non può essere condivisa: scegline un'altra.",
@@ -174,30 +174,30 @@ namespace CyrFlip
                 ur: "یہ مجموعہ پہلے ہی {0} کے پاس ہے۔ اسے بانٹا نہیں جا سکتا — کوئی دوسرا منتخب کریں۔",
                 zh: "该组合键已被{0}占用。两者不能共用——请另选一个。");
 
-            Add("хоткеем регистра",
-                en: "the case-flip hotkey", uk: "хоткеєм регістру", de: "das Kürzel für Groß-/Kleinschreibung",
+            Add("the case-flip hotkey",
+                ru: "хоткеем регистра", uk: "хоткеєм регістру", de: "das Kürzel für Groß-/Kleinschreibung",
                 it: "la scorciatoia delle maiuscole", es: "el atajo de mayúsculas",
                 fr: "le raccourci de casse", pt: "o atalho de maiúsculas",
                 ar: "اختصار حالة الأحرف", hi: "केस शॉर्टकट", bn: "কেস শর্টকাট",
                 ur: "کیس کا شارٹ کٹ", zh: "大小写快捷键");
 
-            Add("конвертацией раскладок",
-                en: "a layout conversion", uk: "перетворенням розкладок", de: "eine Layout-Umwandlung",
+            Add("a layout conversion",
+                ru: "конвертацией раскладок", uk: "перетворенням розкладок", de: "eine Layout-Umwandlung",
                 it: "una conversione di layout", es: "una conversión de distribución",
                 fr: "une conversion de disposition", pt: "uma conversão de layout",
                 ar: "تحويل تخطيط", hi: "एक लेआउट रूपांतरण", bn: "একটি লেআউট রূপান্তর",
                 ur: "ایک لے آؤٹ تبدیلی", zh: "某个布局转换");
 
-            Add("другим хоткеем CyrFlip",
-                en: "another CyrFlip hotkey", uk: "іншим хоткеєм CyrFlip", de: "ein anderes CyrFlip-Kürzel",
+            Add("another CyrFlip hotkey",
+                ru: "другим хоткеем CyrFlip", uk: "іншим хоткеєм CyrFlip", de: "ein anderes CyrFlip-Kürzel",
                 it: "un'altra scorciatoia di CyrFlip", es: "otro atajo de CyrFlip",
                 fr: "un autre raccourci de CyrFlip", pt: "outro atalho do CyrFlip",
                 ar: "اختصار آخر في CyrFlip", hi: "CyrFlip का कोई अन्य शॉर्टकट",
                 bn: "CyrFlip-এর অন্য একটি শর্টকাট", ur: "CyrFlip کا کوئی اور شارٹ کٹ", zh: "CyrFlip 的另一个快捷键");
 
             // ---- Chords the capture dialog refuses (HotkeyRules, ticket S0004 KC-5) ----
-            Add("Shift без Ctrl и Alt годится только для F1-F24: с другой клавишей такая комбинация мешала бы печатать и выделять текст.",
-                en: "Shift without Ctrl or Alt only works with F1-F24: with any other key the combination would get in the way of typing and selecting text.",
+            Add("Shift without Ctrl or Alt only works with F1-F24: with any other key the combination would get in the way of typing and selecting text.",
+                ru: "Shift без Ctrl и Alt годится только для F1-F24: с другой клавишей такая комбинация мешала бы печатать и выделять текст.",
                 uk: "Shift без Ctrl і Alt годиться лише для F1-F24: з іншою клавішею така комбінація заважала б друкувати й виділяти текст.",
                 de: "Shift ohne Strg oder Alt geht nur mit F1-F24: Mit jeder anderen Taste würde die Kombination beim Tippen und Markieren stören.",
                 it: "Shift senza Ctrl o Alt funziona solo con F1-F24: con qualsiasi altro tasto la combinazione intralcerebbe la digitazione e la selezione del testo.",
@@ -210,8 +210,8 @@ namespace CyrFlip
                 ur: "Ctrl یا Alt کے بغیر Shift صرف F1-F24 کے ساتھ چلتا ہے: کسی اور کلید کے ساتھ یہ مجموعہ ٹائپنگ اور متن منتخب کرنے میں رکاوٹ بنے گا۔",
                 zh: "不带 Ctrl 或 Alt 的 Shift 只能与 F1-F24 搭配：与其他键组合会妨碍输入和选择文本。");
 
-            Add("Это стандартная команда правки (копировать, вставить, отменить..) - её занимать нельзя.",
-                en: "This is a standard editing command (copy, paste, undo..) - it can't be taken.",
+            Add("This is a standard editing command (copy, paste, undo..) - it can't be taken.",
+                ru: "Это стандартная команда правки (копировать, вставить, отменить..) - её занимать нельзя.",
                 uk: "Це стандартна команда редагування (копіювати, вставити, скасувати..) - її займати не можна.",
                 de: "Das ist ein Standard-Bearbeitungsbefehl (Kopieren, Einfügen, Rückgängig..) - er kann nicht belegt werden.",
                 it: "È un comando di modifica standard (copia, incolla, annulla..) - non può essere usato.",
@@ -224,8 +224,8 @@ namespace CyrFlip
                 ur: "یہ ترمیم کی ایک معیاری کمانڈ ہے (کاپی، پیسٹ، واپس..) - اسے نہیں لیا جا سکتا۔",
                 zh: "这是标准编辑命令（复制、粘贴、撤销..）- 不能占用。");
 
-            Add("На раскладке «{1}» эта комбинация печатает «{0}» - CyrFlip перехватывал бы этот символ.",
-                en: "On the «{1}» layout this combination types «{0}» - CyrFlip would swallow that character.",
+            Add("On the «{1}» layout this combination types «{0}» - CyrFlip would swallow that character.",
+                ru: "На раскладке «{1}» эта комбинация печатает «{0}» - CyrFlip перехватывал бы этот символ.",
                 uk: "На розкладці «{1}» ця комбінація друкує «{0}» - CyrFlip перехоплював би цей символ.",
                 de: "Auf dem Layout «{1}» tippt diese Kombination «{0}» - CyrFlip würde dieses Zeichen abfangen.",
                 it: "Nel layout «{1}» questa combinazione digita «{0}» - CyrFlip intercetterebbe quel carattere.",
@@ -239,8 +239,8 @@ namespace CyrFlip
                 zh: "在「{1}」布局中，这个组合键会输入「{0}」- CyrFlip 会拦截这个字符。");
 
             // ---- One owner per chord (ChordRegistry, ticket S0004 KC-6) ----
-            Add("Комбинация {0} назначена в Windows для переключения на язык «{1}». Если её займёт CyrFlip, Windows её больше не получит. Всё равно назначить?",
-                en: "{0} is assigned in Windows to switch to «{1}». If CyrFlip takes it, Windows will no longer receive it. Assign it anyway?",
+            Add("{0} is assigned in Windows to switch to «{1}». If CyrFlip takes it, Windows will no longer receive it. Assign it anyway?",
+                ru: "Комбинация {0} назначена в Windows для переключения на язык «{1}». Если её займёт CyrFlip, Windows её больше не получит. Всё равно назначить?",
                 uk: "Комбінацію {0} призначено у Windows для перемикання на мову «{1}». Якщо її займе CyrFlip, Windows її більше не отримає. Однаково призначити?",
                 de: "{0} ist in Windows dem Wechsel zu «{1}» zugewiesen. Übernimmt CyrFlip sie, erhält Windows sie nicht mehr. Trotzdem zuweisen?",
                 it: "{0} è assegnata in Windows al passaggio a «{1}». Se la prende CyrFlip, Windows non la riceverà più. Assegnarla comunque?",
@@ -253,8 +253,8 @@ namespace CyrFlip
                 ur: "{0} Windows میں «{1}» پر جانے کے لیے مقرر ہے۔ اگر CyrFlip اسے لے لے تو Windows کو یہ مزید نہیں ملے گا۔ پھر بھی مقرر کریں؟",
                 zh: "{0} 在 Windows 中已分配为切换到「{1}」。如果被 CyrFlip 占用，Windows 将不再收到它。仍然分配吗？");
 
-            Add("Комбинация {0} назначена сразу двум действиям: «{1}» и «{2}». Сработает только одно - смените одну из них.",
-                en: "{0} is assigned to two actions at once: «{1}» and «{2}». Only one of them will run - change one of the combinations.",
+            Add("{0} is assigned to two actions at once: «{1}» and «{2}». Only one of them will run - change one of the combinations.",
+                ru: "Комбинация {0} назначена сразу двум действиям: «{1}» и «{2}». Сработает только одно - смените одну из них.",
                 uk: "Комбінацію {0} призначено одразу двом діям: «{1}» і «{2}». Спрацює лише одна - змініть одну з комбінацій.",
                 de: "{0} ist zwei Aktionen zugleich zugewiesen: «{1}» und «{2}». Nur eine davon wird ausgeführt - ändern Sie eine der Kombinationen.",
                 it: "{0} è assegnata a due azioni insieme: «{1}» e «{2}». Ne verrà eseguita solo una - cambia una delle combinazioni.",
@@ -267,8 +267,8 @@ namespace CyrFlip
                 ur: "{0} ایک ساتھ دو کاموں کو دیا گیا ہے: «{1}» اور «{2}»۔ صرف ایک چلے گا - کسی ایک مجموعے کو بدلیں۔",
                 zh: "{0} 同时分配给了两个操作：「{1}」和「{2}」。只有一个会生效 - 请更改其中一个组合键。");
 
-            Add("Удалить сохранённое сочетание для неустановленной раскладки?",
-                en: "Delete saved shortcut for the uninstalled layout?",
+            Add("Delete saved shortcut for the uninstalled layout?",
+                ru: "Удалить сохранённое сочетание для неустановленной раскладки?",
                 uk: "Видалити збережену комбінацію для невстановленої розкладки?",
                 de: "Gespeicherte Tastenkombination für die nicht installierte Tastaturbelegung löschen?",
                 it: "Eliminare la scorciatoia salvata per il layout non installato?",

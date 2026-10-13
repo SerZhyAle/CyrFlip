@@ -47,7 +47,7 @@ namespace CyrFlip.Tests
         public void ADefaultConfigListsEveryFixedChordAndTheMouseChord()
         {
             List<ChordOverviewRow> rows = Build(new AppConfig());
-            Assert.Equal(7, rows.Count(r => r.Group == ChordGroup.Fixed));
+            Assert.Equal(8, rows.Count(r => r.Group == ChordGroup.Fixed));
             Assert.Single(rows, r => r.Group == ChordGroup.Mouse);
             Assert.All(rows.Where(r => r.Group == ChordGroup.Fixed), r => Assert.True(r.HasSwitch));
             Assert.All(rows, r => Assert.False(string.IsNullOrEmpty(r.Caption)));
@@ -94,12 +94,12 @@ namespace CyrFlip.Tests
             var shown = new HashSet<string>
             {
                 nameof(AppConfig.CaseHotkey), nameof(AppConfig.ClipboardHistoryHotkey), nameof(AppConfig.QuickNotesHotkey),
-                nameof(AppConfig.SymbolsHotkey), nameof(AppConfig.ScreenshotHotkey), nameof(AppConfig.ScreenshotFolderHotkey),
+                nameof(AppConfig.SymbolsHotkey), nameof(AppConfig.TrafficLightHotkey), nameof(AppConfig.ScreenshotHotkey), nameof(AppConfig.ScreenshotFolderHotkey),
                 nameof(AppConfig.TextMenuHotkey), nameof(AppConfig.ContextMenuChord),
                 nameof(AppConfig.LayoutConversionProfiles), nameof(AppConfig.TranslateProfiles),
                 // The per-chord switches: each is the switch of one fixed row (ChordConfigAccess).
                 nameof(AppConfig.EnableCaseHotkey), nameof(AppConfig.EnableHistoryHotkey), nameof(AppConfig.EnableQuickNotesHotkey),
-                nameof(AppConfig.EnableSymbolsHotkey), nameof(AppConfig.EnableScreenshotHotkey),
+                nameof(AppConfig.EnableSymbolsHotkey), nameof(AppConfig.EnableTrafficLightHotkey), nameof(AppConfig.EnableScreenshotHotkey),
                 nameof(AppConfig.EnableScreenshotFolderHotkey), nameof(AppConfig.EnableTextMenuHotkey),
             };
             var excluded = new Dictionary<string, string>();   // none today: every chord is listed
@@ -154,7 +154,7 @@ namespace CyrFlip.Tests
             Assert.Contains("Fix CapsLock", conversion.StateText(s => Localization.Translate("English", s)));
             // The state that says why it does not fire stays what it was; the clash is a second fact.
             Assert.Equal(ChordBindingState.Active, caseFlip.State);
-            Assert.StartsWith("совпадает с", caseFlip.StateText(s => s));
+            Assert.StartsWith("same as", caseFlip.StateText(s => s));
             Assert.Null(Row(rows, ChordKind.History).ClashWith);
         }
 
@@ -170,7 +170,7 @@ namespace CyrFlip.Tests
             Assert.NotNull(Row(rows, ChordKind.Conversion, "mine").ClashWith);
             // "Why it does not fire" comes first, the clash second.
             string text = Row(rows, ChordKind.Case).StateText(s => s);
-            Assert.True(text.IndexOf("выключено", StringComparison.Ordinal) < text.IndexOf("совпадает", StringComparison.Ordinal), text);
+            Assert.True(text.IndexOf("off", StringComparison.Ordinal) < text.IndexOf("same as", StringComparison.Ordinal), text);
         }
 
         [Fact]
@@ -192,6 +192,7 @@ namespace CyrFlip.Tests
             Assert.Equal(SettingsPageKey.Clipboard, Row(rows, ChordKind.History).ModulePage);
             Assert.Equal(SettingsPageKey.QuickNotes, Row(rows, ChordKind.QuickNotes).ModulePage);
             Assert.Equal(SettingsPageKey.Symbols, Row(rows, ChordKind.Symbols).ModulePage);
+            Assert.Equal(SettingsPageKey.TrafficLight, Row(rows, ChordKind.TrafficLight).ModulePage);
             Assert.Equal(SettingsPageKey.Graphics, Row(rows, ChordKind.Screenshot).ModulePage);
             Assert.Equal(SettingsPageKey.Graphics, Row(rows, ChordKind.ScreenshotFolder).ModulePage);
             Assert.Equal(SettingsPageKey.SelectionMenu, Row(rows, ChordKind.TextMenu).ModulePage);
@@ -277,7 +278,7 @@ namespace CyrFlip.Tests
             ChordOverviewRow row = Row(Build(new AppConfig { EnableCaseHotkey = false }), ChordKind.Case);
             string text = row.SearchText(s => s);
             Assert.Contains("Ctrl+Shift+F11", text);
-            Assert.Contains("выключено", text);
+            Assert.Contains("off", text);
         }
 
         [Fact]

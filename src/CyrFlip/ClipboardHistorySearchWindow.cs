@@ -41,7 +41,7 @@ namespace CyrFlip
         {
             _service = service;
             _language = language;
-            Text = Localize("Поиск по истории");
+            Text = Localize("Search history");
             StartPosition = FormStartPosition.CenterScreen;
             Size = new Size(760, 500);
             MinimumSize = new Size(500, 320);
@@ -54,26 +54,26 @@ namespace CyrFlip
             try { Icon = _ownIcon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
 
             var top = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 1, Padding = new Padding(12, 12, 12, 4) };
-            top.Controls.Add(new Label { Text = Localize("Введите не менее 3 символов:"), AutoSize = true }, 0, 0);
+            top.Controls.Add(new Label { Text = Localize("Enter at least 3 characters:"), AutoSize = true }, 0, 0);
             top.Controls.Add(_query, 0, 1);
             top.Controls.Add(_hint, 0, 2);
             Controls.Add(_results);
             Controls.Add(top);
 
-            _results.Columns.Add(Localize("Текст"), 420);
-            _results.Columns.Add(Localize("Дата"), 135);
-            _results.Columns.Add(Localize("Источник"), 120);
+            _results.Columns.Add(Localize("Text"), 420);
+            _results.Columns.Add(Localize("Date"), 135);
+            _results.Columns.Add(Localize("Source"), 120);
             var bottom = new FlowLayoutPanel { Dock = DockStyle.Bottom, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(0, 48), FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(8) };
-            var close = new Button { Text = Localize("Закрыть"), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
-            _restore.Text = Localize("Вернуть в буфер");
+            var close = new Button { Text = Localize("Close"), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
+            _restore.Text = Localize("Restore to clipboard");
             _restore.Enabled = false;
             bottom.Controls.Add(close);
             bottom.Controls.Add(_restore);
             if (exchange != null)
             {
                 // Left of the restore button: they act on the whole history, not on the selected row.
-                var export = new Button { Text = Localize("Экспортировать..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
-                var import = new Button { Text = Localize("Импортировать..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
+                var export = new Button { Text = Localize("Export..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
+                var import = new Button { Text = Localize("Import..."), AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(10, 4, 10, 4) };
                 export.Click += (_, _) => exchange(this, false);
                 import.Click += (_, _) => exchange(this, true);
                 ButtonGlyphs.Attach(export, AppGlyphs.Export);
@@ -117,8 +117,8 @@ namespace CyrFlip
                     control.Text = Localization.Translate(language, source);
                 foreach (Control child in control.Controls) Walk(child);
             }
-            Walk(this); _language = language; Text = Localize("Поиск по истории");
-            _results.Columns[0].Text = Localize("Текст"); _results.Columns[1].Text = Localize("Дата"); _results.Columns[2].Text = Localize("Источник");
+            Walk(this); _language = language; Text = Localize("Search history");
+            _results.Columns[0].Text = Localize("Text"); _results.Columns[1].Text = Localize("Date"); _results.Columns[2].Text = Localize("Source");
             RightToLeft = Localization.IsRightToLeft(language) ? RightToLeft.Yes : RightToLeft.No;
             RightToLeftLayout = RightToLeft == RightToLeft.Yes;
             using (Font system = SystemFonts.MessageBoxFont)
@@ -167,7 +167,7 @@ namespace CyrFlip
             string query = _query.Text;
             if (!ClipboardHistorySearch.IsReady(query))
             {
-                ShowMatches(new ClipboardHistoryEntry[0], Localize("Введите минимум 3 символа для поиска по части текста."));
+                ShowMatches(new ClipboardHistoryEntry[0], Localize("Enter at least 3 characters to search by text fragment."));
                 return;
             }
 
@@ -187,8 +187,8 @@ namespace CyrFlip
                     {
                         if (IsDisposed || !ReferenceEquals(_search, search)) return;
                         ShowMatches(matches, matches.Length == 0
-                            ? Localize("Совпадений не найдено.")
-                            : Localization.Format(Localize, "Найдено: {0}", matches.Length));
+                            ? Localize("No matches found.")
+                            : Localization.Format(Localize, "Found: {0}", matches.Length));
                     }));
                 }
                 catch (InvalidOperationException) { /* the window went away in between */ }
@@ -272,7 +272,7 @@ namespace CyrFlip
             if (_service.Restore(_matches[index])) { Close(); return; }
             // S0065 E-7: a restore the clipboard refused used to leave the window sitting open with
             // no word; the hint says it and the window stays up for the retry.
-            _hint.Text = Localize("Не удалось скопировать текст в буфер обмена. Повторите.");
+            _hint.Text = Localize("Could not copy the text to the clipboard. Try again.");
         }
 
         protected override void OnResize(EventArgs e)
@@ -282,6 +282,6 @@ namespace CyrFlip
                 _results.Columns[0].Width = Math.Max(100, _results.ClientSize.Width - _results.Columns[1].Width - _results.Columns[2].Width - 6);
         }
 
-        private string Localize(string ru) => Localization.Translate(_language, ru);
+        private string Localize(string en) => Localization.Translate(_language, en);
     }
 }

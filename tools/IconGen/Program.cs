@@ -83,57 +83,10 @@ namespace IconGen
 
         internal static Bitmap DrawIcon(int s)
         {
-            var bmp = new Bitmap(s, s, PixelFormat.Format32bppArgb);
-            using var g = Graphics.FromImage(bmp);
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.TextRenderingHint = TextRenderingHint.AntiAlias;
-            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            g.Clear(Color.Transparent);
-
-            // Rounded background tile with a vertical gradient.
-            float radius = s * 0.20f;
-            var tile = new RectangleF(0, 0, s, s);
-            using (var path = Rounded(tile, radius))
-            using (var brush = new LinearGradientBrush(tile, Bg1, Bg2, LinearGradientMode.Vertical))
-            {
-                g.FillPath(brush, path);
-            }
-
-            // Text caret (I-beam) on the left.
-            float beamCx = s * 0.30f;
-            float beamH = s * 0.50f;
-            float beamTop = (s - beamH) / 2f;
-            float barW = Math.Max(1.5f, s * 0.05f);
-            float serifW = s * 0.15f;
-            float serifH = Math.Max(1.5f, s * 0.05f);
-            using (var caret = new SolidBrush(Accent))
-            {
-                // vertical bar
-                g.FillRectangle(caret, beamCx - barW / 2f, beamTop, barW, beamH);
-                // top + bottom serifs
-                g.FillRectangle(caret, beamCx - serifW / 2f, beamTop, serifW, serifH);
-                g.FillRectangle(caret, beamCx - serifW / 2f, beamTop + beamH - serifH, serifW, serifH);
-            }
-
-            // Two-row layout label: EN (active) over RU (muted), to the right of the caret.
-            float labelLeft = s * 0.42f;
-            float labelW = s - labelLeft;
-            using var font = new Font("Segoe UI", s * 0.235f, FontStyle.Bold, GraphicsUnit.Pixel);
-            using var center = new StringFormat
-            {
-                Alignment = StringAlignment.Center,
-                LineAlignment = StringAlignment.Center,
-            };
-            var topRow = new RectangleF(labelLeft, s * 0.10f, labelW, s * 0.40f);
-            var botRow = new RectangleF(labelLeft, s * 0.50f, labelW, s * 0.40f);
-            using (var inkBrush = new SolidBrush(Ink))
-            using (var mutedBrush = new SolidBrush(Muted))
-            {
-                g.DrawString("EN", font, inkBrush, topRow, center);
-                g.DrawString("RU", font, mutedBrush, botRow, center);
-            }
-
-            return bmp;
+            // The chosen S0058 app mark (variant A, caret + module grid) lives in IconVariants so the
+            // candidate renders and the shipped assets stay one source. The ico, the pngs, the banner,
+            // the social preview and the Store logos below all compose on top of this.
+            return IconVariants.DrawChosen(s);
         }
 
         // ----------------------------------------------------------- store logos

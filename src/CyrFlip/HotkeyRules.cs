@@ -101,11 +101,11 @@ namespace CyrFlip
             switch (refusal)
             {
                 case Refusal.ShiftOnly:
-                    return "Shift без Ctrl и Alt годится только для F1-F24: с другой клавишей такая комбинация мешала бы печатать и выделять текст.";
+                    return "Shift without Ctrl or Alt only works with F1-F24: with any other key the combination would get in the way of typing and selecting text.";
                 case Refusal.EditingChord:
-                    return "Это стандартная команда правки (копировать, вставить, отменить..) - её занимать нельзя.";
+                    return "This is a standard editing command (copy, paste, undo..) - it can't be taken.";
                 case Refusal.TypesCharacter:
-                    return "На раскладке «{1}» эта комбинация печатает «{0}» - CyrFlip перехватывал бы этот символ.";
+                    return "On the «{1}» layout this combination types «{0}» - CyrFlip would swallow that character.";
                 default:
                     return "";
             }

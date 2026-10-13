@@ -47,7 +47,7 @@ namespace CyrFlip.Tests
                     LauncherTrayMenu.Rebuild(menu, Two, _ => { }, () => { }, null, ru => ru);
 
                 // Three passes over a non-empty menu, and the result is one menu's worth of items.
-                Assert.Equal(new[] { "First", "Second", "---", "Управление сценариями..." }, Captions(menu));
+                Assert.Equal(new[] { "First", "Second", "---", "Manage scenarios..." }, Captions(menu));
             });
         }
 
@@ -74,7 +74,7 @@ namespace CyrFlip.Tests
             {
                 using var menu = new ToolStripMenuItem();
                 LauncherTrayMenu.Rebuild(menu, new List<LauncherScenario>(), _ => { }, () => { }, null, ru => ru);
-                Assert.Equal(new[] { "Управление сценариями..." }, Captions(menu));
+                Assert.Equal(new[] { "Manage scenarios..." }, Captions(menu));
             });
         }
 
@@ -87,7 +87,7 @@ namespace CyrFlip.Tests
                 bool imported = false;
                 LauncherTrayMenu.Rebuild(menu, Two, _ => { }, () => { }, () => imported = true, ru => ru);
                 Assert.Equal(
-                    new[] { "First", "Second", "---", "Управление сценариями...", "Импорт из OneClickRunner..." },
+                    new[] { "First", "Second", "---", "Manage scenarios...", "Import from OneClickRunner..." },
                     Captions(menu));
 
                 ((ToolStripMenuItem)menu.DropDownItems[4]).PerformClick();
@@ -124,7 +124,7 @@ namespace CyrFlip.Tests
                 for (int pass = 0; pass < 3; pass++)
                     LauncherTrayMenu.Rebuild(menu, Two, s => launched.Add(s.Name), () => { }, null, ru => ru);
 
-                Assert.Equal(new[] { "First", "Second", "---", "Управление сценариями..." },
+                Assert.Equal(new[] { "First", "Second", "---", "Manage scenarios..." },
                     menu.Items.Cast<ToolStripItem>().Select(i => i is ToolStripSeparator ? "---" : i.Text).ToArray());
 
                 // Still one live handler per item after the rebuilds, bound to the right scenario.
@@ -141,8 +141,8 @@ namespace CyrFlip.Tests
                 using var menu = new ToolStripMenuItem();
                 LauncherTrayMenu.Rebuild(menu, new List<LauncherScenario>(), _ => { }, () => { }, () => { },
                     ru => "T:" + ru);
-                Assert.Equal("T:Быстрый запуск", menu.Text);
-                Assert.Equal(new[] { "T:Управление сценариями...", "T:Импорт из OneClickRunner..." }, Captions(menu));
+                Assert.Equal("T:Quick launch", menu.Text);
+                Assert.Equal(new[] { "T:Manage scenarios...", "T:Import from OneClickRunner..." }, Captions(menu));
             });
         }
     }

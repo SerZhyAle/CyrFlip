@@ -16,20 +16,24 @@ namespace CyrFlip
             {
                 if (operation == "export")
                 {
-                    using var save = new SaveFileDialog { Filter = T("Файл настроек CyrFlip (*.json)") + "|*.json",
+                    using var save = new SaveFileDialog { Filter = T("CyrFlip settings file (*.json)") + "|*.json",
                         FileName = SettingsFileWriter.DefaultFileName(DateTime.Now), DefaultExt = "json", AddExtension = true };
                     if (save.ShowDialog(_settings) != DialogResult.OK) return;
-                    string text = SettingsFileWriter.Write(_config, DateTime.UtcNow, typeof(AppConfig).Assembly.GetName().Version!.ToString());
+                    // The list of targets names the user's own infrastructure: in the file only when asked for (D10).
+                    bool withTargets = _config.TrafficLightTargets.Count > 0 && ConfirmDialog.Show(_settings, language,
+                        T("Include the traffic light targets in the file? It will contain your host and site addresses - keep it private."),
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question, danger: true) == DialogResult.Yes;
+                    string text = SettingsFileWriter.Write(_config, DateTime.UtcNow, typeof(AppConfig).Assembly.GetName().Version!.ToString(), withTargets);
                     BusyDialog.Run(_settings, language, () => SettingsFileWriter.SaveText(save.FileName, text));
                     DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "export ok");
-                    ConfirmDialog.Show(_settings, language, T("Настройки записаны. Заметки, история буфера и сценарии быстрого запуска в файл не входят."), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ConfirmDialog.Show(_settings, language, T("Settings saved. Notes, clipboard history and launcher scenarios are excluded."), MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
                 string? path;
                 if (operation == "restore") path = SettingsSnapshot.Newest(SettingsSnapshot.Folder);
                 else
                 {
-                    using var open = new OpenFileDialog { Filter = T("Файл настроек CyrFlip (*.json)") + "|*.json", CheckFileExists = true };
+                    using var open = new OpenFileDialog { Filter = T("CyrFlip settings file (*.json)") + "|*.json", CheckFileExists = true };
                     if (open.ShowDialog(_settings) != DialogResult.OK) return; path = open.FileName;
                 }
                 if (path == null) return;
@@ -54,12 +58,12 @@ namespace CyrFlip
             {
                 string code = ex is SettingsFileException fault ? fault.Code : ex is AggregateException ? "rollback" : "io";
                 DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "operation failed " + code);
-                string message = code == "version" ? "Обновите CyrFlip, чтобы прочитать этот файл настроек."
-                    : code == "format" ? "Это не файл настроек CyrFlip."
-                    : code == "limit" ? "Файл настроек превышает допустимый размер."
-                    : code == "rolled-back" ? "Импорт не удался. Предыдущие настройки восстановлены."
-                    : code == "rollback" ? "Не удалось восстановить все настройки. Снимок сохранён в папке backups."
-                    : "Не удалось прочитать или сохранить настройки. Ничего не изменено.";
+                string message = code == "version" ? "Update CyrFlip to read this settings file."
+                    : code == "format" ? "This is not a CyrFlip settings file."
+                    : code == "limit" ? "Settings file exceeds an allowed limit."
+                    : code == "rolled-back" ? "Import failed. Previous settings restored."
+                    : code == "rollback" ? "Some settings could not be restored. A snapshot is saved in backups."
+                    : "Could not read or save settings. Nothing changed.";
                 ConfirmDialog.Show(_settings, language, Localization.Translate(language, message), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -110,6 +114,9 @@ namespace CyrFlip
             SetHistoryStartup(_config.EnableClipboardHistory && startup);
             _config.ShowClipboardHistoryOnStartup = startup;
             RefreshQuickNotesSettings(); RefreshContextMenuBinding();
+            // Imported targets reach the engine only if the module is on; an off module stays off (S0069 D10).
+            if (_trafficEngine != null) ApplyTrafficLightTargets();
+            UpdateTrafficLightTray();
             _translateClipboardItem.Visible = _config.EnableTranslate;
             if (!_config.EnableTranslate) { _translateCts?.Cancel(); _translateWindow?.Hide(); }
             if (_translateWindow != null && !_translateWindow.IsDisposed)

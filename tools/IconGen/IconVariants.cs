@@ -62,6 +62,10 @@ namespace IconGen
             new Variant("C", "Caret among modules", "four modules around a centred caret", DrawC),
         };
 
+        // The owner's pick of 2026-10-13 (S0058 P1): variant A. Every shipped asset is generated from
+        // this one painter; `icon-variants` keeps rendering all three for comparison.
+        internal static Bitmap DrawChosen(int s) => DrawA(s);
+
         public static int Run(string root, string[] args)
         {
             string outDir = Path.GetFullPath(ArgValue(args, "-OutDir")

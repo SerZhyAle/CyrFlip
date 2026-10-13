@@ -53,7 +53,7 @@
       "Disposition de clavier",
       "Conversion de disposition",
       "Inverser la casse",
-      "CapsLock",
+      "Verr. Maj.",
       "Notes rapides"
     ],
     "pt": [
@@ -96,7 +96,7 @@
       "布局转换",
       "大小写切换",
       "CapsLock",
-      "速记"
+      "快速笔记"
     ]
   },
   "forbidden": {
@@ -136,6 +136,8 @@
       "Send logs to the author..",
       "Text correction",
       "Selection menu",
+      "Symbols",
+      "Hide symbols available on my layouts",
       "Screenshots"
     ],
     "ru": [
@@ -163,6 +165,8 @@
       "Отправить логи автору..",
       "Исправление текста",
       "Меню для выделенного",
+      "Символы",
+      "Скрывать символы, которые есть на моих раскладках",
       "Снимки экрана"
     ],
     "uk": [
@@ -190,6 +194,8 @@
       "Надіслати логи автору..",
       "Виправлення тексту",
       "Меню виділення",
+      "Символи",
+      "Приховувати символи, які є на моїх розкладках",
       "Знімки екрана"
     ]
   }

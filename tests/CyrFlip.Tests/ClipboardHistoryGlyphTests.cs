@@ -114,7 +114,7 @@ namespace CyrFlip.Tests
                     IntPtr handle = form.Handle;
                     AccessibleObject strip = form.AccessibilityObject;
                     Assert.Equal(4, strip.GetChildCount());   // search, close, then pin and delete of the one row
-                    string[] keys = { "Поиск по истории", "Закрыть", "Закрепить", "Удалить" };
+                    string[] keys = { "Search history", "Close", "Pin", "Delete" };
                     for (int i = 0; i < 4; i++)
                     {
                         AccessibleObject child = strip.GetChild(i);

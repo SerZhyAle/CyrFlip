@@ -170,9 +170,9 @@ namespace CyrFlip.Tests
             Assert.Equal(LauncherIpc.RunPrefix + second.Id.ToString("D"), tasks[1].Arguments);
             // The two fixed tasks are localized through the supplied translator and carry the
             // launcher protocol's exact commands.
-            Assert.Equal("T:Управление сценариями...", tasks[2].Title);
+            Assert.Equal("T:Manage scenarios...", tasks[2].Title);
             Assert.Equal(LauncherIpc.SettingsCommand, tasks[2].Arguments);
-            Assert.Equal("T:Выйти из CyrFlip", tasks[3].Title);
+            Assert.Equal("T:Exit CyrFlip", tasks[3].Title);
             Assert.Equal(LauncherIpc.ExitCommand, tasks[3].Arguments);
         }
 

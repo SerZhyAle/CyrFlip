@@ -7,7 +7,7 @@ Im richtigen Layout tippen. Eine Live-Layoutmarkierung sitzt direkt neben der bl
 
 Markieren Sie im falschen Layout getippten Text und drücken Sie Strg+Umschalt+F12: CyrFlip wandelt ihn an Ort und Stelle um, in beide Richtungen und sogar bei gemischtem Text. Legen Sie beliebig viele Layoutumwandlungen "von Layout zu Layout" an, jede mit einem eigenen Tastenkürzel; umgewandelt wird nach der physischen Tastenposition, sodass AZERTY und QWERTZ korrekt behandelt werden. Ein separates Tastenkürzel ändert die Groß- und Kleinschreibung und behebt so eine versehentlich aktivierte Feststelltaste (CapsLock). Der Reiter "Windows-Sprachen" installiert, sortiert und entfernt Tastaturlayouts (nichts wird heruntergeladen - sie sind Teil von Windows) und weist Kürzel pro Sprache zu, die Windows selbst verarbeitet, sodass sie auch bei geschlossenem CyrFlip weiter funktionieren.
 
-Mit dem Markierten arbeiten. Halten Sie Strg gedrückt und klicken Sie mit der rechten Maustaste auf eine Auswahl, und das eigene Menü von CyrFlip öffnet sich am Mauszeiger: Kopieren, Ausschneiden und Einfügen, Ihre Layoutumwandlungen, die Korrektur der Groß- und Kleinschreibung, die Übersetzung, der Schnellstart und der Zwischenablage-Verlauf - ohne den Fokus zu übernehmen, sodass die Auswahl erhalten bleibt. Eine Tastenkombination öffnet dasselbe Menü an der Schreibmarke. Standardmäßig aus.
+Mit dem Markierten arbeiten. Halten Sie Strg gedrückt und klicken Sie mit der rechten Maustaste auf eine Auswahl, und das eigene Menü von CyrFlip öffnet sich am Mauszeiger: Kopieren, Ausschneiden und Einfügen, Ihre Layoutumwandlungen, die Korrektur der Groß- und Kleinschreibung, die Übersetzung, der Schnellstart und der Zwischenablage-Verlauf - ohne den Fokus zu übernehmen, sodass die Auswahl erhalten bleibt. Eine Tastenkombination öffnet dasselbe Menü an der Schreibmarke. Standardmäßig aus. Das optionale Symbolfenster findet das Zeichen, das Ihrer Tastatur fehlt, über Name, Stichwort oder Unicode-Code und kopiert es per Klick.
 
 Auch der eingebaute Übersetzer ist optional. Markieren Sie Text irgendwo in Windows, drücken Sie sein Tastenkürzel, und die Übersetzung erscheint in einem kleinen Fenster neben dem Mauszeiger und füllt sich, während das Modell schreibt. Er läuft auf Ollama, einem kostenlosen Programm, das Sie einmalig auf Ihrem eigenen Rechner installieren: CyrFlip liefert es nicht mit, hat weder Konto noch Schlüssel und spricht standardmäßig nur mit http://localhost:11434 - Ihrem eigenen Rechner. Die Richtungen sind eine offene Tabelle mit je einem Tastenkürzel, und das Ergebnis kann in die Zwischenablage gelegt oder direkt über die Auswahl eingefügt werden. Voreingestellt ist das Modell aya-expanse:8b (~4,7 GB). Ehrlich gesagt: die Qualität ist die des lokalen Modells, die erste Übersetzung nach einem Kaltstart dauert eine Weile, und der belegte Arbeitsspeicher gehört dem Ollama-Prozess, nicht CyrFlip.
 
@@ -15,7 +15,7 @@ Behalten, was Sie kopieren und schreiben. Der optionale Zwischenablage-Verlauf b
 
 Starten und Bildschirm aufnehmen. Strg+Druck friert den Bildschirm ein, Sie ziehen einen Bereich auf, und das Bild landet in der Zwischenablage - auf Wunsch zusätzlich als PNG in einem Ordner gespeichert. Der Schnellstart, ein optionales Modul, macht aus Ihren Programmen, Skripten und yt-dlp-Downloads Szenarien, die Sie aus dem Infobereich, per eigenem Tastenkürzel oder über die Sprungliste der Taskleiste starten; Szenarien aus dem eigenständigen Werkzeug OneClickRunner lassen sich importieren, ohne die Originale anzurühren. Zwei Wachhalte-Schalter verhindern, dass Windows schläft oder den Bildschirm abschaltet, während Sie arbeiten.
 
-Gehört nur Ihnen. Optionale Module bleiben aus, bis Sie sie einschalten, jedes Tastenkürzel lässt sich einzeln abschalten, und CyrFlip kann seine Tastenkürzel an ein aktives Remotedesktop-Fenster abgeben. Die Oberfläche ist in 13 Sprachen verfügbar, auch in solchen mit Schreibrichtung von rechts nach links, mit hellem, dunklem oder an Windows angepasstem Design. CyrFlip läuft im Infobereich, braucht wenig Speicher und erfordert unter Windows 10/11 keine zusätzliche Installation.
+Gehört nur Ihnen. Optionale Module bleiben aus, bis Sie sie einschalten, jedes Tastenkürzel lässt sich einzeln abschalten, und CyrFlip kann seine Tastenkürzel an ein aktives Remotedesktop-Fenster abgeben. Die Oberfläche ist in 13 Sprachen verfügbar, auch in solchen mit Schreibrichtung von rechts nach links, mit hellem, dunklem oder an Windows angepasstem Design. CyrFlip läuft im Infobereich, braucht wenig Speicher und erfordert unter Windows 10/11 keine zusätzliche Installation. Alle Tastenkürzel mit ihrem Zustand stehen in einer Liste der Einstellungen, in der sich jedes zurücksetzen lässt.
 
 Datenschutz: CyrFlip nutzt einen Tastaturhook ausschließlich, um seine eigenen Tastenkürzel zu erkennen, die Zwischenablage nur für die von Ihnen ausgelösten Aktionen und - nur solange Sie sein optionales Kontextmenü eingeschaltet haben - einen Maushook für die eine Maustastenkombination, die dieses Menü öffnet. Es protokolliert keine Tastenanschläge und öffnet keine Netzwerkverbindung, solange Sie den Übersetzer nicht einschalten, der nur mit dem von Ihnen angegebenen Ollama-Server spricht - standardmäßig Ihrem eigenen Rechner. Wenn etwas schiefgeht, fasst das Einstellungsfenster die Protokolle von CyrFlip in einem Archiv zusammen und öffnet eine Nachricht an den Autor mit diesem Anhang. Gesendet wird sie von Ihnen - CyrFlip überträgt nichts ins Netz, und der Zwischenablage-Verlauf kommt nie ins Archiv. Quelloffen: https://github.com/SerZhyAle/CyrFlip
 
@@ -24,9 +24,9 @@ Beim ersten Start stellt eine Einführung in fünf Schritten CyrFlip vor und bie
 Unter Allgemein exportieren Sie CyrFlip-Einstellungen als JSON, prüfen Änderungen vor dem Import oder stellen die Einstellungen vor dem letzten Import wieder her. Die drei neuesten Sicherungen bleiben lokal. Notizen, Zwischenablageverlauf, Startszenarien, Rechnerpfade und Windows-Einstellungen sind ausgeschlossen. Aufzeichnung und ein anderer Übersetzungsserver erfordern eine gesonderte Zustimmung.
 
 @@Feature1
-Live-Layoutmarkierung neben der Schreibmarke - funktioniert in Browsern und im VS-Code-Chat
+Live-Layoutmarkierung neben der Schreibmarke - 13 kuratierte Sprachen mit eigener Farbe; funktioniert in Browsern und im VS-Code-Chat
 @@Feature2
-13 kuratierte Sprachen, jede mit eigener Farbe; jedes andere Windows-Layout bekommt ebenfalls sein Kürzel
+Optionales Symbolfenster: Suche nach Name, Stichwort oder Unicode-Code, ein Klick kopiert das Zeichen
 @@Feature3
 Eine Taste korrigiert Text im falschen Layout, an Ort und Stelle und in beide Richtungen
 @@Feature4
@@ -50,9 +50,9 @@ Notizen und Zwischenablage-Verlauf in einer Klartext-Austauschdatei auf einen an
 @@Feature13
 Bildschirmausschnitt per Strg+Druck in die Zwischenablage, auf Wunsch als PNG gespeichert
 @@Feature14
-Optionaler Schnellstart: Programme, Skripte und yt-dlp-Downloads als Szenarien mit einem Klick
+Optionaler Schnellstart: Programme, Skripte und yt-dlp-Downloads als Szenarien - aus dem Infobereich, per Kürzel oder aus der Sprungliste
 @@Feature15
-Szenario starten aus dem Infobereich, per eigenem globalem Kürzel oder aus der Sprungliste der Taskleiste
+Alle Tastenkürzel in einer Liste: was jedes tut, ob es aktiv ist, dort ändern oder zurücksetzen
 @@Feature16
 Zwei Wachhalte-Schalter: kein Ruhezustand und kein Bildschirmabschalten während der Arbeit
 @@Feature17

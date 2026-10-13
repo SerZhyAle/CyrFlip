@@ -58,13 +58,13 @@ namespace CyrFlip
         /// <summary>The taskbar tooltip, refreshed whenever the UI language changes.</summary>
         public void ApplyLanguage(Func<string, string> translate)
         {
-            Text = "CyrFlip — " + translate("Быстрый запуск");
+            Text = "CyrFlip — " + translate("Quick launch");
             _menu.RightToLeft = RightToLeft;
         }
 
         public void ApplyLanguage(string language)
         {
-            Text = "CyrFlip — " + Localization.Translate(language, "Быстрый запуск");
+            Text = "CyrFlip — " + Localization.Translate(language, "Quick launch");
             RightToLeft = Localization.IsRightToLeft(language) ? RightToLeft.Yes : RightToLeft.No;
             _menu.RightToLeft = RightToLeft;
         }

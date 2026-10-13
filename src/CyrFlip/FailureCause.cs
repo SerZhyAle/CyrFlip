@@ -30,36 +30,36 @@ namespace CyrFlip
         /// The same classification for a caller that holds the translating function (a window's
         /// <c>T</c>, the launcher's <c>translate</c> seam) rather than a language string - the shape
         /// S0065 E-5 asked for, so a balloon can no longer read "Could not start: Не удалось
-        /// запустить процесс." in one UI language. A null seam is the Russian key itself.
+        /// запустить процесс." in one UI language. A null seam is the English key itself.
         /// </summary>
         public static string Describe(Exception? ex, Func<string, string>? translate)
         {
             translate ??= ru => ru;
-            if (ex == null) return translate("Произошла непредвиденная ошибка.");
+            if (ex == null) return translate("An unexpected error occurred.");
             if (ex is AggregateException agg && agg.InnerExceptions.Count > 0)
                 ex = agg.GetBaseException();
 
             if (ex is UnauthorizedAccessException || ex is SecurityException)
-                return translate("Нет доступа к файлу или папке.");
+                return translate("Access to file or folder is denied.");
 
             if (ex is IOException io)
             {
                 if (io.HResult == HrSharingViolation)
-                    return translate("Файл занят другой программой.");
+                    return translate("The file is in use by another program.");
                 if (io.HResult == HrDiskFull)
-                    return translate("Диск заполнен — освободите место.");
+                    return translate("The disk is full - free some space.");
                 if (io.HResult == HrPathTooLong)
-                    return translate("Слишком длинный путь к файлу.");
-                return translate("Ошибка чтения или записи на диск.");
+                    return translate("The path to the file is too long.");
+                return translate("Disk read or write error.");
             }
 
             if (ex is HttpRequestException || ex is WebException || ex is SocketException)
-                return translate("Сетевая ошибка или сервер недоступен.");
+                return translate("Network error or server is unavailable.");
 
             if (ex is Win32Exception)
-                return translate("Не удалось запустить процесс.");
+                return translate("Could not start process.");
 
-            return translate("Произошла непредвиденная ошибка.");
+            return translate("An unexpected error occurred.");
         }
     }
 }

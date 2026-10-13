@@ -51,7 +51,7 @@ namespace CyrFlip.Tests
             using (new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 // Same store instance: a second store cannot reload the XML while the lock holds it.
-                Assert.Equal("Файл занят другой программой.", store.Remove(scenario.Id));
+                Assert.Equal("The file is in use by another program.", store.Remove(scenario.Id));
                 Assert.Equal("The file is in use by another program.",
                     store.Remove(scenario.Id, ru => Localization.Translate("English", ru)));
             }
@@ -269,12 +269,12 @@ namespace CyrFlip.Tests
         public void SeedSampleCreatesCalculatorOnlyIntoAnEmptyStore()
         {
             var store = NewStore();
-            store.SeedSample("Калькулятор");
+            store.SeedSample("Calculator");
             LauncherScenario seeded = Assert.Single(store.All);
-            Assert.Equal("Калькулятор", seeded.Name);
+            Assert.Equal("Calculator", seeded.Name);
             Assert.Equal("calc.exe", seeded.Path);
 
-            store.SeedSample("Калькулятор"); // a non-empty store is never reseeded
+            store.SeedSample("Calculator"); // a non-empty store is never reseeded
             Assert.Single(store.All);
         }
 

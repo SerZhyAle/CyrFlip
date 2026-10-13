@@ -41,7 +41,7 @@ if (-not $OutDir) {
 
 if ($PSVersionTable.PSEdition -eq 'Core') {
     $argList = @('-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-File', $PSCommandPath)
-    foreach ($l in $Language) { $argList += @('-Language', $l) }
+    $argList += @('-Language', ($Language -join ','))   # one value: the script splits it, and a repeated parameter is refused
     if ($AllLanguages) { $argList += '-AllLanguages' }
     if ($RealConfig) { $argList += '-RealConfig' }
     if ($AllModules) { $argList += '-AllModules' }

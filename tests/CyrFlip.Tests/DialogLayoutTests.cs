@@ -75,6 +75,9 @@ namespace CyrFlip.Tests
                     new LauncherScenarioDialog(null, "English"),
                     new YtDlpLinkDialog("English"),
                     new TranslationDialog(null, "English"),
+                    new TrafficLightTargetDialog(new TrafficLightTarget { Kind = "ping", Address = "192.168.1.1" }, new string[0], "English",
+                        (_, _) => System.Threading.Tasks.Task.FromResult(ProbeOutcome.Good(1)), isNew: true),
+                    new TrafficLightQuickAddDialog("English", () => Array.Empty<TrafficLightTarget>(), TrafficLightProbeSet.CreateDefault()),
                     new SupportBundleDialog(Bundle, "English"),
                     new ExchangeExportDialog("English", notesAvailable: true, notesWarningOff: false),
                     new ClipboardHistorySearchWindow(new ClipboardHistoryService(enabled: false, paused: false, Path.Combine(Path.GetTempPath(), "cyrflip-test-" + Guid.NewGuid().ToString("N"))), "English"),
@@ -133,6 +136,18 @@ namespace CyrFlip.Tests
                         inspected += Check(dialog, language, "YtDlpLinkDialog", problems);
                     using (var dialog = new TranslationDialog(null, language))
                         inspected += Check(dialog, language, "TranslationDialog", problems);
+                    // The traffic light's details panel (S0069), once per shape: a host, a host and a port, and
+                    // the exchange server's pin - the kind decides which rows are laid out.
+                    foreach (string kind in new[] { "http", "sftp", "exchange", "folder" })
+                        using (var dialog = new TrafficLightTargetDialog(
+                            new TrafficLightTarget { Kind = kind, Address = kind == "folder" ? @"C:\Data" : "nas.local:22", Label = "NAS" },
+                            new[] { "Office" }, language, (_, _) => System.Threading.Tasks.Task.FromResult(ProbeOutcome.Good(1)), isNew: false))
+                            inspected += Check(dialog, language, "TrafficLightTargetDialog(" + kind + ")", problems);
+                    // The board's add button (S0069): once with a reading to show, once with the longest sentence it says.
+                    foreach (string typed in new[] { "nas.local", "###" })
+                        using (var dialog = new TrafficLightQuickAddDialog(language, () => Array.Empty<TrafficLightTarget>(),
+                            TrafficLightProbeSet.CreateDefault(), typed, "NAS"))
+                            inspected += Check(dialog, language, "TrafficLightQuickAddDialog(" + typed + ")", problems);
                     // The translation popup hosts real buttons, so it is measurable here - and it is
                     // the one window whose buttons sit in a row that has to survive 13 languages.
                     using (var window = new TranslationResultWindow(new AppConfig { UiLanguage = language }, language))

@@ -90,7 +90,7 @@ namespace CyrFlip.Tests
         [Fact]
         public void ANullSeamIsTheRussianKeyItself()
         {
-            Assert.Equal("Не удалось запустить процесс.",
+            Assert.Equal("Could not start process.",
                 FailureCause.Describe(new Win32Exception(), (Func<string, string>?)null));
         }
 
@@ -110,13 +110,13 @@ namespace CyrFlip.Tests
         {
             string[] keys =
             {
-                "Файл занят другой программой.",
-                "Диск заполнен — освободите место.",
-                "Слишком длинный путь к файлу.",
+                "The file is in use by another program.",
+                "The disk is full - free some space.",
+                "The path to the file is too long.",
             };
             foreach (string key in keys)
             {
-                Assert.Equal(key, Localization.Translate("Русский", key));
+                Assert.Equal(key, Localization.Translate("English", key));
                 foreach (string language in Localization.Names)
                     Assert.False(string.IsNullOrWhiteSpace(Localization.Translate(language, key)),
                         key + " has no translation for " + language);

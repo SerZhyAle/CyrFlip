@@ -28,14 +28,16 @@ works from the first start and the one people search for; it is one group among 
    tray; one-key conversion of text typed in the wrong layout, between any two installed layouts and in both
    directions; the CapsLock fix; the Windows keyboard layouts and per-language shortcuts in one window.
 2. **Act on what you selected** - *opt-in.* CyrFlip's own menu over a selection (Ctrl + right click, or a chord at
-   the caret); a translator that runs on a local Ollama model the user installs.
+   the caret); a translator that runs on a local Ollama model the user installs; a symbols window that finds the
+   character your keyboard lacks by name, keyword or Unicode code and copies it with a click.
 3. **Keep what you copy and write** - *opt-in.* The encrypted clipboard history; local quick notes that keep text
    exactly as given; the plain-text exchange file that moves both to another computer.
 4. **Launch and capture** - *partly on.* The screen-region capture (its chord is on by default); Quick launch for
    programs, scripts and yt-dlp downloads (opt-in); two keep-awake switches (off by default).
 5. **Yours alone** - *the promise under all of them, not a feature group.* No account, no telemetry, nothing sent to
-   the developer; optional modules stay off until switched on; 13 interface languages, right-to-left included; a
-   light, dark or Windows-matching theme; one small program with nothing extra to install.
+   the developer; optional modules stay off until switched on; every hotkey with its state in one list that resets
+   to the defaults; 13 interface languages, right-to-left included; a light, dark or Windows-matching theme; one
+   small program with nothing extra to install.
 
 ## Headline
 

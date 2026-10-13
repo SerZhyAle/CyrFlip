@@ -108,7 +108,7 @@ namespace CyrFlip.Tests
                 {
                     string text = HotkeyRules.Describe(new HotkeyRules.Verdict(refusal, "€", German), language);
                     Assert.False(string.IsNullOrWhiteSpace(text), refusal + " / " + language);
-                    if (language != "Русский") Assert.NotEqual(HotkeyRules.ReasonKey(refusal), Localization.Translate(language, HotkeyRules.ReasonKey(refusal)));
+                    if (language != "English") Assert.NotEqual(HotkeyRules.ReasonKey(refusal), Localization.Translate(language, HotkeyRules.ReasonKey(refusal)));
                 }
         }
     }

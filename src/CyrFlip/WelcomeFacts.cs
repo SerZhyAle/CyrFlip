@@ -24,7 +24,7 @@ namespace CyrFlip
             Packaged = packaged; Transient = transient; ShortcutsExist = shortcutsExist;
         }
 
-        public string State(bool enabled) => Localization.Translate(Config.UiLanguage, enabled ? "Включено" : "Выключено");
+        public string State(bool enabled) => Localization.Translate(Config.UiLanguage, enabled ? "On" : "Off");
 
         /// <summary>Whether a feature's switch is on right now. A chord-driven one also needs the master switch.</summary>
         public bool IsOn(WelcomeSwitch which, string? id = null)

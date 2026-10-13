@@ -152,7 +152,7 @@ namespace CyrFlip.Tests
                             CopiedAtUtc = DateTime.UtcNow.AddMinutes(-i), SourceApp = "Code" };
                     }).ToArray());
                     using var window = new ClipboardHistoryWindow(service,
-                        new AppConfig { UiLanguage = "Ðóññêèé", ClipboardHistoryWidth = 258, ClipboardHistoryHeight = 577 }, () => { });
+                        new AppConfig { UiLanguage = "Ð ÑƒÑÑÐºÐ¸Ð¹", ClipboardHistoryWidth = 258, ClipboardHistoryHeight = 577 }, () => { });
                     IntPtr handle = window.Handle;
                     body(window, service);
                 }

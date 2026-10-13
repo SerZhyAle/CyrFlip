@@ -35,10 +35,11 @@ namespace CyrFlip.Tests
         }
 
         /// <summary>
-        /// The two files holding the user's own text - everything they ever copied, and everything
-        /// they deliberately kept - are absent from the archive, and so is their content. This is the
-        /// test the whole class exists for; it names both files rather than one so that adding a
-        /// second store of user text could never quietly re-open the first hole.
+        /// The files holding the user's own text - everything they ever copied, everything they
+        /// deliberately kept, and the addresses of the infrastructure they watch - are absent from the
+        /// archive, and so is their content. This is the test the whole class exists for; it names every
+        /// file rather than one so that adding another store of user text could never quietly re-open
+        /// the first hole.
         /// </summary>
         [Fact]
         public void ClipboardHistoryAndQuickNotesAreNeverCollected()
@@ -50,7 +51,7 @@ namespace CyrFlip.Tests
             SupportBundle.Result result = Create();
 
             Assert.Contains("launcher.log", Names(result));
-            Assert.Equal(2, SupportBundle.ExcludedFiles.Length);
+            Assert.Equal(3, SupportBundle.ExcludedFiles.Length);
             foreach (string excluded in SupportBundle.ExcludedFiles)
             {
                 Assert.DoesNotContain(excluded, Names(result));

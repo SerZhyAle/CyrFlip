@@ -61,7 +61,7 @@ namespace CyrFlip
 
             _hintLabel = new Label
             {
-                Text = Localization.Translate(uiLanguage, "Новая комбинация (модификатор обязателен):"),
+                Text = Localization.Translate(uiLanguage, "New combo (a modifier is required):"),
                 AutoSize = true,
                 MaximumSize = new Size(TextWidth(new string('W', 34)), 0), // wrap rather than widen without limit
                 Margin = new Padding(3, 3, 3, 8),
@@ -96,7 +96,7 @@ namespace CyrFlip
 
             _okButton = Command("OK", DialogResult.OK);
             _okButton.Enabled = false;
-            _cancelButton = Command(Localization.Translate(uiLanguage, "Отмена"), DialogResult.Cancel);
+            _cancelButton = Command(Localization.Translate(uiLanguage, "Cancel"), DialogResult.Cancel);
 
             // RightToLeft flow puts the first control added on the right; WinForms mirrors it for RTL UIs.
             var buttons = new FlowLayoutPanel

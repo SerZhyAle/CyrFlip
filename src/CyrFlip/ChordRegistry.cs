@@ -21,6 +21,8 @@ namespace CyrFlip
         TextMenu,
         /// <summary>The symbols window palette chord (S0056).</summary>
         Symbols,
+        /// <summary>The traffic light board's chord (S0069).</summary>
+        TrafficLight,
         /// <summary>A Windows direct-language hotkey (<see cref="LanguageHotkeys"/>) - read-only here.</summary>
         WindowsLanguage,
     }
@@ -89,6 +91,7 @@ namespace CyrFlip
             Add(ChordKind.ScreenshotFolder, "", config.ScreenshotFolderHotkey, null);
             Add(ChordKind.TextMenu, "", config.TextMenuHotkey, null);
             Add(ChordKind.Symbols, "", config.SymbolsHotkey, null);
+            Add(ChordKind.TrafficLight, "", config.TrafficLightHotkey, null);
             foreach (LayoutConversionProfile profile in config.LayoutConversionProfiles)
                 if (profile != null) Add(ChordKind.Conversion, profile.Id, profile.Hotkey, profile);
             foreach (TranslationProfile profile in config.TranslateProfiles)
@@ -168,19 +171,20 @@ namespace CyrFlip
             string T(string key) => Localization.Translate(uiLanguage, key);
             switch (kind)
             {
-                case ChordKind.Case: return T("Исправить CapsLock");
-                case ChordKind.History: return T("Менеджер буфера");
-                case ChordKind.QuickNotes: return T("Быстрые заметки");
-                case ChordKind.Screenshot: return T("Снимок области экрана");
-                case ChordKind.ScreenshotFolder: return T("Открыть папку со снимками");
-                case ChordKind.TextMenu: return T("Открыть меню с клавиатуры");
-                case ChordKind.Symbols: return T("Окно символов");
+                case ChordKind.Case: return T("Fix CapsLock");
+                case ChordKind.History: return T("Clipboard manager");
+                case ChordKind.QuickNotes: return T("Quick notes");
+                case ChordKind.Screenshot: return T("Screen region capture");
+                case ChordKind.ScreenshotFolder: return T("Open the screenshots folder");
+                case ChordKind.TextMenu: return T("Open the menu from the keyboard");
+                case ChordKind.Symbols: return T("Symbols window");
+                case ChordKind.TrafficLight: return T("Availability traffic light");
                 case ChordKind.Conversion:
                     var conversion = (LayoutConversionProfile)source!;
                     return layoutName(conversion.SourceKlid) + " ⇄ " + layoutName(conversion.TargetKlid);
                 case ChordKind.Translation:
                     var translation = (TranslationProfile)source!;
-                    return T("Перевод") + ": " + TranslationLanguages.Label(translation.TargetLang, uiLanguage);
+                    return T("Translation") + ": " + TranslationLanguages.Label(translation.TargetLang, uiLanguage);
                 case ChordKind.Launcher: return ((LauncherScenario)source!).Name;
                 default: return LanguageHotkeys.LanguageName(((LanguageHotkeys.Entry)source!).TargetHkl);
             }
@@ -207,7 +211,7 @@ namespace CyrFlip
             ChordOwner? owner = registry.CyrFlipOwnerOf(chord, kind, id);
             if (owner != null)
             {
-                ConfirmDialog.Show(parent, uiLanguage, Localization.Format(T, "Комбинация {0} уже занята действием «{1}».",
+                ConfirmDialog.Show(parent, uiLanguage, Localization.Format(T, "The {0} combination is already used by «{1}».",
                     chord.Display, ChordRegistry.Label(owner, uiLanguage, layoutName)),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
@@ -216,7 +220,7 @@ namespace CyrFlip
             if (!askAboutWindows) return true;
             ChordOwner? windows = registry.WindowsOwnerOf(chord);
             if (windows == null) return true;
-            return ConfirmDialog.Show(parent, uiLanguage, Localization.Format(T, "Комбинация {0} назначена в Windows для переключения на язык «{1}». Если её займёт CyrFlip, Windows её больше не получит. Всё равно назначить?",
+            return ConfirmDialog.Show(parent, uiLanguage, Localization.Format(T, "{0} is assigned in Windows to switch to «{1}». If CyrFlip takes it, Windows will no longer receive it. Assign it anyway?",
                     chord.Display, ChordRegistry.Label(windows, uiLanguage, layoutName)),
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question, danger: true) == DialogResult.Yes;
         }
@@ -233,7 +237,7 @@ namespace CyrFlip
             if (pairs.Count == 0) return;
             KeyValuePair<ChordOwner, ChordOwner> first = pairs[0];
             ConfirmDialog.Show(parent, uiLanguage, Localization.Format(uiLanguage,
-                    "Комбинация {0} назначена сразу двум действиям: «{1}» и «{2}». Сработает только одно - смените одну из них.",
+                    "{0} is assigned to two actions at once: «{1}» and «{2}». Only one of them will run - change one of the combinations.",
                     first.Key.Chord.Display, ChordRegistry.Label(first.Key, uiLanguage, layoutName),
                     ChordRegistry.Label(first.Value, uiLanguage, layoutName)),
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);

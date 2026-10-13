@@ -72,7 +72,7 @@ namespace CyrFlip
         public void SetLanguage(string uiLanguage)
         {
             _uiLanguage = uiLanguage;
-            AccessibleName = Localization.Translate(_uiLanguage, "Сетка символов");
+            AccessibleName = Localization.Translate(_uiLanguage, "Symbols grid");
         }
 
         public void SetEntries(IEnumerable<SymbolEntry> entries)

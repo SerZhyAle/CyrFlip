@@ -15,6 +15,8 @@ namespace CyrFlip
         HotkeysOverview,
         /// <summary>CyrFlip's own menu over the selected text (the context menu and its keyboard chord).</summary>
         SelectionMenu,
+        /// <summary>The traffic light: a board of the user's own hosts, sites and folders (ticket S0069).</summary>
+        TrafficLight,
     }
 
     /// <summary>The pure half of page navigation: reading a stored key, and the one-time legacy index table.</summary>
@@ -38,8 +40,8 @@ namespace CyrFlip
         {
             SettingsPageKey.General, SettingsPageKey.Indicators, SettingsPageKey.WindowsLanguages, SettingsPageKey.Conversions,
             SettingsPageKey.SelectionMenu, SettingsPageKey.Symbols, SettingsPageKey.Translate, SettingsPageKey.Clipboard,
-            SettingsPageKey.QuickNotes, SettingsPageKey.Graphics, SettingsPageKey.Launcher, SettingsPageKey.Hotkeys,
-            SettingsPageKey.About,
+            SettingsPageKey.QuickNotes, SettingsPageKey.Graphics, SettingsPageKey.Launcher, SettingsPageKey.TrafficLight,
+            SettingsPageKey.Hotkeys, SettingsPageKey.About,
         };
 
         /// <summary>

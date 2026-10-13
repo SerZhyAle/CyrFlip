@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -374,12 +374,11 @@ namespace CyrFlip.Tests
             string table = string.Join(" ", Directory.GetFiles(Path.Combine(Repo, "src", "CyrFlip"), "Localization*.cs").Select(File.ReadAllText));
             var appStrings = new Dictionary<string, HashSet<string>>
             {
-                ["en"] = new HashSet<string>(Regex.Matches(table, @"en:\s*""([^""
-]*)""").Cast<Match>().Select(m => m.Groups[1].Value)),
-                ["ru"] = new HashSet<string>(Regex.Matches(table, @"Add\(\s*""([^""
-]+)""").Cast<Match>().Select(m => m.Groups[1].Value)),
-                ["uk"] = new HashSet<string>(Regex.Matches(table, @"uk:\s*""([^""
-]*)""").Cast<Match>().Select(m => m.Groups[1].Value)),
+                // The key is the English text (S0070); `en:` is only the display text of a key that carries a context in parentheses.
+                ["en"] = new HashSet<string>(Regex.Matches(table, @"Add\(\s*""([^""\r\n]+)""").Cast<Match>().Select(m => m.Groups[1].Value)
+                    .Concat(Regex.Matches(table, @"\ben:\s*""([^""\r\n]*)""").Cast<Match>().Select(m => m.Groups[1].Value))),
+                ["ru"] = new HashSet<string>(Regex.Matches(table, @"\bru:\s*""([^""\r\n]*)""").Cast<Match>().Select(m => m.Groups[1].Value)),
+                ["uk"] = new HashSet<string>(Regex.Matches(table, @"\buk:\s*""([^""\r\n]*)""").Cast<Match>().Select(m => m.Groups[1].Value)),
             };
             foreach (var locale in controls)
             {
