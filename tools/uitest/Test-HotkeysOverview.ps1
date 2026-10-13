@@ -112,9 +112,12 @@ try {
     Set-ItemProperty -Path $key -Name 'SettingsPageId' -Value 'Hotkeys' -Type String
     Remove-ItemProperty -Path $key -Name 'SettingsGroupsState' -ErrorAction SilentlyContinue
 
-    # Opened with /launcher-settings, so no mouse is needed (see Test-DarkTheme.ps1).
+    # Opened with /launcher-settings, so no mouse is needed (see Test-DarkTheme.ps1). The wait is
+    # generous on purpose: a live profile's startup can take much longer than a clean one (measured
+    # 23 s to the first window on 2026-10-14, the traffic-light module probing its targets at start),
+    # and a settings window that opens at t=21 s is still a window that opened.
     Start-Process (Get-CyrFlipExe -Configuration $Configuration) -ArgumentList '/launcher-settings' | Out-Null
-    $window = Wait-AppWindow -TimeoutSeconds 20
+    $window = Wait-AppWindow -TimeoutSeconds 90
     if (-not $window) { throw 'the settings window did not open' }
     Start-Sleep -Milliseconds 800
     $shot = Save-WindowShot -Handle $window.Handle -Path (Join-Path $OutDir 'overview-scene1.png') -Restore
