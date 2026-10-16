@@ -31,7 +31,7 @@ works from the first start and the one people search for; it is one group among 
    the caret); a translator that runs on a local Ollama model the user installs; a symbols window that finds the
    character your keyboard lacks by name, keyword or Unicode code and copies it with a click.
 3. **Keep what you copy and write** - *opt-in.* The encrypted clipboard history; local quick notes that keep text
-   exactly as given; the plain-text exchange file that moves both to another computer.
+   exactly as given; the plain-text exchange file that moves both to another computer; the clipboard passed to your\n   other devices through an exchange server you run (one object, sent only when you press the button).
 4. **Launch and capture** - *partly on.* The screen-region capture (its chord is on by default); Quick launch for
    programs, scripts and yt-dlp downloads (opt-in); two keep-awake switches (off by default).
 5. **Yours alone** - *the promise under all of them, not a feature group.* No account, no telemetry, nothing sent to

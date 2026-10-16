@@ -1,8 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace CyrFlip
@@ -55,6 +57,7 @@ namespace CyrFlip
         private Font? _detailFont;
         private readonly ToolTip _tip = new ToolTip { ShowAlways = true, InitialDelay = 250, ReshowDelay = 100, AutoPopDelay = 20000 };
         private int _tipTile = -1;
+        private Point? _dragOrigin;
 
         public TrafficLightBoard()
         {
@@ -75,6 +78,7 @@ namespace CyrFlip
         public event Action? ReturnFocusRequested;
         /// <summary>A left press on empty space: the window may be dragged by it.</summary>
         public event Action? DragRequested;
+        public event Action? SettingsRequested;
 
         public IReadOnlyList<TrafficLightTile> Tiles => _tiles;
         public int FocusedTile => _focus;
@@ -91,12 +95,14 @@ namespace CyrFlip
 
         public void SetSizeStep(int step)
         {
-            _sizeStep = Math.Max(0, Math.Min(2, step));
+            _sizeStep = Math.Max(0, Math.Min(AppConfig.MicroscopicTrafficLightTileSize, step));
+            _dragOrigin = null;
             Relayout(force: true);
         }
 
         /// <summary>The small step: a bare square, no label and no detail (the tooltip says which is which).</summary>
-        public bool IsBareSquare => _sizeStep == 0;
+        public bool IsBareSquare => _sizeStep == 0 || IsMicroscopic;
+        public bool IsMicroscopic => _sizeStep == AppConfig.MicroscopicTrafficLightTileSize;
 
         /// <summary>Tiles in a row; the rows follow from the number of targets.</summary>
         public void SetColumns(int columns)
@@ -127,6 +133,24 @@ namespace CyrFlip
             Invalidate();
         }
 
+        /// <summary>
+        /// The tiles' cells in the board's client coordinates, scrolled as they are painted - what the
+        /// window keeps at full alpha while the plate around them fades (window transparency).
+        /// </summary>
+        internal List<Rectangle> TileBounds()
+        {
+            var bounds = new List<Rectangle>(_items.Count);
+            Point offset = AutoScrollPosition;
+            foreach (BoardItem item in _items)
+                if (item.IsTile)
+                {
+                    Rectangle r = item.Bounds;
+                    r.Offset(offset);
+                    bounds.Add(r);
+                }
+            return bounds;
+        }
+
         // ---- layout ----
 
         /// <summary>The tile's size at the current font and step: measured, never a pixel constant.</summary>
@@ -135,12 +159,17 @@ namespace CyrFlip
             get
             {
                 int unit = Font.Height;
+                if (IsMicroscopic)
+                {
+                    int side = Math.Max(1, (int)Math.Round(unit * WidthUnits[0]) / 2);
+                    return new Size(side, side);
+                }
                 return new Size((int)Math.Round(unit * WidthUnits[_sizeStep]), (int)Math.Round(unit * HeightUnits[_sizeStep]));
             }
         }
 
-        public int Gap => Math.Max(4, Font.Height / 3);
-        private int CaptionHeight => Font.Height + 4;
+        public int Gap => IsMicroscopic ? Math.Max(2, Font.Height / 6) : Math.Max(4, Font.Height / 3);
+        private int CaptionHeight => IsMicroscopic ? 0 : Font.Height + 4;
 
         /// <summary>The narrowest the board may be: one tile and its gaps.</summary>
         public int MinimumContentWidth => TileSize.Width + 2 * Gap;
@@ -232,6 +261,7 @@ namespace CyrFlip
                         | (RightToLeft == RightToLeft.Yes ? TextFormatFlags.RightToLeft | TextFormatFlags.Right : TextFormatFlags.Left));
                     continue;
                 }
+
                 DrawTile(g, r, _tiles[item.TileIndex], item.TileIndex == _focus && Focused, item.TileIndex == _hover);
             }
         }
@@ -253,7 +283,7 @@ namespace CyrFlip
 
             // The bare square of the small step shows no mark for "available", so a switched-off target there
             // is told from it by its edge - dashed - and not by its plate's hue alone.
-            bool dashedEdge = _sizeStep == 0 && tile.Disabled;
+            bool dashedEdge = IsBareSquare && tile.Disabled;
             int radius = Math.Max(4, r.Height / 6);
             using (GraphicsPath path = RoundedRect(r, radius))
             {
@@ -276,9 +306,9 @@ namespace CyrFlip
 
             bool rtl = RightToLeft == RightToLeft.Yes;
             int pad = PadOf(r);
-            Rectangle mark = MarkRect(r, rtl, centered: _sizeStep == 0);
+            Rectangle mark = MarkRect(r, rtl, centered: IsBareSquare);
             string? glyph = GlyphOf(tile);
-            if (!MarkShown(tile, _sizeStep == 0))
+            if (!MarkShown(tile, IsBareSquare))
             {
                 // "Available" on the bare square: green says it, and a tick on green says nothing more.
             }
@@ -296,7 +326,7 @@ namespace CyrFlip
             }
 
             // The small step is a bare square: the glyph above is all it carries, the name is on hover.
-            if (_sizeStep == 0) return;
+            if (IsBareSquare) return;
 
             int textLeft = rtl ? r.Left + pad : mark.Right + pad;
             int textRight = rtl ? mark.Left - pad : r.Right - pad;
@@ -444,6 +474,22 @@ namespace CyrFlip
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
+            if (_dragOrigin is Point origin && e.Button == MouseButtons.Left)
+            {
+                Size threshold = SystemInformation.DragSize;
+                var deadZone = new Rectangle(origin.X - threshold.Width / 2, origin.Y - threshold.Height / 2,
+                    threshold.Width, threshold.Height);
+                if (!deadZone.Contains(e.Location))
+                {
+                    _dragOrigin = null;
+                    Capture = false;
+                    _hover = -1;
+                    Invalidate();
+                    SetHoverTip(-1);
+                    DragRequested?.Invoke();
+                    return;
+                }
+            }
             int hit = TileAt(e.Location);
             if (hit == _hover) return;
             _hover = hit;
@@ -471,15 +517,38 @@ namespace CyrFlip
                 return;
             }
             if (e.Button != MouseButtons.Left) return;
+            if (IsMicroscopic)
+            {
+                _dragOrigin = e.Location;
+                Capture = true;
+            }
             if (hit >= 0) { _focus = hit; Invalidate(); }
-            else DragRequested?.Invoke();
+            else if (!IsMicroscopic) DragRequested?.Invoke();
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                _dragOrigin = null;
+                Capture = false;
+            }
+            base.OnMouseUp(e);
+        }
+
+        protected override void OnMouseCaptureChanged(EventArgs e)
+        {
+            if (!Capture) _dragOrigin = null;
+            base.OnMouseCaptureChanged(e);
         }
 
         protected override void OnMouseDoubleClick(MouseEventArgs e)
         {
             base.OnMouseDoubleClick(e);
             int hit = TileAt(e.Location);
-            if (e.Button == MouseButtons.Left && hit >= 0) TileActivated?.Invoke(hit);
+            if (e.Button != MouseButtons.Left) return;
+            if (IsMicroscopic) SettingsRequested?.Invoke();
+            else if (hit >= 0) TileActivated?.Invoke(hit);
         }
 
         // ---- the tooltip: the same text on hover and beside the focused tile (D16) ----
@@ -717,11 +786,18 @@ namespace CyrFlip
         private readonly System.Windows.Forms.Timer _refresh = new System.Windows.Forms.Timer { Interval = 5000 };
         private ThemePalette _palette = ThemePalette.Light;
         private string _uiLanguage;
+        // The script font of the current language (hi/bn/zh), handed to the form - ours to release.
+        private Font? _scriptFont;
         private IntPtr _returnTo = IntPtr.Zero;
         private bool _placed;
         private bool _applyingBounds;
         // Control.Visible answers false for a child of a window that is not shown, so the line's own state is kept.
         private bool _statusShown = true;
+        // The plate's transparency (0..100): while it is above zero the window is layered and its whole
+        // picture is composed per pixel - the plate fades, the buttons and the tiles stay solid.
+        private int _transparency;
+        private bool _composeQueued;
+        private bool _composing;
 
         protected override bool ShowWithoutActivation => true;
 
@@ -732,6 +808,11 @@ namespace CyrFlip
                 CreateParams cp = base.CreateParams;
                 // A tool window: no Alt+Tab entry, however the shell decides about the taskbar.
                 cp.ExStyle |= WsExToolWindow;
+                // Born transparent: the style is decided before the handle exists; later changes go
+                // through SetLayered, and the composed surface replaces this normal painting entirely.
+                // The field, not the config: the property runs again inside the base constructor,
+                // before the config is handed to this one.
+                if (_transparency > 0) cp.ExStyle |= WindowInterop.WS_EX_LAYERED;
                 return cp;
             }
         }
@@ -745,6 +826,7 @@ namespace CyrFlip
 
         public TrafficLightWindow(AppConfig config, TrafficLightBoardActions actions, string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _actions = actions ?? throw new ArgumentNullException(nameof(actions));
             _uiLanguage = uiLanguage;
@@ -773,6 +855,16 @@ namespace CyrFlip
             _board.ReturnFocusRequested += HandBackFocus;
             _board.ContextMenuRequested += ShowMenu;
             _board.DragRequested += BeginDrag;
+            // While the plate is transparent the window's whole picture comes from the composed layered
+            // copy - and a layered window's children are never sent WM_PAINT, so their own Invalidated
+            // events (a hover, a focus ring, a scroll, a state change) are what recompose it. DrawToBitmap
+            // renders them fresh whatever their paint state; the _composing guard keeps the compose pass
+            // itself (WM_PRINT does raise OnPaint) from recomposing in a circle.
+            _board.Invalidated += (_, _) => ScheduleCompose();
+            _titleBar.Invalidated += (_, _) => ScheduleCompose();
+            // While the plate is transparent the window's whole picture comes from the composed layered
+            // copy, so every repaint below - a hover, a focus ring, a state change - must recompose it.
+            _board.SettingsRequested += () => _actions.EditTargets();
 
             // Docking runs from the last control added to the first: title, then status, then the board.
             Controls.Add(_board);
@@ -783,11 +875,17 @@ namespace CyrFlip
             ApplyMetrics();
             ApplyLanguage(uiLanguage);
             ApplyThemePalette(ThemePalette.Light);
+            ApplyTransparency();
         }
 
         public void ApplyLanguage(string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             _uiLanguage = uiLanguage;
+            // The board already paints for a right-to-left window (its layout, the title bar's marks, the
+            // arrow keys); what was missing is anyone telling the window it is one, and the script font
+            // (APP-BEHAVIOUR rule 8). The bar and the status line are measured from the font, so after it.
+            if (WindowScript.Apply(this, uiLanguage, ref _scriptFont)) ApplyMetrics();
             Func<string, string> t = T;
             Text = t("Availability traffic light");
             _titleBar.SetTranslator(t);
@@ -819,26 +917,32 @@ namespace CyrFlip
         /// <summary>Everything the board shows, taken from the configuration and the engine - no sizing.</summary>
         private void LoadContent()
         {
-            bool bare = _config.TrafficLightTileSize == 0;
             _board.SetSizeStep(_config.TrafficLightTileSize);
+            bool bare = _board.IsBareSquare;
             _board.SetColumns(_config.TrafficLightColumns);
             _board.SetTiles(_actions.Snapshot());
             // The bare-square step is a compact board: no status line, no title text - the buttons and the squares.
             _statusShown = !bare;
             _status.Visible = _statusShown;
             _titleBar.ShowTitle = !bare;
+            _titleBar.Visible = !_board.IsMicroscopic;
             _titleBar.Pinned = _config.TrafficLightPinned;
+
             if (!bare)
             {
                 string? summary = TrafficLightText.SummaryLine(_actions.Summary(), T);
                 _status.Text = summary ?? T("No targets are switched on");
             }
+            // The status line is a plain label: it repaints without any event of its own, so the composed
+            // copy is asked for here rather than waited for.
+            ScheduleCompose();
         }
 
-        /// <summary>The tile size, the columns or the pin changed on the settings page.</summary>
+        /// <summary>The tile size, the columns, the pin or the transparency changed on the settings page.</summary>
         public void ApplyBoardOptions()
         {
             ApplyPinned();
+            ApplyTransparency();
             if (!_placed) return;
             LoadContent();
             FitToContent();
@@ -866,6 +970,7 @@ namespace CyrFlip
             WindowState = FormWindowState.Normal;
             _refresh.Start();
             if (takeFocus) FocusBoard();
+            ScheduleCompose();
         }
 
         public void FocusBoard()
@@ -945,10 +1050,12 @@ namespace CyrFlip
         {
             Rectangle work = Screen.FromControl(this).WorkingArea;
             bool bare = _board.IsBareSquare;
-            int title = _titleBar.Side;
+            int title = _board.IsMicroscopic ? 0 : _titleBar.Side;
             int status = bare ? 0 : _status.Height;
             int frame = 2 * FrameWidth;
-            int inner = Math.Max(_board.GridWidth, Math.Max(_titleBar.MinimumContentWidth, bare ? 0 : Font.Height * 9));
+            int inner = _board.IsMicroscopic ? _board.GridWidth
+                : Math.Max(_board.GridWidth, Math.Max(_titleBar.MinimumContentWidth, bare ? 0 : Font.Height * 9));
+            if (_board.Tiles.Count == 0) inner = Math.Max(inner, Font.Height * 12);
             int body = _board.ContentHeightFor(inner);
             int room = Math.Max(_board.TileSize.Height + 2 * _board.Gap, work.Height * 8 / 10 - title - status - frame);
             bool scrolls = body > room;
@@ -1000,6 +1107,8 @@ namespace CyrFlip
                 if (clamped != Bounds) Bounds = clamped;
             }
             finally { _applyingBounds = false; }
+            // The composed surface carries the window's own size; a refit means a recompose.
+            ScheduleCompose();
         }
 
         private void SaveGeometry()
@@ -1023,6 +1132,7 @@ namespace CyrFlip
             ApplyMetrics();
             LoadContent();
             FitToContent();
+            ScheduleCompose();
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -1033,12 +1143,175 @@ namespace CyrFlip
                 e.Graphics.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
         }
 
+        // ---- window transparency: the plate fades, the buttons and the tiles stay solid ----
+
+        /// <summary>
+        /// The board window's plate (its background, the title bar's strip, the status line, the frame)
+        /// fades with the setting while the title bar's buttons and the tiles keep full alpha: 0 is the
+        /// usual opaque window, 100 leaves only the buttons and the tiles - the plate is see-through
+        /// there and lets clicks pass to whatever is under it, except the bar's strip, which stays the
+        /// drag handle. Called at construction and whenever the setting changes on the settings page.
+        /// </summary>
+        public void ApplyTransparency()
+        {
+            int transparency = Math.Max(0, Math.Min(100, _config.TrafficLightWindowTransparency));
+            if (transparency == _transparency) return;
+            _transparency = transparency;
+            if (!IsHandleCreated) return;   // CreateParams carries the style into the birth
+            SetLayered(transparency > 0);
+        }
+
+        /// <summary>Turns the per-pixel layered mode on or off; off returns the window to normal painting.</summary>
+        private void SetLayered(bool layered)
+        {
+            int style = WindowInterop.GetWindowLong(Handle, WindowInterop.GWL_EXSTYLE);
+            bool isLayered = (style & WindowInterop.WS_EX_LAYERED) != 0;
+            if (isLayered == layered)
+            {
+                if (layered) ScheduleCompose();
+                return;
+            }
+            WindowInterop.SetWindowLong(Handle, WindowInterop.GWL_EXSTYLE,
+                layered ? style | WindowInterop.WS_EX_LAYERED : style & ~WindowInterop.WS_EX_LAYERED);
+            if (layered) ComposeLayered();   // a layered window without a surface shows nothing
+            else Invalidate(true);
+        }
+
+        /// <summary>
+        /// One recompose per message-pump cycle, however many repaints asked for it - a sweep of the mouse
+        /// across the board is one composition, not one per tile.
+        /// </summary>
+        private void ScheduleCompose()
+        {
+            if (_transparency <= 0 || !IsHandleCreated || !Visible || IsDisposed || Disposing || _composing) return;
+            if (_composeQueued) return;
+            _composeQueued = true;
+            try
+            {
+                BeginInvoke(new Action(() =>
+                {
+                    _composeQueued = false;
+                    try { ComposeLayered(); }
+                    catch (Exception ex) { TrafficLightLog.Fault("board-transparency", ex); }
+                }));
+            }
+            catch (Exception ex) { _composeQueued = false; TrafficLightLog.Fault("board-transparency-schedule", ex); }
+        }
+
+        /// <summary>
+        /// Renders the window and its children into a 32-bit bitmap, fades the plate's pixels in it and
+        /// hands the bitmap to <c>UpdateLayeredWindow</c>: the window's every pixel then comes from the
+        /// bitmap, alpha per pixel. The child controls stay the real children - input, focus, tooltips and
+        /// the screen-reader tree are untouched - only the picture on the glass is a copy.
+        /// </summary>
+        private void ComposeLayered()
+        {
+            if (_transparency <= 0 || !IsHandleCreated || !Visible || _composing) return;
+            _composing = true;
+            try
+            {
+                int width = Math.Max(1, Width), height = Math.Max(1, Height);
+                using var surface = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                DrawToBitmap(surface, new Rectangle(0, 0, width, height));
+                ApplyPlateAlpha(surface);
+                IntPtr screen = WindowInterop.GetDC(IntPtr.Zero);
+                IntPtr memory = WindowInterop.CreateCompatibleDC(screen);
+                IntPtr drawn = IntPtr.Zero, previous = IntPtr.Zero;
+                try
+                {
+                    drawn = surface.GetHbitmap();
+                    previous = WindowInterop.SelectObject(memory, drawn);
+                    var size = new Size(width, height);
+                    Point source = Point.Empty;
+                    var blend = new WindowInterop.BLENDFUNCTION
+                    {
+                        BlendOp = WindowInterop.AC_SRC_OVER,
+                        SourceConstantAlpha = 255,
+                        AlphaFormat = WindowInterop.AC_SRC_ALPHA,
+                    };
+                    WindowInterop.UpdateLayeredWindow(Handle, screen, IntPtr.Zero, ref size, memory,
+                        ref source, 0, ref blend, WindowInterop.ULW_ALPHA);
+                }
+                finally
+                {
+                    if (previous != IntPtr.Zero) WindowInterop.SelectObject(memory, previous);
+                    if (drawn != IntPtr.Zero) WindowInterop.DeleteObject(drawn);
+                    WindowInterop.DeleteDC(memory);
+                    WindowInterop.ReleaseDC(IntPtr.Zero, screen);
+                }
+            }
+            finally { _composing = false; }
+        }
+
+        private void ApplyPlateAlpha(Bitmap surface)
+        {
+            int plate = (int)Math.Round((100 - _transparency) * 255.0 / 100.0);
+            if (plate >= 255) return;
+            int bar = plate == 0 ? 1 : plate;
+            int width = surface.Width, height = surface.Height;
+            var solid = new bool[width * height];
+            void Keep(Rectangle r)
+            {
+                int left = Math.Max(0, r.Left), top = Math.Max(0, r.Top);
+                int right = Math.Min(width, r.Right), bottom = Math.Min(height, r.Bottom);
+                for (int y = top; y < bottom; y++)
+                    for (int x = left; x < right; x++)
+                        solid[y * width + x] = true;
+            }
+            Point barAt = _titleBar.Location, boardAt = _board.Location;
+            // The microscopic step hides the whole bar: then there are no buttons to keep and no strip to
+            // drag by, and only the tiles stay above the plate.
+            bool barVisible = _titleBar.Visible;
+            if (barVisible)
+                for (int i = 0; i < 4; i++)
+                {
+                    Rectangle zone = _titleBar.ZoneOf(i);
+                    zone.Offset(barAt);
+                    Keep(zone);
+                }
+            foreach (Rectangle cell in _board.TileBounds())
+            {
+                Rectangle tile = cell;
+                tile.Offset(boardAt);
+                Keep(tile);
+            }
+            int barTop = barAt.Y, barBottom = barAt.Y + _titleBar.Height;
+
+            var bounds = new Rectangle(0, 0, width, height);
+            BitmapData data = surface.LockBits(bounds, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            try
+            {
+                var pixels = new byte[data.Stride * data.Height];
+                Marshal.Copy(data.Scan0, pixels, 0, pixels.Length);
+                for (int y = 0; y < height; y++)
+                {
+                    int row = y * data.Stride;
+                    bool inBar = barVisible && y >= barTop && y < barBottom;
+                    for (int x = 0; x < width; x++)
+                    {
+                        int at = row + x * 4;
+                        if (solid[y * width + x]) continue;
+                        int alpha = inBar ? bar : plate;
+                        pixels[at] = (byte)(pixels[at] * alpha / 255);
+                        pixels[at + 1] = (byte)(pixels[at + 1] * alpha / 255);
+                        pixels[at + 2] = (byte)(pixels[at + 2] * alpha / 255);
+                        pixels[at + 3] = (byte)alpha;
+                    }
+                }
+                Marshal.Copy(pixels, 0, data.Scan0, pixels.Length);
+            }
+            finally { surface.UnlockBits(data); }
+        }
+
         // ---- the title bar's commands, the menu and the drag ----
 
         private void OnTitleCommand(TitleCommand command)
         {
             switch (command)
             {
+                case TitleCommand.Help:
+                    ContextHelp.Open(this);
+                    break;
                 case TitleCommand.Add:
                     _actions.AddTarget();
                     break;
@@ -1125,12 +1398,15 @@ namespace CyrFlip
             _titleBar.ApplyTheme(palette);
             _board.ApplyTheme(palette);
             Invalidate();
+            // The children's own repaints recompose too, but the copy must not wait for them.
+            ScheduleCompose();
         }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing) _refresh.Dispose();
             base.Dispose(disposing);
+            if (disposing) _scriptFont?.Dispose();
         }
     }
 }

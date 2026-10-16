@@ -28,7 +28,7 @@
   <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/CyrFlip/ur/privacy.html">
   <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/privacy.html">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","headline":"CyrFlip - Informativa sulla privacy","url":"https://serzhyale.github.io/CyrFlip/it/privacy.html","description":"CyrFlip non raccoglie, non conserva, non registra e non trasmette dati personali. Tutto gira sul tuo dispositivo.","inLanguage":"it","about":{"@type":"SoftwareApplication","name":"CyrFlip","operatingSystem":"Windows"}}</script>
-  <meta name="source-sha256" content="f0acc1a5f07b080c192c226b9aaf38f81e83a96769c20f54e5b77b2aeb99c0a5">
+  <meta name="source-sha256" content="eb68ca84b8b726485d7e6652acb09aa1ec8a288a94c40c2e3a93e1d9cd3780c2">
   <!-- /doc-quality metadata -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -65,19 +65,28 @@
     <nav class="langbar" aria-label="Lingua"><a href="../ru/privacy.html" data-sza-lang="ru" lang="ru" hreflang="ru"><span class="code">RU</span><span class="endonym">Русский</span></a><a href="../privacy.html" data-sza-lang="en" lang="en" hreflang="en"><span class="code">EN</span><span class="endonym">English</span></a><a href="../uk/privacy.html" data-sza-lang="ua" lang="uk" hreflang="uk"><span class="code">UA</span><span class="endonym">Українська</span></a><a href="../de/privacy.html" lang="de" hreflang="de"><span class="code">DE</span><span class="endonym">Deutsch</span></a><a href="privacy.html" class="active" aria-current="page" lang="it" hreflang="it"><span class="code">IT</span><span class="endonym">Italiano</span></a><a href="../es/privacy.html" lang="es" hreflang="es"><span class="code">ES</span><span class="endonym">Español</span></a><a href="../fr/privacy.html" lang="fr" hreflang="fr"><span class="code">FR</span><span class="endonym">Français</span></a><a href="../pt/privacy.html" lang="pt" hreflang="pt"><span class="code">PT</span><span class="endonym">Português</span></a><a href="../ar/privacy.html" lang="ar" hreflang="ar"><span class="code">AR</span><span class="endonym" dir="rtl">العربية</span></a><a href="../hi/privacy.html" lang="hi" hreflang="hi"><span class="code">HI</span><span class="endonym">हिन्दी</span></a><a href="../bn/privacy.html" lang="bn" hreflang="bn"><span class="code">BN</span><span class="endonym">বাংলা</span></a><a href="../ur/privacy.html" lang="ur" hreflang="ur"><span class="code">UR</span><span class="endonym" dir="rtl">اردو</span></a><a href="../zh/privacy.html" lang="zh" hreflang="zh"><span class="code">ZH</span><span class="endonym">中文</span></a></nav>
     <section>
       <h1>Informativa sulla privacy</h1>
-      <p class="note">Ultimo aggiornamento: 7 ottobre 2026 · <a href="../privacy.html">English (originale)</a></p>
+      <p class="note">Ultimo aggiornamento: 16 ottobre 2026 · <a href="../privacy.html">English (originale)</a></p>
 
-      <p><strong>CyrFlip non raccoglie, non conserva, non registra e non trasmette alcun dato
-      personale.</strong> L'app gira interamente sul tuo dispositivo. Non ha server propri, né
-      telemetria, né analisi, né pubblicità, né tracciamento, né account. Lo sviluppatore non riceve
-      alcun dato su di te o sul tuo uso dell'app.</p>
+      <p><strong>CyrFlip non raccoglie alcun dato personale e lo sviluppatore non ne riceve.</strong> Non ha
+      server propri, né telemetria, né analisi, né pubblicità, né tracciamento, né account, e non registra
+      i tuoi tasti premuti. Gira sul tuo dispositivo; le uniche cose che lo lasciano sono le due funzioni
+      facoltative, disattivate per impostazione predefinita, descritte di seguito, e solo verso una
+      destinazione che hai scelto tu.</p>
 
-      <p>C'è esattamente una funzione che invia del testo da qualche parte, ed è <strong>disattivata per
-      impostazione predefinita</strong>: il <em>traduttore</em> facoltativo. Quando lo attivi e premi
+      <p>Ci sono esattamente due funzioni che inviano qualcosa da qualche parte, ed entrambe sono
+      <strong>disattivate per impostazione predefinita</strong>: il <em>traduttore</em> facoltativo e gli
+      <em>appunti sul server</em> facoltativi.</p>
+
+      <p>Quando attivi il traduttore e premi
       una scorciatoia di traduzione, il testo selezionato viene inviato all'indirizzo del server Ollama
       configurato in CyrFlip: per impostazione predefinita <code>http://localhost:11434</code>, cioè un
       programma sul tuo stesso computer, quindi il testo non lascia il dispositivo. Se cambi
       quell'indirizzo con un'altra macchina, il testo va lì; CyrFlip lo dice accanto all'impostazione.</p>
+
+      <p>Gli appunti sul server inviano <strong>ciò che si trova negli appunti</strong> - un testo, un'immagine
+      o un solo file - al server di scambio a cui hai effettuato l'accesso, e solo quando premi il suo
+      pulsante, la sua combinazione o la sua scorciatoia. Prima vengono cifrati sul tuo computer, solo per i
+      tuoi dispositivi. Vedi la sezione sul server di scambio più sotto.</p>
 
       <h2>A cosa accede l'app, e perché</h2>
       <ul class="features">
@@ -115,7 +124,9 @@
         <li><strong>Appunti.</strong> Quando premi la scorciatoia, CyrFlip legge temporaneamente il
         testo selezionato (tramite una copia simulata), lo converte tra i layout, incolla il risultato e
         ripristina il contenuto precedente degli appunti. Tutto ciò avviene in locale e solo nel momento
-        in cui lo attivi. Nulla degli appunti viene inviato o condiviso.</li>
+        in cui lo attivi. Nulla degli appunti viene inviato o condiviso da questa funzione; l'unica funzione
+        che invia mai gli appunti è quella facoltativa degli <em>appunti sul server</em>, più sotto, e solo
+        quando premi il suo pulsante.</li>
 
         <li><strong>Cronologia degli appunti facoltativa.</strong> <strong>Disattivata per impostazione
         predefinita.</strong> Se la attivi, CyrFlip conserva in locale il testo Unicode catturato. La
@@ -161,6 +172,28 @@
         scarica l'installer ufficiale da <code>ollama.com</code>; la versione del Microsoft Store apre
         soltanto quel sito. Quali lingue conosca il modello è una domanda per il modello: CyrFlip gli
         passa soltanto il testo.</li>
+
+        <li><strong>Appunti sul server facoltativi.</strong> Questa funzione è <strong>disattivata per
+        impostazione predefinita</strong>; finché è spenta CyrFlip non apre per essa alcuna connessione di
+        rete. Richiede un account su un server di scambio gestito da te o da qualcuno di cui ti fidi, e
+        CyrFlip si limita ad accedervi: gli dai una sola volta la stringa di connessione del server, il tuo
+        login e la tua password. La password serve per quel solo accesso e non viene mai conservata; il token
+        del dispositivo che il server restituisce e una chiave privata che CyrFlip crea per questo account
+        sono conservati cifrati con Windows DPAPI per il tuo utente Windows. Quando premi <em>Invia gli
+        appunti al server</em> (menu dell'area di notifica, scorciatoia o combinazione), CyrFlip invia
+        <strong>esattamente ciò che si trova negli appunti in quel momento</strong> - un testo, un'immagine o
+        un solo file, compresa una password che hai copiato un minuto fa. Non c'è anteprima, né conferma, né
+        filtro: premilo solo quando è proprio ciò che vuoi. Il valore viene cifrato sul tuo computer per gli
+        altri dispositivi del tuo account prima di partire, e il server conserva soltanto l'ultimo valore,
+        nella propria memoria. <em>Ricevi gli appunti dal server</em> mette negli appunti il valore più
+        recente del server; un file ricevuto viene salvato in una cartella che puoi vedere (per impostazione
+        predefinita <code>Downloads\CyrFlip</code>) e non sovrascrive mai un altro file. Nulla viene inviato
+        da solo: non c'è monitoraggio, né timer, né invio all'avvio. Il server di scambio collega i tuoi dispositivi, quindi conosce i nomi del tuo account, dei dispositivi, delle cartelle e delle trasmissioni, vede quali dispositivi sono online e quanto viene inviato e quando. Non può aprire ciò che vi transita: cartelle e relativi file, trasmissioni e appunti vengono cifrati sul tuo dispositivo e aperti solo sugli altri tuoi dispositivi o da chi hai autorizzato. Per guardare all'interno, chi gestisce il server dovrebbe aggiungere al tuo account un dispositivo proprio, che comparirebbe nell'elenco dei tuoi dispositivi. CyrFlip tiene un registro di soli tipi, dimensioni e codici di esito - mai un
+        valore degli appunti, un nome di file, un login o un indirizzo - e quel registro è l'unica traccia che
+        scrive su questa funzione, oltre alla voce dell'account stesso (l'indirizzo del server, il tuo login,
+        un nome, il certificato fissato e le chiavi pubbliche dei tuoi altri dispositivi), che rimuovi con
+        <em>Rimuovi account</em>.</li>
+
         <li><strong>Cattura dello schermo.</strong> Solo quando premi la combinazione della cattura o scegli
         <em>Cattura di un'area dello schermo</em> nel menu dell'area di notifica, CyrFlip scatta
         un'immagine dei tuoi schermi così come sono, ti fa selezionare un rettangolo e mette negli appunti, come
@@ -228,10 +261,11 @@
       il suo elenco di ciò che CyrFlip non fa mai dice la stessa cosa di questa pagina.</p>
 
       <h2>Condivisione dei dati</h2>
-      <p>Nessuna. CyrFlip non condivide dati con lo sviluppatore né con terze parti. L'unica cosa che
-      invia mai è il testo che hai selezionato, all'indirizzo del traduttore che hai scelto tu - per
-      impostazione predefinita un programma sul tuo stesso computer - e solo mentre quella funzione
-      facoltativa è attiva. Il pulsante <em>Invia i log all'autore</em> non è un'eccezione: prepara un messaggio nel vostro programma di posta, l'archivio potete aprirlo prima, e inviarlo potete solo voi.</p>
+      <p>Nessuna. CyrFlip non condivide dati con lo sviluppatore né con terze parti. Può inviare soltanto
+      ciò che gli dici di inviare, verso la destinazione che indichi tu, e solo mentre la funzione
+      facoltativa è attiva: il testo che hai selezionato, all'indirizzo del traduttore che hai scelto tu
+      (per impostazione predefinita un programma sul tuo stesso computer); e ciò che si trova negli appunti,
+      al server di scambio a cui hai effettuato l'accesso, cifrato per i tuoi dispositivi. Il pulsante <em>Invia i log all'autore</em> non è un'eccezione: prepara un messaggio nel vostro programma di posta, l'archivio potete aprirlo prima, e inviarlo potete solo voi.</p>
 
       <h2>Questo sito web</h2>
       <p>Questa sezione riguarda le pagine che state leggendo, non l'app. L'app non contatta questo sito web, e il sito web non riceve nulla dall'app.</p>

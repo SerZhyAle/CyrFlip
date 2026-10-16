@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -56,6 +56,7 @@ namespace CyrFlip
             AddSupportStrings();
             AddThemeStrings();
             AddExchangeStrings();
+            AddExchangeServerStrings();
             AddGraphicsStrings();
             AddSettingsStrings();
             AddWelcomeStrings();
@@ -64,6 +65,9 @@ namespace CyrFlip
             AddHotkeysOverviewStrings();
             AddTrayPopupStrings();
             AddTrafficLightStrings();
+            AddSettingsRowStrings();
+            AddActivationStrings();
+            AddHelpStrings();
         }
 
         /// <summary>Every registered source string with its translations (parallel to <see cref="Names"/>) - used by the localization tests.</summary>

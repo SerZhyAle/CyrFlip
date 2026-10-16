@@ -99,8 +99,18 @@ namespace CyrFlip
         public static bool SymbolsLive(AppConfig config) => config.EnableSymbols && config.EnableSymbolsHotkey;
         public static bool TrafficLightLive(AppConfig config) => config.EnableTrafficLight && config.EnableTrafficLightHotkey;
         public static bool ScreenshotLive(AppConfig config) => config.EnableScreenshotHotkey;
+        // The full capture has its own switch and no module switch, exactly like the region capture.
+        public static bool ScreenshotFullLive(AppConfig config) => config.EnableScreenshotFullHotkey;
+        // Each annotate chord is bound only while the draw module is on AND its own switch is (S0071 6.1) -
+        // the compound ScreenshotFolderLive shape.
+        public static bool ScreenshotAnnotateAreaLive(AppConfig config)
+            => config.EnableScreenshotAnnotate && config.EnableScreenshotAnnotateAreaHotkey;
+        public static bool ScreenshotFullAnnotateLive(AppConfig config)
+            => config.EnableScreenshotAnnotate && config.EnableScreenshotFullAnnotateHotkey;
         public static bool ScreenshotFolderLive(AppConfig config) => config.ScreenshotSaveEnabled && config.EnableScreenshotFolderHotkey;
         public static bool TextMenuLive(AppConfig config) => config.EnableContextMenu && config.EnableTextMenuHotkey;
+        public static bool ExchangeSendLive(AppConfig config) => config.EnableExchangeClipboard && config.EnableExchangeClipboardSendHotkey;
+        public static bool ExchangeGetLive(AppConfig config) => config.EnableExchangeClipboard && config.EnableExchangeClipboardGetHotkey;
 
         public static bool IsCaseActive(AppConfig config)
             => config.EnableHotkeys && config.EnableCaseHotkey && Hotkey.TryParse(config.CaseHotkey, out _);
@@ -120,11 +130,26 @@ namespace CyrFlip
         public static bool IsScreenshotActive(AppConfig config)
             => config.EnableHotkeys && ScreenshotLive(config) && Hotkey.TryParse(config.ScreenshotHotkey, out _);
 
+        public static bool IsScreenshotFullActive(AppConfig config)
+            => config.EnableHotkeys && ScreenshotFullLive(config) && Hotkey.TryParse(config.ScreenshotFullHotkey, out _);
+
+        public static bool IsScreenshotAnnotateAreaActive(AppConfig config)
+            => config.EnableHotkeys && ScreenshotAnnotateAreaLive(config) && Hotkey.TryParse(config.ScreenshotAnnotateAreaHotkey, out _);
+
+        public static bool IsScreenshotFullAnnotateActive(AppConfig config)
+            => config.EnableHotkeys && ScreenshotFullAnnotateLive(config) && Hotkey.TryParse(config.ScreenshotFullAnnotateHotkey, out _);
+
         public static bool IsScreenshotFolderActive(AppConfig config)
             => config.EnableHotkeys && ScreenshotFolderLive(config) && Hotkey.TryParse(config.ScreenshotFolderHotkey, out _);
 
         public static bool IsTextMenuActive(AppConfig config)
             => config.EnableHotkeys && TextMenuLive(config) && Hotkey.TryParse(config.TextMenuHotkey, out _);
+
+        public static bool IsExchangeSendActive(AppConfig config)
+            => config.EnableHotkeys && ExchangeSendLive(config) && Hotkey.TryParse(config.ExchangeClipboardSendHotkey, out _);
+
+        public static bool IsExchangeGetActive(AppConfig config)
+            => config.EnableHotkeys && ExchangeGetLive(config) && Hotkey.TryParse(config.ExchangeClipboardGetHotkey, out _);
 
         public static bool IsConversionActive(AppConfig config, LayoutConversionProfile profile)
             => config.EnableHotkeys && profile != null && profile.Enabled && profile.IsUsable && Hotkey.TryParse(profile.Hotkey, out _);

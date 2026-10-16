@@ -17,6 +17,8 @@ namespace CyrFlip
         SelectionMenu,
         /// <summary>The traffic light: a board of the user's own hosts, sites and folders (ticket S0069).</summary>
         TrafficLight,
+        /// <summary>The exchange server: join clipboard on the server (ticket S0074).</summary>
+        ExchangeServer,
     }
 
     /// <summary>The pure half of page navigation: reading a stored key, and the one-time legacy index table.</summary>
@@ -41,6 +43,7 @@ namespace CyrFlip
             SettingsPageKey.General, SettingsPageKey.Indicators, SettingsPageKey.WindowsLanguages, SettingsPageKey.Conversions,
             SettingsPageKey.SelectionMenu, SettingsPageKey.Symbols, SettingsPageKey.Translate, SettingsPageKey.Clipboard,
             SettingsPageKey.QuickNotes, SettingsPageKey.Graphics, SettingsPageKey.Launcher, SettingsPageKey.TrafficLight,
+            SettingsPageKey.ExchangeServer,
             SettingsPageKey.Hotkeys, SettingsPageKey.About,
         };
 

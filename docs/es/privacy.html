@@ -28,7 +28,7 @@
   <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/CyrFlip/ur/privacy.html">
   <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/privacy.html">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","headline":"CyrFlip - Política de privacidad","url":"https://serzhyale.github.io/CyrFlip/es/privacy.html","description":"CyrFlip no recopila, almacena, registra ni transmite ningún dato personal. Funciona por completo en tu propio dispositivo.","inLanguage":"es","about":{"@type":"SoftwareApplication","name":"CyrFlip","operatingSystem":"Windows"}}</script>
-  <meta name="source-sha256" content="f0acc1a5f07b080c192c226b9aaf38f81e83a96769c20f54e5b77b2aeb99c0a5">
+  <meta name="source-sha256" content="eb68ca84b8b726485d7e6652acb09aa1ec8a288a94c40c2e3a93e1d9cd3780c2">
   <!-- /doc-quality metadata -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -65,19 +65,28 @@
     <nav class="langbar" aria-label="Idioma"><a href="../ru/privacy.html" data-sza-lang="ru" lang="ru" hreflang="ru"><span class="code">RU</span><span class="endonym">Русский</span></a><a href="../privacy.html" data-sza-lang="en" lang="en" hreflang="en"><span class="code">EN</span><span class="endonym">English</span></a><a href="../uk/privacy.html" data-sza-lang="ua" lang="uk" hreflang="uk"><span class="code">UA</span><span class="endonym">Українська</span></a><a href="../de/privacy.html" lang="de" hreflang="de"><span class="code">DE</span><span class="endonym">Deutsch</span></a><a href="../it/privacy.html" lang="it" hreflang="it"><span class="code">IT</span><span class="endonym">Italiano</span></a><a href="privacy.html" class="active" aria-current="page" lang="es" hreflang="es"><span class="code">ES</span><span class="endonym">Español</span></a><a href="../fr/privacy.html" lang="fr" hreflang="fr"><span class="code">FR</span><span class="endonym">Français</span></a><a href="../pt/privacy.html" lang="pt" hreflang="pt"><span class="code">PT</span><span class="endonym">Português</span></a><a href="../ar/privacy.html" lang="ar" hreflang="ar"><span class="code">AR</span><span class="endonym" dir="rtl">العربية</span></a><a href="../hi/privacy.html" lang="hi" hreflang="hi"><span class="code">HI</span><span class="endonym">हिन्दी</span></a><a href="../bn/privacy.html" lang="bn" hreflang="bn"><span class="code">BN</span><span class="endonym">বাংলা</span></a><a href="../ur/privacy.html" lang="ur" hreflang="ur"><span class="code">UR</span><span class="endonym" dir="rtl">اردو</span></a><a href="../zh/privacy.html" lang="zh" hreflang="zh"><span class="code">ZH</span><span class="endonym">中文</span></a></nav>
     <section>
       <h1>Política de privacidad</h1>
-      <p class="note">Última actualización: 7 de octubre de 2026 · <a href="../privacy.html">English (original)</a></p>
+      <p class="note">Última actualización: 16 de octubre de 2026 · <a href="../privacy.html">English (original)</a></p>
 
-      <p><strong>CyrFlip no recopila, almacena, registra ni transmite ningún dato personal.</strong>
-      Funciona por completo en tu propio dispositivo. No tiene servidores propios, ni telemetría, ni
-      analítica, ni publicidad, ni rastreo, ni cuentas de usuario. El desarrollador no recibe ningún
-      dato sobre ti ni sobre tu uso de la aplicación.</p>
+      <p><strong>CyrFlip no recopila ningún dato personal, y el desarrollador no recibe ninguno.</strong>
+      No tiene servidores propios, ni telemetría, ni analítica, ni publicidad, ni rastreo, ni cuentas de
+      usuario, y no registra tus pulsaciones. Funciona en tu propio dispositivo; lo único que sale de él son
+      las dos funciones opcionales, desactivadas por omisión, que se describen a continuación, y solo hacia
+      un lugar que tú has elegido.</p>
 
-      <p>Hay exactamente una función que envía texto a algún sitio, y está <strong>desactivada por
-      omisión</strong>: el <em>traductor</em> opcional. Cuando lo activas y pulsas un atajo de
+      <p>Hay exactamente dos funciones que envían algo a algún sitio, y las dos están <strong>desactivadas
+      por omisión</strong>: el <em>traductor</em> opcional y el <em>portapapeles en el servidor</em>
+      opcional.</p>
+
+      <p>Cuando activas el traductor y pulsas un atajo de
       traducción, el texto seleccionado se envía a la dirección del servidor Ollama configurada en
       CyrFlip: por omisión <code>http://localhost:11434</code>, es decir, un programa que se ejecuta en
       tu propio ordenador, de modo que el texto no sale del dispositivo. Si cambias esa dirección por
       la de otra máquina, el texto se enviará allí; CyrFlip lo advierte junto al ajuste.</p>
+
+      <p>El portapapeles en el servidor envía <strong>lo que hay en tu portapapeles</strong> - un texto, una
+      imagen o un solo archivo - al servidor de intercambio en el que has iniciado sesión, y solo cuando
+      pulsas su botón, su combinación o su atajo. Antes se cifra en tu ordenador, solo para tus propios
+      dispositivos. Consulta más abajo la sección sobre el servidor de intercambio.</p>
 
       <h2>A qué accede la aplicación, y por qué</h2>
       <ul class="features">
@@ -115,7 +124,9 @@
         <li><strong>Portapapeles.</strong> Cuando pulsas el atajo, CyrFlip lee brevemente el texto
         seleccionado (mediante una copia simulada), lo convierte entre distribuciones, pega el
         resultado y restaura el contenido anterior del portapapeles. Todo ocurre localmente y solo en
-        el momento en que tú lo provocas. Nada de ello se envía a ningún sitio.</li>
+        el momento en que tú lo provocas. Esta función no envía ni comparte nada del portapapeles; la única
+        función que llega a enviarlo es el <em>portapapeles en el servidor</em> opcional, más abajo, y solo
+        cuando pulsas su botón.</li>
 
         <li><strong>Historial del portapapeles (opcional).</strong> Está <strong>desactivado por
         omisión</strong>. Si lo activas, CyrFlip guarda localmente el texto Unicode capturado. El
@@ -163,6 +174,29 @@
         el instalador oficial desde <code>ollama.com</code>; la versión de Microsoft Store solo abre ese
         sitio web. Qué idiomas domina el modelo es una pregunta para el modelo: CyrFlip se limita a
         pasarle el texto.</li>
+
+        <li><strong>Portapapeles en el servidor (opcional).</strong> Esta función está <strong>desactivada por
+        omisión</strong>; mientras lo esté, CyrFlip no abre ninguna conexión de red para ella. Necesita una
+        cuenta en un servidor de intercambio que gestionas tú o alguien de tu confianza, y CyrFlip solo inicia
+        sesión en él: le das una sola vez la cadena de conexión del servidor, tu nombre de usuario y tu
+        contraseña. La contraseña se usa para ese único inicio de sesión y nunca se guarda; el token de
+        dispositivo que devuelve el servidor y una clave privada que CyrFlip crea para esta cuenta se guardan
+        cifrados con la DPAPI de Windows para tu usuario de Windows. Cuando pulsas <em>Enviar portapapeles al
+        servidor</em> (menú de la bandeja, atajo o combinación), CyrFlip envía <strong>exactamente lo que hay
+        en el portapapeles en ese momento</strong> - un texto, una imagen o un solo archivo, incluida una
+        contraseña que copiaste hace un minuto. No hay vista previa, ni confirmación, ni filtro, así que
+        púlsalo solo cuando de verdad lo quieras. El valor se cifra en tu ordenador para los demás
+        dispositivos de tu cuenta antes de salir, y el servidor conserva solo el último valor, en su memoria.
+        <em>Obtener portapapeles del servidor</em> pone en tu portapapeles el valor más reciente del
+        servidor; un archivo recibido se guarda en una carpeta que puedes ver (por omisión
+        <code>Downloads\CyrFlip</code>) y nunca sobrescribe otro archivo. Nada se envía por sí solo: no hay
+        vigilancia, ni temporizador, ni envío al iniciar. El servidor de intercambio conecta tus dispositivos, por lo que conoce los nombres de tu cuenta, de tus dispositivos, de tus carpetas y de tus transmisiones, ve qué dispositivos están en línea y cuánto se envía y cuándo. No puede abrir lo que pasa por él: las carpetas y sus archivos, las transmisiones y el portapapeles se cifran en tu dispositivo y solo se abren en tus otros dispositivos o por las personas a las que diste acceso. Para mirar dentro, quien administra el servidor tendría que añadir a tu cuenta un dispositivo propio, y aparecería en tu lista de dispositivos. CyrFlip lleva un registro solo de tipos,
+        tamaños y códigos de resultado - nunca un valor del portapapeles, un nombre de archivo, un nombre de
+        usuario o una dirección - y ese registro es el único rastro que escribe sobre esta función, además de
+        la propia entrada de la cuenta (la dirección del servidor, tu nombre de usuario, un nombre, el
+        certificado fijado y las claves públicas de tus otros dispositivos), que quitas con <em>Quitar
+        cuenta</em>.</li>
+
         <li><strong>Captura de pantalla.</strong> Solo cuando pulsa la combinación de captura o elige
         <em>Captura de una zona de la pantalla</em> en el menú de la bandeja, CyrFlip toma una imagen de sus
         pantallas tal como están, le deja seleccionar un rectángulo y pone en el portapapeles, como imagen, solo
@@ -232,10 +266,11 @@
       lo que CyrFlip nunca hace dice lo mismo que esta página.</p>
 
       <h2>Cesión de datos</h2>
-      <p>Ninguna. CyrFlip no cede ningún dato al desarrollador ni a terceros. Lo único que llega a
-      enviarse es el texto que seleccionaste, a la dirección del traductor que tú mismo elegiste - por
-      omisión un programa en tu propio ordenador - y solo mientras esa función opcional esté
-      activada. El botón <em>Enviar los registros al autor</em> no es una excepción: prepara un mensaje en su propio programa de correo, usted puede abrir el archivo antes, y solo usted puede enviarlo.</p>
+      <p>Ninguna. CyrFlip no cede ningún dato al desarrollador ni a terceros. Solo puede enviar lo que tú le
+      indiques, al lugar que tú nombres, y solo mientras la función opcional esté activada: el texto que
+      seleccionaste, a la dirección del traductor que tú mismo elegiste (por omisión un programa en tu
+      propio ordenador); y lo que hay en tu portapapeles, al servidor de intercambio en el que has iniciado
+      sesión, cifrado para tus propios dispositivos. El botón <em>Enviar los registros al autor</em> no es una excepción: prepara un mensaje en su propio programa de correo, usted puede abrir el archivo antes, y solo usted puede enviarlo.</p>
 
       <h2>Este sitio web</h2>
       <p>Esta sección trata de las páginas que está leyendo, no de la aplicación. La aplicación no se conecta a este sitio web, y el sitio web no recibe nada de la aplicación.</p>

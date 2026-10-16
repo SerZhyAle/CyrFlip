@@ -7,6 +7,14 @@ namespace CyrFlip
     {
         private static void AddSettingsStrings()
         {
+            // The still picture shown while the settings window is built for the first time
+            // (SettingsLoadingNotice) - the build blocks the UI thread, so it cannot move.
+            Add("Loading settings..",
+                ru: "Загрузка настроек..", uk: "Завантаження налаштувань..", de: "Einstellungen werden geladen..",
+                it: "Caricamento delle impostazioni..", es: "Cargando la configuración..", fr: "Chargement des paramètres..",
+                pt: "Carregando as configurações..", ar: "جارٍ تحميل الإعدادات..", hi: "सेटिंग्स लोड हो रही हैं..",
+                bn: "সেটিংস লোড হচ্ছে..", ur: "ترتیبات لوڈ ہو رہی ہیں..", zh: "正在加载设置..");
+
             Add("Find a setting...",
                 ru: "Найти настройку...", uk: "Знайти налаштування...", de: "Einstellung suchen...", it: "Trova impostazione...",
                 es: "Buscar un ajuste...", fr: "Rechercher un paramètre...", pt: "Localizar configuração...",
@@ -65,6 +73,38 @@ namespace CyrFlip
                 ru: "Помощь и поддержка", uk: "Допомога та підтримка", de: "Hilfe und Support", it: "Assistenza e supporto",
                 es: "Ayuda y soporte", fr: "Aide et assistance", pt: "Ajuda e suporte",
                 ar: "المساعدة والدعم", hi: "सहायता और समर्थन", bn: "সহায়তা ও সমর্থন", ur: "مدد اور معاونت", zh: "帮助与支持");
+
+            // S0060 M5 (WINDOWS-UI section 3 rule 6): the sentence under a control that is unavailable, saying
+            // which switch makes it so and what to do. One template for every master switch of the window.
+            Add("Unavailable while «{0}» is off - turn that switch on first.",
+                ru: "Недоступно, пока выключен переключатель «{0}» - сначала включите его.",
+                uk: "Недоступно, поки вимкнено перемикач «{0}» - спершу ввімкніть його.",
+                de: "Nicht verfügbar, solange «{0}» ausgeschaltet ist - schalten Sie zuerst diesen Schalter ein.",
+                it: "Non disponibile finché «{0}» è disattivato: attiva prima quell'interruttore.",
+                es: "No disponible mientras «{0}» esté desactivado: activa antes ese interruptor.",
+                fr: "Indisponible tant que «{0}» est désactivé : activez d'abord cet interrupteur.",
+                pt: "Indisponível enquanto «{0}» estiver desligado: ligue primeiro esse interruptor.",
+                ar: "غير متاح ما دام «{0}» معطّلًا - فعّل ذلك المفتاح أولًا.",
+                hi: "जब तक «{0}» बंद है, यह उपलब्ध नहीं - पहले वह स्विच चालू करें।",
+                bn: "«{0}» বন্ধ থাকলে এটি পাওয়া যায় না - আগে ওই সুইচটি চালু করুন।",
+                ur: "جب تک «{0}» بند ہے یہ دستیاب نہیں - پہلے وہ سوئچ آن کریں۔",
+                zh: "在《{0}》关闭期间不可用 - 请先打开该开关。");
+
+            // The three restore buttons (settings snapshot, keyboard layouts, language shortcuts) are unavailable
+            // for the one reason that no earlier state has been saved yet.
+            Add("Nothing to restore yet: CyrFlip saves the original state just before the first change.",
+                ru: "Восстанавливать пока нечего: исходное состояние CyrFlip сохраняет перед первым изменением.",
+                uk: "Відновлювати поки нічого: початковий стан CyrFlip зберігає перед першою зміною.",
+                de: "Noch nichts wiederherzustellen: CyrFlip sichert den Ausgangszustand unmittelbar vor der ersten Änderung.",
+                it: "Non c'è ancora nulla da ripristinare: CyrFlip salva lo stato originale subito prima della prima modifica.",
+                es: "Aún no hay nada que restaurar: CyrFlip guarda el estado original justo antes del primer cambio.",
+                fr: "Rien à restaurer pour l'instant : CyrFlip enregistre l'état d'origine juste avant la première modification.",
+                pt: "Ainda não há nada para restaurar: o CyrFlip guarda o estado original logo antes da primeira alteração.",
+                ar: "لا يوجد ما يمكن استعادته بعد: يحفظ CyrFlip الحالة الأصلية قبل أول تغيير مباشرة.",
+                hi: "अभी पुनर्स्थापित करने को कुछ नहीं है: CyrFlip पहले बदलाव से ठीक पहले मूल स्थिति सहेजता है।",
+                bn: "এখনও পুনরুদ্ধার করার কিছু নেই: প্রথম পরিবর্তনের ঠিক আগে CyrFlip মূল অবস্থা সংরক্ষণ করে।",
+                ur: "ابھی بحال کرنے کو کچھ نہیں: CyrFlip پہلی تبدیلی سے عین پہلے اصل حالت محفوظ کرتا ہے۔",
+                zh: "暂无可还原的内容：CyrFlip 会在第一次更改之前保存原始状态。");
         }
     }
 }

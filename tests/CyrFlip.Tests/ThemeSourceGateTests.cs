@@ -19,13 +19,17 @@ namespace CyrFlip.Tests
             AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "src", "CyrFlip"));
 
         /// <summary>
-        /// Where a colour literal may live: the palette table, and the layout marker - deliberately out of
+        /// Where a colour literal may live: the palette table, the layout marker - deliberately out of
         /// the theme (<c>LAYOUT-PALETTE</c>, <c>APP-STYLE</c> rule 5), declared at <c>LayoutStyle.cs</c>
-        /// and <c>CaretOverlay.cs</c>.
+        /// and <c>CaretOverlay.cs</c> - and the S0071 annotation model: the eight swatches are content
+        /// that names what will be drawn onto the user's screenshot (<c>AnnotationPalette.cs</c>), and
+        /// <c>AnnotationShape.cs</c> applies the alpha-128 fill under an opaque ink outline, both by
+        /// the LAYOUT-PALETTE precedent and declared at the palette file.
         /// </summary>
         private static readonly HashSet<string> ColourFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "ThemePalette.cs", "LayoutStyle.cs", "LayoutCursor.cs", "CaretOverlay.cs", "CursorIndicator.cs",
+            "AnnotationPalette.cs", "AnnotationShape.cs",
         };
 
         private static readonly Regex ColourLiteral = new Regex(

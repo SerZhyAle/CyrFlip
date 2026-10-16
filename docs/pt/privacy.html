@@ -28,7 +28,7 @@
   <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/CyrFlip/ur/privacy.html">
   <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/privacy.html">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","headline":"CyrFlip - Política de privacidade","url":"https://serzhyale.github.io/CyrFlip/pt/privacy.html","description":"O CyrFlip não coleta, armazena, registra nem transmite quaisquer dados pessoais. Tudo acontece no seu próprio dispositivo.","inLanguage":"pt","about":{"@type":"SoftwareApplication","name":"CyrFlip","operatingSystem":"Windows"}}</script>
-  <meta name="source-sha256" content="f0acc1a5f07b080c192c226b9aaf38f81e83a96769c20f54e5b77b2aeb99c0a5">
+  <meta name="source-sha256" content="eb68ca84b8b726485d7e6652acb09aa1ec8a288a94c40c2e3a93e1d9cd3780c2">
   <!-- /doc-quality metadata -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -65,19 +65,28 @@
     <nav class="langbar" aria-label="Idioma"><a href="../ru/privacy.html" data-sza-lang="ru" lang="ru" hreflang="ru"><span class="code">RU</span><span class="endonym">Русский</span></a><a href="../privacy.html" data-sza-lang="en" lang="en" hreflang="en"><span class="code">EN</span><span class="endonym">English</span></a><a href="../uk/privacy.html" data-sza-lang="ua" lang="uk" hreflang="uk"><span class="code">UA</span><span class="endonym">Українська</span></a><a href="../de/privacy.html" lang="de" hreflang="de"><span class="code">DE</span><span class="endonym">Deutsch</span></a><a href="../it/privacy.html" lang="it" hreflang="it"><span class="code">IT</span><span class="endonym">Italiano</span></a><a href="../es/privacy.html" lang="es" hreflang="es"><span class="code">ES</span><span class="endonym">Español</span></a><a href="../fr/privacy.html" lang="fr" hreflang="fr"><span class="code">FR</span><span class="endonym">Français</span></a><a href="privacy.html" class="active" aria-current="page" lang="pt" hreflang="pt"><span class="code">PT</span><span class="endonym">Português</span></a><a href="../ar/privacy.html" lang="ar" hreflang="ar"><span class="code">AR</span><span class="endonym" dir="rtl">العربية</span></a><a href="../hi/privacy.html" lang="hi" hreflang="hi"><span class="code">HI</span><span class="endonym">हिन्दी</span></a><a href="../bn/privacy.html" lang="bn" hreflang="bn"><span class="code">BN</span><span class="endonym">বাংলা</span></a><a href="../ur/privacy.html" lang="ur" hreflang="ur"><span class="code">UR</span><span class="endonym" dir="rtl">اردو</span></a><a href="../zh/privacy.html" lang="zh" hreflang="zh"><span class="code">ZH</span><span class="endonym">中文</span></a></nav>
     <section>
       <h1>Política de privacidade</h1>
-      <p class="note">Última atualização: 7 de outubro de 2026 · <a href="../privacy.html">English (original)</a></p>
+      <p class="note">Última atualização: 16 de outubro de 2026 · <a href="../privacy.html">English (original)</a></p>
 
-      <p><strong>O CyrFlip não coleta, armazena, registra nem transmite quaisquer dados
-      pessoais.</strong> Ele funciona inteiramente no seu próprio dispositivo. Não tem servidores
-      próprios, telemetria, análise, publicidade, rastreamento ou contas de usuário. O desenvolvedor
-      não recebe nenhum dado sobre você ou sobre o seu uso do aplicativo.</p>
+      <p><strong>O CyrFlip não coleta nenhum dado pessoal, e o desenvolvedor não recebe nenhum.</strong>
+      Não tem servidores próprios, telemetria, análise, publicidade, rastreamento ou contas de usuário,
+      e não registra as suas teclas. Ele funciona no seu próprio dispositivo; as únicas coisas que saem
+      dele são os dois recursos opcionais, desligados por padrão, descritos a seguir, e apenas para um
+      lugar que você escolheu.</p>
 
-      <p>Existe exatamente um recurso que envia texto para algum lugar, e ele vem <strong>desligado por
-      padrão</strong>: o <em>tradutor</em> opcional. Quando você o liga e pressiona um atalho de
+      <p>Existem exatamente dois recursos que enviam algo para algum lugar, e ambos vêm <strong>desligados
+      por padrão</strong>: o <em>tradutor</em> opcional e a <em>área de transferência no servidor</em>
+      opcional.</p>
+
+      <p>Quando você liga o tradutor e pressiona um atalho de
       tradução, o texto selecionado é enviado ao endereço do servidor Ollama configurado no CyrFlip -
       por padrão <code>http://localhost:11434</code>, ou seja, um programa em execução no seu próprio
       computador, de modo que o texto não sai do dispositivo. Se você trocar esse endereço pelo de
       outra máquina, o texto irá para lá; o CyrFlip avisa isso ao lado da configuração.</p>
+
+      <p>A área de transferência no servidor envia <strong>o que está na sua área de transferência</strong>
+      - um texto, uma imagem ou um arquivo - ao servidor de troca em que você entrou, e somente quando você
+      pressiona o botão, a combinação de teclas ou o atalho dela. Ela é criptografada primeiro no seu
+      computador, apenas para os seus próprios dispositivos. Veja a seção do servidor de troca abaixo.</p>
 
       <h2>A que o aplicativo acessa, e por quê</h2>
       <ul class="features">
@@ -116,7 +125,9 @@
         <li><strong>Área de transferência.</strong> Quando você pressiona o atalho, o CyrFlip lê
         brevemente o texto selecionado (por meio de uma cópia simulada), converte-o entre layouts, cola
         o resultado e restaura o conteúdo anterior da área de transferência. Isso acontece localmente e
-        somente no momento em que você aciona. Nada disso é enviado.</li>
+        somente no momento em que você aciona. Nada disso é enviado nem compartilhado por este recurso; o único
+        recurso que chega a enviar a área de transferência é a <em>área de transferência no servidor</em>
+        opcional, descrita abaixo, e somente quando você pressiona o botão dela.</li>
 
         <li><strong>Histórico da área de transferência (opcional).</strong> Vem <strong>desligado por
         padrão</strong>. Se você o ligar, o CyrFlip guarda localmente o texto Unicode capturado. O
@@ -164,6 +175,29 @@
         botão <em>Instalar o Ollama</em> baixa o instalador oficial de <code>ollama.com</code>; a
         versão da Microsoft Store apenas abre esse site. Quais idiomas o modelo domina é uma pergunta
         para o modelo: o CyrFlip apenas lhe entrega o texto.</li>
+
+        <li><strong>Área de transferência no servidor (opcional).</strong> Este recurso vem <strong>desligado por
+        padrão</strong>; enquanto estiver desligado, o CyrFlip não abre nenhuma conexão de rede para ele. Ele
+        precisa de uma conta em um servidor de troca que você ou alguém em quem você confia administra, e o
+        CyrFlip apenas entra nela: você informa uma única vez a cadeia de conexão do servidor, o seu login e a
+        sua senha. A senha é usada para essa única entrada e nunca é guardada; o token de dispositivo que o
+        servidor devolve e uma chave privada que o CyrFlip cria para essa conta são guardados criptografados
+        com a DPAPI do Windows para o seu usuário do Windows. Quando você pressiona <em>Enviar área de
+        transferência para o servidor</em> (menu da área de notificação, atalho ou combinação de teclas), o
+        CyrFlip envia <strong>exatamente o que está na área de transferência naquele momento</strong> - um
+        texto, uma imagem ou um arquivo, inclusive uma senha que você copiou um minuto atrás. Não há
+        visualização prévia, confirmação nem filtro, por isso pressione-o apenas quando for essa a sua
+        intenção. O valor é criptografado no seu computador para os outros dispositivos da sua conta antes de
+        sair, e o servidor guarda apenas o último valor, na sua memória. <em>Obter área de transferência do
+        servidor</em> coloca na sua área de transferência o valor mais recente do servidor; um arquivo
+        recebido é salvo em uma pasta que você pode ver (por padrão <code>Downloads\CyrFlip</code>) e nunca
+        sobrescreve outro arquivo. Nada é enviado por conta própria - não há monitoramento, temporizador nem
+        envio na inicialização. O servidor de troca conecta seus dispositivos, por isso conhece os nomes da sua conta, dos dispositivos, das pastas e das transmissões, vê quais dispositivos estão online e quanto é enviado e quando. Ele não consegue abrir o que passa por ele: as pastas e seus arquivos, as transmissões e a área de transferência são criptografados no seu dispositivo e só são abertos nos seus outros dispositivos ou pelas pessoas a quem você deu acesso. Para olhar lá dentro, quem administra o servidor teria de adicionar à sua conta um dispositivo próprio, e ele apareceria na sua lista de dispositivos. O CyrFlip guarda um registro apenas de
+        tipos, tamanhos e códigos de resultado - nunca um valor da área de transferência, um nome de arquivo,
+        um login ou um endereço - e esse registro é o único vestígio que ele grava sobre este recurso, além
+        da própria entrada da conta (o endereço do servidor, o seu login, um nome, o certificado fixado e as
+        chaves públicas dos seus outros dispositivos), que você remove com <em>Remover conta</em>.</li>
+
         <li><strong>Captura de ecrã.</strong> Só quando prime a combinação de captura ou escolhe
         <em>Captura de uma área do ecrã</em> no menu da área de notificação é que o CyrFlip tira uma
         imagem dos seus ecrãs tal como estão, deixa-o selecionar um retângulo e põe na área de transferência, como
@@ -232,10 +266,12 @@
       CyrFlip</a> - a lista do que o CyrFlip nunca faz diz o mesmo que esta página.</p>
 
       <h2>Compartilhamento de dados</h2>
-      <p>Nenhum. O CyrFlip não compartilha dado algum com o desenvolvedor nem com terceiros. A única
-      coisa que chega a ser enviada é o texto que você selecionou, para o endereço do tradutor que você
-      mesmo escolheu - por padrão um programa no seu próprio computador - e apenas enquanto esse
-      recurso opcional estiver ligado. O botão <em>Enviar os logs ao autor</em> não é exceção: prepara uma mensagem no seu próprio programa de e-mail, você pode abrir o arquivo antes, e somente você pode enviá-la.</p>
+      <p>Nenhum. O CyrFlip não compartilha dado algum com o desenvolvedor nem com terceiros. O que ele
+      pode enviar é apenas o que você mandar, para o lugar que você indicar, e somente enquanto o
+      recurso opcional estiver ligado: o texto que você selecionou, para o endereço do tradutor que você
+      mesmo escolheu (por padrão um programa no seu próprio computador); e o que está na sua área de
+      transferência, para o servidor de troca em que você entrou, criptografado para os seus próprios
+      dispositivos. O botão <em>Enviar os logs ao autor</em> não é exceção: prepara uma mensagem no seu próprio programa de e-mail, você pode abrir o arquivo antes, e somente você pode enviá-la.</p>
 
       <h2>Este site</h2>
       <p>Esta seção trata das páginas que você está lendo, não do aplicativo. O aplicativo não contacta este site, e o site não recebe nada do aplicativo.</p>

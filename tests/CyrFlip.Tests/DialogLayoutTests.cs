@@ -82,6 +82,8 @@ namespace CyrFlip.Tests
                     new ExchangeExportDialog("English", notesAvailable: true, notesWarningOff: false),
                     new ClipboardHistorySearchWindow(new ClipboardHistoryService(enabled: false, paused: false, Path.Combine(Path.GetTempPath(), "cyrflip-test-" + Guid.NewGuid().ToString("N"))), "English"),
                     new ConfirmDialog("English", "?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, false, owned: true),
+                    new ConfirmDialog("English", "?", canRetry: true, owned: true),
+                    new ConfirmDialog("English", "?", canRetry: false, owned: true),
                 };
                 foreach (Form dialog in dialogs)
                 {
@@ -103,7 +105,7 @@ namespace CyrFlip.Tests
             Assert.True(problems.Count == 0, string.Join("\n", problems));
         }
 
-        [Fact]
+        [UiSweepFact]
         public void NoCaptionIsClippedInAnyLanguage()
         {
             var problems = new List<string>();
@@ -168,12 +170,20 @@ namespace CyrFlip.Tests
                     // The "please wait" window of the off-thread imports and exports (ticket S0030 HT-2).
                     using (var dialog = new BusyDialog(language, System.Threading.Tasks.Task.CompletedTask))
                         inspected += Check(dialog, language, "BusyDialog", problems);
+                    // The "Loading settings.." window of the first open of the settings window.
+                    using (var notice = new SettingsLoadingNotice(language))
+                        inspected += Check(notice, language, "SettingsLoadingNotice", problems);
                     // CyrFlip's own message box (ticket S0020): every button set it is asked for, the
                     // destructive one included - "Отмена" / "Abbrechen" / "إلغاء" measured, not assumed.
                     foreach (MessageBoxButtons buttons in new[] { MessageBoxButtons.OK, MessageBoxButtons.YesNo, MessageBoxButtons.OKCancel })
                         foreach (bool danger in new[] { false, true })
                             using (var dialog = new ConfirmDialog(language, LongMessage, buttons, MessageBoxIcon.Warning, danger, owned: true))
                                 inspected += Check(dialog, language, "ConfirmDialog(" + buttons + (danger ? ",danger" : "") + ")", problems);
+                    // The failure presentation (ticket S0060 P7-g): Retry, Open log folder, Close - the three captions
+                    // of a failure box in every language, with and without something to retry.
+                    foreach (bool canRetry in new[] { true, false })
+                        using (var dialog = new ConfirmDialog(language, LongMessage, canRetry, owned: true))
+                            inspected += Check(dialog, language, "ConfirmDialog(failure" + (canRetry ? ",retry" : "") + ")", problems);
                 }
             }, problems);
 
@@ -187,7 +197,7 @@ namespace CyrFlip.Tests
         /// language pickers are the width of their own longest entry, and "Язык активной раскладки" in
         /// German or Hindi is exactly the string a fixed width used to cut. Measure them separately.
         /// </summary>
-        [Fact]
+        [UiSweepFact]
         public void NoLanguagePickerIsNarrowerThanItsWidestEntry()
         {
             var problems = new List<string>();

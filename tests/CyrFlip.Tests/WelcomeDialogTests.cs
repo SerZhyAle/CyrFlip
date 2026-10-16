@@ -55,7 +55,7 @@ namespace CyrFlip.Tests
             }
         }
 
-        [Fact]
+        [UiSweepFact]
         public void AllPagesAllLanguagesAllThemesKeepTheirSizeAndCaptions()
         {
             Sta(() =>

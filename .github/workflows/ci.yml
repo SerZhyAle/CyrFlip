@@ -89,6 +89,10 @@ jobs:
 
       - name: Test
         shell: pwsh
+        # The runner has no desktop to flash, so CI keeps the 13-language UI sweeps that a local run
+        # skips (tests/CyrFlip.Tests/UiSweepGate.cs: only CYRFLIP_SWEEP=full sweeps).
+        env:
+          CYRFLIP_SWEEP: full
         # The TRX count check fails a run that discovered nothing, which exits 0 (S0029 RB-6).
         run: |
           dotnet test CyrFlip.sln -c Release --no-build --verbosity normal --logger trx --results-directory TestResults

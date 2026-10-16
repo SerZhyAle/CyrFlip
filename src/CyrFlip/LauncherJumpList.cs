@@ -43,7 +43,8 @@ namespace CyrFlip
         /// UI thread (ticket S0030 HT-1). <paramref name="probes"/> replaces the real ones in tests.
         /// </summary>
         internal static List<TaskSpec> BuildTasks(IEnumerable<LauncherScenario> scenarios,
-            string exePath, Func<string, string> translate, LauncherPathProbes? probes = null)
+            string exePath, Func<string, string> translate, LauncherPathProbes? probes = null, bool exchangeClipboard = false,
+            bool launcherOn = true)
         {
             probes ??= LauncherPathProbes.Real();
             var tasks = new List<TaskSpec>();
@@ -53,11 +54,21 @@ namespace CyrFlip
                 tasks.Add(new TaskSpec(scenario.Name, LauncherIpc.RunPrefix + scenario.Id.ToString("D"),
                     scenario.Name, icon.Path, icon.Index));
             }
+            // The exchange server clipboard's two functions (ticket S0074, D6): each its own task, each running its own
+            // command - the same two the desktop shortcuts run. Present only while that module is on.
+            if (exchangeClipboard)
+            {
+                tasks.Add(new TaskSpec(translate("Send clipboard to server"), LauncherIpc.ClipboardSendCommand,
+                    translate("Send clipboard to server"), probes.VocabularyIcon(AppGlyphs.SendClipboard) ?? "", 0));
+                tasks.Add(new TaskSpec(translate("Get clipboard from server"), LauncherIpc.ClipboardGetCommand,
+                    translate("Get clipboard from server"), probes.VocabularyIcon(AppGlyphs.ReceiveClipboard) ?? "", 0));
+            }
             // The two fixed tasks stand for their meanings - settings and exit - on a plate, never for the
             // app's own mark (ICON-SET rule 7, S0022 A6). exePath stays in the signature: it is what the
-            // link launches, which is Apply's business.
-            tasks.Add(new TaskSpec(translate("Manage scenarios..."), LauncherIpc.SettingsCommand,
-                translate("Manage scenarios..."), probes.VocabularyIcon(AppGlyphs.Settings) ?? "", 0));
+            // link launches, which is Apply's business. With the launcher off the settings task is plain Settings.
+            string manage = launcherOn ? "Manage scenarios..." : "Settings...";
+            tasks.Add(new TaskSpec(translate(manage), LauncherIpc.SettingsCommand,
+                translate(manage), probes.VocabularyIcon(AppGlyphs.Settings) ?? "", 0));
             tasks.Add(new TaskSpec(translate("Exit CyrFlip"), LauncherIpc.ExitCommand,
                 translate("Exit CyrFlip"), probes.VocabularyIcon(AppGlyphs.Exit) ?? "", 0));
             return tasks;

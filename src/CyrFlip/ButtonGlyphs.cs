@@ -51,6 +51,16 @@ namespace CyrFlip
         /// <summary>The gap between glyph and caption (WINDOWS-UI section 11 item 2), in logical px.</summary>
         public const int GapLogical = 6;
 
+        /// <summary>
+        /// The command-button metric of WINDOWS-UI section 5 ("Command button height / horizontal text
+        /// padding: 32 px / 16 px per side"; "gap in a multi-editor strip: 8 px"), in logical 96-DPI px.
+        /// One place says it for the settings window's rows and header, so a command can no longer be
+        /// 23 px high in one row and 28 in the next (ticket S0060 M12).
+        /// </summary>
+        public const int CommandHeightLogical = 32;
+        public const int CommandPaddingLogical = 16;
+        public const int CommandGapLogical = 8;
+
         private sealed class Spec
         {
             public string Glyph = "";
@@ -58,6 +68,8 @@ namespace CyrFlip
             public bool GlyphAfterText;
             /// <summary>The padding the button was built with (96-DPI logical px).</summary>
             public Padding BasePadding;
+            /// <summary>Takes the shared command metric (<see cref="UseCommandMetric"/>): minimum height and side gaps.</summary>
+            public bool CommandMetric;
         }
 
         private static readonly ConditionalWeakTable<Button, Spec> Specs = new ConditionalWeakTable<Button, Spec>();
@@ -124,6 +136,28 @@ namespace CyrFlip
             if (!Specs.TryGetValue(button, out Spec? spec) || spec.Look == look) return;
             spec.Look = look;
             Restyle(button, spec);
+        }
+
+        /// <summary>
+        /// Give an attached command button the shared metric of a settings row (see
+        /// <see cref="CommandHeightLogical"/>): 16 logical px of padding on each side before the glyph's
+        /// room, a 32 logical px minimum height and a 4 + 4 px gap to its neighbours (8 between two
+        /// buttons). All of it is scaled by the button's own DPI and re-asserted whenever the glyph's
+        /// reservation is - a text, font, visibility or DPI change - so it cannot drift from the glyph.
+        /// A button with no glyph attached is sized by its caller.
+        /// </summary>
+        public static void UseCommandMetric(Button button)
+        {
+            if (!Specs.TryGetValue(button, out Spec? spec)) return;
+            spec.CommandMetric = true;
+            spec.BasePadding = new Padding(CommandPaddingLogical, spec.BasePadding.Top, CommandPaddingLogical, spec.BasePadding.Bottom);
+            ReservePadding(button, spec);
+        }
+
+        /// <summary>Re-derive the padding, height and gaps of an attached button after its DPI changed.</summary>
+        public static void Reassert(Button button)
+        {
+            if (Specs.TryGetValue(button, out Spec? spec)) ReservePadding(button, spec);
         }
 
         public static bool IsAttached(Button button) => Specs.TryGetValue(button, out _);
@@ -270,16 +304,38 @@ namespace CyrFlip
         private static void ReservePadding(Button button, Spec spec)
         {
             double scale = Dpi(button) / 96.0;
+            Padding logical = BaseOf(button, spec);
             Padding basePadding = new Padding(
-                (int)Math.Round(spec.BasePadding.Left * scale), (int)Math.Round(spec.BasePadding.Top * scale),
-                (int)Math.Round(spec.BasePadding.Right * scale), (int)Math.Round(spec.BasePadding.Bottom * scale));
+                (int)Math.Round(logical.Left * scale), (int)Math.Round(logical.Top * scale),
+                (int)Math.Round(logical.Right * scale), (int)Math.Round(logical.Bottom * scale));
             int add = button.Text.Length > 0 ? Device(GlyphLogical + GapLogical, scale) : 0;
             bool right = GlyphOnRight(button);
             Padding wanted = right
                 ? new Padding(basePadding.Left, basePadding.Top, basePadding.Right + add, basePadding.Bottom)
                 : new Padding(basePadding.Left + add, basePadding.Top, basePadding.Right, basePadding.Bottom);
             if (button.Padding != wanted) button.Padding = wanted;
+            if (spec.CommandMetric)
+            {
+                // Height is a floor, not a fixed size: a caption that wraps or a taller script still grows the button.
+                int height = Device(CommandHeightLogical, scale);
+                // A picture-only command is a square of the command height; one with a caption is as wide as it needs.
+                int width = button.Text.Length == 0 ? height : 0;
+                if (button.MinimumSize.Height != height || button.MinimumSize.Width != width) button.MinimumSize = new Size(width, height);
+                int half = Device(CommandGapLogical, scale) / 2;
+                if (button.Margin.Left != half || button.Margin.Right != half)
+                    button.Margin = new Padding(half, button.Margin.Top, half, button.Margin.Bottom);
+            }
         }
+
+        /// <summary>
+        /// The logical padding the button's content is centred inside: what it was built with - except that a
+        /// command with no caption (a picture-only arrow) has no text to pad, so its glyph is centred in the
+        /// whole face rather than in a face narrowed by 16 px a side.
+        /// </summary>
+        private static Padding BaseOf(Button button, Spec spec)
+            => spec.CommandMetric && button.Text.Length == 0
+                ? new Padding(0, spec.BasePadding.Top, 0, spec.BasePadding.Bottom)
+                : spec.BasePadding;
 
         private static void OnPaint(object? sender, PaintEventArgs e)
         {
@@ -311,7 +367,8 @@ namespace CyrFlip
             double scale = Dpi(button) / 96.0;
             int glyph = Device(GlyphLogical, scale);
             int gap = button.Text.Length > 0 ? Device(GapLogical, scale) : 0;
-            int baseLeft = (int)Math.Round(spec.BasePadding.Left * scale), baseRight = (int)Math.Round(spec.BasePadding.Right * scale);
+            Padding logical = BaseOf(button, spec);
+            int baseLeft = (int)Math.Round(logical.Left * scale), baseRight = (int)Math.Round(logical.Right * scale);
             Rectangle client = button.ClientRectangle;
             int contentLeft = client.X + baseLeft, contentWidth = Math.Max(0, client.Width - baseLeft - baseRight);
 

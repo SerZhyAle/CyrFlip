@@ -13,7 +13,7 @@ namespace CyrFlip
     /// </summary>
     internal static class ChordDefaults
     {
-        /// <summary>True for the eight chords that always exist and always have a chord.</summary>
+        /// <summary>True for the eleven chords that always exist and always have a chord.</summary>
         public static bool IsFixed(ChordKind kind)
         {
             switch (kind)
@@ -22,10 +22,15 @@ namespace CyrFlip
                 case ChordKind.History:
                 case ChordKind.QuickNotes:
                 case ChordKind.Screenshot:
+                case ChordKind.ScreenshotFull:
+                case ChordKind.ScreenshotAnnotateArea:
+                case ChordKind.ScreenshotFullAnnotate:
                 case ChordKind.ScreenshotFolder:
                 case ChordKind.TextMenu:
                 case ChordKind.Symbols:
                 case ChordKind.TrafficLight:
+                case ChordKind.ExchangeSend:
+                case ChordKind.ExchangeGet:
                     return true;
                 default:
                     return false;
@@ -45,10 +50,15 @@ namespace CyrFlip
                 case ChordKind.History: return AppConfig.DefaultHistoryHotkey;
                 case ChordKind.QuickNotes: return AppConfig.DefaultQuickNotesHotkey;
                 case ChordKind.Screenshot: return AppConfig.DefaultScreenshotHotkey;
+                case ChordKind.ScreenshotFull: return AppConfig.DefaultScreenshotFullHotkey;
+                case ChordKind.ScreenshotAnnotateArea: return AppConfig.DefaultScreenshotAnnotateAreaHotkey;
+                case ChordKind.ScreenshotFullAnnotate: return AppConfig.DefaultScreenshotFullAnnotateHotkey;
                 case ChordKind.ScreenshotFolder: return AppConfig.DefaultScreenshotFolderHotkey;
                 case ChordKind.TextMenu: return AppConfig.DefaultTextMenuHotkey;
                 case ChordKind.Symbols: return AppConfig.DefaultSymbolsHotkey;
                 case ChordKind.TrafficLight: return AppConfig.DefaultTrafficLightHotkey;
+                case ChordKind.ExchangeSend: return AppConfig.DefaultExchangeClipboardSendHotkey;
+                case ChordKind.ExchangeGet: return AppConfig.DefaultExchangeClipboardGetHotkey;
                 default: throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a fixed chord");
             }
         }

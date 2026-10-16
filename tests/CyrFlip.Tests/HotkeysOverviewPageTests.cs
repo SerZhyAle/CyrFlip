@@ -112,7 +112,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void BuiltInEveryLanguageWithNothingClipped()
         {
             var problems = new List<string>();
@@ -201,7 +201,7 @@ namespace CyrFlip.Tests
                 master.Checked = false;
                 Assert.Equal(1, calls);
                 Assert.False(config.EnableHotkeys);
-                Assert.True(form.OverviewRows.Where(r => r.Group == ChordGroup.Fixed && r.State != ChordBindingState.OffByModule)
+                Assert.True(form.OverviewRows.Where(r => r.Group == ChordGroup.Fixed && r.State != ChordBindingState.OffByModule && r.State != ChordBindingState.NoChord)
                     .All(r => r.State == ChordBindingState.OffByMaster));
             });
         }

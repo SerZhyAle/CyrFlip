@@ -10,7 +10,12 @@ namespace CyrFlip
 {
     internal static class SettingsFileReader
     {
-        internal const int MaxBytes = 1024 * 1024, MaxRows = 256, MaxStringBytes = 4096, MaxKeys = 2000;
+        // 8 MB since v2: the scenarios section carries whole scenario documents (S0072 5.5).
+        internal const int MaxBytes = 8 * 1024 * 1024, MaxRows = 256, MaxStringBytes = 4096, MaxKeys = 2000;
+        // The scenario array's own caps (S0072 5.5): 512 documents, 4 KB each - an oversized document
+        // costs itself (an issue, skipped), a section over 512 documents refuses the whole file,
+        // exactly like a table over 256 rows.
+        internal const int MaxScenarioCount = 512, MaxScenarioBytes = 4096;
         internal static SettingsFileDocument ReadFile(string path)
         {
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -37,8 +42,8 @@ namespace CyrFlip
                 if (root == null || !root.TryGetValue("format", out object? format) || !Equals(format, SettingsFileWriter.Format)
                     || !root.TryGetValue("schemaVersion", out object? version) || !(version is int number) || number < 1)
                     throw new SettingsFileException("format");
-                if (number > 1) throw new SettingsFileException("version");
-                CheckLimits(root, refKeyCount: new int[1]);
+                if (number > SettingsFileWriter.SchemaVersion) throw new SettingsFileException("version");
+                CheckLimits(root, null, refKeyCount: new int[1]);
                 var doc = new SettingsFileDocument();
                 if (root.TryGetValue("app", out object? app) && app is string a) doc.App = a;
                 if (root.TryGetValue("exportedAtUtc", out object? date) && date is string d) doc.ExportedAtUtc = d;
@@ -48,6 +53,7 @@ namespace CyrFlip
                     if (!(raw is Dictionary<string, object> map)) throw new SettingsFileException("format");
                     foreach (var pair in map)
                     {
+                        if (section == "tables" && pair.Key == "scenarios") { ReadScenarios(doc, pair.Value); continue; }
                         var entry = SettingsFileInventory.Exported.FirstOrDefault(e => e.Key == pair.Key && e.IsTable == (section == "tables"));
                         if (entry == null) { doc.UnknownKeys++; continue; }
                         if (pair.Value == null) continue;
@@ -61,9 +67,9 @@ namespace CyrFlip
                                 if (rows.All(r => ValidRow(r, entry.Key))) value = serializer.Serialize(rows);
                             }
                         }
-                        else if (entry.Property.PropertyType == typeof(bool) && pair.Value is bool b) value = b ? 1 : 0;
-                        else if (entry.Property.PropertyType == typeof(int) && pair.Value is int i) value = i;
-                        else if (entry.Property.PropertyType == typeof(string) && pair.Value is string s) value = s;
+                        else if (entry.Property!.PropertyType == typeof(bool) && pair.Value is bool b) value = b ? 1 : 0;
+                        else if (entry.Property!.PropertyType == typeof(int) && pair.Value is int i) value = i;
+                        else if (entry.Property!.PropertyType == typeof(string) && pair.Value is string s) value = s;
                         if (value == null) doc.Issues.Add(new SettingsFileIssue(pair.Key, "kind"));
                         else doc.Values.Add(pair.Key, value);
                     }
@@ -73,6 +79,19 @@ namespace CyrFlip
             catch (SettingsFileException) { throw; }
             catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is DecoderFallbackException)
             { throw new SettingsFileException("format"); }
+        }
+        private static void ReadScenarios(SettingsFileDocument doc, object? raw)
+        {
+            if (!(raw is object[] docs)) { doc.Issues.Add(new SettingsFileIssue("scenarios", "kind")); return; }
+            if (docs.Length > MaxScenarioCount) throw new SettingsFileException("limit");
+            var list = new List<string>();
+            foreach (object document in docs)
+            {
+                if (document is string text && text.Length > 0
+                    && Encoding.UTF8.GetByteCount(text) <= MaxScenarioBytes) list.Add(text);
+                else doc.Issues.Add(new SettingsFileIssue("scenarios", "limit"));
+            }
+            doc.Scenarios = list;
         }
         private static readonly string[] StringRowKeys =
         {
@@ -97,30 +116,33 @@ namespace CyrFlip
         }
         private static void ScanLimits(string json)
         {
-            bool quoted = false, escape = false; int keys = 0, length = 0;
+            bool quoted = false, escape = false; int keys = 0;
             foreach (char c in json)
             {
                 if (quoted)
                 {
-                    if (++length > MaxStringBytes * 6 + 2) throw new SettingsFileException("limit");
                     if (escape) escape = false; else if (c == '\\') escape = true; else if (c == '"') quoted = false;
                 }
-                else if (c == '"') { quoted = true; length = 0; }
+                else if (c == '"') quoted = true;
                 else if (c == ':' && ++keys > MaxKeys) throw new SettingsFileException("limit");
             }
         }
-        private static void CheckLimits(object? value, int[] refKeyCount)
+        /// <param name="key">
+        /// The name this value sits under: the scenarios array is capped at
+        /// <see cref="MaxScenarioCount"/> rows, every other array at <see cref="MaxRows"/>.
+        /// </param>
+        private static void CheckLimits(object? value, string? key, int[] refKeyCount)
         {
-            if (value is string text && Encoding.UTF8.GetByteCount(text) > MaxStringBytes) throw new SettingsFileException("limit");
+            if (key != "scenarios" && value is string text && Encoding.UTF8.GetByteCount(text) > MaxStringBytes) throw new SettingsFileException("limit");
             if (value is Dictionary<string, object> map)
             {
                 foreach (var pair in map)
-                { if (++refKeyCount[0] > MaxKeys) throw new SettingsFileException("limit"); CheckLimits(pair.Key, refKeyCount); CheckLimits(pair.Value, refKeyCount); }
+                { if (++refKeyCount[0] > MaxKeys) throw new SettingsFileException("limit"); CheckLimits(pair.Key, null, refKeyCount); CheckLimits(pair.Value, pair.Key, refKeyCount); }
             }
             else if (value is object[] rows)
             {
-                if (rows.Length > MaxRows) throw new SettingsFileException("limit");
-                foreach (object row in rows) CheckLimits(row, refKeyCount);
+                if (rows.Length > (key == "scenarios" ? MaxScenarioCount : MaxRows)) throw new SettingsFileException("limit");
+                foreach (object row in rows) CheckLimits(row, key, refKeyCount);
             }
         }
     }

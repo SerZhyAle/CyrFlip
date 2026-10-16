@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
@@ -27,6 +27,7 @@
     <!-- SettingsTabAccessibilityTests reads AccessibleObject members whose interface lives here
          (the page list's TabItem objects, S0060 P4). -->
     <Reference Include="Accessibility" />
+    <Reference Include="System.Web" />
     <!-- LayoutColorsTests parses the palette the VS Code extension ships, with the same JSON reader
          the app uses for its own config - no NuGet dependency on either side. -->
     <Reference Include="System.Web.Extensions" />
@@ -42,7 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Byte-exact OneClickRunner scenario XMLs (Фаза 0) - the launcher migration fixtures. -->
+    <!-- Byte-exact OneClickRunner scenario XMLs (Р¤Р°Р·Р° 0) - the launcher migration fixtures. -->
     <None Update="Fixtures\**\*.xml" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixtures\SettingsFile\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

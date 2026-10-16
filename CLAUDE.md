@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -20,6 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   (ticket S0049: pointers in `docs/contracts/`, the measured gaps in S0051-S0054); `tools/site/Measure-SiteContracts.ps1`
   (operator-typed, headless Chrome) reads the rendered pages against the rules a machine can decide, and
   `tools/site/Test-SiteConformance.ps1` is the older S0017 gate. `winget/` - manifest templates. `.github/` - CI + release workflows, issue/PR templates, dependabot. `build.ps1` - local build + deploy.
+- The **exchange server clipboard** (`Exchange*`, feature 16 below, ticket S0074) is implemented, unit-tested against a scripted server and the real server's transcripts, built in all 13 languages; the live check against the owner's server (`tools/uitest/Test-ExchangeClipboard.ps1`) and the joint runs between programs want a human.
 - `PLAN/` - the ticket store (local-only, gitignored). One ticket = one spec file `PLAN/Sxxxx_<slug>.md` with
   `**Ticket:**`, `**Status:**` (canon vocabulary: Draft, Approved, Tactical, In Progress, Implemented, Verified,
   Partial, Block*) and a literal `**Blocked by:**` line; an optional `PLAN/Sxxxx_<slug>/` folder holds its
@@ -32,7 +33,7 @@ Note: the empty `dev/` directory predates the scaffold and is unused - code live
 
 ## What CyrFlip is
 
-- **Settings file transfer (S0055 settings-file)** - General-page export/import/restore of private JSON v1. Import previews the resulting configuration, requires explicit recording/remote-server consent, and keeps three local snapshots. `SettingsFile*`, `SettingsImportPlan`, `SettingsSnapshot`, `SettingsTransferDialog` and `CyrFlipContext.SettingsTransfer` own the format, validation, transaction, preview and live refresh. No registry values are added. `settings-file.log` holds counts, key names and reason codes only; backups never enter a support bundle.
+- **Settings file transfer (S0055 settings-file)** - General-page export/import/restore of private JSON v2 (S0072), with the v1 reader retained. The allow-list includes app chords, module preferences, geometry, traffic-light targets and verbatim scenario XML; recorded content, credentials and Windows input state stay local. Default-on rolling backups keep three files in Documents/CyrFlip/Backups, gated until the startup restore question is settled. Restore uses the import preview and transaction; deferral preserves the recovery backup. Import previews the resulting configuration, requires explicit recording/remote-server consent, and keeps three local snapshots. `SettingsFile*`, `SettingsImportPlan`, `SettingsSnapshot`, `SettingsTransferDialog` and `CyrFlipContext.SettingsTransfer` own the format, validation, transaction, preview and live refresh. `SettingsBackupEnabled` is exported; `BackupOfferOpen` and `BackupRestoreDeclined` are local machine history. `settings-file.log` holds counts, key names and reason codes only; backups never enter a support bundle.
 
 - **First-run welcome tour (S0055)** - five pages on a new profile, immediate language/autostart edits and live feature switches (each flip applied like the settings window applies it), and a General-page settings handoff. Skip/close keeps defaults; About replays it. Existing or migrated profiles are never nagged; an explicit `WelcomeShown=0` requests replay.
 
@@ -305,26 +306,33 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    the quick notes are off, history entries while the history is off. CyrFlip never sends, opens or
    watches the file. Spec: [PLAN/done/S0023_history-notes-exchange-and-features.md](PLAN/done/S0023_history-notes-exchange-and-features.md).
 
-11. **The "Снимки экрана" settings tab (it was "Графика" until S0062; page key `SettingsPageKey.Graphics`) and its first tool, the screen region capture (ticket S0026).** Deliberately
-   **no module switch and no tray submenu** (owner, 2026-09-26: an extra switch and one more menu level make
-   the command slower to reach) - the tab groups the settings, the tray has a top-level
-   **"Снимок области экрана"** item that is always there, and the chord has only its own switch
-   (`EnableScreenshotHotkey`, on). The chord (`ScreenshotHotkey`, default **Ctrl+PrintScreen** -
-   `Hotkey` learned `PrintScreen`/`PrtSc`, and `HotkeyDialog` captures it on the key-**up**, since Windows
-   posts no key-down for it), the tray item or the settings button **freeze every screen first** (`ScreenCapture.Grab`, one
+11. **The "Снимки экрана" settings tab (it was "Графика" until S0062; page key `SettingsPageKey.Graphics`) and its capture tools: the screen region capture (ticket S0026), the full capture and the draw-on-capture module (ticket S0071).** Deliberately
+   **no module switch for the captures and no tray submenu** (owner, 2026-09-26: an extra switch and one more menu level make
+   the command slower to reach) - the tab groups the settings, the tray has top-level
+   **"Снимок области экрана"** and **"Снимок всего экрана"** items that are always there, and each chord has only its own
+   switch (`EnableScreenshotHotkey`, `EnableScreenshotFullHotkey`, both on). The area chord (`ScreenshotHotkey`, default
+   **Ctrl+F12** since S0071 - the shipped **Ctrl+PrintScreen** "never fired" for the owner, so the capture defaults moved to
+   the F-key family the hook provably intercepts; `Hotkey` still parses `PrintScreen`/`PrtSc` for a manual bind, and
+   `HotkeyDialog` captures PrintScreen on the key-**up**, since Windows posts no key-down for it), the tray item or the
+   settings button **freeze every screen first** (`ScreenCapture.Grab`, one
    `BitBlt` with `SRCCOPY | CAPTUREBLT` - `CopyFromScreen` drops layered windows, i.e. the tooltip the chord
    exists to catch), then `RegionSelectionOverlay` shows **one window per monitor** painting its slice of
    that one frame (a single window across mixed DPI is rescaled by Windows), with one selection rectangle in
-   virtual-screen physical pixels. The cropped region goes to the clipboard as **`PNG` + `CF_DIB`** of the
+   virtual-screen physical pixels. The **full capture** (`StartFullCapture`, `ScreenshotFullHotkey`, default **Ctrl+F11**,
+   tray item "Снимок всего экрана") skips the selection: one freeze of the virtual screen straight to `DeliverScreenshot`.
+   **Re-entry is guarded, not queued** (S0071 5): no capture of any kind starts while the selection overlay or the
+   annotation editor is up (`CaptureBusy`) - a `BitBlt` with `CAPTUREBLT` over a live overlay would put the overlay's own
+   dimming into the picture. The cropped region goes to the clipboard as **`PNG` + `CF_DIB`** of the
    same pixels in one open (`Win32Clipboard.TrySetImage`, `ClipboardImage`), under the `_busy` guard for the
    write only; the user's previous clipboard is replaced, not restored, and on cancel it is never opened.
-   The optional **"also save to a folder"** (`ScreenshotSaveEnabled`, off) writes the same PNG bytes per
+   **"Also save to a folder"** (`ScreenshotSaveEnabled`, **on by default since S0071** - existing profiles keep their
+   stored value; the flip obliged the privacy wording on the settings page) writes the same PNG bytes per
    `CAPTURE-OUTPUT` (kind `screenshot`): `screenshot_yyMMdd_HHmmss[ (n)].png` with invariant digits and the
    freeze time, the ordinal checked against the folder itself, temp-then-no-replace-rename, default
    `FOLDERID_Screenshots` with no product subfolder, fallback Screenshots -> Downloads **always told** by a
    balloon (`ScreenshotSaver`, file system behind `IScreenshotFileSystem`). The folder the captures
    land in opens on **its own chord** (ticket S0057): `ScreenshotFolderHotkey`, default
-   **Ctrl+Shift+PrintScreen** (the capture chord plus one modifier), **bound only while saving is on**
+   **Ctrl+F10** since S0071 (was Ctrl+Shift+PrintScreen - same dead-key problem), **bound only while saving is on**
    and its own switch (`EnableScreenshotFolderHotkey`) is - with saving off the keystroke passes through
    (`ScreenshotFolderChordLive`, the text menu's D2 discipline; going live is checked like assigning it,
    KC-6). `ScreenshotFolderTarget` picks the target - the folder the settings show
@@ -336,7 +344,25 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    so the chord and the button can never disagree about the target. The chord is ignored while the region
    overlay is up. The caret badge and the
    translation popup are `WDA_EXCLUDEFROMCAPTURE` (S0026 4.2) - they also vanish from other tools' captures
-   and screen shares. Spec: [PLAN/done/S0026_screen-region-capture.md](PLAN/done/S0026_screen-region-capture.md).
+   and screen shares.
+   **The draw-on-capture module (S0071, on by default - `EnableScreenshotAnnotate`):** two more chords
+   (`ScreenshotAnnotateAreaHotkey` **Ctrl+Alt+F12**, `ScreenshotFullAnnotateHotkey` **Ctrl+Alt+F11**, each with its own
+   switch, both bound only while the module is on - the first shipped chords on the Ctrl+Alt plane, safe because
+   `ChordMatcher` tells AltGr from a real Ctrl) run the capture and hand the frozen frame to
+   `AnnotationEditor` instead of delivering: the region at full brightness, everything outside dimmed, and a
+   translucent (`Opacity` 0.67) draggable `ScreenshotToolbar` near the pointer - six shape tools (ellipse,
+   filled ellipse, rectangle, filled rectangle, line, arrow), an object eraser, eight fixed swatches
+   (`AnnotationPalette` - content, not theme, the LAYOUT-PALETTE precedent), Clear, Cancel, OK, and Ctrl+Z.
+   **Shapes are objects** (`AnnotationShape`), never pixels: OK composes them onto a copy of the frame in commit
+   order (`AnnotationComposer`), so the toolbar and the dimming cannot enter the picture by construction and no
+   `WDA_EXCLUDEFROMCAPTURE` is needed; the composed copy goes to `DeliverScreenshot` with the **original freeze
+   instant** in the name. Cancel (button, Esc, focus lost, `WM_DISPLAYCHANGE`) delivers nothing. One stroke width:
+   3 physical px x the DPI of the monitor under the pointer at editor open. The one-time chord re-key
+   (`ScreenshotKeyMigrationDone`, machine history, never exported) moves profiles still carrying the old shipped
+   Ctrl+PrintScreen / Ctrl+Shift+PrintScreen to the new defaults exactly once; everything else - customised chords,
+   every switch, the case flip, the seeded EN⇄RU row - is never touched. Spec:
+   [PLAN/done/S0071_screenshot-full-and-annotate.md](PLAN/done/S0071_screenshot-full-and-annotate.md);
+   the region capture's own ticket: [PLAN/done/S0026_screen-region-capture.md](PLAN/done/S0026_screen-region-capture.md).
 
 12. **The symbols window - a palette of characters that are on no installed layout (ticket S0056), opt-in and off by
    default.** `EnableSymbols=0` means no chord is bound, no tray item, no context-menu item and **no window object
@@ -478,8 +504,66 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    The list of targets is **opt-in on both ends of the settings file** (D10): an export asks before it includes it,
    an import takes it only on an explicit yes, and the module switch itself is never part of the slice (importing
    into an off module leaves it off). An imported or hand-edited address that fails validation is shown as an
-   invalid tile and **never probed**. Spec: [PLAN/S0069_network-traffic-light.md](PLAN/S0069_network-traffic-light.md).
+   invalid tile and **never probed**. Spec: [PLAN/done/S0069_network-traffic-light.md](PLAN/done/S0069_network-traffic-light.md).
 
+16. **The clipboard on the exchange server - "Буфер на сервере" (ticket S0074), opt-in and off by default.** CyrFlip is
+   **a device of an exchange account for one role, `clipboard`** (product `cyrflip-windows`, capability `e2e-v1`): one
+   press sends what the Windows clipboard holds to the server of every account the device is signed in to, another
+   puts the server's newest value onto the clipboard. `EnableExchangeClipboard=0` means **no connection is ever
+   opened for it**, no tray item, no chord, no Jump List task, and a desktop shortcut that outlives the switch is
+   answered in words. The owner's decisions (2026-10-14) are the shape: the slot is **personal** (one account's
+   devices), the server keeps **only the last value, in memory**, **one object at a time** (a text, a picture or one
+   file - several files or a folder are refused with "put them into one archive first"), **no preview, no marker
+   filter, no confirmation** (a password copied a minute ago goes if the person sends it - `CLIPBOARD-GUARD` item M,
+   said in the settings page, the guide and the privacy page), **CyrFlip only logs in** (registration is the server's;
+   the empty state says to ask its host for an invitation). Five rules carry it:
+   - **Always sealed, no clear fallback** (`DEVICE-EXCHANGE` 27, item DP). The value is sealed on this PC for the other
+     devices of the account that hold the capability and a trusted key (HPKE Auth mode P-256 + AES-256-GCM segments of
+     64 KiB: `ExchangeE2e`, `ExchangeHpke`, `ExchangeDeviceKey`, `ExchangeE2eNative`, held by `ExchangeE2eTests` against
+     RFC 9180 A.3, the catalog's `e2e-v1.json` and the server corpus). Recipients are other devices only
+     (`ExchangeRecipients`): keys are learned on first use per entry and **never replaced** - a changed key is
+     `key-changed`, a device without one `e2e-missing`, both named in the result. A server whose `welcome` lacks
+     `sealed` is `server-no-e2e`: nothing is sent, nothing clear is ever placed. The server sees the account, the
+     device names, that a value exists and its size, and the settings page says so in the contract's own words
+     (`ExchangeMessages.HonestText`, EN/RU/UK verbatim).
+   - **Trust before a password** (items D, AY, BN). The dialog reads the string without connecting, shows the
+     destination `host:port`, **probes the certificate with a handshake that sends no byte**, shows a self-signed
+     leaf's fingerprint and pins it only on a yes, and only then sends the one `enroll`
+     (`ExchangeAccountDialog`, `ExchangeClient.ProbeAsync`, `ExchangeTrust`). A pin holds the leaf and the key
+     fingerprint; a renewal with the same key is accepted without a prompt, another key is refused with both
+     fingerprints. The password is never stored; the **device token and the private device key live only in DPAPI**
+     (`ExchangeSecrets` under `HKCU\Software\CyrFlip\ExchangeSecrets`, never in the JSON of the entries, a settings
+     export, a support bundle or a log).
+   - **Two streams, never one.** The control stream carries `hello`, `list` (the keys of the account's devices) and
+     `clipboard-info`; `clipboard-put` / `clipboard-get` must be the **first envelope after `welcome`** of a stream of
+     their own (the FMS_Win server closes a control stream that gets a put). Frames carry `schemaVersion` 2 first,
+     16384 bytes until `welcome`, 262144 after (`ExchangeWire`, replayed against the real server's transcripts in
+     `ExchangeWireTests`). A stream that closes with no frame after our envelope is "the server did not answer",
+     never "unreachable"; a silent stream is closed by a watchdog and a cancel closes the socket
+     (`ExchangeConnection` - a netfx `SslStream` read cannot be cancelled by a token).
+   - **Three phases, each on the guard it needs** (the translator's discipline). The clipboard is read **once, in one
+     open, under `_busy`, on its own thread** and closed before any file or network I/O; a program that owns it and
+     does not render in 5 s is abandoned (`owner-timeout`). Order: one file by path (streamed from disk, hashed once,
+     checked unchanged), else a text (LF ends on the wire), else a picture (`PNG`, `CF_DIBV5`, `CF_DIB`). The network
+     holds no guard. A received value is verified (the server's size and SHA-256 over the sealed bytes, then the box's
+     over the clear bytes), written to the clipboard in **one open with no marker and no backup**, and a file lands
+     first in the received-files folder (`Downloads\CyrFlip`, never overwriting, `.cyrflip-part` while it arrives)
+     (`ExchangeClipboardSource`, `ExchangeClipboardSink`, `CyrFlipContext.ExchangeClipboard`). A received text is
+     recorded by the history like any copy.
+   - **What a person reads is the contract's table.** A failure shows what happened, then what to try, with the
+     code only in a details line and the log (`ExchangeMessages`: the rows of item CZ and the 15-step ladder of item CY
+     as one-at-a-time hints); the EN/RU/UK words are the contract's and are held character for character by
+     `ExchangeMessagesTests`; the plain-language ratchet of `ComprehensionGateTests` exempts exactly this table.
+   Surfaces: the **"Сервер обмена"** page (`SettingsPageKey.ExchangeServer`, tab glyph `source.exchange-server` -
+   what the feature is, the module switch, the accounts with their states, the two chords - shipped unassigned - the
+   desktop shortcuts, the received-files folder, two portal links), the two tray items (and "Cancel the clipboard
+   transfer" while one runs), the two pipe commands `/clipboard-send` and `/clipboard-get` (`APP-ACTIVATION` 0.12,
+   section 9) that the desktop shortcuts and the Jump List tasks run, and the hotkeys overview. The portal pages
+   (`ExchangePortalLinks`, hosted by the FastMediaSorter site, EN/RU/UK, every other language gets English) were not
+   published when this was written. Log: `exchange-clipboard.log` (site, kind, size, ordinal, code - whitelisted in the
+   support bundle). Not built: a QR picture (the text of one is pasted), the Drive path of the clipboard. Spec:
+   [PLAN/S0074_exchange-server-clipboard.md](PLAN/S0074_exchange-server-clipboard.md); the owner-run live check is
+   `tools/uitest/Test-ExchangeClipboard.ps1`.
 It runs in the **system tray** (the icon also shows the layout; right-click menu = the history controls, the three indicator toggles, the two keep-awake switches, the **Launcher** submenu and **"Перевести буфер обмена"** - each visible only while its module is enabled - then Settings and Exit). **Tray mouse:** a **single left click switches the input language to the next one in Windows' rotation** (`LayoutSwitcher.SwitchToNext`), a **double click opens Settings**. Since the shell also delivers the first click of a double click as an ordinary click, the switch is deferred by `SystemInformation.DoubleClickTime` and cancelled when the double click arrives - and it targets `CursorIndicator.LastActiveWindow`, not the foreground window, because clicking the notification area moves the focus to the taskbar. See [PLAN/done/Spec_v1.1_Cursor_and_Caret.md](PLAN/done/Spec_v1.1_Cursor_and_Caret.md) for the indicator design.
 
 **On the mouse cursor (important):** `SetSystemCursor` is **global** - it changes every app's I-beam until restored. The default cursors are reloaded (`SystemParametersInfo(SPI_SETCURSORS)`) on `Dispose`, `Application.ApplicationExit`, `AppDomain.ProcessExit`, `UnhandledException` and the session end (see `LayoutCursor.ForceRestore`) - **but only when CyrFlip replaced the I-beam since the last reload**: `SPI_SETCURSORS` reloads the whole scheme, undoing cursors other tools set, so with the cursor change off (the default) it is never called. The one unavoidable gap is a hard `TerminateProcess` (kill). Only `OCR_IBEAM` is replaced (not the arrow). The *displayed* I-beam only repaints on `WM_SETCURSOR` (mouse move), so after a layout change `LayoutCursor` sends a zero-delta `SendInput` mouse move (`ForceCursorRefresh`) to repaint it in place.
@@ -501,6 +585,16 @@ It runs in the **system tray** (the icon also shows the layout; right-click menu
 - Memory budget: **< 50 MB** idle.
 - Keyboard hook callback must be **non-blocking and < 1 ms** - do real work off the hook thread; never block inside the `WH_KEYBOARD_LL` callback.
 - `app.manifest` declares **PerMonitorV2 DPI awareness** (so rendered icons/labels are crisp on high-DPI) and Win10/11 `supportedOS`.
+
+## In-app help (S0075)
+
+`help-map.json` is the surface inventory and ships inside the exe. `ContextHelp` resolves both F1 and the
+help buttons; bare F1 remains a window command. Add a map row whenever adding a Form, settings page or tour
+step. `tools/help/Generate-Help.ps1` captures demo fixtures off screen in all UI languages and both themes;
+`docs/help/` is the generated site set and the embedded offline set. `tools/help/Test-ContextHelp.ps1` checks
+coverage, locale parity, page anatomy and local links. Regenerate help with UI changes; do not hand-edit PNGs.
+The 128 MiB uncompressed budget covers all help assets; the current implementation record is
+`docs/help-implementation.md`. The release-only walk is deliberately distinct from the static gate.
 
 ## Module architecture (`src/CyrFlip/`)
 
@@ -590,6 +684,20 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   reads them. A job done within 40 ms shows nothing; the wait for it is a wait handle, never `Task.Wait`,
   which may run an unstarted task inline on this very thread. Switching the quick notes off hands the final
   compaction to the pool (`QuickNotesService.RetireAsync`), and the next service replays only after it.
+- **SettingsLoadingNotice.cs** - the "Loading settings.." picture shown while the settings window is built for
+  the first time (`CyrFlipContext.ShowSettings`, only when the window does not exist yet). The build is
+  controls, so it runs on the hooks' thread and nothing answers meanwhile: without a picture a tray double
+  click read as "nothing happened" and was repeated, each repeat queuing behind the build (and the stray single
+  clicks among them switched the layout). It is a **still** picture on purpose - the thread that would animate
+  it is the busy one - painted with `Update()` *before* the build, a non-activating tool window, closed at the
+  next `Application.Idle` (after the settings window has painted). **The first open used to take ~6 s**
+  (measured on a real profile, 2026-10-15) and ~4 s of it was one defect: every page panel's `Resize`
+  re-clamped the text widths of **all 13 pages** (`ClampPageTextWidths`), and showing the window resizes every
+  panel. A panel's `Resize` now clamps only its own page, and only while it is the selected one
+  (`ClampPageOnResize`); a page resized while hidden is flagged and clamped on selection. `ShowSettings` also
+  no longer runs `Reload()` right after a constructor that has just run it. What is left (~2 s) is WinForms
+  layout of ~850 controls on a cold process - JIT is **not** the lever (measured: pre-compiling every
+  `SettingsForm` method changed nothing). `SettingsOpenCostTests` holds both halves.
 - **ConfirmDialog.cs** - CyrFlip's own message and confirmation box (S0020 v0.2 item 6), in place of
   `MessageBox`: laid out by content, 13 languages (`DialogLayoutTests`), the system icon and sound,
   Ctrl+C copies the message, an ownerless box comes to the front with a taskbar button. The safe answer
@@ -1141,7 +1249,16 @@ guards it.
   would throw away what the user is waiting for.
 - **TranslationDialog.cs** - the row editor (language + chord), same auto-sizing `TableLayoutPanel` shape as
   `LayoutConversionDialog`.
-- **Launcher (absorbed OneClickRunner), one concern per file:**
+- **Exchange*.cs / ExchangeClipboardIo.cs / ExchangeShortcuts.cs / ExchangePortalLinks.cs** - the exchange server clipboard (feature 16),
+  one concern each. `ExchangeWire` is the pure framing and the envelopes; `ExchangeTrust` the pin rule and the two
+  fingerprints; `ExchangeConnection` + `TlsExchangeTransport` the TLS stream with a watchdog; `ExchangeClient` the
+  operations (`ProbeAsync`, `EnrollAsync`, `OpenAsync`, `ListAsync`, `InfoAsync`, `PutSealedAsync`, `GetAsync`,
+  `RevokeAsync`) returning an `ExchangeOutcome` with a code, never throwing for the network; `ExchangeEnrollment` the
+  join (identity, key, `id-collision` retry); `ExchangeAccountEntry` + `ExchangeSecrets` the entry (no secret in its
+  JSON); `ExchangeRecipients` the trust-on-first-use rule; `ExchangeClipboardService` the send and the fetch across
+  entries; `ExchangeMessages` / `ExchangeCodes` the contract's messages; `ExchangeClipboardSource` / `Sink` the two
+  clipboard sides; `ExchangeE2e*` / `ExchangeHpke` / `ExchangeDeviceKey` the crypto (CNG + bcrypt P/Invoke, no
+  dependency). `FakeExchangeServer` (tests) is an in-memory server that stores only sealed bytes.- **Launcher (absorbed OneClickRunner), one concern per file:**
   - **LauncherScenario.cs** - the model. `[XmlRoot("AppItem")]` + identical field names = the OneClickRunner XML contract; `Hotkey` is the one CyrFlip extension; **public** only because net48 `XmlSerializer` refuses internal types. `SPECIAL_YTDLP` legacy sentinel → `IsYtDlp`.
   - **LauncherScenarioStore.cs** - file-per-scenario store (`%APPDATA%\CyrFlip\Scenarios`, folder created lazily on first write). Corrupt file → skipped + counted in `LoadErrors`, never fatal. A listing failure is counted and keeps the live list. Add/update/move return save failures; unsaved add/edit results never replace the stored list. Control characters and CR/LF round-trip through XML entities (S0063). Contiguous `Order` normalization à la OneClickRunner (name breaks legacy all-zero ties); temp-file-then-`File.Replace` saves, the temp name unique per writer (`{name}.{pid}.{random}.tmp`; a leftover is never read and is deleted after a day - S0008 LS-9); a file with no `<Id>` or a duplicate one gets a fresh Guid saved at once (`LauncherScenario.IdWasAssigned`, LS-10); `Import` always fresh Guid; `SeedSample` only into an empty store (caller guards with the one-time marker). `Remove` drops a scenario only once its file is gone and returns the reason otherwise - the settings page says it (S0034 LS2-6); `readOnly: true` never writes (the log bundle's count, LS2-9). Every OneClickRunner import - first enable, tray, settings button - clears an imported chord something else already owns (`LauncherMigration.StripClashingHotkey`, LS2-8).
   - **LauncherMigration.cs** - read-only import from `%APPDATA%\OneClickRunner\Scenarios`: Guid preserved unless colliding (then fresh + counted), unreadable files listed by name, source **never** written.
@@ -1259,17 +1376,28 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `EnableQuickNotesHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound (only while `EnableQuickNotes`=1) |
 | `QuickNotesWordWrap` | `REG_DWORD` | `0` | 1 = the editor wraps long lines. Off by default: the body is more often code than prose |
 | `ExchangeNotesWarningOff` | `REG_DWORD` | `0` | 1 = a **notes-only** export to the exchange file no longer shows the "plain unencrypted text" warning. An export that carries clipboard history always shows it (S0023) |
+| `SettingsBackupEnabled` | `REG_DWORD` | `1` | 1 = the rolling settings backup in `%USERPROFILE%\Documents\CyrFlip\Backups` is written (S0072): debounced after settings changes, keep-last-3, the writer silent while the restore question is open. Exported in the settings file v2 |
+| `BackupOfferOpen` | `REG_DWORD` | `0` | Marker: the "restore the backup found in Documents?" question is unanswered - it re-asks next start, and the backup writer stays silent while it is set (S0072). Machine history: never in the settings file |
+| `BackupRestoreDeclined` | `REG_SZ` | *(empty)* | The stamp of the backup the user answered "No - start fresh" to; the question never re-asks on that profile (S0072). Machine history |
 | `QuickNotesX` / `QuickNotesY` / `QuickNotesWidth` / `QuickNotesHeight` | `REG_DWORD` | `MinValue` / `MinValue` / `0` / `0` | Window geometry, saved at the end of a move or resize (ResizeEnd) and on hide (APP-BEHAVIOUR rule 10). A position no live monitor covers is clamped to the nearest surviving monitor (`ScreenPlacement.Clamp`); a size of `0` (never resized by the user) opens the window at its **measured minimum** - `QuickNotesWindow.ApplyMinimumSize` adds up the real width of the button row, the top row and the privacy hint in the current language at the current display scaling, so the floor is never the pair of constants that used to clip the buttons in most of the 13 languages. A stored size is only ever **grown** to that minimum, never shrunk |
 | `QuickNotesSelected` | `REG_SZ` | *(empty)* | The note the window was last left on, so it reopens where the user was |
 | `FlipCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful transliteration |
 | `CaseFlipCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful case flip |
 | `TranslateCount` | `REG_DWORD` | `0` | Usage counter; incremented on each successful translation |
 | `QuickNoteCount` | `REG_DWORD` | `0` | Usage counter; incremented when a note is created for the first time |
-| `ScreenshotHotkey` | `REG_SZ` | `Ctrl+PrintScreen` | Starts the screen region capture; checked against every other chord owner (`ChordRegistry`) |
-| `EnableScreenshotHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound. The only switch the capture has: no module switch, the tray item is always there |
-| `ScreenshotFolderHotkey` | `REG_SZ` | `Ctrl+Shift+PrintScreen` | Opens the folder the captures are saved into (S0057); checked against every other chord owner (`ChordRegistry`) |
+| `ScreenshotHotkey` | `REG_SZ` | `Ctrl+F12` | Starts the screen region capture (re-keyed by S0071 from the dead Ctrl+PrintScreen; the one-time migration moves stored old defaults); checked against every other chord owner (`ChordRegistry`) |
+| `EnableScreenshotHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound. The only switch the region capture has: no module switch, the tray item is always there |
+| `ScreenshotFullHotkey` | `REG_SZ` | `Ctrl+F11` | The instant all-displays capture (S0071): one freeze of the virtual screen, no selection; checked against every other chord owner |
+| `EnableScreenshotFullHotkey` | `REG_DWORD` | `1` | 1 = the full capture's chord is bound (its own switch only, no module switch) |
+| `EnableScreenshotAnnotate` | `REG_DWORD` | `1` | 1 = the draw-on-capture module is on (S0071, default on); 0 = neither annotate chord is bound and no editor can appear |
+| `ScreenshotAnnotateAreaHotkey` | `REG_SZ` | `Ctrl+Alt+F12` | Area capture that opens the annotation editor (S0071); bound only while `EnableScreenshotAnnotate`=1 |
+| `EnableScreenshotAnnotateAreaHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound (only while `EnableScreenshotAnnotate`=1) |
+| `ScreenshotFullAnnotateHotkey` | `REG_SZ` | `Ctrl+Alt+F11` | Full capture that opens the annotation editor (S0071); same double gate |
+| `EnableScreenshotFullAnnotateHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound (only while `EnableScreenshotAnnotate`=1) |
+| `ScreenshotFolderHotkey` | `REG_SZ` | `Ctrl+F10` | Opens the folder the captures are saved into (S0057, re-keyed by S0071 from the dead Ctrl+Shift+PrintScreen); checked against every other chord owner (`ChordRegistry`) |
 | `EnableScreenshotFolderHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound (only while `ScreenshotSaveEnabled`=1; the probe and the open are `ScreenshotFolderOpener`'s, never on the hooks' thread) |
-| `ScreenshotSaveEnabled` | `REG_DWORD` | `0` | 1 = every capture is also saved as a PNG (the cropped region, the clipboard's bytes) into `ScreenshotFolder` |
+| `ScreenshotSaveEnabled` | `REG_DWORD` | `1` | 1 = every capture is also saved as a PNG (the cropped region, the clipboard's bytes) into `ScreenshotFolder`. On by default since S0071 - fresh profiles save from the first capture; existing profiles keep their stored value, and the privacy wording on the page was corrected in the same change |
+| `ScreenshotKeyMigrationDone` | `REG_DWORD` | `0` | The one-time S0071 chord re-key marker (machine history, never exported): present = the stored Ctrl+PrintScreen / Ctrl+Shift+PrintScreen defaults were moved once |
 | `ScreenshotFolder` | `REG_SZ` | *(empty)* | Where saved captures go; empty = the `FOLDERID_Screenshots` known folder, resolved at save time (`CAPTURE-OUTPUT` rule 9) |
 | `ScreenshotCount` | `REG_DWORD` | `0` | Usage counter; incremented on each capture that reached the clipboard |
 | `EnableSymbols` | `REG_DWORD` | `0` | 1 = the module is on; 0 = no surface opens it, no chord bound, no window created |
@@ -1288,7 +1416,15 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `TrafficLightPinned` | `REG_DWORD` | `1` | 1 = the board stays on top of other windows |
 | `TrafficLightTileSize` | `REG_DWORD` | `1` | 0 small (a bare square: no label, no mark on "available", the glyph of any other state, no status line), 1 medium, 2 large |
 | `TrafficLightColumns` | `REG_DWORD` | `3` | Tiles in a row, 1..12; the rows follow from the number of targets and the window fits the grid |
+| `TrafficLightWindowTransparency` | `REG_DWORD` | `0` | The board window's plate transparency, 0..100: 0 the usual opaque window, 100 only the title bar's buttons and the tiles - the plate is see-through and lets clicks pass to whatever is under it |
 | `TrafficLightX` / `TrafficLightY` | `REG_DWORD` | `MinValue` / `MinValue` | The board's position, written at the end of a drag and on hide; a position no live monitor covers is clamped. Its size is the grid's and is never stored (`TrafficLightWidth` / `TrafficLightHeight` of the first build are no longer read) |
+| `EnableExchangeClipboard` | `REG_DWORD` | `0` | 1 = the exchange server clipboard module is on; 0 = no connection opened, chords unbound, tray items hidden (S0074) |
+| `ExchangeClipboardSendHotkey` | `REG_SZ` | *(empty)* | Chord for "send clipboard to server" (to every account entry that can take part); shipped unassigned (D6); checked against every other chord owner |
+| `EnableExchangeClipboardSendHotkey` | `REG_DWORD` | `1` | 1 = send chord is bound (only while `EnableExchangeClipboard`=1) |
+| `ExchangeClipboardGetHotkey` | `REG_SZ` | *(empty)* | Chord for "get clipboard from server" (the newest value by the servers' own time); shipped unassigned (D6); checked against every other chord owner |
+| `EnableExchangeClipboardGetHotkey` | `REG_DWORD` | `1` | 1 = get chord is bound (only while `EnableExchangeClipboard`=1) |
+| `ExchangeClipboardReceivedFolder` | `REG_SZ` | *(empty)* | Where a received file is saved before it is put on the clipboard; empty = `Downloads\CyrFlip` of the user (S0074 D4). Never the data or log folder |
+| `ExchangeClipboardAccounts` | `REG_SZ` | *(empty)* | JSON array of the account entries (local id, host, port, the pinned leaf and key fingerprints, login, device id, label, account kind, sign-in state, the server's features, this entry's public device key, the trusted keys of the other devices). **No token, no private key, no password**: those are in `HKCU\Software\CyrFlip\ExchangeSecrets`, one DPAPI value per entry. An unreadable value is never saved over. Excluded from the settings file |
 
 Legacy `config.json` (still accepted on first run for migration):
 ```json
@@ -1304,6 +1440,8 @@ dotnet test  CyrFlip.sln                      # run xUnit tests
 .\build.ps1                                   # build + test + stage single exe + deploy to C:\GD\..
 dotnet run --project tools/IconGen            # regenerate icon/banner assets
 ```
+
+**The 13-language UI sweeps run at a release, nowhere else** (`tests/CyrFlip.Tests/UiSweepGate.cs`, owner decision 2026-10-16, the third version of the rule: 2026-10-15 skipped a sweep only while `Localization*.cs` + `SettingsForm*.cs` were unchanged - but those are the files edited all day - and then keyed on the build configuration, "Debug skips, Release sweeps", which made `build.ps1 -Tests` and every hand-run Release `dotnet test` walk every window in every language, flashing them on the owner's screen whatever the work was). The `[UiSweepFact]` methods (the ones that build real windows in every UI language - the full settings window, the dialogs, the module windows, the traffic-light board) keep no state and ask for one thing: **they run only when `CYRFLIP_SWEEP=full` is set, in any configuration**, and nothing but a release sets it - `release.ps1`'s preflight, `release.yml` and `ci.yml` (the runner has no desktop to flash). `dotnet test` in Debug or Release, `build.ps1 -Tests`: every sweep reports skipped. **A change to the interface sweeps the window it touched, not the interface**: `CYRFLIP_SWEEP=full dotnet test --filter SymbolsWindowTests` while working on one window, and only then. An agent never sets `CYRFLIP_SWEEP` for a change that touches no window or string table, never for the whole suite, and never to "see a green" - that walk is the release's. Marking a new 13-language window loop `[UiSweepFact]` instead of `[Fact]` is the whole registration; pure-string loops over `Localization.Names` stay `[Fact]` (milliseconds, always on). Under `dotnet test` the assembly-level `[assembly: TestFramework]` hook is dead - `xunit.runner.visualstudio` 3.x ignores it - hence the attribute+discoverer mechanism.
 
 The `net48` build output *is* the distributable: a single `CyrFlip.exe` plus `config.json`, no runtime to install. (The spec's `dotnet publish .. --self-contained false` line assumed a .NET 6+ target and does not apply to the net48 choice.) Releases are cut by pushing a `vYY.M.D.HHmm` tag (`.github/workflows/release.yml` builds the ZIP + sha256, carrying `CyrFlip.exe`, `CyrFlip.exe.config`, `README.md`, `LICENSE`, and `THIRD-PARTY-NOTICES.txt`). winget manifests in `winget/` are filled per release (see `winget/README.md`).
 

@@ -20,11 +20,17 @@ namespace CyrFlip
             using var single = new Mutex(initiallyOwned: true, @"Local\CyrFlipSingleInstance", out bool isFirst);
             if (!isFirst)
             {
-                // A Jump List task landed while CyrFlip is alive: hand the command to the live
-                // instance over the named pipe and leave. A second hook or tray icon is never
-                // created (spec §8.2); a plain double-click of the exe stays a silent no-op.
-                if (command != null)
-                    LauncherIpc.TrySend(command);
+                // A second launch while CyrFlip is alive hands its request to the live instance over
+                // the named pipe and leaves; a second hook or tray icon is never created (spec §8.2).
+                // A Jump List task forwards its own command. A plain launch - the exe double-clicked,
+                // the Start menu entry - asks for the settings window: a second launch must not vanish
+                // (APP-ACTIVATION rule 7C, ticket S0060 P7-n), and a tray app has no other window to
+                // raise. When nobody takes the request the user is told, once, in words - except for
+                // /exit, which the build scripts send unattended and which must never wait for a click.
+                string forwarded = SecondLaunchCommand(command);
+                bool delivered = LauncherIpc.TrySend(forwarded);
+                if (SecondLaunchOwesAnAnswer(forwarded, delivered))
+                    TellAlreadyRunning();
                 return;
             }
 
@@ -83,13 +89,58 @@ namespace CyrFlip
                 AppShortcuts.SyncOnStartup(config);
                 // "Manage scenarios" from the Jump List while CyrFlip was not running: become the
                 // normal (single) instance and open the settings window once the tray is up.
-                using var context = new CyrFlipContext(config, openSettingsOnStart: command == LauncherIpc.SettingsCommand);
+                using var context = new CyrFlipContext(config, openSettingsOnStart: command == LauncherIpc.SettingsCommand, initialCommand: command);
                 Application.Run(context);
             }
             catch (Exception ex)
             {
                 // e.g. the keyboard hook failed to install in the context constructor.
                 Fatal(ex);
+            }
+        }
+
+        /// <summary>
+        /// What a second launch forwards to the live instance: the command it was started with, or - for
+        /// a plain launch - the settings window. The command already exists in the protocol, so an older
+        /// copy that is still running (the two versions side by side) understands it too.
+        /// </summary>
+        internal static string SecondLaunchCommand(string? parsedCommand)
+            => parsedCommand ?? LauncherIpc.SettingsCommand;
+
+        /// <summary>
+        /// Whether a second launch whose request <paramref name="delivered"/> or not still owes the user
+        /// an answer. Every request nobody took does, but <c>/exit</c>: build and release scripts send it
+        /// to stop the tray, and a dialog there would hold a pipeline until somebody clicks it.
+        /// </summary>
+        internal static bool SecondLaunchOwesAnAnswer(string forwardedCommand, bool delivered)
+            => !delivered && forwardedCommand != LauncherIpc.ExitCommand;
+
+        /// <summary>
+        /// The live instance did not take the request (hung, still starting, or running in another
+        /// session): say so in the user's language and end. A second copy is not started in its place -
+        /// two keyboard hooks would be worse than the lost click. The process has no tray and no hooks,
+        /// like the one-shot launch, so the box is the only surface it can use.
+        /// </summary>
+        private static void TellAlreadyRunning()
+        {
+            try
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                AppConfig config = AppConfig.Load();
+                ThemeManager.Initialize(ThemeModes.Parse(config.Theme));
+                ConfirmDialog.Show(config.UiLanguage,
+                    Localization.Translate(config.UiLanguage,
+                        "CyrFlip is already running but is not answering. Check the notification area, or end it in Task Manager."),
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                LauncherLog.Log("Second launch: could not tell the user: " + ex.GetType().Name);
+            }
+            finally
+            {
+                DiagnosticLog.Flush(TimeSpan.FromSeconds(1));
             }
         }
 

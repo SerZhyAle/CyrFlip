@@ -15,6 +15,12 @@ namespace CyrFlip
         Launcher,
         /// <summary>The Graphics module's region capture (S0026).</summary>
         Screenshot,
+        /// <summary>The instant all-displays capture (S0071): one freeze of the virtual screen, no selection.</summary>
+        ScreenshotFull,
+        /// <summary>Draw on an area capture: the capture opens the annotation editor (S0071).</summary>
+        ScreenshotAnnotateArea,
+        /// <summary>Draw on the full capture: the capture opens the annotation editor (S0071).</summary>
+        ScreenshotFullAnnotate,
         /// <summary>The chord that opens the screenshots folder (S0057).</summary>
         ScreenshotFolder,
         /// <summary>The keyboard chord that opens the text context menu at the caret (S0045 K2).</summary>
@@ -23,6 +29,10 @@ namespace CyrFlip
         Symbols,
         /// <summary>The traffic light board's chord (S0069).</summary>
         TrafficLight,
+        /// <summary>Send clipboard to exchange server (S0074).</summary>
+        ExchangeSend,
+        /// <summary>Get clipboard from exchange server (S0074).</summary>
+        ExchangeGet,
         /// <summary>A Windows direct-language hotkey (<see cref="LanguageHotkeys"/>) - read-only here.</summary>
         WindowsLanguage,
     }
@@ -88,10 +98,15 @@ namespace CyrFlip
             Add(ChordKind.History, "", config.ClipboardHistoryHotkey, null);
             Add(ChordKind.QuickNotes, "", config.QuickNotesHotkey, null);
             Add(ChordKind.Screenshot, "", config.ScreenshotHotkey, null);
+            Add(ChordKind.ScreenshotFull, "", config.ScreenshotFullHotkey, null);
+            Add(ChordKind.ScreenshotAnnotateArea, "", config.ScreenshotAnnotateAreaHotkey, null);
+            Add(ChordKind.ScreenshotFullAnnotate, "", config.ScreenshotFullAnnotateHotkey, null);
             Add(ChordKind.ScreenshotFolder, "", config.ScreenshotFolderHotkey, null);
             Add(ChordKind.TextMenu, "", config.TextMenuHotkey, null);
             Add(ChordKind.Symbols, "", config.SymbolsHotkey, null);
             Add(ChordKind.TrafficLight, "", config.TrafficLightHotkey, null);
+            Add(ChordKind.ExchangeSend, "", config.ExchangeClipboardSendHotkey, null);
+            Add(ChordKind.ExchangeGet, "", config.ExchangeClipboardGetHotkey, null);
             foreach (LayoutConversionProfile profile in config.LayoutConversionProfiles)
                 if (profile != null) Add(ChordKind.Conversion, profile.Id, profile.Hotkey, profile);
             foreach (TranslationProfile profile in config.TranslateProfiles)
@@ -171,14 +186,19 @@ namespace CyrFlip
             string T(string key) => Localization.Translate(uiLanguage, key);
             switch (kind)
             {
-                case ChordKind.Case: return T("Fix CapsLock");
-                case ChordKind.History: return T("Clipboard manager");
+                case ChordKind.Case: return T("Case flip");
+                case ChordKind.History: return T("Clipboard history");
                 case ChordKind.QuickNotes: return T("Quick notes");
                 case ChordKind.Screenshot: return T("Screen region capture");
+                case ChordKind.ScreenshotFull: return T("Full screen capture");
+                case ChordKind.ScreenshotAnnotateArea: return T("Area capture with drawing");
+                case ChordKind.ScreenshotFullAnnotate: return T("Full screen capture with drawing");
                 case ChordKind.ScreenshotFolder: return T("Open the screenshots folder");
                 case ChordKind.TextMenu: return T("Open the menu from the keyboard");
                 case ChordKind.Symbols: return T("Symbols window");
                 case ChordKind.TrafficLight: return T("Availability traffic light");
+                case ChordKind.ExchangeSend: return T("Send clipboard to server");
+                case ChordKind.ExchangeGet: return T("Get clipboard from server");
                 case ChordKind.Conversion:
                     var conversion = (LayoutConversionProfile)source!;
                     return layoutName(conversion.SourceKlid) + " ⇄ " + layoutName(conversion.TargetKlid);

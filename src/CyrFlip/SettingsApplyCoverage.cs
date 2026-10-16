@@ -33,9 +33,29 @@ namespace CyrFlip
             Add("_hook.UpdateQuickNotesHotkey", "QuickNotesHotkey"); Add("_hook.UpdateQuickNotesEnabled", "EnableQuickNotesHotkey");
             Add("live config in exchange dialog", "ExchangeNotesWarningOff");
             Add("_hook.UpdateScreenshotHotkey", "ScreenshotHotkey"); Add("_hook.UpdateScreenshotEnabled", "EnableScreenshotHotkey");
+            Add("_hook.UpdateScreenshotFullHotkey", "ScreenshotFullHotkey"); Add("_hook.UpdateScreenshotFullEnabled", "EnableScreenshotFullHotkey");
+            Add("_hook.UpdateScreenshotAnnotateAreaHotkey", "ScreenshotAnnotateAreaHotkey"); Add("_hook.UpdateScreenshotAnnotateAreaEnabled", "EnableScreenshotAnnotateAreaHotkey");
+            Add("_hook.UpdateScreenshotFullAnnotateHotkey", "ScreenshotFullAnnotateHotkey"); Add("_hook.UpdateScreenshotFullAnnotateEnabled", "EnableScreenshotFullAnnotateHotkey");
             Add("_hook.UpdateScreenshotFolderHotkey", "ScreenshotFolderHotkey"); Add("_hook.UpdateScreenshotFolderEnabled", "EnableScreenshotFolderHotkey");
             Add("live config at screenshot dispatch", "ScreenshotSaveEnabled");
+            Add("live config at annotate dispatch", "EnableScreenshotAnnotate");
             Add("ApplyTrafficLightTargets", "TrafficLightTargets");
+            // S0072: the v2 inventory's new consumers.
+            Add("OnSymbolsChanged", "EnableSymbols EnableSymbolsHotkey SymbolsHotkey");
+            Add("live config in SymbolsWindow", "SymbolsHideTypable SymbolsCloseOnPick");
+            Add("OnTrafficLightChanged", "EnableTrafficLight EnableTrafficLightHotkey TrafficLightHotkey TrafficLightPinned TrafficLightTileSize TrafficLightColumns TrafficLightWindowTransparency");
+            Add("SetLauncherEnabled", "EnableScenarioLauncher");
+            Add("live config in ScreenshotSaver and ScreenshotFolderOpener", "ScreenshotFolder");
+            Add("ApplyImportedPlacement", "SettingsWindowX SettingsWindowY SettingsWindowWidth SettingsWindowHeight"
+                + " ClipboardHistoryX ClipboardHistoryY ClipboardHistoryWidth ClipboardHistoryHeight"
+                + " QuickNotesX QuickNotesY QuickNotesWidth QuickNotesHeight"
+                + " TranslateWindowWidth TranslateWindowHeight"
+                + " SymbolsX SymbolsY SymbolsWidth SymbolsHeight"
+                + " TrafficLightX TrafficLightY TrafficLightVisible");
+            Add("live config at next settings open", "SettingsTab SettingsPageId SettingsGroupsState SettingsViewport QuickNotesSelected SymbolsCategory");
+            Add("live config in SettingsBackup", "SettingsBackupEnabled");
+            Add("RefreshExchangeHotkeys", "EnableExchangeClipboard EnableExchangeClipboardSendHotkey ExchangeClipboardSendHotkey EnableExchangeClipboardGetHotkey ExchangeClipboardGetHotkey");
+            Add("live config in ExchangeClipboardService", "ExchangeClipboardReceivedFolder");
             return result;
         }
     }

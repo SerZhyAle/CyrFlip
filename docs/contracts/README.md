@@ -1,4 +1,4 @@
-# Contract pointers
+﻿# Contract pointers
 
 Every file in this folder is a **pointer**, never a copy. The contracts themselves live in the shared
 catalog, whose location is named in exactly one file in this repository - [`CLAUDE.md`](../../CLAUDE.md),
@@ -19,7 +19,7 @@ not a local edit and not a local copy kept "in sync".
 | [`INPUT-CHORD.md`](INPUT-CHORD.md) | `INPUT-CHORD` | Owner, Producer and Consumer - chord token, refusals, chord ownership, global hooks |
 | [`INPUT-PARITY.md`](INPUT-PARITY.md) | `INPUT-PARITY` | Producer; steward of the keyboard and mouse columns of a shared device table; rules 1-2 held in the code since S0045, live walk owed |
 | [`SCENARIO-FILE.md`](SCENARIO-FILE.md) | `SCENARIO-FILE` | Producer and Consumer - launcher store, export and OneClickRunner import; 0.11 read, rule 8 on a repeated migration is in the text (item H) and held |
-| [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | Consumer of one text format - the `FMSEXCH1` connection string (section 5.5) that the traffic light's one-field add reads; 0.19 read 2026-10-13, the vector replayed, no frame of the wire is ever sent; a question on the handshake probe is filed |
+| [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | A device of an exchange account for the `clipboard` role (ticket S0074): logs in, sends and gets the clipboard sealed end to end, no clear fallback; also reads the `FMSEXCH1` string for the traffic light (section 5.5, no frame sent there); 1.1 read 2026-10-16, the server corpus replayed |
 | [`ANYWHERE-ACCESS.md`](ANYWHERE-ACCESS.md) | `ANYWHERE-ACCESS` | Consumer of one text format - the `FMSSFTP1/2` share code (section 4.1) that the traffic light's one-field add reads, every secret dropped at parse time; 0.13 read 2026-10-13, the vector replayed; a question on the banner read is filed |
 | [`DIAGNOSTIC-REPORT.md`](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | Producer / Implementer - session log rotation, count-only environment report, support bundle ZIP |
 | [`APP-BEHAVIOUR.md`](APP-BEHAVIOUR.md) | `APP-BEHAVIOUR` | Consumer - the shared desktop-app moments; the tray tool windows are the rule-1 companion-surface class (0.11); every irreversible delete is confirmed, table rows included (rule 5) |
@@ -49,3 +49,5 @@ not a local edit and not a local copy kept "in sync".
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `REPO-LAYOUT` | Producer - the names tools address |
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `RULE-DELIVERY` | Consumer - the `sza` plugin |
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `HARNESS-PROFILE` | Not bound - no profile, no harness tool |
+
+| [`CONTEXT-HELP.md`](CONTEXT-HELP.md) | `CONTEXT-HELP` | Consumer - F1, help buttons, shipped help map and offline localized pages; partial pending the release walk |

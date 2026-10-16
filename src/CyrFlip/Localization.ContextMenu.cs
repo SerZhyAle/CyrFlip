@@ -14,6 +14,36 @@ namespace CyrFlip
                 es: "Menú de selección", fr: "Menu de sélection", pt: "Menu de seleção",
                 ar: "قائمة التحديد", hi: "चयन मेनू", bn: "নির্বাচন মেনু", ur: "انتخاب مینو", zh: "选区菜单");
 
+            // S0060 M7: the page description is the first sentence of the long key below; "off by default" is the
+            // muted note of the menu's own group, where the switch is.
+            Add("CyrFlip's own menu over the selected text: copy, cut, paste, conversion, case, translation and quick launch.",
+                ru: "Меню CyrFlip над выделенным текстом: копирование, вырезание, вставка, конвертация, регистр, перевод и быстрый запуск.",
+                uk: "Меню CyrFlip над виділеним текстом: копіювання, вирізання, вставлення, перетворення, регістр, переклад і швидкий запуск.",
+                de: "Das CyrFlip-Menü über dem markierten Text: Kopieren, Ausschneiden, Einfügen, Umwandlung, Groß- und Kleinschreibung, Übersetzung und Schnellstart.",
+                it: "Il menu di CyrFlip sul testo selezionato: copia, taglia, incolla, conversione, maiuscole e minuscole, traduzione e avvio rapido.",
+                es: "El menú de CyrFlip sobre el texto seleccionado: copiar, cortar, pegar, conversión, mayúsculas y minúsculas, traducción e inicio rápido.",
+                fr: "Le menu de CyrFlip au-dessus du texte sélectionné : copier, couper, coller, conversion, casse, traduction et lancement rapide.",
+                pt: "O menu do CyrFlip sobre o texto selecionado: copiar, cortar, colar, conversão, maiúsculas e minúsculas, tradução e arranque rápido.",
+                ar: "قائمة CyrFlip فوق النص المحدَّد: نسخ وقص ولصق وتحويل وحالة الأحرف وترجمة وتشغيل سريع.",
+                hi: "चुने हुए पाठ के ऊपर CyrFlip का अपना मेनू: कॉपी, कट, पेस्ट, रूपांतरण, अक्षर केस, अनुवाद और त्वरित लॉन्च।",
+                bn: "নির্বাচিত টেক্সটের উপর CyrFlip-এর নিজস্ব মেনু: কপি, কাট, পেস্ট, রূপান্তর, অক্ষরের কেস, অনুবাদ ও দ্রুত চালু।",
+                ur: "منتخب متن پر CyrFlip کا اپنا مینو: کاپی، کٹ، پیسٹ، تبدیلی، حروف کی حالت، ترجمہ اور فوری لانچ۔",
+                zh: "CyrFlip 在选中文本上方的专属菜单：复制、剪切、粘贴、转换、大小写、翻译和快速启动。");
+
+            Add("Off by default: while it is off, CyrFlip does not watch the mouse.",
+                ru: "Выключено по умолчанию: пока оно снято, CyrFlip не следит за мышью.",
+                uk: "Типово вимкнено: поки його знято, CyrFlip не стежить за мишею.",
+                de: "Standardmäßig aus: Solange es aus ist, beobachtet CyrFlip die Maus nicht.",
+                it: "Disattivato per impostazione predefinita: finché è spento, CyrFlip non controlla il mouse.",
+                es: "Desactivado de forma predeterminada: mientras esté apagado, CyrFlip no vigila el ratón.",
+                fr: "Désactivé par défaut : tant qu'il est coupé, CyrFlip ne surveille pas la souris.",
+                pt: "Desligado por predefinição: enquanto estiver desligado, o CyrFlip não vigia o rato.",
+                ar: "معطّلة افتراضيًا: وما دامت معطّلة فإن CyrFlip لا يراقب الفأرة.",
+                hi: "डिफ़ॉल्ट रूप से बंद: जब तक यह बंद है, CyrFlip माउस पर नज़र नहीं रखता।",
+                bn: "ডিফল্টে বন্ধ: বন্ধ থাকলে CyrFlip মাউসের উপর নজর রাখে না।",
+                ur: "بطورِ طے شدہ بند: جب تک یہ بند ہے، CyrFlip ماؤس پر نظر نہیں رکھتا۔",
+                zh: "默认关闭：关闭期间，CyrFlip 不监视鼠标。");
+
             Add("CyrFlip's own menu over the selected text: copy, cut, paste, conversion, case, translation and quick launch. Off by default: while it is off, CyrFlip does not watch the mouse.",
                 ru: "Меню CyrFlip над выделенным текстом: копирование, вырезание, вставка, конвертация, регистр, перевод и быстрый запуск. Выключено по умолчанию: пока оно снято, CyrFlip не следит за мышью.",
                 uk: "Меню CyrFlip над виділеним текстом: копіювання, вирізання, вставлення, перетворення, регістр, переклад і швидкий запуск. Типово вимкнено: поки його знято, CyrFlip не стежить за мишею.",
@@ -180,7 +210,7 @@ namespace CyrFlip
                 ur: "وہی مینو کی بورڈ سے: یہ ٹیکسٹ کرسر کے پاس کھلتا ہے، اور جہاں کرسر نہ ملے وہاں ماؤس پوائنٹر کے پاس۔ تیر آئٹم چنتے ہیں، Enter اسے چلاتا ہے، Esc مینو بند کرتا ہے۔",
                 zh: "用键盘打开同一个菜单：它出现在文本光标处，找不到光标时出现在鼠标指针处。方向键选择项目，Enter 执行，Esc 关闭菜单。");
 
-            Add("Set the context-menu hotkey",
+            Add("Set the context-menu shortcut",
                 ru: "Задать хоткей контекстного меню", uk: "Задати хоткей контекстного меню",
                 de: "Tastenkombination für das Kontextmenü festlegen", it: "Imposta la combinazione per il menu contestuale",
                 es: "Definir la combinación del menú contextual", fr: "Définir le raccourci du menu contextuel",

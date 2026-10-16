@@ -95,10 +95,10 @@ namespace CyrFlip
             else
             {
                 if (ChordBinding.IsCaseActive(config) && Hotkey.TryParse(config.CaseHotkey, out Hotkey caseChord))
-                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, caseChord.Display, T("case"), kind: ChordKind.Case, parsedChord: caseChord));
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, caseChord.Display, T("case flip"), kind: ChordKind.Case, parsedChord: caseChord));
 
                 if (ChordBinding.IsHistoryActive(config) && Hotkey.TryParse(config.ClipboardHistoryHotkey, out Hotkey histChord))
-                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, histChord.Display, T("clipboard manager"), kind: ChordKind.History, parsedChord: histChord));
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, histChord.Display, T("clipboard history"), kind: ChordKind.History, parsedChord: histChord));
 
                 if (ChordBinding.IsQuickNotesActive(config) && Hotkey.TryParse(config.QuickNotesHotkey, out Hotkey qnChord))
                     textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, qnChord.Display, T("quick notes"), kind: ChordKind.QuickNotes, parsedChord: qnChord));
@@ -112,11 +112,26 @@ namespace CyrFlip
                 if (ChordBinding.IsScreenshotActive(config) && Hotkey.TryParse(config.ScreenshotHotkey, out Hotkey scChord))
                     textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, scChord.Display, T("screen region capture"), kind: ChordKind.Screenshot, parsedChord: scChord));
 
+                if (ChordBinding.IsScreenshotFullActive(config) && Hotkey.TryParse(config.ScreenshotFullHotkey, out Hotkey sfChord))
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, sfChord.Display, T("full screen capture"), kind: ChordKind.ScreenshotFull, parsedChord: sfChord));
+
+                if (ChordBinding.IsScreenshotAnnotateAreaActive(config) && Hotkey.TryParse(config.ScreenshotAnnotateAreaHotkey, out Hotkey saaChord))
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, saaChord.Display, T("area capture with drawing"), kind: ChordKind.ScreenshotAnnotateArea, parsedChord: saaChord));
+
+                if (ChordBinding.IsScreenshotFullAnnotateActive(config) && Hotkey.TryParse(config.ScreenshotFullAnnotateHotkey, out Hotkey sfaChord))
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, sfaChord.Display, T("full screen capture with drawing"), kind: ChordKind.ScreenshotFullAnnotate, parsedChord: sfaChord));
+
                 if (ChordBinding.IsScreenshotFolderActive(config) && Hotkey.TryParse(config.ScreenshotFolderHotkey, out Hotkey scfChord))
                     textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, scfChord.Display, T("screenshots folder"), kind: ChordKind.ScreenshotFolder, parsedChord: scfChord));
 
                 if (ChordBinding.IsTextMenuActive(config) && Hotkey.TryParse(config.TextMenuHotkey, out Hotkey tmChord))
                     textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, tmChord.Display, T("text context menu"), kind: ChordKind.TextMenu, parsedChord: tmChord));
+
+                if (ChordBinding.IsExchangeSendActive(config) && Hotkey.TryParse(config.ExchangeClipboardSendHotkey, out Hotkey exSendChord))
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, exSendChord.Display, T("Send clipboard to server"), kind: ChordKind.ExchangeSend, parsedChord: exSendChord));
+
+                if (ChordBinding.IsExchangeGetActive(config) && Hotkey.TryParse(config.ExchangeClipboardGetHotkey, out Hotkey exGetChord))
+                    textRows.Add(new TrayChordRow(TrayChordGroupKind.Text, exGetChord.Display, T("Get clipboard from server"), kind: ChordKind.ExchangeGet, parsedChord: exGetChord));
             }
 
             if (textRows.Count > 0)
@@ -275,10 +290,10 @@ namespace CyrFlip
             else
             {
                 if (config.EnableCaseHotkey && Hotkey.TryParse(config.CaseHotkey, out Hotkey caseChord))
-                    lines.Add(caseChord.Display + " - " + T("case"));
+                    lines.Add(caseChord.Display + " - " + T("case flip"));
 
                 if (config.EnableHistoryHotkey && Hotkey.TryParse(config.ClipboardHistoryHotkey, out Hotkey histChord))
-                    lines.Add(histChord.Display + " - " + T("clipboard manager"));
+                    lines.Add(histChord.Display + " - " + T("clipboard history"));
 
                 if (ChordBinding.IsQuickNotesActive(config) && Hotkey.TryParse(config.QuickNotesHotkey, out Hotkey qnChord))
                     lines.Add(qnChord.Display + " - " + T("quick notes"));
@@ -291,6 +306,15 @@ namespace CyrFlip
 
                 if (ChordBinding.IsScreenshotActive(config) && Hotkey.TryParse(config.ScreenshotHotkey, out Hotkey scChord))
                     lines.Add(scChord.Display + " - " + T("screen region capture"));
+
+                if (ChordBinding.IsScreenshotFullActive(config) && Hotkey.TryParse(config.ScreenshotFullHotkey, out Hotkey sfChord))
+                    lines.Add(sfChord.Display + " - " + T("full screen capture"));
+
+                if (ChordBinding.IsScreenshotAnnotateAreaActive(config) && Hotkey.TryParse(config.ScreenshotAnnotateAreaHotkey, out Hotkey saaChord))
+                    lines.Add(saaChord.Display + " - " + T("area capture with drawing"));
+
+                if (ChordBinding.IsScreenshotFullAnnotateActive(config) && Hotkey.TryParse(config.ScreenshotFullAnnotateHotkey, out Hotkey sfaChord))
+                    lines.Add(sfaChord.Display + " - " + T("full screen capture with drawing"));
 
                 if (ChordBinding.IsScreenshotFolderActive(config) && Hotkey.TryParse(config.ScreenshotFolderHotkey, out Hotkey scfChord))
                     lines.Add(scfChord.Display + " - " + T("screenshots folder"));

@@ -26,6 +26,21 @@ namespace CyrFlip.Tests
     [Collection(SharedGdiCollection.Name)]
     public class SettingsTransferDialogTests
     {
+        [Fact]
+        public void ScenariosAreSelectedAndCanBeDeselectedInThePreview()
+        {
+            var local = new AppConfig();
+            var doc = SettingsFileReaderTests.Read(version: 2);
+            doc.Scenarios = new List<string> { LauncherScenarioStore.ToXml(new LauncherScenario { Name = "Example", Path = "calc.exe" }) };
+            using var form = new SettingsTransferDialog("English", doc,
+                selected => SettingsImportPlan.Build(local, doc, selected: selected));
+            Assert.Single(form.Plan.Scenarios!);
+            Assert.Contains("scenarios", form.SelectedKeys);
+            var choice = Walk(form).OfType<CheckBox>().Single(c => c.Text.IndexOf("scenarios", StringComparison.OrdinalIgnoreCase) >= 0);
+            choice.Checked = false;
+            Assert.Null(form.Plan.Scenarios);
+            Assert.DoesNotContain("scenarios", form.SelectedKeys);
+        }
         internal static SettingsTransferDialog Make(string language)
         {
             var local = new AppConfig { UiLanguage = language };
@@ -35,7 +50,7 @@ namespace CyrFlip.Tests
             var doc = SettingsFileReader.Read(Encoding.UTF8.GetBytes(SettingsFileWriter.Write(imported, DateTime.UtcNow, "99.1.1.1234")));
             return new SettingsTransferDialog(language, doc, selected => SettingsImportPlan.Build(local, doc, selected: selected));
         }
-        [Fact]
+        [UiSweepFact]
         public void AllThirteenLanguagesKeepSafeDefaultAndFitCaptions()
         {
             Exception? failure = null;

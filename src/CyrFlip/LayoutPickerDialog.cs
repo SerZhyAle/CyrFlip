@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -28,6 +28,7 @@ namespace CyrFlip
 
         public LayoutPickerDialog(IEnumerable<string> alreadyInstalled, string uiLanguage, List<InputLayouts.Available>? available = null)
         {
+            HelpLanguage = uiLanguage;
             _all = available ?? InputLayouts.ListAvailable();
             _installed = new HashSet<string>(alreadyInstalled, StringComparer.OrdinalIgnoreCase);
             string T(string en) => Localization.Translate(uiLanguage, en);
@@ -53,6 +54,13 @@ namespace CyrFlip
                 Margin = new Padding(3, 3, 3, 4),
             };
             _filter.TextChanged += (_, _) => Populate();
+            // The arrows walk the list without leaving the filter box (the settings search dialog's
+            // behaviour, ticket S0060 P7-l): typing and choosing are one gesture. Enter is the
+            // AcceptButton's and Escape the CancelButton's - one way out, not three.
+            _filter.KeyDown += (_, e) =>
+            {
+                if (HandleFilterKey(e.KeyCode, e.Modifiers)) e.Handled = e.SuppressKeyPress = true;
+            };
             _list.DoubleClick += (_, _) => Accept();
             _list.Format += (_, e) => { if (e.ListItem is InputLayouts.Available a) e.Value = Format(a); };
 
@@ -97,6 +105,46 @@ namespace CyrFlip
         {
             base.Dispose(disposing);
             if (disposing) _ownFont?.Dispose();
+        }
+
+        /// <summary>The filter box, for the key tests.</summary>
+        internal TextBox FilterForTest => _filter;
+
+        /// <summary>The list, for the key tests.</summary>
+        internal ListBox ListForTest => _list;
+
+        /// <summary>
+        /// A key pressed in the filter box. Up and Down move the list's selection by one row, clamped at
+        /// both ends, and say so (true) so the box does not also move its caret; anything else - typing,
+        /// Home/End, a modified arrow - is the box's own. With nothing to select the arrows are left alone.
+        /// </summary>
+        internal bool HandleFilterKey(Keys key, Keys modifiers)
+        {
+            if (modifiers != Keys.None || (key != Keys.Down && key != Keys.Up) || _list.Items.Count == 0) return false;
+            _list.SelectedIndex = StepSelection(_list.SelectedIndex, _list.Items.Count, key == Keys.Down);
+            return true;
+        }
+
+        /// <summary>
+        /// The row an arrow moves to: one step from the current one, never past either end. From no
+        /// selection (-1) both arrows land on the first row; -1 only when the list is empty.
+        /// </summary>
+        internal static int StepSelection(int current, int count, bool down)
+        {
+            if (count <= 0) return -1;
+            return Math.Max(0, Math.Min(count - 1, current + (down ? 1 : -1)));
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            // "Add" with nothing chosen (the filter matched nothing and Enter was pressed) is not an
+            // answer: the dialog stays for another try instead of closing with OK and doing nothing.
+            if (DialogResult == DialogResult.OK && SelectedKlid == null)
+            {
+                e.Cancel = true;
+                return;
+            }
+            base.OnFormClosing(e);
         }
 
         private Button Command(string text, DialogResult result, string? verbGlyph = null) => ButtonGlyphs.Answer(new Button

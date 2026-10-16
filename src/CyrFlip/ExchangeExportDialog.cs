@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -47,6 +47,7 @@ namespace CyrFlip
         /// <param name="notesAvailable">False while the quick notes are switched off: their journal is not read for an export.</param>
         public ExchangeExportDialog(string language, bool notesAvailable, bool notesWarningOff)
         {
+            HelpLanguage = language;
             string T(string en) => Localization.Translate(language, en);
             Text = T("Export to exchange file");
             FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false; MinimizeBox = false;

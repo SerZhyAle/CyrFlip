@@ -38,6 +38,21 @@ namespace CyrFlip
                 ru: "Переместить вниз", uk: "Перемістити вниз", de: "Nach unten verschieben", it: "Sposta giù", es: "Mover abajo", fr: "Descendre",
                 pt: "Mover para baixo", ar: "نقل لأسفل", hi: "नीचे ले जाएँ", bn: "নিচে সরান", ur: "نیچے منتقل کریں", zh: "下移");
 
+            // S0060 M7: a page description is one sentence; the two-sentence form below is no longer shown.
+            Add("Core app settings; changes take effect immediately.",
+                ru: "Основные параметры приложения; изменения применяются сразу.",
+                uk: "Основні параметри застосунку; зміни застосовуються одразу.",
+                de: "Grundeinstellungen der App; Änderungen wirken sofort.",
+                it: "Impostazioni principali dell'app; le modifiche hanno effetto immediato.",
+                es: "Ajustes principales de la aplicación; los cambios se aplican de inmediato.",
+                fr: "Paramètres principaux de l'application ; les modifications s'appliquent immédiatement.",
+                pt: "Configurações principais do aplicativo; as alterações são aplicadas imediatamente.",
+                ar: "الإعدادات الأساسية للتطبيق؛ تسري التغييرات فورًا.",
+                hi: "ऐप की मुख्य सेटिंग्स; बदलाव तुरंत लागू होते हैं।",
+                bn: "অ্যাপের প্রধান সেটিংস; পরিবর্তন সঙ্গে সঙ্গে কার্যকর হয়।",
+                ur: "ایپ کی بنیادی ترتیبات؛ تبدیلیاں فوراً لاگو ہوتی ہیں۔",
+                zh: "应用的基本设置；更改会立即生效。");
+
             Add("Core app settings. Changes take effect immediately.",
                 ru: "Основные параметры приложения. Все изменения применяются сразу.",
                 uk: "Основні параметри застосунку. Зміни застосовуються одразу.",
@@ -396,6 +411,22 @@ namespace CyrFlip
                 it: "Informazioni", es: "Acerca de", fr: "À propos",
                 pt: "Sobre", ar: "حول", hi: "बारे में",
                 bn: "সম্পর্কে", ur: "تعارف", zh: "关于");
+
+            // S0060 M7: the About page's one-sentence purpose. What the product is, and the privacy paragraph, are
+            // the muted note of the product group (the key below, unchanged).
+            Add("The version, the licence, the project links and where to ask for help.",
+                ru: "Версия, лицензия, ссылки на проект и куда обратиться за помощью.",
+                uk: "Версія, ліцензія, посилання на проєкт і куди звернутися по допомогу.",
+                de: "Version, Lizenz, Projektlinks und wo es Hilfe gibt.",
+                it: "La versione, la licenza, i link del progetto e dove chiedere aiuto.",
+                es: "La versión, la licencia, los enlaces del proyecto y dónde pedir ayuda.",
+                fr: "La version, la licence, les liens du projet et où demander de l'aide.",
+                pt: "A versão, a licença, os links do projeto e onde pedir ajuda.",
+                ar: "الإصدار والترخيص وروابط المشروع ومكان طلب المساعدة.",
+                hi: "संस्करण, लाइसेंस, प्रोजेक्ट के लिंक और मदद कहाँ माँगें।",
+                bn: "সংস্করণ, লাইসেন্স, প্রকল্পের লিঙ্ক এবং সাহায্য কোথায় চাইবেন।",
+                ur: "ورژن، لائسنس، پروجیکٹ کے لنکس اور مدد کہاں مانگیں۔",
+                zh: "版本、许可证、项目链接以及在哪里寻求帮助。");
 
             Add("CyrFlip is a tray toolkit for your keyboard and desktop: it shows the active layout at the caret, fixes text typed in the wrong layout or with CapsLock on, and captures a screen region; a selection menu, a local translator, quick notes, clipboard history and quick launch are optional modules you switch on yourself.\n\nThe app never sends clipboard history over the network. When history is on, entries are protected by Windows DPAPI and readable only by the same Windows account.",
                 ru: "CyrFlip - набор инструментов в трее для клавиатуры и рабочего стола: показывает активную раскладку у каретки, исправляет текст, набранный в неверной раскладке или с включённым CapsLock, и снимает область экрана; меню над выделением, локальный переводчик, быстрые заметки, история буфера и быстрый запуск - необязательные модули, которые вы включаете сами.\n\nПриложение не передаёт историю буфера в сеть. Если история включена, записи защищены Windows DPAPI и читаются только той же учётной записью Windows.",

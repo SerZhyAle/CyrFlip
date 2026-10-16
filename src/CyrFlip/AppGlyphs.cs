@@ -35,6 +35,12 @@ namespace CyrFlip
         public const string ShortcutOverview = "app.shortcut-overview";
         public const string SelectionMenu = "feature.selection-menu";
         public const string NetworkMonitor = "feature.network-monitor";
+        // The exchange server clipboard (S0074): the page's tab (the exchange server), and the two functions it adds
+        // (send the clipboard to the server, get it from the server). The three records are `proposed` in the
+        // catalog; ICON-SET rule 6: the first product to ship one turns it `active`.
+        public const string ExchangeServer = "source.exchange-server";
+        public const string SendClipboard = "action.send-clipboard";
+        public const string ReceiveClipboard = "action.receive-clipboard";
         // The four states of a reachability tile (S0069): the shape carries the state, the fill role only
         // supplements it. The vocabulary's own words: ok "works, granted or verified", warning "works, but with a
         // risk", error "something failed and needs attention", unknown "no result yet".

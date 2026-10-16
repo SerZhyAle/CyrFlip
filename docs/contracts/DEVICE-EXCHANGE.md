@@ -3,54 +3,65 @@
 | | |
 | --- | --- |
 | **Id** | `DEVICE-EXCHANGE` |
-| **Version** | 0.19, draft (read 2026-10-13; the part read is section 5.5, item Y of section 16) |
-| **Home** | `device-exchange/README.md` in the shared contracts catalog, section 5.5, with `vectors/connection-string-v1.json` beside it |
-| **Role here** | consumer of one text format - the traffic light's one-field add reads the `FMSEXCH1` connection string. CyrFlip is not a device of an account: it enrolls nothing, publishes nothing, speaks no frame of the wire and writes no connection string |
+| **Version** | 1.1, active (read 2026-10-16; sections 5.2, 5.5, 6.1, 7.1-7.4, 7.10, 9 items BR, CY, CZ, DA, 22 and 27 items DE-DR) |
+| **Home** | `device-exchange/README.md` in the shared contracts catalog, with `vectors/e2e-v1.json` and the FMS_Win server corpus beside it |
+| **Role here** | A device of an exchange account for one role: `clipboard` (product `cyrflip-windows`, capability `e2e-v1`, ticket S0074); and a reader of the connection string of section 5.5 for the traffic light (ticket S0069). CyrFlip registers no account, publishes no resource, broadcasts nothing and keeps no directory |
 
 ## What this repository must do to stay conformant
 
-- **Read, never write.** No connection string, no `.fmsexch` file and no QR is produced here.
-- **Fields.** `x` (host and port), `fp` (the pin of the server's leaf certificate) and `n` (a label hint) are
-  read; `u`, the login hint, is checked against the form of 5.1 and **dropped on the spot**. An unknown key is
-  ignored whatever its value (`ExchangeConnectionString.Parse`).
-- **Refused whole.** A known key that repeats or breaks its rule, a field that is empty or has no key or no `=`,
-  white space inside, a non-ASCII byte or more than 512 characters after trimming: nothing of the string is
-  read and the add line gives the artifact's reason word. A later prefix (`FMSEXCH2:` and up) is refused as
-  `newer-major`.
-- **Recognition is by content** - the prefix after one leading U+FEFF and the trimming
-  (`TargetRecognizer.RecognizeLine`) - never by a file name.
-- **No secret survives.** What leaves the parser is host, port, the pin and the label. Nothing in the stored
-  target, the settings file, the change journal or any log can hold the login hint or the raw text
-  (`TrafficLightLog` records sites and exception types only); the raw line exists in the add field only. The
-  recognizer's own result keeps the text of a line **only** when nothing recognized it and it is not of this
-  family (`RecognizedLine.Text`, for the details panel to start from); a recognized or refused line, and any
-  `FMSEXCH`, `FMSSFTP` or `FMSCFG` text of a version this reader does not know, leaves it empty
-  (`ARecognizedLineKeepsNoRawTextAndNoSecret`, `AContractStringOfAnUnknownVersionIsNeitherRecognizedNorEchoed`).
-- **The pin is the user's.** A target carries the `fp` it was added with, or the one the user typed; no probe
-  rewrites it. A different leaf is shown red as `certificate-changed` with the pinned and the observed value,
-  and nothing is pinned, remembered or accepted on the user's behalf (`ExchangeProbe.Verdict`).
-- **A file is not read.** No path of this product opens a `.fmsexch` file, so the file cases of the vector are
-  not exercised; the text of one pasted into the field is read like any other string. A `.fmscfg` document
-  (`FMSCFG`) is not consumed at all: a JSON document in the field is recognized by its braces and refused unread.
-- **The vector is pinned by copy.** `tests/CyrFlip.Tests/Fixtures/DeviceExchange/connection-string-v1.json` is a
-  byte copy of the catalog artifact, held by its SHA-256 as a literal
-  (`4e75c0da11515f4b4e77a46e24751b55f874d699a0362de26cd591df79a8d26d`, the value in the contract's header;
-  `TheVectorFilesAreByteIdenticalToTheCatalogsCopies`) - a re-issue of the file updates the literal in the same
-  change. `TrafficLightContractStringTests` replays its 93 text cases against the verdict and the reason word and
-  checks the `u` canary (`EveryTextVectorOfTheConnectionStringIsReadAsTheContractSays`,
-  `NoSecretIsKeptFromAConnectionString`).
+- **Log in only (5.2, items AA, AD, BN).** The account entry is a connection string (or the text of its QR), a login
+  and a password; `ExchangeAccountDialog` shows the destination `host:port` before the password field takes the
+  focus, reads the string without connecting, looks at the certificate **before** a password exists
+  (`ExchangeClient.ProbeAsync`, a handshake that sends no byte - item BQ) and sends the one `enroll` to that endpoint
+  and to no other (`ExchangeEnrollment.JoinAsync`). The password is cleared after the exchange and never stored.
+  The `deviceId` is 16 random bytes, base64url; an `id-collision` answer to a fresh id regenerates it once. An
+  identity already on the device is the same entry signing in again, not a second one.
+- **Trust (7.1, items D and AY, 5.5).** `ExchangeTrust.Evaluate`: Windows validates the chain first and pins nothing
+  when it accepts; a leaf it rejects is pinned only after the person was shown its fingerprint and accepted it; a
+  pin holds the leaf and the key fingerprint, a renewal with the same key is accepted with no prompt, another key
+  is refused with both fingerprints shown. TLS 1.2 at least, checked after the handshake
+  (`TlsExchangeTransport`).
+- **Framing (7.1, item T).** A 4-byte big-endian length, one UTF-8 JSON object, `schemaVersion` 2 first; 16384
+  bytes until `welcome` or `enrolled`, 262144 after (`ExchangeWire`). An unknown member is ignored.
+- **Streams (7.2).** The control stream (`hello`, `list`, `clipboard-info`, `revoke`) and a **separate** data stream
+  for `clipboard-put` and `clipboard-get`, which must be the first envelope after `welcome`: a `list` followed by a
+  `clipboard-put` on one stream is a control stream that sends an envelope it does not accept.
+- **The clipboard (22, items BU-CD).** One object at a time (a file, a text or a picture), refused when it is
+  several files or a folder; a send goes to every `member` entry and succeeds with one (CA), a get takes the newest
+  by the server's own time (CA); no preview, no filter, no confirmation, no history, no notification (CD).
+  Text travels with LF ends (CB); the received file lands in a folder the person can see and never overwrites.
+- **Sealed content, always (27, items DF-DQ).** No clear fallback through the server (DP): a server whose `welcome`
+  lacks `sealed` is `server-no-e2e`, a clear value is never placed, a clear value is never sent. The device key
+  is a P-256 pair per entry made before `enroll`, its public half in `e2eKey`, its private half and the token in
+  DPAPI (`ExchangeSecrets`). Recipients are the other capable devices of the entry whose key is the one first seen
+  (trust on first use, `ExchangeRecipients`; a changed key is `key-changed`, never replaced). HPKE Auth mode,
+  AES-256-GCM segments of 65536 bytes (`ExchangeE2e`, `ExchangeHpke`, `ExchangeE2eNative`).
+- **What a person reads (7.10, items CY, CZ, DA, DE, DR).** The table of messages in English, Russian and Ukrainian
+  word for word, the other ten languages translated (`ExchangeMessages`, `Localization.ExchangeServer.cs`); what
+  happened first, what to try second, the code only in the details line; the honest text of item DE is shown whole on
+  the exchange page of the settings, the guide and the privacy page. No secret in a message, a details line or a log.
 
-## What the probe does with the server it was given
+## How it is held
 
-An `exchange` target is checked by a TCP connect and a TLS client handshake with SNI set to the host; the leaf
-is hashed and the stream closed. **No application byte is ever sent**, so no envelope of section 7 is
-spoken. Whether a handshake with no frame is permitted, and counts as no failed authentication, is not written
-in the contract; the question is `PROPOSAL-2026-10-13-cyrflip-reachability-handshake.md`.
+- **Vectors, replayed.** `tests/CyrFlip.Tests/Fixtures/DeviceExchange/`: `e2e-v1.json` and `fmsw-234-sealed.json`
+  (every box opens, every failing case fails, the clipboard values reproduce their keys and sealed sizes -
+  `ExchangeE2eTests`), `fmsw-234-clipboard.json` (four transcripts of the real server's corpus, held by their SHA-256:
+  every frame decodes, the frames this program writes are the server's own - `ExchangeWireTests`) and
+  `connection-string-v1.json` (the traffic light's reading, `TrafficLightContractStringTests`).
+- **Behaviour, against a scripted server.** `ExchangeClientTests` and `ExchangeClipboardServiceTests` run the whole
+  path over an in-memory server that stores only the sealed bytes, like the real one.
+- **The traffic light keeps its own paragraph.** An `exchange` target is still a TCP connect and a TLS handshake with
+  SNI, the SHA-256 of the leaf and a compare; **no application byte is ever sent** (`ExchangeProbe`), and the login hint
+  `u` of a string is dropped there. The clipboard's join (`ExchangeConnectionString.Parse(text, keepLoginHint: true)`)
+  is the one place the hint is read, and it fills the login field and nothing else.
 
-## Open debts
+## Open items
 
-1. The 11 `file` cases of the vector have no reader here (see above).
-2. The contract's `consumers` header does not name this product; the same proposal asks.
-3. Section 5.5's trust rule is applied by the quick join of 16 item AD before a password reaches a stream. This
-   product joins no account and sends none, and the probe's verdict table is its own (the `exchange` rows of
-   `PLAN/S0069_network-traffic-light.md`, local, not published).
+1. The portal page `exchange-clipboard.html` (and `-ru`, `-uk`) is another product's and was not published when this
+   was written; the settings page and the guide link to it and say what the feature is in their own words.
+2. `CLIPBOARD-GUARD` item O reads the clipboard as file, text, picture; item CB of this contract lists file, picture,
+   text and says to convert line ends to LF. This program follows item O for the order and item CB for the wire
+   (recorded as a dated exception in the registry until one text is amended).
+3. The Android reference client sends `list` and `clipboard-put` on one stream; the FMS_Win server accepts a put
+   only as the first envelope after `welcome`. To be settled in the joint run (FMS_A S4213, S4244).
+4. Not built: a QR picture (the text of one is pasted), the Drive path of the clipboard (items CL, CP).

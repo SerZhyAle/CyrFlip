@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -44,7 +44,7 @@ namespace CyrFlip
         private readonly List<Font> _fonts = new List<Font>();
         private bool _rebuilding;
         private int _wrap;
-        private const int PageCount = 5;
+        internal const int PageCount = 5;
         internal int PageIndex { get; private set; }
         internal SettingsPageKey? RequestedPage { get; private set; }
         private string T(string source) => Localization.Translate(_facts.Config.UiLanguage, source);
@@ -273,6 +273,7 @@ namespace CyrFlip
 
         private void Rebuild()
         {
+            HelpLanguage = _facts.Config.UiLanguage;
             _rebuilding = true;
             SuspendLayout();
             _host.Controls.Clear();
@@ -391,8 +392,8 @@ namespace CyrFlip
                         detail: new KeyCaps(row.Hotkey), trailing: Trailing(null, WelcomeSwitch.Conversion, row.Id, row.Source + " ⇄ " + row.Target),
                         open: SettingsPageKey.Conversions);
             }
-            Row(conversions, null, "Aa", T("Change case"), T("If you left CapsLock on"),
-                detail: new KeyCaps(config.CaseHotkey), trailing: Trailing(null, WelcomeSwitch.CaseFlip, null, T("Change case")),
+            Row(conversions, null, "Aa", T("Case flip"), T("If you left CapsLock on"),
+                detail: new KeyCaps(config.CaseHotkey), trailing: Trailing(null, WelcomeSwitch.CaseFlip, null, T("Case flip")),
                 open: SettingsPageKey.Conversions);
             Paragraph(conversions, F("Example: select {0}, then press the shortcut above.", "ghbdtn")).Margin = new Padding(3, Px(8), 3, Px(4));
             var example = new ConversionExample("ghbdtn", "привет") { Margin = new Padding(3, 0, 3, Px(6)), Font = Font, RightToLeft = RightToLeft };

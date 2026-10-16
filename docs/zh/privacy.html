@@ -28,7 +28,7 @@
   <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/CyrFlip/ur/privacy.html">
   <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/privacy.html">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","headline":"CyrFlip - 隐私政策","url":"https://serzhyale.github.io/CyrFlip/zh/privacy.html","description":"CyrFlip 隐私政策：应用在你自己的设备上运行，不收集任何内容，也没有自己的服务器；可选的翻译功能只把你选中的文本发送到你指定的 Ollama 地址，默认就是你自己的电脑。","inLanguage":"zh","about":{"@type":"SoftwareApplication","name":"CyrFlip","operatingSystem":"Windows"}}</script>
-  <meta name="source-sha256" content="f0acc1a5f07b080c192c226b9aaf38f81e83a96769c20f54e5b77b2aeb99c0a5">
+  <meta name="source-sha256" content="eb68ca84b8b726485d7e6652acb09aa1ec8a288a94c40c2e3a93e1d9cd3780c2">
   <!-- /doc-quality metadata -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -65,16 +65,22 @@
     <nav class="langbar" aria-label="语言"><a href="../ru/privacy.html" data-sza-lang="ru" lang="ru" hreflang="ru"><span class="code">RU</span><span class="endonym">Русский</span></a><a href="../privacy.html" data-sza-lang="en" lang="en" hreflang="en"><span class="code">EN</span><span class="endonym">English</span></a><a href="../uk/privacy.html" data-sza-lang="ua" lang="uk" hreflang="uk"><span class="code">UA</span><span class="endonym">Українська</span></a><a href="../de/privacy.html" lang="de" hreflang="de"><span class="code">DE</span><span class="endonym">Deutsch</span></a><a href="../it/privacy.html" lang="it" hreflang="it"><span class="code">IT</span><span class="endonym">Italiano</span></a><a href="../es/privacy.html" lang="es" hreflang="es"><span class="code">ES</span><span class="endonym">Español</span></a><a href="../fr/privacy.html" lang="fr" hreflang="fr"><span class="code">FR</span><span class="endonym">Français</span></a><a href="../pt/privacy.html" lang="pt" hreflang="pt"><span class="code">PT</span><span class="endonym">Português</span></a><a href="../ar/privacy.html" lang="ar" hreflang="ar"><span class="code">AR</span><span class="endonym" dir="rtl">العربية</span></a><a href="../hi/privacy.html" lang="hi" hreflang="hi"><span class="code">HI</span><span class="endonym">हिन्दी</span></a><a href="../bn/privacy.html" lang="bn" hreflang="bn"><span class="code">BN</span><span class="endonym">বাংলা</span></a><a href="../ur/privacy.html" lang="ur" hreflang="ur"><span class="code">UR</span><span class="endonym" dir="rtl">اردو</span></a><a href="privacy.html" class="active" aria-current="page" lang="zh" hreflang="zh"><span class="code">ZH</span><span class="endonym">中文</span></a></nav>
     <section>
       <h1>隐私政策</h1>
-      <p class="note">最后更新：2026 年 10 月 7 日 · <a href="../privacy.html">English（原文）</a></p>
+      <p class="note">最后更新：2026 年 10 月 16 日 · <a href="../privacy.html">English（原文）</a></p>
 
-      <p><strong>CyrFlip 不收集、不存储、不记录、不传输任何个人数据。</strong>它完全在你自己的设备上运行。
-      它没有自己的服务器，没有遥测、分析、广告、追踪，也没有用户账号。开发者不会获得任何关于你或你如何使用
-      本应用的数据。</p>
+      <p><strong>CyrFlip 不收集任何个人数据，开发者也不会收到任何数据。</strong>它没有自己的服务器，
+      没有遥测、分析、广告、追踪，也没有用户账号，并且不会记录你的按键。它在你自己的设备上运行；唯一会离开设备的
+      内容，只来自下面介绍的两项可选功能（默认关闭），而且只会发往你自己选定的地方。</p>
 
-      <p>只有一项功能会把文本发送到别处，而且它<strong>默认关闭</strong>：可选的<em>翻译</em>。当你打开它
-      并按下翻译快捷键时，选中的文本会被发送到 CyrFlip 中设置的 Ollama 服务器地址 - 默认是
+      <p>一共只有两项功能会把内容发送到别处，而且两者都<strong>默认关闭</strong>：可选的<em>翻译</em>
+      和可选的<em>服务器上的剪贴板</em>。</p>
+
+      <p>当你打开翻译并按下翻译快捷键时，选中的文本会被发送到 CyrFlip 中设置的 Ollama 服务器地址 - 默认是
       <code>http://localhost:11434</code>，也就是运行在你自己电脑上的一个程序，所以文本不会离开你的设备。
       如果你把该地址改成另一台机器，文本就会发到那台机器上；CyrFlip 在该设置旁边就写明了这一点。</p>
+
+      <p>服务器上的剪贴板会把<strong>你剪贴板上的内容</strong> - 一段文本、一张图片或一个文件 - 发送到你已登录的
+      交换服务器，而且只在你按下它的按钮、组合键或快捷方式时才发送。内容会先在你的电脑上加密，而且只为你自己的
+      设备加密。详见下文关于交换服务器的部分。</p>
 
       <h2>应用访问什么，为什么</h2>
       <ul class="features">
@@ -100,7 +106,8 @@
 
         <li><strong>剪贴板。</strong>当你按下快捷键时，CyrFlip 会短暂读取选中的文本（通过一次模拟复制），
         在布局之间转换，粘贴结果，然后恢复剪贴板原有的内容。这一切都在本地进行，而且只在你触发的那一刻发生。
-        其中没有任何内容被发送出去。</li>
+        这样做不会发送或共享剪贴板中的任何内容；唯一会发送剪贴板的功能，是下文可选的<em>服务器上的剪贴板</em>，
+        而且只在你按下它的按钮时才会发送。</li>
 
         <li><strong>剪贴板历史（可选）。</strong><strong>默认关闭。</strong>如果你打开它，CyrFlip 会把捕获
         到的 Unicode 文本保存在本地。历史记录使用 Windows DPAPI 针对当前 Windows 账户加密；你随时可以暂停、
@@ -134,6 +141,19 @@
         不留任何记录，也不向开发者发送任何东西。在便携版中，<em>安装 Ollama</em> 按钮会从 <code>ollama.com</code>
         下载官方安装程序；Microsoft Store 版本只会打开该网站。模型擅长哪些语言，这个问题该问模型：CyrFlip 只是
         把文本交给它。</li>
+
+        <li><strong>服务器上的剪贴板（可选）。</strong>该功能<strong>默认关闭</strong>；关闭时，CyrFlip 不会为它打开任何
+        网络连接。它需要在一台由你自己或你信任的人运行的交换服务器上拥有一个账户，而 CyrFlip 只负责登录：你只需一次性提供
+        服务器的连接字符串、你的登录名和密码。密码只用于这一次登录，绝不保存；服务器返回的设备令牌，以及 CyrFlip 为这个
+        账户生成的私钥，会使用 Windows DPAPI 针对你的 Windows 用户加密保存。当你按下<em>将剪贴板发送到服务器</em>
+        （托盘菜单、快捷方式或组合键）时，CyrFlip 会发送<strong>此刻剪贴板上的确切内容</strong> - 一段文本、一张图片
+        或一个文件，包括你一分钟前复制的密码。它没有预览、没有确认，也没有过滤，所以只在你确实要发送时才按。内容在离开
+        你的电脑之前，会先针对你账户的其他设备加密，而服务器只在内存中保留最后一个值。<em>从服务器获取剪贴板</em>会把服务器上
+        最新的值放到你的剪贴板上；收到的文件会保存到一个你看得到的文件夹中（默认是 <code>Downloads\CyrFlip</code>），
+        并且绝不会覆盖其他文件。任何内容都不会自动发送 - 没有监控，没有定时器，启动时也不会发送。交换服务器负责连接您的设备，因此它知道您的账户、设备、文件夹和直播的名称，能看到哪些设备在线，以及传输了多少数据、发生在何时。它无法打开经过它的内容：文件夹及其文件、直播和剪贴板都在您的设备上加密，只会在您的其他设备上，或由您授予访问权限的人打开。要查看内容，运行服务器的人必须在您的账户中添加一台自己的设备，而这台设备会出现在您的设备列表中。CyrFlip 会保留一份日志，只记录种类、大小和结果代码，绝不记录剪贴板的值、文件名、登录名或地址；
+        除账户条目本身（服务器地址、你的登录名、一个名称、固定的证书以及你其他设备的公钥）之外，这份日志是它为该功能
+        留下的唯一痕迹，而账户条目可用<em>移除账户</em>删除。</li>
+
         <li><strong>屏幕截图。</strong>只有当您按下截图组合键或在托盘菜单中选择<em>屏幕区域截图</em>时，
         CyrFlip 才会按屏幕当前的样子拍下一张图，让您框选一个矩形，
         并且只把这个矩形作为图片放入剪贴板。默认情况下不向磁盘写入任何内容，也不保留任何内容。只有在您同时开启保存时，
@@ -181,8 +201,9 @@
       <a href="trust.html">为什么 Windows 或杀毒软件可能对 CyrFlip 发出警告</a> - 其中列出的「CyrFlip 从不做的事」与本页所述一致。</p>
 
       <h2>数据共享</h2>
-      <p>没有。CyrFlip 不与开发者或任何第三方共享任何数据。唯一会被发送出去的，是你选中的文本，发往你自己
-      选定的翻译地址 - 默认是你自己电脑上的一个程序 - 而且仅在该可选功能处于开启状态时。
+      <p>没有。CyrFlip 不与开发者或任何第三方共享任何数据。它能发送的，只有你让它发送的内容，发往你指定的地方，
+      而且仅在对应的可选功能处于开启状态时：你选中的文本，发往你自己选定的翻译地址（默认是你自己电脑上的一个程序）；
+      以及你剪贴板上的内容，发往你已登录的交换服务器，并针对你自己的设备加密。
       <em>将日志发送给作者</em>按钮也不例外：它只是在你自己的邮件程序中准备一封邮件，压缩包你可以先打开查看，而且只有你才能发送它。</p>
 
       <h2>本网站</h2>

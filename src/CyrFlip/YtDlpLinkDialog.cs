@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -25,6 +25,7 @@ namespace CyrFlip
 
         public YtDlpLinkDialog(string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             Text = Localization.Translate(uiLanguage, "yt-dlp download");
             FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false; MinimizeBox = false;
             StartPosition = FormStartPosition.CenterParent; ShowInTaskbar = false;

@@ -1,0 +1,540 @@
+{
+  "schemaVersion": 1,
+  "product": "CyrFlip",
+  "helpRoot": "docs/help",
+  "pageTemplate": "{locale}/{help}.html",
+  "index": "index",
+  "surfaces": [
+    {
+      "id": "annotation-editor--monitor-window",
+      "type": "CyrFlip.AnnotationEditor+MonitorWindow",
+      "name": "Draw on capture",
+      "form": "layer",
+      "help": "annotation-editor--monitor-window"
+    },
+    {
+      "id": "backup-restore-dialog",
+      "type": "CyrFlip.BackupRestoreDialog",
+      "name": "CyrFlip",
+      "form": "page",
+      "help": "backup-restore-dialog",
+      "related": [
+        "settings.General"
+      ]
+    },
+    {
+      "id": "busy-dialog",
+      "type": "CyrFlip.BusyDialog",
+      "name": "Busy",
+      "form": "none",
+      "reason": "Progress only; no input other than cancellation."
+    },
+    {
+      "id": "caret-overlay--overlay-form",
+      "type": "CyrFlip.CaretOverlay+OverlayForm",
+      "name": "Caret Overlay+ Overlay Form",
+      "form": "none",
+      "reason": "Noninteractive layout badge."
+    },
+    {
+      "id": "clipboard-history-search-window",
+      "type": "CyrFlip.ClipboardHistorySearchWindow",
+      "name": "Search history",
+      "form": "page",
+      "help": "clipboard-history-search-window",
+      "related": [
+        "clipboard-history-window",
+        "settings.Clipboard"
+      ]
+    },
+    {
+      "id": "clipboard-history-window",
+      "type": "CyrFlip.ClipboardHistoryWindow",
+      "name": "Clipboard history",
+      "form": "page",
+      "help": "clipboard-history-window",
+      "related": [
+        "clipboard-history-search-window",
+        "settings.Clipboard",
+        "settings.Hotkeys"
+      ]
+    },
+    {
+      "id": "confirm-dialog",
+      "type": "CyrFlip.ConfirmDialog",
+      "name": "Confirm",
+      "form": "none",
+      "reason": "The message and answers are the complete explanation."
+    },
+    {
+      "id": "exchange-account-dialog",
+      "type": "CyrFlip.ExchangeAccountDialog",
+      "name": "Add an account on an exchange server",
+      "form": "page",
+      "help": "exchange-account-dialog",
+      "related": [
+        "settings.ExchangeServer"
+      ]
+    },
+    {
+      "id": "exchange-export-dialog",
+      "type": "CyrFlip.ExchangeExportDialog",
+      "name": "Export to exchange file",
+      "form": "page",
+      "help": "exchange-export-dialog",
+      "related": [
+        "settings.Clipboard",
+        "settings.QuickNotes"
+      ]
+    },
+    {
+      "id": "hotkey-dialog",
+      "type": "CyrFlip.HotkeyDialog",
+      "name": "Shortcut",
+      "form": "page",
+      "help": "hotkey-dialog",
+      "related": [
+        "settings.Conversions",
+        "settings.Launcher",
+        "settings.Translate",
+        "settings.WindowsLanguages"
+      ]
+    },
+    {
+      "id": "launcher-scenario-dialog",
+      "type": "CyrFlip.LauncherScenarioDialog",
+      "name": "New scenario",
+      "form": "page",
+      "help": "launcher-scenario-dialog",
+      "related": [
+        "settings.Launcher"
+      ]
+    },
+    {
+      "id": "launcher-taskbar-window",
+      "type": "CyrFlip.LauncherTaskbarWindow",
+      "name": "Launcher Taskbar Window",
+      "form": "none",
+      "reason": "Invisible taskbar identity window; its menu is not a surface."
+    },
+    {
+      "id": "layout-conversion-dialog",
+      "type": "CyrFlip.LayoutConversionDialog",
+      "name": "New layout conversion",
+      "form": "page",
+      "help": "layout-conversion-dialog",
+      "related": [
+        "settings.Conversions"
+      ]
+    },
+    {
+      "id": "layout-picker-dialog",
+      "type": "CyrFlip.LayoutPickerDialog",
+      "name": "Add layout",
+      "form": "page",
+      "help": "layout-picker-dialog",
+      "related": [
+        "settings.WindowsLanguages"
+      ]
+    },
+    {
+      "id": "quick-notes-window",
+      "type": "CyrFlip.QuickNotesWindow",
+      "name": "Quick notes (Ctrl+Shift+Alt+N)",
+      "form": "page",
+      "help": "quick-notes-window",
+      "related": [
+        "settings.QuickNotes"
+      ]
+    },
+    {
+      "id": "region-selection-overlay--monitor-window",
+      "type": "CyrFlip.RegionSelectionOverlay+MonitorWindow",
+      "name": "Select a screen region",
+      "form": "layer",
+      "help": "region-selection-overlay--monitor-window"
+    },
+    {
+      "id": "screenshot-toolbar",
+      "type": "CyrFlip.ScreenshotToolbar",
+      "name": "Draw on capture",
+      "form": "layer",
+      "help": "screenshot-toolbar",
+      "keyboard": "Only while the window has keyboard focus; the help button remains available without activation."
+    },
+    {
+      "id": "settings-form",
+      "type": "CyrFlip.SettingsForm",
+      "name": "CyrFlip Settings",
+      "form": "page",
+      "help": "settings-form",
+      "related": [
+        "settings.About",
+        "settings.General",
+        "settings.Hotkeys"
+      ]
+    },
+    {
+      "id": "settings-form--settings-search-dialog",
+      "type": "CyrFlip.SettingsForm+SettingsSearchDialog",
+      "name": "Search settings",
+      "form": "page",
+      "help": "settings-form--settings-search-dialog",
+      "related": [
+        "settings.General"
+      ]
+    },
+    {
+      "id": "settings-loading-notice",
+      "type": "CyrFlip.SettingsLoadingNotice",
+      "name": "Settings Loading Notice",
+      "form": "none",
+      "reason": "Progress-only settings loading notice."
+    },
+    {
+      "id": "settings-transfer-dialog",
+      "type": "CyrFlip.SettingsTransferDialog",
+      "name": "Settings transfer",
+      "form": "page",
+      "help": "settings-transfer-dialog",
+      "related": [
+        "settings.General"
+      ]
+    },
+    {
+      "id": "support-bundle-dialog",
+      "type": "CyrFlip.SupportBundleDialog",
+      "name": "Logs for the author",
+      "form": "page",
+      "help": "support-bundle-dialog",
+      "related": [
+        "settings.About"
+      ]
+    },
+    {
+      "id": "symbols-window",
+      "type": "CyrFlip.SymbolsWindow",
+      "name": "Symbols window",
+      "form": "page",
+      "help": "symbols-window",
+      "related": [
+        "settings.Symbols"
+      ]
+    },
+    {
+      "id": "traffic-light-quick-add-dialog",
+      "type": "CyrFlip.TrafficLightQuickAddDialog",
+      "name": "New target",
+      "form": "page",
+      "help": "traffic-light-quick-add-dialog",
+      "related": [
+        "settings.TrafficLight",
+        "traffic-light-window"
+      ]
+    },
+    {
+      "id": "traffic-light-target-dialog",
+      "type": "CyrFlip.TrafficLightTargetDialog",
+      "name": "New target",
+      "form": "page",
+      "help": "traffic-light-target-dialog",
+      "related": [
+        "settings.TrafficLight",
+        "traffic-light-window"
+      ]
+    },
+    {
+      "id": "traffic-light-window",
+      "type": "CyrFlip.TrafficLightWindow",
+      "name": "Availability traffic light",
+      "form": "page",
+      "help": "traffic-light-window",
+      "keyboard": "Only while the window has keyboard focus; the help button remains available without activation.",
+      "related": [
+        "settings.TrafficLight",
+        "traffic-light-quick-add-dialog",
+        "traffic-light-target-dialog"
+      ]
+    },
+    {
+      "id": "translation-dialog",
+      "type": "CyrFlip.TranslationDialog",
+      "name": "New translation direction",
+      "form": "page",
+      "help": "translation-dialog",
+      "related": [
+        "settings.Translate"
+      ]
+    },
+    {
+      "id": "translation-result-window",
+      "type": "CyrFlip.TranslationResultWindow",
+      "name": "Translation",
+      "form": "page",
+      "help": "translation-result-window",
+      "related": [
+        "settings.Translate"
+      ]
+    },
+    {
+      "id": "tray-hotkeys-popup",
+      "type": "CyrFlip.TrayHotkeysPopup",
+      "name": "Tray Hotkeys Popup",
+      "form": "none",
+      "reason": "Read-only hover tooltip; the tray Help item and Hotkeys page provide help."
+    },
+    {
+      "id": "welcome-dialog",
+      "type": "CyrFlip.WelcomeDialog",
+      "name": "CyrFlip",
+      "form": "page",
+      "help": "welcome-dialog",
+      "related": [
+        "welcome.0"
+      ]
+    },
+    {
+      "id": "yt-dlp-link-dialog",
+      "type": "CyrFlip.YtDlpLinkDialog",
+      "name": "yt-dlp download",
+      "form": "page",
+      "help": "yt-dlp-link-dialog",
+      "related": [
+        "settings.Launcher"
+      ]
+    },
+    {
+      "id": "settings.General",
+      "name": "General",
+      "form": "page",
+      "help": "settings-general",
+      "related": [
+        "backup-restore-dialog",
+        "settings-form",
+        "settings-form--settings-search-dialog",
+        "settings-transfer-dialog",
+        "welcome.0",
+        "welcome.1",
+        "welcome.2",
+        "welcome.3",
+        "welcome.4"
+      ]
+    },
+    {
+      "id": "settings.Indicators",
+      "name": "Indicators",
+      "form": "page",
+      "help": "settings-indicators"
+    },
+    {
+      "id": "settings.WindowsLanguages",
+      "name": "Windows languages",
+      "form": "page",
+      "help": "settings-windowslanguages",
+      "related": [
+        "hotkey-dialog",
+        "layout-picker-dialog"
+      ]
+    },
+    {
+      "id": "settings.Conversions",
+      "name": "Text correction",
+      "form": "page",
+      "help": "settings-conversions",
+      "related": [
+        "hotkey-dialog",
+        "layout-conversion-dialog"
+      ]
+    },
+    {
+      "id": "settings.SelectionMenu",
+      "name": "Selection menu",
+      "form": "page",
+      "help": "settings-selectionmenu"
+    },
+    {
+      "id": "settings.Symbols",
+      "name": "Symbols",
+      "form": "page",
+      "help": "settings-symbols",
+      "related": [
+        "symbols-window"
+      ]
+    },
+    {
+      "id": "settings.Translate",
+      "name": "Translation",
+      "form": "page",
+      "help": "settings-translate",
+      "related": [
+        "hotkey-dialog",
+        "translation-dialog",
+        "translation-result-window"
+      ]
+    },
+    {
+      "id": "settings.Clipboard",
+      "name": "Clipboard",
+      "form": "page",
+      "help": "settings-clipboard",
+      "related": [
+        "clipboard-history-search-window",
+        "clipboard-history-window",
+        "exchange-export-dialog"
+      ]
+    },
+    {
+      "id": "settings.QuickNotes",
+      "name": "Quick notes",
+      "form": "page",
+      "help": "settings-quicknotes",
+      "related": [
+        "exchange-export-dialog",
+        "quick-notes-window"
+      ]
+    },
+    {
+      "id": "settings.Graphics",
+      "name": "Screenshots",
+      "form": "page",
+      "help": "settings-graphics"
+    },
+    {
+      "id": "settings.Launcher",
+      "name": "Quick launch",
+      "form": "page",
+      "help": "settings-launcher",
+      "related": [
+        "hotkey-dialog",
+        "launcher-scenario-dialog",
+        "yt-dlp-link-dialog"
+      ]
+    },
+    {
+      "id": "settings.TrafficLight",
+      "name": "Availability traffic light",
+      "form": "page",
+      "help": "settings-trafficlight",
+      "related": [
+        "traffic-light-quick-add-dialog",
+        "traffic-light-target-dialog",
+        "traffic-light-window"
+      ]
+    },
+    {
+      "id": "settings.ExchangeServer",
+      "name": "Exchange server",
+      "form": "page",
+      "help": "settings-exchangeserver",
+      "related": [
+        "exchange-account-dialog"
+      ]
+    },
+    {
+      "id": "settings.Hotkeys",
+      "name": "Hotkeys",
+      "form": "page",
+      "help": "settings-hotkeys",
+      "related": [
+        "clipboard-history-window",
+        "settings-form"
+      ]
+    },
+    {
+      "id": "settings.About",
+      "name": "About",
+      "form": "page",
+      "help": "settings-about",
+      "related": [
+        "settings-form",
+        "support-bundle-dialog",
+        "welcome.0"
+      ]
+    },
+    {
+      "id": "welcome.0",
+      "name": "Welcome to CyrFlip",
+      "form": "page",
+      "help": "welcome-0",
+      "related": [
+        "settings.About",
+        "settings.General",
+        "welcome-dialog",
+        "welcome.1"
+      ]
+    },
+    {
+      "id": "welcome.1",
+      "name": "Indicators",
+      "form": "page",
+      "help": "welcome-1",
+      "related": [
+        "settings.General",
+        "welcome.0",
+        "welcome.2"
+      ]
+    },
+    {
+      "id": "welcome.2",
+      "name": "Layout conversions",
+      "form": "page",
+      "help": "welcome-2",
+      "related": [
+        "settings.General",
+        "welcome.1",
+        "welcome.3"
+      ]
+    },
+    {
+      "id": "welcome.3",
+      "name": "Optional features",
+      "form": "page",
+      "help": "welcome-3",
+      "related": [
+        "settings.General",
+        "welcome.2",
+        "welcome.4"
+      ]
+    },
+    {
+      "id": "welcome.4",
+      "name": "Where CyrFlip lives",
+      "form": "page",
+      "help": "welcome-4",
+      "related": [
+        "settings.General",
+        "welcome.3"
+      ]
+    },
+    {
+      "id": "index",
+      "name": "Help",
+      "form": "page",
+      "help": "index"
+    },
+    {
+      "id": "tray-menu",
+      "name": "Tray menu",
+      "form": "none",
+      "reason": "A menu, not an independent window; the Help item opens the index."
+    },
+    {
+      "id": "text-menu",
+      "name": "Selection menu",
+      "form": "none",
+      "reason": "A context menu; described by settings.SelectionMenu."
+    },
+    {
+      "id": "launcher-menu",
+      "name": "Launcher menu",
+      "form": "none",
+      "reason": "A menu; described by settings.Launcher."
+    },
+    {
+      "id": "common-dialogs",
+      "name": "Windows file and folder pickers",
+      "form": "none",
+      "reason": "Operating-system common dialogs."
+    }
+  ]
+}

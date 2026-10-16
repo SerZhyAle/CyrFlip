@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CyrFlip;
 using Xunit;
@@ -33,6 +33,19 @@ namespace CyrFlip.Tests
             flags = injectedByUs ? LLKHF_INJECTED : 0,
             dwExtraInfo = injectedByUs ? KeyInjection.Tag : IntPtr.Zero,
         };
+
+        [Fact]
+        public void BareF1AlwaysPassesThroughTheGlobalHook()
+        {
+            using KeyboardHook hook = new FakeHooks().Create();
+            Install(hook);
+            Assert.False(hook.Decide(Key(0x70, 10), down: true));
+            Assert.False(hook.Decide(Key(0x70, 20), down: false));
+            hook.Install(Hotkey.Parse("F1"), Hotkey.Parse("Ctrl+Shift+F10"), Hotkey.Parse(AppConfig.DefaultQuickNotesHotkey),
+                deferInRemoteClient: false, enabled: true, caseEnabled: true, historyEnabled: true, quickNotesEnabled: false);
+            Assert.False(hook.Decide(Key(0x70, 30), down: true));
+            Assert.False(hook.Decide(Key(0x70, 40), down: false));
+        }
 
         [Fact]
         public void AFailedReinstallKeepsTheOldHookAndKeepsReportingFailure()
@@ -154,7 +167,8 @@ namespace CyrFlip.Tests
         [Fact]
         public void TheScreenshotFolderChordFiresWhileEnabledAndPassesThroughWhileDisabled()
         {
-            const uint PrintScreen = 0x2C;
+            // S0071 re-keyed the shipped folder chord to Ctrl+F10.
+            const uint F10 = 0x79;
             KeyboardHook hook = new FakeHooks().Create();
             Install(hook);
             hook.UpdateScreenshotFolderHotkey(Hotkey.Parse(AppConfig.DefaultScreenshotFolderHotkey));
@@ -163,16 +177,16 @@ namespace CyrFlip.Tests
 
             // Not bound: saving is off, the keystroke belongs to whatever else wants it (S0057 D2).
             Assert.False(hook.Decide(Key(0xA2, 10), down: true));
-            Assert.False(hook.Decide(Key(0xA0, 20), down: true));
-            Assert.False(hook.Decide(Key(PrintScreen, 30), down: false)); // the lone event Windows sends
+            Assert.False(hook.Decide(Key(F10, 30), down: true));
             Assert.Equal(0, fired);
 
-            // Live: the lone key-up fires and is swallowed.
+            // Live: the press fires and is swallowed with its repeat and its release. Modifier keys
+            // themselves always pass through (ChordMatcher never swallows them).
             hook.UpdateScreenshotFolderEnabled(true);
-            Assert.True(hook.Decide(Key(PrintScreen, 100), down: false));
+            Assert.False(hook.Decide(Key(0xA2, 100), down: true));
+            Assert.True(hook.Decide(Key(F10, 110), down: true));
+            Assert.True(hook.Decide(Key(F10, 130), down: false)); // release: swallowed, no second fire
             Assert.Equal(1, fired);
-            Assert.True(hook.Decide(Key(PrintScreen, 300), down: false)); // every press, none eaten as a "release"
-            Assert.Equal(2, fired);
         }
 
         [Fact]
@@ -198,29 +212,50 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void TheFolderChordDoesNotFireOnTheCaptureChordsFewerModifiers()
+        public void FewerModifiersNeverFireTheChordThatNeedsMore()
         {
-            // Both chords live on PrintScreen; exact matching (INPUT-CHORD rule 9) tells them apart.
-            const uint PrintScreen = 0x2C;
+            // S0071's chord map keeps two shipped prefix pairs, and exact matching (INPUT-CHORD rule 9)
+            // tells each pair apart: folder Ctrl+F10 vs history Ctrl+Shift+F10, full capture Ctrl+F11
+            // vs case flip Ctrl+Shift+F11.
+            const uint F10 = 0x79, F11 = 0x7A;
             KeyboardHook hook = new FakeHooks().Create();
             Install(hook);
-            hook.UpdateScreenshotHotkey(Hotkey.Parse(AppConfig.DefaultScreenshotHotkey));
-            hook.UpdateScreenshotEnabled(true);
             hook.UpdateScreenshotFolderHotkey(Hotkey.Parse(AppConfig.DefaultScreenshotFolderHotkey));
             hook.UpdateScreenshotFolderEnabled(true);
-            int capture = 0, folder = 0;
-            hook.ScreenshotHotkeyPressed += (_, _) => capture++;
+            hook.UpdateScreenshotFullHotkey(Hotkey.Parse(AppConfig.DefaultScreenshotFullHotkey));
+            hook.UpdateScreenshotFullEnabled(true);
+            int folder = 0, history = 0, full = 0, caseFlip = 0;
             hook.ScreenshotFolderHotkeyPressed += (_, _) => folder++;
+            hook.ClipboardHistoryHotkeyPressed += (_, _) => history++;
+            hook.ScreenshotFullHotkeyPressed += (_, _) => full++;
+            hook.CaseHotkeyPressed += (_, _) => caseFlip++;
 
+            // Ctrl+F10: the folder's.
             Assert.False(hook.Decide(Key(0xA2, 10), down: true));
-            Assert.True(hook.Decide(Key(PrintScreen, 30), down: false)); // Ctrl alone: the capture's
-            Assert.Equal(1, capture);
-            Assert.Equal(0, folder);
-
-            Assert.False(hook.Decide(Key(0xA0, 60), down: true));
-            Assert.True(hook.Decide(Key(PrintScreen, 70), down: false)); // plus Shift: the folder's
-            Assert.Equal(1, capture);
+            Assert.True(hook.Decide(Key(F10, 30), down: true));
+            Assert.True(hook.Decide(Key(F10, 40), down: false));  // its release is swallowed
             Assert.Equal(1, folder);
+            Assert.Equal(0, history);
+
+            // Ctrl+Shift+F10: the history's, not the folder's (rule 9 - exact matching).
+            Assert.False(hook.Decide(Key(0xA0, 60), down: true));
+            Assert.True(hook.Decide(Key(F10, 70), down: true));
+            Assert.True(hook.Decide(Key(F10, 80), down: false));
+            Assert.Equal(1, folder);
+            Assert.Equal(1, history);
+
+            // Ctrl+F11: the full capture's (Shift released, Ctrl still held).
+            Assert.False(hook.Decide(Key(0xA0, 90), down: false));
+            Assert.True(hook.Decide(Key(F11, 110), down: true));
+            Assert.True(hook.Decide(Key(F11, 120), down: false));
+            Assert.Equal(1, full);
+            Assert.Equal(0, caseFlip);
+
+            // Ctrl+Shift+F11: the case flip's, not the capture's.
+            Assert.False(hook.Decide(Key(0xA0, 140), down: true));
+            Assert.True(hook.Decide(Key(F11, 150), down: true));
+            Assert.Equal(1, full);
+            Assert.Equal(1, caseFlip);
         }
 
         [Fact]
@@ -273,6 +308,35 @@ namespace CyrFlip.Tests
             // Once resumed, chords fire normally
             Assert.True(hook.Decide(Key(0x7A, 50), down: true));
             Assert.Equal(1, fired);
+        }
+
+        [Fact]
+        public void ExchangeSendAndGetChordsFireWhenBoundAndEnabled()
+        {
+            KeyboardHook hook = new FakeHooks().Create();
+            Install(hook, enabled: true);
+            hook.UpdateExchangeSendHotkey(Hotkey.Parse("Ctrl+Shift+F8"));
+            hook.UpdateExchangeSendEnabled(true);
+            hook.UpdateExchangeGetHotkey(Hotkey.Parse("Ctrl+Shift+F9"));
+            hook.UpdateExchangeGetEnabled(true);
+
+            int sent = 0;
+            int got = 0;
+            hook.ExchangeSendHotkeyPressed += (_, _) => sent++;
+            hook.ExchangeGetHotkeyPressed += (_, _) => got++;
+
+            // LCtrl + LShift + F8 -> Send
+            hook.Decide(Key(0xA2, 10), down: true);
+            hook.Decide(Key(0xA0, 20), down: true);
+            Assert.True(hook.Decide(Key(0x77, 30), down: true)); // F8 = 0x77
+            Assert.Equal(1, sent);
+            Assert.Equal(0, got);
+
+            // Release F8, press F9 -> Get
+            hook.Decide(Key(0x77, 40), down: false);
+            Assert.True(hook.Decide(Key(0x78, 50), down: true)); // F9 = 0x78
+            Assert.Equal(1, sent);
+            Assert.Equal(1, got);
         }
     }
 }

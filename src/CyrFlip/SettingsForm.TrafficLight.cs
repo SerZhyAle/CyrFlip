@@ -26,6 +26,8 @@ namespace CyrFlip
             Minimum = AppConfig.MinTrafficLightColumns, Maximum = AppConfig.MaxTrafficLightColumns,
             Value = AppConfig.DefaultTrafficLightColumns, Width = 70, Margin = new Padding(3, 4, 3, 4),
         };
+        private readonly TrackBar _tlTransparency = new TrackBar { Minimum = 0, Maximum = 100, TickFrequency = 10, SmallChange = 5, LargeChange = 10, Width = 245 };
+        private readonly Label _tlTransparencyValue = new Label { AutoSize = true };
         private readonly TextBox _tlAddBox = new TextBox
         {
             Multiline = true, AcceptsReturn = false, WordWrap = false, ScrollBars = ScrollBars.Vertical, Width = 520,
@@ -74,6 +76,7 @@ namespace CyrFlip
             _tlPinned.Name = "setting.traffic-light-pin";
             _tlTileSize.Name = "setting.traffic-light-tile-size";
             _tlColumns.Name = "setting.traffic-light-columns";
+            _tlTransparency.Name = "setting.traffic-light-transparency";
             _tlAddBox.Name = "setting.traffic-light-add";
             _tlEnabled.CheckedChanged += (_, _) =>
                 TrafficLightSettingChanged(() => _config.EnableTrafficLight = _tlEnabled.Checked, reload: true);
@@ -84,10 +87,17 @@ namespace CyrFlip
             _tlTileSize.SelectedIndexChanged += (_, _) =>
             {
                 if (_loading || _tlTileSize.SelectedIndex < 0) return;
-                TrafficLightSettingChanged(() => _config.TrafficLightTileSize = _tlTileSize.SelectedIndex);
+                TrafficLightSettingChanged(() => _config.TrafficLightTileSize = _tlTileSize.SelectedIndex == 0
+                    ? AppConfig.MicroscopicTrafficLightTileSize : _tlTileSize.SelectedIndex - 1);
             };
             _tlColumns.ValueChanged += (_, _) =>
                 TrafficLightSettingChanged(() => _config.TrafficLightColumns = (int)_tlColumns.Value);
+            _tlTransparency.ValueChanged += (_, _) =>
+            {
+                if (_loading) return;
+                _tlTransparencyValue.Text = _tlTransparency.Value + "%";
+                TrafficLightSettingChanged(() => _config.TrafficLightWindowTransparency = _tlTransparency.Value);
+            };
             _tlAddBox.KeyDown += OnTrafficLightAddKeyDown;
             _tlAddBox.TextChanged += (_, _) => ClearTrafficLightAddStatus();
         }
@@ -99,8 +109,11 @@ namespace CyrFlip
             _tlHotkeyValue.Text = _config.TrafficLightHotkey;
             _tlPinned.Checked = _config.TrafficLightPinned;
             FillTileSizeCombo();
-            _tlTileSize.SelectedIndex = Math.Max(0, Math.Min(2, _config.TrafficLightTileSize));
+            _tlTileSize.SelectedIndex = _config.TrafficLightTileSize == AppConfig.MicroscopicTrafficLightTileSize
+                ? 0 : Math.Max(0, Math.Min(2, _config.TrafficLightTileSize)) + 1;
             _tlColumns.Value = Math.Max(_tlColumns.Minimum, Math.Min(_tlColumns.Maximum, _config.TrafficLightColumns));
+            _tlTransparency.Value = Math.Max(0, Math.Min(100, _config.TrafficLightWindowTransparency));
+            _tlTransparencyValue.Text = _tlTransparency.Value + "%";
             foreach (Control control in _tlControls) control.Enabled = _config.EnableTrafficLight;
         }
 
@@ -108,10 +121,11 @@ namespace CyrFlip
         {
             int selected = _tlTileSize.SelectedIndex;
             _tlTileSize.Items.Clear();
+            _tlTileSize.Items.Add(Translate("Microscopic (tiles)"));
             _tlTileSize.Items.Add(Translate("Small (tiles)"));
             _tlTileSize.Items.Add(Translate("Medium (tiles)"));
             _tlTileSize.Items.Add(Translate("Large (tiles)"));
-            if (selected >= 0 && selected < 3) _tlTileSize.SelectedIndex = selected;
+            if (selected >= 0 && selected < 4) _tlTileSize.SelectedIndex = selected;
         }
 
         private TabPage TrafficLightPage()
@@ -119,9 +133,12 @@ namespace CyrFlip
             _tlUndo = Button("Undo the addition", AppGlyphs.Undo, UndoTrafficLightAdd);
             _tlUndo.Visible = false;
             TabPage page = Page("Availability traffic light",
-                "A board of tiles for your hosts, sites, folders and drives. Checks run while CyrFlip runs; results stay in memory.",
-                Setting(_tlEnabled, "While off, there is no timer, no shortcut, no tray item and no window, and CyrFlip makes no network checks."));
+                "A board of tiles for your hosts, sites, folders and drives; checks run while CyrFlip runs, results stay in memory.");
             FlowLayoutPanel panel = ContentPanel(page);
+
+            // The module switch leads in a group of its own, like the hotkeys page's (S0060 M4).
+            panel.Controls.Add(Group("trafficlight/switches", "Main switches",
+                Setting(_tlEnabled, "While off, there is no timer, no shortcut, no tray item and no window, and CyrFlip makes no network checks.")));
 
             panel.Controls.Add(Group("trafficlight/module", "Board",
                 TrackTrafficLight(HotkeyRow(_tlHotkeyEnabled, _tlHotkeyValue, () => TrafficLightHotkeyChangeRequested?.Invoke(this, EventArgs.Empty),
@@ -129,9 +146,11 @@ namespace CyrFlip
                 TrackTrafficLight(Setting(_tlPinned,
                     "The board stays on top in a corner; drag it anywhere. It is hidden from screenshots and screen sharing.")),
                 TrackTrafficLight(Setting(LabeledRow("Tile size:", _tlTileSize),
-                    "Tile size: a small tile is a bare square - hover for its name. The others show label and detail.")),
+                    "Microscopic: half-size squares without buttons. Drag any square to move; double-click to open these settings.")),
                 TrackTrafficLight(Setting(LabeledRow("Columns:", _tlColumns),
                     "Columns: the board puts this many tiles in a row; the rows follow from the number of targets.")),
+                TrackTrafficLight(Setting(TrafficLightTransparencyRow(),
+                    "Board window transparency: 0 is a solid window, 100 leaves only the buttons and the tiles visible. Applied immediately.")),
                 TrackTrafficLight(Button("Show the board", AppGlyphs.Run, () => OpenTrafficLightRequested?.Invoke(this, EventArgs.Empty)))));
 
             panel.Controls.Add(Group("trafficlight/targets", "Targets",
@@ -156,6 +175,16 @@ namespace CyrFlip
                 TrackTrafficLight(TrafficLightHistoryButtons())));
             WireTrafficLight();
             return page;
+        }
+
+        /// <summary>The board window's transparency: a caption, a slider and the live percent beside it.</summary>
+        private Control TrafficLightTransparencyRow()
+        {
+            var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Padding = new Padding(0, 7, 0, 0) };
+            row.Controls.Add(new Label { Text = "Board window transparency:", AutoSize = true, Tag = "caption", Padding = new Padding(0, 8, 5, 0) });
+            row.Controls.Add(_tlTransparency);
+            row.Controls.Add(_tlTransparencyValue);
+            return row;
         }
 
         private Control TrafficLightAddButtons()
@@ -286,7 +315,7 @@ namespace CyrFlip
         private Control TrafficLightRow(TrafficLightTarget target, TrafficLightTile? tile, int index, int count)
         {
             var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 1, 3, 1) };
-            var enabled = new RowCheckBox { Checked = target.Enabled, AutoSize = true, Margin = new Padding(3, 6, 2, 2) };
+            var enabled = new RowCheckBox { Checked = target.Enabled, AutoSize = true, Margin = new Padding(3, 0, 2, 0), Anchor = AnchorStyles.Left };
             enabled.CheckedChanged += (_, _) =>
             {
                 if (_loading) return;

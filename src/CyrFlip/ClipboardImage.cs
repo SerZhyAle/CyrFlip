@@ -64,6 +64,69 @@ namespace CyrFlip
             return dib;
         }
 
+        /// <summary>The most pixels a picture may have to be converted at all (a bitmap bomb is refused, not decoded).</summary>
+        internal const long MaxPixels = 300L * 1000 * 1000;
+
+        /// <summary>
+        /// A packed DIB (<c>CF_DIB</c>, or <c>CF_DIBV5</c> whose header is longer) as a PNG file's bytes, or null
+        /// when it is not a DIB this reader can place: the header is walked to find where the pixels start
+        /// (palette, and the three masks of a 16/32-bit <c>BI_BITFIELDS</c> bitmap with the short header), a
+        /// bitmap file header is written in front and the picture is re-encoded.
+        /// </summary>
+        public static byte[]? DibToPng(byte[] dib)
+        {
+            try
+            {
+                if (dib.Length < HeaderSize) return null;
+                int headerSize = BitConverter.ToInt32(dib, 0);
+                if (headerSize < HeaderSize || headerSize > 124 || headerSize > dib.Length) return null;
+                int width = BitConverter.ToInt32(dib, 4);
+                int height = BitConverter.ToInt32(dib, 8);
+                int bits = BitConverter.ToInt16(dib, 14);
+                int compression = BitConverter.ToInt32(dib, 16);
+                int colorsUsed = BitConverter.ToInt32(dib, 32);
+                if (width <= 0 || height == 0 || (long)width * Math.Abs((long)height) > MaxPixels) return null;
+
+                int palette = bits <= 8 ? (colorsUsed != 0 ? colorsUsed : 1 << bits) * 4 : colorsUsed * 4;
+                int masks = headerSize == HeaderSize && compression == 3 ? 12 : 0; // BI_BITFIELDS
+                long pixelsAt = 14L + headerSize + masks + palette;
+                if (pixelsAt > 14L + dib.Length) return null;
+
+                var file = new byte[14 + dib.Length];
+                file[0] = (byte)'B';
+                file[1] = (byte)'M';
+                WriteInt32(file, 2, file.Length);
+                WriteInt32(file, 10, (int)pixelsAt);
+                Buffer.BlockCopy(dib, 0, file, 14, dib.Length);
+
+                using (var source = new MemoryStream(file))
+                using (var bitmap = new Bitmap(source))
+                    return EncodePng(bitmap);
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is ExternalException || ex is OutOfMemoryException || ex is OverflowException)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>A PNG file's bytes as a packed 32bpp DIB of the same pixels, or null when they are not a picture.</summary>
+        public static byte[]? PngToDib(byte[] png)
+        {
+            try
+            {
+                using (var source = new MemoryStream(png))
+                using (var bitmap = new Bitmap(source))
+                {
+                    if ((long)bitmap.Width * bitmap.Height > MaxPixels) return null;
+                    return EncodeDib(bitmap);
+                }
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is ExternalException || ex is OutOfMemoryException || ex is OverflowException)
+            {
+                return null;
+            }
+        }
+
         private static void WriteInt32(byte[] buffer, int offset, int value)
         {
             buffer[offset] = (byte)value;

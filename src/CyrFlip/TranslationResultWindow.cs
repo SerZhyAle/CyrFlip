@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 using static CyrFlip.WindowInterop;
@@ -50,6 +50,7 @@ namespace CyrFlip
 
         public TranslationResultWindow(AppConfig config, string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             _config = config;
             _uiLanguage = uiLanguage;
 
@@ -243,6 +244,7 @@ namespace CyrFlip
 
         public void ApplyLanguage(string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             _uiLanguage = uiLanguage;
             ApplyScript();
             ApplyTexts();
@@ -381,6 +383,8 @@ namespace CyrFlip
         /// somewhere else" is a poll: the popup lives as long as the window it opened over stays in
         /// front (the user is still reading), and closes as soon as they move on.
         /// </summary>
+        internal void KeepOpenForHelp() { _autoClose.Stop(); _watchForeground.Stop(); }
+
         private void WatchForeground()
         {
             if (!Visible) return;

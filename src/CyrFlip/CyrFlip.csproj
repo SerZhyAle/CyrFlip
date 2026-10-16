@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -35,6 +35,11 @@
   <ItemGroup>
     <!-- Let the test project exercise internal types (Hotkey, TransliterationEngine, ..). -->
     <InternalsVisibleTo Include="CyrFlip.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\help-map.json" LogicalName="CyrFlip.help-map.json" />
+    <EmbeddedResource Include="..\..\docs\help\**\*" LogicalName="CyrFlip.help/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

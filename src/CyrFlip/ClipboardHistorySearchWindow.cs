@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -39,6 +39,7 @@ namespace CyrFlip
         /// <param name="exchange">Export / import of the exchange file (S0023); null leaves the two buttons out.</param>
         public ClipboardHistorySearchWindow(ClipboardHistoryService service, string language, Action<IWin32Window, bool>? exchange = null)
         {
+            HelpLanguage = language;
             _service = service;
             _language = language;
             Text = Localize("Search history");
@@ -107,6 +108,7 @@ namespace CyrFlip
 
         internal void ApplyLanguage(string language)
         {
+            HelpLanguage = language;
             if (language == _language) return;
             var captions = Localization.All.GroupBy(e => Localization.Translate(_language, e.Key))
                 .ToDictionary(g => g.Key, g => g.First().Key);

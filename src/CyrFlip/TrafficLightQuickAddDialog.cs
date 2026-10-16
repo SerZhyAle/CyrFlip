@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
@@ -37,6 +37,7 @@ namespace CyrFlip
         public TrafficLightQuickAddDialog(string uiLanguage, Func<IReadOnlyCollection<TrafficLightTarget>> existing,
             TrafficLightProbeSet probes, string address = "", string label = "")
         {
+            HelpLanguage = uiLanguage;
             _uiLanguage = uiLanguage;
             _existing = existing ?? throw new ArgumentNullException(nameof(existing));
             _probes = probes ?? throw new ArgumentNullException(nameof(probes));
@@ -244,6 +245,7 @@ namespace CyrFlip
 
         private void ApplyScript(string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             if (Localization.IsRightToLeft(uiLanguage)) { RightToLeft = RightToLeft.Yes; RightToLeftLayout = true; }
             string? family = Localization.FontFamily(uiLanguage);
             if (family == null) return;

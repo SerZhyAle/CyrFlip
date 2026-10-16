@@ -70,7 +70,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void EveryEditorCarriesAnAccessibleNameInEveryLanguage()
         {
             var problems = new List<string>();

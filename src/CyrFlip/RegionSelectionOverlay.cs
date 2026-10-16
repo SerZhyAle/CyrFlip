@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -290,6 +290,7 @@ namespace CyrFlip
                 KeyPreview = true;
                 Cursor = Cursors.Cross;
                 Text = "CyrFlip";
+                ContextHelpUi.Attach(this);
                 SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint
                     | ControlStyles.OptimizedDoubleBuffer | ControlStyles.Opaque, true);
             }
@@ -333,7 +334,11 @@ namespace CyrFlip
             /// (<see cref="RegionSelectionOverlay.OnKey"/>).
             /// </summary>
             protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
-                => _owner.OnKey(keyData, Monitor) || base.ProcessCmdKey(ref msg, keyData);
+            {
+                if (CaptureHelpLayer.HandleKey(this, keyData)) return true;
+                if (keyData == Keys.F1) { ContextHelp.Open(this); return true; }
+                return _owner.OnKey(keyData, Monitor) || base.ProcessCmdKey(ref msg, keyData);
+            }
 
             protected override void OnDeactivate(EventArgs e)
             {

@@ -123,9 +123,13 @@ namespace CyrFlip.Tests
             Assert.Equal(LauncherIpc.SettingsCommand, received);
         }
 
-        /// <summary>With the launcher off only /exit gets through - the build scripts still need it.</summary>
+        /// <summary>
+        /// With the launcher off only the application's own commands get through: /exit (the build
+        /// scripts still need it) and /launcher-settings (a plain second launch asks the live instance
+        /// for its settings window - APP-ACTIVATION rule 7C, S0060 P7-n). A scenario run does not.
+        /// </summary>
         [Fact]
-        public void WithTheLauncherOffOnlyExitIsPassedOn()
+        public void WithTheLauncherOffOnlyTheApplicationCommandsArePassedOn()
         {
             string pipe = "CyrFlipTests_" + Guid.NewGuid().ToString("N");
             var received = new System.Collections.Concurrent.ConcurrentQueue<string>();
@@ -139,7 +143,7 @@ namespace CyrFlip.Tests
             Assert.True(SendWithRetry(LauncherIpc.ExitCommand, pipe));
 
             Assert.True(exited.Wait(TimeSpan.FromSeconds(5)));
-            Assert.Equal(new[] { LauncherIpc.ExitCommand }, received.ToArray());
+            Assert.Equal(new[] { LauncherIpc.SettingsCommand, LauncherIpc.ExitCommand }, received.ToArray());
         }
 
         private static bool SendWithRetry(string command, string pipe)

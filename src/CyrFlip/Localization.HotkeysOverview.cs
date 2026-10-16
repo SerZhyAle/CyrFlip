@@ -9,6 +9,35 @@ namespace CyrFlip
     {
         private static void AddHotkeysOverviewStrings()
         {
+            // S0060 M7: the description is one sentence; "change or reset here" is the lead-in note of the list.
+            Add("The full list of CyrFlip hotkeys: what each one does, whether it works right now and why.",
+                ru: "Полный список сочетаний CyrFlip: что делает каждое, действует ли оно сейчас и почему.",
+                uk: "Повний список комбінацій CyrFlip: що робить кожна, чи діє вона зараз і чому.",
+                de: "Die vollständige Liste der CyrFlip-Tastenkürzel: was jedes tut, ob es gerade wirkt und warum.",
+                it: "L'elenco completo delle scorciatoie di CyrFlip: cosa fa ciascuna, se è attiva ora e perché.",
+                es: "La lista completa de atajos de CyrFlip: qué hace cada uno, si funciona ahora y por qué.",
+                fr: "La liste complète des raccourcis de CyrFlip : ce que fait chacun, s'il agit en ce moment et pourquoi.",
+                pt: "A lista completa dos atalhos do CyrFlip: o que cada um faz, se está ativo agora e porquê.",
+                ar: "القائمة الكاملة لاختصارات CyrFlip: ما يفعله كل منها، وهل يعمل الآن ولماذا.",
+                hi: "CyrFlip के सभी शॉर्टकट की पूरी सूची: हर एक क्या करता है, क्या वह अभी काम कर रहा है और क्यों।",
+                bn: "CyrFlip-এর সব শর্টকাটের পূর্ণ তালিকা: প্রতিটি কী করে, এখন কাজ করছে কি না এবং কেন।",
+                ur: "CyrFlip کے تمام شارٹ کٹس کی مکمل فہرست: ہر ایک کیا کرتا ہے، آیا ابھی کام کر رہا ہے اور کیوں۔",
+                zh: "CyrFlip 全部快捷键的完整列表：各自的作用、此刻是否生效以及原因。");
+
+            Add("A hotkey can be changed or reset here; the feature's own settings stay on its page.",
+                ru: "Сочетание можно изменить или сбросить здесь; настройки функции остаются на её вкладке.",
+                uk: "Комбінацію можна змінити або скинути тут; налаштування функції залишаються на її вкладці.",
+                de: "Ein Kürzel lässt sich hier ändern oder zurücksetzen; die übrigen Einstellungen der Funktion bleiben auf ihrer Seite.",
+                it: "Qui puoi cambiare o ripristinare una scorciatoia; le impostazioni della funzione restano nella sua pagina.",
+                es: "Aquí se puede cambiar o restablecer un atajo; los ajustes de la función se quedan en su página.",
+                fr: "Un raccourci peut être modifié ou réinitialisé ici ; les réglages de la fonction restent sur sa page.",
+                pt: "Aqui pode alterar ou repor um atalho; as definições da funcionalidade ficam na respetiva página.",
+                ar: "يمكن تغيير الاختصار أو إعادة تعيينه هنا؛ أما إعدادات الميزة فتبقى في صفحتها.",
+                hi: "शॉर्टकट यहीं बदला या रीसेट किया जा सकता है; सुविधा की अपनी सेटिंग उसके पृष्ठ पर ही रहती हैं।",
+                bn: "শর্টকাট এখানেই বদলানো বা রিসেট করা যায়; ফিচারের নিজস্ব সেটিং তার পৃষ্ঠাতেই থাকে।",
+                ur: "شارٹ کٹ یہاں بدلا یا ری سیٹ کیا جا سکتا ہے؛ فیچر کی اپنی سیٹنگز اسی کے صفحے پر رہتی ہیں۔",
+                zh: "可在此更改或重置快捷键；功能本身的设置仍在它自己的页面上。");
+
             Add("The master switch and the full list of CyrFlip hotkeys: what each one does, whether it works right now and why. A hotkey can be changed or reset here; the feature's own settings stay on its page.",
                 ru: "Общий выключатель и полный список сочетаний CyrFlip: что делает каждое, действует ли оно сейчас и почему. Сочетание можно изменить или сбросить здесь; настройки функции остаются на её вкладке.",
                 uk: "Загальний перемикач і повний список комбінацій CyrFlip: що робить кожна, чи діє вона зараз і чому. Комбінацію можна змінити або скинути тут; налаштування функції залишаються на її вкладці.",

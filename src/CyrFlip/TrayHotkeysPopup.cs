@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -33,6 +33,7 @@ namespace CyrFlip
 
         public TrayHotkeysPopup(string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             _uiLanguage = uiLanguage;
             FormBorderStyle = FormBorderStyle.None;
             StartPosition = FormStartPosition.Manual;
@@ -62,6 +63,7 @@ namespace CyrFlip
 
         public void ApplyLanguage(string language)
         {
+            HelpLanguage = language;
             _uiLanguage = language;
             RightToLeft = Localization.IsRightToLeft(language) ? RightToLeft.Yes : RightToLeft.No;
             _table.RightToLeft = RightToLeft;

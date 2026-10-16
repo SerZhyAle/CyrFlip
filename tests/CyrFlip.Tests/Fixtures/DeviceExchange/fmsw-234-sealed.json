@@ -1,0 +1,551 @@
+{
+    "section": "27",
+    "keys": "e2e-v1.json (DEVICE-EXCHANGE vectors, 27 items DF to DP): the private key of every device named here",
+    "notes": [
+      "Every box here was sealed by the generator (cmd/exchange-vectors/sealer.go) over the fixed keys of the shared vector file e2e-v1.json, with the ephemeral keys, the content keys and the nonces drawn from seeded sources: the bytes are a function of the code. The exchange server did not make, open or check any of them (item DH) - it stored and delivered them.",
+      "A `device` names a device of e2e-v1.json (`devices[].name`): that file holds its private key. A replaying product opens the `box` as a recipient of `to` with that key, with the `context` given here (the one the reader expects for the place it found the box in, never a value read from the box) and the key of `from` as the key it trusts for the sender; the result must be the `payload`.",
+      "`deviceId` is the id the transcript's server knew the device by: it is the `to` of the box's `keys` entries and the `from` of the box. Each transcript has its own server, so the same device of e2e-v1.json has another deviceId in every transcript.",
+      "A `clipboard` member names the clear text of a sealed clipboard value: the raw bytes of the transcript step that follows `clipboard-ready` are those bytes sealed under the value key of item DN (HKDF-SHA256 of the box's content key, `info` `fmsx-e2e-v1 clipboard`, in segments of 65536 with the nonce of the segment's index and last flag), and `sealedSize` and `sealedSha256` are what the server counts and answers."
+    ],
+    "devices": [
+      {
+        "name": "guest",
+        "e2eKey": {
+          "v": 1,
+          "kem": "BJrHosJAujRIofWgqvW7zwb4YyUMvGdn5mYjqai3ou-RQnl77mueGp0ehE8QDY0G-O4l0GupneV2vXP7x6ZEubA"
+        }
+      },
+      {
+        "name": "phone",
+        "e2eKey": {
+          "v": 1,
+          "kem": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw"
+        }
+      },
+      {
+        "name": "stranger",
+        "e2eKey": {
+          "v": 1,
+          "kem": "BFW262O-3fyP9Tg3-jzFlE8R9M3WZYHOvkPtvqYKBuuCv0JsniBrPM-um_igxqpr18DohFz2j2E1NFpO_eZgwgE"
+        }
+      },
+      {
+        "name": "tablet",
+        "e2eKey": {
+          "v": 1,
+          "kem": "BJH20sAyR6UWwTxu7X7SDlWMbQUpH5pgoLcYCSYRbQWxF16-963dwUwGIqf_XAWg-BwxoLcC0dgkLJ6743Menfg"
+        }
+      },
+      {
+        "name": "watch",
+        "e2eKey": {
+          "v": 1,
+          "kem": "BIYFEEvPMqa_BssoofK1bkfPiWYPgnBJzzGhYiUJGeXDCuKE4wbwwY3B4q6Yy-qJwca52eLwbh3ACjxVr3ctyB4"
+        }
+      }
+    ],
+    "cases": [
+      {
+        "name": "sealed-folder/access",
+        "transcript": "sealed-folder",
+        "context": "access:2ee8hlE0oZiQtp1ZrE2jyA",
+        "from": {
+          "device": "phone",
+          "deviceId": "K8xpP12DJgWYz6Pzg6keLA"
+        },
+        "to": [
+          {
+            "device": "tablet",
+            "deviceId": "8Iykvix08hEQapkCPAQuoQ"
+          },
+          {
+            "device": "watch",
+            "deviceId": "C7rMfWxafTiRna2RkSrgrg"
+          }
+        ],
+        "payload": {
+          "descriptor": "FMSSFTP2:vector-not-a-secret",
+          "root": "/DCIM"
+        },
+        "box": {
+          "v": 1,
+          "from": "K8xpP12DJgWYz6Pzg6keLA",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "vCOVyrl96_Y0spmy",
+          "ct": "SZlzqVqkfU-uN2yixKJDDx9IzCYyl5vIwCaR8BmDVdT4tF18a0TaNACHWEaZCTP4gncSu8BVbXTUIlK1hzRnIzfeE9erXFFkvjbYqw",
+          "keys": [
+            {
+              "to": "8Iykvix08hEQapkCPAQuoQ",
+              "enc": "BPeFjDjZegmywnC5pk3-TtpFJXmgI0djN1XqrQR4ADEdyn-QXo0jtZA4-6iWMHRfvRPOtVCEOqwVl8B_VHx2gnw",
+              "wk": "1Clm8mN5p6gKfo94u6-rQiG2pTiPF6pnjlYLYXCm-gBkuvNl916RPaS60W9sJUB6"
+            },
+            {
+              "to": "C7rMfWxafTiRna2RkSrgrg",
+              "enc": "BPGR9JsAencxvay3cjh_y7d_cxZBjCAgtANLXzkWpxsQVSyXq5Y-oFx4bFlPznHmRX8XN-bjuHp_cH4tON1Aelk",
+              "wk": "Gj16lCBegC2z2TqK73HR_1WvHVi3Sons5HMtq3nVPvZAEmp5ClyXn2LLhtBo20tb"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sealed-folder/broadcast",
+        "transcript": "sealed-folder",
+        "context": "broadcast:jvgER8q0aUbhtbOTq8bx7g",
+        "from": {
+          "device": "phone",
+          "deviceId": "K8xpP12DJgWYz6Pzg6keLA"
+        },
+        "to": [
+          {
+            "device": "tablet",
+            "deviceId": "8Iykvix08hEQapkCPAQuoQ"
+          },
+          {
+            "device": "watch",
+            "deviceId": "C7rMfWxafTiRna2RkSrgrg"
+          }
+        ],
+        "payload": {
+          "relayKey": "sA7eFuojlttaoDVERblAn7QETvPRKWv-deYyha6sFGY",
+          "tunnelPin": "SHA256:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+        },
+        "box": {
+          "v": 1,
+          "from": "K8xpP12DJgWYz6Pzg6keLA",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "j3x6Fz7BYzIpPle6",
+          "ct": "ovcwYmoJhsUk8CyldhQ50brZUZ428fTvuNtbtKfLI1MaIxdP88FFFS3-7_c00Yqi6DbpjtLufdpXAOBZMBxsDzKHS9eKJ8wwVNvLG7K2avsNJqUQp4NQZ_vfkS_FmAeXcKh0ukVDvVkTZ0mGvzo8s7RuwIv0g8U1xSmD2dCLTLWRT63yezOpjTM2Fg",
+          "keys": [
+            {
+              "to": "8Iykvix08hEQapkCPAQuoQ",
+              "enc": "BOfeuQ0WcSk7HfUhJP9IBmoFxuUy_5g0Hn7AQXELEtzXaXqd_a9Et3nDvBCtrVgzPZfLlrBB4FINqQEFU-Pnc7o",
+              "wk": "o2QrJDR09-kO8J1FbgLuWiP0z116GXSy6IEaHLHPJk9u_ksXoVvcHAX2JZrJ33s1"
+            },
+            {
+              "to": "C7rMfWxafTiRna2RkSrgrg",
+              "enc": "BEtfg_A_7lrXU6OD98oMTd3EAVXoyb6wfM6rt4yndgleUW__dCTm10GmYt_zlGJaz6ernuU3uR6zLZ3aOKSjJpQ",
+              "wk": "dckr7moCG3p0RcOrzFHY22Uv2dRNePMkM2o8CbzcSUXTEr9KfBOA1S4u_kw3ING1"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sealed-folder/access-device-joined",
+        "transcript": "sealed-folder",
+        "context": "access:2ee8hlE0oZiQtp1ZrE2jyA",
+        "from": {
+          "device": "phone",
+          "deviceId": "K8xpP12DJgWYz6Pzg6keLA"
+        },
+        "to": [
+          {
+            "device": "tablet",
+            "deviceId": "8Iykvix08hEQapkCPAQuoQ"
+          },
+          {
+            "device": "watch",
+            "deviceId": "C7rMfWxafTiRna2RkSrgrg"
+          },
+          {
+            "device": "stranger",
+            "deviceId": "cxBpM8I407yYUhdAuVz-6g"
+          }
+        ],
+        "payload": {
+          "descriptor": "FMSSFTP2:vector-not-a-secret",
+          "root": "/DCIM"
+        },
+        "box": {
+          "v": 1,
+          "from": "K8xpP12DJgWYz6Pzg6keLA",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "nSTYOtfwy-fiIv7I",
+          "ct": "xldO1FWLSPXyqHE_eRKlCY2mF9lAts40bdvOVujLPOJgQzdgBGAZxEnQzsd7yNs3cRQRUDPfBDUDr2LuDP67T-zpHVTh_wi7nZ4c1A",
+          "keys": [
+            {
+              "to": "8Iykvix08hEQapkCPAQuoQ",
+              "enc": "BKMjFq5-STFWXP-pcdU9SCAAnn9QpDGa3Uy9ZUaWNtixbaAtlAY4cFkjDrwMX1u46ChFHPHrgRZGmtZwymG6fus",
+              "wk": "jtM6S--sU4uadySBs8jtqkTLWWFwgZyLV7K7ofO9n0P4SG1gu6qD_dSPbpTiaEzL"
+            },
+            {
+              "to": "C7rMfWxafTiRna2RkSrgrg",
+              "enc": "BGWfHObbfM4slG4AhCg33PokReBRI5dUffgfT9WdxLm8ie-DuvLdcH76oIOSYW-6o0mPK_TdkRUsx7NxMouGobg",
+              "wk": "RklztNqvH82a6oh8z9QySZ3xNtEsX-ZBXaC4orA_fgO0TtNZVatswyZzzOB5d7WK"
+            },
+            {
+              "to": "cxBpM8I407yYUhdAuVz-6g",
+              "enc": "BLwztBdozcoyIVPvvarEkoK__b-AJnEAJWWeFVPc_40fopF-BJAFtw49kKY-wA49h6xYxRgQ2YDQ0kKRDobWzqs",
+              "wk": "3XZZ6N1zaVpjdc9ULJk16Zp0lIiMMRMroMKRMPf_cnNMyHO9G7K1ni5PVkbt2Gzu"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sealed-folder/broadcast-device-joined",
+        "transcript": "sealed-folder",
+        "context": "broadcast:jvgER8q0aUbhtbOTq8bx7g",
+        "from": {
+          "device": "phone",
+          "deviceId": "K8xpP12DJgWYz6Pzg6keLA"
+        },
+        "to": [
+          {
+            "device": "tablet",
+            "deviceId": "8Iykvix08hEQapkCPAQuoQ"
+          },
+          {
+            "device": "watch",
+            "deviceId": "C7rMfWxafTiRna2RkSrgrg"
+          },
+          {
+            "device": "stranger",
+            "deviceId": "cxBpM8I407yYUhdAuVz-6g"
+          }
+        ],
+        "payload": {
+          "relayKey": "sA7eFuojlttaoDVERblAn7QETvPRKWv-deYyha6sFGY",
+          "tunnelPin": "SHA256:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+        },
+        "box": {
+          "v": 1,
+          "from": "K8xpP12DJgWYz6Pzg6keLA",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "OhGts_42re--aHPo",
+          "ct": "gQMKu7Qv84s5HwpFNWCwdpSXDgV79eIaAugDvqZMTk61xhlyyfI5lagetvkmm8ueEe9HVmmXxMnz-Mbh0zB9HmjMjKh66TYEwy_F0sJRdP54stZCdLgRN0biVp4fz11X43o0hzVqPmbkM4lLmxfLqwkn7pPNcAGoYeAjyZoQtuzXaM--iVnduxNdWQ",
+          "keys": [
+            {
+              "to": "8Iykvix08hEQapkCPAQuoQ",
+              "enc": "BEPg2UBGxsw1Xz0c8HoW60ZZRKfILUbAm2zlz-k-yHJmZAVyoxrpID1KaoeJYUsGKBC6C_1RreRVfvEOphYNGz4",
+              "wk": "-x7c0o3XBvZPGJPk-eSDd1rGBvOnQ2wXALtt6t7853-DFaUDp6YOL8MtSpi0w6zQ"
+            },
+            {
+              "to": "C7rMfWxafTiRna2RkSrgrg",
+              "enc": "BEtyBeG-eh-l_1KDbQPN7NDMmh6icPLQab5wuvLeomAvQQO-uK4hNlE5CwRyjBRUf-BiwMz275DUvAy3bn00UEE",
+              "wk": "hHqtlInlK_j4KW_51unFKq96_B7vfysVF9_fLP9OYqGNk3HoamEEmoHr13k-TG3N"
+            },
+            {
+              "to": "cxBpM8I407yYUhdAuVz-6g",
+              "enc": "BCgr83x3VbzxDCxfO0sPbH7icKxRB5v1uQ4raxlJ9aE0t8BAumMVMzPD18z-m_IRjPPy8ude_5Qb-om9qRwYnfQ",
+              "wk": "2yUbO5-piOsKr6d2xFr4yX1wWHoH8oO3NmzJbLeDp_7v8j_8W7uKyjX_gjgzlepu"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sealed-folder/access-device-revoked",
+        "transcript": "sealed-folder",
+        "context": "access:2ee8hlE0oZiQtp1ZrE2jyA",
+        "from": {
+          "device": "phone",
+          "deviceId": "K8xpP12DJgWYz6Pzg6keLA"
+        },
+        "to": [
+          {
+            "device": "tablet",
+            "deviceId": "8Iykvix08hEQapkCPAQuoQ"
+          },
+          {
+            "device": "stranger",
+            "deviceId": "cxBpM8I407yYUhdAuVz-6g"
+          }
+        ],
+        "payload": {
+          "descriptor": "FMSSFTP2:vector-not-a-secret",
+          "root": "/DCIM"
+        },
+        "box": {
+          "v": 1,
+          "from": "K8xpP12DJgWYz6Pzg6keLA",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "3NpnGYoseYB6eCzf",
+          "ct": "SurS9HoZzoCB5PPRRULmEAg9LIKXXQyEcVOjIYDRFQHX1yu4Zu4w5htrI_qdZ0J3mEgFI-OzY3j0cfzT0oPlINuRqWOAMfnme-ROmg",
+          "keys": [
+            {
+              "to": "8Iykvix08hEQapkCPAQuoQ",
+              "enc": "BIc6B1X0DJ6inngY_gfP5tY-TELkwpiagyRL-IbtuGodW_TEZzsOSiHdJBcEYqmsgWKRH0TsSMiftiGyPM_2Ek4",
+              "wk": "bkoCliVMEjeeqrHzRwXPE27gwH1KEEPPLqAeOrxUKqtB2K6kldaJqbz14J4PKR7L"
+            },
+            {
+              "to": "cxBpM8I407yYUhdAuVz-6g",
+              "enc": "BJyke1McVYXvyqxq1njv8bs0EKCbORFxHZz_xwN5Wb9ANYxwNp-UbNTMoTG9mxELu_IGqx-lqyhnMujd3CavbEI",
+              "wk": "3eCudi-GII7JrZrktJkI6jp5gprWC7OvKcRH_WaAE0zj-PO6ZGOJXmV20oc64tkV"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sealed-folder/broadcast-device-revoked",
+        "transcript": "sealed-folder",
+        "context": "broadcast:jvgER8q0aUbhtbOTq8bx7g",
+        "from": {
+          "device": "phone",
+          "deviceId": "K8xpP12DJgWYz6Pzg6keLA"
+        },
+        "to": [
+          {
+            "device": "tablet",
+            "deviceId": "8Iykvix08hEQapkCPAQuoQ"
+          },
+          {
+            "device": "stranger",
+            "deviceId": "cxBpM8I407yYUhdAuVz-6g"
+          }
+        ],
+        "payload": {
+          "relayKey": "sA7eFuojlttaoDVERblAn7QETvPRKWv-deYyha6sFGY",
+          "tunnelPin": "SHA256:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+        },
+        "box": {
+          "v": 1,
+          "from": "K8xpP12DJgWYz6Pzg6keLA",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "09PWcwa5IUHFYH0g",
+          "ct": "nd7NvZ1NzGUDrUjM4o1Dkk2D_HVK4zjOZn9IlIz-QcF2cJ714CawXGZT9NoYHHLYJ1kn12W42FJshDVnbojc9EpjFSiZTn4jKt7yMd8N1_rli5XQvl2c-go6xAqP3zkan4FjQiqa0luzJU2ASZzek5vLe9W-AKnnDc1xRt5ZhaNP7RIfMY8GcFmzNQ",
+          "keys": [
+            {
+              "to": "8Iykvix08hEQapkCPAQuoQ",
+              "enc": "BLCUf-XQJinDU0MHA7mw-e8C4kxzLTVpkycV4f-ApQ-Kv2Q7yovLdEBPq-_ihtB8gQPyDX2bgorYHXnTYV23SXM",
+              "wk": "0-mzat7MoPKNOAtk9My4P58Tx2N6zg0-6uvSPs-ZlSqbKSpv3X_NHkUV5PEd-Kz6"
+            },
+            {
+              "to": "cxBpM8I407yYUhdAuVz-6g",
+              "enc": "BCEoE4nFlFa8vZ0g9zu9KKSUyVRwyUwLAqMZb6NUp81oWar3SbzmXkxlds47mL9RP1b0EI1SkTXiTlzHm50kc-g",
+              "wk": "-o8ni-OrcQqcs_sTmIPIwvc07l3zfiKT6Sb0kTaVUkZOlv2B6ADMAdPJi3N-yTF_"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sealed-grant/access",
+        "transcript": "sealed-grant",
+        "context": "access:tdxyi-GuGy6ju6DxRIongg",
+        "from": {
+          "device": "phone",
+          "deviceId": "yeNYb65tQd5squCnwn7-Dw"
+        },
+        "to": [
+          {
+            "device": "tablet",
+            "deviceId": "b8WBeJ2g1YNqOea7WrxZfQ"
+          }
+        ],
+        "payload": {
+          "descriptor": "FMSSFTP2:vector-not-a-secret",
+          "root": "/DCIM"
+        },
+        "box": {
+          "v": 1,
+          "from": "yeNYb65tQd5squCnwn7-Dw",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "0Qub2Tkv_Ng0x-mm",
+          "ct": "JoXMVHK98AWF2MKl46T2Miu4YcXDcfFbGoDleV3uqJMULiZ-f3NF21enCwClpykq-tioqXz9IR9dXWPDm5zLXuy9nRp6fU1dHblSAA",
+          "keys": [
+            {
+              "to": "b8WBeJ2g1YNqOea7WrxZfQ",
+              "enc": "BIbzqj7POpPhjfMbvvKqkF0fBjjPbM3aS0s50xr0wcu-uQLap6eNf5t4u_hlN_4eh5osw5caQ5gb-jYhnSnXQ8I",
+              "wk": "1onIxa9po9zKKzfMxKJAuADJrxSFCPy8_BtqBWmLTpjUvFnJW09NDPwG4AhihnuU"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sealed-grant/broadcast",
+        "transcript": "sealed-grant",
+        "context": "broadcast:UrvqLmUKpYsv7pvMcaYwHw",
+        "from": {
+          "device": "phone",
+          "deviceId": "yeNYb65tQd5squCnwn7-Dw"
+        },
+        "to": [
+          {
+            "device": "tablet",
+            "deviceId": "b8WBeJ2g1YNqOea7WrxZfQ"
+          }
+        ],
+        "payload": {
+          "relayKey": "sA7eFuojlttaoDVERblAn7QETvPRKWv-deYyha6sFGY",
+          "tunnelPin": "SHA256:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+        },
+        "box": {
+          "v": 1,
+          "from": "yeNYb65tQd5squCnwn7-Dw",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "KSFT9B5IM-OiMg-I",
+          "ct": "uEIzu5ETq3UHqWXBKxLlKEoupm2iQxE1WRNKdPvCCKcklVQJppgaS0GEzhqdT_3D63MenbAmmpMIhHARXTrUCCevDOCCY1JbZPZTU7bYeGHysoL9_Ezgzn2-I9E1HCR8TVBXZWnsWJuSj_ih3LUYZY3vGTrCA0rWXdc164oIrjQWcoixiHv_2bCkJw",
+          "keys": [
+            {
+              "to": "b8WBeJ2g1YNqOea7WrxZfQ",
+              "enc": "BOIhqZ288_98BC_TQZBAGHushNel13b3qlvbjzfOi9trHAb_A3bNZqCEII8LrmL3P9xOpfBPzJTaIk11qqFJCi4",
+              "wk": "VLquEE3Bb6w21cxsedWQsSgOQpxb1Xij0qSMHgTnMa6I7nZbA9DP2bgJjw-YW3gZ"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sealed-grant/grant-access",
+        "transcript": "sealed-grant",
+        "context": "grant:oRARogh11uH-ihvyza-UhQ",
+        "from": {
+          "device": "phone",
+          "deviceId": "yeNYb65tQd5squCnwn7-Dw"
+        },
+        "to": [
+          {
+            "device": "guest",
+            "deviceId": "m0uFU9mDGkX7F5BUoSZd9w"
+          }
+        ],
+        "payload": {
+          "access": {
+            "descriptor": "FMSSFTP2:vector-guest-not-a-secret",
+            "root": "/DCIM"
+          }
+        },
+        "box": {
+          "v": 1,
+          "from": "yeNYb65tQd5squCnwn7-Dw",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "loLWmcwzCM7aXZ54",
+          "ct": "D0xihvmjDGHTqIGYRscKkpmvkkvkE-f1nO4o_qXMFzk4oqR-jpaZ6YGBUfIAjhKo2fD_oHTUbnxFh8smcS1OtAHkvcoayiJunfz3IXICNAJNbElWOVnsi5gIrruE",
+          "keys": [
+            {
+              "to": "m0uFU9mDGkX7F5BUoSZd9w",
+              "enc": "BCh5BklnXWEhpZ0dJN2EpAP704AAMUcDpTeNMsIjKuAMy4Sqacyi7PlolDyuwEL_KfTlxfhNy4hpIsApdlWc0PI",
+              "wk": "tkMfdpvg7cDPU4OJr7c_zTQGcVfLTtpGuhFKk8dlF0uOjl0hkSkcW8_ahhtB6Eng"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sealed-grant/grant-access-replaced",
+        "transcript": "sealed-grant",
+        "context": "grant:oRARogh11uH-ihvyza-UhQ",
+        "from": {
+          "device": "phone",
+          "deviceId": "yeNYb65tQd5squCnwn7-Dw"
+        },
+        "to": [
+          {
+            "device": "guest",
+            "deviceId": "m0uFU9mDGkX7F5BUoSZd9w"
+          },
+          {
+            "device": "stranger",
+            "deviceId": "LPYVeF0fxoepTJy0Jd6KRA"
+          }
+        ],
+        "payload": {
+          "access": {
+            "descriptor": "FMSSFTP2:vector-guest-not-a-secret",
+            "root": "/DCIM"
+          }
+        },
+        "box": {
+          "v": 1,
+          "from": "yeNYb65tQd5squCnwn7-Dw",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "VcEOqYaQFPY-2X0S",
+          "ct": "1XAycQt-2U9ev-Ml3VfKBDlIOZfVfLkOsxbu-ZcCfrs03HgvMdI6McyYUhk76yVeAOgWpdAL2NAX2ZWffKVTT2lv1vfP6hvC5XB6yXU-BWOg0m4KxTt6o-ffESMy",
+          "keys": [
+            {
+              "to": "m0uFU9mDGkX7F5BUoSZd9w",
+              "enc": "BK1FizpATzayUxifVJo6jw0EqLvboNreqx1poGdNfHsn996EIRnPKmLNMR4WHsJFuI7tcvMeQ5eSOZq1E7hhfUs",
+              "wk": "panRb6z7KLlCDXGHtxhegnE6KNoiCAk9sgC8VgbYjRGhOuBzsUETQwhRIP0Np9Qn"
+            },
+            {
+              "to": "LPYVeF0fxoepTJy0Jd6KRA",
+              "enc": "BOMU0OPNh17IRjVo0Z4N-qRY2_iOeOWEWDf90nlF5iF6XBPlO-SlkWh301Od3DSXDiHAQ42HfbnbOw9CbcvJMc8",
+              "wk": "hkMn-u9ubUHEdn47KR92Ey1NVrmZlit0BPbgdFp7SF_CTzjIb1jnV3cBfMLHMBjO"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sealed-grant/grant-broadcast",
+        "transcript": "sealed-grant",
+        "context": "grant:CbG7VKy1DDVweb4szjJ7AA",
+        "from": {
+          "device": "phone",
+          "deviceId": "yeNYb65tQd5squCnwn7-Dw"
+        },
+        "to": [
+          {
+            "device": "guest",
+            "deviceId": "m0uFU9mDGkX7F5BUoSZd9w"
+          },
+          {
+            "device": "stranger",
+            "deviceId": "LPYVeF0fxoepTJy0Jd6KRA"
+          }
+        ],
+        "payload": {
+          "credentials": {
+            "user": "listener",
+            "password": "vector-listener-pw"
+          },
+          "relayKey": "sA7eFuojlttaoDVERblAn7QETvPRKWv-deYyha6sFGY",
+          "tunnelPin": "SHA256:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+        },
+        "box": {
+          "v": 1,
+          "from": "yeNYb65tQd5squCnwn7-Dw",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "jtn7_ri0bkYjUZ4P",
+          "ct": "l2X2jr7ZfCSgH5ZktUJrl4OkOf2isE29PUJ6QBtvWcPxIotV_10x1Qb3uSPlGtK7Uvv_xTBQF_qh33J0xxkq5zhQhl6JIDoN9fk-Qf6BAdBBVxDFo6CuaFuMglbtbjb9sGOka7smYCnQjeZ6f4UTfcUndCz3am_NXmnOZkFbxOWFxJejQnBfyZYOzkZQXExewJiNwTq8BTyX0dQ-RIFq4ir4-2eUq38Q-k2cTzomWZ04vhp5ZZ-B5IN-z0uweFr1sLgOEtWsklC5XT3epA",
+          "keys": [
+            {
+              "to": "m0uFU9mDGkX7F5BUoSZd9w",
+              "enc": "BGdMXGCZCFVSTlfMEpJlGq50OJ0QaV0rjaalC2Fh3ms7b3c1B0acvIVJTjKarMXA-HS_7TjwCugsFyoBbBjIg_o",
+              "wk": "SntPexTSCLrUsLwR45Amdg7SLDNm9HJUlKUVS7w1zzp9wuX1PLD-6lRYYlGRm5k3"
+            },
+            {
+              "to": "LPYVeF0fxoepTJy0Jd6KRA",
+              "enc": "BKchF4UXTainKH6gX_HAKEUH-TMmUbwVt6QG5PLIihxgdH3bez49saEYQZkgvvSCSTXIJo6KnBlQjF-YguJVbpQ",
+              "wk": "sf1ePsOE3BOIVwbyP8iXU0qrgFat0Ww5ZxBS3GjEB9fd-zyNzPsV-cOH4Zrs2Z_m"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sealed-clipboard/clipboard",
+        "transcript": "sealed-clipboard",
+        "context": "clipboard",
+        "from": {
+          "device": "phone",
+          "deviceId": "RQn8NLAhmFNNqWqpCIhNeA"
+        },
+        "to": [
+          {
+            "device": "tablet",
+            "deviceId": "r2TuNtu53QEYWle9anKdsA"
+          }
+        ],
+        "payload": {
+          "kind": "text",
+          "mimeType": "text/plain",
+          "size": 65,
+          "sha256": "832d1c99cd3874e11f49e524139fced9f34b6ea38fc99a91c191d2bdf1798afb"
+        },
+        "box": {
+          "v": 1,
+          "from": "RQn8NLAhmFNNqWqpCIhNeA",
+          "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
+          "n": "H5p0mfBff5a6JpSH",
+          "ct": "WbFBUF6ZZ29MezSV_q3WIiTe1UniBEPCTo0KCT0WtL9kPb_DtMgXIQMNg_Wckwr2xVXvS6BhIPIxiG3fF1EgT8aaf7XHLZxBDs9kCuRBhmtdHatfqzoi-dy1KPjar24HLTEkblV3-_0sbbPVTYmcGxvGbmcBCjKeZTIyOup7yrrNpo2yeoRiRjIYKPxA",
+          "keys": [
+            {
+              "to": "r2TuNtu53QEYWle9anKdsA",
+              "enc": "BJbab8jyyT1cmpo2euQZRCY5rBqFuqRh2fXcoZHmVBG2kEVgsZF6tl61BnOaHTMihUzM4PT5IMRCEelWT7WM-_8",
+              "wk": "NON4G4qu4jsPD1y6JXwFhy6rRNCvCC0dO6H5R6Vzt-eZnEQgZYExXvZ09oXGpIzN"
+            }
+          ]
+        },
+        "clipboard": {
+          "clear": "A sealed clipboard text: only the devices of the account read it.",
+          "clearSha256": "832d1c99cd3874e11f49e524139fced9f34b6ea38fc99a91c191d2bdf1798afb",
+          "sealedSize": 81,
+          "sealedSha256": "3c07c1dc7be873906a48532a16ca69463ac82aef57c01d1fcb73f00ee1952bdf"
+        }
+      }
+    ]
+  }

@@ -38,7 +38,7 @@ namespace CyrFlip.Tests
             }
         }
 
-        [Fact]
+        [UiSweepFact]
         public void BuildsInAll13LanguagesWithNoSurvivingCyrillicInLatinBuilds()
         {
             var problems = new List<string>();

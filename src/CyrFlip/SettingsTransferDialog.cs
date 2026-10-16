@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -19,9 +19,12 @@ namespace CyrFlip
         internal ISet<string> SelectedKeys { get; private set; } = new HashSet<string>();
         internal SettingsTransferDialog(string language, SettingsFileDocument document, Func<ISet<string>, SettingsImportPlan> build)
         {
+            HelpLanguage = language;
             _language = language; _build = build;
             string T(string text) => Localization.Translate(language, text);
-            Plan = build(new HashSet<string>(document.Values.Keys));
+            var available = new HashSet<string>(document.Values.Keys);
+            if (document.Scenarios != null) available.Add("scenarios");
+            Plan = build(available);
             Text = T("Settings transfer"); ShowIcon = false; ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent; MinimizeBox = false; MaximizeBox = false;
             AutoSize = true; AutoSizeMode = AutoSizeMode.GrowAndShrink;
@@ -48,7 +51,6 @@ namespace CyrFlip
             foreach (var change in Plan.Changes.Where(c => c.OptIn))
             {
                 string caption = change.Entry.Key == "TranslateEndpoint" ? "Send selections to another server"
-                    : change.Entry.Key == "TrafficLightTargets" ? "Add the availability traffic light targets: CyrFlip will check the addresses listed in the file"
                     : change.Entry.Caption;
                 var box = new CheckBox { Text = T(caption), Checked = false, AutoSize = true };
                 _choices.Add(new KeyValuePair<CheckBox, string[]>(box, new[] { change.Entry.Key })); choices.Controls.Add(box);
@@ -67,7 +69,7 @@ namespace CyrFlip
             CancelButton = cancel; AcceptButton = cancel;
             var offered = new HashSet<string>(_choices.SelectMany(c => c.Value));
             // Identical settings stay selected so a checked table can suppress reseeding even when empty.
-            var unchanged = new HashSet<string>(document.Values.Keys.Where(k => !offered.Contains(k)));
+            var unchanged = new HashSet<string>(available.Where(k => !offered.Contains(k)));
             void Update()
             {
                 SelectedKeys = new HashSet<string>(unchanged);
@@ -86,12 +88,16 @@ namespace CyrFlip
             foreach (Control control in _changes.Controls.Cast<Control>().ToArray()) control.Dispose();
             foreach (var change in Plan.Changes)
             {
-                string Value(object value) => change.Entry.IsTable
+                // The scenarios change carries counts, not a JSON table: its documents are shown by
+                // the launcher page they come from, and the raw XML is a wall the preview need not be.
+                string Value(object value) => change.Entry.Key == "scenarios"
+                    ? Localization.Format(T, "Rows: {0}", value)
+                    : change.Entry.IsTable
                     ? Localization.Format(T, "Rows: {0}", new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<object[]>((string)value).Length)
-                    : change.Entry.Property.PropertyType == typeof(bool) ? T((int)value != 0 ? "On" : "Off") : Convert.ToString(value)!;
+                    : change.Entry.Property!.PropertyType == typeof(bool) ? T((int)value != 0 ? "On" : "Off") : Convert.ToString(value)!;
                 _changes.Controls.Add(new Label { AutoSize = true, MaximumSize = new Size(width - 24, 0), UseMnemonic = false,
                     Text = T(change.Entry.Caption) + ": " + Value(change.Before) + " → " + Value(change.After) });
-                if (change.Entry.IsTable)
+                if (change.Entry.IsTable && change.Entry.Key != "scenarios")
                 {
                     var detail = new TableLayoutPanel { AutoSize = true, ColumnCount = 2, Width = width - 24 };
                     foreach (object value in new[] { change.Before, change.After })
@@ -117,6 +123,8 @@ namespace CyrFlip
                 case "chord": return "Shortcut invalid or in use; local value kept. Table rows are disabled without a shortcut.";
                 case "windows": return "Windows owns this shortcut. Import it only with your consent.";
                 case "layout": return "Keyboard layout is not installed.";
+                case "path": return "The folder or program is not on this computer; imported anyway.";
+                case "scenario": return "Scenario document not recognized; skipped.";
                 default: return "Invalid value; skipped.";
             }
         }
@@ -129,6 +137,8 @@ namespace CyrFlip
         {
             switch (id)
             {
+                case "translate/switches": return "Main switches";
+                case "notes/switches": return "Main switches";
                 case "translate/ollama": return "Ollama";
                 case "translate/directions": return "Translation directions";
                 case "translate/result": return "Result";
@@ -149,6 +159,14 @@ namespace CyrFlip
                 case "selection/mouse": return "Menu over a selection";
                 case "selection/keyboard": return "From the keyboard";
                 case "trafficlight/targets": return "Targets";
+                // S0072: the groups the v2 inventory's new values sit in.
+                case "symbols/switches": return "Main switches";
+                case "symbols/opening": return "How to open it";
+                case "symbols/options": return "Options";
+                case "trafficlight/switches": return "Main switches";
+                case "trafficlight/module": return "Board";
+                case "launcher/enable": return "Enable";
+                case "launcher/scenarios": return "Scenarios";
             }
             return PageCaption(id);
         }
@@ -163,6 +181,9 @@ namespace CyrFlip
                 case "clipboard": return "Clipboard"; case "selection": return "Selection menu";
                 case "translate": return "Translation"; case "notes": return "Quick notes";
                 case "trafficlight": return "Availability traffic light";
+                case "exchangeserver": return "Exchange server";
+                case "navigation": return "Windows"; case "symbols": return "Symbols";
+                case "launcher": return "Quick launch";
                 default: return "Screenshots";
             }
         }

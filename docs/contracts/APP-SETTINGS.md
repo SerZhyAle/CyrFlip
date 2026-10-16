@@ -43,3 +43,8 @@ control (check box, drop-down, slider, group expansion) starts one. Nothing here
 S0055: the welcome tour links the one settings instance through `SettingsPageKey`. Requests during the modal tour are queued and delivered once after it closes; the completion button selects General. About offers replay and the settings search indexes that button.
 
 Section 10 (0.4) records the owner’s private settings-transfer practice. S0055 settings-file uses action buttons, a safe-default preview and a pre-import snapshot; no wire contract is introduced.
+
+Section 11 records S0072's private persistence and complete-transfer practice. The v2 allow-list,
+scenario snapshots, Documents rolling backup and restore preview implement it; the v1 reader remains.
+The automated gates cover format and persistence. Both distribution channels still need the owner-run
+G6 reinstall evidence before this ticket is Verified.

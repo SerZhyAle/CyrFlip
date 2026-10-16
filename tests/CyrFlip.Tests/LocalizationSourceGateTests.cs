@@ -225,7 +225,7 @@ namespace CyrFlip.Tests
                 Assert.True(Regex.IsMatch(key, @"^.+ \([^()]+\)$"), "an English display text on a key without a context: " + key);
                 Assert.Equal(key.Substring(0, key.LastIndexOf(" (", StringComparison.Ordinal)), display);
             }
-            Assert.Equal(7, withDisplay.Count);   // S0070 D3: the seven pairs of one English text in two forms
+            Assert.Equal(8, withDisplay.Count);   // Context-qualified display names, including the microscopic tile size.
         }
 
         /// <summary>

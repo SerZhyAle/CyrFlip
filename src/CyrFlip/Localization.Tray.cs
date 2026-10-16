@@ -62,12 +62,12 @@ namespace CyrFlip
                 pt: "atalhos desligados", ar: "الاختصارات متوقفة", hi: "शॉर्टकट बंद हैं",
                 bn: "শর্টকাট বন্ধ", ur: "شارٹ کٹس بند ہیں", zh: "快捷键已关闭");
 
-            Add("case",
+            Add("case flip",
                 ru: "регистр", uk: "регістр", de: "Schreibung", it: "maiuscole", es: "mayúsculas",
                 fr: "casse", pt: "maiúsculas", ar: "حالة الأحرف", hi: "केस", bn: "কেস",
                 ur: "کیس", zh: "大小写");
 
-            Add("clipboard manager",
+            Add("clipboard history",
                 ru: "менеджер буфера", uk: "менеджер буфера", de: "Zwischenablage",
                 it: "gestore appunti", es: "portapapeles", fr: "presse-papiers",
                 pt: "área de transferência", ar: "مدير الحافظة", hi: "क्लिपबोर्ड प्रबंधक",

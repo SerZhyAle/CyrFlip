@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -7,6 +7,7 @@ namespace CyrFlip
     /// <summary>What the board's title bar can be asked for: its four icon buttons.</summary>
     internal enum TitleCommand
     {
+        Help,
         Add,
         Edit,
         Pin,
@@ -26,7 +27,7 @@ namespace CyrFlip
     /// </summary>
     internal sealed class TrafficLightTitleBar : Control, IThemeAware
     {
-        private static readonly TitleCommand[] Order = { TitleCommand.Add, TitleCommand.Edit, TitleCommand.Pin, TitleCommand.Close };
+        private static readonly TitleCommand[] Order = { TitleCommand.Add, TitleCommand.Edit, TitleCommand.Pin, TitleCommand.Close, TitleCommand.Help };
 
         private ThemePalette _palette = ThemePalette.Light;
         private Func<string, string> _t = s => s;
@@ -92,7 +93,7 @@ namespace CyrFlip
         // ---- metrics: measured from the font, never pixel constants ----
 
         /// <summary>The bar's height and the side of every button zone.</summary>
-        public int Side => Math.Max(Font.Height + 8, 22);
+        public int Side => Math.Max(Font.Height + 8, 44);
 
         private int GlyphSize => Math.Max(14, Font.Height + 2);
 
@@ -107,7 +108,7 @@ namespace CyrFlip
         internal Rectangle ZoneOf(int index)
         {
             int side = Side;
-            int fromEnd = Order.Length - index;
+            int fromEnd = index == 4 ? 5 : 4 - index;
             int x = Rtl ? (fromEnd - 1) * side : Width - fromEnd * side;
             return new Rectangle(x, 0, side, Math.Max(Height, side));
         }
@@ -127,6 +128,7 @@ namespace CyrFlip
         {
             switch (command)
             {
+                case TitleCommand.Help: return _t("Help (F1)");
                 case TitleCommand.Add: return _t("Add a target..");
                 case TitleCommand.Edit: return _t("Edit targets..");
                 case TitleCommand.Pin: return _t("Always on top");
@@ -139,6 +141,7 @@ namespace CyrFlip
         {
             switch (command)
             {
+                case TitleCommand.Help: return AppGlyphs.Help;
                 case TitleCommand.Add: return AppGlyphs.Add;
                 case TitleCommand.Edit: return AppGlyphs.Edit;
                 case TitleCommand.Pin: return HistoryStripGlyphs.PinId(pinned);
@@ -187,6 +190,7 @@ namespace CyrFlip
                 {
                     // A glyph that cannot be drawn leaves a typographic stand-in, so the button is never blank.
                     TextRenderer.DrawText(g, FallbackOf(command), Font, zone, ink,
+
                         TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
                 }
             }

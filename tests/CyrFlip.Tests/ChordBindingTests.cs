@@ -27,6 +27,9 @@ namespace CyrFlip.Tests
             yield return new object[] { nameof(ChordKind.QuickNotes) };
             yield return new object[] { nameof(ChordKind.Symbols) };
             yield return new object[] { nameof(ChordKind.Screenshot) };
+            yield return new object[] { nameof(ChordKind.ScreenshotFull) };
+            yield return new object[] { nameof(ChordKind.ScreenshotAnnotateArea) };
+            yield return new object[] { nameof(ChordKind.ScreenshotFullAnnotate) };
             yield return new object[] { nameof(ChordKind.ScreenshotFolder) };
             yield return new object[] { nameof(ChordKind.TextMenu) };
         }
@@ -47,6 +50,9 @@ namespace CyrFlip.Tests
 
         private static bool OldSymbolsLive(AppConfig c) => c.EnableSymbols && c.EnableSymbolsHotkey;
         private static bool OldScreenshotLive(AppConfig c) => c.EnableScreenshotHotkey;
+        private static bool OldScreenshotFullLive(AppConfig c) => c.EnableScreenshotFullHotkey;
+        private static bool OldScreenshotAnnotateAreaLive(AppConfig c) => c.EnableScreenshotAnnotate && c.EnableScreenshotAnnotateAreaHotkey;
+        private static bool OldScreenshotFullAnnotateLive(AppConfig c) => c.EnableScreenshotAnnotate && c.EnableScreenshotFullAnnotateHotkey;
         private static bool OldScreenshotFolderLive(AppConfig c) => c.ScreenshotSaveEnabled && c.EnableScreenshotFolderHotkey;
         private static bool OldTextMenuLive(AppConfig c) => c.EnableContextMenu && c.EnableTextMenuHotkey;
         private static bool OldQuickNotesLive(AppConfig c) => c.EnableQuickNotes && c.EnableQuickNotesHotkey;
@@ -60,6 +66,9 @@ namespace CyrFlip.Tests
             ChordKind.QuickNotes => c.EnableHotkeys && c.EnableQuickNotes && c.EnableQuickNotesHotkey && Hotkey.TryParse(c.QuickNotesHotkey, out _),
             ChordKind.Symbols => c.EnableHotkeys && c.EnableSymbols && c.EnableSymbolsHotkey && Hotkey.TryParse(c.SymbolsHotkey, out _),
             ChordKind.Screenshot => c.EnableHotkeys && c.EnableScreenshotHotkey && Hotkey.TryParse(c.ScreenshotHotkey, out _),
+            ChordKind.ScreenshotFull => c.EnableHotkeys && c.EnableScreenshotFullHotkey && Hotkey.TryParse(c.ScreenshotFullHotkey, out _),
+            ChordKind.ScreenshotAnnotateArea => c.EnableHotkeys && c.EnableScreenshotAnnotate && c.EnableScreenshotAnnotateAreaHotkey && Hotkey.TryParse(c.ScreenshotAnnotateAreaHotkey, out _),
+            ChordKind.ScreenshotFullAnnotate => c.EnableHotkeys && c.EnableScreenshotAnnotate && c.EnableScreenshotFullAnnotateHotkey && Hotkey.TryParse(c.ScreenshotFullAnnotateHotkey, out _),
             ChordKind.ScreenshotFolder => c.EnableHotkeys && c.ScreenshotSaveEnabled && c.EnableScreenshotFolderHotkey && Hotkey.TryParse(c.ScreenshotFolderHotkey, out _),
             ChordKind.TextMenu => c.EnableHotkeys && c.EnableContextMenu && c.EnableTextMenuHotkey && Hotkey.TryParse(c.TextMenuHotkey, out _),
             _ => throw new ArgumentOutOfRangeException(nameof(kind)),
@@ -72,6 +81,9 @@ namespace CyrFlip.Tests
             ChordKind.QuickNotes => ChordBinding.IsQuickNotesActive(c),
             ChordKind.Symbols => ChordBinding.IsSymbolsActive(c),
             ChordKind.Screenshot => ChordBinding.IsScreenshotActive(c),
+            ChordKind.ScreenshotFull => ChordBinding.IsScreenshotFullActive(c),
+            ChordKind.ScreenshotAnnotateArea => ChordBinding.IsScreenshotAnnotateAreaActive(c),
+            ChordKind.ScreenshotFullAnnotate => ChordBinding.IsScreenshotFullAnnotateActive(c),
             ChordKind.ScreenshotFolder => ChordBinding.IsScreenshotFolderActive(c),
             ChordKind.TextMenu => ChordBinding.IsTextMenuActive(c),
             _ => throw new ArgumentOutOfRangeException(nameof(kind)),
@@ -80,6 +92,7 @@ namespace CyrFlip.Tests
         /// <summary>The module switch as the kind's predicate reads it; a kind with no module switch always has one.</summary>
         private static bool ModuleOf(ChordKind kind, (bool Master, bool Module, bool Row, string Chord) m)
             => kind is ChordKind.QuickNotes or ChordKind.Symbols or ChordKind.ScreenshotFolder or ChordKind.TextMenu
+                or ChordKind.ScreenshotAnnotateArea or ChordKind.ScreenshotFullAnnotate
                 ? m.Module
                 : true;
 
@@ -94,6 +107,9 @@ namespace CyrFlip.Tests
                 case ChordKind.QuickNotes: c.EnableQuickNotes = m.Module; c.EnableQuickNotesHotkey = m.Row; c.QuickNotesHotkey = m.Chord; break;
                 case ChordKind.Symbols: c.EnableSymbols = m.Module; c.EnableSymbolsHotkey = m.Row; c.SymbolsHotkey = m.Chord; break;
                 case ChordKind.Screenshot: c.EnableScreenshotHotkey = m.Row; c.ScreenshotHotkey = m.Chord; break;
+                case ChordKind.ScreenshotFull: c.EnableScreenshotFullHotkey = m.Row; c.ScreenshotFullHotkey = m.Chord; break;
+                case ChordKind.ScreenshotAnnotateArea: c.EnableScreenshotAnnotate = m.Module; c.EnableScreenshotAnnotateAreaHotkey = m.Row; c.ScreenshotAnnotateAreaHotkey = m.Chord; break;
+                case ChordKind.ScreenshotFullAnnotate: c.EnableScreenshotAnnotate = m.Module; c.EnableScreenshotFullAnnotateHotkey = m.Row; c.ScreenshotFullAnnotateHotkey = m.Chord; break;
                 case ChordKind.ScreenshotFolder: c.ScreenshotSaveEnabled = m.Module; c.EnableScreenshotFolderHotkey = m.Row; c.ScreenshotFolderHotkey = m.Chord; break;
                 case ChordKind.TextMenu: c.EnableContextMenu = m.Module; c.EnableTextMenuHotkey = m.Row; c.TextMenuHotkey = m.Chord; break;
                 default: throw new ArgumentOutOfRangeException(nameof(kind));
@@ -110,6 +126,12 @@ namespace CyrFlip.Tests
                 Assert.Equal(OldSymbolsLive(c), ChordBinding.SymbolsLive(c));
                 c = Config(ChordKind.Screenshot, m);
                 Assert.Equal(OldScreenshotLive(c), ChordBinding.ScreenshotLive(c));
+                c = Config(ChordKind.ScreenshotFull, m);
+                Assert.Equal(OldScreenshotFullLive(c), ChordBinding.ScreenshotFullLive(c));
+                c = Config(ChordKind.ScreenshotAnnotateArea, m);
+                Assert.Equal(OldScreenshotAnnotateAreaLive(c), ChordBinding.ScreenshotAnnotateAreaLive(c));
+                c = Config(ChordKind.ScreenshotFullAnnotate, m);
+                Assert.Equal(OldScreenshotFullAnnotateLive(c), ChordBinding.ScreenshotFullAnnotateLive(c));
                 c = Config(ChordKind.ScreenshotFolder, m);
                 Assert.Equal(OldScreenshotFolderLive(c), ChordBinding.ScreenshotFolderLive(c));
                 c = Config(ChordKind.TextMenu, m);

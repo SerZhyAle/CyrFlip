@@ -117,7 +117,7 @@ namespace CyrFlip
                 hi: "टाइप किया जा सकता है: {0} ({1})", bn: "টাইপ করা যাবে: {0} ({1})",
                 ur: "ٹائپ کیا جا سکتا ہے: {0} ({1})", zh: "可键入: {0} ({1})");
 
-            Add("Set symbols window hotkey",
+            Add("Set symbols window shortcut",
                 ru: "Задать хоткей окна символов", uk: "Задати хоткей вікна символів",
                 de: "Hotkey für Symbolfenster festlegen", it: "Imposta tasto di scelta rapida per la finestra dei simboli",
                 es: "Establecer atajo de la ventana de símbolos", fr: "Définir le raccourci de la fenêtre des symboles",

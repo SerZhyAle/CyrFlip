@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -26,6 +26,7 @@ namespace CyrFlip
 
         public TranslationDialog(TranslationProfile? existing, string uiLanguage, string? model = null)
         {
+            HelpLanguage = uiLanguage;
             _uiLanguage = uiLanguage;
             Text = T(existing == null ? "New translation direction" : "Edit the translation direction");
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -135,7 +136,7 @@ namespace CyrFlip
             if (!unassigned && !Hotkey.TryParse(chord, out _))
             {
                 // Every refused OK says why (ticket S0007, DL-4).
-                ConfirmDialog.Show(this, _uiLanguage, Localization.Format(T, "The hotkey \"{0}\" was not recognized.", chord),
+                ConfirmDialog.Show(this, _uiLanguage, Localization.Format(T, "The shortcut \"{0}\" was not recognized.", chord),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 DialogResult = DialogResult.None;
                 return;
@@ -186,6 +187,7 @@ namespace CyrFlip
         /// <summary>Mirrors for Arabic/Urdu and picks a font that can draw the script.</summary>
         private void ApplyScript(string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             if (Localization.IsRightToLeft(uiLanguage)) { RightToLeft = RightToLeft.Yes; RightToLeftLayout = true; }
             string? family = Localization.FontFamily(uiLanguage);
             if (family == null) return;

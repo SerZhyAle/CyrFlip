@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppItem>
+  <!-- Frozen update baseline: an update must preserve the actual document. -->
+  <Id>72a0f447-98b1-4ca7-ae3b-7cdcf6164a30</Id>
+  <Name>Persistence golden</Name>
+  <Path>notepad.exe</Path>
+  <Arguments>golden.txt</Arguments>
+  <WorkingDirectory>C:\Golden</WorkingDirectory>
+  <RunAsAdmin>false</RunAsAdmin>
+  <Order>0</Order>
+  <Type>Executable</Type>
+  <Hotkey>Ctrl+Alt+F24</Hotkey>
+</AppItem>

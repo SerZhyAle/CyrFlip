@@ -24,6 +24,8 @@ namespace CyrFlip
         public string Name = "";
         /// <summary>True when the string carried a <c>u</c> login hint - read, validated and dropped (D21).</summary>
         public bool LoginDropped;
+        /// <summary>The login hint when explicitly preserved for account enrollment; empty by default (dropped).</summary>
+        public string LoginHint = "";
     }
 
     /// <summary>
@@ -37,10 +39,14 @@ namespace CyrFlip
     internal static class ExchangeConnectionString
     {
         public const string Prefix = "FMSEXCH1:";
+        /// <summary>The port an exchange server listens on unless its operator chose another (7.1: one port).</summary>
+        public const int DefaultPort = 22022;
         public const int MaxText = 512;
         public const int MaxName = 64;
 
-        public static ExchangeConnectionParse Parse(string? text)
+        public static ExchangeConnectionParse Parse(string? text) => Parse(text, false);
+
+        public static ExchangeConnectionParse Parse(string? text, bool keepLoginHint)
         {
             var result = new ExchangeConnectionParse();
             string t = text ?? "";
@@ -97,6 +103,7 @@ namespace CyrFlip
             result.Fingerprint = fp ?? "";
             result.Name = n ?? "";
             result.LoginDropped = u != null;
+            if (keepLoginHint) result.LoginHint = u ?? "";
             return result;
         }
 

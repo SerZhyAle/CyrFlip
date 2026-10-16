@@ -11,18 +11,68 @@ namespace CyrFlip.Tests
 {
     public class SettingsFileInventoryTests
     {
+        // S0072 classifies the current tree: the original spec counted 89/17 before the
+        // backup markers and the S0071/S0074 preferences arrived. Credentials remain excluded.
+        private const int ExportedV2 = 104, ExcludedV2 = 21;
+        [Fact]
+        public void EveryAppOwnedOverviewChordIsInTheTransferFile()
+        {
+            var config = new AppConfig();
+            int index = 1;
+            foreach (var property in typeof(AppConfig).GetProperties().Where(p => p.PropertyType == typeof(string) && p.Name.EndsWith("Hotkey")))
+                property.SetValue(config, "Ctrl+Alt+F" + index++);
+            config.LayoutConversionProfiles.Add(new LayoutConversionProfile { Id = "conv", SourceKlid = "00000409", TargetKlid = "00000419", Hotkey = "Ctrl+Shift+F22", Enabled = true });
+            config.TranslateProfiles.Add(new TranslationProfile { Id = "trans", TargetLang = "de", Hotkey = "Ctrl+Shift+F23", Enabled = true });
+            var scenario = new LauncherScenario { Name = "Launch", Path = "calc.exe", Hotkey = "Ctrl+Shift+F24" };
+            string output = SettingsFileWriter.Write(config, DateTime.UtcNow, "1.0", new[] { LauncherScenarioStore.ToXml(scenario) });
+            var document = SettingsFileReader.Read(Encoding.UTF8.GetBytes(output));
+            var rows = ChordOverviewModel.Build(config, new[] { scenario }, Array.Empty<LanguageHotkeys.Entry>(), "1", "English", k => k);
+            foreach (var row in rows.Where(r => r.Group != ChordGroup.Windows))
+            {
+                Assert.False(string.IsNullOrEmpty(row.StoredChord));
+                if (row.Group == ChordGroup.Fixed || row.Group == ChordGroup.Mouse)
+                    Assert.Contains(document.Values, v => v.Value is string token && token == row.StoredChord);
+                else if (row.Group == ChordGroup.Launcher)
+                    Assert.Contains(document.Scenarios!, xml => LauncherScenarioStore.TryReadXml(xml, out _)!.Hotkey == row.StoredChord);
+                else
+                {
+                    string key = row.Group == ChordGroup.Conversions ? "LayoutConversionProfiles" : "TranslateProfiles";
+                    Assert.Contains(row.StoredChord, (string)document.Values[key]);
+                }
+            }
+        }
+
         [Fact]
         public void EveryRegistryValueHasExactlyOneClassification()
         {
             // SaveTo writes the symbols block only once the module has been enabled, so a plain
-            // default capture would never see those values - capture both shapes.
+            // default capture would never see those values - capture all four shapes.
             var written = MemoryConfigKey.Capture(new AppConfig()).Values.Keys
                 .Concat(MemoryConfigKey.Capture(new AppConfig { EnableSymbols = true }).Values.Keys)
-                .Concat(MemoryConfigKey.Capture(new AppConfig { EnableTrafficLight = true }).Values.Keys).Distinct();
+                .Concat(MemoryConfigKey.Capture(new AppConfig { EnableTrafficLight = true }).Values.Keys)
+                .Concat(MemoryConfigKey.Capture(new AppConfig { EnableExchangeClipboard = true }).Values.Keys).Distinct();
             var classified = SettingsFileInventory.Exported.Select(e => e.Key).Concat(SettingsFileInventory.Excluded.Keys).ToArray();
             Assert.Equal(classified.Length, classified.Distinct().Count());
             Assert.Equal(written.OrderBy(k => k), classified.OrderBy(k => k));
             Assert.All(SettingsFileInventory.Excluded.Values, reason => Assert.NotEmpty(reason));
+        }
+        [Fact]
+        public void TheV2ArithmeticHolds()
+        {
+            Assert.Equal(ExportedV2, SettingsFileInventory.Exported.Length);
+            Assert.Equal(ExcludedV2, SettingsFileInventory.Excluded.Count);
+            // The machine history keeps the TranslateSeeded marker excluded even though Copy() carries it.
+            Assert.Contains("TranslateSeeded", SettingsFileInventory.Excluded.Keys);
+            Assert.Equal(3, SettingsFileInventory.Excluded.Values.Count(reason => reason == "Windows state"));
+            Assert.Equal(6, SettingsFileInventory.Excluded.Values.Count(reason => reason == "usage"));
+            Assert.Equal(1, SettingsFileInventory.Excluded.Values.Count(reason => reason == "credentials"));
+        }
+        [Fact]
+        public void TheSyntheticScenariosEntryIsNotARegistryValue()
+        {
+            Assert.Null(SettingsFileInventory.Scenarios.Property);
+            Assert.True(SettingsFileInventory.Scenarios.IsTable);
+            Assert.DoesNotContain(SettingsFileInventory.Exported, e => e.Key == "scenarios");
         }
     }
     public class SettingsFileWriterTests
@@ -36,32 +86,53 @@ namespace CyrFlip.Tests
             => Assert.Throws<SettingsFileException>(() => SettingsFileWriter.Write(
                 new AppConfig { TranslateEndpoint = "http://user:password@server:11434" }, DateTime.UtcNow, "1.0"));
         [Fact]
-        public void StableNativeTypesAndAllowListRoundTrip()
+        public void StableNativeTypesAndCompleteAllowListRoundTrip()
         {
-            var local = new AppConfig { UiLanguage = "Українська", SettingsGroupsState = "SECRET", ScreenshotFolder = "PRIVATE", WelcomeShown = true };
+            var local = new AppConfig { UiLanguage = "Українська", FlipCount = 31337, LanguageHotkeysBackup = "PRIVATE", WelcomeShown = true };
+            local.TrafficLightTargets.Add(new TrafficLightTarget { Id = "t1", Kind = "ping", Address = "nas.local" });
             string output = SettingsFileWriter.Write(local, new DateTime(2026, 10, 7, 10, 15, 0, DateTimeKind.Utc), "26.10.7.1015");
-            Assert.DoesNotContain("\r", output); Assert.DoesNotContain("SECRET", output); Assert.DoesNotContain("PRIVATE", output);
+            Assert.DoesNotContain("\r", output); Assert.DoesNotContain("31337", output);
+            Assert.DoesNotContain("PRIVATE", output); Assert.DoesNotContain("WelcomeShown", output);
             Assert.Contains("\"EnableCaretOverlay\": true", output); Assert.Contains("\"CursorSize\": 24", output);
-            Assert.Contains("Українська", output); Assert.DoesNotContain("WelcomeShown", output);
+            Assert.Contains("Українська", output);
+            // Targets are always in the file (S0072 D3); so is the scenarios section, empty here.
+            Assert.Contains("nas.local", output); Assert.Contains("\"scenarios\": []", output);
             var read = SettingsFileReader.Read(Encoding.UTF8.GetBytes(output));
-            // The list of traffic light targets names the user's infrastructure: not in the file unless asked for (S0069 D10).
-            Assert.Equal(SettingsFileInventory.Exported.Count(e => e.Key != "TrafficLightTargets"), read.Values.Count);
-            Assert.False(read.Values.ContainsKey("TrafficLightTargets"));
+            Assert.Equal(SettingsFileInventory.Exported.Length, read.Values.Count);
+            Assert.NotNull(read.Scenarios); Assert.Empty(read.Scenarios!);
             var plan = SettingsImportPlan.Build(local, read); Assert.Empty(plan.Changes); Assert.Empty(plan.Issues);
-            Assert.Equal(output, SettingsFileWriter.Write(local, new DateTime(2026, 10, 7, 10, 15, 0, DateTimeKind.Utc), "26.10.7.1015"));
+            Assert.Equal(output, SettingsFileWriter.Write(local, new DateTime(2026, 10, 7, 10, 15, 0, DateTimeKind.Utc), "26.10.7.1015",
+                Array.Empty<string>()));
+        }
+        [Fact]
+        public void AnOffModuleExportsItsDefaults()
+        {
+            // SaveTo never wrote the symbols or traffic-light blocks before their first enable (D6);
+            // the export falls back to the defaults instead - and importing them keeps the module off.
+            string output = SettingsFileWriter.Write(new AppConfig(), DateTime.UtcNow, "1.0");
+            Assert.Contains("\"EnableSymbols\": false", output);
+            Assert.Contains("\"EnableTrafficLight\": false", output);
+            Assert.Contains("\"SymbolsHotkey\"", output);
         }
         [Fact]
         public void BytesArePinnedByTheV1WriterFixture()
         {
             string fixture = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", "SettingsFile", "writer-v1.json");
-            Assert.Equal(File.ReadAllText(fixture, Encoding.UTF8), SettingsFileWriter.Write(new AppConfig { UiLanguage = "English" },
+            Assert.Equal(File.ReadAllText(fixture, Encoding.UTF8), SettingsFileWriter.WriteV1(new AppConfig { UiLanguage = "English" },
                 new DateTime(2026, 10, 7, 10, 15, 0, DateTimeKind.Utc), "26.10.7.1015"));
+        }
+        [Fact]
+        public void BytesArePinnedByTheV2WriterFixture()
+        {
+            string fixture = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", "SettingsFile", "writer-v2.json");
+            Assert.Equal(File.ReadAllText(fixture, Encoding.UTF8), SettingsFileWriter.Write(new AppConfig { UiLanguage = "English" },
+                new DateTime(2026, 10, 7, 10, 15, 0, DateTimeKind.Utc), "26.10.7.1015", Array.Empty<string>()));
         }
     }
     public class SettingsFileReaderTests
     {
-        internal static SettingsFileDocument Read(string settings = "{}", string tables = "{}")
-            => SettingsFileReader.Read(Encoding.UTF8.GetBytes("{\"format\":\"CyrFlip Settings\",\"schemaVersion\":1,\"settings\":" + settings + ",\"tables\":" + tables + "}"));
+        internal static SettingsFileDocument Read(string settings = "{}", string tables = "{}", int version = 1)
+            => SettingsFileReader.Read(Encoding.UTF8.GetBytes("{\"format\":\"CyrFlip Settings\",\"schemaVersion\":" + version + ",\"settings\":" + settings + ",\"tables\":" + tables + "}"));
         [Fact]
         public void DifferentAppVersionsAcceptIncompleteAndExcessSettings()
         {
@@ -80,13 +151,36 @@ namespace CyrFlip.Tests
         {
             var doc = SettingsFileReader.ReadFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", "SettingsFile", "golden-v1.json"));
             Assert.Equal("Русский", doc.Values["UiLanguage"]);
+            Assert.Null(doc.Scenarios); // a v1 file has no scenarios section: keep local (S4)
             string json = "\ufeff{\r\n\"format\":\"CyrFlip Settings\",\"schemaVersion\":1,\"settings\":{\"UiLanguage\":null}}";
             var local = new AppConfig { UiLanguage = "Deutsch", CursorSize = 48 };
             var plan = SettingsImportPlan.Build(local, SettingsFileReader.Read(Encoding.UTF8.GetBytes(json)));
             Assert.Equal("Deutsch", plan.Candidate.UiLanguage); Assert.Equal(48, plan.Candidate.CursorSize); Assert.Empty(plan.Changes);
         }
+        [Fact]
+        public void GoldenV2ReadsWholeWithScenarioAndTargets()
+        {
+            var doc = SettingsFileReader.ReadFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", "SettingsFile", "golden-v2.json"));
+            Assert.Equal("Русский", doc.Values["UiLanguage"]);
+            Assert.True((int)doc.Values["EnableTrafficLight"] != 0);
+            Assert.True((int)doc.Values["EnableSymbols"] != 0);
+            Assert.Equal(4, doc.Values["TrafficLightColumns"]);
+            Assert.Equal("TrafficLight|hotkeys/switches|24", doc.Values["SettingsViewport"]);
+            Assert.NotNull(doc.Scenarios); Assert.Single(doc.Scenarios!);
+            var local = new AppConfig();
+            var plan = SettingsImportPlan.Build(local, doc,
+                installed: new HashSet<string>(new[] { "00000409", "00000419" }));
+            Assert.Equal("Ctrl+Shift+F11", plan.Candidate.CaseHotkey);
+            Assert.True(plan.Candidate.EnableSymbols);
+            Assert.True(plan.Candidate.EnableTrafficLight);
+            Assert.Equal(4, plan.Candidate.TrafficLightColumns);
+            Assert.Equal(2, plan.Candidate.TrafficLightTargets.Count);
+            Assert.Single(plan.Scenarios!);
+            Assert.Equal("Calculator", plan.Scenarios![0].Name);
+            Assert.Empty(plan.Issues);
+        }
         [Theory]
-        [InlineData("{\"format\":\"CyrFlip Settings\",\"schemaVersion\":2}", "version")]
+        [InlineData("{\"format\":\"CyrFlip Settings\",\"schemaVersion\":3}", "version")]
         [InlineData("{\"format\":\"CyrFlip Settings\",\"schemaVersion\":1.0}", "format")]
         [InlineData("{\"format\":\"CyrFlip Settings\"}", "format")]
         [InlineData("{\"format\":\"CyrFlip Exchange Text\",\"schemaVersion\":1}", "format")]
@@ -109,6 +203,11 @@ namespace CyrFlip.Tests
             Assert.Equal("limit", Assert.Throws<SettingsFileException>(() => Read("{\"Theme\":\"" + new string('Ж', 2049) + "\"}")).Code);
             Assert.Equal("limit", Assert.Throws<SettingsFileException>(() => Read("{}", "{\"TranslateProfiles\":[" + string.Join(",", Enumerable.Repeat("{}", 257)) + "]}")).Code);
             Assert.Equal("limit", Assert.Throws<SettingsFileException>(() => Read("{" + string.Join(",", Enumerable.Range(0, 2001).Select(i => "\"k" + i + "\":0")) + "}")).Code);
+            // The scenarios section's own caps (S0072 5.5): 512 documents, an oversized one costs itself.
+            Assert.Equal("limit", Assert.Throws<SettingsFileException>(() => Read("{}", "{\"scenarios\":[" + string.Join(",", Enumerable.Repeat("\"<AppItem/>\"", 513)) + "]}")).Code);
+            var over = Read("{}", "{\"scenarios\":[\"" + new string('x', 5000) + "\",\"<AppItem/>\"]}");
+            Assert.Contains(over.Issues, i => i.Key == "scenarios" && i.Reason == "limit");
+            Assert.NotNull(over.Scenarios); Assert.Single(over.Scenarios);
         }
     }
     public class SettingsImportPlanTests
@@ -192,6 +291,42 @@ namespace CyrFlip.Tests
             var plan = SettingsImportPlan.Build(local, SettingsFileReaderTests.Read("{}", "{\"TranslateProfiles\":[],\"LayoutConversionProfiles\":[]}"));
             Assert.Empty(plan.Candidate.TranslateProfiles); Assert.Empty(plan.Candidate.LayoutConversionProfiles); Assert.True(plan.Candidate.TranslateSeeded);
             plan.Candidate.EnableTranslate = true; Assert.False(AppConfig.SeedTranslateRow(plan.Candidate, _ => true));
+        }
+        [Fact]
+        public void SymbolsAndTrafficLightChordsImportThroughTheFixedChordChecks()
+        {
+            var doc = SettingsFileReaderTests.Read("{\"SymbolsHotkey\":\"Ctrl+Shift+F11\",\"TrafficLightHotkey\":\"Ctrl+Shift+F10\"}");
+            // Ctrl+Shift+F11 is the case flip's, Ctrl+Shift+F10 the history chord's: both stay local.
+            var plan = SettingsImportPlan.Build(new AppConfig(), doc);
+            Assert.Equal(new AppConfig().SymbolsHotkey, plan.Candidate.SymbolsHotkey);
+            Assert.Equal(new AppConfig().TrafficLightHotkey, plan.Candidate.TrafficLightHotkey);
+            Assert.Equal(2, plan.Issues.Count(i => i.Reason == "chord"));
+            Assert.Empty(plan.Changes);
+        }
+        [Fact]
+        public void AMissingLocalFolderOrScenarioPathIsFlaggedButStillImported()
+        {
+            string missing = Path.Combine(Path.GetTempPath(), "CyrFlip-S0072-no-such-folder");
+            string missingProgram = Path.Combine(Path.GetTempPath(), "CyrFlip-S0072-no-such-program.exe");
+            string xml = "<AppItem><Id>4c3b2a1900112233445566778899aabb</Id><Name>x</Name><Path>"
+                + missingProgram.Replace("\\", "\\\\") + "</Path></AppItem>";
+            var doc = SettingsFileReaderTests.Read("{\"ScreenshotFolder\":\"" + missing.Replace("\\", "\\\\") + "\"}",
+                "{\"scenarios\":[\"" + xml.Replace("\"", "\\\"").Replace("\n", "") + "\"]}", version: 2);
+            var plan = SettingsImportPlan.Build(new AppConfig(), doc);
+            Assert.Equal(missing, plan.Candidate.ScreenshotFolder); // imported anyway, the preview says so
+            Assert.Contains(plan.Issues, i => i.Key == "ScreenshotFolder" && i.Reason == "path");
+            Assert.Single(plan.Scenarios!);
+            Assert.Contains(plan.Issues, i => i.Key == "scenarios" && i.Reason == "path");
+        }
+        [Fact]
+        public void AFieldThatIsNowNavigationImportsAndReachesTheCandidate()
+        {
+            var doc = SettingsFileReaderTests.Read("{\"SettingsWindowX\":20,\"SettingsWindowY\":30,\"SymbolsCategory\":\"Arrows\",\"TrafficLightVisible\":true}", version: 2);
+            var plan = SettingsImportPlan.Build(new AppConfig(), doc);
+            Assert.Equal(20, plan.Candidate.SettingsWindowX);
+            Assert.Equal("Arrows", plan.Candidate.SymbolsCategory);
+            Assert.True(plan.Candidate.TrafficLightVisible);
+            Assert.Equal(4, plan.Changes.Count);
         }
     }
     public class SettingsSnapshotTests

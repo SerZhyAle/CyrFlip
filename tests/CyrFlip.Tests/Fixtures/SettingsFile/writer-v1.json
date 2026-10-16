@@ -46,10 +46,17 @@
     "QuickNotesWordWrap": false,
     "ExchangeNotesWarningOff": false,
     "EnableScreenshotHotkey": true,
-    "ScreenshotHotkey": "Ctrl+PrintScreen",
+    "ScreenshotHotkey": "Ctrl+F12",
+    "EnableScreenshotFullHotkey": true,
+    "ScreenshotFullHotkey": "Ctrl+F11",
+    "EnableScreenshotAnnotate": true,
+    "EnableScreenshotAnnotateAreaHotkey": true,
+    "ScreenshotAnnotateAreaHotkey": "Ctrl+Alt+F12",
+    "EnableScreenshotFullAnnotateHotkey": true,
+    "ScreenshotFullAnnotateHotkey": "Ctrl+Alt+F11",
     "EnableScreenshotFolderHotkey": true,
-    "ScreenshotFolderHotkey": "Ctrl+Shift+PrintScreen",
-    "ScreenshotSaveEnabled": false
+    "ScreenshotFolderHotkey": "Ctrl+F10",
+    "ScreenshotSaveEnabled": true
   },
   "tables": {
     "LayoutConversionProfiles": [],

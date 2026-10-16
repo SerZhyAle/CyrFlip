@@ -284,6 +284,7 @@ namespace CyrFlip
                 [12] = Pair("#90A4AE", "#455A64"),  // Symbols - blue grey
                 [14] = Pair("#D4E157", "#827717"),  // Selection menu - lime
                 [15] = Pair("#A1887F", "#5D4037"),  // Traffic light - brown
+                [16] = Pair("#4FC3F7", "#0277BD"),  // Exchange server - sky blue
             };
 
             private static KeyValuePair<Color, Color> Pair(string dark, string light)

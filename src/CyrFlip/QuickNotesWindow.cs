@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -392,6 +392,7 @@ namespace CyrFlip
 
         public void ApplyLanguage(string language)
         {
+            HelpLanguage = language;
             _language = language;
             Text = T("Quick notes") + " (" + _config.QuickNotesHotkey + ")";
             RightToLeft = Localization.IsRightToLeft(language) ? RightToLeft.Yes : RightToLeft.No;
@@ -601,6 +602,13 @@ namespace CyrFlip
             if (ReferenceEquals(note, _current)) return;
             CommitCurrent();   // switching notes writes immediately, never asks
             LoadNote(note);
+        }
+
+        internal void ApplyImportedSelection()
+        {
+            if (IsDisposed || !_service.IsLoaded) return;
+            CommitCurrent();
+            SelectRemembered();
         }
 
         private bool SelectRemembered()

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -41,6 +41,7 @@ namespace CyrFlip
 
         public HotkeyDialog(string currentHotkey, string title = "Set hotkey", string uiLanguage = "English")
         {
+            HelpLanguage = uiLanguage;
             Text = title;
             _uiLanguage = uiLanguage;
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -61,7 +62,7 @@ namespace CyrFlip
 
             _hintLabel = new Label
             {
-                Text = Localization.Translate(uiLanguage, "New combo (a modifier is required):"),
+                Text = Localization.Translate(uiLanguage, "New shortcut (a modifier is required):"),
                 AutoSize = true,
                 MaximumSize = new Size(TextWidth(new string('W', 34)), 0), // wrap rather than widen without limit
                 Margin = new Padding(3, 3, 3, 8),

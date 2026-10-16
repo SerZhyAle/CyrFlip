@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
@@ -324,6 +324,31 @@ namespace CyrFlip
     internal class ThemedForm : Form
     {
         private const int WM_DPICHANGED = 0x02E0;
+        private string _helpLanguage = ContextHelp.ApplicationLanguage();
+        internal string HelpLanguage
+        {
+            get => _helpLanguage;
+            set { _helpLanguage = value; ContextHelpUi.RefreshLanguage(this); }
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            ContextHelpUi.Attach(this);
+            base.OnLoad(e);
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.F1 && this is ScreenshotToolbar toolbar) { toolbar.ShowContextHelp(); return true; }
+            if (keyData == Keys.F1) { ContextHelp.Open(this); return true; }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        protected override void OnHelpRequested(HelpEventArgs hevent)
+        {
+            ContextHelp.Open(this);
+            hevent.Handled = true;
+        }
 
         protected override void OnHandleCreated(EventArgs e)
         {

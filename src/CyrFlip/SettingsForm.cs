@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -23,8 +23,8 @@ namespace CyrFlip
         // cannot start a second archive on top of the first.
         private Button? _sendLogs;
         private readonly CheckBox _enableHotkeys = Check("Listen for global hotkeys");
-        private readonly CheckBox _caseEnabled = Check("Fix CapsLock");
-        private readonly CheckBox _historyEnabled = Check("Clipboard manager");
+        private readonly CheckBox _caseEnabled = Check("Case flip");
+        private readonly CheckBox _historyEnabled = Check("Clipboard history");
         private readonly CheckBox _deferRdp = Check("Yield hotkeys to the remote desktop (mstsc/msrdc)");
         private readonly CheckBox _convertSymbols = Check("Convert punctuation along with the text");
         // ---- Text context menu (CyrFlip's own menu over the selection) ----
@@ -36,6 +36,8 @@ namespace CyrFlip
         private readonly CheckBox _desktopShortcut = Check("CyrFlip shortcut on the desktop");
         private readonly CheckBox _keepAwake = Check("Keep the computer awake");
         private readonly CheckBox _keepScreen = Check("Keep the screen on (like video)");
+        private readonly CheckBox _settingsBackup = Check("Keep a settings backup in Documents");
+        private readonly Label _backupState = new Label { AutoSize = true, Margin = new Padding(3, 3, 3, 0) };
         private readonly ComboBox _uiLanguage = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 190 };
         // The theme (ticket S0020, the owner's rework of 2026-10-08): a drop-down in the shape of the
         // chord one - a translated caption over the invariant token, refilled by ReloadThemeCombo.
@@ -50,7 +52,7 @@ namespace CyrFlip
         private readonly CheckBox _caps = Check("Synchronize CapsLock after case correction");
         private readonly CheckBox _history = Check("Enable clipboard history");
         private readonly CheckBox _pause = Check("Pause history capture");
-        private readonly CheckBox _historyStartup = Check("Show clipboard manager on startup");
+        private readonly CheckBox _historyStartup = Check("Show clipboard history on startup");
         private readonly TrackBar _opacity = new TrackBar { Minimum = 30, Maximum = 100, TickFrequency = 10, SmallChange = 5, LargeChange = 10, Width = 245 };
         private readonly Label _opacityValue = new Label { AutoSize = true };
         private readonly Label _caseHotkeyValue = new Label { AutoSize = true };
@@ -63,8 +65,8 @@ namespace CyrFlip
         private readonly FlowLayoutPanel _languageRows = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 4, 3, 4) };
         private readonly FlowLayoutPanel _conversionRows = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 4, 3, 4) };
         private readonly ComboBox _toggleCombo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 200 };
-        private readonly Button _restoreLanguageHotkeys = new Button { Text = "Restore hotkeys", AutoSize = true, Margin = new Padding(3, 5, 3, 5) };
-        private readonly Button _restoreLayouts = new Button { Text = "Restore layouts", AutoSize = true, Margin = new Padding(3, 5, 3, 5) };
+        private readonly Button _restoreLanguageHotkeys = new Button { Text = "Restore shortcuts", AutoSize = true, Margin = new Padding(4, 3, 4, 3) };
+        private readonly Button _restoreLayouts = new Button { Text = "Restore layouts", AutoSize = true, Margin = new Padding(4, 3, 4, 3) };
         private bool _languageHotkeyNoticeShown;
         private bool _layoutNoticeShown;
         private bool _loading;
@@ -115,6 +117,8 @@ namespace CyrFlip
         // closing (or the app exiting) stops it instead of leaving the tab wedged on "busy".
         private CancellationTokenSource? _translateWork;
         private bool _translateBusy;
+        // Hiding the window hands a running download / pull over instead of cancelling it (S0060 P7-i).
+        private readonly WorkHandover _translateHandover = new WorkHandover();
         // ---- Quick notes tab ----
         private readonly Action _setQuickNotesHotkey, _openQuickNotes, _clearQuickNotes;
         private readonly Func<string, bool, string> _exportQuickNotes;
@@ -129,14 +133,7 @@ namespace CyrFlip
         // ---- The text context menu's keyboard chord (S0045 K2) ----
         private readonly CheckBox _textMenuHotkeyEnabled = Check("Open the menu from the keyboard");
         private readonly Label _textMenuHotkeyValue = new Label { AutoSize = true };
-        // ---- Graphics (S0026) ----
-        private readonly CheckBox _screenshotHotkeyEnabled = Check("Screen region capture");
-        private readonly Label _screenshotHotkeyValue = new Label { AutoSize = true };
-        private readonly CheckBox _screenshotSave = Check("Also save captures to a folder");
-        private readonly CheckBox _screenshotFolderHotkeyEnabled = Check("Open the screenshots folder");
-        private readonly Label _screenshotFolderHotkeyValue = new Label { AutoSize = true };
-        private readonly TextBox _screenshotFolderBox = new TextBox { ReadOnly = true, Width = 520, Margin = new Padding(3, 6, 3, 3) };
-        private readonly List<Control> _screenshotFolderControls = new List<Control>();
+        // ---- Graphics (S0026/S0057/S0071): the fields live in SettingsForm.Graphics.cs ----
         // ---- Symbols palette (S0056) ----
         private readonly CheckBox _symbolsEnabled = Check("Enable symbols window");
         private readonly CheckBox _symbolsHotkeyEnabled = Check("Symbols window");
@@ -151,7 +148,10 @@ namespace CyrFlip
         // (caption-side control, hint label) pairs whose hint must sit under the caption's own text
         // inset (WINDOWS-UI section 4, boolean rows); re-measured on every language/font change.
         private readonly List<KeyValuePair<Control, Label>> _hintPairs = new List<KeyValuePair<Control, Label>>();
-        // The hint label of each row, looked up by the control the row is about (the dependency pass)
+        // The hint label of each row, looked up by the control the row is about. The dependency pass
+        // (SettingsForm.Dependencies.cs) reads it to tell a row that has a hint - its "why unavailable" note
+        // stands under it, at the hint's inset - from one that has none. Never written to by that pass: the hint
+        // is a registered caption of the language pass, the note is a label of its own.
         private readonly Dictionary<Control, Label> _rowHints = new Dictionary<Control, Label>();
         // The page index a viewport capture belongs to: SelectedIndexChanged fires after the selection
         // moved, so the capture must name the page the user is leaving, not the one they entered.
@@ -198,6 +198,9 @@ namespace CyrFlip
         // the same match rule the search dialog runs - read by the conformance tests (S0048).
         internal IReadOnlyList<CollapsibleGroup> Groups => _groups;
         internal TabControl? Tabs => _tabs;
+        /// <summary>The (control, description) pairs whose description stands under the control's own text - what the row-anatomy gates measure.</summary>
+        internal IReadOnlyList<KeyValuePair<Control, Label>> HintPairs => _hintPairs;
+        internal SettingsPageKey HelpPageKey => _tabs?.SelectedTab?.Tag is SettingsPageKey key ? key : SettingsPageKey.General;
         internal static bool SearchMatchesForTest(string texts, string query) => SettingsSearchDialog.Matches(texts, query);
 
         /// <summary>Raised after the profile list changes, so the global hook can replace its bindings.</summary>
@@ -212,6 +215,13 @@ namespace CyrFlip
         /// config, rebinds the chords and refreshes the tray entry in one place.
         /// </summary>
         public event EventHandler? TranslationChanged;
+
+        /// <summary>
+        /// A long translator operation - the Ollama download or a model pull - ended while the window was
+        /// hidden (it is handed over when the window hides, not cancelled; S0060 P7-i). The text is its
+        /// last status line, already in the UI language; the context tells it through the tray.
+        /// </summary>
+        public event EventHandler<string>? TranslateWorkFinishedInBackground;
 
         /// <summary>
         /// Raised after the text context menu's switch or chord changes, so the context can save and
@@ -230,6 +240,12 @@ namespace CyrFlip
         public event EventHandler? GraphicsChanged;
         /// <summary>"Изменить..." beside the capture chord.</summary>
         public event EventHandler? ScreenshotHotkeyChangeRequested;
+        /// <summary>"Изменить..." beside the full-capture chord (S0071).</summary>
+        public event EventHandler? ScreenshotFullHotkeyChangeRequested;
+        /// <summary>"Изменить..." beside the area-capture-with-drawing chord (S0071).</summary>
+        public event EventHandler? ScreenshotAnnotateAreaHotkeyChangeRequested;
+        /// <summary>"Изменить..." beside the full-capture-with-drawing chord (S0071).</summary>
+        public event EventHandler? ScreenshotFullAnnotateHotkeyChangeRequested;
         /// <summary>"Изменить..." beside the screenshots-folder chord (S0057).</summary>
         public event EventHandler? ScreenshotFolderHotkeyChangeRequested;
         /// <summary>"Открыть папку" - the one opener the chord uses too (S0057).</summary>
@@ -238,6 +254,11 @@ namespace CyrFlip
         public event EventHandler? TextMenuHotkeyChangeRequested;
         /// <summary>"Сделать снимок области" - the same action as the tray item.</summary>
         public event EventHandler? ScreenshotRequested;
+        /// <summary>"Сделать снимок всего экрана" (S0071) - the same action as its tray item.</summary>
+        public event EventHandler? ScreenshotFullRequested;
+        /// <summary>The annotate section's two try-out buttons (S0071) - the same entry points as the chords.</summary>
+        public event EventHandler? ScreenshotAnnotateAreaRequested;
+        public event EventHandler? ScreenshotFullAnnotateRequested;
         /// <summary>Raised after anything on the Symbols tab changes (S0056).</summary>
         public event EventHandler? SymbolsChanged;
         /// <summary>"Изменить..." beside the symbols window chord.</summary>
@@ -330,7 +351,7 @@ namespace CyrFlip
             _keepAwake.Name = "setting.keep-system-awake";
             _keepScreen.Name = "setting.keep-screen-on";
             var pages = new Dictionary<SettingsPageKey, TabPage>();
-            pages[SettingsPageKey.General] = WithIcon(Page("General", "Core app settings. Changes take effect immediately.",
+            pages[SettingsPageKey.General] = WithIcon(Page("General", "Core app settings; changes take effect immediately.",
                 Group("general/language", "Language and theme",
                     Setting(LanguageRow(), "Choose the CyrFlip interface language. The choice is saved and also applies to the tray menu."),
                     Setting(ThemeRow(), "“Same as Windows” - CyrFlip is light or dark with Windows and follows it when it switches, without a restart. Windows contrast themes always take precedence over this setting. The layout marker at the cursor and caret does not change with the theme: its colour names the layout.")),
@@ -345,7 +366,9 @@ namespace CyrFlip
                 Group("general/transfer", "Settings transfer",
                     Button("Export settings...", AppGlyphs.Export, () => SettingsTransferRequested?.Invoke("export")),
                     Button("Import settings...", AppGlyphs.Import, () => SettingsTransferRequested?.Invoke("import")),
-                    _restoreSettings = Button("Restore settings before import...", AppGlyphs.Undo, () => SettingsTransferRequested?.Invoke("restore")))), 0);
+                    _restoreSettings = Button("Restore settings before import...", AppGlyphs.Undo, () => SettingsTransferRequested?.Invoke("restore")),
+                    Setting(_settingsBackup, "While on, CyrFlip keeps a rolling backup of every setting in Documents\\CyrFlip\\Backups - the three newest are kept. The backup survives a Microsoft Store reinstall: a fresh install finds it and offers to restore. The file carries your hosts, sites and scenarios - keep it private."),
+                    Setting(BackupFolderRow(), "The backups are plain settings files named by date. Open the folder to copy one or to take it to another computer."))), 0);
             _restoreSettings.Name = "group.transfer";
             _cursor.Name = "setting.cursor-marker";
             _caret.Name = "setting.caret-marker";
@@ -373,6 +396,7 @@ namespace CyrFlip
             // The merged page: the master switch, the RDP option and the overview of every chord (D8, D9).
             pages[SettingsPageKey.Hotkeys] = WithIcon(HotkeysOverviewPage(), 2);
             pages[SettingsPageKey.About] = WithIcon(AboutPage(), 5);
+            pages[SettingsPageKey.ExchangeServer] = WithIcon(ExchangeServerPage(), 16);
             foreach (SettingsPageKey key in SettingsPageKeys.DisplayOrder) tabs.TabPages.Add(pages[key]);
             // The build version at the foot of the page list, beside the product name in the header band: it is
             // where the eye goes to ask "which build is this" (the About page keeps the full line).
@@ -405,11 +429,17 @@ namespace CyrFlip
             tabs.SelectedIndexChanged += (_, _) =>
             {
                 UpdateHeaderCommands();
-                _config.SaveSettingsTab(tabs.SelectedIndex, tabs.SelectedTab?.Tag?.ToString());
+                if (!_restoringContext) _config.SaveSettingsTab(tabs.SelectedIndex, tabs.SelectedTab?.Tag?.ToString());
                 // The page being left keeps where it was scrolled to; the page being entered gets it
                 // back once it has laid out (WINDOWS-UI section 3 rule 3).
-                CaptureViewport(_lastPageIndex);
+                if (!_restoringContext) CaptureViewport(_lastPageIndex);
                 _lastPageIndex = tabs.SelectedIndex;
+                // A page's own Resize re-clamps only that page, and only while it is the selected one: a page
+                // that was hidden while the window changed size is brought up to date here, before its
+                // scroll position is restored.
+                FlowLayoutPanel? selectedPanel = tabs.SelectedTab == null ? null : ContentPanel(tabs.SelectedTab);
+                if (selectedPanel != null && _staleClampPanels.Contains(selectedPanel))
+                    ClampPage(selectedPanel);
                 RestoreViewport(tabs.SelectedIndex);
                 // Old installer downloads go when the translator page is looked at (S0037 TR-5).
                 if (ReferenceEquals(tabs.SelectedTab, translatePage))
@@ -442,6 +472,7 @@ namespace CyrFlip
                 Activated += (_, _) => RefreshShortcuts();
             }
             _keepAwake.CheckedChanged += (_, _) => Changed(_setKeepAwake, _keepAwake.Checked);
+            _settingsBackup.CheckedChanged += (_, _) => Changed(v => _config.SettingsBackupEnabled = v, _settingsBackup.Checked);
             _keepScreen.CheckedChanged += (_, _) => Changed(_setKeepScreen, _keepScreen.Checked);
             _caret.CheckedChanged += (_, _) => Changed(_setCaret, _caret.Checked);
             _dot.CheckedChanged += (_, _) => Changed(_setDot, _dot.Checked);
@@ -487,6 +518,8 @@ namespace CyrFlip
             _restoreLayouts.Click += (_, _) => RestoreLayouts();
             ButtonGlyphs.Attach(_restoreLanguageHotkeys, AppGlyphs.Undo);
             ButtonGlyphs.Attach(_restoreLayouts, AppGlyphs.Undo);
+            ButtonGlyphs.UseCommandMetric(_restoreLanguageHotkeys);
+            ButtonGlyphs.UseCommandMetric(_restoreLayouts);
             _toggleCombo.SelectedIndexChanged += (_, _) => OnToggleChanged();
             _uiLanguage.SelectedIndexChanged += (_, _) => { if (!_loading && _uiLanguage.SelectedItem is string language) { _setUiLanguage(language); ApplyLanguage(); } };
             _themeCombo.SelectedIndexChanged += (_, _) => ThemeChosen();
@@ -506,6 +539,14 @@ namespace CyrFlip
                 GraphicsSettingChanged(() => _config.EnableScreenshotHotkey = _screenshotHotkeyEnabled.Checked);
             _screenshotSave.CheckedChanged += (_, _) =>
                 GraphicsSettingChanged(() => _config.ScreenshotSaveEnabled = _screenshotSave.Checked, reload: true);
+            _screenshotFullHotkeyEnabled.CheckedChanged += (_, _) =>
+                GraphicsSettingChanged(() => _config.EnableScreenshotFullHotkey = _screenshotFullHotkeyEnabled.Checked);
+            _screenshotAnnotateEnabled.CheckedChanged += (_, _) =>
+                GraphicsSettingChanged(() => _config.EnableScreenshotAnnotate = _screenshotAnnotateEnabled.Checked, reload: true);
+            _screenshotAnnotateAreaHotkeyEnabled.CheckedChanged += (_, _) =>
+                GraphicsSettingChanged(() => _config.EnableScreenshotAnnotateAreaHotkey = _screenshotAnnotateAreaHotkeyEnabled.Checked);
+            _screenshotFullAnnotateHotkeyEnabled.CheckedChanged += (_, _) =>
+                GraphicsSettingChanged(() => _config.EnableScreenshotFullAnnotateHotkey = _screenshotFullAnnotateHotkeyEnabled.Checked);
             _screenshotFolderHotkeyEnabled.CheckedChanged += (_, _) =>
                 GraphicsSettingChanged(() => _config.EnableScreenshotFolderHotkey = _screenshotFolderHotkeyEnabled.Checked);
 
@@ -530,12 +571,21 @@ namespace CyrFlip
             // keystroke - the context writes the registry on each change.
             _translateEndpoint.Leave += (_, _) => CommitTranslateText();
             _translateModel.Leave += (_, _) => CommitTranslateText();
-            VisibleChanged += (_, _) => { if (!Visible) { CommitTranslateText(); CancelTranslateWork(); } };
+            // Between the first keystroke and the commit the field is the user's, not the config's: a Reload()
+            // that arrives meanwhile (a background result, a switch on another page) must not type over it.
+            _translateEndpoint.TextChanged += (_, _) => { if (!_loading) _translateEndpointUncommitted = true; };
+            _translateModel.TextChanged += (_, _) => { if (!_loading) _translateModelUncommitted = true; };
+            VisibleChanged += (_, _) => { if (!Visible) { CommitTranslateText(); HandOverTranslateWork(); } else _translateHandover.OnShown(); };
+            // The real end - the application exiting - stops it; hiding the window does not.
+            Disposed += (_, _) => CancelTranslateWork();
             // The captions are remembered before the first Reload fills any value in (S0036 UI-10): a
             // value label filled there - a chord, the version, a size - was registered as a "source
             // original" and put back over the live value by every re-translation, the S0007 ST-4 bug
             // class. It only held because ApplyLanguage happened to set each of them again.
             BuildTransferPreferenceGroups();
+            // After the pages are final (a single group is flattened above): a note is placed by the row its
+            // control ended up in. The notes have no text yet, so the walk below does not register them.
+            BuildDependencyNotes();
             RememberSourceTexts(this);
             // Saved context before the first Reload so the restores never count as user edits
             // (WINDOWS-UI section 3 rule 4): the groups come back as they were left, every page's
@@ -576,6 +626,9 @@ namespace CyrFlip
             Button collapseAll = GlyphCommand("settingsCollapseAll", AppGlyphs.Collapse, "Collapse all", () => SetPageGroupsExpanded(false));
             _expandAllButton = expandAll; _collapseAllButton = collapseAll;
             var commands = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, WrapContents = false, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(0), Padding = new Padding(0) };
+            Button help = GlyphCommand("contextHelp", AppGlyphs.Help, "Help (F1)", () => ContextHelp.Open(this));
+            help.MinimumSize = new Size(ControlDpi.Scale(DeviceDpi, 44), ControlDpi.Scale(DeviceDpi, 44));
+            commands.Controls.Add(help);
             commands.Controls.Add(find);
             commands.Controls.Add(expandAll);
             commands.Controls.Add(collapseAll);
@@ -628,8 +681,10 @@ namespace CyrFlip
         /// accessible name and the tooltip (<see cref="NameHeaderCommands"/>), so a live language switch reaches it.</summary>
         private Button GlyphCommand(string name, string glyphId, string englishName, Action action)
         {
-            int edge = ControlDpi.Scale(DeviceDpi, 40);
-            var button = new Button { Name = name, AutoSize = false, Size = new Size(edge, edge), Margin = new Padding(6, 0, 0, 0), TabStop = true, UseMnemonic = false };
+            // The command metric's square (32 logical px, 8 px between neighbours), like every other glyph-only
+            // command of the window; ReassertCommandMetrics scales it again on a DPI change.
+            int edge = CommandEdge;
+            var button = new Button { Name = name, AutoSize = false, Size = new Size(edge, edge), Margin = new Padding(4, 0, 4, 0), TabStop = true, UseMnemonic = false };
             button.Click += (_, _) => action();
             AsMoveGlyph(button, glyphId);
             button.AccessibleName = englishName;
@@ -730,6 +785,7 @@ namespace CyrFlip
         /// <summary>The persisted context: group expansion, the page viewports and the window rectangle.</summary>
         private void SaveUiContext()
         {
+            if (_restoringContext) return;
             CaptureViewport(_lastPageIndex);
             _config.SettingsGroupsState = GroupStateString();
             if (WindowState == FormWindowState.Normal)
@@ -914,6 +970,13 @@ namespace CyrFlip
             /// <summary>The row's own caption (its first text) - what the result list shows.</summary>
             public string Caption = "";
             public string Texts = "";
+
+            /// <summary>Where the row lives, "Page / Group" - or the page alone for a row outside every group. Shown
+            /// beside the caption (S0060 M14), so two rows with one caption are told apart without opening either.</summary>
+            public string Context => GroupCaption.Length == 0 ? PageTitle : PageTitle + " / " + GroupCaption;
+
+            /// <summary>What a list item reads as to a screen reader: the caption, then where it lives.</summary>
+            public override string ToString() => Caption + " - " + Context;
         }
 
         internal List<SettingsSearchHit> BuildSearchIndex()
@@ -934,6 +997,12 @@ namespace CyrFlip
                     CollectSearchRows(page, group.Body, pageTitle, group.Caption, hits);
                     continue;
                 }
+                // A dependency note explains a row; it is not a setting of its own, so it is never a result.
+                if (child is Label { Tag: DependencyNoteTag }) continue;
+                // The index holds what a person can change or run: a row with an editor or a command. A page's
+                // title and purpose line, a group's note and a status line are prose - finding them would be
+                // finding a sentence, not a setting (S0060 M14).
+                if (!CarriesEditorOrCommand(child)) continue;
                 var texts = new List<string>();
                 CollectSearchTexts(child, texts);
                 if (texts.Count == 0) continue;
@@ -943,6 +1012,17 @@ namespace CyrFlip
                     Focus = FirstFocusable(child) ?? child, Caption = OneLine(texts[0]), Texts = string.Join(" ", texts),
                 });
             }
+        }
+
+        /// <summary>True when the control, or anything under it, is a value editor or a command (a link is one: it opens something).</summary>
+        internal static bool CarriesEditorOrCommand(Control control)
+        {
+            if (control is ButtonBase || control is ListControl || control is NumericUpDown || control is TrackBar
+                || control is TextBoxBase || control is ListView || control is LinkLabel)
+                return true;
+            foreach (Control child in control.Controls)
+                if (CarriesEditorOrCommand(child)) return true;
+            return false;
         }
 
         /// <summary>A caption as one list line: a wrapped label's line breaks become spaces.</summary>
@@ -959,7 +1039,7 @@ namespace CyrFlip
         private static Control? FirstFocusable(Control root)
         {
             if (root is CheckBox || root is RadioButton || root is ButtonBase || root is TextBoxBase
-                || root is ListControl || root is NumericUpDown)
+                || root is ListControl || root is NumericUpDown || root is TrackBar)
                 return root;
             foreach (Control child in root.Controls)
             {
@@ -1002,7 +1082,9 @@ namespace CyrFlip
         {
             private readonly SettingsForm _owner;
             private readonly TextBox _query = new TextBox { Dock = DockStyle.Fill, Margin = new Padding(0) };
-            private readonly ListBox _results = new ListBox { Dock = DockStyle.Fill, IntegralHeight = false };
+            // Two lines per result - the caption, then "Page / Group" muted (S0060 M14) - so the list is
+            // owner-drawn at a fixed height measured from the dialog's own font.
+            private readonly ListBox _results = new ListBox { Dock = DockStyle.Fill, IntegralHeight = false, DrawMode = DrawMode.OwnerDrawFixed };
             private readonly Label _status = new Label { AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 4, 3, 0) };
             private List<SettingsSearchHit> _index;
             private List<SettingsSearchHit> _matches = new List<SettingsSearchHit>();
@@ -1039,10 +1121,12 @@ namespace CyrFlip
                 table.Controls.Add(_status, 0, 3);
                 Controls.Add(table);
 
+                _results.ItemHeight = ResultItemHeight(Font);
+                _results.DrawItem += DrawResult;
                 _query.TextChanged += (_, _) => RunQuery();
-                _results.SelectedIndexChanged += (_, _) => _status.Text = _results.SelectedItem == null ? "" : _matches[_results.SelectedIndex].GroupCaption.Length == 0
-                    ? _matches[_results.SelectedIndex].PageTitle
-                    : _matches[_results.SelectedIndex].PageTitle + " - " + _matches[_results.SelectedIndex].GroupCaption;
+                // The status line repeats where the selected result lives, whole: the list elides a long one.
+                _results.SelectedIndexChanged += (_, _) => _status.Text =
+                    _results.SelectedIndex < 0 || _results.SelectedIndex >= _matches.Count ? "" : _matches[_results.SelectedIndex].Context;
                 _results.DoubleClick += (_, _) => Accept();
                 _results.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter) { e.Handled = e.SuppressKeyPress = true; Accept(); } };
                 // Enter on the query opens the selected match; the arrows walk the list without
@@ -1097,12 +1181,49 @@ namespace CyrFlip
                 _matches = _index.Where(hit => Matches(hit.Texts, query)).ToList();
                 _results.BeginUpdate();
                 _results.Items.Clear();
-                // The row's caption only - Texts is caption and description joined by spaces, so
-                // it has no first line to cut; the page and group name go to the status line.
-                foreach (SettingsSearchHit hit in _matches) _results.Items.Add(hit.Caption);
+                // The hit itself is the item: the list draws its caption and where it lives (DrawResult), and a
+                // screen reader reads its ToString - "caption - Page / Group" (S0060 M14).
+                foreach (SettingsSearchHit hit in _matches) _results.Items.Add(hit);
                 _results.EndUpdate();
                 _status.Text = query.Length == 0 ? "" : _matches.Count == 0 ? _owner.Translate("Nothing found.") : "";
                 if (_results.Items.Count > 0) _results.SelectedIndex = 0;
+            }
+
+            /// <summary>The height of a two-line result for a font: two text lines and a little air, never below one row's worth.</summary>
+            internal static int ResultItemHeight(Font font) => font.Height * 2 + 10;
+
+            /// <summary>
+            /// The colour the second line takes: <c>text.muted</c> on an ordinary row, the row's own ink on the
+            /// selected one (the highlight would not hold a muted grey), and the primary ink whenever the muted
+            /// role would fall below 4.5:1 on the face the row is on (WINDOWS-UI section 6 rule 4).
+            /// </summary>
+            internal static Color ContextInk(ThemePalette palette, Color primary, Color face, bool selected)
+            {
+                if (selected) return primary;
+                return ThemePalette.Contrast(palette.TextMuted, face) >= 4.5 ? palette.TextMuted : primary;
+            }
+
+            private void DrawResult(object? sender, DrawItemEventArgs e)
+            {
+                if (e.Index < 0 || e.Index >= _matches.Count) return;
+                SettingsSearchHit hit = _matches[e.Index];
+                e.DrawBackground();
+                bool selected = (e.State & DrawItemState.Selected) != 0;
+                ThemePalette palette = ThemeApply.PaletteOf(_results) ?? ThemePalette.Light;
+                Color primary = e.ForeColor;
+                Color context = ContextInk(palette, primary, e.BackColor, selected);
+                // The reading order follows the language; the start side is the logical one, which a mirrored
+                // window (RightToLeftLayout) puts on the right by itself.
+                TextFormatFlags flags = TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis | TextFormatFlags.SingleLine
+                    | TextFormatFlags.VerticalCenter | TextFormatFlags.Left
+                    | (RightToLeft == RightToLeft.Yes ? TextFormatFlags.RightToLeft : TextFormatFlags.Default);
+                const int pad = 6;
+                int half = e.Bounds.Height / 2;
+                var first = new Rectangle(e.Bounds.X + pad, e.Bounds.Y, Math.Max(1, e.Bounds.Width - 2 * pad), half);
+                var second = new Rectangle(first.X, e.Bounds.Y + half, first.Width, e.Bounds.Height - half);
+                TextRenderer.DrawText(e.Graphics, hit.Caption, e.Font, first, primary, flags);
+                TextRenderer.DrawText(e.Graphics, hit.Context, e.Font, second, context, flags);
+                e.DrawFocusRectangle();
             }
 
             private void Accept()
@@ -1118,6 +1239,8 @@ namespace CyrFlip
         {
             _loading = true;
             _restoreSettings.Enabled = SettingsSnapshot.Newest(SettingsSnapshot.Folder) != null;
+            _settingsBackup.Checked = _config.SettingsBackupEnabled;
+            RefreshBackupState();
             _startMenuShortcut.Checked = AppShortcuts.Exists(ShortcutPlace.StartMenu);
             _desktopShortcut.Checked = AppShortcuts.Exists(ShortcutPlace.Desktop);
             _autostart.Checked = Autostart.IsEnabled;
@@ -1159,6 +1282,7 @@ namespace CyrFlip
             ReloadTranslateState();
             ReloadSymbolsState();
             ReloadTrafficLightState();
+            ReloadExchangeServerState();
             _loading = false;
             ApplyLanguage();
         }
@@ -1193,9 +1317,15 @@ namespace CyrFlip
         private void SetShortcut(ShortcutPlace place, CheckBox box)
         {
             if (_loading) return;
-            try { AppShortcuts.Set(place, box.Checked); }
-            catch { }
+            bool wanted = box.Checked;
+            Exception? failure = null;
+            try { AppShortcuts.Set(place, wanted); }
+            catch (Exception ex) { failure = ex; }
+            // The box shows the truth first (a link that could not be made is not ticked), then the cause is said.
             RefreshShortcuts();
+            if (failure != null)
+                Fail(Localization.Format(Translate, "Could not change the shortcut: {0}", FailureCause.Describe(failure, Translate)),
+                    () => { _loading = true; box.Checked = wanted; _loading = false; SetShortcut(place, box); });
         }
 
         private void RefreshShortcuts()
@@ -1214,10 +1344,11 @@ namespace CyrFlip
             // capture translated text as if it were the source original.
             if (ReferenceEquals(root, _languageRows) || ReferenceEquals(root, _layoutRows)
                 || ReferenceEquals(root, _conversionRows) || ReferenceEquals(root, _translationRows)
-                || ReferenceEquals(root, _tlRows)) return;
+                || ReferenceEquals(root, _tlRows) || ReferenceEquals(root, _exchangeAccountsList)) return;
             // A value label, not a caption: its "100%" registered here was put back on top of the
             // slider's real value by every re-translation (ticket S0007, ST-4).
             if (ReferenceEquals(root, _opacityValue)) return;
+            if (ReferenceEquals(root, _tlTransparencyValue)) return;
 
             // ComboBox.Text is its selected value, not a UI caption. Translating it would reset
             // the language selector back to its first value on every UI refresh. Same for
@@ -1233,6 +1364,7 @@ namespace CyrFlip
 
         private void ApplyLanguage()
         {
+            HelpLanguage = _config.UiLanguage;
             // The bulk pass touches every caption of the window. Without layout suspension each
             // assignment re-lays-out the whole parent chain - and every relayout re-measures its
             // labels, which on the complex-script fonts (Nirmala UI, Vrinda, the Arabic faces) is
@@ -1248,9 +1380,13 @@ namespace CyrFlip
                 _quickNotesHotkeyValue.Text = _config.QuickNotesHotkey;
                 _textMenuHotkeyValue.Text = _config.TextMenuHotkey;
                 _screenshotHotkeyValue.Text = _config.ScreenshotHotkey;
+                _screenshotFullHotkeyValue.Text = _config.ScreenshotFullHotkey;
+                _screenshotAnnotateAreaHotkeyValue.Text = _config.ScreenshotAnnotateAreaHotkey;
+                _screenshotFullAnnotateHotkeyValue.Text = _config.ScreenshotFullAnnotateHotkey;
                 _screenshotFolderHotkeyValue.Text = _config.ScreenshotFolderHotkey;
                 _screenshotFolderBox.Text = ScreenshotFolderShown();
                 _opacityValue.Text = _opacity.Value + "%";
+                _tlTransparencyValue.Text = _tlTransparency.Value + "%";
                 _markerSizeValue.Text = MarkerSizeName(_markerSize.Value);
                 _version.Text = VersionLine();
             }
@@ -1260,8 +1396,14 @@ namespace CyrFlip
             SuspendLayoutDeep(this);
             try
             {
-                AlignHotkeyCaptions();
+                // The drop-downs are filled in this language first: their width is part of the page's editor column.
+                ReloadToggleCombo();
+                ReloadContextMenuChords();
+                ReloadThemeCombo();
+                FitDropDowns();
+                AlignChordColumn();
                 AdjustTabStrip();
+                ReassertCommandMetrics();
                 // Font-derived geometry is re-measured, not remembered: the boolean hints under their
                 // captions, the per-page caption column, and the numeric editors' logical metrics all
                 // follow the font (and family) the language just installed (WINDOWS-UI sections 4-5).
@@ -1277,9 +1419,6 @@ namespace CyrFlip
             ReloadTranslationRows();
             ReloadTrafficLightRows();
             ReloadHotkeysOverview();
-            ReloadToggleCombo();
-            ReloadContextMenuChords();
-            ReloadThemeCombo();
             // Every Reload() ends here - i.e. every checkbox on every page - so the scenario table is
             // rebuilt only when something it shows changed (S0030 HT-1).
             string launcherStamp = LauncherRowsStamp();
@@ -1290,6 +1429,9 @@ namespace CyrFlip
             NameEditors(this);
             NameFixedControls();
             ApplyGlyphTooltips();
+            // Last of the state passes: the tables and the buttons above have just been rebuilt and re-gated,
+            // and the notes read what is greyed now (S0060 M5). Before the first size is derived from content.
+            ApplyDependencyNotes();
             if (_firstSize && IsHandleCreated)
             {
                 _firstSize = false;
@@ -1314,7 +1456,7 @@ namespace CyrFlip
             {
                 if (child is TableLayoutPanel { Tag: CaptionedRow row })
                 {
-                    NameEditors(row.Editors, row.Caption.Text.TrimEnd(':', ' '));
+                    NameCaptionedEditors(row.Editors, row.Caption.Text.TrimEnd(':', ' '));
                     continue;
                 }
                 if (child is Label label)
@@ -1330,6 +1472,39 @@ namespace CyrFlip
                 }
                 if (child.HasChildren) NameEditors(child);
             }
+        }
+
+        /// <summary>
+        /// The editors and commands of one captioned row's strip, however deep the strip nests them. An editor is
+        /// named after the row's caption; a command with a caption of its own is named "verb - caption", so the
+        /// Change buttons of eight rows are eight different names to a screen reader (APP-BEHAVIOUR rule 9, S0060
+        /// M9). A name somebody set on purpose is left alone; a derived one follows the language.
+        /// </summary>
+        private void NameCaptionedEditors(Control strip, string caption)
+        {
+            foreach (Control child in strip.Controls)
+            {
+                if (child is Label) continue;
+                bool derivable = string.IsNullOrEmpty(child.AccessibleName) || _derivedNames.TryGetValue(child, out _);
+                if (child is ComboBox or NumericUpDown or TrackBar or TextBoxBase or ListView)
+                {
+                    if (derivable) DeriveName(child, caption);
+                    continue;
+                }
+                if (child is Button button)
+                {
+                    string verb = button.Text.TrimEnd('.', ' ');
+                    if (derivable && verb.Any(char.IsLetter)) DeriveName(button, verb + " - " + caption);
+                    continue;
+                }
+                if (child.HasChildren) NameCaptionedEditors(child, caption);
+            }
+        }
+
+        private void DeriveName(Control control, string name)
+        {
+            if (control.AccessibleName != name) control.AccessibleName = name;
+            if (!_derivedNames.TryGetValue(control, out _)) _derivedNames.Add(control, control);
         }
 
         /// <summary>Names of the controls whose caption is not a sibling label, refreshed with the language.</summary>
@@ -1400,15 +1575,39 @@ namespace CyrFlip
                 if (token == current) select = i;
             }
             _contextMenuChord.SelectedIndex = select;
-            int max = 260;
-            foreach (ChordItem item in _contextMenuChord.Items)
-            {
-                int w = TextRenderer.MeasureText(item.Label, Font).Width + 36;
-                if (w > max) max = w;
-            }
+            int max = ComboWidth(_contextMenuChord.Items.Cast<ChordItem>().Select(item => item.Label), 260);
             _contextMenuChord.Width = max;
             _contextMenuChord.DropDownWidth = max;
             _loading = loading;
+        }
+
+        /// <summary>The two drop-downs that are filled once or by their own page: as wide as their longest entry in this language and display.</summary>
+        private void FitDropDowns()
+        {
+            int language = ComboWidth(Localization.Names, 190);
+            if (_uiLanguage.Width != language) _uiLanguage.Width = language;
+            // The tile sizes are words of the language on screen; a language switch alone does not rebuild them.
+            bool loading = _loading;
+            _loading = true;
+            try { FillTileSizeCombo(); }
+            finally { _loading = loading; }
+            int tile = ComboWidth(_tlTileSize.Items.Cast<object>().Select(item => item.ToString() ?? ""), 120);
+            if (_tlTileSize.Width != tile) _tlTileSize.Width = tile;
+        }
+
+        /// <summary>
+        /// The width a drop-down needs for its longest entry: the text in the font that is drawn, plus the arrow and
+        /// the text's own padding at the display's scale. The 36 px of chrome used to be a 96 DPI constant, which
+        /// at 200 % left the longest entry under its own arrow (S0060 P7-f); the nominal width is a floor.
+        /// </summary>
+        internal int ComboWidth(IEnumerable<string> labels, int nominalLogical)
+        {
+            int dpi = DeviceDpi;
+            int width = ControlDpi.Scale(dpi, nominalLogical);
+            int chrome = ControlDpi.Scale(dpi, 36);
+            foreach (string label in labels)
+                width = Math.Max(width, TextRenderer.MeasureText(label, Font).Width + chrome);
+            return width;
         }
 
         private sealed class ChordItem
@@ -1446,10 +1645,12 @@ namespace CyrFlip
             _translateCopy.Checked = _config.TranslateCopyResult;
             _translatePaste.Checked = _config.TranslatePasteResult;
             _translateShowSource.Checked = _config.TranslateShowSource;
-            _translateEndpoint.Text = _config.TranslateEndpoint;
+            // A field being typed in keeps what is on screen (S0060 U-L6): the value in the config is the
+            // one before the user's edit, and the edit is committed on Leave or when the window hides.
+            if (!IsBeingEdited(_translateEndpoint, _translateEndpointUncommitted)) _translateEndpoint.Text = _config.TranslateEndpoint;
             if (_translateModel.Items.Count == 0)
                 foreach (string model in TranslationService.RecommendedModels) _translateModel.Items.Add(model);
-            _translateModel.Text = _config.TranslateModel;
+            if (!IsBeingEdited(_translateModel, _translateModelUncommitted)) _translateModel.Text = _config.TranslateModel;
             _translateKeepAlive.Value = Clamp(_translateKeepAlive, _config.TranslateKeepAliveMinutes);
             _translateTimeout.Value = Clamp(_translateTimeout, _config.TranslateTimeoutSeconds);
             _translateWindowTimeout.Value = Clamp(_translateWindowTimeout, _config.TranslateWindowTimeout);
@@ -1464,36 +1665,11 @@ namespace CyrFlip
         private static decimal Clamp(NumericUpDown box, int value)
             => Math.Max(box.Minimum, Math.Min(box.Maximum, value));
 
-        /// <summary>
-        /// Keeps the chord column of the hotkey rows aligned without a fixed pixel width:
-        /// each caption auto-sizes (so nothing is ever clipped), then they all get a minimum
-        /// width equal to the widest one. Re-run whenever the captions change language.
-        /// </summary>
-        private void AlignHotkeyCaptions()
-        {
-            // One page at a time (S0062 D10): the three rows live on three pages now, and a caption column is
-            // a column of one page - widening a row to the width of a row on another page would only waste room.
-            CheckBox[] boxes = { _caseEnabled, _historyEnabled, _textMenuHotkeyEnabled };
-            foreach (var onePage in boxes.GroupBy(box => OwningPage(box)))
-            {
-                int widest = 0;
-                foreach (CheckBox box in onePage)
-                {
-                    box.MinimumSize = Size.Empty;
-                    widest = Math.Max(widest, box.GetPreferredSize(Size.Empty).Width);
-                }
-                widest += 16; // breathing room before the chord
-                foreach (CheckBox box in onePage) box.MinimumSize = new Size(widest, 0);
-            }
-        }
+        // An edit of a free-text translator field that was typed but not committed yet (see ReloadTranslateState).
+        private bool _translateEndpointUncommitted, _translateModelUncommitted;
 
-        /// <summary>The page a control sits on, or null for one that is not built into a page (yet).</summary>
-        private static TabPage? OwningPage(Control control)
-        {
-            for (Control? parent = control.Parent; parent != null; parent = parent.Parent)
-                if (parent is TabPage page) return page;
-            return null;
-        }
+        /// <summary>A text field is the user's while it holds the focus or holds an edit nobody has committed.</summary>
+        internal static bool IsBeingEdited(Control field, bool uncommitted) => uncommitted || field.ContainsFocus;
 
         /// <summary>Roomy default, but never larger than the screen it opens on.</summary>
         private static Size DefaultWindowSize()
@@ -1568,11 +1744,42 @@ namespace CyrFlip
         {
             if (_tabs == null) return;
             foreach (TabPage page in _tabs.TabPages)
+                ClampPage(ContentPanel(page));
+        }
+
+        /// <summary>
+        /// One page's share of <see cref="ClampPageTextWidths"/>. A page panel's own Resize re-clamps only
+        /// that page: it used to re-clamp all thirteen, and showing the window resizes every panel several
+        /// times, so the first open spent about four seconds measuring the same captions over and over.
+        /// A panel that did not change size has nothing new to clamp to.
+        /// </summary>
+        private void ClampPage(FlowLayoutPanel flow)
+        {
+            _staleClampPanels.Remove(flow);
+            PageClampCount++;
+            _editorColumn = WidestEditors(flow);
+            ClampTextWidths(flow, flow.ClientSize.Width - flow.Padding.Horizontal);
+        }
+
+        /// <summary>
+        /// Pages whose panel changed size while another page was the selected one: they are clamped when they
+        /// are selected, not at that moment. Opening the window resizes all thirteen panels, and a clamp
+        /// measures every caption of its page (about a tenth of a second each) - twelve of them for pages
+        /// nobody is looking at.
+        /// </summary>
+        private readonly HashSet<FlowLayoutPanel> _staleClampPanels = new HashSet<FlowLayoutPanel>();
+
+        /// <summary>How many single-page clamps have run; the tests hold the open of the window to a count.</summary>
+        internal int PageClampCount { get; private set; }
+
+        private void ClampPageOnResize(FlowLayoutPanel panel)
+        {
+            if (_tabs != null && panel.Parent is TabPage page && !ReferenceEquals(_tabs.SelectedTab, page))
             {
-                FlowLayoutPanel flow = ContentPanel(page);
-                _editorColumn = WidestEditors(flow);
-                ClampTextWidths(flow, flow.ClientSize.Width - flow.Padding.Horizontal);
+                _staleClampPanels.Add(panel);
+                return;
             }
+            ClampPage(panel);
         }
 
         private void ClampTextWidths(Control container, int available)
@@ -1648,7 +1855,8 @@ namespace CyrFlip
             try
             {
                 AdjustTabStrip();
-                AlignHotkeyCaptions();
+                AlignChordColumn();
+                ReassertCommandMetrics();
                 AlignHintAndCaptionColumns();
                 foreach (NumericUpDown editor in NumericEditors(this)) SettingsNumeric.Apply(editor);
             }
@@ -1793,6 +2001,15 @@ namespace CyrFlip
             previous?.Dispose();   // after the button let go of it
         }
 
+        /// <summary>
+        /// Whether Escape, arriving at the window while <paramref name="active"/> holds the focus, leaves the
+        /// window (APP-BEHAVIOUR rule 1, APP-SETTINGS rule 9) - the one decision <see cref="ProcessCmdKey"/> takes.
+        /// A drop-down list that is open takes the key first: it closes, and the choice it was about to make is
+        /// not thrown away with the window. Anything else - a closed list, an edit box, a button, nothing - leaves.
+        /// Pure, so the rule is held without a live window and an open list.
+        /// </summary>
+        internal static bool EscapeLeavesWindow(Control? active) => !(active is ComboBox { DroppedDown: true });
+
         /// <summary>The settings window closes (hides) on Escape per APP-BEHAVIOUR rule 1 and APP-SETTINGS rule 9.</summary>
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -1800,7 +2017,7 @@ namespace CyrFlip
             {
                 // An open drop-down list closes first: WinForms offers the key here before the combo box
                 // sees it, so without this a reflexive Escape would hide the window over a pending choice.
-                if (ActiveControl is ComboBox { DroppedDown: true }) return base.ProcessCmdKey(ref msg, keyData);
+                if (!EscapeLeavesWindow(ActiveControl)) return base.ProcessCmdKey(ref msg, keyData);
                 Close();
                 return true;
             }
@@ -1886,19 +2103,13 @@ namespace CyrFlip
         /// </summary>
         private TabPage LanguagesPage()
         {
-            var page = Page("Windows languages", "Everything that used to need the Windows «Language & region» pane: keyboard layouts, their order, and the switch shortcuts. The layouts already ship with Windows — nothing is downloaded. Installing a display language (translating Windows itself) stays behind the «Open Windows settings» button.");
+            var page = Page("Windows languages", "Keyboard layouts, their order and the switch shortcuts - what the Windows «Language & region» pane used to do.");
             var panel = ContentPanel(page);
-
-            if (PackageInfo.IsPackaged)
-                panel.Controls.Add(new Label
-                {
-                    Text = "The Microsoft Store build runs in a container, so Windows may redirect the registry write into the package. If a layout or shortcut is not picked up even after signing out and back in, set it in the Windows settings using the button below.",
-                    AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.Warning, Margin = new Padding(3, 0, 3, 10),
-                });
 
             panel.Controls.Add(Group("languages/layouts", "Keyboard layouts",
                 _layoutRows,
                 new Label { Text = "The arrows reorder the layouts within one language. The order of the languages themselves belongs to Windows, which restores it at sign-in — change it in the Windows settings.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 2, 3, 2) },
+                new Label { Text = "The layouts already ship with Windows - nothing is downloaded.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 0, 3, 2) },
                 LayoutButtonsRow(),
                 new Label { Text = "English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, German, Italian and Ukrainian. For popular variants (for example US International and Spanish Latin American), use «Add layout...».", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 0, 3, 5) }));
 
@@ -1910,7 +2121,19 @@ namespace CyrFlip
                 _languageRows,
                 Setting(_restoreLanguageHotkeys, "Returns the Windows language shortcuts to the state they were in before CyrFlip first changed them.")));
 
-            panel.Controls.Add(Button("Open Windows settings", AppGlyphs.Settings, () => Open("ms-settings:keyboard")));
+            // The deep link into the system's own page (APP-SETTINGS rule 9) and the Store build's warning about
+            // the registry redirection that it answers: a group like the others (S0060 M4) - the button is a
+            // command, so it stands in a group with its hint, not loose on the page.
+            var windowsRows = new List<Control>();
+            if (PackageInfo.IsPackaged)
+                windowsRows.Add(new Label
+                {
+                    Text = "The Microsoft Store build runs in a container, so Windows may redirect the registry write into the package. If a layout or shortcut is not picked up even after signing out and back in, set it in the Windows settings using the button below.",
+                    AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.Warning, Margin = new Padding(3, 4, 3, 6),
+                });
+            windowsRows.Add(Setting(Button("Open Windows settings", AppGlyphs.Settings, () => OpenAddress("ms-settings:keyboard")),
+                "Opens the Windows settings, where a display language (the translation of Windows itself) is installed."));
+            panel.Controls.Add(Group("languages/windows", "Windows settings", windowsRows.ToArray()));
             return page;
         }
 
@@ -1943,7 +2166,7 @@ namespace CyrFlip
             _conversionRows.Name = "setting.conversion-table";
             _convertSymbols.Name = "setting.convert-symbols";
             _caseEnabled.Name = "setting.case-fix-chord";
-            var page = Page("Text correction", "Text typed in the wrong layout or with CapsLock on is fixed with one hotkey. Here are the table of layout pairs with their hotkeys and the case fix. Every pair works both ways.");
+            var page = Page("Text correction", "Text typed in the wrong layout or with CapsLock on is fixed with one hotkey.");
             var panel = ContentPanel(page);
             panel.Controls.Add(Group("conversions/table", "Layout table",
                 new Label { Text = "A table of conversions: as many layout pairs as you like, each with its own hotkey. The EN ⇄ RU row on Ctrl+Shift+F12 is created on the first run — you can edit or delete it like any other. Every pair works both ways: when the second layout of the pair is active, the same shortcut converts back. Text is converted by the physical keys of the chosen layouts.", AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 4, 3, 4) },
@@ -1991,13 +2214,56 @@ namespace CyrFlip
             }
         }
 
+        // Anchored to the left only: in a row of a flow that is taller than the label (a 32 px command beside it) the
+        // label stands on the row's centre line instead of its top edge.
         private Label ColumnLabel(string text, int width, bool ellipsis = true)
             => new Label
             {
                 Text = text, AutoSize = false, Width = width, Height = RowHeight,
                 TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = ellipsis,
-                Margin = new Padding(3, 4, 3, 4),
+                Margin = new Padding(3, 4, 3, 4), Anchor = AnchorStyles.Left,
             };
+
+        /// <summary>
+        /// The edge of a row's glyph-only arrow, device px: the command metric's height (32 logical px, above the
+        /// 28 px pointer floor of ICON-RENDER section 3 rule 5), so an arrow is as tall as the buttons beside it.
+        /// </summary>
+        private int CommandEdge => ControlDpi.Scale(DeviceDpi, Math.Max(MinTarget, ButtonGlyphs.CommandHeightLogical));
+
+        /// <summary>A move arrow of a table row or of the launcher's buttons: a square of <see cref="CommandEdge"/>, on the row's centre line.</summary>
+        private void AsRowArrow(Button button)
+        {
+            int edge = CommandEdge;
+            button.AutoSize = false;
+            button.Size = new Size(edge, edge);
+            button.Margin = new Padding(4, 3, 4, 3);
+            button.Anchor = AnchorStyles.Left;
+        }
+
+        /// <summary>
+        /// The command metric as the window has it now (S0060 M12): every glyph button re-derives its padding,
+        /// height and gap for the DPI and font in force, and the glyph-only arrows - which are not
+        /// <c>ButtonGlyphs</c> buttons but a picture on a plain one - take the square edge again.
+        /// </summary>
+        private void ReassertCommandMetrics()
+        {
+            ReassertButtons(this);
+            int edge = CommandEdge;
+            foreach (Button arrow in _moveButtons.ToArray())
+            {
+                if (arrow.AutoSize) continue;
+                if (arrow.Size.Width != edge || arrow.Size.Height != edge) arrow.Size = new Size(edge, edge);
+            }
+        }
+
+        private static void ReassertButtons(Control root)
+        {
+            foreach (Control child in root.Controls)
+            {
+                if (child is Button button) ButtonGlyphs.Reassert(button);
+                if (child.HasChildren) ReassertButtons(child);
+            }
+        }
 
         /// <summary>Rebuilds the installed-layout rows from the registry.</summary>
         private void ReloadLayoutRows()
@@ -2082,7 +2348,7 @@ namespace CyrFlip
         private Control ConversionRow(LayoutConversionProfile profile)
         {
             var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 1, 3, 1) };
-            var enabled = new RowCheckBox { Checked = profile.Enabled, AutoSize = true, Margin = new Padding(3, 6, 2, 2) };
+            var enabled = new RowCheckBox { Checked = profile.Enabled, AutoSize = true, Margin = new Padding(3, 0, 2, 0), Anchor = AnchorStyles.Left };
             enabled.CheckedChanged += (_, _) =>
             {
                 if (_loading) return;
@@ -2182,11 +2448,11 @@ namespace CyrFlip
             AsMoveGlyph(up, AppGlyphs.MoveUp);
             // Only within one language: the order of the languages is Windows' own and is put back at
             // sign-in (ticket S0007, WL-8) - the hint under the table says so.
-            up.Width = 32; up.Height = Math.Max(MinTarget, RowHeight); up.AutoSize = false; up.Margin = new Padding(3, 4, 3, 4); up.Enabled = InputLayouts.CanMove(all, index, -1);
+            AsRowArrow(up); up.Enabled = InputLayouts.CanMove(all, index, -1);
             var down = Button("↓", () => MoveLayout(layout.Klid, +1));
             down.AccessibleName = Translate("Move down");
             AsMoveGlyph(down, AppGlyphs.MoveDown);
-            down.Width = 32; down.Height = Math.Max(MinTarget, RowHeight); down.AutoSize = false; down.Margin = new Padding(3, 4, 3, 4); down.Enabled = InputLayouts.CanMove(all, index, +1);
+            AsRowArrow(down); down.Enabled = InputLayouts.CanMove(all, index, +1);
             row.Controls.Add(up);
             row.Controls.Add(down);
 
@@ -2198,7 +2464,7 @@ namespace CyrFlip
             remove.Enabled = total > 1; // Windows always keeps at least one layout
             row.Controls.Add(remove);
 
-            row.Controls.Add(new Label { Text = layout.Klid, AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(8, 5, 0, 0), Padding = new Padding(0, 1, 0, 0) });
+            row.Controls.Add(new Label { Text = layout.Klid, AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(8, 0, 0, 0), Anchor = AnchorStyles.Left });
             NameRow(row, layout.LanguageName + (layout.DisplayName.Length > 0 ? " - " + layout.DisplayName : ""));
             return row;
         }
@@ -2216,7 +2482,7 @@ namespace CyrFlip
         private void MoveLayout(string klid, int delta)
         {
             if (!EnsureSystemBackups()) return;
-            if (ReportLayoutEdit(InputLayouts.Move(klid, delta))) _rowFocusDelta = delta; // the focus follows the moved layout
+            if (ReportLayoutEdit(InputLayouts.Move(klid, delta), () => MoveLayout(klid, delta))) _rowFocusDelta = delta; // the focus follows the moved layout
             LanguageHotkeys.ApplyToWindows();
             ReloadLayoutRows();
         }
@@ -2224,7 +2490,7 @@ namespace CyrFlip
         private void MakeDefaultLayout(string klid)
         {
             if (!EnsureSystemBackups()) return;
-            if (ReportLayoutEdit(InputLayouts.MakeDefault(klid, out string? writtenOverride)) && writtenOverride != null)
+            if (ReportLayoutEdit(InputLayouts.MakeDefault(klid, out string? writtenOverride), () => MakeDefaultLayout(klid)) && writtenOverride != null)
             {
                 _config.InputMethodOverrideWritten = writtenOverride;
                 SaveConfig();
@@ -2233,15 +2499,19 @@ namespace CyrFlip
             ReloadLayoutRows();
         }
 
-        /// <summary>Says why a layout edit wrote nothing; true when it went through.</summary>
-        private bool ReportLayoutEdit(InputLayouts.EditResult result)
+        /// <summary>
+        /// Says why a layout edit wrote nothing; true when it went through. A write that failed, or a list that
+        /// could not be read, is a failure of what the user asked for and is presented as actions
+        /// (<paramref name="retry"/> is what retrying means); a rule - the last layout, an IME - is a plain warning.
+        /// </summary>
+        private bool ReportLayoutEdit(InputLayouts.EditResult result, Action? retry = null)
         {
             switch (result)
             {
                 case InputLayouts.EditResult.Ok:
                     return true;
                 case InputLayouts.EditResult.Failed:
-                    Warn(FailureCause.Describe(InputLayouts.LastFailure, _config.UiLanguage));
+                    Fail(FailureCause.Describe(InputLayouts.LastFailure, _config.UiLanguage), retry);
                     return false;
                 case InputLayouts.EditResult.LastLayout:
                     Warn(Translate("Windows must keep at least one layout — this one cannot be removed."));
@@ -2253,7 +2523,7 @@ namespace CyrFlip
                     // The arrows are greyed for this; reaching it means the stores changed under the window.
                     return false;
                 default:
-                    Warn(Translate("The Windows layout list could not be read in full — CyrFlip changed nothing."));
+                    Fail(Translate("The Windows layout list could not be read in full — CyrFlip changed nothing."), retry);
                     return false;
             }
         }
@@ -2265,32 +2535,73 @@ namespace CyrFlip
 
             using var picker = new LayoutPickerDialog(installedKlids, _config.UiLanguage);
             if (picker.ShowDialog(this) != DialogResult.OK || picker.SelectedKlid == null) return;
+            AddLayout(picker.SelectedKlid);
+        }
 
+        /// <summary>Installs one chosen layout. Its own method so a failure's Retry repeats the write, not the picker.</summary>
+        private void AddLayout(string klid)
+        {
             if (!EnsureSystemBackups()) return;
-            if (!ReportLayoutEdit(InputLayouts.Add(picker.SelectedKlid))) return;
+            if (!ReportLayoutEdit(InputLayouts.Add(klid), () => AddLayout(klid))) return;
             LanguageHotkeys.ApplyToWindows();
             Reload();
             NotifyLayoutChangeOnce();
         }
 
+        /// <summary>
+        /// "Add popular languages": what would be added is worked out first, off the hooks' thread behind the
+        /// wait window; with nothing to add the answer is said, not silence; the layouts are named before they
+        /// are written; the writing is one more job behind the wait window; and the result is counted after
+        /// (APP-BEHAVIOUR rules 3 and 5, S0060 P7-h).
+        /// </summary>
         private void AddPopularLayouts()
         {
-            var installed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (InputLayouts.Installed layout in InputLayouts.ListInstalled()) installed.Add(layout.Klid);
-            var available = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (InputLayouts.Available layout in InputLayouts.ListAvailable()) available.Add(layout.Klid);
-            int added = 0;
-            if (!EnsureSystemBackups()) return;
-            foreach (WorldLayouts.Recommended language in WorldLayouts.Popular)
+            string language = _config.UiLanguage;
+            PopularLayoutPlan plan = BusyDialog.Run(this, language, () => PopularLayoutPlan.Build(
+                InputLayouts.ListInstalled().Select(layout => layout.Klid), InputLayouts.ListAvailable(), WorldLayouts.Popular));
+            if (plan.ToAdd.Count == 0)
             {
-                string klid = language.Klids[0];
-                if (installed.Contains(klid) || !available.Contains(klid)) continue;
-                if (!ReportLayoutEdit(InputLayouts.Add(klid))) break;
-                installed.Add(klid);
-                added++;
+                ConfirmDialog.Show(this, language, Translate("Nothing to add: the popular layouts are already installed."),
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
-            LanguageHotkeys.ApplyToWindows(); Reload();
-            if (added > 0) NotifyLayoutChangeOnce();
+            string names = string.Join("\n", plan.ToAdd.Select(layout =>
+                layout.LanguageName + (layout.DisplayName.Length > 0 ? " — " + layout.DisplayName : "")));
+            if (ConfirmDialog.Show(this, language,
+                    Localization.Format(Translate, "Add {0} keyboard layouts to Windows?", plan.ToAdd.Count) + "\n\n" + names,
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+            if (!EnsureSystemBackups()) return;
+
+            // One job for the whole batch: the writes share the registry stores and must keep their order.
+            (int Added, InputLayouts.EditResult Stopped) outcome = BusyDialog.Run(this, language, () =>
+            {
+                int done = 0;
+                foreach (InputLayouts.Available layout in plan.ToAdd)
+                {
+                    InputLayouts.EditResult result = InputLayouts.Add(layout.Klid);
+                    if (result != InputLayouts.EditResult.Ok) return (done, result);
+                    done++;
+                }
+                return (done, InputLayouts.EditResult.Ok);
+            });
+
+            LanguageHotkeys.ApplyToWindows();
+            Reload();
+            if (outcome.Stopped != InputLayouts.EditResult.Ok)
+            {
+                // What was added stays added; the retry plans again and goes on with the rest.
+                ReportLayoutEdit(outcome.Stopped, AddPopularLayouts);
+                return;
+            }
+            string summary = Localization.Format(Translate, "Added: {0}. Skipped: {1}.", outcome.Added, plan.Skipped);
+            if (outcome.Added > 0 && !_layoutNoticeShown)
+            {
+                // The one-time "may need a sign-out" notice rides on the summary: one box, not two.
+                _layoutNoticeShown = true;
+                summary += "\n\n" + Translate("The change has been applied to the Windows layouts. It usually takes effect immediately; if something looks off, sign out of Windows and back in.");
+            }
+            ConfirmDialog.Show(this, language, summary, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void OnRemoveLayout(InputLayouts.Installed layout)
@@ -2299,8 +2610,14 @@ namespace CyrFlip
             if (layout.ManagedByWindows) { ReportLayoutEdit(InputLayouts.EditResult.ManagedByWindows); return; }
             if (ConfirmDialog.Show(this, _config.UiLanguage, Localization.Format(Translate, "Remove the «{0}» layout from Windows?", layout.LanguageName + " — " + layout.DisplayName), MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
+            RemoveLayout(layout.Klid);
+        }
+
+        /// <summary>Removes a confirmed layout. Its own method so a failure's Retry repeats the write, not the question.</summary>
+        private void RemoveLayout(string klid)
+        {
             if (!EnsureSystemBackups()) return;
-            if (!ReportLayoutEdit(InputLayouts.Remove(layout.Klid))) return;
+            if (!ReportLayoutEdit(InputLayouts.Remove(klid), () => RemoveLayout(klid))) return;
             LanguageHotkeys.ApplyToWindows();
             Reload();
             NotifyLayoutChangeOnce();
@@ -2309,11 +2626,17 @@ namespace CyrFlip
         private void OnToggleChanged()
         {
             if (_loading || !(_toggleCombo.SelectedItem is ToggleItem item)) return;
+            ApplyToggle(item.Code);
+        }
+
+        /// <summary>Writes the cycle-switch chord. Its own method so a failure's Retry repeats this write.</summary>
+        private void ApplyToggle(string code)
+        {
             if (!EnsureSystemBackups()) { ReloadToggleCombo(); return; }
-            bool applied = LanguageHotkeys.SetToggle(item.Code);
+            bool applied = LanguageHotkeys.SetToggle(code);
             LanguageHotkeys.ApplyToWindows();
             ReloadToggleCombo();
-            if (!applied) Warn(FailureCause.Describe(LanguageHotkeys.LastFailure, _config.UiLanguage));
+            if (!applied) Fail(FailureCause.Describe(LanguageHotkeys.LastFailure, _config.UiLanguage), () => ApplyToggle(code));
         }
 
         private void ReloadToggleCombo()
@@ -2331,12 +2654,7 @@ namespace CyrFlip
                 if (code == current) select = i;
             }
             _toggleCombo.SelectedIndex = select;
-            int max = 200;
-            foreach (ToggleItem item in _toggleCombo.Items)
-            {
-                int w = TextRenderer.MeasureText(item.Label, Font).Width + 36;
-                if (w > max) max = w;
-            }
+            int max = ComboWidth(_toggleCombo.Items.Cast<ToggleItem>().Select(item => item.Label), 200);
             _toggleCombo.Width = max;
             _toggleCombo.DropDownWidth = max;
             _loading = loading;
@@ -2362,24 +2680,33 @@ namespace CyrFlip
         {
             if (_config.IsUnreadable("*"))
             {
-                Warn(Translate("Some CyrFlip settings could not be read and were left as they are."));
+                Fail(Translate("Some CyrFlip settings could not be read and were left as they are."));
                 return false;
             }
             bool changed = false, ok = true;
-            if (NeedsBackup(_config.InputLayoutsBackup, "InputLayoutsBackup"))
+            bool needLayouts = NeedsBackup(_config.InputLayoutsBackup, "InputLayoutsBackup");
+            bool needHotkeys = NeedsBackup(_config.LanguageHotkeysBackup, "LanguageHotkeysBackup");
+            if (needLayouts || needHotkeys)
             {
-                _config.InputLayoutsBackup = InputLayouts.BackupAll();
-                changed |= _config.InputLayoutsBackup.Length > 0;
-                ok &= _config.InputLayoutsBackup.Length > 0;
-            }
-            if (NeedsBackup(_config.LanguageHotkeysBackup, "LanguageHotkeysBackup"))
-            {
-                _config.LanguageHotkeysBackup = LanguageHotkeys.BackupAll();
-                changed |= _config.LanguageHotkeysBackup.Length > 0;
-                ok &= _config.LanguageHotkeysBackup.Length > 0;
+                // Two whole registry trees: read on the pool behind the wait window (a job that is over within
+                // BusyDialog.GraceMs shows nothing), not on the thread both low-level hooks share (S0060 h).
+                (string Layouts, string Hotkeys) taken = BusyDialog.Run(this, _config.UiLanguage, () =>
+                    (needLayouts ? InputLayouts.BackupAll() : "", needHotkeys ? LanguageHotkeys.BackupAll() : ""));
+                if (needLayouts)
+                {
+                    _config.InputLayoutsBackup = taken.Layouts;
+                    changed |= _config.InputLayoutsBackup.Length > 0;
+                    ok &= _config.InputLayoutsBackup.Length > 0;
+                }
+                if (needHotkeys)
+                {
+                    _config.LanguageHotkeysBackup = taken.Hotkeys;
+                    changed |= _config.LanguageHotkeysBackup.Length > 0;
+                    ok &= _config.LanguageHotkeysBackup.Length > 0;
+                }
             }
             if (changed) SaveConfig();
-            if (!ok) Warn(Translate("The original state of the Windows settings could not be saved — CyrFlip changed nothing."));
+            if (!ok) Fail(Translate("The original state of the Windows settings could not be saved — CyrFlip changed nothing."));
             return ok;
         }
 
@@ -2413,7 +2740,8 @@ namespace CyrFlip
         private void SaveConfig()
         {
             if (SaveNotice.ShouldTell(_config.Save(), ref _saveFailureTold))
-                Warn(Translate("The setting could not be saved - it will work until CyrFlip is restarted."));
+                Fail(Translate("The setting could not be saved - it will work until CyrFlip is restarted."),
+                    () => { _saveFailureTold = false; SaveConfig(); });
         }
 
         private void NotifyLayoutChangeOnce()
@@ -2429,10 +2757,16 @@ namespace CyrFlip
             if (_config.InputLayoutsBackup.Length == 0) return;
             if (ConfirmDialog.Show(this, _config.UiLanguage, Translate("Restore the Windows layouts to their original state?"), MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
+            ApplyLayoutRestore();
+        }
+
+        /// <summary>The confirmed restore. Its own method so a failure's Retry repeats the write, not the question.</summary>
+        private void ApplyLayoutRestore()
+        {
             if (!InputLayouts.RestoreAll(_config.InputLayoutsBackup, _config.InputMethodOverrideWritten))
             {
-                Warn(InputLayouts.LastFailure != null ? FailureCause.Describe(InputLayouts.LastFailure, _config.UiLanguage)
-                    : Translate("The backup could not be read — nothing was changed."));
+                Fail(InputLayouts.LastFailure != null ? FailureCause.Describe(InputLayouts.LastFailure, _config.UiLanguage)
+                    : Translate("The backup could not be read — nothing was changed."), ApplyLayoutRestore);
                 return;
             }
             _config.InputMethodOverrideWritten = "";
@@ -2492,7 +2826,7 @@ namespace CyrFlip
             row.Controls.Add(clear);
 
             // The raw HKL is the only always-correct way to tell two layouts of one language apart.
-            row.Controls.Add(new Label { Text = LanguageHotkeys.HklText(hkl), AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(8, 5, 0, 0), Padding = new Padding(0, 1, 0, 0) });
+            row.Controls.Add(new Label { Text = LanguageHotkeys.HklText(hkl), AutoSize = true, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(8, 0, 0, 0), Anchor = AnchorStyles.Left });
             NameRow(row, LanguageHotkeys.LanguageName(hkl) + (layout.Length > 0 ? " - " + layout : ""));
             return row;
         }
@@ -2529,11 +2863,13 @@ namespace CyrFlip
 
         private void RemoveOrphanHotkey(int id)
         {
-            if (!EnsureSystemBackups()) return;
+            // Ask first, back up after the answer (S0060 U-L1): a Cancel must leave nothing written - the one-time
+            // snapshot is still taken before the write, which is all the backup rule asks.
             if (ConfirmDialog.Show(this, _config.UiLanguage,
                     Translate("Delete saved shortcut for the uninstalled layout?"),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
+            if (!EnsureSystemBackups()) return;
             LanguageHotkeys.Remove(id);
             LanguageHotkeys.ApplyToWindows();
             ReloadLanguageRows();
@@ -2573,7 +2909,7 @@ namespace CyrFlip
                     Warn(Translate("Windows has no free slots left for language shortcuts."));
                     return;
                 case LanguageHotkeys.AssignStatus.Failed:
-                    Warn(Translate("Could not write the shortcut to the Windows registry."));
+                    Fail(Translate("Could not write the shortcut to the Windows registry."), () => AssignLanguageHotkey(hkl));
                     return;
             }
 
@@ -2595,7 +2931,7 @@ namespace CyrFlip
                 return;
             if (!LanguageHotkeys.RestoreAll(_config.LanguageHotkeysBackup))
             {
-                Warn(Translate("The backup could not be read — nothing was changed."));
+                Fail(Translate("The backup could not be read — nothing was changed."));
                 return;
             }
             ReloadLanguageRows();
@@ -2618,12 +2954,30 @@ namespace CyrFlip
         private bool ChordIsFree(Hotkey chord, ChordKind kind, string? id, bool askAboutWindows = true)
             => ChordGuard.IsFree(this, Chords(), chord, kind, id, _config.UiLanguage, LayoutName, askAboutWindows);
 
+        /// <summary>A validation or rule warning: the request was understood and refused, and there is nothing to retry.</summary>
         private void Warn(string message)
             => ConfirmDialog.Show(this, _config.UiLanguage, message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-        private static void Open(string target)
+        /// <summary>
+        /// A failure of something the user asked for, as actions (APP-BEHAVIOUR rule 6, WINDOWS-UI section 7):
+        /// Retry - when the caller can say what retrying is - Open log folder, Close. The message is a named
+        /// cause from <see cref="FailureCause"/>, never an exception's text; the details are in the logs.
+        /// </summary>
+        private void Fail(string message, Action? retry = null)
+            => ConfirmDialog.ShowFailure(this, _config.UiLanguage, message, retry);
+
+        /// <summary>
+        /// Hands an address - a web page, a <c>ms-settings:</c> page - to the shell. A refusal is said with its
+        /// cause and the address itself, so the user can copy it from the box (Ctrl+C) and open it by hand (S0060 e).
+        /// </summary>
+        private void OpenAddress(string target)
         {
-            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(target) { UseShellExecute = true })?.Dispose(); } catch { }
+            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(target) { UseShellExecute = true })?.Dispose(); }
+            catch (Exception ex)
+            {
+                Fail(Localization.Format(Translate, "Could not open the address: {0}", FailureCause.Describe(ex, Translate)) + "\n\n" + target,
+                    () => OpenAddress(target));
+            }
         }
 
         /// <summary>
@@ -2636,8 +2990,9 @@ namespace CyrFlip
             _contextMenuEnabled.Name = "setting.context-menu";
             _contextMenuChord.Name = "setting.mouse-chord";
             _textMenuHotkeyEnabled.Name = "setting.keyboard-menu-chord";
-            var page = Page("Selection menu", "CyrFlip's own menu over the selected text: copy, cut, paste, conversion, case, translation and quick launch. Off by default: while it is off, CyrFlip does not watch the mouse.");
+            var page = Page("Selection menu", "CyrFlip's own menu over the selected text: copy, cut, paste, conversion, case, translation and quick launch.");
             ContentPanel(page).Controls.Add(Group("selection/mouse", "Menu over a selection",
+                new Label { Text = "Off by default: while it is off, CyrFlip does not watch the mouse.", AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 4, 3, 2) },
                 Setting(_contextMenuEnabled, "The mouse chord opens CyrFlip's menu next to the pointer: copy, cut, paste, layout conversion, letter case, translation, quick launch. The application's own menu does not appear. While the box is clear, CyrFlip does not watch the mouse at all."),
                 Setting(ContextMenuChordRow(), "Ctrl with the right button is claimed by nothing in Windows. Shift with the right button takes the extended menu away from File Explorer, and the middle button takes away autoscroll and opening a link in a new tab.")));
             ContentPanel(page).Controls.Add(Group("selection/keyboard", "From the keyboard",
@@ -2719,9 +3074,13 @@ namespace CyrFlip
         private TabPage QuickNotesPage()
         {
             var page = Page("Quick notes",
-                "A small local notepad: open it with a chord, drop in a fragment of code or a thought, close it. The text is stored exactly as it is - no markup, no highlighting, no auto-formatting - so it can be pasted back into the code without a single change.",
-                Setting(_quickNotesEnabled, "While it is off, CyrFlip neither reads nor creates the notes file, the tray has no notes entry and the chord is not bound. Notes already saved stay on disk."));
+                "A small local notepad: open it with a chord, drop in a fragment of code or a thought, close it.");
             var panel = ContentPanel(page);
+
+            // The module switch leads in a group of its own, like the hotkeys page's (S0060 M4): a command or an
+            // editor never stands loose on a page that is made of groups.
+            panel.Controls.Add(Group("notes/switches", "Main switches",
+                Setting(_quickNotesEnabled, "While it is off, CyrFlip neither reads nor creates the notes file, the tray has no notes entry and the chord is not bound. Notes already saved stay on disk.")));
 
             panel.Controls.Add(Group("notes/opening", "How to open it",
                 Track(HotkeyRow(_quickNotesHotkeyEnabled, _quickNotesHotkeyValue, _setQuickNotesHotkey,
@@ -2730,10 +3089,19 @@ namespace CyrFlip
                     "The same as the \"Quick notes\" entry in the tray menu: it opens the list without creating a new note."))));
 
             panel.Controls.Add(Group("notes/editor", "Editor",
+                new Label { Text = "The text is stored exactly as typed, with no markup, highlighting or auto-formatting, so code pastes back unchanged.", AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 4, 3, 2) },
                 Track(Setting(_quickNotesWrap,
                     "Off by default: the body of a note is more often code than prose, and a wrapped line of code is one you have to mentally un-wrap. Turn it on if you write prose here."))));
 
             panel.Controls.Add(Group("notes/storage", "Export and storage",
+                // Where the notes live and what is promised about them - the privacy paragraph that used to trail
+                // the page outside every group (S0060 M4).
+                new Label
+                {
+                    Text = "Notes lie only on this computer and are encrypted with Windows DPAPI for your account. CyrFlip does not send them anywhere, does not index them with Windows Search and does not turn clipboard-history entries into notes - there is a separate command for that. This is not a secret store: do not keep passwords, production tokens or private keys here.",
+                    AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted,
+                    Margin = new Padding(3, 4, 3, 4),
+                },
                 Track(Setting(_quickNotesExportMeta,
                     "By default only the name and the text are exported, so a fragment of code pastes back without edits. With the box ticked, each note also carries its creation date.")),
                 Track(Setting(Button("Export every note to Markdown...", AppGlyphs.Export, ExportQuickNotes),
@@ -2743,12 +3111,6 @@ namespace CyrFlip
             Control? transfer = ExchangeRow();
             if (transfer != null)
                 panel.Controls.Add(Group("notes/transfer", "Moving to another computer", transfer));
-            panel.Controls.Add(new Label
-            {
-                Text = "Notes lie only on this computer and are encrypted with Windows DPAPI for your account. CyrFlip does not send them anywhere, does not index them with Windows Search and does not turn clipboard-history entries into notes - there is a separate command for that. This is not a secret store: do not keep passwords, production tokens or private keys here.",
-                AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted,
-                Margin = new Padding(3, 10, 3, 4),
-            });
             return page;
         }
 
@@ -2775,7 +3137,7 @@ namespace CyrFlip
             }
             catch (Exception ex)
             {
-                Warn(Localization.Format(Translate, "Could not save the file: {0}", FailureCause.Describe(ex, _config.UiLanguage)));
+                Fail(Localization.Format(Translate, "Could not save the file: {0}", FailureCause.Describe(ex, _config.UiLanguage)), ExportQuickNotes);
             }
         }
 
@@ -2812,130 +3174,6 @@ namespace CyrFlip
             foreach (Control control in _quickNotesControls) control.Enabled = _config.EnableQuickNotes;
         }
 
-        // ---- Graphics tab (S0026) ----
-
-        /// <summary>
-        /// The Graphics tab: for now one tool - the screen region capture with its chord, a button to
-        /// try it, and the opt-in "also save to a folder". No module switch: the tray item is always
-        /// there and the chord has its own switch (owner, 2026-09-26). Like every page here it does no
-        /// I/O to draw itself: the folder is shown, never created.
-        /// </summary>
-        private TabPage GraphicsPage()
-        {
-            var page = Page("Screenshots",
-                "A snapshot of a selected screen region. Everything stays on this computer.");
-            var panel = ContentPanel(page);
-            // The one group of this page is flattened by FlattenSingleGroups (as before S0062): the controls
-            // keep their place and these names are how the ledger test finds them (S0062 L32).
-            _screenshotHotkeyEnabled.Name = "group.graphics-capture";
-            _screenshotFolderHotkeyEnabled.Name = "setting.screenshot-folder-chord";
-
-            panel.Controls.Add(Group("graphics/capture", "Screen region capture",
-                HotkeyRow(_screenshotHotkeyEnabled, _screenshotHotkeyValue,
-                    () => ScreenshotHotkeyChangeRequested?.Invoke(this, EventArgs.Empty),
-                    "The screen freezes, you drag a rectangle with the mouse, and the picture is on the clipboard at once. Esc or the right button cancels. One chord cannot belong to two CyrFlip actions."),
-                Setting(Button("Capture a region", AppGlyphs.Screenshot, () => ScreenshotRequested?.Invoke(this, EventArgs.Empty)),
-                    "The same as the tray menu item. Only the chord catches a tooltip or an open menu: a click on the tray closes them."),
-                Setting(_screenshotSave,
-                    "Off by default: a capture goes to the clipboard only. With this on, every selected region is also saved as a PNG into the folder below."),
-                ScreenshotFolderRow(),
-                ScreenshotFolderHotkeyRow(),
-                new Label
-                {
-                    Text = "A capture always goes to the clipboard and is not recorded in the clipboard history. It is written to disk only while saving is on, and only the selected region - into the folder shown (or, when that folder is unreachable, into Pictures\\Screenshots or Downloads, and CyrFlip tells you which at once). The files are not encrypted; CyrFlip never deletes or sends them anywhere. Content Windows protects (DRM video, the UAC prompt) comes out black.",
-                    AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted,
-                    Margin = new Padding(3, 10, 3, 4),
-                }));
-            return page;
-        }
-
-        private FlowLayoutPanel ScreenshotFolderRow()
-        {
-            var folderRow = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(28, 0, 3, 3) };
-            // The setting names itself: the box used to stand alone under the switch with no caption of its own
-            // (APP-SETTINGS rule 3: caption, control and hint for every setting).
-            var folderCaption = new Label { Text = "Folder for screen region captures", AutoSize = true, Tag = "caption", Padding = new Padding(0, 8, 6, 0) };
-            folderRow.Controls.Add(folderCaption);
-            _screenshotFolderControls.Add(folderCaption);
-            folderRow.Controls.Add(_screenshotFolderBox);
-            Button choose = Button("Choose...", AppGlyphs.ChooseFolder, ChooseScreenshotFolder);
-            Button open = Button("Open folder", AppGlyphs.Folder, OpenScreenshotFolder);
-            folderRow.Controls.Add(choose);
-            folderRow.Controls.Add(open);
-            _screenshotFolderControls.Add(_screenshotFolderBox);
-            _screenshotFolderControls.Add(choose);
-            _screenshotFolderControls.Add(open);
-            return folderRow;
-        }
-
-        /// <summary>
-        /// The folder-opening chord's row (S0057), directly under the folder row and gated with it:
-        /// greyed while saving is off, so the user sees why the chord does nothing (D2).
-        /// </summary>
-        private Control ScreenshotFolderHotkeyRow()
-        {
-            Control row = HotkeyRow(_screenshotFolderHotkeyEnabled, _screenshotFolderHotkeyValue,
-                () => ScreenshotFolderHotkeyChangeRequested?.Invoke(this, EventArgs.Empty),
-                "Works while saving captures to a folder is on. It opens the folder CyrFlip writes the captures into. One chord cannot be given to two CyrFlip actions.");
-            // The whole row follows the folder row's gate; disabling the block disables everything in it.
-            _screenshotFolderControls.Add(row);
-            return row;
-        }
-
-        /// <summary>The folder the settings show: the user's choice, else the Screenshots known folder.</summary>
-        private string ScreenshotFolderShown()
-        {
-            try { return new ScreenshotSaver().DisplayFolder(_config.ScreenshotFolder) ?? ""; }
-            catch { return _config.ScreenshotFolder; }
-        }
-
-        private void ChooseScreenshotFolder()
-        {
-            using var dialog = new FolderBrowserDialog
-            {
-                Description = Translate("Folder for screen region captures"),
-                SelectedPath = ScreenshotFolderShown(),
-                ShowNewFolderButton = true,
-            };
-            if (dialog.ShowDialog(this) != DialogResult.OK || string.IsNullOrWhiteSpace(dialog.SelectedPath)) return;
-            // The default folder chosen explicitly is stored as "the default", so it keeps following a
-            // Pictures folder the user later moves to OneDrive (CAPTURE-OUTPUT rule 9).
-            string? standard = new ScreenshotSaver().DisplayFolder("");
-            string chosen = dialog.SelectedPath;
-            GraphicsSettingChanged(() => _config.ScreenshotFolder =
-                standard != null && string.Equals(chosen.TrimEnd('\\'), standard.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)
-                    ? "" : chosen, reload: true);
-        }
-
-        private void OpenScreenshotFolder()
-        {
-            // The chord and this button share the one opener (S0057), so they can never disagree
-            // about the target - and the probe never runs on this, the keyboard hook's, thread.
-            ScreenshotFolderOpenRequested?.Invoke(this, EventArgs.Empty);
-        }
-
-        /// <summary>Apply one Graphics setting and tell the context; mirrors <see cref="QuickNotesSettingChanged"/>.</summary>
-        private void GraphicsSettingChanged(Action apply, bool reload = false)
-        {
-            if (_loading) return;
-            apply();
-            GraphicsChanged?.Invoke(this, EventArgs.Empty);
-            if (reload) Reload();
-        }
-
-        /// <summary>Mirror the Graphics settings into the tab and gate the group behind its switches.</summary>
-        private void ReloadGraphicsState()
-        {
-            _screenshotHotkeyEnabled.Checked = _config.EnableScreenshotHotkey;
-            _screenshotHotkeyValue.Text = _config.ScreenshotHotkey;
-            _screenshotSave.Checked = _config.ScreenshotSaveEnabled;
-            _screenshotFolderHotkeyEnabled.Checked = _config.EnableScreenshotFolderHotkey;
-            _screenshotFolderHotkeyValue.Text = _config.ScreenshotFolderHotkey;
-            _screenshotFolderBox.Text = ScreenshotFolderShown();
-            foreach (Control control in _screenshotFolderControls)
-                control.Enabled = _config.ScreenshotSaveEnabled;
-        }
-
         // ---- Translator tab (local Ollama) ----
 
         /// <summary>
@@ -2946,11 +3184,15 @@ namespace CyrFlip
         /// </summary>
         private TabPage TranslatePage()
         {
-            var page = Page("Translation", "Translate the selected text with a local Ollama model: the text goes nowhere except the server below, which is your own computer by default. Ollama itself and a language model have to be installed once, with the buttons below.",
-                Setting(_translateEnabled, "While this is off no translation chord is bound, the tray has no translate entry, and CyrFlip opens no network connection at all."));
+            var page = Page("Translation", "Translate the selected text with a local Ollama model; the text goes only to the server below.");
             var panel = ContentPanel(page);
 
+            // The module switch leads in a group of its own, like the hotkeys page's (S0060 M4).
+            panel.Controls.Add(Group("translate/switches", "Main switches",
+                Setting(_translateEnabled, "While this is off no translation chord is bound, the tray has no translate entry, and CyrFlip opens no network connection at all.")));
+
             panel.Controls.Add(Group("translate/ollama", "Ollama",
+                new Label { Text = "Ollama itself and a language model have to be installed once, with the buttons below.", AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 4, 3, 2) },
                 Setting(LabeledRow("Server address:", _translateEndpoint),
                     "Empty means http://localhost:11434, that is Ollama on this computer. Enter another address and the selected text will be sent to that machine."),
                 Setting(ModelRow(),
@@ -3035,7 +3277,7 @@ namespace CyrFlip
             _translateWork = null;
         }
 
-        /// <summary>The token for the long Ollama operations; cancelled when the window hides or closes.</summary>
+        /// <summary>The token for the long Ollama operations; cancelled by the Cancel button and when the window is disposed (hiding hands the work over).</summary>
         private CancellationToken TranslateWorkToken()
         {
             _translateWork?.Cancel();
@@ -3048,6 +3290,30 @@ namespace CyrFlip
         {
             try { _translateWork?.Cancel(); }
             catch { /* already disposed - nothing to stop */ }
+        }
+
+        /// <summary>
+        /// The window was hidden. A download or a model pull in flight keeps running and its result is
+        /// told through the tray when it ends; with nothing running, or the window being disposed, the
+        /// token is cancelled as before (<see cref="WorkHandover"/>).
+        /// </summary>
+        private void HandOverTranslateWork()
+        {
+            if (_translateHandover.OnHidden(_translateBusy, windowEnding: IsDisposed || Disposing))
+            {
+                CancelTranslateWork();
+                return;
+            }
+            _translateStatus.TextChanged -= AnnounceHandedOverTranslateWork;
+            _translateStatus.TextChanged += AnnounceHandedOverTranslateWork;
+        }
+
+        private void AnnounceHandedOverTranslateWork(object? sender, EventArgs e)
+        {
+            if (!_translateHandover.ShouldAnnounce(_translateBusy, Visible)) return;
+            _translateStatus.TextChanged -= AnnounceHandedOverTranslateWork;
+            string text = _translateStatus.Text;
+            if (text.Length > 0) TranslateWorkFinishedInBackground?.Invoke(this, text);
         }
 
         private void NotifyTranslationChanged() => TranslationChanged?.Invoke(this, EventArgs.Empty);
@@ -3067,6 +3333,8 @@ namespace CyrFlip
             if (_loading) return;
             string endpoint = _translateEndpoint.Text.Trim();
             string model = _translateModel.Text.Trim();
+            // Whatever was typed is now the stored value (or equal to it): the field is the config's again.
+            _translateEndpointUncommitted = _translateModelUncommitted = false;
             if (endpoint == _config.TranslateEndpoint && model == _config.TranslateModel) return;
             _config.TranslateEndpoint = endpoint;
             _config.TranslateModel = model;
@@ -3131,7 +3399,7 @@ namespace CyrFlip
         private Control TranslationRow(TranslationProfile profile)
         {
             var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 1, 3, 1) };
-            var enabled = new RowCheckBox { Checked = profile.Enabled, AutoSize = true, Margin = new Padding(3, 6, 2, 2) };
+            var enabled = new RowCheckBox { Checked = profile.Enabled, AutoSize = true, Margin = new Padding(3, 0, 2, 0), Anchor = AnchorStyles.Left };
             enabled.CheckedChanged += (_, _) =>
             {
                 if (_loading) return;
@@ -3382,7 +3650,7 @@ namespace CyrFlip
         /// </summary>
         private TabPage LauncherPage()
         {
-            var page = Page("Quick launch", "Your programs, scripts and yt-dlp downloads: run them from the tray menu, from this table, with a global shortcut, or from the Jump List of the CyrFlip taskbar icon. While the switch is off, CyrFlip behaves exactly as before — no tray entry and no Jump List tasks.");
+            var page = Page("Quick launch", "Run your programs, scripts and yt-dlp downloads from the tray, this table, a shortcut or the taskbar.");
             var panel = ContentPanel(page);
 
             // The absorbed feature keeps the mark it had as a separate program - the same icon the
@@ -3394,7 +3662,8 @@ namespace CyrFlip
 
             panel.Controls.Add(Group("launcher/enable", "Enable",
                 Setting(_launcherEnabled, "Adds a scenario submenu to the tray menu and tasks to the taskbar Jump List (right-click the CyrFlip taskbar icon). Scenarios are stored one XML file each and are kept when the feature is switched off."),
-                new Label { Text = "Taskbar button: left-click for the scenario list, right-click for the Windows Jump List.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(31, 0, 3, 6) }));
+                new Label { Text = "Taskbar button: left-click for the scenario list, right-click for the Windows Jump List.", AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(31, 0, 3, 2) },
+                new Label { Text = "While the switch is off, CyrFlip behaves exactly as before - no tray entry and no Jump List tasks.", AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(31, 0, 3, 6) }));
 
             var searchRow = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 2, 3, 2) };
             searchRow.Controls.Add(new Label { Text = "Search:", AutoSize = true, Padding = new Padding(0, 6, 8, 0) });
@@ -3414,11 +3683,9 @@ namespace CyrFlip
             down.AccessibleName = Translate("Move down");
             _launcherDown = down;
             AsMoveGlyph(down, AppGlyphs.MoveDown);
-            // Sized by their content, never below 32 px wide (the pointer floor of ICON-RENDER rule 5 is 28):
-            // built here, before the window takes its real font, a fixed RowHeight was the old small font's
-            // and cut the lower half of the arrow (S0019 audit A-16).
-            // GrowOnly (a button's default) grows from the current size, so it starts from 32 x 0, not 75 x 23.
-            up.AutoSize = down.AutoSize = true; up.MinimumSize = down.MinimumSize = up.Size = down.Size = new Size(32, MinTarget);
+            // A square of the command metric (32 logical px - above the 28 px pointer floor of ICON-RENDER rule 5),
+            // the same height as the buttons beside it; ReassertCommandMetrics scales it again on a DPI change.
+            AsRowArrow(up); AsRowArrow(down);
             row1.Controls.Add(up); row1.Controls.Add(down);
 
             var row2 = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 0, 3, 2) };
@@ -3531,7 +3798,40 @@ namespace CyrFlip
             // fills up, and claiming its width back is what puts a horizontal scroll bar under a table
             // that already fits.
             int free = _launcherList.ClientSize.Width - others - SystemInformation.VerticalScrollBarWidth - 4;
-            _launcherList.Columns[1].Width = Math.Max(Column(250), free);
+            _launcherList.Columns[1].Width = Math.Max(_launcherPathMinimum, free);
+        }
+
+        // The nominal widths of the scenario table's columns, measured against the Russian headers at 100 %
+        // (Name, Path, Arguments, Working folder, Admin, Shortcut) - a floor, never the answer (see MeasureLauncherColumns).
+        private static readonly int[] LauncherColumnNominal = { 190, 250, 140, 130, 70, 115 };
+
+        private int _launcherPathMinimum = 250;
+
+        internal string[] LauncherColumnHeads() => new[]
+        {
+            Translate("Name"), Translate("Path"), Translate("Arguments"), Translate("Working folder"), Translate("Admin"), Translate("Shortcut"),
+        };
+
+        /// <summary>
+        /// The widths of the scenario table's columns, measured from what is drawn (S0060 P7-c): the nominal width
+        /// - scaled for the language and the display - is a floor, and a header the language writes longer
+        /// ("Arbeitsordner", "Рабочая папка") or a font the display makes larger widens its column instead of
+        /// being cut. The shortcut column also holds the widest chord a scenario carries. The path column is
+        /// the one that later absorbs the spare width, so its measured width is its minimum.
+        /// </summary>
+        internal int[] MeasureLauncherColumns(string[] heads)
+        {
+            var widths = new int[heads.Length];
+            int dpi = DeviceDpi;
+            for (int column = 0; column < heads.Length; column++)
+                widths[column] = Math.Max(ControlDpi.Scale(dpi, Column(LauncherColumnNominal[column])),
+                    TextWidth(heads[column], _launcherList.Font) + ControlDpi.Scale(dpi, 8));
+            int chord = 0;
+            foreach (LauncherScenario scenario in _launcherStore.All)
+                chord = Math.Max(chord, TextWidth(scenario.Hotkey, _launcherList.Font));
+            widths[5] = Math.Max(widths[5], chord);
+            _launcherPathMinimum = widths[1];
+            return widths;
         }
 
         private Button LauncherButton(string englishText, Action action)
@@ -3575,12 +3875,10 @@ namespace CyrFlip
             foreach (Bitmap bitmap in _launcherBitmaps) bitmap.Dispose();
             _launcherBitmaps.Clear();
 
-            _launcherList.Columns.Add(Translate("Name"), Column(190));
-            _launcherList.Columns.Add(Translate("Path"), Column(250));
-            _launcherList.Columns.Add(Translate("Arguments"), Column(140));
-            _launcherList.Columns.Add(Translate("Working folder"), Column(130));
-            _launcherList.Columns.Add(Translate("Admin"), Column(70));
-            _launcherList.Columns.Add(Translate("Shortcut"), Column(115));
+            string[] heads = LauncherColumnHeads();
+            int[] widths = MeasureLauncherColumns(heads);
+            for (int column = 0; column < heads.Length; column++)
+                _launcherList.Columns.Add(heads[column], widths[column]);
 
             string filter = _launcherSearch.Text.Trim();
             foreach (LauncherScenario scenario in _launcherStore.All)
@@ -3658,10 +3956,11 @@ namespace CyrFlip
                 _launcherImportOcr.Enabled = true; // the click itself reports when nothing is found
         }
 
-        private bool ReportScenarioSave(Exception? failure)
+        /// <summary>A scenario write that failed is a failure of what the user asked for: the cause, and Retry when the caller can repeat it.</summary>
+        private bool ReportScenarioSave(Exception? failure, Action? retry = null)
         {
             if (failure == null) return true;
-            Warn(FailureCause.Describe(failure, _config.UiLanguage));
+            Fail(FailureCause.Describe(failure, _config.UiLanguage), retry);
             return false;
         }
 
@@ -3703,9 +4002,15 @@ namespace CyrFlip
             using var dialog = new LauncherScenarioDialog(null, _config.UiLanguage);
             if (dialog.ShowDialog(this) != DialogResult.OK || dialog.Scenario == null) return;
             if (!LauncherHotkeyIsFree(dialog.Scenario)) return;
-            if (!ReportScenarioSave(_launcherStore.Add(dialog.Scenario))) return;
+            SaveNewScenario(dialog.Scenario);
+        }
+
+        /// <summary>Stores a new scenario. Its own method so a failure's Retry repeats the write, not the dialog.</summary>
+        private void SaveNewScenario(LauncherScenario scenario)
+        {
+            if (!ReportScenarioSave(_launcherStore.Add(scenario), () => SaveNewScenario(scenario))) return;
             LauncherNotifyChanged();
-            LauncherReselect(dialog.Scenario.Id);
+            LauncherReselect(scenario.Id);
         }
 
         private void LauncherEdit()
@@ -3715,9 +4020,15 @@ namespace CyrFlip
             using var dialog = new LauncherScenarioDialog(selected, _config.UiLanguage);
             if (dialog.ShowDialog(this) != DialogResult.OK || dialog.Scenario == null) return;
             if (!LauncherHotkeyIsFree(dialog.Scenario)) return;
-            if (!ReportScenarioSave(_launcherStore.Update(dialog.Scenario))) return;
+            SaveEditedScenario(dialog.Scenario);
+        }
+
+        /// <summary>Stores an edited scenario. Its own method so a failure's Retry repeats the write, not the dialog.</summary>
+        private void SaveEditedScenario(LauncherScenario scenario)
+        {
+            if (!ReportScenarioSave(_launcherStore.Update(scenario), () => SaveEditedScenario(scenario))) return;
             LauncherNotifyChanged();
-            LauncherReselect(dialog.Scenario.Id);
+            LauncherReselect(scenario.Id);
         }
 
         private void LauncherClone()
@@ -3729,9 +4040,7 @@ namespace CyrFlip
             clone.Filename = string.Empty; // the store assigns a fresh file and appends the order
             clone.Hotkey = string.Empty;   // one chord cannot trigger two scenarios
             clone.Name = Localization.Format(Translate, "{0} (copy)", selected.Name);
-            if (!ReportScenarioSave(_launcherStore.Add(clone))) return;
-            LauncherNotifyChanged();
-            LauncherReselect(clone.Id);
+            SaveNewScenario(clone);
         }
 
         private void LauncherRemove()
@@ -3741,10 +4050,17 @@ namespace CyrFlip
             if (ConfirmDialog.Show(this, _config.UiLanguage, Localization.Format(Translate, "Remove the scenario \"{0}\"?", selected.Name),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                 return;
+            DeleteScenario(selected);
+        }
+
+        /// <summary>Deletes a confirmed scenario. Its own method so a failure's Retry repeats the deletion, not the question.</summary>
+        private void DeleteScenario(LauncherScenario selected)
+        {
             string? failure = _launcherStore.Remove(selected.Id, Translate);
             if (failure != null)
             {
-                Warn(Localization.Format(Translate, "Could not delete scenario \"{0}\": {1}", selected.Name, failure));
+                Fail(Localization.Format(Translate, "Could not delete scenario \"{0}\": {1}", selected.Name, failure),
+                    () => DeleteScenario(selected));
                 return;
             }
             LauncherNotifyChanged();
@@ -3754,15 +4070,16 @@ namespace CyrFlip
         {
             LauncherScenario? selected = SelectedLauncherScenario();
             if (selected == null) return;
-            if (!ReportScenarioSave(_launcherStore.Move(selected.Id, direction))) return;
+            if (!ReportScenarioSave(_launcherStore.Move(selected.Id, direction), () => LauncherMove(direction))) return;
             LauncherNotifyChanged();
             LauncherReselect(selected.Id);
         }
 
         /// <summary>Run from the editor: same execution path as tray/Jump List, but errors are modal here (spec §7).</summary>
-        private void LauncherRun()
+        private void LauncherRun() => RunScenario(SelectedLauncherScenario());
+
+        private void RunScenario(LauncherScenario? selected)
         {
-            LauncherScenario? selected = SelectedLauncherScenario();
             if (selected == null) return;
             string name = selected.Name;
             // The launch runs on the pool (S0030 HT-1); the verdict comes back to this thread.
@@ -3776,7 +4093,7 @@ namespace CyrFlip
                     ? task.Result
                     : LauncherLaunchResult.Fail(FailureCause.Describe(task.Exception?.GetBaseException(), _config.UiLanguage));
                 if (!result.Success && !result.Cancelled && !IsDisposed)
-                    Warn(Localization.Format(Translate, "Couldn't start \"{0}\": {1}", name, result.ErrorMessage));
+                    Fail(Localization.Format(Translate, "Couldn't start \"{0}\": {1}", name, result.ErrorMessage), () => RunScenario(selected));
             }, System.Threading.Tasks.TaskScheduler.FromCurrentSynchronizationContext());
         }
 
@@ -3800,7 +4117,7 @@ namespace CyrFlip
             }
             catch (Exception ex)
             {
-                Warn(Localization.Format(Translate, "Export failed: {0}", FailureCause.Describe(ex, _config.UiLanguage)));
+                Fail(Localization.Format(Translate, "Export failed: {0}", FailureCause.Describe(ex, _config.UiLanguage)), LauncherExport);
             }
         }
 
@@ -3812,9 +4129,10 @@ namespace CyrFlip
             if (imported == null)
             {
                 // A renamed root or a newer schemaVersion is not damage - say what to do, not the serializer's text.
-                Warn(error is ScenarioFormatException
-                    ? Translate("This file is not a scenario in a format this version of CyrFlip understands. It may have been written by a newer version - update CyrFlip.")
-                    : Localization.Format(Translate, "Import failed: {0}", FailureCause.Describe(error, _config.UiLanguage)));
+                if (error is ScenarioFormatException)
+                    Warn(Translate("This file is not a scenario in a format this version of CyrFlip understands. It may have been written by a newer version - update CyrFlip."));
+                else
+                    Fail(Localization.Format(Translate, "Import failed: {0}", FailureCause.Describe(error, _config.UiLanguage)), LauncherImport);
                 return;
             }
             // A file exported on another machine can carry a chord that is taken here. One chord
@@ -3854,20 +4172,24 @@ namespace CyrFlip
                 result.SaveFailures.Count > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
         }
 
+        /// <summary>The <see cref="Control.Tag"/> of a page's purpose line, for the conformance gates.</summary>
+        internal const string PageDescriptionTag = "page-description";
+
         private TabPage Page(string title, string description, params Control[] controls)
         {
             var page = new TabPage(title);
             var panel = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Padding = new Padding(16), BackColor = ThemePalette.Light.SurfaceRaised };
             // A narrower window clamps the wrapping text blocks to what the page has (H3); re-clamped
             // on every resize, since the authored cap comes back when the window grows again.
-            panel.Resize += (_, _) => ClampPageTextWidths();
+            panel.Resize += (_, _) => ClampPageOnResize(panel);
             // The page opens with its title, then the one-line purpose (WINDOWS-UI section 2 rule 3).
             // Both live in the translatable tree: the title is a bold caption like a section header.
             // The title is shown by the header band (SyncPageHeader) and stays here hidden, so the language pass
             // translates it. The purpose line is the first line of the content pane (WINDOWS-UI section 2 rule 3),
             // not part of the band: the band must be the same height on every page or the page list loses rows.
             panel.Controls.Add(new Label { Text = title, AutoSize = true, Font = BoldFont, Margin = new Padding(3, 0, 3, 2), UseMnemonic = false, Visible = false });
-            panel.Controls.Add(new Label { Text = description, AutoSize = true, UseMnemonic = false, MaximumSize = new Size(930, 0), ForeColor = ThemePalette.Light.TextMuted, Padding = new Padding(2, 0, 2, 10) });
+            // One short sentence (S0060 M7): the tag is how the description gate finds it among the page's labels.
+            panel.Controls.Add(new Label { Text = description, AutoSize = true, UseMnemonic = false, MaximumSize = new Size(930, 0), ForeColor = ThemePalette.Light.TextMuted, Padding = new Padding(2, 0, 2, 10), Tag = PageDescriptionTag });
             foreach (Control control in controls) panel.Controls.Add(control);
             page.Controls.Add(panel); return page;
         }
@@ -3942,6 +4264,7 @@ namespace CyrFlip
                 7 => SettingsPageKey.Conversions, 8 => SettingsPageKey.Launcher, 9 => SettingsPageKey.Translate,
                 10 => SettingsPageKey.QuickNotes, 11 => SettingsPageKey.Graphics, 12 => SettingsPageKey.Symbols,
                 14 => SettingsPageKey.SelectionMenu, 15 => SettingsPageKey.TrafficLight,
+                16 => SettingsPageKey.ExchangeServer,
                 _ => throw new ArgumentOutOfRangeException(nameof(kind)),
             };
             return page;
@@ -3953,7 +4276,7 @@ namespace CyrFlip
         /// the selection menu (<c>feature.selection-menu</c>, the record it asked on 2026-10-11 - it drew its
         /// caption alone until the record existed, S0062 D7).
         /// </summary>
-        private static readonly int[] TabKinds = { 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15 };
+        private static readonly int[] TabKinds = { 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16 };
 
         internal static int IconIndex(int kind) => Array.IndexOf(TabKinds, kind);
 
@@ -3982,6 +4305,7 @@ namespace CyrFlip
                 case 12: return AppGlyphs.Symbols;
                 case 14: return AppGlyphs.SelectionMenu;
                 case 15: return AppGlyphs.NetworkMonitor;
+                case 16: return AppGlyphs.ExchangeServer;
                 default: return null;
             }
         }
@@ -4018,6 +4342,7 @@ namespace CyrFlip
             images.Images.Add("symbols", TabIcon(12, inkOf(12), size));
             images.Images.Add("selection-menu", TabIcon(14, inkOf(14), size));
             images.Images.Add("traffic-light", TabIcon(15, inkOf(15), size));
+            images.Images.Add("exchange-server", TabIcon(16, inkOf(16), size));
             return images;
         }
 
@@ -4089,12 +4414,7 @@ namespace CyrFlip
                 if (mode == current) select = i;
             }
             _themeCombo.SelectedIndex = select;
-            int max = 190;
-            foreach (ThemeItem item in _themeCombo.Items)
-            {
-                int w = TextRenderer.MeasureText(item.Label, Font).Width + 36;
-                if (w > max) max = w;
-            }
+            int max = ComboWidth(_themeCombo.Items.Cast<ThemeItem>().Select(item => item.Label), 190);
             _themeCombo.Width = max;
             _themeCombo.DropDownWidth = max;
             _loading = loading;
@@ -4153,9 +4473,12 @@ namespace CyrFlip
         private TabPage SymbolsPage()
         {
             var page = Page("Symbols",
-                "A palette of rare characters: clicking copies the character to the clipboard; everything stays on this computer.",
-                Setting(_symbolsEnabled, "While disabled, the symbols window is not created, no symbols item appears in the tray or context menu, and the hotkey is not bound."));
+                "A palette of rare characters: clicking copies the character to the clipboard; everything stays on this computer.");
             var panel = ContentPanel(page);
+
+            // The module switch leads in a group of its own, like the hotkeys page's (S0060 M4).
+            panel.Controls.Add(Group("symbols/switches", "Main switches",
+                Setting(_symbolsEnabled, "While disabled, the symbols window is not created, no symbols item appears in the tray or context menu, and the hotkey is not bound.")));
 
             panel.Controls.Add(Group("symbols/opening", "How to open it",
                 TrackSymbols(HotkeyRow(_symbolsHotkeyEnabled, _symbolsHotkeyValue, () => SymbolsHotkeyChangeRequested?.Invoke(this, EventArgs.Empty),
@@ -4163,22 +4486,23 @@ namespace CyrFlip
                 TrackSymbols(Setting(Button("Open symbols window", AppGlyphs.Symbols, () => OpenSymbolsRequested?.Invoke(this, EventArgs.Empty)),
                     "Same as the \"Symbols\" item in the tray menu."))));
 
+            // The closing paragraph about what a click does is a muted note of the options group, not a loose
+            // label at the foot of the page (S0060 M4).
             panel.Controls.Add(Group("symbols/options", "Settings",
                 TrackSymbols(Setting(_symbolsHideTypable,
-                    "Hides symbols from the palette that can be typed with a single key or Shift / AltGr combination on installed layouts."))));
-
-            panel.Controls.Add(new Label
-            {
-                Text = "A click copies the symbol to the clipboard. Symbols collect in the window's text field until \"Close on pick\" is on. Symbol picks are not added to clipboard history. Nothing leaves this computer.",
-                AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted,
-                Margin = new Padding(3, 10, 3, 4),
-            });
+                    "Hides symbols from the palette that can be typed with a single key or Shift / AltGr combination on installed layouts.")),
+                new Label
+                {
+                    Text = "A click copies the symbol to the clipboard. Symbols collect in the window's text field until \"Close on pick\" is on. Symbol picks are not added to clipboard history. Nothing leaves this computer.",
+                    AutoSize = true, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted,
+                    Margin = new Padding(3, 6, 3, 4),
+                }));
             return page;
         }
 
         private TabPage AboutPage()
         {
-            var page = Page("About", "CyrFlip is a tray toolkit for your keyboard and desktop: it shows the active layout at the caret, fixes text typed in the wrong layout or with CapsLock on, and captures a screen region; a selection menu, a local translator, quick notes, clipboard history and quick launch are optional modules you switch on yourself.\n\nThe app never sends clipboard history over the network. When history is on, entries are protected by Windows DPAPI and readable only by the same Windows account.");
+            var page = Page("About", "The version, the licence, the project links and where to ask for help.");
             var panel = ContentPanel(page);
             // Two groups, so the page is a grouping (WINDOWS-UI section 3): what the product is, and
             // where help comes from.
@@ -4187,6 +4511,15 @@ namespace CyrFlip
                 // build time would be captured by RememberSourceTexts as if it were a source caption
                 // and then "translated" on every language change. Starting empty keeps it out of that map.
                 TrackAbout(_version, _version.Font = BoldFont),
+                // What the product is and what it never does with the network: the paragraphs that were this
+                // page's description until S0060 M7 made that one sentence. The key is unchanged, so its 13
+                // translations are too.
+                new Label
+                {
+                    Text = "CyrFlip is a tray toolkit for your keyboard and desktop: it shows the active layout at the caret, fixes text typed in the wrong layout or with CapsLock on, and captures a screen region; a selection menu, a local translator, quick notes, clipboard history and quick launch are optional modules you switch on yourself.\n\nThe app never sends clipboard history over the network. When history is on, entries are protected by Windows DPAPI and readable only by the same Windows account.",
+                    AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted,
+                    Margin = new Padding(3, 8, 3, 4),
+                },
                 new Label { Text = "Developer: SerZhyAle", AutoSize = true, Font = BoldFont, Margin = new Padding(3, 14, 3, 4) },
                 Link("App website: serzhyale.github.io/CyrFlip", "https://serzhyale.github.io/CyrFlip/"),
                 Link("GitHub: github.com/SerZhyAle/CyrFlip", "https://github.com/SerZhyAle/CyrFlip"),
@@ -4200,7 +4533,9 @@ namespace CyrFlip
                 Link("Third-party notices: Material Icons glyphs (Apache-2.0)", "https://github.com/SerZhyAle/CyrFlip/blob/main/THIRD-PARTY-NOTICES.txt"),
                 new Label { Text = "CyrFlip runs locally, with no telemetry and no network sync of clipboard history.", AutoSize = true, MaximumSize = new Size(690, 0), Padding = new Padding(0, 14, 0, 0), ForeColor = ThemePalette.Light.TextMuted }));
             panel.Controls.Add(Group("about/support", "Help and support",
-                Setting(Button("Show the welcome tour..", AppGlyphs.Help, () => WelcomeRequested?.Invoke(this, EventArgs.Empty)),
+                Setting(Button("Help", AppGlyphs.Help, () => ContextHelp.Open("index", _config.UiLanguage)),
+                    "Help is available offline. Press F1 in a CyrFlip window or use its help button."),
+                Setting(Button("Show the welcome tour..", AppGlyphs.Info, () => WelcomeRequested?.Invoke(this, EventArgs.Empty)),
                     "Get to know CyrFlip and set it up."),
                 Setting(Button("Diagnose caret position...", AppGlyphs.Verify, _diagnoseCaret), "Creates a local report of how Windows and UI Automation see the caret. Use it only when the marker is missing or misplaced in a particular app."),
                 Setting(_sendLogs = Button("Send logs to the author..", AppGlyphs.Email, SendLogsToAuthor), "Collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network. Clipboard history never goes into the archive.")));
@@ -4213,29 +4548,22 @@ namespace CyrFlip
         /// <summary>
         /// Collect the logs, show what was collected, and - only if the user says so - hand the archive
         /// to their mail client. Off the UI thread twice over, and for two different reasons: packing
-        /// is disk work, and <c>MAPISendMail</c> with <c>MAPI_DIALOG</c> blocks until the compose
-        /// window is closed.
+        /// is disk work (here behind the wait window, so the user sees that something is happening rather
+        /// than a button gone grey - S0060 P7-h), and <c>MAPISendMail</c> with <c>MAPI_DIALOG</c> blocks
+        /// until the compose window is closed.
         /// </summary>
         private void SendLogsToAuthor()
         {
             if (_sendLogs != null) _sendLogs.Enabled = false;
-            Task.Run(() =>
+            SupportBundle.Result result;
+            try { result = BusyDialog.Run(this, _config.UiLanguage, () => SupportBundle.CreateDefault(_config, DateTime.Now)); }
+            catch (Exception ex)
             {
-                try
-                {
-                    SupportBundle.Result result = SupportBundle.CreateDefault(_config, DateTime.Now);
-                    BeginInvoke(new Action(() => ShowSupportBundle(result)));
-                }
-                catch (Exception ex)
-                {
-                    BeginInvoke(new Action(() =>
-                    {
-                        if (_sendLogs != null) _sendLogs.Enabled = true;
-                        ConfirmDialog.Show(this, _config.UiLanguage, Translate("Could not build the log archive:") + "\n" + FailureCause.Describe(ex, _config.UiLanguage),
-                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }));
-                }
-            });
+                if (_sendLogs != null) _sendLogs.Enabled = true;
+                Fail(Translate("Could not build the log archive:") + "\n" + FailureCause.Describe(ex, _config.UiLanguage), SendLogsToAuthor);
+                return;
+            }
+            ShowSupportBundle(result);
         }
 
         private void ShowSupportBundle(SupportBundle.Result result)
@@ -4281,31 +4609,35 @@ namespace CyrFlip
                     break;
             }
         }
-        private static LinkLabel Link(string text, string url)
+        private LinkLabel Link(string text, string url)
         {
             var link = new LinkLabel { Text = text, AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
-            link.LinkClicked += (_, _) => { try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true })?.Dispose(); } catch { } };
+            link.LinkClicked += (_, _) => OpenAddress(url);
             return link;
         }
         private static CheckBox Check(string text) => new CheckBox { Text = text, AutoSize = true, Margin = new Padding(3, 6, 3, 6) };
-        private static Button Button(string text, Action action) { var button = new Button { Text = text, AutoSize = true, Margin = new Padding(3, 5, 3, 5) }; button.Click += (_, _) => action(); return button; }
+        private static Button Button(string text, Action action) { var button = new Button { Text = text, AutoSize = true, Margin = new Padding(4, 3, 4, 3) }; button.Click += (_, _) => action(); return button; }
 
         /// <summary>A command button with its verb's vocabulary glyph before the caption (WINDOWS-UI
-        /// section 11 item 1) - in the mono look: a settings row is not a dialog answer.</summary>
+        /// section 11 item 1) - in the mono look: a settings row is not a dialog answer. It takes the shared
+        /// command metric (WINDOWS-UI section 5: 32 px high, 16 px of padding a side, 8 px between neighbours),
+        /// which is what makes every command of every row the same height (S0060 M12).</summary>
         private static Button Button(string text, string glyph, Action action)
         {
             Button button = Button(text, action);
             ButtonGlyphs.Attach(button, glyph);
+            ButtonGlyphs.UseCommandMetric(button);
             return button;
         }
-        /// <summary>The parts of a captioned value row (WINDOWS-UI section 4, "Ordinary row"): the caption and its
-        /// description share the leading column, the editors stand in the trailing column of the same row.</summary>
+        /// <summary>The parts of a captioned value row (WINDOWS-UI section 4, "Ordinary row" and "Boolean"): the
+        /// caption and its description share the leading column, the editors stand in the trailing column of the
+        /// same row. The caption is a label for a value row and the switch itself for a boolean one.</summary>
         internal sealed class CaptionedRow
         {
-            public CaptionedRow(TableLayoutPanel table, Label caption, Label hint, FlowLayoutPanel editors)
+            public CaptionedRow(TableLayoutPanel table, Control caption, Label hint, FlowLayoutPanel editors)
             { Table = table; Caption = caption; Hint = hint; Editors = editors; }
             public TableLayoutPanel Table { get; }
-            public Label Caption { get; }
+            public Control Caption { get; }
             public Label Hint { get; }
             public FlowLayoutPanel Editors { get; }
         }
@@ -4329,6 +4661,32 @@ namespace CyrFlip
         }
         private const int CaptionedRowMaxLead = 900;
 
+        /// <summary>
+        /// The one table every captioned row is: the leading column holds the caption and, under it, its muted
+        /// description; the trailing column holds the editors, and the editors of a left-to-right strip stand on
+        /// one centre line whatever their heights (a drop-down of the font's height beside a 32 px command).
+        /// </summary>
+        private static TableLayoutPanel BuildCaptionedRow(Control caption, Label hint, FlowLayoutPanel editors)
+        {
+            var lead = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = Padding.Empty };
+            lead.Controls.Add(caption);
+            lead.Controls.Add(hint);
+            if (editors.FlowDirection == FlowDirection.LeftToRight)
+                foreach (Control editor in editors.Controls)
+                {
+                    editor.Anchor = AnchorStyles.Left;
+                    // A value shown beside an editor carried a top padding to look level with it; centred, it is level already.
+                    if (editor is Label) editor.Padding = Padding.Empty;
+                }
+            var table = new TableLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 2, RowCount = 1, Margin = new Padding(3, 7, 3, 7) };
+            table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 520));
+            table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            table.Controls.Add(lead, 0, 0);
+            table.Controls.Add(editors, 1, 0);
+            table.Tag = new CaptionedRow(table, caption, hint, editors);
+            return table;
+        }
+
         private Control CaptionedSetting(FlowLayoutPanel editors, Label caption, string description)
         {
             editors.Controls.Remove(caption);
@@ -4338,16 +4696,24 @@ namespace CyrFlip
             caption.UseMnemonic = false;
             caption.MaximumSize = new Size(CaptionedRowMaxLead, 0);
             var hint = new Label { Text = description, AutoSize = true, UseMnemonic = false, MaximumSize = new Size(CaptionedRowMaxLead, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 0, 3, 3) };
-            var lead = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = Padding.Empty };
-            lead.Controls.Add(caption);
-            lead.Controls.Add(hint);
-            var table = new TableLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 2, RowCount = 1, Margin = new Padding(3, 7, 3, 7) };
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 520));
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            table.Controls.Add(lead, 0, 0);
-            table.Controls.Add(editors, 1, 0);
-            table.Tag = new CaptionedRow(table, caption, hint, editors);
-            return table;
+            return BuildCaptionedRow(caption, hint, editors);
+        }
+
+        /// <summary>
+        /// A boolean row with editors (WINDOWS-UI section 4, "Boolean"): the switch at the reading start with its
+        /// caption beside it and its description below, at the caption text's own inset, in the leading column;
+        /// whatever else the row carries - the chord and the Change button of a hotkey - in the trailing column,
+        /// on the page's shared editor edge. The inset is a pair of the hint pass, re-measured with the font.
+        /// </summary>
+        private Control CaptionedBoolean(CheckBox box, FlowLayoutPanel editors, string description)
+        {
+            box.AutoSize = true;
+            box.Font = BoldFont;   // a switch's caption is the setting's name, as in Setting()
+            box.Margin = new Padding(3, 7, 3, 2);
+            box.MaximumSize = new Size(CaptionedRowMaxLead, 0);
+            var hint = new Label { Text = description, AutoSize = true, UseMnemonic = false, MaximumSize = new Size(CaptionedRowMaxLead, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(28, 0, 3, 3) };
+            _hintPairs.Add(new KeyValuePair<Control, Label>(box, hint));
+            return BuildCaptionedRow(box, hint, editors);
         }
 
         /// <summary>The leading column takes what the editors leave (not less than <see cref="MinTextWidth"/>), and its
@@ -4363,9 +4729,73 @@ namespace CyrFlip
             int lead = Math.Max(MinTextWidth, available - row.Table.Margin.Horizontal - editorWidth - CaptionedRowGap);
             lead = Math.Min(lead, CaptionedRowMaxLead);
             if ((int)row.Table.ColumnStyles[0].Width != lead) row.Table.ColumnStyles[0].Width = lead;
-            int text = Math.Max(1, lead - row.Hint.Margin.Horizontal);
-            if (row.Caption.MaximumSize.Width != text) row.Caption.MaximumSize = new Size(text, 0);
-            if (row.Hint.MaximumSize.Width != text) row.Hint.MaximumSize = new Size(text, 0);
+            // Each wraps inside its own inset: a switch's description stands under its text, not under its box.
+            int captionWidth = Math.Max(1, lead - row.Caption.Margin.Horizontal);
+            int hintWidth = Math.Max(1, lead - row.Hint.Margin.Horizontal);
+            if (row.Caption.MaximumSize.Width != captionWidth) row.Caption.MaximumSize = new Size(captionWidth, 0);
+            if (row.Hint.MaximumSize.Width != hintWidth) row.Hint.MaximumSize = new Size(hintWidth, 0);
+            AlignCaptionToEditors(row);
+        }
+
+        /// <summary>
+        /// The caption's first line stands level with the editors' centre line: a 32 px command beside a caption
+        /// pinned to the top of the cell read as two rows. Measured from the live font, so a taller script or a
+        /// larger display keeps them level.
+        /// </summary>
+        private static void AlignCaptionToEditors(CaptionedRow row)
+        {
+            int strip = row.Editors.GetPreferredSize(Size.Empty).Height;
+            int centre = row.Editors.Margin.Top + strip / 2;
+            int line = row.Caption.Font.Height + (row.Caption is CheckBox ? 4 : 0);
+            int top = Math.Max(2, centre - line / 2);
+            Padding margin = row.Caption.Margin;
+            if (margin.Top != top) row.Caption.Margin = new Padding(margin.Left, top, margin.Right, margin.Bottom);
+        }
+
+        /// <summary>The backup state row (S0072): the last write, and the folder they live in.</summary>
+        internal void ApplyImportedNavigation()
+        {
+            if (_tabs == null || IsDisposed) return;
+            _restoringContext = true;
+            try
+            {
+                RestoreGroupStates();
+                if (SettingsPageKeys.TryParse(_config.SettingsPageId, out SettingsPageKey page)) SelectPage(page);
+                else if (SettingsPageKeys.FromLegacyIndex(_config.SettingsTab) is SettingsPageKey legacy) SelectPage(legacy);
+                RestoreViewport(_tabs.SelectedIndex);
+            }
+            finally { _restoringContext = false; }
+        }
+
+        internal void RefreshBackupState()
+        {
+            if (IsDisposed) return;
+            _backupState.Text = SettingsBackup.NewestBackupTime() is { } last
+                ? Localization.Format(Translate, "Last backup: {0}", last.ToString("g"))
+                : Translate("No backup yet");
+        }
+
+        private Control BackupFolderRow()
+        {
+            Button open = Button("Open backups folder", AppGlyphs.Folder, OpenBackupsFolder);
+            var strip = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 5, 3, 5) };
+            strip.Controls.Add(_backupState);
+            strip.Controls.Add(open);
+            return strip;
+        }
+
+        private void OpenBackupsFolder()
+        {
+            try
+            {
+                string folder = SettingsBackup.DefaultFolder;
+                // A folder that was never created has nothing to show; the parent is the nearest honest place.
+                if (!System.IO.Directory.Exists(folder))
+                    folder = System.IO.Path.GetDirectoryName(folder.TrimEnd('\\', '/')) ?? folder;
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", "\"" + folder + "\"")
+                { UseShellExecute = true })?.Dispose();
+            }
+            catch { /* the shell refused: nothing this button can do */ }
         }
 
         private Control Setting(Control control, string description)
@@ -4382,13 +4812,28 @@ namespace CyrFlip
             block.Controls.Add(control);
             Label hint = new Label { Text = description, AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(28, 0, 3, 3) };
             block.Controls.Add(hint);
-            // A boolean row puts its description under the caption's own text inset, not under a fixed
-            // guess (WINDOWS-UI section 4): the pair is re-measured whenever the font changes.
-            if (control is CheckBox || control is RadioButton) _hintPairs.Add(new KeyValuePair<Control, Label>(control, hint));
-            // The dependency pass (M5) appends the "why it is off" sentence to this hint when the row's
-            // master switch is off - looked up by the control the row is about.
+            // The description stands under the text the row's control starts with, not under a fixed guess
+            // (WINDOWS-UI section 4): a switch's text after its box ("Boolean"), a command's caption after its
+            // glyph and padding ("Commands": a command is not a value row, so its description stays under it
+            // rather than beside it). The pair is re-measured whenever the font or the DPI changes.
+            Control? anchor = control is CheckBox || control is RadioButton || control is Button ? control : FirstButton(control);
+            if (anchor != null) _hintPairs.Add(new KeyValuePair<Control, Label>(anchor, hint));
+            // The dependency pass (M5) stands a "why it is off" note under this row when its master switch is
+            // off - the row is found from the control the hint was registered for.
             _rowHints[control] = hint;
             return block;
+        }
+
+        /// <summary>The first command button inside a control, or null - the anchor a command row's description is aligned to.</summary>
+        private static Button? FirstButton(Control control)
+        {
+            foreach (Control child in control.Controls)
+            {
+                if (child is Button button) return button;
+                Button? deeper = FirstButton(child);
+                if (deeper != null) return deeper;
+            }
+            return null;
         }
 
         /// <summary>
@@ -4416,10 +4861,11 @@ namespace CyrFlip
         {
             foreach (KeyValuePair<Control, Label> pair in _hintPairs)
             {
-                // The box and its hint share one block, so the box's own margin and padding are part
+                // The control and its hint share one block, so the control's own margin and padding are part
                 // of where its caption text starts.
-                int inset = pair.Key.Margin.Left + pair.Key.Padding.Left + CaptionTextInset(pair.Key);
-                pair.Value.Margin = new Padding(inset, 0, 3, 3);
+                int inset = HintInset(pair.Key, pair.Value);
+                Padding margin = pair.Value.Margin;
+                if (margin.Left != inset) pair.Value.Margin = new Padding(inset, 0, 3, 3);
             }
             if (_tabs == null) return;
             foreach (TabPage page in _tabs.TabPages)
@@ -4448,6 +4894,32 @@ namespace CyrFlip
             }
         }
 
+        /// <summary>
+        /// How far from its block's reading-start edge a row's description starts: where the text of the control
+        /// above it starts. A switch's text begins after its box (<see cref="CaptionTextInset"/>); a command's
+        /// caption begins after the padding the button reserves for its glyph (<c>ButtonGlyphs</c> reserves it on
+        /// the reading-start side, so the right padding under a right-to-left language); the margins of anything
+        /// between the control and the hint's own block count too. A flow mirrors a margin's left side to the
+        /// reading start itself, so <c>Margin.Left</c> is the reading-start margin in both directions.
+        /// </summary>
+        internal static int HintInset(Control anchor, Control hint)
+        {
+            bool rtl = anchor.RightToLeft == RightToLeft.Yes;
+            int inset = anchor.Margin.Left;
+            if (anchor is CheckBox || anchor is RadioButton)
+                inset += (rtl ? anchor.Padding.Right : anchor.Padding.Left) + CaptionTextInset(anchor);
+            else if (anchor is Button)
+                inset += rtl ? anchor.Padding.Right : anchor.Padding.Left;
+
+            int between = 0;
+            for (Control? up = anchor.Parent; up != null; up = up.Parent)
+            {
+                if (ReferenceEquals(up, hint.Parent)) return inset + between;
+                between += up.Margin.Left + (rtl ? up.Padding.Right : up.Padding.Left);
+            }
+            return inset;   // the hint is not above the control (not built into one block): nothing between
+        }
+
         /// <summary>The distance from a checkbox/radio's left edge to where its caption text starts.</summary>
         internal static int CaptionTextInset(Control box)
         {
@@ -4461,32 +4933,40 @@ namespace CyrFlip
             }
             catch { return 20; }
         }
-        private static Control HotkeyRow(string label, Label value, Action change, string description)
-        {
-            var block = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 7, 3, 7) };
-            var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight };
-            row.Controls.Add(new Label { Text = label + ":", AutoSize = true, Tag = "caption", Padding = new Padding(0, 7, 0, 0) });
-            value.Padding = new Padding(0, 7, 5, 0); row.Controls.Add(value); row.Controls.Add(Button("Change...", AppGlyphs.Edit, change));
-            block.Controls.Add(row);
-            block.Controls.Add(new Label { Text = description, AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(28, 0, 3, 3) });
-            return block;
-        }
-
-        // Variant with a leading enable checkbox: [☑ action]   chord   [Change...].
+        /// <summary>
+        /// A chord setting, [☑ action] chord [Change...], in the shape of every other boolean row with editors
+        /// (WINDOWS-UI section 4): the switch and its description in the leading column - the description under
+        /// the caption's own text - and the chord and its Change button in the trailing column of the same row,
+        /// on the page's shared editor edge. Every chord label is as wide as the widest chord (<see
+        /// cref="AlignChordColumn"/>), so the Change buttons of different rows stand under one another.
+        /// </summary>
         private Control HotkeyRow(CheckBox enable, Label value, Action change, string description)
         {
-            var block = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 7, 3, 7) };
-            var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight };
-            // AutoSize (never clip the caption at any DPI or in any language); the chord column is
-            // lined up afterwards by AlignHotkeyCaptions, which widens all three to the widest one.
-            enable.AutoSize = true; enable.Margin = new Padding(3, 8, 3, 3);
-            row.Controls.Add(enable);
-            value.Padding = new Padding(0, 7, 5, 0); row.Controls.Add(value); row.Controls.Add(Button("Change...", AppGlyphs.Edit, change));
-            block.Controls.Add(row);
-            Label hint = new Label { Text = description, AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(28, 0, 3, 3) };
-            block.Controls.Add(hint);
-            _rowHints[enable] = hint;   // the dependency pass appends the "why it is off" note here
-            return block;
+            var editors = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = new Padding(3, 5, 3, 5) };
+            value.AutoSize = true;
+            value.Margin = new Padding(3, 0, 6, 0);
+            if (!_chordValueLabels.Contains(value)) _chordValueLabels.Add(value);
+            editors.Controls.Add(value);
+            editors.Controls.Add(Button("Change...", AppGlyphs.Edit, change));
+            Control row = CaptionedBoolean(enable, editors, description);
+            _rowHints[enable] = ((CaptionedRow)row.Tag!).Hint;   // the dependency pass stands its "why it is off" note under this row
+            return row;
+        }
+
+        // The chord labels of every hotkey row, so one pass gives them the width of the widest chord.
+        private readonly List<Label> _chordValueLabels = new List<Label>();
+
+        /// <summary>
+        /// Every chord label is as wide as the longest chord a capture can produce (<see
+        /// cref="HotkeyDialog.LongestChord"/>), measured in the font the window actually draws: the Change
+        /// buttons of the hotkey rows - on one page and across pages - then stand at one edge without a
+        /// pixel width. Re-run on every language and DPI pass, since the font is what it follows.
+        /// </summary>
+        private void AlignChordColumn()
+        {
+            int width = TextRenderer.MeasureText(HotkeyDialog.LongestChord, Font).Width + ControlDpi.Scale(DeviceDpi, 8);
+            foreach (Label value in _chordValueLabels)
+                if (value.MinimumSize.Width != width) value.MinimumSize = new Size(width, 0);
         }
         private void Changed(Action<bool> action, bool value) { if (_loading) return; action(value); Reload(); }
 

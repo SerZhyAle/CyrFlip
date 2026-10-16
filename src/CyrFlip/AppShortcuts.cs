@@ -148,7 +148,7 @@ namespace CyrFlip
 
         // ---- The .lnk itself: CLSID_ShellLink through IShellLinkW + IPersistFile. ----
 
-        private static void Write(string linkPath, string exePath)
+        private static void Write(string linkPath, string exePath, string arguments = "", string description = "CyrFlip", string? iconPath = null)
         {
             Directory.CreateDirectory(System.IO.Path.GetDirectoryName(linkPath)!);
             var link = (IShellLinkW)new CShellLink();
@@ -156,11 +156,33 @@ namespace CyrFlip
             {
                 link.SetPath(exePath);
                 link.SetWorkingDirectory(System.IO.Path.GetDirectoryName(exePath) ?? "");
-                link.SetIconLocation(exePath, 0);
-                link.SetDescription("CyrFlip");
+                if (arguments.Length > 0) link.SetArguments(arguments);
+                link.SetIconLocation(iconPath ?? exePath, 0);
+                link.SetDescription(description);
                 ((IPersistFile)link).Save(linkPath, true);
             }
             finally { Marshal.ReleaseComObject(link); }
+        }
+
+        /// <summary>
+        /// A shortcut on the desktop that runs one command of CyrFlip - <c>CyrFlip.exe /clipboard-send</c> and the like
+        /// (ticket S0074, D6) - with its own icon. The packaged build writes none (Windows owns its shortcuts);
+        /// a desktop that cannot be written yields null. An existing file of the same name is replaced: the person
+        /// asked for exactly this shortcut.
+        /// </summary>
+        public static string? CreateDesktopCommandShortcut(string fileName, string arguments, string description, string? iconPath)
+        {
+            if (ManagedByWindows) return null;
+            try
+            {
+                string link = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), fileName);
+                Write(link, Application.ExecutablePath, arguments, description, iconPath);
+                return link;
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is COMException)
+            {
+                return null;
+            }
         }
 
         private static string? ReadTarget(string linkPath)

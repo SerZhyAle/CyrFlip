@@ -5,7 +5,7 @@
 | **Id** | `CAPTURE-OUTPUT` |
 | **Version** | 0.5, draft |
 | **Home** | `capture-output/README.md` in the shared contracts catalog |
-| **Role here** | Producer of the `screenshot` kind (ticket S0026's screen region capture); no other kind is produced or consumed |
+| **Role here** | Producer of the `screenshot` kind (ticket S0026's screen region capture, and ticket S0071's full and annotated captures; CyrFlip composes annotations before saving; the contract sees the final pixels); no other kind is produced or consumed |
 
 ## What this repository does to stay conformant
 

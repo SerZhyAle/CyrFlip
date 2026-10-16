@@ -1,0 +1,1064 @@
+{
+  "source": {
+    "file": "device-exchange/proposed-vectors/fmsw-234-2026-10-16/frames-v2.json",
+    "sha256": "7ddf9fb472b825efcc77d54405681cdbf0f2e2b485e0b58bc7782bddfce5d2fd",
+    "note": "Four transcripts of the server corpus (FMS_Win ticket 234), extracted as parsed values, not edited. The full corpus is 447 KB; CyrFlip replays only the clipboard flows."
+  },
+  "contract": "DEVICE-EXCHANGE",
+  "contractVersion": "1.1",
+  "producer": "Media Exchange Server (Go) of Fast Media Sorter & Sharing for Windows, cmd/exchange-vectors",
+  "constants": {
+    "maxChunkLength": 1048576,
+    "maxFrame": 16384,
+    "maxFrameAuth": 262144,
+    "maxRecord": 16384,
+    "schemaVersion": 2
+  },
+  "transcripts": [
+    {
+      "name": "enroll-and-hello",
+      "description": "A new device enrolls with the account's password and keeps the token; every later stream opens with hello. The first envelope after welcome fixes the stream's role: a keepalive makes it the control stream.",
+      "streams": [
+        {
+          "id": "s1",
+          "transport": "tls",
+          "purpose": "enroll with the account's password"
+        },
+        {
+          "id": "s2",
+          "transport": "tls",
+          "purpose": "a later stream of the enrolled device: hello with the token"
+        }
+      ],
+      "steps": [
+        {
+          "stream": "s1",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"enroll\",\"login\":\"alice\",\"password\":\"Passw0rdTest\",\"deviceId\":\"L866lMziLsSZZSADAoyL9A\",\"deviceName\":\"Vector phone\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"platform\":\"vector\",\"roles\":[\"resource-producer\",\"resource-consumer\",\"broadcaster\",\"receiver\"],\"receiver\":{\"modes\":[\"AUDIO_ONLY\"],\"transports\":[\"RELAY\",\"TUNNEL\"]},\"keepaliveSeconds\":30}",
+          "hex": "000001777b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c222c226c6f67696e223a22616c696365222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a224c3836366c4d7a694c73535a5a534144416f794c3941222c226465766963654e616d65223a22566563746f722070686f6e65222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22706c6174666f726d223a22766563746f72222c22726f6c6573223a5b227265736f757263652d70726f6475636572222c227265736f757263652d636f6e73756d6572222c2262726f6164636173746572222c227265636569766572225d2c227265636569766572223a7b226d6f646573223a5b22415544494f5f4f4e4c59225d2c227472616e73706f727473223a5b2252454c4159222c2254554e4e454c225d7d2c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "s1",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"enrolled\",\"deviceToken\":\"RGsAtjUJLZjr6vWA8uZ1oyP64yWNJO35QtQ_v_FTOVA\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000001207b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c6564222c22646576696365546f6b656e223a2252477341746a554a4c5a6a723676574138755a316f7950363479574e4a4f33355174515f765f46544f5641222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "s1",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "s1",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "s1",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"bye\"}",
+          "hex": "000000207b22736368656d6156657273696f6e223a322c2274797065223a22627965227d",
+          "note": "bye is not answered; the device goes offline"
+        },
+        {
+          "stream": "s2",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"L866lMziLsSZZSADAoyL9A\",\"deviceToken\":\"RGsAtjUJLZjr6vWA8uZ1oyP64yWNJO35QtQ_v_FTOVA\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a224c3836366c4d7a694c73535a5a534144416f794c3941222c22646576696365546f6b656e223a2252477341746a554a4c5a6a723676574138755a316f7950363479574e4a4f33355174515f765f46544f5641222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "s2",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e37b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "s2",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "s2",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "s2",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"bye\"}",
+          "hex": "000000207b22736368656d6156657273696f6e223a322c2274797065223a22627965227d"
+        }
+      ]
+    },
+    {
+      "name": "clipboard",
+      "description": "The clipboard on the server: one value per member account, in memory only, the latest complete upload the value. A put declares kind and size on a data stream, the server answers clipboard-ready, the sender writes exactly size raw bytes - no frames, no chunk headers - and the server answers clipboard-stored (clipId, sha256, storedAt) and closes. A get answers the members and the bytes; clipboard-info on the control stream answers the members alone. `welcome.features` carries `clipboard`.",
+      "streams": [
+        {
+          "id": "phone-control",
+          "transport": "tls",
+          "purpose": "enroll with the account's password"
+        },
+        {
+          "id": "put-1",
+          "transport": "tls",
+          "purpose": "the sender's data stream: clipboard-put declares kind and size"
+        },
+        {
+          "id": "get-1",
+          "transport": "tls",
+          "purpose": "a reader's data stream: clipboard-get"
+        },
+        {
+          "id": "put-2",
+          "transport": "tls",
+          "purpose": "the next complete put replaces the value"
+        },
+        {
+          "id": "get-stale",
+          "transport": "tls",
+          "purpose": "a get naming the clipId the client showed before: it never receives another value in its place"
+        },
+        {
+          "id": "put-short",
+          "transport": "tls",
+          "purpose": "a put of 64 declared bytes that stops after 4: what it carried is dropped, the value stays"
+        },
+        {
+          "id": "put-over",
+          "transport": "tls",
+          "purpose": "a put of 4 declared bytes that sends 6: the stream is closed and dropped"
+        },
+        {
+          "id": "put-too-big",
+          "transport": "tls",
+          "purpose": "a put declaring 65 bytes: the account's clipboardBytes is 64"
+        },
+        {
+          "id": "put-capacity-first",
+          "transport": "tls",
+          "purpose": "the first of two overlapping puts is taken"
+        },
+        {
+          "id": "put-capacity-second",
+          "transport": "tls",
+          "purpose": "the account's second overlapping put"
+        },
+        {
+          "id": "guest-enroll",
+          "transport": "tls",
+          "purpose": "enroll with the account's password"
+        },
+        {
+          "id": "guest-put",
+          "transport": "tls",
+          "purpose": "a guest account's put"
+        },
+        {
+          "id": "guest-get",
+          "transport": "tls",
+          "purpose": "a guest account's get"
+        },
+        {
+          "id": "bobby-control",
+          "transport": "tls",
+          "purpose": "enroll with the account's password"
+        },
+        {
+          "id": "bobby-get",
+          "transport": "tls",
+          "purpose": "another account's get"
+        }
+      ],
+      "steps": [
+        {
+          "stream": "phone-control",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"enroll\",\"login\":\"alice\",\"password\":\"Passw0rdTest\",\"deviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"deviceName\":\"Vector phone\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"platform\":\"vector\",\"roles\":[\"resource-consumer\"],\"keepaliveSeconds\":30}",
+          "hex": "000001067b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c222c226c6f67696e223a22616c696365222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a22325a72474165397a526d487065554545333467587267222c226465766963654e616d65223a22566563746f722070686f6e65222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22706c6174666f726d223a22766563746f72222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"enrolled\",\"deviceToken\":\"YR3d9Ys4VBR3HCtQPEjDLO_Hkz8dJqijQAsbUhYFkuE\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000001207b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c6564222c22646576696365546f6b656e223a225952336439597334564252334843745150456a444c4f5f486b7a38644a71696a51417362556859466b7545222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-info\"}",
+          "hex": "0000002b7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d696e666f227d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-state\"}",
+          "hex": "0000002c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7374617465227d",
+          "note": "the clipboard starts empty: clipboard-state carries no value"
+        },
+        {
+          "stream": "put-1",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"deviceToken\":\"YR3d9Ys4VBR3HCtQPEjDLO_Hkz8dJqijQAsbUhYFkuE\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a22325a72474165397a526d487065554545333467587267222c22646576696365546f6b656e223a225952336439597334564252334843745150456a444c4f5f486b7a38644a71696a51417362556859466b7545222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "put-1",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e37b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "put-1",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-put\",\"kind\":\"text\",\"size\":16}",
+          "hex": "000000427b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d707574222c226b696e64223a2274657874222c2273697a65223a31367d"
+        },
+        {
+          "stream": "put-1",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-ready\"}",
+          "hex": "0000002c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7265616479227d"
+        },
+        {
+          "stream": "put-1",
+          "direction": "client->server",
+          "hex": "636c6970626f6172642d6f6e652d3136",
+          "note": "exactly the 16 declared bytes follow clipboard-ready: raw, no frames, no chunk headers"
+        },
+        {
+          "stream": "put-1",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-stored\",\"clipId\":\"SiYp6NZolZUsCHmAWuM6mQ\",\"sha256\":\"4a865e397b53e8cdad2212c651fd7e6fc903b4e2175f1c802c7f3ccbaace31c0\",\"storedAt\":\"2026-10-07T12:00:00Z\"}",
+          "hex": "000000bd7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d73746f726564222c22636c69704964223a2253695970364e5a6f6c5a557343486d4157754d366d51222c22736861323536223a2234613836356533393762353365386364616432323132633635316664376536666339303362346532313735663163383032633766336363626161636533316330222c2273746f7265644174223a22323032362d31302d30375431323a30303a30305a227d",
+          "note": "the value replaced the slot at its last byte; the answer names the clipId, the SHA-256 of the bytes and the server's clock"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-info\"}",
+          "hex": "0000002b7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d696e666f227d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-state\",\"value\":{\"clipId\":\"SiYp6NZolZUsCHmAWuM6mQ\",\"size\":16,\"sha256\":\"4a865e397b53e8cdad2212c651fd7e6fc903b4e2175f1c802c7f3ccbaace31c0\",\"storedAt\":\"2026-10-07T12:00:00Z\",\"sourceDeviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"sourceDeviceName\":\"Vector phone\",\"kind\":\"text\"}}",
+          "hex": "0000012a7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7374617465222c2276616c7565223a7b22636c69704964223a2253695970364e5a6f6c5a557343486d4157754d366d51222c2273697a65223a31362c22736861323536223a2234613836356533393762353365386364616432323132633635316664376536666339303362346532313735663163383032633766336363626161636533316330222c2273746f7265644174223a22323032362d31302d30375431323a30303a30305a222c22736f757263654465766963654964223a22325a72474165397a526d487065554545333467587267222c22736f757263654465766963654e616d65223a22566563746f722070686f6e65222c226b696e64223a2274657874227d7d",
+          "note": "clipboard-info answers the members alone: what the server set, then kind, mimeType and name"
+        },
+        {
+          "stream": "get-1",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"deviceToken\":\"YR3d9Ys4VBR3HCtQPEjDLO_Hkz8dJqijQAsbUhYFkuE\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a22325a72474165397a526d487065554545333467587267222c22646576696365546f6b656e223a225952336439597334564252334843745150456a444c4f5f486b7a38644a71696a51417362556859466b7545222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "get-1",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e37b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "get-1",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-get\"}",
+          "hex": "0000002a7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d676574227d"
+        },
+        {
+          "stream": "get-1",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-value\",\"clipId\":\"SiYp6NZolZUsCHmAWuM6mQ\",\"size\":16,\"sha256\":\"4a865e397b53e8cdad2212c651fd7e6fc903b4e2175f1c802c7f3ccbaace31c0\",\"storedAt\":\"2026-10-07T12:00:00Z\",\"sourceDeviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"sourceDeviceName\":\"Vector phone\",\"kind\":\"text\"}",
+          "hex": "000001207b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d76616c7565222c22636c69704964223a2253695970364e5a6f6c5a557343486d4157754d366d51222c2273697a65223a31362c22736861323536223a2234613836356533393762353365386364616432323132633635316664376536666339303362346532313735663163383032633766336363626161636533316330222c2273746f7265644174223a22323032362d31302d30375431323a30303a30305a222c22736f757263654465766963654964223a22325a72474165397a526d487065554545333467587267222c22736f757263654465766963654e616d65223a22566563746f722070686f6e65222c226b696e64223a2274657874227d"
+        },
+        {
+          "stream": "get-1",
+          "direction": "server->client",
+          "hex": "636c6970626f6172642d6f6e652d3136",
+          "note": "exactly the value's 16 bytes follow the members; the server closes the stream after them"
+        },
+        {
+          "stream": "get-1",
+          "direction": "server->client",
+          "closed": true
+        },
+        {
+          "stream": "put-2",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"deviceToken\":\"YR3d9Ys4VBR3HCtQPEjDLO_Hkz8dJqijQAsbUhYFkuE\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a22325a72474165397a526d487065554545333467587267222c22646576696365546f6b656e223a225952336439597334564252334843745150456a444c4f5f486b7a38644a71696a51417362556859466b7545222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "put-2",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e37b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "put-2",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-put\",\"kind\":\"text\",\"size\":8}",
+          "hex": "000000417b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d707574222c226b696e64223a2274657874222c2273697a65223a387d"
+        },
+        {
+          "stream": "put-2",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-ready\"}",
+          "hex": "0000002c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7265616479227d"
+        },
+        {
+          "stream": "put-2",
+          "direction": "client->server",
+          "hex": "7265706c61636564",
+          "note": "8 declared bytes"
+        },
+        {
+          "stream": "put-2",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-stored\",\"clipId\":\"el3fDmSV6O00QLvUNeLy0Q\",\"sha256\":\"6c1aa50442a93e42c0eb2907cf4e017cd19547891fa190f3ea473582b0479290\",\"storedAt\":\"2026-10-07T12:00:00Z\"}",
+          "hex": "000000bd7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d73746f726564222c22636c69704964223a22656c3366446d5356364f3030514c76554e654c793051222c22736861323536223a2236633161613530343432613933653432633065623239303763663465303137636431393534373839316661313930663365613437333538326230343739323930222c2273746f7265644174223a22323032362d31302d30375431323a30303a30305a227d"
+        },
+        {
+          "stream": "get-stale",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"deviceToken\":\"YR3d9Ys4VBR3HCtQPEjDLO_Hkz8dJqijQAsbUhYFkuE\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a22325a72474165397a526d487065554545333467587267222c22646576696365546f6b656e223a225952336439597334564252334843745150456a444c4f5f486b7a38644a71696a51417362556859466b7545222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "get-stale",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e37b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "get-stale",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-get\",\"clipId\":\"SiYp6NZolZUsCHmAWuM6mQ\"}",
+          "hex": "0000004c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d676574222c22636c69704964223a2253695970364e5a6f6c5a557343486d4157754d366d51227d"
+        },
+        {
+          "stream": "get-stale",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"refused\",\"reason\":\"unavailable\"}",
+          "hex": "0000003b7b22736368656d6156657273696f6e223a322c2274797065223a2272656675736564222c22726561736f6e223a22756e617661696c61626c65227d"
+        },
+        {
+          "stream": "get-stale",
+          "direction": "server->client",
+          "closed": true
+        },
+        {
+          "stream": "put-short",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"deviceToken\":\"YR3d9Ys4VBR3HCtQPEjDLO_Hkz8dJqijQAsbUhYFkuE\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a22325a72474165397a526d487065554545333467587267222c22646576696365546f6b656e223a225952336439597334564252334843745150456a444c4f5f486b7a38644a71696a51417362556859466b7545222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "put-short",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e37b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "put-short",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-put\",\"kind\":\"text\",\"size\":64}",
+          "hex": "000000427b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d707574222c226b696e64223a2274657874222c2273697a65223a36347d"
+        },
+        {
+          "stream": "put-short",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-ready\"}",
+          "hex": "0000002c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7265616479227d"
+        },
+        {
+          "stream": "put-short",
+          "direction": "client->server",
+          "hex": "68616c66",
+          "note": "no clipboard-stored follows: the stream is closed and the value from put-2 is still the value"
+        },
+        {
+          "stream": "put-over",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"deviceToken\":\"YR3d9Ys4VBR3HCtQPEjDLO_Hkz8dJqijQAsbUhYFkuE\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a22325a72474165397a526d487065554545333467587267222c22646576696365546f6b656e223a225952336439597334564252334843745150456a444c4f5f486b7a38644a71696a51417362556859466b7545222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "put-over",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e37b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "put-over",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-put\",\"kind\":\"text\",\"size\":4}",
+          "hex": "000000417b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d707574222c226b696e64223a2274657874222c2273697a65223a347d"
+        },
+        {
+          "stream": "put-over",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-ready\"}",
+          "hex": "0000002c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7265616479227d"
+        },
+        {
+          "stream": "put-over",
+          "direction": "client->server",
+          "hex": "736978627921",
+          "note": "6 bytes for a declared 4: one byte beyond the size is enough"
+        },
+        {
+          "stream": "put-over",
+          "direction": "server->client",
+          "note": "the stream is dropped and the old value is whole; no clipboard-stored answers an oversize put",
+          "closed": true
+        },
+        {
+          "stream": "put-too-big",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"deviceToken\":\"YR3d9Ys4VBR3HCtQPEjDLO_Hkz8dJqijQAsbUhYFkuE\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a22325a72474165397a526d487065554545333467587267222c22646576696365546f6b656e223a225952336439597334564252334843745150456a444c4f5f486b7a38644a71696a51417362556859466b7545222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "put-too-big",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e37b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "put-too-big",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-put\",\"kind\":\"text\",\"size\":65}",
+          "hex": "000000427b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d707574222c226b696e64223a2274657874222c2273697a65223a36357d"
+        },
+        {
+          "stream": "put-too-big",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"refused\",\"reason\":\"limit-reached\"}",
+          "hex": "0000003d7b22736368656d6156657273696f6e223a322c2274797065223a2272656675736564222c22726561736f6e223a226c696d69742d72656163686564227d"
+        },
+        {
+          "stream": "put-too-big",
+          "direction": "server->client",
+          "note": "refused before a byte flows; the value being replaced does not count against the new one",
+          "closed": true
+        },
+        {
+          "stream": "put-capacity-first",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"deviceToken\":\"YR3d9Ys4VBR3HCtQPEjDLO_Hkz8dJqijQAsbUhYFkuE\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a22325a72474165397a526d487065554545333467587267222c22646576696365546f6b656e223a225952336439597334564252334843745150456a444c4f5f486b7a38644a71696a51417362556859466b7545222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "put-capacity-first",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e37b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "put-capacity-first",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-put\",\"kind\":\"text\",\"size\":8}",
+          "hex": "000000417b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d707574222c226b696e64223a2274657874222c2273697a65223a387d"
+        },
+        {
+          "stream": "put-capacity-first",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-ready\"}",
+          "hex": "0000002c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7265616479227d"
+        },
+        {
+          "stream": "put-capacity-first",
+          "direction": "client->server",
+          "hex": "3132",
+          "note": "2 of the 8 declared bytes; the upload is in flight"
+        },
+        {
+          "stream": "put-capacity-second",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"2ZrGAe9zRmHpeUEE34gXrg\",\"deviceToken\":\"YR3d9Ys4VBR3HCtQPEjDLO_Hkz8dJqijQAsbUhYFkuE\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a22325a72474165397a526d487065554545333467587267222c22646576696365546f6b656e223a225952336439597334564252334843745150456a444c4f5f486b7a38644a71696a51417362556859466b7545222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "put-capacity-second",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e37b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "put-capacity-second",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-put\",\"kind\":\"text\",\"size\":8}",
+          "hex": "000000417b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d707574222c226b696e64223a2274657874222c2273697a65223a387d"
+        },
+        {
+          "stream": "put-capacity-second",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"refused\",\"reason\":\"capacity\"}",
+          "hex": "000000387b22736368656d6156657273696f6e223a322c2274797065223a2272656675736564222c22726561736f6e223a226361706163697479227d"
+        },
+        {
+          "stream": "put-capacity-second",
+          "direction": "server->client",
+          "note": "this server takes at most one upload per account at a time (ticket 229 T-1); the wire's word is capacity (item BZ)",
+          "closed": true
+        },
+        {
+          "stream": "put-capacity-first",
+          "direction": "client->server",
+          "hex": "333435363738",
+          "note": "the remaining 6 declared bytes"
+        },
+        {
+          "stream": "put-capacity-first",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-stored\",\"clipId\":\"VeatLIFOIDSveTj3CrHLbQ\",\"sha256\":\"ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f\",\"storedAt\":\"2026-10-07T12:00:00Z\"}",
+          "hex": "000000bd7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d73746f726564222c22636c69704964223a22566561744c49464f4944537665546a334372484c6251222c22736861323536223a2265663739376338313138663032646662363439363037646435643366386337363233303438633963303633643533326363393563356564376138393861363466222c2273746f7265644174223a22323032362d31302d30375431323a30303a30305a227d",
+          "note": "the completion that landed later is the value (item BX)"
+        },
+        {
+          "stream": "guest-enroll",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"enroll\",\"login\":\"visitor\",\"password\":\"Passw0rdTest\",\"deviceId\":\"o346O8ItEyG52vEN86jVbw\",\"deviceName\":\"Vector guest\",\"product\":\"fms-windows\",\"productVersion\":\"1.0.0\",\"platform\":\"vector\",\"roles\":[\"resource-consumer\"],\"keepaliveSeconds\":30}",
+          "hex": "000001087b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c222c226c6f67696e223a2276697369746f72222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a226f3334364f384974457947353276454e38366a566277222c226465766963654e616d65223a22566563746f72206775657374222c2270726f64756374223a22666d732d77696e646f7773222c2270726f6475637456657273696f6e223a22312e302e30222c22706c6174666f726d223a22766563746f72222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "guest-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"enrolled\",\"deviceToken\":\"84-PKjJ3zwSZCgxcIs0ETZg7kWmRmOPzAig8KWVliJg\",\"account\":\"visitor\",\"accountKind\":\"guest\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000001217b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c6564222c22646576696365546f6b656e223a2238342d504b6a4a337a77535a4367786349733045545a67376b576d526d4f507a416967384b57566c694a67222c226163636f756e74223a2276697369746f72222c226163636f756e744b696e64223a226775657374222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "guest-enroll",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "guest-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "guest-enroll",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-info\"}",
+          "hex": "0000002b7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d696e666f227d"
+        },
+        {
+          "stream": "guest-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-state\"}",
+          "hex": "0000002c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7374617465227d",
+          "note": "a guest is answered an empty state: it holds no slot and announces nothing"
+        },
+        {
+          "stream": "guest-put",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"o346O8ItEyG52vEN86jVbw\",\"deviceToken\":\"84-PKjJ3zwSZCgxcIs0ETZg7kWmRmOPzAig8KWVliJg\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a226f3334364f384974457947353276454e38366a566277222c22646576696365546f6b656e223a2238342d504b6a4a337a77535a4367786349733045545a67376b576d526d4f507a416967384b57566c694a67222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "guest-put",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"visitor\",\"accountKind\":\"guest\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e47b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a2276697369746f72222c226163636f756e744b696e64223a226775657374222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "guest-put",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-put\",\"kind\":\"text\",\"size\":8}",
+          "hex": "000000417b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d707574222c226b696e64223a2274657874222c2273697a65223a387d"
+        },
+        {
+          "stream": "guest-put",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"refused\",\"reason\":\"not-permitted\"}",
+          "hex": "0000003d7b22736368656d6156657273696f6e223a322c2274797065223a2272656675736564222c22726561736f6e223a226e6f742d7065726d6974746564227d"
+        },
+        {
+          "stream": "guest-put",
+          "direction": "server->client",
+          "closed": true
+        },
+        {
+          "stream": "guest-get",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"o346O8ItEyG52vEN86jVbw\",\"deviceToken\":\"84-PKjJ3zwSZCgxcIs0ETZg7kWmRmOPzAig8KWVliJg\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a226f3334364f384974457947353276454e38366a566277222c22646576696365546f6b656e223a2238342d504b6a4a337a77535a4367786349733045545a67376b576d526d4f507a416967384b57566c694a67222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "guest-get",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"visitor\",\"accountKind\":\"guest\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e47b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a2276697369746f72222c226163636f756e744b696e64223a226775657374222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "guest-get",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-get\"}",
+          "hex": "0000002a7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d676574227d"
+        },
+        {
+          "stream": "guest-get",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"refused\",\"reason\":\"not-permitted\"}",
+          "hex": "0000003d7b22736368656d6156657273696f6e223a322c2274797065223a2272656675736564222c22726561736f6e223a226e6f742d7065726d6974746564227d"
+        },
+        {
+          "stream": "guest-get",
+          "direction": "server->client",
+          "note": "both directions are refused with one reason: a guest announces nothing",
+          "closed": true
+        },
+        {
+          "stream": "bobby-control",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"enroll\",\"login\":\"bobby\",\"password\":\"Passw0rdTest\",\"deviceId\":\"KaR44Qnp8PmBZ9kKH3nIRQ\",\"deviceName\":\"Vector PC\",\"product\":\"fms-windows\",\"productVersion\":\"1.0.0\",\"platform\":\"vector\",\"roles\":[\"resource-consumer\"],\"keepaliveSeconds\":30}",
+          "hex": "000001037b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c222c226c6f67696e223a22626f626279222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a224b61523434516e7038506d425a396b4b48336e495251222c226465766963654e616d65223a22566563746f72205043222c2270726f64756374223a22666d732d77696e646f7773222c2270726f6475637456657273696f6e223a22312e302e30222c22706c6174666f726d223a22766563746f72222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "bobby-control",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"enrolled\",\"deviceToken\":\"oi3O5F3dZsxRC9nBDxdkJkbVmFtj66MDFjE-ras6IpA\",\"account\":\"bobby\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000001207b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c6564222c22646576696365546f6b656e223a226f69334f354633645a73785243396e424478646b4a6b62566d46746a36364d44466a452d72617336497041222c226163636f756e74223a22626f626279222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "bobby-control",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "bobby-control",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "bobby-control",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-info\"}",
+          "hex": "0000002b7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d696e666f227d"
+        },
+        {
+          "stream": "bobby-control",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-state\"}",
+          "hex": "0000002c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7374617465227d"
+        },
+        {
+          "stream": "bobby-get",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"KaR44Qnp8PmBZ9kKH3nIRQ\",\"deviceToken\":\"oi3O5F3dZsxRC9nBDxdkJkbVmFtj66MDFjE-ras6IpA\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a224b61523434516e7038506d425a396b4b48336e495251222c22646576696365546f6b656e223a226f69334f354633645a73785243396e424478646b4a6b62566d46746a36364d44466a452d72617336497041222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "bobby-get",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"bobby\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000e37b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22626f626279222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "bobby-get",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-get\"}",
+          "hex": "0000002a7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d676574227d"
+        },
+        {
+          "stream": "bobby-get",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-empty\"}",
+          "hex": "0000002c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d656d707479227d"
+        },
+        {
+          "stream": "bobby-get",
+          "direction": "server->client",
+          "note": "the slot is personal: another account sees an empty clipboard",
+          "closed": true
+        }
+      ]
+    },
+    {
+      "name": "sealed-devices",
+      "description": "The device key of DEVICE-EXCHANGE 27 item DF on a server that advertises `sealed` (item DP): a device enrolls or registers with the capability `e2e-v1` and an `e2eKey` (`{v:1, kem}`, a P-256 point); `enrolled` and `welcome` list the feature `sealed`; the key is part of the device's record, listed to every device of the account and pushed in `changed`; a device that predates the capability sends neither and its record carries no key; a known deviceId enrolls again with its own key (a token rotation) or not at all (id-collision).",
+      "streams": [
+        {
+          "id": "phone-enroll",
+          "transport": "tls",
+          "purpose": "enroll with the account's password, declaring the capability e2e-v1 and the device key (item DF)"
+        },
+        {
+          "id": "tablet-enroll",
+          "transport": "tls",
+          "purpose": "enroll with the account's password, declaring the capability e2e-v1 and the device key (item DF)"
+        },
+        {
+          "id": "legacy-enroll",
+          "transport": "tls",
+          "purpose": "enroll with the account's password"
+        },
+        {
+          "id": "tablet-other-key",
+          "transport": "tls",
+          "purpose": "enroll with the deviceId of the tablet and another key: a key lives exactly as long as its deviceId"
+        },
+        {
+          "id": "tablet-same-key",
+          "transport": "tls",
+          "purpose": "enroll again with the same deviceId and the same key: a token rotation (item DF, item AT)"
+        },
+        {
+          "id": "register",
+          "transport": "tls",
+          "purpose": "a person registers a new account and enrolls the first device in one frame, with the capability and the key"
+        },
+        {
+          "id": "phone-hello",
+          "transport": "tls",
+          "purpose": "a later stream of the phone: hello answers welcome, and welcome lists `sealed` as enrolled does"
+        }
+      ],
+      "steps": [
+        {
+          "stream": "phone-enroll",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"enroll\",\"login\":\"alice\",\"password\":\"Passw0rdTest\",\"deviceId\":\"TqeXuVTNb4LpmDXnaXlw_w\",\"deviceName\":\"Vector phone\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"platform\":\"vector\",\"roles\":[\"resource-producer\",\"resource-consumer\"],\"capabilities\":[\"e2e-v1\"],\"keepaliveSeconds\":30,\"e2eKey\":{\"v\":1,\"kem\":\"BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw\"}}",
+          "hex": "000001a57b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c222c226c6f67696e223a22616c696365222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a22547165587556544e62344c706d44586e61586c775f77222c226465766963654e616d65223a22566563746f722070686f6e65222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22706c6174666f726d223a22766563746f72222c22726f6c6573223a5b227265736f757263652d70726f6475636572222c227265736f757263652d636f6e73756d6572225d2c226361706162696c6974696573223a5b226532652d7631225d2c226b656570616c6976655365636f6e6473223a33302c226532654b6579223a7b2276223a312c226b656d223a22424d48424e4f693234665476733646564b38326c77463962314b6d6431796a575f637a52706d585962613046496745357464517a362d45434967346f315a73447875796d6f5143336143764244766d5936554f34695a77227d7d"
+        },
+        {
+          "stream": "phone-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"enrolled\",\"deviceToken\":\"Kt65i05RBJTxXVxZuS-FS3EYX849XED6M_mp5RzqnbY\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\",\"sealed\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000001297b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c6564222c22646576696365546f6b656e223a224b74363569303552424a54785856785a75532d465333455958383439584544364d5f6d7035527a716e6259222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264222c227365616c6564225d2c2273657276657256657273696f6e223a22766563746f7273227d",
+          "note": "`enrolled.features` lists `sealed`: the server keeps and delivers the device key, the boxes and the sealed clipboard kind (item DP)"
+        },
+        {
+          "stream": "phone-enroll",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"subscribe\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a22737562736372696265227d"
+        },
+        {
+          "stream": "tablet-enroll",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"enroll\",\"login\":\"alice\",\"password\":\"Passw0rdTest\",\"deviceId\":\"hrbbWm6H_F-UwViNKkSpKw\",\"deviceName\":\"Vector tablet\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"platform\":\"vector\",\"roles\":[\"resource-consumer\"],\"capabilities\":[\"e2e-v1\"],\"keepaliveSeconds\":30,\"e2eKey\":{\"v\":1,\"kem\":\"BJH20sAyR6UWwTxu7X7SDlWMbQUpH5pgoLcYCSYRbQWxF16-963dwUwGIqf_XAWg-BwxoLcC0dgkLJ6743Menfg\"}}",
+          "hex": "000001927b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c222c226c6f67696e223a22616c696365222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a2268726262576d36485f462d557756694e4b6b53704b77222c226465766963654e616d65223a22566563746f72207461626c6574222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22706c6174666f726d223a22766563746f72222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c226361706162696c6974696573223a5b226532652d7631225d2c226b656570616c6976655365636f6e6473223a33302c226532654b6579223a7b2276223a312c226b656d223a22424a483230734179523655577754787537583753446c574d62515570483570676f4c635943535952625157784631362d39363364775577474971665f584157672d4277786f4c63433064676b4c4a363734334d656e6667227d7d"
+        },
+        {
+          "stream": "tablet-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"enrolled\",\"deviceToken\":\"M0-KfpBSFCbRafd5XdxyVFNr7QJWNrZERdRi6w4m8F0\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\",\"sealed\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000001297b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c6564222c22646576696365546f6b656e223a224d302d4b6670425346436252616664355864787956464e7237514a574e725a45526452693677346d384630222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264222c227365616c6564225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "phone-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"changed\",\"revision\":4,\"upserts\":{\"devices\":[{\"capabilities\":[\"e2e-v1\"],\"deviceId\":\"hrbbWm6H_F-UwViNKkSpKw\",\"deviceName\":\"Vector tablet\",\"e2eKey\":{\"v\":1,\"kem\":\"BJH20sAyR6UWwTxu7X7SDlWMbQUpH5pgoLcYCSYRbQWxF16-963dwUwGIqf_XAWg-BwxoLcC0dgkLJ6743Menfg\"},\"platform\":\"vector\",\"presence\":\"offline\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"roles\":[\"resource-consumer\"],\"updatedAt\":\"2026-10-07T12:00:00Z\"}],\"resources\":[],\"broadcasts\":[]},\"removals\":{\"deviceIds\":[],\"resourceIds\":[],\"broadcastIds\":[]}}",
+          "hex": "000002107b22736368656d6156657273696f6e223a322c2274797065223a226368616e676564222c227265766973696f6e223a342c2275707365727473223a7b2264657669636573223a5b7b226361706162696c6974696573223a5b226532652d7631225d2c226465766963654964223a2268726262576d36485f462d557756694e4b6b53704b77222c226465766963654e616d65223a22566563746f72207461626c6574222c226532654b6579223a7b2276223a312c226b656d223a22424a483230734179523655577754787537583753446c574d62515570483570676f4c635943535952625157784631362d39363364775577474971665f584157672d4277786f4c63433064676b4c4a363734334d656e6667227d2c22706c6174666f726d223a22766563746f72222c2270726573656e6365223a226f66666c696e65222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c22757064617465644174223a22323032362d31302d30375431323a30303a30305a227d5d2c227265736f7572636573223a5b5d2c2262726f61646361737473223a5b5d7d2c2272656d6f76616c73223a7b22646576696365496473223a5b5d2c227265736f75726365496473223a5b5d2c2262726f616463617374496473223a5b5d7d7d",
+          "note": "the device is listed, offline, with its e2eKey: a public value, kept on disk with the record and shown to every device of the account"
+        },
+        {
+          "stream": "tablet-enroll",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"list\"}",
+          "hex": "000000217b22736368656d6156657273696f6e223a322c2274797065223a226c697374227d"
+        },
+        {
+          "stream": "tablet-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"directory\",\"revision\":5,\"devices\":[{\"capabilities\":[\"e2e-v1\"],\"deviceId\":\"TqeXuVTNb4LpmDXnaXlw_w\",\"deviceName\":\"Vector phone\",\"e2eKey\":{\"v\":1,\"kem\":\"BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw\"},\"lastSeen\":\"2026-10-07T12:00:00Z\",\"platform\":\"vector\",\"presence\":\"online\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"roles\":[\"resource-producer\",\"resource-consumer\"],\"updatedAt\":\"2026-10-07T12:00:00Z\"},{\"capabilities\":[\"e2e-v1\"],\"deviceId\":\"hrbbWm6H_F-UwViNKkSpKw\",\"deviceName\":\"Vector tablet\",\"e2eKey\":{\"v\":1,\"kem\":\"BJH20sAyR6UWwTxu7X7SDlWMbQUpH5pgoLcYCSYRbQWxF16-963dwUwGIqf_XAWg-BwxoLcC0dgkLJ6743Menfg\"},\"lastSeen\":\"2026-10-07T12:00:00Z\",\"platform\":\"vector\",\"presence\":\"online\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"roles\":[\"resource-consumer\"],\"updatedAt\":\"2026-10-07T12:00:00Z\"}],\"resources\":[],\"broadcasts\":[]}",
+          "hex": "000003857b22736368656d6156657273696f6e223a322c2274797065223a226469726563746f7279222c227265766973696f6e223a352c2264657669636573223a5b7b226361706162696c6974696573223a5b226532652d7631225d2c226465766963654964223a22547165587556544e62344c706d44586e61586c775f77222c226465766963654e616d65223a22566563746f722070686f6e65222c226532654b6579223a7b2276223a312c226b656d223a22424d48424e4f693234665476733646564b38326c77463962314b6d6431796a575f637a52706d585962613046496745357464517a362d45434967346f315a73447875796d6f5143336143764244766d5936554f34695a77227d2c226c6173745365656e223a22323032362d31302d30375431323a30303a30305a222c22706c6174666f726d223a22766563746f72222c2270726573656e6365223a226f6e6c696e65222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22726f6c6573223a5b227265736f757263652d70726f6475636572222c227265736f757263652d636f6e73756d6572225d2c22757064617465644174223a22323032362d31302d30375431323a30303a30305a227d2c7b226361706162696c6974696573223a5b226532652d7631225d2c226465766963654964223a2268726262576d36485f462d557756694e4b6b53704b77222c226465766963654e616d65223a22566563746f72207461626c6574222c226532654b6579223a7b2276223a312c226b656d223a22424a483230734179523655577754787537583753446c574d62515570483570676f4c635943535952625157784631362d39363364775577474971665f584157672d4277786f4c63433064676b4c4a363734334d656e6667227d2c226c6173745365656e223a22323032362d31302d30375431323a30303a30305a222c22706c6174666f726d223a22766563746f72222c2270726573656e6365223a226f6e6c696e65222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c22757064617465644174223a22323032362d31302d30375431323a30303a30305a227d5d2c227265736f7572636573223a5b5d2c2262726f61646361737473223a5b5d7d"
+        },
+        {
+          "stream": "phone-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"changed\",\"revision\":5,\"upserts\":{\"devices\":[{\"capabilities\":[\"e2e-v1\"],\"deviceId\":\"hrbbWm6H_F-UwViNKkSpKw\",\"deviceName\":\"Vector tablet\",\"e2eKey\":{\"v\":1,\"kem\":\"BJH20sAyR6UWwTxu7X7SDlWMbQUpH5pgoLcYCSYRbQWxF16-963dwUwGIqf_XAWg-BwxoLcC0dgkLJ6743Menfg\"},\"lastSeen\":\"2026-10-07T12:00:00Z\",\"platform\":\"vector\",\"presence\":\"online\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"roles\":[\"resource-consumer\"],\"updatedAt\":\"2026-10-07T12:00:00Z\"}],\"resources\":[],\"broadcasts\":[]},\"removals\":{\"deviceIds\":[],\"resourceIds\":[],\"broadcastIds\":[]}}",
+          "hex": "000002317b22736368656d6156657273696f6e223a322c2274797065223a226368616e676564222c227265766973696f6e223a352c2275707365727473223a7b2264657669636573223a5b7b226361706162696c6974696573223a5b226532652d7631225d2c226465766963654964223a2268726262576d36485f462d557756694e4b6b53704b77222c226465766963654e616d65223a22566563746f72207461626c6574222c226532654b6579223a7b2276223a312c226b656d223a22424a483230734179523655577754787537583753446c574d62515570483570676f4c635943535952625157784631362d39363364775577474971665f584157672d4277786f4c63433064676b4c4a363734334d656e6667227d2c226c6173745365656e223a22323032362d31302d30375431323a30303a30305a222c22706c6174666f726d223a22766563746f72222c2270726573656e6365223a226f6e6c696e65222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c22757064617465644174223a22323032362d31302d30375431323a30303a30305a227d5d2c227265736f7572636573223a5b5d2c2262726f61646361737473223a5b5d7d2c2272656d6f76616c73223a7b22646576696365496473223a5b5d2c227265736f75726365496473223a5b5d2c2262726f616463617374496473223a5b5d7d7d",
+          "note": "the tablet is online now"
+        },
+        {
+          "stream": "legacy-enroll",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"enroll\",\"login\":\"alice\",\"password\":\"Passw0rdTest\",\"deviceId\":\"uktA8-r8vBzc2AQEF4sx2A\",\"deviceName\":\"Vector PC\",\"product\":\"fms-windows\",\"productVersion\":\"1.0.0\",\"platform\":\"vector\",\"roles\":[\"resource-consumer\"],\"keepaliveSeconds\":30}",
+          "hex": "000001037b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c222c226c6f67696e223a22616c696365222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a22756b7441382d723876427a6332415145463473783241222c226465766963654e616d65223a22566563746f72205043222c2270726f64756374223a22666d732d77696e646f7773222c2270726f6475637456657273696f6e223a22312e302e30222c22706c6174666f726d223a22766563746f72222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "legacy-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"enrolled\",\"deviceToken\":\"oOxNHrQg2_J2NDu8F-RLgMpFi852ph1S4sLVpx-Z-gs\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\",\"sealed\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000001297b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c6564222c22646576696365546f6b656e223a226f4f784e48725167325f4a324e447538462d524c674d7046693835327068315334734c5670782d5a2d6773222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264222c227365616c6564225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "phone-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"changed\",\"revision\":6,\"upserts\":{\"devices\":[{\"deviceId\":\"uktA8-r8vBzc2AQEF4sx2A\",\"deviceName\":\"Vector PC\",\"platform\":\"vector\",\"presence\":\"offline\",\"product\":\"fms-windows\",\"productVersion\":\"1.0.0\",\"roles\":[\"resource-consumer\"],\"updatedAt\":\"2026-10-07T12:00:00Z\"}],\"resources\":[],\"broadcasts\":[]},\"removals\":{\"deviceIds\":[],\"resourceIds\":[],\"broadcastIds\":[]}}",
+          "hex": "000001817b22736368656d6156657273696f6e223a322c2274797065223a226368616e676564222c227265766973696f6e223a362c2275707365727473223a7b2264657669636573223a5b7b226465766963654964223a22756b7441382d723876427a6332415145463473783241222c226465766963654e616d65223a22566563746f72205043222c22706c6174666f726d223a22766563746f72222c2270726573656e6365223a226f66666c696e65222c2270726f64756374223a22666d732d77696e646f7773222c2270726f6475637456657273696f6e223a22312e302e30222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c22757064617465644174223a22323032362d31302d30375431323a30303a30305a227d5d2c227265736f7572636573223a5b5d2c2262726f61646361737473223a5b5d7d2c2272656d6f76616c73223a7b22646576696365496473223a5b5d2c227265736f75726365496473223a5b5d2c2262726f616463617374496473223a5b5d7d7d",
+          "note": "a device that predates item DF sends no capability and no e2eKey: its record has none either, and it is never a recipient of a box (item DP)"
+        },
+        {
+          "stream": "phone-enroll",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"list\"}",
+          "hex": "000000217b22736368656d6156657273696f6e223a322c2274797065223a226c697374227d"
+        },
+        {
+          "stream": "phone-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"directory\",\"revision\":6,\"devices\":[{\"capabilities\":[\"e2e-v1\"],\"deviceId\":\"TqeXuVTNb4LpmDXnaXlw_w\",\"deviceName\":\"Vector phone\",\"e2eKey\":{\"v\":1,\"kem\":\"BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw\"},\"lastSeen\":\"2026-10-07T12:00:00Z\",\"platform\":\"vector\",\"presence\":\"online\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"roles\":[\"resource-producer\",\"resource-consumer\"],\"updatedAt\":\"2026-10-07T12:00:00Z\"},{\"capabilities\":[\"e2e-v1\"],\"deviceId\":\"hrbbWm6H_F-UwViNKkSpKw\",\"deviceName\":\"Vector tablet\",\"e2eKey\":{\"v\":1,\"kem\":\"BJH20sAyR6UWwTxu7X7SDlWMbQUpH5pgoLcYCSYRbQWxF16-963dwUwGIqf_XAWg-BwxoLcC0dgkLJ6743Menfg\"},\"lastSeen\":\"2026-10-07T12:00:00Z\",\"platform\":\"vector\",\"presence\":\"online\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"roles\":[\"resource-consumer\"],\"updatedAt\":\"2026-10-07T12:00:00Z\"},{\"deviceId\":\"uktA8-r8vBzc2AQEF4sx2A\",\"deviceName\":\"Vector PC\",\"platform\":\"vector\",\"presence\":\"offline\",\"product\":\"fms-windows\",\"productVersion\":\"1.0.0\",\"roles\":[\"resource-consumer\"],\"updatedAt\":\"2026-10-07T12:00:00Z\"}],\"resources\":[],\"broadcasts\":[]}",
+          "hex": "0000045f7b22736368656d6156657273696f6e223a322c2274797065223a226469726563746f7279222c227265766973696f6e223a362c2264657669636573223a5b7b226361706162696c6974696573223a5b226532652d7631225d2c226465766963654964223a22547165587556544e62344c706d44586e61586c775f77222c226465766963654e616d65223a22566563746f722070686f6e65222c226532654b6579223a7b2276223a312c226b656d223a22424d48424e4f693234665476733646564b38326c77463962314b6d6431796a575f637a52706d585962613046496745357464517a362d45434967346f315a73447875796d6f5143336143764244766d5936554f34695a77227d2c226c6173745365656e223a22323032362d31302d30375431323a30303a30305a222c22706c6174666f726d223a22766563746f72222c2270726573656e6365223a226f6e6c696e65222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22726f6c6573223a5b227265736f757263652d70726f6475636572222c227265736f757263652d636f6e73756d6572225d2c22757064617465644174223a22323032362d31302d30375431323a30303a30305a227d2c7b226361706162696c6974696573223a5b226532652d7631225d2c226465766963654964223a2268726262576d36485f462d557756694e4b6b53704b77222c226465766963654e616d65223a22566563746f72207461626c6574222c226532654b6579223a7b2276223a312c226b656d223a22424a483230734179523655577754787537583753446c574d62515570483570676f4c635943535952625157784631362d39363364775577474971665f584157672d4277786f4c63433064676b4c4a363734334d656e6667227d2c226c6173745365656e223a22323032362d31302d30375431323a30303a30305a222c22706c6174666f726d223a22766563746f72222c2270726573656e6365223a226f6e6c696e65222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c22757064617465644174223a22323032362d31302d30375431323a30303a30305a227d2c7b226465766963654964223a22756b7441382d723876427a6332415145463473783241222c226465766963654e616d65223a22566563746f72205043222c22706c6174666f726d223a22766563746f72222c2270726573656e6365223a226f66666c696e65222c2270726f64756374223a22666d732d77696e646f7773222c2270726f6475637456657273696f6e223a22312e302e30222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c22757064617465644174223a22323032362d31302d30375431323a30303a30305a227d5d2c227265736f7572636573223a5b5d2c2262726f61646361737473223a5b5d7d"
+        },
+        {
+          "stream": "tablet-other-key",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"enroll\",\"login\":\"alice\",\"password\":\"Passw0rdTest\",\"deviceId\":\"hrbbWm6H_F-UwViNKkSpKw\",\"deviceName\":\"Vector tablet\",\"product\":\"fms-android\",\"capabilities\":[\"e2e-v1\"],\"e2eKey\":{\"v\":1,\"kem\":\"BIYFEEvPMqa_BssoofK1bkfPiWYPgnBJzzGhYiUJGeXDCuKE4wbwwY3B4q6Yy-qJwca52eLwbh3ACjxVr3ctyB4\"}}",
+          "hex": "000001317b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c222c226c6f67696e223a22616c696365222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a2268726262576d36485f462d557756694e4b6b53704b77222c226465766963654e616d65223a22566563746f72207461626c6574222c2270726f64756374223a22666d732d616e64726f6964222c226361706162696c6974696573223a5b226532652d7631225d2c226532654b6579223a7b2276223a312c226b656d223a2242495946454576504d71615f4273736f6f664b31626b665069575950676e424a7a7a47685969554a4765584443754b45347762777759334234713659792d714a7763613532654c7762683341436a785672336374794234227d7d"
+        },
+        {
+          "stream": "tablet-other-key",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"refused\",\"reason\":\"id-collision\"}",
+          "hex": "0000003c7b22736368656d6156657273696f6e223a322c2274797065223a2272656675736564222c22726561736f6e223a2269642d636f6c6c6973696f6e227d"
+        },
+        {
+          "stream": "tablet-other-key",
+          "direction": "server->client",
+          "note": "the device is kept as it was; a stranger who learnt the password cannot put a key of its own under a known deviceId",
+          "closed": true
+        },
+        {
+          "stream": "tablet-same-key",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"enroll\",\"login\":\"alice\",\"password\":\"Passw0rdTest\",\"deviceId\":\"hrbbWm6H_F-UwViNKkSpKw\",\"deviceName\":\"Vector tablet\",\"product\":\"fms-android\",\"capabilities\":[\"e2e-v1\"],\"e2eKey\":{\"v\":1,\"kem\":\"BJH20sAyR6UWwTxu7X7SDlWMbQUpH5pgoLcYCSYRbQWxF16-963dwUwGIqf_XAWg-BwxoLcC0dgkLJ6743Menfg\"}}",
+          "hex": "000001317b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c222c226c6f67696e223a22616c696365222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a2268726262576d36485f462d557756694e4b6b53704b77222c226465766963654e616d65223a22566563746f72207461626c6574222c2270726f64756374223a22666d732d616e64726f6964222c226361706162696c6974696573223a5b226532652d7631225d2c226532654b6579223a7b2276223a312c226b656d223a22424a483230734179523655577754787537583753446c574d62515570483570676f4c635943535952625157784631362d39363364775577474971665f584157672d4277786f4c63433064676b4c4a363734334d656e6667227d7d"
+        },
+        {
+          "stream": "tablet-same-key",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"enrolled\",\"deviceToken\":\"T1R7wooEOsOmA-Y6tz_pu2XNWt4Gf9Lw5tlABx8fvN8\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\",\"sealed\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000001297b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c6564222c22646576696365546f6b656e223a2254315237776f6f454f734f6d412d5936747a5f707532584e5774344766394c7735746c4142783866764e38222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264222c227365616c6564225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "phone-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"changed\",\"revision\":7,\"upserts\":{\"devices\":[{\"capabilities\":[\"e2e-v1\"],\"deviceId\":\"hrbbWm6H_F-UwViNKkSpKw\",\"deviceName\":\"Vector tablet\",\"e2eKey\":{\"v\":1,\"kem\":\"BJH20sAyR6UWwTxu7X7SDlWMbQUpH5pgoLcYCSYRbQWxF16-963dwUwGIqf_XAWg-BwxoLcC0dgkLJ6743Menfg\"},\"lastSeen\":\"2026-10-07T12:00:00Z\",\"presence\":\"offline\",\"product\":\"fms-android\",\"updatedAt\":\"2026-10-07T12:00:00Z\"}],\"resources\":[],\"broadcasts\":[]},\"removals\":{\"deviceIds\":[],\"resourceIds\":[],\"broadcastIds\":[]}}",
+          "hex": "000001e77b22736368656d6156657273696f6e223a322c2274797065223a226368616e676564222c227265766973696f6e223a372c2275707365727473223a7b2264657669636573223a5b7b226361706162696c6974696573223a5b226532652d7631225d2c226465766963654964223a2268726262576d36485f462d557756694e4b6b53704b77222c226465766963654e616d65223a22566563746f72207461626c6574222c226532654b6579223a7b2276223a312c226b656d223a22424a483230734179523655577754787537583753446c574d62515570483570676f4c635943535952625157784631362d39363364775577474971665f584157672d4277786f4c63433064676b4c4a363734334d656e6667227d2c226c6173745365656e223a22323032362d31302d30375431323a30303a30305a222c2270726573656e6365223a226f66666c696e65222c2270726f64756374223a22666d732d616e64726f6964222c22757064617465644174223a22323032362d31302d30375431323a30303a30305a227d5d2c227265736f7572636573223a5b5d2c2262726f61646361737473223a5b5d7d2c2272656d6f76616c73223a7b22646576696365496473223a5b5d2c227265736f75726365496473223a5b5d2c2262726f616463617374496473223a5b5d7d7d",
+          "note": "the rotation is a change of the record (its token and name are rewritten), and the key stays the same"
+        },
+        {
+          "stream": "phone-enroll",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "phone-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "register",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"register\",\"invitationCode\":\"W5lc40X1NUa_LmoBR092gA\",\"login\":\"carol\",\"password\":\"Passw0rdTest\",\"deviceId\":\"rtsiS-7J-WsTE-gkH1ivCg\",\"deviceName\":\"Vector watch\",\"product\":\"fms-wear\",\"productVersion\":\"1.0.0\",\"platform\":\"vector\",\"roles\":[\"receiver\"],\"capabilities\":[\"e2e-v1\"],\"keepaliveSeconds\":30,\"e2eKey\":{\"v\":1,\"kem\":\"BIYFEEvPMqa_BssoofK1bkfPiWYPgnBJzzGhYiUJGeXDCuKE4wbwwY3B4q6Yy-qJwca52eLwbh3ACjxVr3ctyB4\"}}",
+          "hex": "000001b17b22736368656d6156657273696f6e223a322c2274797065223a227265676973746572222c22696e7669746174696f6e436f6465223a2257356c63343058314e55615f4c6d6f42523039326741222c226c6f67696e223a226361726f6c222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a2272747369532d374a2d577354452d676b483169764367222c226465766963654e616d65223a22566563746f72207761746368222c2270726f64756374223a22666d732d77656172222c2270726f6475637456657273696f6e223a22312e302e30222c22706c6174666f726d223a22766563746f72222c22726f6c6573223a5b227265636569766572225d2c226361706162696c6974696573223a5b226532652d7631225d2c226b656570616c6976655365636f6e6473223a33302c226532654b6579223a7b2276223a312c226b656d223a2242495946454576504d71615f4273736f6f664b31626b665069575950676e424a7a7a47685969554a4765584443754b45347762777759334234713659792d714a7763613532654c7762683341436a785672336374794234227d7d"
+        },
+        {
+          "stream": "register",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"enrolled\",\"deviceToken\":\"qacdt1jP0YB4KntwCwX6yBYJYVlXdDWBImVAeEmwNeg\",\"account\":\"carol\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\",\"sealed\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000001297b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c6564222c22646576696365546f6b656e223a227161636474316a50305942344b6e7477437758367942594a59566c5864445742496d564165456d774e6567222c226163636f756e74223a226361726f6c222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264222c227365616c6564225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "phone-hello",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"TqeXuVTNb4LpmDXnaXlw_w\",\"deviceToken\":\"Kt65i05RBJTxXVxZuS-FS3EYX849XED6M_mp5RzqnbY\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a22547165587556544e62344c706d44586e61586c775f77222c22646576696365546f6b656e223a224b74363569303552424a54785856785a75532d465333455958383439584544364d5f6d7035527a716e6259222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "phone-hello",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\",\"sealed\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000ec7b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264222c227365616c6564225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        }
+      ]
+    },
+    {
+      "name": "sealed-clipboard",
+      "description": "The sealed clipboard of DEVICE-EXCHANGE 27 item DN on the slot of section 22: a put declares `kind` `sealed`, `size` the number of sealed bytes and `sealed` the box with the context `clipboard` (its payload holds kind, mimeType, size and sha256 of the clear value; a sealed put carries no mimeType and no name in clear); the sealed bytes follow `clipboard-ready` raw; the server counts, hashes and stores the sealed bytes and answers `clipboard-state` and `clipboard-value` with `kind` `sealed` and the box, byte for byte. A sealed put with no box, or one that names the value in clear, is not an envelope the codec reads: it is malformed, the stream is closed with no answer, and no transcript can hold it.",
+      "streams": [
+        {
+          "id": "phone-control",
+          "transport": "tls",
+          "purpose": "enroll with the account's password, declaring the capability e2e-v1 and the device key (item DF)"
+        },
+        {
+          "id": "tablet-enroll",
+          "transport": "tls",
+          "purpose": "enroll with the account's password, declaring the capability e2e-v1 and the device key (item DF)"
+        },
+        {
+          "id": "put",
+          "transport": "tls",
+          "purpose": "the sender's data stream: clipboard-put declares kind sealed, the sealed size and the box"
+        },
+        {
+          "id": "get",
+          "transport": "tls",
+          "purpose": "a reader's data stream: clipboard-get"
+        }
+      ],
+      "steps": [
+        {
+          "stream": "phone-control",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"enroll\",\"login\":\"alice\",\"password\":\"Passw0rdTest\",\"deviceId\":\"RQn8NLAhmFNNqWqpCIhNeA\",\"deviceName\":\"Vector phone\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"platform\":\"vector\",\"roles\":[\"resource-consumer\"],\"capabilities\":[\"e2e-v1\"],\"keepaliveSeconds\":30,\"e2eKey\":{\"v\":1,\"kem\":\"BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw\"}}",
+          "hex": "000001917b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c222c226c6f67696e223a22616c696365222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a2252516e384e4c41686d464e4e715771704349684e6541222c226465766963654e616d65223a22566563746f722070686f6e65222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22706c6174666f726d223a22766563746f72222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c226361706162696c6974696573223a5b226532652d7631225d2c226b656570616c6976655365636f6e6473223a33302c226532654b6579223a7b2276223a312c226b656d223a22424d48424e4f693234665476733646564b38326c77463962314b6d6431796a575f637a52706d585962613046496745357464517a362d45434967346f315a73447875796d6f5143336143764244766d5936554f34695a77227d7d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"enrolled\",\"deviceToken\":\"EdgkxWV7jyHUJoXwq2hORS-MmG-3dq_Qxe6ntd8dMt4\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\",\"sealed\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000001297b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c6564222c22646576696365546f6b656e223a224564676b785756376a7948554a6f58777132684f52532d4d6d472d3364715f517865366e746438644d7434222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264222c227365616c6564225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"keepalive\"}",
+          "hex": "000000267b22736368656d6156657273696f6e223a322c2274797065223a226b656570616c697665227d"
+        },
+        {
+          "stream": "tablet-enroll",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"enroll\",\"login\":\"alice\",\"password\":\"Passw0rdTest\",\"deviceId\":\"r2TuNtu53QEYWle9anKdsA\",\"deviceName\":\"Vector tablet\",\"product\":\"fms-android\",\"productVersion\":\"1.0.0\",\"platform\":\"vector\",\"roles\":[\"resource-consumer\"],\"capabilities\":[\"e2e-v1\"],\"keepaliveSeconds\":30,\"e2eKey\":{\"v\":1,\"kem\":\"BJH20sAyR6UWwTxu7X7SDlWMbQUpH5pgoLcYCSYRbQWxF16-963dwUwGIqf_XAWg-BwxoLcC0dgkLJ6743Menfg\"}}",
+          "hex": "000001927b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c222c226c6f67696e223a22616c696365222c2270617373776f7264223a22506173737730726454657374222c226465766963654964223a22723254754e74753533514559576c6539616e4b647341222c226465766963654e616d65223a22566563746f72207461626c6574222c2270726f64756374223a22666d732d616e64726f6964222c2270726f6475637456657273696f6e223a22312e302e30222c22706c6174666f726d223a22766563746f72222c22726f6c6573223a5b227265736f757263652d636f6e73756d6572225d2c226361706162696c6974696573223a5b226532652d7631225d2c226b656570616c6976655365636f6e6473223a33302c226532654b6579223a7b2276223a312c226b656d223a22424a483230734179523655577754787537583753446c574d62515570483570676f4c635943535952625157784631362d39363364775577474971665f584157672d4277786f4c63433064676b4c4a363734334d656e6667227d7d"
+        },
+        {
+          "stream": "tablet-enroll",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"enrolled\",\"deviceToken\":\"hf79W-HhhRVPw43PwdzOnCxa2UwFMIwOJTToGFNMihk\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\",\"sealed\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000001297b22736368656d6156657273696f6e223a322c2274797065223a22656e726f6c6c6564222c22646576696365546f6b656e223a2268663739572d4868685256507734335077647a4f6e437861325577464d49774f4a54546f47464e4d69686b222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264222c227365616c6564225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-info\"}",
+          "hex": "0000002b7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d696e666f227d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-state\"}",
+          "hex": "0000002c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7374617465227d"
+        },
+        {
+          "stream": "put",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"RQn8NLAhmFNNqWqpCIhNeA\",\"deviceToken\":\"EdgkxWV7jyHUJoXwq2hORS-MmG-3dq_Qxe6ntd8dMt4\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a2252516e384e4c41686d464e4e715771704349684e6541222c22646576696365546f6b656e223a224564676b785756376a7948554a6f58777132684f52532d4d6d472d3364715f517865366e746438644d7434222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "put",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\",\"sealed\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000ec7b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264222c227365616c6564225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "put",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-put\",\"kind\":\"sealed\",\"size\":81,\"sealed\":{\"v\":1,\"from\":\"RQn8NLAhmFNNqWqpCIhNeA\",\"fromKey\":\"BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw\",\"n\":\"H5p0mfBff5a6JpSH\",\"ct\":\"WbFBUF6ZZ29MezSV_q3WIiTe1UniBEPCTo0KCT0WtL9kPb_DtMgXIQMNg_Wckwr2xVXvS6BhIPIxiG3fF1EgT8aaf7XHLZxBDs9kCuRBhmtdHatfqzoi-dy1KPjar24HLTEkblV3-_0sbbPVTYmcGxvGbmcBCjKeZTIyOup7yrrNpo2yeoRiRjIYKPxA\",\"keys\":[{\"to\":\"r2TuNtu53QEYWle9anKdsA\",\"enc\":\"BJbab8jyyT1cmpo2euQZRCY5rBqFuqRh2fXcoZHmVBG2kEVgsZF6tl61BnOaHTMihUzM4PT5IMRCEelWT7WM-_8\",\"wk\":\"NON4G4qu4jsPD1y6JXwFhy6rRNCvCC0dO6H5R6Vzt-eZnEQgZYExXvZ09oXGpIzN\"}]}}",
+          "hex": "000002857b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d707574222c226b696e64223a227365616c6564222c2273697a65223a38312c227365616c6564223a7b2276223a312c2266726f6d223a2252516e384e4c41686d464e4e715771704349684e6541222c2266726f6d4b6579223a22424d48424e4f693234665476733646564b38326c77463962314b6d6431796a575f637a52706d585962613046496745357464517a362d45434967346f315a73447875796d6f5143336143764244766d5936554f34695a77222c226e223a22483570306d664266663561364a705348222c226374223a22576246425546365a5a32394d657a53565f7133574969546531556e6942455043546f304b43543057744c396b50625f44744d675849514d4e675f57636b777232785658765336426849504978694733664631456754386161663758484c5a78424473396b43755242686d746448617466717a6f692d6479314b506a61723234484c54456b626c56332d5f30736262505654596d6347787647626d6342436a4b655a5449794f7570377972724e706f3279656f5269526a49594b507841222c226b657973223a5b7b22746f223a22723254754e74753533514559576c6539616e4b647341222c22656e63223a22424a626162386a79795431636d706f326575515a524359357242714675715268326658636f5a486d564247326b455667735a4636746c3631426e4f6148544d6968557a4d34505435494d524345656c575437574d2d5f38222c22776b223a224e4f4e3447347175346a7350443179364a58774668793672524e4376434330644f3648355236567a742d655a6e4551675a59457858765a30396f584770497a4e227d5d7d7d"
+        },
+        {
+          "stream": "put",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-ready\"}",
+          "hex": "0000002c7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7265616479227d"
+        },
+        {
+          "stream": "put",
+          "direction": "client->server",
+          "hex": "b24d52f94887adb2325c615e654140a0377c54ceeaae18cf2e739d27f61aaa47f5874f7469365e9dd53bb028fa613f4ef56330319cea4c58aac78379b6b7ebf1e1522477e46e28b784f6f88fa357e5ebff",
+          "note": "exactly the 81 sealed bytes follow clipboard-ready: raw, as for any value"
+        },
+        {
+          "stream": "put",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-stored\",\"clipId\":\"i7er_7j5qbml0EVs4ab65A\",\"sha256\":\"3c07c1dc7be873906a48532a16ca69463ac82aef57c01d1fcb73f00ee1952bdf\",\"storedAt\":\"2026-10-07T12:00:00Z\"}",
+          "hex": "000000bd7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d73746f726564222c22636c69704964223a22693765725f376a3571626d6c30455673346162363541222c22736861323536223a2233633037633164633762653837333930366134383533326131366361363934363361633832616566353763303164316663623733663030656531393532626466222c2273746f7265644174223a22323032362d31302d30375431323a30303a30305a227d",
+          "note": "the SHA-256 is that of the sealed bytes: the server never sees the clear value"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-info\"}",
+          "hex": "0000002b7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d696e666f227d"
+        },
+        {
+          "stream": "phone-control",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-state\",\"value\":{\"clipId\":\"i7er_7j5qbml0EVs4ab65A\",\"size\":81,\"sha256\":\"3c07c1dc7be873906a48532a16ca69463ac82aef57c01d1fcb73f00ee1952bdf\",\"storedAt\":\"2026-10-07T12:00:00Z\",\"sourceDeviceId\":\"RQn8NLAhmFNNqWqpCIhNeA\",\"sourceDeviceName\":\"Vector phone\",\"kind\":\"sealed\",\"sealed\":{\"v\":1,\"from\":\"RQn8NLAhmFNNqWqpCIhNeA\",\"fromKey\":\"BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw\",\"n\":\"H5p0mfBff5a6JpSH\",\"ct\":\"WbFBUF6ZZ29MezSV_q3WIiTe1UniBEPCTo0KCT0WtL9kPb_DtMgXIQMNg_Wckwr2xVXvS6BhIPIxiG3fF1EgT8aaf7XHLZxBDs9kCuRBhmtdHatfqzoi-dy1KPjar24HLTEkblV3-_0sbbPVTYmcGxvGbmcBCjKeZTIyOup7yrrNpo2yeoRiRjIYKPxA\",\"keys\":[{\"to\":\"r2TuNtu53QEYWle9anKdsA\",\"enc\":\"BJbab8jyyT1cmpo2euQZRCY5rBqFuqRh2fXcoZHmVBG2kEVgsZF6tl61BnOaHTMihUzM4PT5IMRCEelWT7WM-_8\",\"wk\":\"NON4G4qu4jsPD1y6JXwFhy6rRNCvCC0dO6H5R6Vzt-eZnEQgZYExXvZ09oXGpIzN\"}]}}}",
+          "hex": "0000036d7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d7374617465222c2276616c7565223a7b22636c69704964223a22693765725f376a3571626d6c30455673346162363541222c2273697a65223a38312c22736861323536223a2233633037633164633762653837333930366134383533326131366361363934363361633832616566353763303164316663623733663030656531393532626466222c2273746f7265644174223a22323032362d31302d30375431323a30303a30305a222c22736f757263654465766963654964223a2252516e384e4c41686d464e4e715771704349684e6541222c22736f757263654465766963654e616d65223a22566563746f722070686f6e65222c226b696e64223a227365616c6564222c227365616c6564223a7b2276223a312c2266726f6d223a2252516e384e4c41686d464e4e715771704349684e6541222c2266726f6d4b6579223a22424d48424e4f693234665476733646564b38326c77463962314b6d6431796a575f637a52706d585962613046496745357464517a362d45434967346f315a73447875796d6f5143336143764244766d5936554f34695a77222c226e223a22483570306d664266663561364a705348222c226374223a22576246425546365a5a32394d657a53565f7133574969546531556e6942455043546f304b43543057744c396b50625f44744d675849514d4e675f57636b777232785658765336426849504978694733664631456754386161663758484c5a78424473396b43755242686d746448617466717a6f692d6479314b506a61723234484c54456b626c56332d5f30736262505654596d6347787647626d6342436a4b655a5449794f7570377972724e706f3279656f5269526a49594b507841222c226b657973223a5b7b22746f223a22723254754e74753533514559576c6539616e4b647341222c22656e63223a22424a626162386a79795431636d706f326575515a524359357242714675715268326658636f5a486d564247326b455667735a4636746c3631426e4f6148544d6968557a4d34505435494d524345656c575437574d2d5f38222c22776b223a224e4f4e3447347175346a7350443179364a58774668793672524e4376434330644f3648355236567a742d655a6e4551675a59457858765a30396f584770497a4e227d5d7d7d7d",
+          "note": "clipboard-state carries kind sealed and the box, and no mimeType and no name: the type of the value is inside the box"
+        },
+        {
+          "stream": "get",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"hello\",\"deviceId\":\"r2TuNtu53QEYWle9anKdsA\",\"deviceToken\":\"hf79W-HhhRVPw43PwdzOnCxa2UwFMIwOJTToGFNMihk\",\"productVersion\":\"1.0.0\",\"keepaliveSeconds\":30}",
+          "hex": "000000b17b22736368656d6156657273696f6e223a322c2274797065223a2268656c6c6f222c226465766963654964223a22723254754e74753533514559576c6539616e4b647341222c22646576696365546f6b656e223a2268663739572d4868685256507734335077647a4f6e437861325577464d49774f4a54546f47464e4d69686b222c2270726f6475637456657273696f6e223a22312e302e30222c226b656570616c6976655365636f6e6473223a33307d"
+        },
+        {
+          "stream": "get",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"welcome\",\"account\":\"alice\",\"accountKind\":\"member\",\"publicEndpoint\":\"exchange.example.net:22022\",\"keepaliveSeconds\":30,\"features\":[\"directory\",\"tunnel\",\"pairing\",\"clipboard\",\"sealed\"],\"serverVersion\":\"vectors\"}",
+          "hex": "000000ec7b22736368656d6156657273696f6e223a322c2274797065223a2277656c636f6d65222c226163636f756e74223a22616c696365222c226163636f756e744b696e64223a226d656d626572222c227075626c6963456e64706f696e74223a2265786368616e67652e6578616d706c652e6e65743a3232303232222c226b656570616c6976655365636f6e6473223a33302c226665617475726573223a5b226469726563746f7279222c2274756e6e656c222c2270616972696e67222c22636c6970626f617264222c227365616c6564225d2c2273657276657256657273696f6e223a22766563746f7273227d"
+        },
+        {
+          "stream": "get",
+          "direction": "client->server",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-get\"}",
+          "hex": "0000002a7b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d676574227d"
+        },
+        {
+          "stream": "get",
+          "direction": "server->client",
+          "json": "{\"schemaVersion\":2,\"type\":\"clipboard-value\",\"clipId\":\"i7er_7j5qbml0EVs4ab65A\",\"size\":81,\"sha256\":\"3c07c1dc7be873906a48532a16ca69463ac82aef57c01d1fcb73f00ee1952bdf\",\"storedAt\":\"2026-10-07T12:00:00Z\",\"sourceDeviceId\":\"RQn8NLAhmFNNqWqpCIhNeA\",\"sourceDeviceName\":\"Vector phone\",\"kind\":\"sealed\",\"sealed\":{\"v\":1,\"from\":\"RQn8NLAhmFNNqWqpCIhNeA\",\"fromKey\":\"BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw\",\"n\":\"H5p0mfBff5a6JpSH\",\"ct\":\"WbFBUF6ZZ29MezSV_q3WIiTe1UniBEPCTo0KCT0WtL9kPb_DtMgXIQMNg_Wckwr2xVXvS6BhIPIxiG3fF1EgT8aaf7XHLZxBDs9kCuRBhmtdHatfqzoi-dy1KPjar24HLTEkblV3-_0sbbPVTYmcGxvGbmcBCjKeZTIyOup7yrrNpo2yeoRiRjIYKPxA\",\"keys\":[{\"to\":\"r2TuNtu53QEYWle9anKdsA\",\"enc\":\"BJbab8jyyT1cmpo2euQZRCY5rBqFuqRh2fXcoZHmVBG2kEVgsZF6tl61BnOaHTMihUzM4PT5IMRCEelWT7WM-_8\",\"wk\":\"NON4G4qu4jsPD1y6JXwFhy6rRNCvCC0dO6H5R6Vzt-eZnEQgZYExXvZ09oXGpIzN\"}]}}",
+          "hex": "000003637b22736368656d6156657273696f6e223a322c2274797065223a22636c6970626f6172642d76616c7565222c22636c69704964223a22693765725f376a3571626d6c30455673346162363541222c2273697a65223a38312c22736861323536223a2233633037633164633762653837333930366134383533326131366361363934363361633832616566353763303164316663623733663030656531393532626466222c2273746f7265644174223a22323032362d31302d30375431323a30303a30305a222c22736f757263654465766963654964223a2252516e384e4c41686d464e4e715771704349684e6541222c22736f757263654465766963654e616d65223a22566563746f722070686f6e65222c226b696e64223a227365616c6564222c227365616c6564223a7b2276223a312c2266726f6d223a2252516e384e4c41686d464e4e715771704349684e6541222c2266726f6d4b6579223a22424d48424e4f693234665476733646564b38326c77463962314b6d6431796a575f637a52706d585962613046496745357464517a362d45434967346f315a73447875796d6f5143336143764244766d5936554f34695a77222c226e223a22483570306d664266663561364a705348222c226374223a22576246425546365a5a32394d657a53565f7133574969546531556e6942455043546f304b43543057744c396b50625f44744d675849514d4e675f57636b777232785658765336426849504978694733664631456754386161663758484c5a78424473396b43755242686d746448617466717a6f692d6479314b506a61723234484c54456b626c56332d5f30736262505654596d6347787647626d6342436a4b655a5449794f7570377972724e706f3279656f5269526a49594b507841222c226b657973223a5b7b22746f223a22723254754e74753533514559576c6539616e4b647341222c22656e63223a22424a626162386a79795431636d706f326575515a524359357242714675715268326658636f5a486d564247326b455667735a4636746c3631426e4f6148544d6968557a4d34505435494d524345656c575437574d2d5f38222c22776b223a224e4f4e3447347175346a7350443179364a58774668793672524e4376434330644f3648355236567a742d655a6e4551675a59457858765a30396f584770497a4e227d5d7d7d"
+        },
+        {
+          "stream": "get",
+          "direction": "server->client",
+          "hex": "b24d52f94887adb2325c615e654140a0377c54ceeaae18cf2e739d27f61aaa47f5874f7469365e9dd53bb028fa613f4ef56330319cea4c58aac78379b6b7ebf1e1522477e46e28b784f6f88fa357e5ebff",
+          "note": "exactly the 81 sealed bytes follow the members; the server closes the stream after them"
+        },
+        {
+          "stream": "get",
+          "direction": "server->client",
+          "closed": true
+        }
+      ]
+    }
+  ]
+}

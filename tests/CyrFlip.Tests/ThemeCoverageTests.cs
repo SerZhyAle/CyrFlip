@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -41,6 +41,8 @@ namespace CyrFlip.Tests
                 "the caret badge: layout colours drawn over the user's own text (LAYOUT-PALETTE, APP-STYLE rule 5)",
             ["CyrFlip.RegionSelectionOverlay+MonitorWindow"] =
                 "the region capture's overlay: a frozen picture of the user's own screen under a fixed veil (S0026 4.4)",
+            ["CyrFlip.AnnotationEditor+MonitorWindow"] =
+                "the draw-on-capture editor's window: the same frozen picture, the dimming and the shapes (S0071 6.3)",
             ["CyrFlip.LauncherTaskbarWindow"] =
                 "a 1x1 window at Opacity 0 that exists only to own a taskbar button - there is nothing to paint",
         };
@@ -48,6 +50,8 @@ namespace CyrFlip.Tests
         private readonly string _root = Path.Combine(Path.GetTempPath(), "CyrFlipThemeTests", Guid.NewGuid().ToString("N"));
         // The services the windows are built over - disposed on the UI thread that made them.
         private readonly List<IDisposable> _owned = new List<IDisposable>();
+
+        internal void DisposeFixtures() { foreach (var item in _owned) item.Dispose(); _owned.Clear(); }
 
         public void Dispose()
         {
@@ -216,7 +220,7 @@ namespace CyrFlip.Tests
         // ---- The windows ----
 
         // internal: WindowLifetimeTests (S0061 LK) builds the very same set of windows.
-        internal IEnumerable<(string, Func<Form>)> Windows()
+        internal IEnumerable<(string, Func<Form>)> Windows(string language = "English")
         {
             var layouts = new List<InputLayouts.Installed>
             {
@@ -234,10 +238,10 @@ namespace CyrFlip.Tests
                 // A row the dialog builds in text.muted - the list-item colour the walk must follow (S0036 UI-6).
                 Dropped = new List<string> { "clipboard-flip.log" },
             };
-            var config = new AppConfig { UiLanguage = "English" };
+            var config = new AppConfig { UiLanguage = language };
             Directory.CreateDirectory(_root);
 
-            yield return ("SettingsTransferDialog", () => SettingsTransferDialogTests.Make("English"));
+            yield return ("SettingsTransferDialog", () => SettingsTransferDialogTests.Make(language));
             yield return ("SettingsForm", () => NewSettings(config));
             // The settings search dialog is a nested class built over a live owner (S0048).
             yield return ("SettingsSearchDialog", () =>
@@ -246,35 +250,40 @@ namespace CyrFlip.Tests
                 Own(owner);
                 return new SettingsForm.SettingsSearchDialog(owner);
             });
-            yield return ("HotkeyDialog", () => new HotkeyDialog("Ctrl+Shift+F12", "T", "English"));
-            yield return ("LayoutPickerDialog", () => new LayoutPickerDialog(new string[0], "English", available));
-            yield return ("LayoutConversionDialog", () => new LayoutConversionDialog(layouts, null, "English"));
-            yield return ("LauncherScenarioDialog", () => new LauncherScenarioDialog(null, "English"));
-            yield return ("YtDlpLinkDialog", () => new YtDlpLinkDialog("English"));
-            yield return ("TranslationDialog", () => new TranslationDialog(null, "English"));
-            yield return ("TranslationResultWindow", () => new TranslationResultWindow(new AppConfig { UiLanguage = "English" }, "English"));
-            yield return ("SupportBundleDialog", () => new SupportBundleDialog(bundle, "English"));
-            yield return ("ExchangeExportDialog", () => new ExchangeExportDialog("English", notesAvailable: true, notesWarningOff: false));
-            yield return ("ConfirmDialog", () => new ConfirmDialog("English", "Delete?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true, owned: true));
-            yield return ("BusyDialog", () => new BusyDialog("English", System.Threading.Tasks.Task.CompletedTask));
+            yield return ("SettingsLoadingNotice", () => new SettingsLoadingNotice(language));
+            yield return ("HotkeyDialog", () => new HotkeyDialog("Ctrl+Shift+F12", Localization.Translate(language, "Shortcut"), language));
+            yield return ("LayoutPickerDialog", () => new LayoutPickerDialog(new string[0], language, available));
+            yield return ("LayoutConversionDialog", () => new LayoutConversionDialog(layouts, null, language));
+            yield return ("LauncherScenarioDialog", () => new LauncherScenarioDialog(null, language));
+            yield return ("YtDlpLinkDialog", () => new YtDlpLinkDialog(language));
+            yield return ("TranslationDialog", () => new TranslationDialog(null, language));
+            yield return ("TranslationResultWindow", () => new TranslationResultWindow(new AppConfig { UiLanguage = language }, language));
+            yield return ("SupportBundleDialog", () => new SupportBundleDialog(bundle, language));
+            yield return ("ExchangeExportDialog", () => new ExchangeExportDialog(language, notesAvailable: true, notesWarningOff: false));
+            yield return ("ConfirmDialog", () => new ConfirmDialog(language, "Delete?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true, owned: true));
+            yield return ("BusyDialog", () => new BusyDialog(language, System.Threading.Tasks.Task.CompletedTask));
             yield return ("WelcomeDialog", () => new WelcomeDialog(new WelcomeFacts(config,
                 Array.Empty<InputLayouts.Installed>(), false, false, false), _ => { }, _ => { }, () => false));
             yield return ("ClipboardHistoryWindow",() => new ClipboardHistoryWindow(History(), config, () => { }));
-            yield return ("ClipboardHistorySearchWindow", () => new ClipboardHistorySearchWindow(History(), "English", (_, _) => { }));
+            yield return ("ClipboardHistorySearchWindow", () => new ClipboardHistorySearchWindow(History(), language, (_, _) => { }));
             yield return ("QuickNotesWindow", () => new QuickNotesWindow(Notes(), config, () => { }, () => { }, (_, _) => { }));
-            yield return ("SymbolsWindow", () => new SymbolsWindow(config, "English", (_, _) => { }));
-            yield return ("TrafficLightWindow", () => new TrafficLightWindow(config, new TrafficLightBoardActions(), "English"));
-            yield return ("TrafficLightQuickAddDialog", () => new TrafficLightQuickAddDialog("English",
+            yield return ("SymbolsWindow", () => new SymbolsWindow(config, language, (_, _) => { }));
+            yield return ("TrafficLightWindow", () => new TrafficLightWindow(config, new TrafficLightBoardActions(), language));
+            yield return ("TrafficLightQuickAddDialog", () => new TrafficLightQuickAddDialog(language,
                 () => Array.Empty<TrafficLightTarget>(), TrafficLightProbeSet.CreateDefault(), "nas.local", "NAS"));
             yield return ("TrafficLightTargetDialog", () => new TrafficLightTargetDialog(
-                new TrafficLightTarget { Kind = "ping", Address = "192.168.1.1", Label = "Router" }, new[] { "Office" }, "English",
+                new TrafficLightTarget { Kind = "ping", Address = "192.168.1.1", Label = "Router" }, new[] { "Office" }, language,
                 (_, _) => System.Threading.Tasks.Task.FromResult(ProbeOutcome.Good(1)), isNew: true));
             yield return ("TrayHotkeysPopup", () =>
             {
-                var popup = new TrayHotkeysPopup("English");
-                popup.SetModel(TrayChordList.Build(config, null, null, "1", "English"));
+                var popup = new TrayHotkeysPopup(language);
+                popup.SetModel(TrayChordList.Build(config, null, null, "1", language));
                 return popup;
             });
+            yield return ("ScreenshotToolbar", () =>
+                new ScreenshotToolbar(AnnotationTool.Rectangle, AnnotationPalette.Default, s => s));
+            yield return ("BackupRestoreDialog", () => new BackupRestoreDialog(language, "2026-10-15"));
+            yield return ("ExchangeAccountDialog", () => new ExchangeAccountDialog(language, new List<ExchangeAccountEntry>()));
         }
 
         private ClipboardHistoryService History()

@@ -76,7 +76,7 @@ namespace CyrFlip.Tests
             if (failure != null) throw new Exception("on the STA thread", failure);
         }
 
-        [Fact]
+        [UiSweepFact]
         public void NoControlOfTheSettingsWindowHoldsADisposedFontAfterAnyLanguageChange()
         {
             OnSta(() =>

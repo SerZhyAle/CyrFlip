@@ -47,7 +47,7 @@ namespace CyrFlip.Tests
         public void ADefaultConfigListsEveryFixedChordAndTheMouseChord()
         {
             List<ChordOverviewRow> rows = Build(new AppConfig());
-            Assert.Equal(8, rows.Count(r => r.Group == ChordGroup.Fixed));
+            Assert.Equal(13, rows.Count(r => r.Group == ChordGroup.Fixed));
             Assert.Single(rows, r => r.Group == ChordGroup.Mouse);
             Assert.All(rows.Where(r => r.Group == ChordGroup.Fixed), r => Assert.True(r.HasSwitch));
             Assert.All(rows, r => Assert.False(string.IsNullOrEmpty(r.Caption)));
@@ -95,12 +95,16 @@ namespace CyrFlip.Tests
             {
                 nameof(AppConfig.CaseHotkey), nameof(AppConfig.ClipboardHistoryHotkey), nameof(AppConfig.QuickNotesHotkey),
                 nameof(AppConfig.SymbolsHotkey), nameof(AppConfig.TrafficLightHotkey), nameof(AppConfig.ScreenshotHotkey), nameof(AppConfig.ScreenshotFolderHotkey),
+                nameof(AppConfig.ScreenshotFullHotkey), nameof(AppConfig.ScreenshotAnnotateAreaHotkey), nameof(AppConfig.ScreenshotFullAnnotateHotkey),
+                nameof(AppConfig.ExchangeClipboardSendHotkey), nameof(AppConfig.ExchangeClipboardGetHotkey),
                 nameof(AppConfig.TextMenuHotkey), nameof(AppConfig.ContextMenuChord),
                 nameof(AppConfig.LayoutConversionProfiles), nameof(AppConfig.TranslateProfiles),
                 // The per-chord switches: each is the switch of one fixed row (ChordConfigAccess).
                 nameof(AppConfig.EnableCaseHotkey), nameof(AppConfig.EnableHistoryHotkey), nameof(AppConfig.EnableQuickNotesHotkey),
                 nameof(AppConfig.EnableSymbolsHotkey), nameof(AppConfig.EnableTrafficLightHotkey), nameof(AppConfig.EnableScreenshotHotkey),
                 nameof(AppConfig.EnableScreenshotFolderHotkey), nameof(AppConfig.EnableTextMenuHotkey),
+                nameof(AppConfig.EnableScreenshotFullHotkey), nameof(AppConfig.EnableScreenshotAnnotateAreaHotkey), nameof(AppConfig.EnableScreenshotFullAnnotateHotkey),
+                nameof(AppConfig.EnableExchangeClipboardSendHotkey), nameof(AppConfig.EnableExchangeClipboardGetHotkey),
             };
             var excluded = new Dictionary<string, string>();   // none today: every chord is listed
             var found = typeof(AppConfig).GetProperties()
@@ -151,7 +155,7 @@ namespace CyrFlip.Tests
             ChordOverviewRow caseFlip = Row(rows, ChordKind.Case);
             Assert.NotNull(conversion.ClashWith);
             Assert.NotNull(caseFlip.ClashWith);
-            Assert.Contains("Fix CapsLock", conversion.StateText(s => Localization.Translate("English", s)));
+            Assert.Contains("Case flip", conversion.StateText(s => Localization.Translate("English", s)));
             // The state that says why it does not fire stays what it was; the clash is a second fact.
             Assert.Equal(ChordBindingState.Active, caseFlip.State);
             Assert.StartsWith("same as", caseFlip.StateText(s => s));
@@ -194,6 +198,9 @@ namespace CyrFlip.Tests
             Assert.Equal(SettingsPageKey.Symbols, Row(rows, ChordKind.Symbols).ModulePage);
             Assert.Equal(SettingsPageKey.TrafficLight, Row(rows, ChordKind.TrafficLight).ModulePage);
             Assert.Equal(SettingsPageKey.Graphics, Row(rows, ChordKind.Screenshot).ModulePage);
+            Assert.Equal(SettingsPageKey.Graphics, Row(rows, ChordKind.ScreenshotFull).ModulePage);
+            Assert.Equal(SettingsPageKey.Graphics, Row(rows, ChordKind.ScreenshotAnnotateArea).ModulePage);
+            Assert.Equal(SettingsPageKey.Graphics, Row(rows, ChordKind.ScreenshotFullAnnotate).ModulePage);
             Assert.Equal(SettingsPageKey.Graphics, Row(rows, ChordKind.ScreenshotFolder).ModulePage);
             Assert.Equal(SettingsPageKey.SelectionMenu, Row(rows, ChordKind.TextMenu).ModulePage);
             Assert.Equal(SettingsPageKey.SelectionMenu, rows.Single(r => r.IsMouse).ModulePage);

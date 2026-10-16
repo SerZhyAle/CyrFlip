@@ -18,6 +18,7 @@
       "Translation (local model, optional)",
       "CyrFlip's own context menu (optional)",
       "Quick notes (optional)",
+      "Clipboard on the server (optional)",
       "Interface languages",
       "Settings transfer",
       "What the marker's colour means",
@@ -42,6 +43,7 @@
       "Быстрый запуск (лаунчер сценариев, необязательно)",
       "Собственное контекстное меню CyrFlip (необязательно)",
       "Быстрые заметки (необязательно)",
+      "Буфер на сервере (необязательно)",
       "Языки интерфейса",
       "Шаг 2 - установите расширение для VS Code (необязательно)",
       "Шаг 3 - пользуйтесь вместе",
@@ -68,6 +70,7 @@
       "Переклад виділеного тексту (необов'язково)",
       "Власне контекстне меню CyrFlip (необов'язково)",
       "Швидкі нотатки (необов'язково)",
+      "Буфер на сервері (необов'язково)",
       "Мови інтерфейсу",
       "Крок 2 - встановіть розширення для VS Code (необов'язково)",
       "Крок 3 - користуйтеся разом",
@@ -724,6 +727,5037 @@
       "留住复制和写下的内容",
       "启动与截图",
       "只属于你"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/backup-restore-dialog.html",
+    "lang": "ar",
+    "title": "CyrFlip",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/clipboard-history-search-window.html",
+    "lang": "ar",
+    "title": "البحث في السجل",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "البحث في السجل"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/clipboard-history-window.html",
+    "lang": "ar",
+    "title": "سجل الحافظة",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "سجل الحافظة"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/exchange-account-dialog.html",
+    "lang": "ar",
+    "title": "إضافة حساب على خادم تبادل",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "إضافة حساب على خادم تبادل"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/exchange-export-dialog.html",
+    "lang": "ar",
+    "title": "التصدير إلى ملف تبادل",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "التصدير إلى ملف تبادل"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/hotkey-dialog.html",
+    "lang": "ar",
+    "title": "الاختصار",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "الاختصار"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/index.html",
+    "lang": "ar",
+    "title": "المساعدة",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "المساعدة"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/launcher-scenario-dialog.html",
+    "lang": "ar",
+    "title": "سيناريو جديد",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "سيناريو جديد"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/layout-conversion-dialog.html",
+    "lang": "ar",
+    "title": "تحويل تخطيطات جديد",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "تحويل تخطيطات جديد"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/layout-picker-dialog.html",
+    "lang": "ar",
+    "title": "إضافة تخطيط",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "إضافة تخطيط"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/quick-notes-window.html",
+    "lang": "ar",
+    "title": "ملاحظات سريعة (Ctrl+Shift+Alt+N)",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "ملاحظات سريعة (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-about.html",
+    "lang": "ar",
+    "title": "حول",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "حول"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-clipboard.html",
+    "lang": "ar",
+    "title": "الحافظة",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "الحافظة"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-conversions.html",
+    "lang": "ar",
+    "title": "تصحيح النص",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "تصحيح النص"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-exchangeserver.html",
+    "lang": "ar",
+    "title": "خادم التبادل",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "خادم التبادل"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-form--settings-search-dialog.html",
+    "lang": "ar",
+    "title": "البحث في الإعدادات",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "البحث في الإعدادات"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-form.html",
+    "lang": "ar",
+    "title": "إعدادات CyrFlip",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "إعدادات CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-general.html",
+    "lang": "ar",
+    "title": "عام",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "عام"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-graphics.html",
+    "lang": "ar",
+    "title": "لقطات الشاشة",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "لقطات الشاشة"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-hotkeys.html",
+    "lang": "ar",
+    "title": "اختصارات لوحة المفاتيح",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "اختصارات لوحة المفاتيح"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-indicators.html",
+    "lang": "ar",
+    "title": "المؤشرات",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "المؤشرات"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-launcher.html",
+    "lang": "ar",
+    "title": "تشغيل سريع",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "تشغيل سريع"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-quicknotes.html",
+    "lang": "ar",
+    "title": "ملاحظات سريعة",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "ملاحظات سريعة"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-selectionmenu.html",
+    "lang": "ar",
+    "title": "قائمة التحديد",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "قائمة التحديد"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-symbols.html",
+    "lang": "ar",
+    "title": "رموز",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "رموز"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-trafficlight.html",
+    "lang": "ar",
+    "title": "إشارة التوفر",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "إشارة التوفر"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-transfer-dialog.html",
+    "lang": "ar",
+    "title": "نقل الإعدادات",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "نقل الإعدادات"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-translate.html",
+    "lang": "ar",
+    "title": "الترجمة",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "الترجمة"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/settings-windowslanguages.html",
+    "lang": "ar",
+    "title": "لغات Windows",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "لغات Windows"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/support-bundle-dialog.html",
+    "lang": "ar",
+    "title": "سجلات للمؤلف",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "سجلات للمؤلف"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/symbols-window.html",
+    "lang": "ar",
+    "title": "نافذة الرموز",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "نافذة الرموز"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/traffic-light-quick-add-dialog.html",
+    "lang": "ar",
+    "title": "هدف جديد",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "هدف جديد"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/traffic-light-target-dialog.html",
+    "lang": "ar",
+    "title": "هدف جديد",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "هدف جديد"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/traffic-light-window.html",
+    "lang": "ar",
+    "title": "إشارة التوفر",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "إشارة التوفر"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/translation-dialog.html",
+    "lang": "ar",
+    "title": "اتجاه ترجمة جديد",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "اتجاه ترجمة جديد"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/translation-result-window.html",
+    "lang": "ar",
+    "title": "الترجمة",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "الترجمة"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/welcome-0.html",
+    "lang": "ar",
+    "title": "مرحبًا بك في CyrFlip",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "مرحبًا بك في CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/welcome-1.html",
+    "lang": "ar",
+    "title": "المؤشرات",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "المؤشرات"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/welcome-2.html",
+    "lang": "ar",
+    "title": "تحويل التخطيطات",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "تحويل التخطيطات"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/welcome-3.html",
+    "lang": "ar",
+    "title": "ميزات اختيارية",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "ميزات اختيارية"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/welcome-4.html",
+    "lang": "ar",
+    "title": "أين تجد CyrFlip",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "أين تجد CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/welcome-dialog.html",
+    "lang": "ar",
+    "title": "CyrFlip",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ar/yt-dlp-link-dialog.html",
+    "lang": "ar",
+    "title": "تنزيل yt-dlp",
+    "description": "المساعدة متاحة دون اتصال. اضغط F1 في نافذة CyrFlip أو استخدم زر المساعدة.",
+    "headings": [
+      "تنزيل yt-dlp"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/backup-restore-dialog.html",
+    "lang": "bn",
+    "title": "CyrFlip",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/clipboard-history-search-window.html",
+    "lang": "bn",
+    "title": "ইতিহাসে খুঁজুন",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "ইতিহাসে খুঁজুন"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/clipboard-history-window.html",
+    "lang": "bn",
+    "title": "ক্লিপবোর্ড ইতিহাস",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "ক্লিপবোর্ড ইতিহাস"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/exchange-account-dialog.html",
+    "lang": "bn",
+    "title": "এক্সচেঞ্জ সার্ভারে অ্যাকাউন্ট যোগ করুন",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "এক্সচেঞ্জ সার্ভারে অ্যাকাউন্ট যোগ করুন"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/exchange-export-dialog.html",
+    "lang": "bn",
+    "title": "এক্সচেঞ্জ ফাইলে রপ্তানি",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "এক্সচেঞ্জ ফাইলে রপ্তানি"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/hotkey-dialog.html",
+    "lang": "bn",
+    "title": "শর্টকাট",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "শর্টকাট"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/index.html",
+    "lang": "bn",
+    "title": "সহায়তা",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "সহায়তা"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/launcher-scenario-dialog.html",
+    "lang": "bn",
+    "title": "নতুন দৃশ্যপট",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "নতুন দৃশ্যপট"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/layout-conversion-dialog.html",
+    "lang": "bn",
+    "title": "নতুন লেআউট রূপান্তর",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "নতুন লেআউট রূপান্তর"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/layout-picker-dialog.html",
+    "lang": "bn",
+    "title": "লেআউট যোগ করুন",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "লেআউট যোগ করুন"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/quick-notes-window.html",
+    "lang": "bn",
+    "title": "দ্রুত নোট (Ctrl+Shift+Alt+N)",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "দ্রুত নোট (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-about.html",
+    "lang": "bn",
+    "title": "সম্পর্কে",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "সম্পর্কে"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-clipboard.html",
+    "lang": "bn",
+    "title": "ক্লিপবোর্ড",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "ক্লিপবোর্ড"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-conversions.html",
+    "lang": "bn",
+    "title": "লেখা সংশোধন",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "লেখা সংশোধন"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-exchangeserver.html",
+    "lang": "bn",
+    "title": "এক্সচেঞ্জ সার্ভার",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "এক্সচেঞ্জ সার্ভার"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-form--settings-search-dialog.html",
+    "lang": "bn",
+    "title": "সেটিংসে খুঁজুন",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "সেটিংসে খুঁজুন"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-form.html",
+    "lang": "bn",
+    "title": "CyrFlip সেটিংস",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "CyrFlip সেটিংস"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-general.html",
+    "lang": "bn",
+    "title": "সাধারণ",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "সাধারণ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-graphics.html",
+    "lang": "bn",
+    "title": "স্ক্রিনশট",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "স্ক্রিনশট"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-hotkeys.html",
+    "lang": "bn",
+    "title": "শর্টকাট কী",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "শর্টকাট কী"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-indicators.html",
+    "lang": "bn",
+    "title": "নির্দেশক",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "নির্দেশক"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-launcher.html",
+    "lang": "bn",
+    "title": "দ্রুত চালু",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "দ্রুত চালু"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-quicknotes.html",
+    "lang": "bn",
+    "title": "দ্রুত নোট",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "দ্রুত নোট"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-selectionmenu.html",
+    "lang": "bn",
+    "title": "নির্বাচন মেনু",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "নির্বাচন মেনু"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-symbols.html",
+    "lang": "bn",
+    "title": "প্রতীক",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "প্রতীক"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-trafficlight.html",
+    "lang": "bn",
+    "title": "প্রাপ্যতার ট্রাফিক লাইট",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "প্রাপ্যতার ট্রাফিক লাইট"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-transfer-dialog.html",
+    "lang": "bn",
+    "title": "সেটিংস স্থানান্তর",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "সেটিংস স্থানান্তর"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-translate.html",
+    "lang": "bn",
+    "title": "অনুবাদ",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "অনুবাদ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/settings-windowslanguages.html",
+    "lang": "bn",
+    "title": "Windows-এর ভাষা",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "Windows-এর ভাষা"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/support-bundle-dialog.html",
+    "lang": "bn",
+    "title": "লেখকের জন্য লগ",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "লেখকের জন্য লগ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/symbols-window.html",
+    "lang": "bn",
+    "title": "প্রতীক উইন্ডো",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "প্রতীক উইন্ডো"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/traffic-light-quick-add-dialog.html",
+    "lang": "bn",
+    "title": "নতুন লক্ষ্য",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "নতুন লক্ষ্য"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/traffic-light-target-dialog.html",
+    "lang": "bn",
+    "title": "নতুন লক্ষ্য",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "নতুন লক্ষ্য"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/traffic-light-window.html",
+    "lang": "bn",
+    "title": "প্রাপ্যতার ট্রাফিক লাইট",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "প্রাপ্যতার ট্রাফিক লাইট"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/translation-dialog.html",
+    "lang": "bn",
+    "title": "অনুবাদের নতুন দিক",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "অনুবাদের নতুন দিক"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/translation-result-window.html",
+    "lang": "bn",
+    "title": "অনুবাদ",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "অনুবাদ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/welcome-0.html",
+    "lang": "bn",
+    "title": "CyrFlip-এ স্বাগতম",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "CyrFlip-এ স্বাগতম"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/welcome-1.html",
+    "lang": "bn",
+    "title": "নির্দেশক",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "নির্দেশক"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/welcome-2.html",
+    "lang": "bn",
+    "title": "লেআউট রূপান্তর",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "লেআউট রূপান্তর"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/welcome-3.html",
+    "lang": "bn",
+    "title": "ঐচ্ছিক সুবিধা",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "ঐচ্ছিক সুবিধা"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/welcome-4.html",
+    "lang": "bn",
+    "title": "CyrFlip কোথায় থাকে",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "CyrFlip কোথায় থাকে"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/welcome-dialog.html",
+    "lang": "bn",
+    "title": "CyrFlip",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/bn/yt-dlp-link-dialog.html",
+    "lang": "bn",
+    "title": "yt-dlp ডাউনলোড",
+    "description": "সহায়তা অফলাইনে পাওয়া যায়। CyrFlip উইন্ডোতে F1 চাপুন বা সহায়তা বোতাম ব্যবহার করুন।",
+    "headings": [
+      "yt-dlp ডাউনলোড"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/backup-restore-dialog.html",
+    "lang": "de",
+    "title": "CyrFlip",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/clipboard-history-search-window.html",
+    "lang": "de",
+    "title": "Verlauf durchsuchen",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Verlauf durchsuchen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/clipboard-history-window.html",
+    "lang": "de",
+    "title": "Zwischenablage-Verlauf",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Zwischenablage-Verlauf"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/exchange-account-dialog.html",
+    "lang": "de",
+    "title": "Konto auf einem Austauschserver hinzufügen",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Konto auf einem Austauschserver hinzufügen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/exchange-export-dialog.html",
+    "lang": "de",
+    "title": "Export in Austauschdatei",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Export in Austauschdatei"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/hotkey-dialog.html",
+    "lang": "de",
+    "title": "Kürzel",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Kürzel"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/index.html",
+    "lang": "de",
+    "title": "Hilfe",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Hilfe"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/launcher-scenario-dialog.html",
+    "lang": "de",
+    "title": "Neues Szenario",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Neues Szenario"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/layout-conversion-dialog.html",
+    "lang": "de",
+    "title": "Neue Layout-Umwandlung",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Neue Layout-Umwandlung"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/layout-picker-dialog.html",
+    "lang": "de",
+    "title": "Layout hinzufügen",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Layout hinzufügen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/quick-notes-window.html",
+    "lang": "de",
+    "title": "Schnellnotizen (Ctrl+Shift+Alt+N)",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Schnellnotizen (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-about.html",
+    "lang": "de",
+    "title": "Info",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Info"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-clipboard.html",
+    "lang": "de",
+    "title": "Zwischenablage",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Zwischenablage"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-conversions.html",
+    "lang": "de",
+    "title": "Textkorrektur",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Textkorrektur"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-exchangeserver.html",
+    "lang": "de",
+    "title": "Austauschserver",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Austauschserver"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-form--settings-search-dialog.html",
+    "lang": "de",
+    "title": "Einstellungen durchsuchen",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Einstellungen durchsuchen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-form.html",
+    "lang": "de",
+    "title": "CyrFlip-Einstellungen",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "CyrFlip-Einstellungen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-general.html",
+    "lang": "de",
+    "title": "Allgemein",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Allgemein"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-graphics.html",
+    "lang": "de",
+    "title": "Screenshots",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Screenshots"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-hotkeys.html",
+    "lang": "de",
+    "title": "Tastenkürzel",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Tastenkürzel"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-indicators.html",
+    "lang": "de",
+    "title": "Anzeigen",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Anzeigen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-launcher.html",
+    "lang": "de",
+    "title": "Schnellstart",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Schnellstart"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-quicknotes.html",
+    "lang": "de",
+    "title": "Schnellnotizen",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Schnellnotizen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-selectionmenu.html",
+    "lang": "de",
+    "title": "Auswahlmenü",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Auswahlmenü"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-symbols.html",
+    "lang": "de",
+    "title": "Symbole",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Symbole"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-trafficlight.html",
+    "lang": "de",
+    "title": "Verfügbarkeits-Ampel",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Verfügbarkeits-Ampel"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-transfer-dialog.html",
+    "lang": "de",
+    "title": "Einstellungen übertragen",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Einstellungen übertragen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-translate.html",
+    "lang": "de",
+    "title": "Übersetzung",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Übersetzung"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/settings-windowslanguages.html",
+    "lang": "de",
+    "title": "Windows-Sprachen",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Windows-Sprachen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/support-bundle-dialog.html",
+    "lang": "de",
+    "title": "Protokolle für den Autor",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Protokolle für den Autor"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/symbols-window.html",
+    "lang": "de",
+    "title": "Symbolfenster",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Symbolfenster"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/traffic-light-quick-add-dialog.html",
+    "lang": "de",
+    "title": "Neues Ziel",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Neues Ziel"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/traffic-light-target-dialog.html",
+    "lang": "de",
+    "title": "Neues Ziel",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Neues Ziel"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/traffic-light-window.html",
+    "lang": "de",
+    "title": "Verfügbarkeits-Ampel",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Verfügbarkeits-Ampel"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/translation-dialog.html",
+    "lang": "de",
+    "title": "Neue Übersetzungsrichtung",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Neue Übersetzungsrichtung"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/translation-result-window.html",
+    "lang": "de",
+    "title": "Übersetzung",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Übersetzung"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/welcome-0.html",
+    "lang": "de",
+    "title": "Willkommen bei CyrFlip",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Willkommen bei CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/welcome-1.html",
+    "lang": "de",
+    "title": "Anzeigen",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Anzeigen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/welcome-2.html",
+    "lang": "de",
+    "title": "Layout-Umwandlung",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Layout-Umwandlung"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/welcome-3.html",
+    "lang": "de",
+    "title": "Optionale Funktionen",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Optionale Funktionen"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/welcome-4.html",
+    "lang": "de",
+    "title": "Wo CyrFlip zu finden ist",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "Wo CyrFlip zu finden ist"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/welcome-dialog.html",
+    "lang": "de",
+    "title": "CyrFlip",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/de/yt-dlp-link-dialog.html",
+    "lang": "de",
+    "title": "yt-dlp-Download",
+    "description": "Die Hilfe ist offline verfügbar. Drücken Sie F1 in einem CyrFlip-Fenster oder nutzen Sie die Hilfeschaltfläche.",
+    "headings": [
+      "yt-dlp-Download"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/backup-restore-dialog.html",
+    "lang": "en",
+    "title": "CyrFlip",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/clipboard-history-search-window.html",
+    "lang": "en",
+    "title": "Search history",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Search history"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/clipboard-history-window.html",
+    "lang": "en",
+    "title": "Clipboard history",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Clipboard history"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/exchange-account-dialog.html",
+    "lang": "en",
+    "title": "Add an account on an exchange server",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Add an account on an exchange server"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/exchange-export-dialog.html",
+    "lang": "en",
+    "title": "Export to exchange file",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Export to exchange file"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/hotkey-dialog.html",
+    "lang": "en",
+    "title": "Shortcut",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Shortcut"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/index.html",
+    "lang": "en",
+    "title": "Help",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Help"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/launcher-scenario-dialog.html",
+    "lang": "en",
+    "title": "New scenario",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "New scenario"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/layout-conversion-dialog.html",
+    "lang": "en",
+    "title": "New layout conversion",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "New layout conversion"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/layout-picker-dialog.html",
+    "lang": "en",
+    "title": "Add layout",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Add layout"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/quick-notes-window.html",
+    "lang": "en",
+    "title": "Quick notes (Ctrl+Shift+Alt+N)",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Quick notes (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-about.html",
+    "lang": "en",
+    "title": "About",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "About"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-clipboard.html",
+    "lang": "en",
+    "title": "Clipboard",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Clipboard"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-conversions.html",
+    "lang": "en",
+    "title": "Text correction",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Text correction"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-exchangeserver.html",
+    "lang": "en",
+    "title": "Exchange server",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Exchange server"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-form--settings-search-dialog.html",
+    "lang": "en",
+    "title": "Search settings",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Search settings"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-form.html",
+    "lang": "en",
+    "title": "CyrFlip Settings",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "CyrFlip Settings"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-general.html",
+    "lang": "en",
+    "title": "General",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "General"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-graphics.html",
+    "lang": "en",
+    "title": "Screenshots",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Screenshots"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-hotkeys.html",
+    "lang": "en",
+    "title": "Hotkeys",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Hotkeys"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-indicators.html",
+    "lang": "en",
+    "title": "Indicators",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Indicators"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-launcher.html",
+    "lang": "en",
+    "title": "Quick launch",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Quick launch"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-quicknotes.html",
+    "lang": "en",
+    "title": "Quick notes",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Quick notes"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-selectionmenu.html",
+    "lang": "en",
+    "title": "Selection menu",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Selection menu"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-symbols.html",
+    "lang": "en",
+    "title": "Symbols",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Symbols"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-trafficlight.html",
+    "lang": "en",
+    "title": "Availability traffic light",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Availability traffic light"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-transfer-dialog.html",
+    "lang": "en",
+    "title": "Settings transfer",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Settings transfer"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-translate.html",
+    "lang": "en",
+    "title": "Translation",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Translation"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/settings-windowslanguages.html",
+    "lang": "en",
+    "title": "Windows languages",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Windows languages"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/support-bundle-dialog.html",
+    "lang": "en",
+    "title": "Logs for the author",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Logs for the author"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/symbols-window.html",
+    "lang": "en",
+    "title": "Symbols window",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Symbols window"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/traffic-light-quick-add-dialog.html",
+    "lang": "en",
+    "title": "New target",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "New target"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/traffic-light-target-dialog.html",
+    "lang": "en",
+    "title": "New target",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "New target"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/traffic-light-window.html",
+    "lang": "en",
+    "title": "Availability traffic light",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Availability traffic light"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/translation-dialog.html",
+    "lang": "en",
+    "title": "New translation direction",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "New translation direction"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/translation-result-window.html",
+    "lang": "en",
+    "title": "Translation",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Translation"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/welcome-0.html",
+    "lang": "en",
+    "title": "Welcome to CyrFlip",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Welcome to CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/welcome-1.html",
+    "lang": "en",
+    "title": "Indicators",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Indicators"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/welcome-2.html",
+    "lang": "en",
+    "title": "Layout conversions",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Layout conversions"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/welcome-3.html",
+    "lang": "en",
+    "title": "Optional features",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Optional features"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/welcome-4.html",
+    "lang": "en",
+    "title": "Where CyrFlip lives",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "Where CyrFlip lives"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/welcome-dialog.html",
+    "lang": "en",
+    "title": "CyrFlip",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/en/yt-dlp-link-dialog.html",
+    "lang": "en",
+    "title": "yt-dlp download",
+    "description": "Help is available offline. Press F1 in a CyrFlip window or use its help button.",
+    "headings": [
+      "yt-dlp download"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/backup-restore-dialog.html",
+    "lang": "es",
+    "title": "CyrFlip",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/clipboard-history-search-window.html",
+    "lang": "es",
+    "title": "Buscar en el historial",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Buscar en el historial"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/clipboard-history-window.html",
+    "lang": "es",
+    "title": "Historial del portapapeles",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Historial del portapapeles"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/exchange-account-dialog.html",
+    "lang": "es",
+    "title": "Añadir una cuenta en un servidor de intercambio",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Añadir una cuenta en un servidor de intercambio"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/exchange-export-dialog.html",
+    "lang": "es",
+    "title": "Exportar a archivo de intercambio",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Exportar a archivo de intercambio"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/hotkey-dialog.html",
+    "lang": "es",
+    "title": "Atajo",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Atajo"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/index.html",
+    "lang": "es",
+    "title": "Ayuda",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Ayuda"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/launcher-scenario-dialog.html",
+    "lang": "es",
+    "title": "Nuevo escenario",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Nuevo escenario"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/layout-conversion-dialog.html",
+    "lang": "es",
+    "title": "Nueva conversión de distribuciones",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Nueva conversión de distribuciones"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/layout-picker-dialog.html",
+    "lang": "es",
+    "title": "Añadir distribución",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Añadir distribución"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/quick-notes-window.html",
+    "lang": "es",
+    "title": "Notas rápidas (Ctrl+Shift+Alt+N)",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Notas rápidas (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-about.html",
+    "lang": "es",
+    "title": "Acerca de",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Acerca de"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-clipboard.html",
+    "lang": "es",
+    "title": "Portapapeles",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Portapapeles"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-conversions.html",
+    "lang": "es",
+    "title": "Corrección de texto",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Corrección de texto"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-exchangeserver.html",
+    "lang": "es",
+    "title": "Servidor de intercambio",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Servidor de intercambio"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-form--settings-search-dialog.html",
+    "lang": "es",
+    "title": "Buscar en los ajustes",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Buscar en los ajustes"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-form.html",
+    "lang": "es",
+    "title": "Configuración de CyrFlip",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Configuración de CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-general.html",
+    "lang": "es",
+    "title": "General",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "General"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-graphics.html",
+    "lang": "es",
+    "title": "Capturas de pantalla",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Capturas de pantalla"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-hotkeys.html",
+    "lang": "es",
+    "title": "Atajos de teclado",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Atajos de teclado"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-indicators.html",
+    "lang": "es",
+    "title": "Indicadores",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Indicadores"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-launcher.html",
+    "lang": "es",
+    "title": "Inicio rápido",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Inicio rápido"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-quicknotes.html",
+    "lang": "es",
+    "title": "Notas rápidas",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Notas rápidas"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-selectionmenu.html",
+    "lang": "es",
+    "title": "Menú de selección",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Menú de selección"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-symbols.html",
+    "lang": "es",
+    "title": "Símbolos",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Símbolos"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-trafficlight.html",
+    "lang": "es",
+    "title": "Semáforo de disponibilidad",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Semáforo de disponibilidad"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-transfer-dialog.html",
+    "lang": "es",
+    "title": "Transferir configuración",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Transferir configuración"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-translate.html",
+    "lang": "es",
+    "title": "Traducción",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Traducción"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/settings-windowslanguages.html",
+    "lang": "es",
+    "title": "Idiomas de Windows",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Idiomas de Windows"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/support-bundle-dialog.html",
+    "lang": "es",
+    "title": "Registros para el autor",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Registros para el autor"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/symbols-window.html",
+    "lang": "es",
+    "title": "Ventana de símbolos",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Ventana de símbolos"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/traffic-light-quick-add-dialog.html",
+    "lang": "es",
+    "title": "Nuevo objetivo",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Nuevo objetivo"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/traffic-light-target-dialog.html",
+    "lang": "es",
+    "title": "Nuevo objetivo",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Nuevo objetivo"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/traffic-light-window.html",
+    "lang": "es",
+    "title": "Semáforo de disponibilidad",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Semáforo de disponibilidad"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/translation-dialog.html",
+    "lang": "es",
+    "title": "Nueva dirección de traducción",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Nueva dirección de traducción"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/translation-result-window.html",
+    "lang": "es",
+    "title": "Traducción",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Traducción"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/welcome-0.html",
+    "lang": "es",
+    "title": "Bienvenido a CyrFlip",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Bienvenido a CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/welcome-1.html",
+    "lang": "es",
+    "title": "Indicadores",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Indicadores"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/welcome-2.html",
+    "lang": "es",
+    "title": "Conversión de distribuciones",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Conversión de distribuciones"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/welcome-3.html",
+    "lang": "es",
+    "title": "Funciones opcionales",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Funciones opcionales"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/welcome-4.html",
+    "lang": "es",
+    "title": "Dónde está CyrFlip",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Dónde está CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/welcome-dialog.html",
+    "lang": "es",
+    "title": "CyrFlip",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/es/yt-dlp-link-dialog.html",
+    "lang": "es",
+    "title": "Descarga de yt-dlp",
+    "description": "La ayuda está disponible sin conexión. Pulsa F1 en una ventana de CyrFlip o usa su botón de ayuda.",
+    "headings": [
+      "Descarga de yt-dlp"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/backup-restore-dialog.html",
+    "lang": "fr",
+    "title": "CyrFlip",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/clipboard-history-search-window.html",
+    "lang": "fr",
+    "title": "Rechercher dans l'historique",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Rechercher dans l'historique"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/clipboard-history-window.html",
+    "lang": "fr",
+    "title": "Historique du presse-papiers",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Historique du presse-papiers"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/exchange-account-dialog.html",
+    "lang": "fr",
+    "title": "Ajouter un compte sur un serveur d'échange",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Ajouter un compte sur un serveur d'échange"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/exchange-export-dialog.html",
+    "lang": "fr",
+    "title": "Exporter vers un fichier d'échange",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Exporter vers un fichier d'échange"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/hotkey-dialog.html",
+    "lang": "fr",
+    "title": "Raccourci",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Raccourci"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/index.html",
+    "lang": "fr",
+    "title": "Aide",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Aide"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/launcher-scenario-dialog.html",
+    "lang": "fr",
+    "title": "Nouveau scénario",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Nouveau scénario"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/layout-conversion-dialog.html",
+    "lang": "fr",
+    "title": "Nouvelle conversion de dispositions",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Nouvelle conversion de dispositions"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/layout-picker-dialog.html",
+    "lang": "fr",
+    "title": "Ajouter une disposition",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Ajouter une disposition"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/quick-notes-window.html",
+    "lang": "fr",
+    "title": "Notes rapides (Ctrl+Shift+Alt+N)",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Notes rapides (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-about.html",
+    "lang": "fr",
+    "title": "À propos",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "À propos"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-clipboard.html",
+    "lang": "fr",
+    "title": "Presse-papiers",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Presse-papiers"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-conversions.html",
+    "lang": "fr",
+    "title": "Correction de texte",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Correction de texte"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-exchangeserver.html",
+    "lang": "fr",
+    "title": "Serveur d'échange",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Serveur d'échange"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-form--settings-search-dialog.html",
+    "lang": "fr",
+    "title": "Rechercher dans les paramètres",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Rechercher dans les paramètres"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-form.html",
+    "lang": "fr",
+    "title": "Paramètres de CyrFlip",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Paramètres de CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-general.html",
+    "lang": "fr",
+    "title": "Général",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Général"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-graphics.html",
+    "lang": "fr",
+    "title": "Captures d'écran",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Captures d'écran"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-hotkeys.html",
+    "lang": "fr",
+    "title": "Raccourcis clavier",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Raccourcis clavier"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-indicators.html",
+    "lang": "fr",
+    "title": "Indicateurs",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Indicateurs"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-launcher.html",
+    "lang": "fr",
+    "title": "Lancement rapide",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Lancement rapide"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-quicknotes.html",
+    "lang": "fr",
+    "title": "Notes rapides",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Notes rapides"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-selectionmenu.html",
+    "lang": "fr",
+    "title": "Menu de sélection",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Menu de sélection"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-symbols.html",
+    "lang": "fr",
+    "title": "Symboles",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Symboles"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-trafficlight.html",
+    "lang": "fr",
+    "title": "Feu de disponibilité",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Feu de disponibilité"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-transfer-dialog.html",
+    "lang": "fr",
+    "title": "Transfert des paramètres",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Transfert des paramètres"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-translate.html",
+    "lang": "fr",
+    "title": "Traduction",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Traduction"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/settings-windowslanguages.html",
+    "lang": "fr",
+    "title": "Langues Windows",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Langues Windows"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/support-bundle-dialog.html",
+    "lang": "fr",
+    "title": "Journaux pour l'auteur",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Journaux pour l'auteur"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/symbols-window.html",
+    "lang": "fr",
+    "title": "Fenêtre des symboles",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Fenêtre des symboles"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/traffic-light-quick-add-dialog.html",
+    "lang": "fr",
+    "title": "Nouvelle cible",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Nouvelle cible"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/traffic-light-target-dialog.html",
+    "lang": "fr",
+    "title": "Nouvelle cible",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Nouvelle cible"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/traffic-light-window.html",
+    "lang": "fr",
+    "title": "Feu de disponibilité",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Feu de disponibilité"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/translation-dialog.html",
+    "lang": "fr",
+    "title": "Nouveau sens de traduction",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Nouveau sens de traduction"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/translation-result-window.html",
+    "lang": "fr",
+    "title": "Traduction",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Traduction"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/welcome-0.html",
+    "lang": "fr",
+    "title": "Bienvenue dans CyrFlip",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Bienvenue dans CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/welcome-1.html",
+    "lang": "fr",
+    "title": "Indicateurs",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Indicateurs"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/welcome-2.html",
+    "lang": "fr",
+    "title": "Conversion de dispositions",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Conversion de dispositions"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/welcome-3.html",
+    "lang": "fr",
+    "title": "Fonctions facultatives",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Fonctions facultatives"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/welcome-4.html",
+    "lang": "fr",
+    "title": "Où trouver CyrFlip",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Où trouver CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/welcome-dialog.html",
+    "lang": "fr",
+    "title": "CyrFlip",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/fr/yt-dlp-link-dialog.html",
+    "lang": "fr",
+    "title": "Téléchargement yt-dlp",
+    "description": "L’aide est disponible hors connexion. Appuyez sur F1 dans une fenêtre CyrFlip ou utilisez son bouton d’aide.",
+    "headings": [
+      "Téléchargement yt-dlp"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/backup-restore-dialog.html",
+    "lang": "hi",
+    "title": "CyrFlip",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/clipboard-history-search-window.html",
+    "lang": "hi",
+    "title": "इतिहास में खोजें",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "इतिहास में खोजें"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/clipboard-history-window.html",
+    "lang": "hi",
+    "title": "क्लिपबोर्ड इतिहास",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "क्लिपबोर्ड इतिहास"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/exchange-account-dialog.html",
+    "lang": "hi",
+    "title": "एक्सचेंज सर्वर पर खाता जोड़ें",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "एक्सचेंज सर्वर पर खाता जोड़ें"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/exchange-export-dialog.html",
+    "lang": "hi",
+    "title": "एक्सचेंज फ़ाइल में निर्यात",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "एक्सचेंज फ़ाइल में निर्यात"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/hotkey-dialog.html",
+    "lang": "hi",
+    "title": "शॉर्टकट",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "शॉर्टकट"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/index.html",
+    "lang": "hi",
+    "title": "सहायता",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "सहायता"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/launcher-scenario-dialog.html",
+    "lang": "hi",
+    "title": "नया परिदृश्य",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "नया परिदृश्य"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/layout-conversion-dialog.html",
+    "lang": "hi",
+    "title": "नया लेआउट रूपांतरण",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "नया लेआउट रूपांतरण"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/layout-picker-dialog.html",
+    "lang": "hi",
+    "title": "लेआउट जोड़ें",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "लेआउट जोड़ें"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/quick-notes-window.html",
+    "lang": "hi",
+    "title": "त्वरित नोट्स (Ctrl+Shift+Alt+N)",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "त्वरित नोट्स (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-about.html",
+    "lang": "hi",
+    "title": "बारे में",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "बारे में"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-clipboard.html",
+    "lang": "hi",
+    "title": "क्लिपबोर्ड",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "क्लिपबोर्ड"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-conversions.html",
+    "lang": "hi",
+    "title": "पाठ सुधार",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "पाठ सुधार"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-exchangeserver.html",
+    "lang": "hi",
+    "title": "एक्सचेंज सर्वर",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "एक्सचेंज सर्वर"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-form--settings-search-dialog.html",
+    "lang": "hi",
+    "title": "सेटिंग्स में खोजें",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "सेटिंग्स में खोजें"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-form.html",
+    "lang": "hi",
+    "title": "CyrFlip सेटिंग्स",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "CyrFlip सेटिंग्स"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-general.html",
+    "lang": "hi",
+    "title": "सामान्य",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "सामान्य"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-graphics.html",
+    "lang": "hi",
+    "title": "स्क्रीनशॉट",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "स्क्रीनशॉट"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-hotkeys.html",
+    "lang": "hi",
+    "title": "शॉर्टकट कुंजियाँ",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "शॉर्टकट कुंजियाँ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-indicators.html",
+    "lang": "hi",
+    "title": "संकेतक",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "संकेतक"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-launcher.html",
+    "lang": "hi",
+    "title": "त्वरित लॉन्च",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "त्वरित लॉन्च"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-quicknotes.html",
+    "lang": "hi",
+    "title": "त्वरित नोट्स",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "त्वरित नोट्स"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-selectionmenu.html",
+    "lang": "hi",
+    "title": "चयन मेनू",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "चयन मेनू"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-symbols.html",
+    "lang": "hi",
+    "title": "प्रतीक",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "प्रतीक"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-trafficlight.html",
+    "lang": "hi",
+    "title": "उपलब्धता ट्रैफ़िक लाइट",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "उपलब्धता ट्रैफ़िक लाइट"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-transfer-dialog.html",
+    "lang": "hi",
+    "title": "सेटिंग्स स्थानांतरण",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "सेटिंग्स स्थानांतरण"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-translate.html",
+    "lang": "hi",
+    "title": "अनुवाद",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "अनुवाद"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/settings-windowslanguages.html",
+    "lang": "hi",
+    "title": "Windows की भाषाएँ",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "Windows की भाषाएँ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/support-bundle-dialog.html",
+    "lang": "hi",
+    "title": "लेखक के लिए लॉग",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "लेखक के लिए लॉग"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/symbols-window.html",
+    "lang": "hi",
+    "title": "प्रतीक विंडो",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "प्रतीक विंडो"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/traffic-light-quick-add-dialog.html",
+    "lang": "hi",
+    "title": "नया लक्ष्य",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "नया लक्ष्य"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/traffic-light-target-dialog.html",
+    "lang": "hi",
+    "title": "नया लक्ष्य",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "नया लक्ष्य"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/traffic-light-window.html",
+    "lang": "hi",
+    "title": "उपलब्धता ट्रैफ़िक लाइट",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "उपलब्धता ट्रैफ़िक लाइट"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/translation-dialog.html",
+    "lang": "hi",
+    "title": "नई अनुवाद दिशा",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "नई अनुवाद दिशा"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/translation-result-window.html",
+    "lang": "hi",
+    "title": "अनुवाद",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "अनुवाद"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/welcome-0.html",
+    "lang": "hi",
+    "title": "CyrFlip में स्वागत है",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "CyrFlip में स्वागत है"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/welcome-1.html",
+    "lang": "hi",
+    "title": "संकेतक",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "संकेतक"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/welcome-2.html",
+    "lang": "hi",
+    "title": "लेआउट रूपांतरण",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "लेआउट रूपांतरण"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/welcome-3.html",
+    "lang": "hi",
+    "title": "वैकल्पिक सुविधाएँ",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "वैकल्पिक सुविधाएँ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/welcome-4.html",
+    "lang": "hi",
+    "title": "CyrFlip कहाँ रहता है",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "CyrFlip कहाँ रहता है"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/welcome-dialog.html",
+    "lang": "hi",
+    "title": "CyrFlip",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/hi/yt-dlp-link-dialog.html",
+    "lang": "hi",
+    "title": "yt-dlp डाउनलोड",
+    "description": "सहायता ऑफ़लाइन उपलब्ध है। CyrFlip विंडो में F1 दबाएँ या सहायता बटन उपयोग करें।",
+    "headings": [
+      "yt-dlp डाउनलोड"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/backup-restore-dialog.html",
+    "lang": "it",
+    "title": "CyrFlip",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/clipboard-history-search-window.html",
+    "lang": "it",
+    "title": "Cerca nella cronologia",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Cerca nella cronologia"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/clipboard-history-window.html",
+    "lang": "it",
+    "title": "Cronologia appunti",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Cronologia appunti"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/exchange-account-dialog.html",
+    "lang": "it",
+    "title": "Aggiungi un account su un server di scambio",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Aggiungi un account su un server di scambio"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/exchange-export-dialog.html",
+    "lang": "it",
+    "title": "Esporta nel file di scambio",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Esporta nel file di scambio"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/hotkey-dialog.html",
+    "lang": "it",
+    "title": "Scorciatoia",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Scorciatoia"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/index.html",
+    "lang": "it",
+    "title": "Aiuto",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Aiuto"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/launcher-scenario-dialog.html",
+    "lang": "it",
+    "title": "Nuovo scenario",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Nuovo scenario"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/layout-conversion-dialog.html",
+    "lang": "it",
+    "title": "Nuova conversione di layout",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Nuova conversione di layout"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/layout-picker-dialog.html",
+    "lang": "it",
+    "title": "Aggiungi layout",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Aggiungi layout"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/quick-notes-window.html",
+    "lang": "it",
+    "title": "Note rapide (Ctrl+Shift+Alt+N)",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Note rapide (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-about.html",
+    "lang": "it",
+    "title": "Informazioni",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Informazioni"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-clipboard.html",
+    "lang": "it",
+    "title": "Appunti",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Appunti"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-conversions.html",
+    "lang": "it",
+    "title": "Correzione del testo",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Correzione del testo"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-exchangeserver.html",
+    "lang": "it",
+    "title": "Server di scambio",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Server di scambio"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-form--settings-search-dialog.html",
+    "lang": "it",
+    "title": "Cerca nelle impostazioni",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Cerca nelle impostazioni"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-form.html",
+    "lang": "it",
+    "title": "Impostazioni CyrFlip",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Impostazioni CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-general.html",
+    "lang": "it",
+    "title": "Generale",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Generale"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-graphics.html",
+    "lang": "it",
+    "title": "Schermate",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Schermate"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-hotkeys.html",
+    "lang": "it",
+    "title": "Scorciatoie",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Scorciatoie"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-indicators.html",
+    "lang": "it",
+    "title": "Indicatori",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Indicatori"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-launcher.html",
+    "lang": "it",
+    "title": "Avvio rapido",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Avvio rapido"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-quicknotes.html",
+    "lang": "it",
+    "title": "Note rapide",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Note rapide"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-selectionmenu.html",
+    "lang": "it",
+    "title": "Menu di selezione",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Menu di selezione"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-symbols.html",
+    "lang": "it",
+    "title": "Simboli",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Simboli"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-trafficlight.html",
+    "lang": "it",
+    "title": "Semaforo di disponibilità",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Semaforo di disponibilità"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-transfer-dialog.html",
+    "lang": "it",
+    "title": "Trasferimento impostazioni",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Trasferimento impostazioni"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-translate.html",
+    "lang": "it",
+    "title": "Traduzione",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Traduzione"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/settings-windowslanguages.html",
+    "lang": "it",
+    "title": "Lingue di Windows",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Lingue di Windows"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/support-bundle-dialog.html",
+    "lang": "it",
+    "title": "Log per l'autore",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Log per l'autore"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/symbols-window.html",
+    "lang": "it",
+    "title": "Finestra dei simboli",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Finestra dei simboli"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/traffic-light-quick-add-dialog.html",
+    "lang": "it",
+    "title": "Nuovo obiettivo",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Nuovo obiettivo"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/traffic-light-target-dialog.html",
+    "lang": "it",
+    "title": "Nuovo obiettivo",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Nuovo obiettivo"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/traffic-light-window.html",
+    "lang": "it",
+    "title": "Semaforo di disponibilità",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Semaforo di disponibilità"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/translation-dialog.html",
+    "lang": "it",
+    "title": "Nuova direzione di traduzione",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Nuova direzione di traduzione"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/translation-result-window.html",
+    "lang": "it",
+    "title": "Traduzione",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Traduzione"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/welcome-0.html",
+    "lang": "it",
+    "title": "Benvenuto in CyrFlip",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Benvenuto in CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/welcome-1.html",
+    "lang": "it",
+    "title": "Indicatori",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Indicatori"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/welcome-2.html",
+    "lang": "it",
+    "title": "Conversione layout",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Conversione layout"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/welcome-3.html",
+    "lang": "it",
+    "title": "Funzioni facoltative",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Funzioni facoltative"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/welcome-4.html",
+    "lang": "it",
+    "title": "Dove si trova CyrFlip",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Dove si trova CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/welcome-dialog.html",
+    "lang": "it",
+    "title": "CyrFlip",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/it/yt-dlp-link-dialog.html",
+    "lang": "it",
+    "title": "Download yt-dlp",
+    "description": "L’aiuto è disponibile senza rete. Premi F1 in una finestra CyrFlip o usa il pulsante di aiuto.",
+    "headings": [
+      "Download yt-dlp"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/backup-restore-dialog.html",
+    "lang": "pt",
+    "title": "CyrFlip",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/clipboard-history-search-window.html",
+    "lang": "pt",
+    "title": "Pesquisar no histórico",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Pesquisar no histórico"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/clipboard-history-window.html",
+    "lang": "pt",
+    "title": "Histórico da área de transferência",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Histórico da área de transferência"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/exchange-account-dialog.html",
+    "lang": "pt",
+    "title": "Adicionar uma conta em um servidor de troca",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Adicionar uma conta em um servidor de troca"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/exchange-export-dialog.html",
+    "lang": "pt",
+    "title": "Exportar para arquivo de troca",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Exportar para arquivo de troca"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/hotkey-dialog.html",
+    "lang": "pt",
+    "title": "Atalho",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Atalho"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/index.html",
+    "lang": "pt",
+    "title": "Ajuda",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Ajuda"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/launcher-scenario-dialog.html",
+    "lang": "pt",
+    "title": "Novo cenário",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Novo cenário"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/layout-conversion-dialog.html",
+    "lang": "pt",
+    "title": "Nova conversão de layouts",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Nova conversão de layouts"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/layout-picker-dialog.html",
+    "lang": "pt",
+    "title": "Adicionar layout",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Adicionar layout"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/quick-notes-window.html",
+    "lang": "pt",
+    "title": "Notas rápidas (Ctrl+Shift+Alt+N)",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Notas rápidas (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-about.html",
+    "lang": "pt",
+    "title": "Sobre",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Sobre"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-clipboard.html",
+    "lang": "pt",
+    "title": "Área de transferência",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Área de transferência"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-conversions.html",
+    "lang": "pt",
+    "title": "Correção de texto",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Correção de texto"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-exchangeserver.html",
+    "lang": "pt",
+    "title": "Servidor de troca",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Servidor de troca"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-form--settings-search-dialog.html",
+    "lang": "pt",
+    "title": "Pesquisar nas configurações",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Pesquisar nas configurações"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-form.html",
+    "lang": "pt",
+    "title": "Configurações do CyrFlip",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Configurações do CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-general.html",
+    "lang": "pt",
+    "title": "Geral",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Geral"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-graphics.html",
+    "lang": "pt",
+    "title": "Capturas de ecrã",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Capturas de ecrã"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-hotkeys.html",
+    "lang": "pt",
+    "title": "Atalhos de teclado",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Atalhos de teclado"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-indicators.html",
+    "lang": "pt",
+    "title": "Indicadores",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Indicadores"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-launcher.html",
+    "lang": "pt",
+    "title": "Início rápido",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Início rápido"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-quicknotes.html",
+    "lang": "pt",
+    "title": "Notas rápidas",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Notas rápidas"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-selectionmenu.html",
+    "lang": "pt",
+    "title": "Menu de seleção",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Menu de seleção"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-symbols.html",
+    "lang": "pt",
+    "title": "Símbolos",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Símbolos"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-trafficlight.html",
+    "lang": "pt",
+    "title": "Semáforo de disponibilidade",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Semáforo de disponibilidade"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-transfer-dialog.html",
+    "lang": "pt",
+    "title": "Transferir configurações",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Transferir configurações"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-translate.html",
+    "lang": "pt",
+    "title": "Tradução",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Tradução"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/settings-windowslanguages.html",
+    "lang": "pt",
+    "title": "Idiomas do Windows",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Idiomas do Windows"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/support-bundle-dialog.html",
+    "lang": "pt",
+    "title": "Logs para o autor",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Logs para o autor"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/symbols-window.html",
+    "lang": "pt",
+    "title": "Janela de símbolos",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Janela de símbolos"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/traffic-light-quick-add-dialog.html",
+    "lang": "pt",
+    "title": "Novo alvo",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Novo alvo"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/traffic-light-target-dialog.html",
+    "lang": "pt",
+    "title": "Novo alvo",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Novo alvo"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/traffic-light-window.html",
+    "lang": "pt",
+    "title": "Semáforo de disponibilidade",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Semáforo de disponibilidade"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/translation-dialog.html",
+    "lang": "pt",
+    "title": "Nova direção de tradução",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Nova direção de tradução"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/translation-result-window.html",
+    "lang": "pt",
+    "title": "Tradução",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Tradução"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/welcome-0.html",
+    "lang": "pt",
+    "title": "Bem-vindo ao CyrFlip",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Bem-vindo ao CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/welcome-1.html",
+    "lang": "pt",
+    "title": "Indicadores",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Indicadores"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/welcome-2.html",
+    "lang": "pt",
+    "title": "Conversão de layouts",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Conversão de layouts"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/welcome-3.html",
+    "lang": "pt",
+    "title": "Recursos opcionais",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Recursos opcionais"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/welcome-4.html",
+    "lang": "pt",
+    "title": "Onde encontrar o CyrFlip",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Onde encontrar o CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/welcome-dialog.html",
+    "lang": "pt",
+    "title": "CyrFlip",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/pt/yt-dlp-link-dialog.html",
+    "lang": "pt",
+    "title": "Download do yt-dlp",
+    "description": "A ajuda está disponível sem ligação. Prima F1 numa janela CyrFlip ou use o botão de ajuda.",
+    "headings": [
+      "Download do yt-dlp"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/backup-restore-dialog.html",
+    "lang": "ru",
+    "title": "CyrFlip",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/clipboard-history-search-window.html",
+    "lang": "ru",
+    "title": "Поиск по истории",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Поиск по истории"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/clipboard-history-window.html",
+    "lang": "ru",
+    "title": "История буфера",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "История буфера"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/exchange-account-dialog.html",
+    "lang": "ru",
+    "title": "Добавить аккаунт на сервере обмена",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Добавить аккаунт на сервере обмена"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/exchange-export-dialog.html",
+    "lang": "ru",
+    "title": "Экспорт в файл обмена",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Экспорт в файл обмена"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/hotkey-dialog.html",
+    "lang": "ru",
+    "title": "Комбинация",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Комбинация"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/index.html",
+    "lang": "ru",
+    "title": "Справка",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Справка"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/launcher-scenario-dialog.html",
+    "lang": "ru",
+    "title": "Новый сценарий",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Новый сценарий"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/layout-conversion-dialog.html",
+    "lang": "ru",
+    "title": "Новая конвертация раскладок",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Новая конвертация раскладок"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/layout-picker-dialog.html",
+    "lang": "ru",
+    "title": "Добавить раскладку",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Добавить раскладку"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/quick-notes-window.html",
+    "lang": "ru",
+    "title": "Быстрые заметки (Ctrl+Shift+Alt+N)",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Быстрые заметки (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-about.html",
+    "lang": "ru",
+    "title": "О программе",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "О программе"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-clipboard.html",
+    "lang": "ru",
+    "title": "Буфер обмена",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Буфер обмена"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-conversions.html",
+    "lang": "ru",
+    "title": "Исправление текста",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Исправление текста"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-exchangeserver.html",
+    "lang": "ru",
+    "title": "Сервер обмена",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Сервер обмена"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-form--settings-search-dialog.html",
+    "lang": "ru",
+    "title": "Поиск по настройкам",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Поиск по настройкам"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-form.html",
+    "lang": "ru",
+    "title": "Настройки CyrFlip",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Настройки CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-general.html",
+    "lang": "ru",
+    "title": "Общие",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Общие"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-graphics.html",
+    "lang": "ru",
+    "title": "Снимки экрана",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Снимки экрана"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-hotkeys.html",
+    "lang": "ru",
+    "title": "Горячие клавиши",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Горячие клавиши"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-indicators.html",
+    "lang": "ru",
+    "title": "Индикаторы",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Индикаторы"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-launcher.html",
+    "lang": "ru",
+    "title": "Быстрый запуск",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Быстрый запуск"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-quicknotes.html",
+    "lang": "ru",
+    "title": "Быстрые заметки",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Быстрые заметки"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-selectionmenu.html",
+    "lang": "ru",
+    "title": "Меню для выделенного",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Меню для выделенного"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-symbols.html",
+    "lang": "ru",
+    "title": "Символы",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Символы"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-trafficlight.html",
+    "lang": "ru",
+    "title": "Светофор доступности",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Светофор доступности"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-transfer-dialog.html",
+    "lang": "ru",
+    "title": "Перенос настроек",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Перенос настроек"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-translate.html",
+    "lang": "ru",
+    "title": "Перевод",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Перевод"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/settings-windowslanguages.html",
+    "lang": "ru",
+    "title": "Языки Windows",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Языки Windows"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/support-bundle-dialog.html",
+    "lang": "ru",
+    "title": "Логи для автора",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Логи для автора"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/symbols-window.html",
+    "lang": "ru",
+    "title": "Окно символов",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Окно символов"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/traffic-light-quick-add-dialog.html",
+    "lang": "ru",
+    "title": "Новая цель",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Новая цель"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/traffic-light-target-dialog.html",
+    "lang": "ru",
+    "title": "Новая цель",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Новая цель"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/traffic-light-window.html",
+    "lang": "ru",
+    "title": "Светофор доступности",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Светофор доступности"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/translation-dialog.html",
+    "lang": "ru",
+    "title": "Новое направление перевода",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Новое направление перевода"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/translation-result-window.html",
+    "lang": "ru",
+    "title": "Перевод",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Перевод"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/welcome-0.html",
+    "lang": "ru",
+    "title": "Добро пожаловать в CyrFlip",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Добро пожаловать в CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/welcome-1.html",
+    "lang": "ru",
+    "title": "Индикаторы",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Индикаторы"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/welcome-2.html",
+    "lang": "ru",
+    "title": "Конвертация раскладок",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Конвертация раскладок"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/welcome-3.html",
+    "lang": "ru",
+    "title": "Дополнительные возможности",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Дополнительные возможности"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/welcome-4.html",
+    "lang": "ru",
+    "title": "Где находится CyrFlip",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Где находится CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/welcome-dialog.html",
+    "lang": "ru",
+    "title": "CyrFlip",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ru/yt-dlp-link-dialog.html",
+    "lang": "ru",
+    "title": "Загрузка yt-dlp",
+    "description": "Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки.",
+    "headings": [
+      "Загрузка yt-dlp"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/backup-restore-dialog.html",
+    "lang": "uk",
+    "title": "CyrFlip",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/clipboard-history-search-window.html",
+    "lang": "uk",
+    "title": "Пошук в історії",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Пошук в історії"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/clipboard-history-window.html",
+    "lang": "uk",
+    "title": "Історія буфера",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Історія буфера"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/exchange-account-dialog.html",
+    "lang": "uk",
+    "title": "Додати акаунт на сервері обміну",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Додати акаунт на сервері обміну"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/exchange-export-dialog.html",
+    "lang": "uk",
+    "title": "Експорт у файл обміну",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Експорт у файл обміну"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/hotkey-dialog.html",
+    "lang": "uk",
+    "title": "Сполучення",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Сполучення"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/index.html",
+    "lang": "uk",
+    "title": "Довідка",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Довідка"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/launcher-scenario-dialog.html",
+    "lang": "uk",
+    "title": "Новий сценарій",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Новий сценарій"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/layout-conversion-dialog.html",
+    "lang": "uk",
+    "title": "Нове перетворення розкладок",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Нове перетворення розкладок"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/layout-picker-dialog.html",
+    "lang": "uk",
+    "title": "Додати розкладку",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Додати розкладку"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/quick-notes-window.html",
+    "lang": "uk",
+    "title": "Швидкі нотатки (Ctrl+Shift+Alt+N)",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Швидкі нотатки (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-about.html",
+    "lang": "uk",
+    "title": "Про програму",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Про програму"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-clipboard.html",
+    "lang": "uk",
+    "title": "Буфер обміну",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Буфер обміну"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-conversions.html",
+    "lang": "uk",
+    "title": "Виправлення тексту",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Виправлення тексту"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-exchangeserver.html",
+    "lang": "uk",
+    "title": "Сервер обміну",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Сервер обміну"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-form--settings-search-dialog.html",
+    "lang": "uk",
+    "title": "Пошук налаштувань",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Пошук налаштувань"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-form.html",
+    "lang": "uk",
+    "title": "Налаштування CyrFlip",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Налаштування CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-general.html",
+    "lang": "uk",
+    "title": "Загальні",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Загальні"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-graphics.html",
+    "lang": "uk",
+    "title": "Знімки екрана",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Знімки екрана"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-hotkeys.html",
+    "lang": "uk",
+    "title": "Гарячі клавіші",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Гарячі клавіші"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-indicators.html",
+    "lang": "uk",
+    "title": "Індикатори",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Індикатори"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-launcher.html",
+    "lang": "uk",
+    "title": "Швидкий запуск",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Швидкий запуск"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-quicknotes.html",
+    "lang": "uk",
+    "title": "Швидкі нотатки",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Швидкі нотатки"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-selectionmenu.html",
+    "lang": "uk",
+    "title": "Меню виділення",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Меню виділення"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-symbols.html",
+    "lang": "uk",
+    "title": "Символи",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Символи"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-trafficlight.html",
+    "lang": "uk",
+    "title": "Світлофор доступності",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Світлофор доступності"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-transfer-dialog.html",
+    "lang": "uk",
+    "title": "Перенесення налаштувань",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Перенесення налаштувань"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-translate.html",
+    "lang": "uk",
+    "title": "Переклад",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Переклад"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/settings-windowslanguages.html",
+    "lang": "uk",
+    "title": "Мови Windows",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Мови Windows"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/support-bundle-dialog.html",
+    "lang": "uk",
+    "title": "Логи для автора",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Логи для автора"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/symbols-window.html",
+    "lang": "uk",
+    "title": "Вікно символів",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Вікно символів"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/traffic-light-quick-add-dialog.html",
+    "lang": "uk",
+    "title": "Нова ціль",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Нова ціль"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/traffic-light-target-dialog.html",
+    "lang": "uk",
+    "title": "Нова ціль",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Нова ціль"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/traffic-light-window.html",
+    "lang": "uk",
+    "title": "Світлофор доступності",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Світлофор доступності"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/translation-dialog.html",
+    "lang": "uk",
+    "title": "Новий напрямок перекладу",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Новий напрямок перекладу"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/translation-result-window.html",
+    "lang": "uk",
+    "title": "Переклад",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Переклад"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/welcome-0.html",
+    "lang": "uk",
+    "title": "Вітаємо в CyrFlip",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Вітаємо в CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/welcome-1.html",
+    "lang": "uk",
+    "title": "Індикатори",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Індикатори"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/welcome-2.html",
+    "lang": "uk",
+    "title": "Перетворення розкладок",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Перетворення розкладок"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/welcome-3.html",
+    "lang": "uk",
+    "title": "Додаткові можливості",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Додаткові можливості"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/welcome-4.html",
+    "lang": "uk",
+    "title": "Де знаходиться CyrFlip",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Де знаходиться CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/welcome-dialog.html",
+    "lang": "uk",
+    "title": "CyrFlip",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/uk/yt-dlp-link-dialog.html",
+    "lang": "uk",
+    "title": "Завантаження yt-dlp",
+    "description": "Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки.",
+    "headings": [
+      "Завантаження yt-dlp"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/backup-restore-dialog.html",
+    "lang": "ur",
+    "title": "CyrFlip",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/clipboard-history-search-window.html",
+    "lang": "ur",
+    "title": "تاریخ میں تلاش کریں",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "تاریخ میں تلاش کریں"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/clipboard-history-window.html",
+    "lang": "ur",
+    "title": "کلپ بورڈ تاریخ",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "کلپ بورڈ تاریخ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/exchange-account-dialog.html",
+    "lang": "ur",
+    "title": "ایکسچینج سرور پر اکاؤنٹ شامل کریں",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "ایکسچینج سرور پر اکاؤنٹ شامل کریں"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/exchange-export-dialog.html",
+    "lang": "ur",
+    "title": "ایکسچینج فائل میں ایکسپورٹ",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "ایکسچینج فائل میں ایکسپورٹ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/hotkey-dialog.html",
+    "lang": "ur",
+    "title": "شارٹ کٹ",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "شارٹ کٹ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/index.html",
+    "lang": "ur",
+    "title": "مدد",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "مدد"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/launcher-scenario-dialog.html",
+    "lang": "ur",
+    "title": "نیا منظرنامہ",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "نیا منظرنامہ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/layout-conversion-dialog.html",
+    "lang": "ur",
+    "title": "نئی لے آؤٹ تبدیلی",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "نئی لے آؤٹ تبدیلی"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/layout-picker-dialog.html",
+    "lang": "ur",
+    "title": "لے آؤٹ شامل کریں",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "لے آؤٹ شامل کریں"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/quick-notes-window.html",
+    "lang": "ur",
+    "title": "فوری نوٹس (Ctrl+Shift+Alt+N)",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "فوری نوٹس (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-about.html",
+    "lang": "ur",
+    "title": "تعارف",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "تعارف"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-clipboard.html",
+    "lang": "ur",
+    "title": "کلپ بورڈ",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "کلپ بورڈ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-conversions.html",
+    "lang": "ur",
+    "title": "متن کی درستی",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "متن کی درستی"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-exchangeserver.html",
+    "lang": "ur",
+    "title": "تبادلہ سرور",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "تبادلہ سرور"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-form--settings-search-dialog.html",
+    "lang": "ur",
+    "title": "ترتیبات میں تلاش",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "ترتیبات میں تلاش"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-form.html",
+    "lang": "ur",
+    "title": "CyrFlip کی ترتیبات",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "CyrFlip کی ترتیبات"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-general.html",
+    "lang": "ur",
+    "title": "عام",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "عام"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-graphics.html",
+    "lang": "ur",
+    "title": "اسکرین شاٹس",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "اسکرین شاٹس"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-hotkeys.html",
+    "lang": "ur",
+    "title": "شارٹ کٹ کیز",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "شارٹ کٹ کیز"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-indicators.html",
+    "lang": "ur",
+    "title": "اشارے",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "اشارے"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-launcher.html",
+    "lang": "ur",
+    "title": "فوری لانچ",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "فوری لانچ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-quicknotes.html",
+    "lang": "ur",
+    "title": "فوری نوٹس",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "فوری نوٹس"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-selectionmenu.html",
+    "lang": "ur",
+    "title": "انتخاب مینو",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "انتخاب مینو"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-symbols.html",
+    "lang": "ur",
+    "title": "علامات",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "علامات"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-trafficlight.html",
+    "lang": "ur",
+    "title": "دستیابی کی ٹریفک لائٹ",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "دستیابی کی ٹریفک لائٹ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-transfer-dialog.html",
+    "lang": "ur",
+    "title": "ترتیبات کی منتقلی",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "ترتیبات کی منتقلی"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-translate.html",
+    "lang": "ur",
+    "title": "ترجمہ",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "ترجمہ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/settings-windowslanguages.html",
+    "lang": "ur",
+    "title": "Windows کی زبانیں",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "Windows کی زبانیں"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/support-bundle-dialog.html",
+    "lang": "ur",
+    "title": "مصنف کے لیے لاگز",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "مصنف کے لیے لاگز"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/symbols-window.html",
+    "lang": "ur",
+    "title": "علامات کی ونڈو",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "علامات کی ونڈو"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/traffic-light-quick-add-dialog.html",
+    "lang": "ur",
+    "title": "نیا ہدف",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "نیا ہدف"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/traffic-light-target-dialog.html",
+    "lang": "ur",
+    "title": "نیا ہدف",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "نیا ہدف"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/traffic-light-window.html",
+    "lang": "ur",
+    "title": "دستیابی کی ٹریفک لائٹ",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "دستیابی کی ٹریفک لائٹ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/translation-dialog.html",
+    "lang": "ur",
+    "title": "ترجمے کی نئی سمت",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "ترجمے کی نئی سمت"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/translation-result-window.html",
+    "lang": "ur",
+    "title": "ترجمہ",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "ترجمہ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/welcome-0.html",
+    "lang": "ur",
+    "title": "CyrFlip میں خوش آمدید",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "CyrFlip میں خوش آمدید"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/welcome-1.html",
+    "lang": "ur",
+    "title": "اشارے",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "اشارے"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/welcome-2.html",
+    "lang": "ur",
+    "title": "لے آؤٹ تبدیلی",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "لے آؤٹ تبدیلی"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/welcome-3.html",
+    "lang": "ur",
+    "title": "اختیاری سہولتیں",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "اختیاری سہولتیں"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/welcome-4.html",
+    "lang": "ur",
+    "title": "CyrFlip کہاں ملتا ہے",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "CyrFlip کہاں ملتا ہے"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/welcome-dialog.html",
+    "lang": "ur",
+    "title": "CyrFlip",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/ur/yt-dlp-link-dialog.html",
+    "lang": "ur",
+    "title": "yt-dlp ڈاؤن لوڈ",
+    "description": "مدد آف لائن دستیاب ہے۔ CyrFlip ونڈو میں F1 دبائیں یا مدد کا بٹن استعمال کریں۔",
+    "headings": [
+      "yt-dlp ڈاؤن لوڈ"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/backup-restore-dialog.html",
+    "lang": "zh",
+    "title": "CyrFlip",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/clipboard-history-search-window.html",
+    "lang": "zh",
+    "title": "搜索历史",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "搜索历史"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/clipboard-history-window.html",
+    "lang": "zh",
+    "title": "剪贴板历史",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "剪贴板历史"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/exchange-account-dialog.html",
+    "lang": "zh",
+    "title": "在交换服务器上添加账户",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "在交换服务器上添加账户"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/exchange-export-dialog.html",
+    "lang": "zh",
+    "title": "导出到交换文件",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "导出到交换文件"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/hotkey-dialog.html",
+    "lang": "zh",
+    "title": "快捷键",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "快捷键"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/index.html",
+    "lang": "zh",
+    "title": "帮助",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "帮助"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/launcher-scenario-dialog.html",
+    "lang": "zh",
+    "title": "新建场景",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "新建场景"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/layout-conversion-dialog.html",
+    "lang": "zh",
+    "title": "新建布局转换",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "新建布局转换"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/layout-picker-dialog.html",
+    "lang": "zh",
+    "title": "添加布局",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "添加布局"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/quick-notes-window.html",
+    "lang": "zh",
+    "title": "快速笔记 (Ctrl+Shift+Alt+N)",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "快速笔记 (Ctrl+Shift+Alt+N)"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-about.html",
+    "lang": "zh",
+    "title": "关于",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "关于"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-clipboard.html",
+    "lang": "zh",
+    "title": "剪贴板",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "剪贴板"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-conversions.html",
+    "lang": "zh",
+    "title": "文本纠正",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "文本纠正"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-exchangeserver.html",
+    "lang": "zh",
+    "title": "交换服务器",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "交换服务器"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-form--settings-search-dialog.html",
+    "lang": "zh",
+    "title": "搜索设置",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "搜索设置"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-form.html",
+    "lang": "zh",
+    "title": "CyrFlip 设置",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "CyrFlip 设置"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-general.html",
+    "lang": "zh",
+    "title": "常规",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "常规"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-graphics.html",
+    "lang": "zh",
+    "title": "屏幕截图",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "屏幕截图"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-hotkeys.html",
+    "lang": "zh",
+    "title": "快捷键",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "快捷键"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-indicators.html",
+    "lang": "zh",
+    "title": "指示器",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "指示器"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-launcher.html",
+    "lang": "zh",
+    "title": "快速启动",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "快速启动"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-quicknotes.html",
+    "lang": "zh",
+    "title": "快速笔记",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "快速笔记"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-selectionmenu.html",
+    "lang": "zh",
+    "title": "选区菜单",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "选区菜单"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-symbols.html",
+    "lang": "zh",
+    "title": "符号",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "符号"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-trafficlight.html",
+    "lang": "zh",
+    "title": "可用性信号灯",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "可用性信号灯"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-transfer-dialog.html",
+    "lang": "zh",
+    "title": "设置迁移",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "设置迁移"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-translate.html",
+    "lang": "zh",
+    "title": "翻译",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "翻译"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/settings-windowslanguages.html",
+    "lang": "zh",
+    "title": "Windows 语言",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "Windows 语言"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/support-bundle-dialog.html",
+    "lang": "zh",
+    "title": "发送给作者的日志",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "发送给作者的日志"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/symbols-window.html",
+    "lang": "zh",
+    "title": "符号窗口",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "符号窗口"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/traffic-light-quick-add-dialog.html",
+    "lang": "zh",
+    "title": "新建目标",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "新建目标"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/traffic-light-target-dialog.html",
+    "lang": "zh",
+    "title": "新建目标",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "新建目标"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/traffic-light-window.html",
+    "lang": "zh",
+    "title": "可用性信号灯",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "可用性信号灯"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/translation-dialog.html",
+    "lang": "zh",
+    "title": "新建翻译方向",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "新建翻译方向"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/translation-result-window.html",
+    "lang": "zh",
+    "title": "翻译",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "翻译"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/welcome-0.html",
+    "lang": "zh",
+    "title": "欢迎使用 CyrFlip",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "欢迎使用 CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/welcome-1.html",
+    "lang": "zh",
+    "title": "指示器",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "指示器"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/welcome-2.html",
+    "lang": "zh",
+    "title": "布局转换",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "布局转换"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/welcome-3.html",
+    "lang": "zh",
+    "title": "可选功能",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "可选功能"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/welcome-4.html",
+    "lang": "zh",
+    "title": "在哪里找到 CyrFlip",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "在哪里找到 CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/welcome-dialog.html",
+    "lang": "zh",
+    "title": "CyrFlip",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "CyrFlip"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/help/zh/yt-dlp-link-dialog.html",
+    "lang": "zh",
+    "title": "yt-dlp 下载",
+    "description": "帮助支持离线阅读。在 CyrFlip 窗口中按 F1 或使用帮助按钮。",
+    "headings": [
+      "yt-dlp 下载"
     ]
   }
 ]

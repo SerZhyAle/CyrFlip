@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -30,6 +30,7 @@ namespace CyrFlip
 
         public LayoutConversionDialog(List<InputLayouts.Installed> layouts, LayoutConversionProfile? existing, string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             _uiLanguage = uiLanguage;
             Text = T(existing == null ? "New layout conversion" : "Edit layout conversion");
             FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false; MinimizeBox = false;
@@ -103,6 +104,7 @@ namespace CyrFlip
         /// <summary>Mirrors for Arabic/Urdu and picks a font that can draw the script - as the settings window does.</summary>
         private void ApplyScript(string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             if (Localization.IsRightToLeft(uiLanguage)) { RightToLeft = RightToLeft.Yes; RightToLeftLayout = true; }
             string? family = Localization.FontFamily(uiLanguage);
             if (family == null) return;
@@ -137,7 +139,7 @@ namespace CyrFlip
 
         private void SetHotkey()
         {
-            using var dialog = new HotkeyDialog(_hotkey.Text, T("Conversion hotkey"), _uiLanguage);
+            using var dialog = new HotkeyDialog(_hotkey.Text, T("Conversion shortcut"), _uiLanguage);
             if (dialog.ShowDialog(this) == DialogResult.OK && dialog.CapturedHotkey != null) _hotkey.Text = dialog.CapturedHotkey;
         }
 
@@ -151,7 +153,7 @@ namespace CyrFlip
             // Every refused OK says why; it used to do nothing, silently (DL-4).
             if (!Hotkey.TryParse(_hotkey.Text, out _))
             {
-                ConfirmDialog.Show(this, _uiLanguage, T("Set a hotkey first."),
+                ConfirmDialog.Show(this, _uiLanguage, T("Set a shortcut first."),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 DialogResult = DialogResult.None;
                 return;

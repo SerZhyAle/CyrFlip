@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -44,6 +44,7 @@ namespace CyrFlip
 
         public LauncherScenarioDialog(LauncherScenario? existing, string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             _uiLanguage = uiLanguage;
             _edited = existing?.Clone() ?? new LauncherScenario();
             Text = T(existing == null ? "New scenario" : "Edit scenario");

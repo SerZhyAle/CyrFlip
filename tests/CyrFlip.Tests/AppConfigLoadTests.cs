@@ -207,7 +207,7 @@ namespace CyrFlip.Tests
         public void TheScreenshotsFolderChordDefaultsRoundTripsAndFallsBackAlone()
         {
             Assert.Equal(AppConfig.DefaultScreenshotFolderHotkey, new AppConfig().ScreenshotFolderHotkey);
-            Assert.Equal("Ctrl+Shift+PrintScreen", AppConfig.DefaultScreenshotFolderHotkey);
+            Assert.Equal("Ctrl+F10", AppConfig.DefaultScreenshotFolderHotkey);   // S0071 re-keyed it
             Assert.True(new AppConfig().EnableScreenshotFolderHotkey);
 
             // A non-canonical token comes back canonical and is written back that way (rule 2).

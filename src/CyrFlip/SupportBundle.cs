@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -83,7 +83,7 @@ namespace CyrFlip
         {
             "launcher.log", "context-menu.log", "translate.log", "quick-notes-diagnostics.log",
             "clipboard-history-diagnostics.log", "clipboard-flip.log", "screenshot.log",
-            "settings-file.log", "caret-diagnostics.txt", "crash.log", "layout.txt",
+            "settings-file.log", "exchange-clipboard.log", "caret-diagnostics.txt", "crash.log", "layout.txt",
         };
 
         /// <summary>
@@ -120,6 +120,7 @@ namespace CyrFlip
             ["screenshot.log"] = "screen captures: the file save outcome - no paths",
             ["caret-diagnostics.txt"] = "caret diagnostics: window classes and processes - titles only as a length",
             ["settings-file.log"] = "settings transfer: counts, key names and reason codes - no values",
+            ["exchange-clipboard.log"] = "exchange server clipboard: kind, size and outcome codes - no text, names or addresses",
             // S0065 E-11: the bundle a user mails after a crash used to hold no crash - Fatal writes
             // the exception to crash.log, which was never in the whitelist. It passes the redactor
             // like every file (the profile becomes <USER>), so the stack can keep its paths.
@@ -152,7 +153,7 @@ namespace CyrFlip
             Shape($@"^Launch error for '.*' \[{Guid36}\] \({LaunchKinds}\): [A-Za-z0-9_.]+(?: \(Win32 error -?\d+\))?$"),
             Shape(@"^yt-dlp launch cancelled by user$"),
             Shape($@"^yt-dlp: the stored extra parameters of '.*' \[{Guid36}\] are not passed \(characters outside the allowed set\)$"),
-            Shape($@"^IPC: (?:sent to live instance|received|ignored while the launcher is off): /(?:launcher-run:{Guid36}|launcher-settings|exit)$"),
+            Shape($@"^IPC: (?:sent to live instance|received|ignored while the launcher is off): /(?:launcher-run:{Guid36}|launcher-settings|clipboard-send|clipboard-get|exit)$"),
             Shape(@"^IPC: (?:listener stopped|ignored a line that is not a command \(\d+ chars\)|dropped a client that sent nothing within \d+ ms)$"),
             Shape(@"^JumpList: build failed: [A-Za-z0-9_.]+$"),
             Shape($@"^Migration: skipped unreadable {BareFileName}$"),

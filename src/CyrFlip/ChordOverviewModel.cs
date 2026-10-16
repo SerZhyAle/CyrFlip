@@ -56,6 +56,22 @@ namespace CyrFlip
                 case ChordKind.Translation: return ChordGroup.Translations;
                 case ChordKind.Launcher: return ChordGroup.Launcher;
                 case ChordKind.WindowsLanguage: return ChordGroup.Windows;
+                // The fixed kinds are named, not lumped into the default: a new fixed kind must be
+                // spelled out here (and in ChordDefaults.IsFixed) before the overview shows it.
+                case ChordKind.Case:
+                case ChordKind.History:
+                case ChordKind.QuickNotes:
+                case ChordKind.Symbols:
+                case ChordKind.TrafficLight:
+                case ChordKind.ExchangeSend:
+                case ChordKind.ExchangeGet:
+                case ChordKind.Screenshot:
+                case ChordKind.ScreenshotFull:
+                case ChordKind.ScreenshotAnnotateArea:
+                case ChordKind.ScreenshotFullAnnotate:
+                case ChordKind.ScreenshotFolder:
+                case ChordKind.TextMenu:
+                    return ChordGroup.Fixed;
                 default: return ChordGroup.Fixed;
             }
         }
@@ -171,10 +187,23 @@ namespace CyrFlip
                 config.TrafficLightHotkey, config.EnableTrafficLightHotkey, config.EnableTrafficLight, SettingsPageKey.TrafficLight);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.Screenshot,
                 config.ScreenshotHotkey, config.EnableScreenshotHotkey, true, SettingsPageKey.Graphics);
+            // The full capture: its own switch only, no module switch - the tray item is always there.
+            AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.ScreenshotFull,
+                config.ScreenshotFullHotkey, config.EnableScreenshotFullHotkey, true, SettingsPageKey.Graphics);
+            // The annotate pair: bound only while the draw module is on (S0071 6.1), so the module-off
+            // state reads from EnableScreenshotAnnotate like every other opt-in feature's.
+            AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.ScreenshotAnnotateArea,
+                config.ScreenshotAnnotateAreaHotkey, config.EnableScreenshotAnnotateAreaHotkey, config.EnableScreenshotAnnotate, SettingsPageKey.Graphics);
+            AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.ScreenshotFullAnnotate,
+                config.ScreenshotFullAnnotateHotkey, config.EnableScreenshotFullAnnotateHotkey, config.EnableScreenshotAnnotate, SettingsPageKey.Graphics);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.ScreenshotFolder,
                 config.ScreenshotFolderHotkey, config.EnableScreenshotFolderHotkey, config.ScreenshotSaveEnabled, SettingsPageKey.Graphics);
             AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.TextMenu,
                 config.TextMenuHotkey, config.EnableTextMenuHotkey, config.EnableContextMenu, SettingsPageKey.SelectionMenu);
+            AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.ExchangeSend,
+                config.ExchangeClipboardSendHotkey, config.EnableExchangeClipboardSendHotkey, config.EnableExchangeClipboard, SettingsPageKey.ExchangeServer);
+            AddFixed(rows, config, registry, uiLanguage, layoutName, ChordKind.ExchangeGet,
+                config.ExchangeClipboardGetHotkey, config.EnableExchangeClipboardGetHotkey, config.EnableExchangeClipboard, SettingsPageKey.ExchangeServer);
 
             // --- the text menu's mouse chord ---------------------------------------------------------
             MouseChord mouse = MouseChord.Parse(config.ContextMenuChord);
@@ -318,10 +347,15 @@ namespace CyrFlip
                 case ChordKind.History: return config.ClipboardHistoryHotkey;
                 case ChordKind.QuickNotes: return config.QuickNotesHotkey;
                 case ChordKind.Screenshot: return config.ScreenshotHotkey;
+                case ChordKind.ScreenshotFull: return config.ScreenshotFullHotkey;
+                case ChordKind.ScreenshotAnnotateArea: return config.ScreenshotAnnotateAreaHotkey;
+                case ChordKind.ScreenshotFullAnnotate: return config.ScreenshotFullAnnotateHotkey;
                 case ChordKind.ScreenshotFolder: return config.ScreenshotFolderHotkey;
                 case ChordKind.TextMenu: return config.TextMenuHotkey;
                 case ChordKind.Symbols: return config.SymbolsHotkey;
                 case ChordKind.TrafficLight: return config.TrafficLightHotkey;
+                case ChordKind.ExchangeSend: return config.ExchangeClipboardSendHotkey;
+                case ChordKind.ExchangeGet: return config.ExchangeClipboardGetHotkey;
                 default: throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a fixed chord");
             }
         }
@@ -334,10 +368,15 @@ namespace CyrFlip
                 case ChordKind.History: config.ClipboardHistoryHotkey = token; break;
                 case ChordKind.QuickNotes: config.QuickNotesHotkey = token; break;
                 case ChordKind.Screenshot: config.ScreenshotHotkey = token; break;
+                case ChordKind.ScreenshotFull: config.ScreenshotFullHotkey = token; break;
+                case ChordKind.ScreenshotAnnotateArea: config.ScreenshotAnnotateAreaHotkey = token; break;
+                case ChordKind.ScreenshotFullAnnotate: config.ScreenshotFullAnnotateHotkey = token; break;
                 case ChordKind.ScreenshotFolder: config.ScreenshotFolderHotkey = token; break;
                 case ChordKind.TextMenu: config.TextMenuHotkey = token; break;
                 case ChordKind.Symbols: config.SymbolsHotkey = token; break;
                 case ChordKind.TrafficLight: config.TrafficLightHotkey = token; break;
+                case ChordKind.ExchangeSend: config.ExchangeClipboardSendHotkey = token; break;
+                case ChordKind.ExchangeGet: config.ExchangeClipboardGetHotkey = token; break;
                 default: throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a fixed chord");
             }
         }
@@ -350,10 +389,15 @@ namespace CyrFlip
                 case ChordKind.History: return config.EnableHistoryHotkey;
                 case ChordKind.QuickNotes: return config.EnableQuickNotesHotkey;
                 case ChordKind.Screenshot: return config.EnableScreenshotHotkey;
+                case ChordKind.ScreenshotFull: return config.EnableScreenshotFullHotkey;
+                case ChordKind.ScreenshotAnnotateArea: return config.EnableScreenshotAnnotateAreaHotkey;
+                case ChordKind.ScreenshotFullAnnotate: return config.EnableScreenshotFullAnnotateHotkey;
                 case ChordKind.ScreenshotFolder: return config.EnableScreenshotFolderHotkey;
                 case ChordKind.TextMenu: return config.EnableTextMenuHotkey;
                 case ChordKind.Symbols: return config.EnableSymbolsHotkey;
                 case ChordKind.TrafficLight: return config.EnableTrafficLightHotkey;
+                case ChordKind.ExchangeSend: return config.EnableExchangeClipboardSendHotkey;
+                case ChordKind.ExchangeGet: return config.EnableExchangeClipboardGetHotkey;
                 default: throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a fixed chord");
             }
         }
@@ -366,10 +410,15 @@ namespace CyrFlip
                 case ChordKind.History: config.EnableHistoryHotkey = on; break;
                 case ChordKind.QuickNotes: config.EnableQuickNotesHotkey = on; break;
                 case ChordKind.Screenshot: config.EnableScreenshotHotkey = on; break;
+                case ChordKind.ScreenshotFull: config.EnableScreenshotFullHotkey = on; break;
+                case ChordKind.ScreenshotAnnotateArea: config.EnableScreenshotAnnotateAreaHotkey = on; break;
+                case ChordKind.ScreenshotFullAnnotate: config.EnableScreenshotFullAnnotateHotkey = on; break;
                 case ChordKind.ScreenshotFolder: config.EnableScreenshotFolderHotkey = on; break;
                 case ChordKind.TextMenu: config.EnableTextMenuHotkey = on; break;
                 case ChordKind.Symbols: config.EnableSymbolsHotkey = on; break;
                 case ChordKind.TrafficLight: config.EnableTrafficLightHotkey = on; break;
+                case ChordKind.ExchangeSend: config.EnableExchangeClipboardSendHotkey = on; break;
+                case ChordKind.ExchangeGet: config.EnableExchangeClipboardGetHotkey = on; break;
                 default: throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a fixed chord");
             }
         }

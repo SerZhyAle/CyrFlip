@@ -68,7 +68,7 @@
     <nav class="langbar" aria-label="Language"><a href="ru/trust.html" data-sza-lang="ru" lang="ru" hreflang="ru"><span class="code">RU</span><span class="endonym">Русский</span></a><a href="trust.html" class="active" aria-current="page" data-sza-lang="en" lang="en" hreflang="en"><span class="code">EN</span><span class="endonym">English</span></a><a href="uk/trust.html" data-sza-lang="ua" lang="uk" hreflang="uk"><span class="code">UA</span><span class="endonym">Українська</span></a><a href="de/trust.html" lang="de" hreflang="de"><span class="code">DE</span><span class="endonym">Deutsch</span></a><a href="it/trust.html" lang="it" hreflang="it"><span class="code">IT</span><span class="endonym">Italiano</span></a><a href="es/trust.html" lang="es" hreflang="es"><span class="code">ES</span><span class="endonym">Español</span></a><a href="fr/trust.html" lang="fr" hreflang="fr"><span class="code">FR</span><span class="endonym">Français</span></a><a href="pt/trust.html" lang="pt" hreflang="pt"><span class="code">PT</span><span class="endonym">Português</span></a><a href="ar/trust.html" lang="ar" hreflang="ar"><span class="code">AR</span><span class="endonym" dir="rtl">العربية</span></a><a href="hi/trust.html" lang="hi" hreflang="hi"><span class="code">HI</span><span class="endonym">हिन्दी</span></a><a href="bn/trust.html" lang="bn" hreflang="bn"><span class="code">BN</span><span class="endonym">বাংলা</span></a><a href="ur/trust.html" lang="ur" hreflang="ur"><span class="code">UR</span><span class="endonym" dir="rtl">اردو</span></a><a href="zh/trust.html" lang="zh" hreflang="zh"><span class="code">ZH</span><span class="endonym">中文</span></a></nav>
     <section>
       <h1>Why Windows or an antivirus may warn about CyrFlip</h1>
-      <p class="note">Last updated: 24 September 2026</p>
+      <p class="note">Last updated: 16 October 2026</p>
 
       <p>This page is for the moment right after Windows or your antivirus stopped CyrFlip. It says what the
       warning is, why it appears, exactly what to click, and what CyrFlip never does - in that order, so you
@@ -134,9 +134,11 @@
         rights.</li>
         <li><strong>Never records, stores or sends your keystrokes.</strong> The keyboard hook only recognises
         CyrFlip's own shortcuts.</li>
-        <li><strong>Never sends anything anywhere</strong> - no telemetry, no accounts, no servers of its own.
-        The one exception is the optional translator (off by default): it sends the selected text to the Ollama
-        address you set, by default a program on your own computer.</li>
+        <li><strong>Never sends anything to the developer</strong> - no telemetry, no accounts, no servers of its own.
+        Two optional features, both off by default, send what you ask them to, to a place you choose: the translator
+        (the selected text, to the Ollama address you set - by default a program on your own computer) and the
+        clipboard on the server (what is on the clipboard, encrypted for your own devices, to the exchange server
+        you sign in to).</li>
         <li><strong>Never installs a service or a driver.</strong></li>
         <li><strong>Never writes outside your user profile</strong>, except a copy of the small layout file under
         <code>%ProgramData%\CyrFlip</code> in the Microsoft Store version, kept for older versions of the

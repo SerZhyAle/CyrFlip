@@ -58,7 +58,7 @@ namespace CyrFlip.Tests
             => new QuickNotesService(new QuickNotesStore(
                 Path.Combine(_root, name + "-" + QuickNotesStore.FileName), new FakeCipher()));
 
-        [Fact]
+        [UiSweepFact]
         public void AGlyphOnlyButtonCarriesTheRecordsNameInEveryLanguage()
         {
             // ICON-RENDER rule 8 (ticket S0022 A4/A5): the two move buttons show the vocabulary glyph and no
@@ -91,7 +91,7 @@ namespace CyrFlip.Tests
                 foreach (Control deeper in All(child)) yield return deeper;
             }
         }
-        [Fact]
+        [UiSweepFact]
         public void TheWindowBuildsInEveryLanguageWithNoCyrillicLeftInALatinBuild()
         {
             var problems = new List<string>();
@@ -198,7 +198,7 @@ namespace CyrFlip.Tests
         /// wherever the captions are longer than the Russian they were eyeballed against - and, since
         /// a stored size is only ever grown to the minimum, the first open was that clipped window.
         /// </summary>
-        [Fact]
+        [UiSweepFact]
         public void TheWindowIsNeverSmallerThanItsOwnContentInAnyLanguage()
         {
             var problems = new List<string>();

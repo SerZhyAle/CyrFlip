@@ -94,7 +94,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void PopupBuildsInAll13LanguagesWithoutClipping()
         {
             var problems = new List<string>();
@@ -224,7 +224,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void NoSurvivingCyrillicInNonCyrillicLocales()
         {
             var problems = new List<string>();

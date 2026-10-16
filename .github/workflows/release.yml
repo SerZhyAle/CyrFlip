@@ -120,6 +120,9 @@ jobs:
       # and high-stakes, and tags can be pushed without first passing through a PR.
       - name: Test
         shell: pwsh
+        # A release is where the 13-language UI sweeps run (tests/CyrFlip.Tests/UiSweepGate.cs).
+        env:
+          CYRFLIP_SWEEP: full
         # The TRX count check fails a run that discovered nothing, which exits 0 (S0029 RB-6).
         run: |
           dotnet test CyrFlip.sln -c Release --no-build --logger trx --results-directory TestResults

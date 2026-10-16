@@ -191,7 +191,7 @@ namespace CyrFlip
                 items.Add(Command(row.Label, row.Shortcut, hasSelection, () => convert(id)));
             }
 
-            items.Add(Command(translate("Fix CapsLock"), state.CaseShortcut, hasSelection, caseFlip));
+            items.Add(Command(translate("Case flip"), state.CaseShortcut, hasSelection, caseFlip));
 
             foreach (TextMenuRow row in state.Translations)
             {
@@ -227,7 +227,7 @@ namespace CyrFlip
             }
 
             if (state.ShowHistory)
-                items.Add(new ToolStripMenuItem(translate("Clipboard manager"), null, (_, _) => showHistory()));
+                items.Add(new ToolStripMenuItem(translate("Clipboard history"), null, (_, _) => showHistory()));
 
             if (state.ShowSymbols && showSymbols != null)
                 items.Add(new ToolStripMenuItem(translate("Symbols"), null, (_, _) => showSymbols()));

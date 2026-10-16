@@ -34,7 +34,7 @@ namespace CyrFlip.Tests
         };
 
         private static readonly Regex ExceptionMessageRegex = new Regex(@"\bex(ception)?\.Message\b", RegexOptions.Compiled);
-        private static readonly Regex AllowedLogLineRegex = new Regex(@"^\s*(///?|\*|Log\(|LauncherLog\.Log|TranslateLog\.Log|TextMenuLog\.Log|QuickNotesLog\.Log|DiagnosticLog\.Log)", RegexOptions.Compiled);
+        private static readonly Regex AllowedLogLineRegex = new Regex(@"^\s*(///?|\*|Log\(|LauncherLog\.Log|TranslateLog\.Log|TextMenuLog\.Log|QuickNotesLog\.Log|DiagnosticLog\.Log|ExchangeClipboardLog\.Log)", RegexOptions.Compiled);
 
         private static void OnUiThread(Action body)
         {
@@ -218,7 +218,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void GlyphOnlyButtonsCarryAccessibleNamesAcrossAllLanguages()
         {
             var problems = new List<string>();

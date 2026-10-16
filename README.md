@@ -26,12 +26,13 @@
 
 7. **An encrypted clipboard history** with search, pins and a compact strip on **Ctrl+Shift+F10**.
 8. **Quick notes.** Press **Ctrl+Shift+Alt+N**, type or paste, close. The text is kept exactly as it is - no Markdown, no highlighting, no auto-formatting - so a fragment of code pastes back into the editor without a single change, and search looks inside the body, because most notes never get a name. Stored only on your machine, encrypted with Windows DPAPI. Notes and clipboard history move to another computer as one plain-text exchange file you export yourself.
+9. **The clipboard on your own exchange server.** Send what you copied - a text, a picture or one file - to your other devices through a server you or someone you trust runs, and get it back there; it is encrypted on your computer first, sent only when you press the button, and off until you switch it on.
 
 **Launch and capture:**
 
-9. **Screen-region capture.** **Ctrl+PrintScreen** (or the tray item) freezes the screen, you drag a region, and the picture goes to the clipboard - optionally also saved as a PNG into a folder. While saving is on, **Ctrl+Shift+PrintScreen** opens that folder.
-10. **A quick-launch module (the absorbed [OneClickRunner](https://github.com/SerZhyAle/OneClickRunner)), opt-in.** Your programs, scripts and yt-dlp downloads as scenarios, launched from the tray, the settings table, an optional per-scenario global hotkey, or the taskbar **Jump List**. Until you enable it, CyrFlip behaves exactly as before.
-11. **Two keep-awake switches** - no sleep, no screen blanking - remembered across restarts.
+10. **Screen-region capture.** **Ctrl+PrintScreen** (or the tray item) freezes the screen, you drag a region, and the picture goes to the clipboard - optionally also saved as a PNG into a folder. While saving is on, **Ctrl+Shift+PrintScreen** opens that folder.
+11. **A quick-launch module (the absorbed [OneClickRunner](https://github.com/SerZhyAle/OneClickRunner)), opt-in.** Your programs, scripts and yt-dlp downloads as scenarios, launched from the tray, the settings table, an optional per-scenario global hotkey, or the taskbar **Jump List**. Until you enable it, CyrFlip behaves exactly as before.
+12. **Two keep-awake switches** - no sleep, no screen blanking - remembered across restarts.
 
 **Yours alone:** no account, no telemetry, nothing sent to the developer; a UI in **13 languages**, right-to-left included; a light, dark or Windows-matching theme; one portable exe with nothing to install. How the product is introduced everywhere is set in [POSITIONING.md](POSITIONING.md).
 
@@ -79,6 +80,7 @@ Early development - which here means "it works, but we reserve the right to be h
   - **Quick notes** - the local notepad (see below): the switch, its chord, whether the editor wraps long lines, the export of every note to one Markdown file, and the button that destroys the lot.
   - **Screenshots** - the **screen region capture**: its chord (**Ctrl+PrintScreen** by default), a **Capture a region** button, and the optional saving of every capture as a PNG into a folder you choose; the folder opens on its own chord (**Ctrl+Shift+PrintScreen** by default), bound only while saving is on. The capture always goes to the clipboard; the same command is in the tray menu.
   - **Quick launch** - the scenario launcher (see below).
+  - **Exchange server** - the optional clipboard on the server (see below): the switch, the accounts, the two chords, the desktop shortcuts and the folder for received files.
   - **Hotkeys** - the master switch and the option to yield the chords to a focused remote-desktop client, then every CyrFlip chord in one list: what it does, whether it works right now and why not, with change, switch and reset on each row. A chord's own switch stays on the page of its feature.
   - **About** - the **build version** (the same `YY.M.D.HHmm` stamp the release ZIP carries, so you can tell at a glance whether a fix is in your copy), links to the MIT licence and the privacy policy, plus the caret-position diagnostics and **Send logs to the author..** (see below).
 
@@ -122,6 +124,17 @@ A small local notepad for the thing you want to keep right now and find again la
 - **Stored locally and encrypted.** An append-only journal in the same folder as the other CyrFlip data, each record protected by Windows DPAPI for your account - title included, not just the body. Nothing goes to the network, nothing is indexed by Windows Search, and the clipboard history is never turned into notes by itself. It is **not** a secret store: don't keep passwords, production tokens or private keys there.
 - **Getting text out:** copy, export one note as `.txt` or `.md`, export every note into a single Markdown file, or **Copy for Google Keep** - the text goes to the clipboard and CyrFlip offers to open Keep, where you paste it. That is the honest limit: Google's Keep API is a Workspace-administrator interface, not something a personal account can use, so CyrFlip does not pretend to synchronize.
 
+## Clipboard on the server
+
+An optional module that passes **one thing you copied** - a text, a picture or one file - to your other devices through an **exchange server** that you or someone you trust runs. CyrFlip becomes one more device of your account there; it signs in to an existing account (ask whoever runs the server for an invitation) and does two things: **Send clipboard to server** and **Get clipboard from server**. **Off by default**; enable it on Settings → **Exchange server**. While it is off, CyrFlip opens no connection for it, and its tray items, shortcuts and chords are unavailable.
+
+- **Exactly what is on the clipboard.** Send puts what the clipboard holds at that moment on the server - a password you copied a minute ago included. There is no preview, no confirmation and no filter; press it only when you mean it. Nothing is ever sent by itself: no monitoring, no timer, no send at start.
+- **The server cannot read it.** The value is encrypted on your computer for your other devices before it leaves; the server keeps only the last value, in its memory, for your account alone. It does see that you are online, which devices you have, and how much is sent and when.
+- **One object at a time.** Several files or a folder go as one archive you make first.
+- **Get takes the newest.** With several accounts it places the value that is newest by the server's own time. A received text is an ordinary copy, so the clipboard history records it like any other; a received file lands in `Downloads\CyrFlip` (changeable) and never overwrites a file that exists.
+- **Trust before the password.** The sign-in dialog shows the server and its certificate before you type the password and says where the password will go; a self-signed certificate is pinned once you accept its fingerprint, and a different one is then refused. The password is used once and never stored; the device token and the key are protected with Windows DPAPI.
+- **Three ways to run it:** the tray menu, a chord (both ship **without** a combination - you choose, and CyrFlip refuses one that another feature holds) and a desktop shortcut or a Jump List task. **Cancel the clipboard transfer** in the tray menu stops one in progress.
+- **Explained in the program and on the portal:** the settings page says what the server can and cannot see, in the contract's own words, and links to [About the clipboard on the server](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-clipboard.html) and [About the exchange server](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-server.html) on the exchange portal.
 ## VS Code extension
 
 Inside VS Code the external marker can't track the caret precisely (Monaco draws its own caret).
@@ -230,7 +243,7 @@ Windows SmartScreen ("Windows protected your PC") or an antivirus may stop `CyrF
 
 ## FAQ
 
-- **Is it a keylogger?** No. The keyboard hook looks at each key only to see whether it is one of your chords; nothing is recorded, nothing is sent anywhere, and there is no telemetry. The only text CyrFlip keeps is what you switch on yourself - the clipboard history and the quick notes (both off by default, both encrypted with Windows DPAPI). The [privacy policy](https://serzhyale.github.io/CyrFlip/privacy.html) is published in all 13 interface languages.
+- **Is it a keylogger?** No. The keyboard hook looks at each key only to see whether it is one of your chords; nothing is recorded, nothing is sent to the developer, and there is no telemetry. The only text CyrFlip keeps is what you switch on yourself - the clipboard history and the quick notes (both off by default, both encrypted with Windows DPAPI). Two optional features send something, both off by default and only when you press a button: the translator (the selected text, to the Ollama address you set - by default a program on your own computer) and the clipboard on the server (what is on the clipboard, encrypted for your own devices, to the exchange server you signed in to). The [privacy policy](https://serzhyale.github.io/CyrFlip/privacy.html) is published in all 13 interface languages.
 - **Does it switch the layout by itself?** No, and on purpose. It acts only on your chord, so it cannot misfire in an IDE, a terminal, a game or a password field, and there is no exclusion list to maintain. The one automatic thing is the indicator, which only shows the layout.
 - **Why does the translator need Ollama?** It does not, unless you turn the translator on. It is off by default and, while it is off, CyrFlip opens no network socket. When on, CyrFlip hands the selected text to [Ollama](https://ollama.com) running on your own computer and the **model** translates it - CyrFlip sends the text, it does not translate, and it makes no promise about which languages a given model handles. No account, no key, nothing goes to the developer or to a cloud service.
 - **Why does Windows warn about the ZIP?** See [Windows or antivirus warnings](#windows-or-antivirus-warnings). The Microsoft Store build avoids it.
@@ -242,3 +255,8 @@ Windows SmartScreen ("Windows protected your PC") or an antivirus may stop `CyrF
 ## License
 
 MIT - see [LICENSE](LICENSE).
+
+
+<!-- S0075 -->
+Help is available offline. Press F1 in a CyrFlip window or use its help button. [Help](https://serzhyale.github.io/CyrFlip/help/en/index.html).
+<!-- /S0075 -->

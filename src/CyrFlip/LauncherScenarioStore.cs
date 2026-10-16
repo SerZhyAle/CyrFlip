@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -66,6 +67,9 @@ namespace CyrFlip
         /// surface that mirrors it can tell "nothing changed" without comparing scenarios (S0030 HT-1).
         /// </summary>
         public int Version { get; private set; }
+
+        // Read the actual files so comments, whitespace and extension elements travel unchanged.
+        internal string[] ReadDocuments() => All.Select(s => File.ReadAllText(Path.Combine(_folder, s.Filename))).ToArray();
 
         public LauncherScenario? Find(Guid id) => _items.Find(s => s.Id == id);
 
@@ -169,17 +173,34 @@ namespace CyrFlip
         public static LauncherScenario? TryRead(string file, out Exception? error)
         {
             error = null;
+            try { return TryReadXml(File.ReadAllText(file), out error); }
+            catch (Exception ex) { error = ex; return null; }
+        }
+
+        /// <summary>
+        /// The <see cref="TryRead"/> validator over a string - the settings file v2 carries scenario
+        /// documents verbatim (S0072 5.3), and the import judges each with the same one parser. What is
+        /// refused is refused whole: a document this build does not understand never runs its
+        /// <c>Path</c> (<c>SCENARIO-FILE</c> rule 10).
+        /// </summary>
+        public static LauncherScenario? TryReadXml(string xml, out Exception? error)
+        {
+            error = null;
             try
             {
                 var serializer = new XmlSerializer(typeof(LauncherScenario));
-                using FileStream stream = File.OpenRead(file);
-                using XmlReader reader = XmlReader.Create(stream, new XmlReaderSettings { CheckCharacters = false });
+                using XmlReader reader = XmlReader.Create(new StringReader(xml), new XmlReaderSettings { CheckCharacters = false });
                 reader.MoveToContent();
                 CheckRoot(reader);
                 var item = (LauncherScenario?)serializer.Deserialize(reader);
                 if (item != null && item.Path == LauncherScenario.LegacyYtDlpSentinel
                     && item.Type == LauncherScenarioType.Executable)
                     item.Type = LauncherScenarioType.YtDlp;
+                if (item != null)
+                {
+                    item.TransferXml = xml;
+                    item.TransferSignature = TransferSignature(item);
+                }
                 return item;
             }
             catch (Exception ex)
@@ -317,6 +338,55 @@ namespace CyrFlip
             SerializeScenario(stream, item);
         }
 
+        /// <summary>The verbatim document the settings file v2 carries in its <c>scenarios</c> section (S0072 5.3).</summary>
+        public static string ToXml(LauncherScenario item)
+        {
+            using var stream = new MemoryStream();
+            SerializeScenario(stream, item);
+            return Encoding.UTF8.GetString(stream.ToArray());
+        }
+
+        /// <summary>
+        /// Import-replace of the whole set (S0072 5.3, the tables' I6 parity): scenarios whose id the
+        /// set no longer holds are deleted, the rest are written (a scenario without its own file yet
+        /// gets <c>{id}.xml</c>), colliding ids are regenerated first. The caller must have made the
+        /// scenario snapshot first - this deletes files, and I1 puts them back on rollback.
+        /// </summary>
+        public Exception? ReplaceSet(IEnumerable<LauncherScenario> items)
+        {
+            if (_readOnly) throw new InvalidOperationException("A read-only scenario store is never written.");
+            var incoming = items.Select(s => s.Clone()).ToList();
+            var seen = new HashSet<Guid>();
+            foreach (LauncherScenario scenario in incoming)
+            { while (scenario.Id == Guid.Empty || !seen.Add(scenario.Id)) { scenario.Id = Guid.NewGuid(); scenario.Filename = string.Empty; } }
+            // Array order is the export order (the store's order); make it the stored order.
+            // Filename in a document is untrusted. Always choose a local name from its validated Id.
+            for (int i = 0; i < incoming.Count; i++) { incoming[i].Order = i; incoming[i].Filename = incoming[i].Id + ".xml"; }
+            var keepFiles = new HashSet<string>(incoming.Select(s => s.Filename), StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                Directory.CreateDirectory(_folder);
+                foreach (LauncherScenario existing in _items)
+                {
+                    if (keepFiles.Contains(existing.Filename)) continue;
+                    string path = Path.Combine(_folder, existing.Filename);
+                    try { if (File.Exists(path)) File.Delete(path); }
+                    catch (Exception ex) { LauncherLog.Log("Store: replace-set delete failed for " + existing.Filename + ": " + ex.GetType().Name); return ex; }
+                }
+                // A file named for a scenario that is gone but was never deleted above (already absent)
+                // stays orphaned only if no incoming scenario reuses its name. Rewriting a document the
+                // file already holds is harmless: SaveItem replaces atomically.
+                foreach (LauncherScenario scenario in incoming)
+                {
+                    Exception? failure = SaveItem(scenario);
+                    if (failure != null) return failure;
+                }
+            }
+            catch (Exception ex) { return ex; }
+            Reload();
+            return null;
+        }
+
         /// <summary>
         /// The clean-first-enable sample (spec §5.2): created only when the list is empty, deletable
         /// forever - the caller guards with the one-time <c>LauncherFirstEnableDone</c> marker, so an
@@ -362,7 +432,14 @@ namespace CyrFlip
                 // instance and a one-shot /launcher-run process can save the same scenario.
                 temp = TempPathFor(path);
                 using (FileStream stream = File.Create(temp))
-                    SerializeScenario(stream, item);
+                {
+                    if (item.TransferXml != null && item.TransferSignature == TransferSignature(item))
+                    {
+                        byte[] bytes = new UTF8Encoding(false).GetBytes(item.TransferXml);
+                        stream.Write(bytes, 0, bytes.Length);
+                    }
+                    else SerializeScenario(stream, item);
+                }
                 if (File.Exists(path)) File.Replace(temp, path, null);
                 else File.Move(temp, path);
                 temp = null;
@@ -380,6 +457,13 @@ namespace CyrFlip
                     try { File.Delete(temp); } catch { /* removed as stale on a later load */ }
                 }
             }
+        }
+
+        private static string TransferSignature(LauncherScenario item)
+        {
+            var copy = item.Clone();
+            copy.Filename = ""; // destination filenames are local bookkeeping
+            return ToXml(copy);
         }
 
         private static void SerializeScenario(Stream stream, LauncherScenario item)

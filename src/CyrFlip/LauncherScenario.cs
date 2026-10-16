@@ -62,6 +62,8 @@ namespace CyrFlip
         /// <summary>True once anything - the XML reader included - has set <see cref="Id"/>.</summary>
         [XmlIgnore]
         internal bool IdWasAssigned { get; private set; }
+        internal string? TransferXml;
+        internal string? TransferSignature;
         public string Name { get; set; } = string.Empty;
         public string Path { get; set; } = string.Empty;
         public string Arguments { get; set; } = string.Empty;
@@ -111,6 +113,8 @@ namespace CyrFlip
             YtDlpFormat = YtDlpFormat,
             Hotkey = Hotkey,
             SchemaVersion = SchemaVersion,
+            TransferXml = TransferXml,
+            TransferSignature = TransferSignature,
         };
     }
 }

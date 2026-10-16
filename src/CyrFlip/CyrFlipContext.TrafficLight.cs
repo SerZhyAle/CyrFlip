@@ -295,7 +295,7 @@ namespace CyrFlip
         private void OnSetTrafficLightHotkey()
         {
             using var dlg = new HotkeyDialog(_trafficLightHotkey.Display, T("Set the availability traffic light shortcut"), _config.UiLanguage);
-            if (dlg.ShowDialog() != DialogResult.OK || dlg.CapturedHotkey == null) return;
+            if (dlg.ShowDialog(DialogOwner()) != DialogResult.OK || dlg.CapturedHotkey == null) return;
             if (!Hotkey.TryParse(dlg.CapturedHotkey, out Hotkey next) || !ChordIsFree(next, ChordKind.TrafficLight)) return;
 
             _trafficLightHotkey = next;
@@ -349,7 +349,16 @@ namespace CyrFlip
             if (!_config.EnableTrafficLight || _trafficEngine == null) return;
             using var dialog = new TrafficLightQuickAddDialog(_config.UiLanguage,
                 () => _config.TrafficLightTargets, TrafficLightProbeSet.CreateDefault());
-            if (dialog.ShowDialog() != DialogResult.OK || dialog.Result.Count == 0) return;
+            // The question comes from the board's own button, so the board owns it (modal, owned, centred -
+            // APP-BEHAVIOUR rule 1); with the board gone, whatever window is open. Owned, it needs no
+            // taskbar button of its own and centres on its owner instead of on the screen.
+            IWin32Window? owner = _trafficWindow is { IsDisposed: false, Visible: true } ? _trafficWindow : DialogOwner();
+            if (owner != null)
+            {
+                dialog.StartPosition = FormStartPosition.CenterParent;
+                dialog.ShowInTaskbar = false;
+            }
+            if (dialog.ShowDialog(owner) != DialogResult.OK || dialog.Result.Count == 0) return;
             if (_config.TrafficLightTargets.Count + dialog.Result.Count > TrafficLightTargetList.MaxTargets) return;
 
             foreach (TrafficLightTarget target in dialog.Result) _config.TrafficLightTargets.Add(target);
@@ -404,7 +413,7 @@ namespace CyrFlip
                     }, TaskScheduler.Default);
                     break;
                 case "clear":
-                    if (ConfirmDialog.Show(_settings, _config.UiLanguage,
+                    if (ConfirmDialog.Show(DialogOwner(), _config.UiLanguage,
                             T("Delete the availability traffic light change history? The file contains the addresses of targets. The deletion cannot be undone."),
                             MessageBoxButtons.YesNo, MessageBoxIcon.Warning, danger: true) != DialogResult.Yes)
                         return;

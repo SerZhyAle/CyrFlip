@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace CyrFlip
     /// <summary>Small topmost, owner-painted history strip. It hides instead of closing.</summary>
     internal sealed class ClipboardHistoryWindow : ThemedForm
     {
-        private int HeaderHeight => Scale(36);
+        private int HeaderHeight => Scale(44);
         private int CellHeight => Scale(84);
         private int ResizeGrip => Scale(6);
         private int CellButtonWidth => Scale(32);
@@ -61,9 +61,11 @@ namespace CyrFlip
         public ClipboardHistoryWindow(ClipboardHistoryService service, AppConfig config, Action openSearch,
             Action<string>? tellRestoreFailed = null)
         {
+            HelpLanguage = config.UiLanguage;
             _service = service; _config = config; _openSearch = openSearch; _tellRestoreFailed = tellRestoreFailed;
-            Text = Localization.Translate(config.UiLanguage, "Clipboard manager"); TopMost = true; ShowInTaskbar = false;
+            Text = Localization.Translate(config.UiLanguage, "Clipboard history"); TopMost = true; ShowInTaskbar = false;
             RightToLeft = Localization.IsRightToLeft(config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
+            RightToLeftLayout = RightToLeft == RightToLeft.Yes;
             // WinForms otherwise paints a second, native title bar above our owner-drawn header.
             // This owner-painted surface handles WM_DPICHANGED itself: the net48 app does
             // not opt into WinForms DPI message handling, so Control.DeviceDpi stays at 96.
@@ -109,8 +111,10 @@ namespace CyrFlip
         /// <summary>Re-reads the UI language for the title and the owner-painted header, with no restart.</summary>
         public void ApplyLanguage()
         {
-            Text = Localization.Translate(_config.UiLanguage, "Clipboard manager");
+            HelpLanguage = _config.UiLanguage;
+            Text = Localization.Translate(_config.UiLanguage, "Clipboard history");
             RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
+            RightToLeftLayout = RightToLeft == RightToLeft.Yes;
             ApplyUiFont();
             RefreshHeader();
         }
@@ -268,12 +272,12 @@ namespace CyrFlip
             // One Entries read per paint: the list is cached by the service, but the local keeps this
             // paint consistent (the caption count and the cells can't disagree).
             IReadOnlyList<ClipboardHistoryEntry> entries = _service.Entries;
-            string caption = Localization.Translate(_config.UiLanguage, "Clipboard manager") + " (" + entries.Count + ")";
+            string caption = Localization.Translate(_config.UiLanguage, "Clipboard history") + " (" + entries.Count + ")";
             // Keep the two actions before the caption: they remain reachable at every allowed width.
             // Vocabulary glyphs (ICON-SET), each centred in the zone the mouse hit test uses.
             HistoryStripGlyphs.DrawSearch(e.Graphics, SearchZone, palette, Scale(20));
             HistoryStripGlyphs.DrawClose(e.Graphics, HideZone, palette, Scale(20));
-            float available = Math.Max(1, ClientSize.Width - HeaderTextLeft - Scale(6));
+            float available = Math.Max(1, ClientSize.Width - HeaderTextLeft - Scale(50));
             float hotkeyWidth = e.Graphics.MeasureString(_config.ClipboardHistoryHotkey, hotkeyFont).Width;
             float captionWidth = e.Graphics.MeasureString(caption, title).Width;
             bool showHotkey = captionWidth + hotkeyWidth + Scale(12) <= available;
@@ -282,7 +286,7 @@ namespace CyrFlip
                     showHotkey ? available - hotkeyWidth - Scale(8) : available, title.GetHeight(e.Graphics)), SingleLineFormat);
             if (showHotkey)
                 e.Graphics.DrawString(_config.ClipboardHistoryHotkey, hotkeyFont, hotkeyBrush,
-                    new RectangleF(ClientSize.Width - hotkeyWidth - Scale(6), (HeaderHeight - hotkeyFont.GetHeight(e.Graphics)) / 2,
+                    new RectangleF(ClientSize.Width - hotkeyWidth - Scale(50), (HeaderHeight - hotkeyFont.GetHeight(e.Graphics)) / 2,
                         hotkeyWidth, hotkeyFont.GetHeight(e.Graphics)), SingleLineFormat);
             var items = VisibleItems();
             for (int i = 0; i < items.Count; i++) DrawCell(e.Graphics, items[i], _firstVisible + i,

@@ -23,6 +23,35 @@ namespace CyrFlip
                 ur: "ترجمہ",
                 zh: "翻译");
 
+            // S0060 M7: a one-sentence description; the install-once remark is the note of the Ollama group.
+            Add("Translate the selected text with a local Ollama model; the text goes only to the server below.",
+                ru: "Перевод выделенного текста локальной моделью Ollama; текст отправляется только на сервер, указанный ниже.",
+                uk: "Переклад виділеного тексту локальною моделлю Ollama; текст надсилається лише на сервер, указаний нижче.",
+                de: "Übersetzung des ausgewählten Textes mit einem lokalen Ollama-Modell; der Text geht nur an den unten angegebenen Server.",
+                it: "Traduzione del testo selezionato con un modello Ollama locale; il testo va solo al server indicato qui sotto.",
+                es: "Traducción del texto seleccionado con un modelo local de Ollama; el texto solo se envía al servidor indicado más abajo.",
+                fr: "Traduction du texte sélectionné par un modèle Ollama local ; le texte n'est envoyé qu'au serveur indiqué ci-dessous.",
+                pt: "Tradução do texto selecionado com um modelo Ollama local; o texto vai apenas para o servidor indicado abaixo.",
+                ar: "ترجمة النص المحدد بواسطة نموذج Ollama محلي؛ ولا يُرسَل النص إلا إلى الخادم المحدَّد أدناه.",
+                hi: "स्थानीय Ollama मॉडल से चयनित टेक्स्ट का अनुवाद; टेक्स्ट केवल नीचे बताए गए सर्वर को भेजा जाता है।",
+                bn: "স্থানীয় Ollama মডেল দিয়ে নির্বাচিত লেখার অনুবাদ; লেখাটি কেবল নিচে উল্লিখিত সার্ভারে যায়।",
+                ur: "منتخب متن کا ترجمہ مقامی Ollama ماڈل کے ذریعے؛ متن صرف نیچے دیے گئے سرور کو بھیجا جاتا ہے۔",
+                zh: "使用本地 Ollama 模型翻译选中的文本；文本只会发往下方指定的服务器。");
+
+            Add("Ollama itself and a language model have to be installed once, with the buttons below.",
+                ru: "Сам Ollama и языковую модель нужно установить один раз - кнопками ниже.",
+                uk: "Сам Ollama і мовну модель потрібно встановити один раз - кнопками нижче.",
+                de: "Ollama selbst und das Sprachmodell müssen Sie einmalig installieren - mit den Schaltflächen unten.",
+                it: "Ollama e il modello linguistico vanno installati una volta sola, con i pulsanti qui sotto.",
+                es: "Ollama y el modelo de lenguaje se instalan una sola vez, con los botones de abajo.",
+                fr: "Ollama lui-même et le modèle de langue doivent être installés une seule fois, à l'aide des boutons ci-dessous.",
+                pt: "O Ollama e o modelo de linguagem têm de ser instalados uma vez, com os botões abaixo.",
+                ar: "يجب تثبيت Ollama والنموذج اللغوي مرة واحدة فقط - عبر الأزرار أدناه.",
+                hi: "Ollama और भाषा मॉडल को एक बार इंस्टॉल करना होता है - नीचे दिए गए बटनों से।",
+                bn: "Ollama এবং ভাষা মডেল একবার ইনস্টল করে নিতে হবে - নিচের বোতামগুলি দিয়ে।",
+                ur: "Ollama اور زبان کا ماڈل ایک بار انسٹال کرنے ہوتے ہیں - نیچے دیے گئے بٹنوں سے۔",
+                zh: "Ollama 本身和语言模型需要用下方的按钮安装一次。");
+
             Add("Translate the selected text with a local Ollama model: the text goes nowhere except the server below, which is your own computer by default. Ollama itself and a language model have to be installed once, with the buttons below.",
                 ru: "Перевод выделенного текста локальной моделью Ollama: текст никуда не отправляется, кроме сервера, указанного ниже (по умолчанию это ваш же компьютер). Сам Ollama и языковую модель нужно установить один раз — кнопками ниже.",
                 uk: "Переклад виділеного тексту локальною моделлю Ollama: текст нікуди не надсилається, окрім сервера, указаного нижче (за замовчуванням це ваш же комп'ютер). Сам Ollama і мовну модель потрібно встановити один раз — кнопками нижче.",

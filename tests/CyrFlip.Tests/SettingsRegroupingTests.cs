@@ -98,8 +98,9 @@ namespace CyrFlip.Tests
             ("L29", "setting.history-search", SettingsPageKey.Clipboard, "clipboard/window"),
             ("L30", "setting.history-clear", SettingsPageKey.Clipboard, "clipboard/clear"),
             ("L31", "group.clipboard-transfer", SettingsPageKey.Clipboard, "clipboard/transfer"),
-            ("L32", "group.graphics-capture", SettingsPageKey.Graphics, null),
-            ("L33", "group.overview", SettingsPageKey.Hotkeys, null),
+            ("L32", "group.graphics-capture", SettingsPageKey.Graphics, "graphics/capture"),
+            // S0060 M4: "Reset all" is a command, so it stands in the page's first group like the switches it resets.
+            ("L33", "group.overview", SettingsPageKey.Hotkeys, "hotkeys/switches"),
         };
 
         [Fact]
@@ -234,6 +235,7 @@ namespace CyrFlip.Tests
             (SettingsPageKey.Graphics, "Снимки экрана"),
             (SettingsPageKey.Launcher, "Быстрый запуск"),
             (SettingsPageKey.TrafficLight, "Светофор доступности"),
+            (SettingsPageKey.ExchangeServer, "Сервер обмена"),
             (SettingsPageKey.Hotkeys, "Горячие клавиши"),
             (SettingsPageKey.About, "О программе"),
         };
@@ -245,7 +247,7 @@ namespace CyrFlip.Tests
             {
                 using SettingsForm form = TestForms.NewSettings(RegroupingHarness.Config());
                 var pages = form.Tabs!.TabPages.Cast<TabPage>().ToList();
-                Assert.Equal(14, pages.Count);
+                Assert.Equal(15, pages.Count);
                 Assert.Equal(Expected.Select(e => (object)e.Key), pages.Select(p => p.Tag!));
                 Assert.Equal(Expected.Select(e => e.Title), pages.Select(p => p.Text));
                 Assert.Equal(SettingsPageKey.About, pages[pages.Count - 1].Tag);
@@ -278,8 +280,13 @@ namespace CyrFlip.Tests
             [ChordKind.Symbols] = "setting.symbols-chord",
             [ChordKind.TrafficLight] = "setting.traffic-light-chord",
             [ChordKind.Screenshot] = "group.graphics-capture",
+            [ChordKind.ScreenshotFull] = "group.graphics-full",
+            [ChordKind.ScreenshotAnnotateArea] = "group.graphics-annotate",
+            [ChordKind.ScreenshotFullAnnotate] = "group.graphics-annotate",
             [ChordKind.ScreenshotFolder] = "setting.screenshot-folder-chord",
             [ChordKind.TextMenu] = "setting.keyboard-menu-chord",
+            [ChordKind.ExchangeSend] = "setting.exchange-clipboard-send-chord",
+            [ChordKind.ExchangeGet] = "setting.exchange-clipboard-get-chord",
         };
 
         [Fact]

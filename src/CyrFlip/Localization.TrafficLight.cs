@@ -243,6 +243,25 @@ namespace CyrFlip
                 es: "Pequeños", fr: "Petites", pt: "Pequenos", ar: "صغيرة",
                 hi: "छोटे", bn: "ছোট", ur: "چھوٹے", zh: "小");
 
+            Add("Microscopic (tiles)",
+                ru: "Микроскопический", en: "Microscopic", uk: "Мікроскопічний", de: "Mikroskopisch", it: "Microscopiche",
+                es: "Microscópicos", fr: "Microscopiques", pt: "Microscópicos", ar: "مجهرية",
+                hi: "अति सूक्ष्म", bn: "অতি ক্ষুদ্র", ur: "انتہائی چھوٹے", zh: "微型");
+
+            Add("Microscopic: half-size squares without buttons. Drag any square to move; double-click to open these settings.",
+                ru: "Микроскопический: квадраты вдвое меньше маленьких, без кнопок. Тяните за любой квадрат, чтобы переместить панель; двойной щелчок открывает эту страницу настроек.",
+                uk: "Мікроскопічний: квадрати вдвічі менші за малі, без кнопок. Тягніть за будь-який квадрат, щоб перемістити панель; подвійне клацання відкриває цю сторінку налаштувань.",
+                de: "Mikroskopisch: halb so große Quadrate ohne Schaltflächen. Zum Verschieben ein Quadrat ziehen; ein Doppelklick öffnet diese Einstellungen.",
+                it: "Microscopiche: quadrati grandi la metà, senza pulsanti. Trascina un quadrato per spostare il pannello; fai doppio clic per aprire queste impostazioni.",
+                es: "Microscópicos: cuadrados de la mitad de tamaño, sin botones. Arrastra cualquier cuadrado para mover el panel; haz doble clic para abrir estos ajustes.",
+                fr: "Microscopiques : carrés deux fois plus petits, sans boutons. Faites glisser un carré pour déplacer le panneau ; un double-clic ouvre ces paramètres.",
+                pt: "Microscópicos: quadrados com metade do tamanho, sem botões. Arraste qualquer quadrado para mover o painel; clique duas vezes para abrir estas configurações.",
+                ar: "مجهرية: مربعات بنصف الحجم دون أزرار. اسحب أي مربع لتحريك اللوحة؛ وانقر مرتين لفتح هذه الإعدادات.",
+                hi: "अति सूक्ष्म: आधे आकार के वर्ग, बिना बटन। पैनल खिसकाने के लिए कोई भी वर्ग खींचें; ये सेटिंग खोलने के लिए डबल-क्लिक करें।",
+                bn: "অতি ক্ষুদ্র: অর্ধেক আকারের বর্গ, কোনো বোতাম নেই। প্যানেল সরাতে যেকোনো বর্গ টানুন; এই সেটিংস খুলতে ডাবল-ক্লিক করুন।",
+                ur: "انتہائی چھوٹے: آدھے سائز کے چوکور، بغیر بٹنوں کے۔ پینل منتقل کرنے کے لیے کوئی چوکور کھینچیں؛ یہ ترتیبات کھولنے کے لیے ڈبل کلک کریں۔",
+                zh: "微型：尺寸减半的方块，无按钮。拖动任意方块可移动面板；双击可打开此设置页面。");
+
             Add("The board holds at most {0} targets.",
                 ru: "На доске не больше {0} целей.", uk: "На дошці не більше {0} цілей.", de: "Die Ampel nimmt höchstens {0} Ziele auf.", it: "Il semaforo può contenere al massimo {0} obiettivi.",
                 es: "El semáforo admite como máximo {0} objetivos.", fr: "Le tableau contient au plus {0} cibles.", pt: "O semáforo comporta no máximo {0} alvos.", ar: "تتسع اللوحة لـ {0} هدفًا كحد أقصى.",
@@ -758,6 +777,21 @@ namespace CyrFlip
                 es: "Un archivo de texto con los cambios de estado de los objetivos marcados. Contiene direcciones y nunca entra en un archivo de registros.", fr: "Un fichier texte des changements d'état des cibles cochées. Il contient des adresses et n'entre jamais dans une archive de journaux.", pt: "Um arquivo de texto com as mudanças de estado dos alvos marcados. Contém endereços e nunca entra num arquivo de logs.", ar: "ملف نصي بتغيّرات الحالة للأهداف المعلَّمة. يحتوي على عناوين ولا يدخل أبدًا في أرشيف السجلات.",
                 hi: "चिह्नित लक्ष्यों की स्थिति-परिवर्तन की टेक्स्ट फ़ाइल। उसमें पते हैं और वह कभी लॉग संग्रह में नहीं जाती।", bn: "চিহ্নিত লক্ষ্যগুলোর অবস্থা পরিবর্তনের টেক্সট ফাইল। এতে ঠিকানা থাকে এবং এটি কখনও লগ আর্কাইভে যায় না।", ur: "نشان زد اہداف کی حالت کی تبدیلیوں کی ٹیکسٹ فائل۔ اس میں پتے ہیں اور یہ کبھی لاگ آرکائیو میں نہیں جاتی۔", zh: "记录已标记目标状态变化的文本文件。其中含有地址，绝不会进入日志压缩包。");
 
+            // S0060 M7: one sentence (the two-sentence form below is no longer shown).
+            Add("A board of tiles for your hosts, sites, folders and drives; checks run while CyrFlip runs, results stay in memory.",
+                ru: "Плитки для ваших узлов, сайтов, папок и дисков; проверки идут, пока CyrFlip запущен, результаты хранятся только в памяти.",
+                uk: "Плитки для ваших вузлів, сайтів, папок і дисків; перевірки йдуть, поки CyrFlip запущено, результати зберігаються лише в пам'яті.",
+                de: "Eine Kachelübersicht für Ihre Hosts, Websites, Ordner und Laufwerke; geprüft wird, solange CyrFlip läuft, Ergebnisse bleiben im Speicher.",
+                it: "Un riquadro di tessere per i tuoi host, siti, cartelle e unità; i controlli girano finché CyrFlip è attivo, i risultati restano in memoria.",
+                es: "Un panel de mosaicos para sus hosts, sitios, carpetas y unidades; las comprobaciones se hacen mientras CyrFlip está activo y los resultados quedan en memoria.",
+                fr: "Un tableau de tuiles pour vos hôtes, sites, dossiers et lecteurs ; les vérifications tournent tant que CyrFlip est actif et les résultats restent en mémoire.",
+                pt: "Um painel de blocos para seus hosts, sites, pastas e unidades; as verificações ocorrem enquanto o CyrFlip está ativo e os resultados ficam na memória.",
+                ar: "لوحة مربعات لمضيفاتك ومواقعك ومجلداتك ومحركاتك؛ تُجرى الفحوصات ما دام CyrFlip يعمل، وتبقى النتائج في الذاكرة فقط.",
+                hi: "आपके होस्ट, साइट, फ़ोल्डर और ड्राइव की टाइलों का बोर्ड; जाँच तब तक चलती है जब तक CyrFlip चल रहा है, परिणाम केवल मेमोरी में रहते हैं।",
+                bn: "আপনার হোস্ট, সাইট, ফোল্ডার ও ড্রাইভের টাইলের বোর্ড; CyrFlip চালু থাকা পর্যন্ত যাচাই চলে, ফলাফল শুধু মেমরিতে থাকে।",
+                ur: "آپ کے میزبانوں، سائٹوں، فولڈروں اور ڈرائیوز کی ٹائلوں کا بورڈ؛ جانچ اس وقت تک چلتی ہے جب تک CyrFlip چل رہا ہے، نتائج صرف میموری میں رہتے ہیں۔",
+                zh: "为您的主机、网站、文件夹和驱动器准备的磁贴面板；CyrFlip 运行期间持续检查，结果只保存在内存中。");
+
             Add("A board of tiles for your hosts, sites, folders and drives. Checks run while CyrFlip runs; results stay in memory.",
                 ru: "Плитки для ваших узлов, сайтов, папок и дисков. Проверки идут, пока CyrFlip запущен; результаты хранятся только в памяти.", uk: "Плитки для ваших вузлів, сайтів, папок і дисків. Перевірки йдуть, поки CyrFlip запущено; результати зберігаються лише в пам'яті.", de: "Eine Kachelübersicht für Ihre Hosts, Websites, Ordner und Laufwerke. Geprüft wird, solange CyrFlip läuft; Ergebnisse bleiben im Speicher.", it: "Un riquadro di tessere per i tuoi host, siti, cartelle e unità. I controlli girano finché CyrFlip è attivo; i risultati restano in memoria.",
                 es: "Un panel de mosaicos para sus hosts, sitios, carpetas y unidades. Las comprobaciones se hacen mientras CyrFlip está activo; los resultados quedan en memoria.", fr: "Un tableau de tuiles pour vos hôtes, sites, dossiers et lecteurs. Les vérifications tournent tant que CyrFlip est actif ; les résultats restent en mémoire.", pt: "Um painel de blocos para seus hosts, sites, pastas e unidades. As verificações ocorrem enquanto o CyrFlip está ativo; os resultados ficam na memória.", ar: "لوحة مربعات لمضيفاتك ومواقعك ومجلداتك ومحركاتك. تُجرى الفحوصات ما دام CyrFlip يعمل، وتبقى النتائج في الذاكرة فقط.",
@@ -807,6 +841,31 @@ namespace CyrFlip
                 ru: "Колонок: столько плиток в ряду; рядов будет столько, сколько нужно для целей.", uk: "Стовпців: стільки плиток у ряду; рядів буде стільки, скільки потрібно для цілей.", de: "Spalten: So viele Kacheln stehen in einer Reihe; die Zeilen ergeben sich aus der Zahl der Ziele.", it: "Colonne: tante tessere per riga; le righe risultano dal numero di obiettivi.",
                 es: "Columnas: tantos mosaicos por fila; las filas salen del número de objetivos.", fr: "Colonnes : nombre de tuiles par ligne ; les lignes découlent du nombre de cibles.", pt: "Colunas: quantos blocos por linha; as linhas resultam do número de alvos.", ar: "الأعمدة: عدد المربعات في الصف الواحد؛ وتنتج الصفوف من عدد الأهداف.",
                 hi: "कॉलम: एक पंक्ति में इतनी टाइलें; पंक्तियाँ लक्ष्यों की संख्या से तय होती हैं।", bn: "কলাম: এক সারিতে এতগুলো টাইল; সারির সংখ্যা লক্ষ্যের সংখ্যা অনুযায়ী হয়।", ur: "کالم: ایک قطار میں اتنی ٹائلیں؛ قطاریں اہداف کی تعداد سے طے ہوتی ہیں۔", zh: "列数：每行放这么多磁贴；行数由目标数量决定。");
+
+            Add("Board window transparency:",
+                ru: "Прозрачность окна светофора:", uk: "Прозорість вікна світофора:", de: "Transparenz des Ampelfensters:", it: "Trasparenza della finestra del semaforo:",
+                es: "Transparencia de la ventana del semáforo:", fr: "Transparence de la fenêtre du tableau :", pt: "Transparência da janela do semáforo:", ar: "شفافية نافذة اللوحة:",
+                hi: "बोर्ड विंडो की पारदर्शिता:", bn: "বোর্ড উইন্ডোর স্বচ্ছতা:", ur: "بورڈ ونڈو کی شفافیت:", zh: "面板窗口透明度：");
+
+            Add("Board window transparency: 0 is a solid window, 100 leaves only the buttons and the tiles visible. Applied immediately.",
+                ru: "Прозрачность окна светофора: 0 - обычное плотное окно, 100 - видны только кнопки и плитки. Применяется сразу.",
+                uk: "Прозорість вікна світофора: 0 - звичайне щільне вікно, 100 - видно лише кнопки й плитки. Застосовується одразу.",
+                de: "Transparenz des Ampelfensters: 0 ist das gewohnte feste Fenster, 100 lässt nur die Schaltflächen und die Kacheln übrig. Wird sofort angewendet.",
+                it: "Trasparenza della finestra del semaforo: 0 è la solida finestra consueta, 100 lascia visibili solo i pulsanti e le tessere. Applicata subito.",
+                es: "Transparencia de la ventana del semáforo: 0 es la ventana sólida de siempre, 100 deja visibles solo los botones y los mosaicos. Se aplica al momento.",
+                fr: "Transparence de la fenêtre du tableau : 0 est la fenêtre pleine habituelle, 100 ne laisse visibles que les boutons et les tuiles. Appliqué aussitôt.",
+                pt: "Transparência da janela do semáforo: 0 é a janela sólida de sempre, 100 deixa visíveis apenas os botões e os blocos. Aplicada na hora.",
+                ar: "شفافية نافذة اللوحة: 0 هي النافذة المصمتة المعتادة، و100 يُبقي الأزرار والمربعات وحدها مرئية. تُطبَّق فورًا.",
+                hi: "बोर्ड विंडो की पारदर्शिता: 0 सामान्य भरा विंडो है, 100 पर केवल बटन और टाइलें दिखती हैं। तुरंत लागू होता है।",
+                bn: "বোর্ড উইন্ডোর স্বচ্ছতা: 0 হল স্বাভাবিক ভরা উইন্ডো, 100-এ শুধু বোতাম ও টাইল দেখা যায়। সঙ্গে সঙ্গে প্রযোজ্য।",
+                ur: "بورڈ ونڈو کی شفافیت: 0 معمول کی بھری ہوئی ونڈو ہے، 100 پر صرف بٹن اور ٹائلیں نظر آتی ہیں۔ فوراً لاگو ہوتا ہے۔",
+                zh: "面板窗口透明度：0 是不透明的常规窗口，100 时只显示按钮和磁贴。立即生效。");
+
+            // The settings file's caption for the exported key (the import preview's table).
+            Add("Board window transparency",
+                ru: "Прозрачность окна светофора", uk: "Прозорість вікна світофора", de: "Transparenz des Ampelfensters", it: "Trasparenza della finestra del semaforo",
+                es: "Transparencia de la ventana del semáforo", fr: "Transparence de la fenêtre du tableau", pt: "Transparência da janela do semáforo", ar: "شفافية نافذة اللوحة",
+                hi: "बोर्ड विंडो की पारदर्शिता", bn: "বোর্ড উইন্ডোর স্বচ্ছতা", ur: "بورڈ ونڈو کی شفافیت", zh: "面板窗口透明度");
 
             Add("Type an address, name, folder or drive; CyrFlip works out what it is.",
                 ru: "Введите адрес, имя, папку или диск - CyrFlip сам поймёт, что это.", uk: "Введіть адресу, ім'я, папку або диск - CyrFlip сам зрозуміє, що це.", de: "Adresse, Name, Ordner oder Laufwerk eingeben - CyrFlip erkennt selbst, was es ist.", it: "Scrivi un indirizzo, un nome, una cartella o un'unità: CyrFlip capisce da solo che cos'è.",

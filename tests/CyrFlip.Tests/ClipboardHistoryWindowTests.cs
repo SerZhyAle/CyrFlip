@@ -78,7 +78,8 @@ namespace CyrFlip.Tests
                 typeof(ClipboardHistoryWindow).GetMethod("WndProc", Private)!.Invoke(window, new object[] { message });
                 Assert.Equal(new Rectangle(100, 100, 516, suggestedBottom - 100), window.Bounds);
                 Assert.Equal(168, Property(window, "CellHeight"));
-                Assert.Equal(72, Property(window, "HeaderHeight"));
+                // S0075: the header band is 44 logical px so it holds the help button's hit target (Scale(44) at 192 DPI).
+                Assert.Equal(88, Property(window, "HeaderHeight"));
                 Key(window, Keys.End);
                 Assert.Equal(service.Entries.Count - Property(window, "PageSize"), Field(window, "_firstVisible"));
             }

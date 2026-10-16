@@ -68,18 +68,26 @@
     <nav class="langbar" aria-label="Language"><a href="ru/privacy.html" data-sza-lang="ru" lang="ru" hreflang="ru"><span class="code">RU</span><span class="endonym">Русский</span></a><a href="privacy.html" class="active" aria-current="page" data-sza-lang="en" lang="en" hreflang="en"><span class="code">EN</span><span class="endonym">English</span></a><a href="uk/privacy.html" data-sza-lang="ua" lang="uk" hreflang="uk"><span class="code">UA</span><span class="endonym">Українська</span></a><a href="de/privacy.html" lang="de" hreflang="de"><span class="code">DE</span><span class="endonym">Deutsch</span></a><a href="it/privacy.html" lang="it" hreflang="it"><span class="code">IT</span><span class="endonym">Italiano</span></a><a href="es/privacy.html" lang="es" hreflang="es"><span class="code">ES</span><span class="endonym">Español</span></a><a href="fr/privacy.html" lang="fr" hreflang="fr"><span class="code">FR</span><span class="endonym">Français</span></a><a href="pt/privacy.html" lang="pt" hreflang="pt"><span class="code">PT</span><span class="endonym">Português</span></a><a href="ar/privacy.html" lang="ar" hreflang="ar"><span class="code">AR</span><span class="endonym" dir="rtl">العربية</span></a><a href="hi/privacy.html" lang="hi" hreflang="hi"><span class="code">HI</span><span class="endonym">हिन्दी</span></a><a href="bn/privacy.html" lang="bn" hreflang="bn"><span class="code">BN</span><span class="endonym">বাংলা</span></a><a href="ur/privacy.html" lang="ur" hreflang="ur"><span class="code">UR</span><span class="endonym" dir="rtl">اردو</span></a><a href="zh/privacy.html" lang="zh" hreflang="zh"><span class="code">ZH</span><span class="endonym">中文</span></a></nav>
     <section>
       <h1>Privacy Policy</h1>
-      <p class="note">Last updated: 7 October 2026</p>
+      <p class="note">Last updated: 16 October 2026</p>
 
-      <p><strong>CyrFlip does not collect, store, log, or transmit any personal data.</strong> It runs
-      entirely on your own device. It has no servers of its own, no telemetry, analytics, advertising,
-      tracking, or user accounts. The developer receives no data about you or your use of the app.</p>
+      <p><strong>CyrFlip does not collect any personal data, and the developer receives none.</strong> It has
+      no servers of its own, no telemetry, analytics, advertising, tracking, or user accounts, and it does
+      not log your keystrokes. It runs on your own device; the only things that ever leave it are the two
+      optional, off-by-default features described next, and only to a place you chose.</p>
 
-      <p>There is exactly one feature that sends text anywhere, and it is <strong>off by default</strong>:
-      the optional <em>translator</em>. When you switch it on and press a translation shortcut, the text you
+      <p>There are exactly two features that send anything anywhere, and both are <strong>off by default</strong>:
+      the optional <em>translator</em> and the optional <em>clipboard on the server</em>.</p>
+
+      <p>When you switch the translator on and press a translation shortcut, the text you
       selected is sent to the Ollama server address configured in CyrFlip - by default
       <code>http://localhost:11434</code>, which is a program running on your own computer, so the text
       does not leave your device. If you change that address to another machine, the selected text is sent
       to that machine; CyrFlip says so next to the setting. See the translator section below.</p>
+
+      <p>The clipboard on the server sends <strong>what is on your clipboard</strong> - a text, a picture or
+      one file - to the exchange server you signed in to, and only when you press its button, chord or
+      shortcut. It is encrypted on your computer first, for your own devices only. See the exchange-server
+      section below.</p>
 
       <h2>What the app accesses, and why</h2>
       <ul class="features">
@@ -115,7 +123,9 @@
         <li><strong>Clipboard.</strong> When you press the hotkey to transliterate a selection, CyrFlip
         temporarily reads the selected text (via a synthesized copy), converts it between layouts, and
         pastes the result back, then restores your previous clipboard contents. This happens locally and
-        only at the moment you trigger it. Nothing from the clipboard is sent or shared.</li>
+        only at the moment you trigger it. Nothing from the clipboard is sent or shared by this; the only feature
+        that ever sends the clipboard is the optional <em>clipboard on the server</em> below, and only when you
+        press its button.</li>
 
         <li><strong>Optional clipboard history.</strong> Clipboard history is <strong>off by default</strong>.
         If you explicitly enable it, CyrFlip stores captured Unicode text locally so you can reopen it later.
@@ -156,6 +166,30 @@
         copy) or pasted over your selection. CyrFlip stores no translations, keeps no log of them, and sends
         nothing to the developer. In the portable version the <em>Install Ollama</em> button downloads the
         official installer from <code>ollama.com</code>; the Microsoft Store version only opens that website.</li>
+
+        <li><strong>Optional clipboard on the server.</strong> This feature is <strong>off by default</strong>; while
+        it is off CyrFlip opens no network connection for it. It needs an account on an exchange server that you
+        or someone you trust runs, and CyrFlip only signs in to it: you give it the server's connection string,
+        your login and your password once. The password is used for that one sign-in and is never stored; the
+        device token the server returns and a private key CyrFlip makes for this account are kept encrypted
+        with Windows DPAPI for your Windows user. When you press <em>Send clipboard to server</em> (tray menu,
+        shortcut or chord), CyrFlip sends <strong>exactly what is on the clipboard at that moment</strong> - a
+        text, a picture or one file, a password you copied a minute ago included. There is no preview, no
+        confirmation and no filter, so press it only when you mean it. The value is encrypted on your computer for
+        the other devices of your account before it leaves, and the server keeps only the last value, in its
+        memory. <em>Get clipboard from server</em> puts the server's newest value on your clipboard; a received
+        file is saved in a folder you can see (<code>Downloads\CyrFlip</code> by default) and never overwrites
+        another file. Nothing is sent by itself - there is no monitoring, no timer and no send at start. The
+        exchange server connects your devices, so it knows the names of your account, devices, folders and
+        broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through
+        it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on
+        your other devices or by the people you gave access to. To look inside, whoever runs the server would have
+        to add a device of their own to your account, and it would appear in your list of devices. CyrFlip keeps
+        a log of kinds, sizes and result codes only - never a clipboard value, a file name, a login or an
+        address - and that log is the only trace it writes about this feature besides the account entry itself
+        (the server's address, your login, a name, the pinned certificate and the public keys of your other
+        devices), which you remove with <em>Remove account</em>.</li>
+
         <li><strong>Screen capture.</strong> Only when you press the screen capture shortcut or pick
         <em>Screen region capture</em> in the tray menu does CyrFlip take one picture of your
         screens as they are, lets you select a rectangle, and puts only that rectangle on the clipboard as an
@@ -216,9 +250,10 @@
       never does says the same as this page.</p>
 
       <h2>Data sharing</h2>
-      <p>None. CyrFlip does not share any data with the developer or any third party. The one thing it ever
-      sends is the text you selected, to the translator address you chose yourself - by default a program on
-      your own computer - and only while that optional feature is switched on. The <em>Send logs to the author</em> button is no exception: it prepares a message in your own mail program, with an archive you can inspect first, and only you can send it.</p>
+      <p>None. CyrFlip does not share any data with the developer or any third party. What it can send is only
+      what you tell it to, to the place you name, and only while the optional feature is switched on: the text
+      you selected, to the translator address you chose yourself (by default a program on your own computer);
+      and what is on your clipboard, to the exchange server you signed in to, encrypted for your own devices. The <em>Send logs to the author</em> button is no exception: it prepares a message in your own mail program, with an archive you can inspect first, and only you can send it.</p>
 
       <h2>This website</h2>
       <p>This section is about the pages you are reading, not about the app. The app does not contact this website, and the website receives nothing from the app.</p>

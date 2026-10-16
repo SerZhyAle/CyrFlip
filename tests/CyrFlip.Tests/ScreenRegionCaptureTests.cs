@@ -398,17 +398,21 @@ namespace CyrFlip.Tests
         [Fact]
         public void NothingIsWrittenOrCreatedWhileSavingIsOff()
         {
-            // Saving off means the saver is never called: the config says so by default, and the
-            // settings page only shows a folder, it never creates one.
-            var cfg = AppConfig.LoadFrom(new EmptyKey(), out _);
+            // Saving off means the saver is never called. Since S0071 the default is on (a fresh
+            // profile saves from the first capture), so "off" is a profile that carried the old
+            // default 0 or switched it off - it keeps its stored value (Q2).
+            var key = new EmptyKey();
+            key.Values["ScreenshotSaveEnabled"] = 0;
+            var cfg = AppConfig.LoadFrom(key, out _);
             Assert.False(cfg.ScreenshotSaveEnabled);
             Assert.Equal("", cfg.ScreenshotFolder);
         }
 
         private sealed class EmptyKey : IConfigKey
         {
-            public object? GetValue(string name) => null;
-            public void SetValue(string name, object value, RegistryValueKind kind) { }
+            public readonly Dictionary<string, object> Values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            public object? GetValue(string name) => Values.TryGetValue(name, out object? value) ? value : null;
+            public void SetValue(string name, object value, RegistryValueKind kind) => Values[name] = value;
         }
     }
 
@@ -426,11 +430,13 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void AFreshInstallHasTheChordOnAndSavingOff()
+        public void AFreshInstallHasTheChordOnAndSavingOn()
         {
+            // S0071: the shipped chord is Ctrl+F12 (the dead Ctrl+PrintScreen was re-keyed) and saving
+            // is on by default - the capture is a file from the first press.
             AppConfig cfg = AppConfig.LoadFrom(new MemoryKey(), out _);
-            Assert.False(cfg.ScreenshotSaveEnabled);
-            Assert.Equal("Ctrl+PrintScreen", cfg.ScreenshotHotkey);
+            Assert.True(cfg.ScreenshotSaveEnabled);
+            Assert.Equal("Ctrl+F12", cfg.ScreenshotHotkey);
             Assert.True(cfg.EnableScreenshotHotkey);
             Assert.Equal(0, cfg.ScreenshotCount);
         }
@@ -475,11 +481,14 @@ namespace CyrFlip.Tests
         {
             AppConfig cfg = AppConfig.LoadFrom(new MemoryKey(), out _);
             ChordRegistry registry = ChordRegistry.Build(cfg, new LauncherScenario[0], new LanguageHotkeys.Entry[0]);
-            Hotkey chord = Hotkey.Parse("Ctrl+PrintScreen");
+            Hotkey chord = Hotkey.Parse("Ctrl+F12");
             ChordOwner? owner = registry.CyrFlipOwnerOf(chord, ChordKind.Case);
             Assert.NotNull(owner);
             Assert.Equal(ChordKind.Screenshot, owner!.Kind);
             Assert.Null(registry.CyrFlipOwnerOf(chord, ChordKind.Screenshot));
+            // The re-keyed-away PrintScreen chord owns nothing on its own any more; a user may still
+            // bind it by hand (Hotkey keeps parsing PrintScreen/PrtSc).
+            Assert.Null(registry.CyrFlipOwnerOf(Hotkey.Parse("Ctrl+PrintScreen"), ChordKind.Case));
         }
     }
 }

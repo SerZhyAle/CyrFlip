@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using static CyrFlip.WindowInterop;
@@ -25,6 +25,12 @@ namespace CyrFlip
         public event EventHandler? QuickNotesHotkeyPressed;
         /// <summary>Raised when a screen region capture should start (S0026).</summary>
         public event EventHandler? ScreenshotHotkeyPressed;
+        /// <summary>Raised when the instant all-displays capture should start (S0071).</summary>
+        public event EventHandler? ScreenshotFullHotkeyPressed;
+        /// <summary>Raised when an area capture should open the annotation editor (S0071).</summary>
+        public event EventHandler? ScreenshotAnnotateAreaHotkeyPressed;
+        /// <summary>Raised when a full capture should open the annotation editor (S0071).</summary>
+        public event EventHandler? ScreenshotFullAnnotateHotkeyPressed;
         /// <summary>Raised when the screenshots folder should be opened (S0057).</summary>
         public event EventHandler? ScreenshotFolderHotkeyPressed;
         /// <summary>The keyboard's way to the text context menu (S0045 K2): opens it at the caret.</summary>
@@ -33,6 +39,10 @@ namespace CyrFlip
         public event EventHandler? SymbolsHotkeyPressed;
         /// <summary>Raised when the traffic light board should be shown, focused or hidden (S0069 D16).</summary>
         public event EventHandler? TrafficLightHotkeyPressed;
+        /// <summary>Raised when the exchange clipboard send hotkey is pressed (S0074).</summary>
+        public event EventHandler? ExchangeSendHotkeyPressed;
+        /// <summary>Raised when the exchange clipboard get hotkey is pressed (S0074).</summary>
+        public event EventHandler? ExchangeGetHotkeyPressed;
         /// <summary>Raised with the id of a user-configured layout conversion profile.</summary>
         public event Action<string>? LayoutConversionHotkeyPressed;
         /// <summary>Raised with the id of a launcher scenario whose per-scenario chord matched.</summary>
@@ -93,6 +103,16 @@ namespace CyrFlip
         private bool _quickNotesEnabled;
         // The screen region capture's chord - off until the context binds it from the config.
         private Hotkey _screenshotHotkey = Hotkey.Parse(AppConfig.DefaultScreenshotHotkey);
+        private bool _screenshotEnabled;
+        // The full capture's chord (S0071) - own switch only, no module switch, like the region capture's.
+        private Hotkey _screenshotFullHotkey = Hotkey.Parse(AppConfig.DefaultScreenshotFullHotkey);
+        private bool _screenshotFullEnabled;
+        // The annotate pair (S0071): each is off until the context binds it; the module switch is
+        // folded into the enabled field the context computes (UpdateScreenshotAnnotate*Enabled).
+        private Hotkey _screenshotAnnotateAreaHotkey = Hotkey.Parse(AppConfig.DefaultScreenshotAnnotateAreaHotkey);
+        private bool _screenshotAnnotateAreaEnabled;
+        private Hotkey _screenshotFullAnnotateHotkey = Hotkey.Parse(AppConfig.DefaultScreenshotFullAnnotateHotkey);
+        private bool _screenshotFullAnnotateEnabled;
         // The chord that opens the screenshots folder (S0057) - off while saving is off, like the
         // text menu's: a keystroke with no folder worth opening belongs to whatever else wants it.
         private Hotkey _screenshotFolderHotkey = Hotkey.Parse(AppConfig.DefaultScreenshotFolderHotkey);
@@ -100,12 +120,15 @@ namespace CyrFlip
         private Hotkey _textMenuHotkey = Hotkey.Parse(AppConfig.DefaultTextMenuHotkey);
         // Off unless the context menu and the chord's own switch are both on.
         private bool _textMenuEnabled;
-        private bool _screenshotEnabled;
         private Hotkey _symbolsHotkey = Hotkey.Parse(AppConfig.DefaultSymbolsHotkey);
         private bool _symbolsEnabled;
         private Hotkey _trafficLightHotkey = Hotkey.Parse(AppConfig.DefaultTrafficLightHotkey);
         // Off unless the module is on and the chord's own switch is: a board nobody switched on costs one field read.
         private bool _trafficLightEnabled;
+        private Hotkey _exchangeSendHotkey;
+        private bool _exchangeSendEnabled;
+        private Hotkey _exchangeGetHotkey;
+        private bool _exchangeGetEnabled;
         private ConversionBinding[] _conversionProfiles = new ConversionBinding[0];
         // Launcher scenario chords. Same discipline as the conversion table: an immutable snapshot
         // array swapped atomically, empty whenever the launcher is off, so the callback never pays
@@ -248,6 +271,9 @@ namespace CyrFlip
                 case ChordMatcher.Verdict.Pass: return false;
             }
 
+            // CONTEXT-HELP rule 1: even a hand-edited binding cannot take bare F1 from another app.
+            if (data.vkCode == 0x70 && _matcher.Modifiers.Held == SideModifiers.None) return false;
+
             // Escape while a translation is running: tell the subscriber and pass the key on
             // regardless - it belongs to whatever the user is actually typing in. Ahead of the master
             // switch (KC-8): a translation started from the tray or the context menu promises
@@ -276,15 +302,24 @@ namespace CyrFlip
             bool historyMatch = _historyEnabled && _matcher.Matches(_clipboardHistoryHotkey, vk);
             bool notesMatch = _quickNotesEnabled && _matcher.Matches(_quickNotesHotkey, vk);
             bool screenshotMatch = _screenshotEnabled && _matcher.Matches(_screenshotHotkey, vk);
+            bool screenshotFullMatch = _screenshotFullEnabled && _matcher.Matches(_screenshotFullHotkey, vk);
+            bool screenshotAnnotateAreaMatch = _screenshotAnnotateAreaEnabled && _matcher.Matches(_screenshotAnnotateAreaHotkey, vk);
+            bool screenshotFullAnnotateMatch = _screenshotFullAnnotateEnabled && _matcher.Matches(_screenshotFullAnnotateHotkey, vk);
             bool screenshotFolderMatch = _screenshotFolderEnabled && _matcher.Matches(_screenshotFolderHotkey, vk);
             bool textMenuMatch = _textMenuEnabled && _matcher.Matches(_textMenuHotkey, vk);
             bool symbolsMatch = _symbolsEnabled && _matcher.Matches(_symbolsHotkey, vk);
             bool trafficLightMatch = _trafficLightEnabled && _matcher.Matches(_trafficLightHotkey, vk);
+            bool exchangeSendMatch = _exchangeSendEnabled && _matcher.Matches(_exchangeSendHotkey, vk);
+            bool exchangeGetMatch = _exchangeGetEnabled && _matcher.Matches(_exchangeGetHotkey, vk);
             LayoutConversionProfile? conversion = FindConversion(vk);
             Guid? launcher = FindLauncher(vk);
             TranslationProfile? translation = FindTranslation(vk);
 
-            if (!caseMatch && !historyMatch && !notesMatch && !screenshotMatch && !screenshotFolderMatch && !textMenuMatch && !symbolsMatch && !trafficLightMatch && conversion == null && launcher == null && translation == null)
+            if (!caseMatch && !historyMatch && !notesMatch && !screenshotMatch && !screenshotFullMatch
+                && !screenshotAnnotateAreaMatch && !screenshotFullAnnotateMatch && !screenshotFolderMatch
+                && !textMenuMatch && !symbolsMatch && !trafficLightMatch
+                && !exchangeSendMatch && !exchangeGetMatch
+                && conversion == null && launcher == null && translation == null)
                 return false;
 
             // When a remote-desktop client is focused and deferral is on, don't touch the key: let
@@ -305,10 +340,15 @@ namespace CyrFlip
             else if (historyMatch) ClipboardHistoryHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (notesMatch) QuickNotesHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (screenshotMatch) ScreenshotHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (screenshotFullMatch) ScreenshotFullHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (screenshotAnnotateAreaMatch) ScreenshotAnnotateAreaHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (screenshotFullAnnotateMatch) ScreenshotFullAnnotateHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (screenshotFolderMatch) ScreenshotFolderHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (textMenuMatch) TextMenuHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (symbolsMatch) SymbolsHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (trafficLightMatch) TrafficLightHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (exchangeSendMatch) ExchangeSendHotkeyPressed?.Invoke(this, EventArgs.Empty);
+            else if (exchangeGetMatch) ExchangeGetHotkeyPressed?.Invoke(this, EventArgs.Empty);
             else if (conversion != null) LayoutConversionHotkeyPressed?.Invoke(conversion.Id);
             else if (launcher != null) LauncherHotkeyPressed?.Invoke(launcher.Value);
             else TranslateHotkeyPressed?.Invoke(translation!.Id);
@@ -376,6 +416,15 @@ namespace CyrFlip
         public void UpdateTextMenuEnabled(bool enabled) => _textMenuEnabled = enabled;
         /// <summary>The capture chord's own switch.</summary>
         public void UpdateScreenshotEnabled(bool enabled) => _screenshotEnabled = enabled;
+        public void UpdateScreenshotFullHotkey(Hotkey hotkey) => _screenshotFullHotkey = hotkey;
+        /// <summary>The full capture chord's own switch (S0071).</summary>
+        public void UpdateScreenshotFullEnabled(bool enabled) => _screenshotFullEnabled = enabled;
+        public void UpdateScreenshotAnnotateAreaHotkey(Hotkey hotkey) => _screenshotAnnotateAreaHotkey = hotkey;
+        /// <summary>False whenever the draw module is off or this chord's own switch is (S0071).</summary>
+        public void UpdateScreenshotAnnotateAreaEnabled(bool enabled) => _screenshotAnnotateAreaEnabled = enabled;
+        public void UpdateScreenshotFullAnnotateHotkey(Hotkey hotkey) => _screenshotFullAnnotateHotkey = hotkey;
+        /// <summary>False whenever the draw module is off or this chord's own switch is (S0071).</summary>
+        public void UpdateScreenshotFullAnnotateEnabled(bool enabled) => _screenshotFullAnnotateEnabled = enabled;
         public void UpdateScreenshotFolderHotkey(Hotkey hotkey) => _screenshotFolderHotkey = hotkey;
         /// <summary>False whenever saving is off <b>or</b> this chord's own switch is (S0057).</summary>
         public void UpdateScreenshotFolderEnabled(bool enabled) => _screenshotFolderEnabled = enabled;
@@ -385,6 +434,12 @@ namespace CyrFlip
         public void UpdateTrafficLightHotkey(Hotkey hotkey) => _trafficLightHotkey = hotkey;
         /// <summary>False whenever the traffic light is off or its chord's own switch is.</summary>
         public void UpdateTrafficLightEnabled(bool enabled) => _trafficLightEnabled = enabled;
+        public void UpdateExchangeSendHotkey(Hotkey hotkey) => _exchangeSendHotkey = hotkey;
+        /// <summary>False whenever exchange clipboard is off or this chord's own switch is.</summary>
+        public void UpdateExchangeSendEnabled(bool enabled) => _exchangeSendEnabled = enabled;
+        public void UpdateExchangeGetHotkey(Hotkey hotkey) => _exchangeGetHotkey = hotkey;
+        /// <summary>False whenever exchange clipboard is off or this chord's own switch is.</summary>
+        public void UpdateExchangeGetEnabled(bool enabled) => _exchangeGetEnabled = enabled;
 
         /// <summary>Watch for Escape (see <see cref="CancelKeyPressed"/>) - on only while translating.</summary>
         public void UpdateCancelKeyWatch(bool watch) => _watchCancelKey = watch;

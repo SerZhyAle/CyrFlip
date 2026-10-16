@@ -11,6 +11,21 @@ namespace CyrFlip
                 es: "Corrección de texto", fr: "Correction de texte", pt: "Correção de texto",
                 ar: "تصحيح النص", hi: "पाठ सुधार", bn: "লেখা সংশোধন", ur: "متن کی درستی", zh: "文本纠正");
 
+            // S0060 M7: the first sentence of the long description below; the rest is said by the groups themselves.
+            Add("Text typed in the wrong layout or with CapsLock on is fixed with one hotkey.",
+                ru: "Текст, набранный не в той раскладке или при включённом CapsLock, исправляется одной комбинацией.",
+                uk: "Текст, набраний не в тій розкладці або з увімкненим CapsLock, виправляється однією комбінацією.",
+                de: "Text, der im falschen Layout oder bei eingeschaltetem CapsLock getippt wurde, wird mit einem Tastenkürzel korrigiert.",
+                it: "Il testo digitato nel layout sbagliato o con CapsLock attivo si corregge con una sola scorciatoia.",
+                es: "El texto escrito en la distribución equivocada o con CapsLock activado se corrige con un solo atajo.",
+                fr: "Le texte tapé dans la mauvaise disposition ou avec CapsLock activé se corrige avec un seul raccourci.",
+                pt: "O texto escrito no layout errado ou com o CapsLock ligado corrige-se com um único atalho.",
+                ar: "يُصحَّح النص المكتوب بتخطيط خاطئ أو مع تفعيل CapsLock باختصار واحد.",
+                hi: "गलत लेआउट में या CapsLock चालू रहते टाइप किया गया पाठ एक ही शॉर्टकट से ठीक हो जाता है।",
+                bn: "ভুল লেআউটে বা CapsLock চালু অবস্থায় লেখা টেক্সট একটি শর্টকাটেই ঠিক হয়।",
+                ur: "غلط لے آؤٹ میں یا CapsLock آن ہونے پر ٹائپ کیا گیا متن ایک ہی شارٹ کٹ سے درست ہو جاتا ہے۔",
+                zh: "在错误布局下或开着 CapsLock 时输入的文本，用一个快捷键即可纠正。");
+
             Add("Text typed in the wrong layout or with CapsLock on is fixed with one hotkey. Here are the table of layout pairs with their hotkeys and the case fix. Every pair works both ways.",
                 ru: "Текст, набранный не в той раскладке или при включённом CapsLock, исправляется одной комбинацией. Здесь таблица пар раскладок с их комбинациями и исправление регистра. Каждая пара работает в обе стороны.",
                 uk: "Текст, набраний не в тій розкладці або з увімкненим CapsLock, виправляється однією комбінацією. Тут таблиця пар розкладок з їхніми комбінаціями та виправлення регістру. Кожна пара працює в обидва боки.",
@@ -195,7 +210,7 @@ namespace CyrFlip
                 fr: "Raccourci :", pt: "Atalho:", ar: "الاختصار:", hi: "शॉर्टकट:", bn: "শর্টকাট:",
                 ur: "شارٹ کٹ:", zh: "快捷键：");
 
-            Add("Conversion hotkey",
+            Add("Conversion shortcut",
                 ru: "Сочетание конвертации", uk: "Сполучення перетворення", de: "Kürzel für die Umwandlung",
                 it: "Scorciatoia di conversione", es: "Atajo de conversión", fr: "Raccourci de conversion",
                 pt: "Atalho de conversão", ar: "اختصار التحويل", hi: "रूपांतरण का शॉर्टकट",
@@ -215,7 +230,7 @@ namespace CyrFlip
                 ur: "ماخذ اور ہدف لے آؤٹ مختلف ہونے چاہئیں۔",
                 zh: "源布局和目标布局必须不同。");
 
-            Add("Set a hotkey first.",
+            Add("Set a shortcut first.",
                 ru: "Сначала задайте комбинацию клавиш.",
                 uk: "Спершу задайте сполучення клавіш.",
                 de: "Legen Sie zuerst ein Tastenkürzel fest.",
@@ -229,7 +244,7 @@ namespace CyrFlip
                 ur: "پہلے کی بورڈ شارٹ کٹ مقرر کریں۔",
                 zh: "请先设置快捷键。");
 
-            Add("The hotkey \"{0}\" was not recognized.",
+            Add("The shortcut \"{0}\" was not recognized.",
                 ru: "Комбинация «{0}» не распознана.",
                 uk: "Сполучення «{0}» не розпізнано.",
                 de: "Das Tastenkürzel „{0}“ wurde nicht erkannt.",

@@ -56,7 +56,7 @@ namespace CyrFlip
                 ur: "تمام شارٹ کٹس کا مرکزی سوئچ۔ بند ہونے پر CyrFlip کوئی مجموعہ نہیں روکتا — کیز حسبِ معمول ایپ تک پہنچتی ہیں۔",
                 zh: "所有快捷键的总开关。关闭后，CyrFlip 不会拦截任何组合键——按键将照常传递给应用。");
 
-            Add("Fix CapsLock",
+            Add("Case flip",
                 ru: "Исправить CapsLock", uk: "Виправити CapsLock", de: "CapsLock korrigieren",
                 it: "Correggi CapsLock", es: "Corregir CapsLock", fr: "Corriger Verr. Maj.",
                 pt: "Corrigir CapsLock", ar: "تصحيح CapsLock", hi: "CapsLock ठीक करें",
@@ -76,11 +76,6 @@ namespace CyrFlip
                 ur: "منتخب متن کے بڑے اور چھوٹے حروف آپس میں بدل دیتا ہے؛ غلطی سے CapsLock آن رہ جانے پر مفید۔",
                 zh: "交换所选文本的大小写；不小心开着 CapsLock 时很有用。");
 
-            Add("Clipboard manager",
-                ru: "Менеджер буфера", uk: "Менеджер буфера", de: "Zwischenablage-Manager",
-                it: "Gestore appunti", es: "Gestor del portapapeles", fr: "Gestionnaire du presse-papiers",
-                pt: "Gerenciador da área de transferência", ar: "مدير الحافظة", hi: "क्लिपबोर्ड प्रबंधक",
-                bn: "ক্লিপবোর্ড ম্যানেজার", ur: "کلپ بورڈ مینیجر", zh: "剪贴板管理器");
 
             Add("Shows or hides the text-history window. Two CyrFlip actions cannot share one shortcut.",
                 ru: "Показывает или скрывает окно текстовой истории. Двум действиям CyrFlip нельзя назначить одну комбинацию.",
@@ -130,7 +125,7 @@ namespace CyrFlip
                 ur: "تبدیل کریں...", zh: "更改...");
 
             // ---- HotkeyDialog ----
-            Add("New combo (a modifier is required):",
+            Add("New shortcut (a modifier is required):",
                 ru: "Новая комбинация (модификатор обязателен):", uk: "Нова комбінація (модифікатор обов'язковий):",
                 de: "Neue Kombination (Modifikatortaste erforderlich):",
                 it: "Nuova combinazione (un modificatore è obbligatorio):",
@@ -141,14 +136,14 @@ namespace CyrFlip
                 bn: "নতুন সংমিশ্রণ (একটি মডিফায়ার আবশ্যক):", ur: "نیا مجموعہ (ایک موڈیفائر لازمی ہے):",
                 zh: "新组合键（必须包含修饰键）：");
 
-            Add("Set case hotkey",
+            Add("Set case shortcut",
                 ru: "Задать хоткей регистра", uk: "Задати хоткей регістру", de: "Kürzel für Groß-/Kleinschreibung festlegen",
                 it: "Imposta la scorciatoia delle maiuscole", es: "Definir el atajo de mayúsculas",
                 fr: "Définir le raccourci de casse", pt: "Definir o atalho de maiúsculas",
                 ar: "تعيين اختصار حالة الأحرف", hi: "केस शॉर्टकट सेट करें",
                 bn: "কেস শর্টকাট নির্ধারণ", ur: "کیس کا شارٹ کٹ مقرر کریں", zh: "设置大小写快捷键");
 
-            Add("Set clipboard history hotkey",
+            Add("Set clipboard history shortcut",
                 ru: "Задать хоткей истории буфера", uk: "Задати хоткей історії буфера",
                 de: "Kürzel für den Zwischenablage-Verlauf festlegen",
                 it: "Imposta la scorciatoia della cronologia appunti",
@@ -174,7 +169,7 @@ namespace CyrFlip
                 ur: "یہ مجموعہ پہلے ہی {0} کے پاس ہے۔ اسے بانٹا نہیں جا سکتا — کوئی دوسرا منتخب کریں۔",
                 zh: "该组合键已被{0}占用。两者不能共用——请另选一个。");
 
-            Add("the case-flip hotkey",
+            Add("the case-flip shortcut",
                 ru: "хоткеем регистра", uk: "хоткеєм регістру", de: "das Kürzel für Groß-/Kleinschreibung",
                 it: "la scorciatoia delle maiuscole", es: "el atajo de mayúsculas",
                 fr: "le raccourci de casse", pt: "o atalho de maiúsculas",
@@ -188,7 +183,7 @@ namespace CyrFlip
                 ar: "تحويل تخطيط", hi: "एक लेआउट रूपांतरण", bn: "একটি লেআউট রূপান্তর",
                 ur: "ایک لے آؤٹ تبدیلی", zh: "某个布局转换");
 
-            Add("another CyrFlip hotkey",
+            Add("another CyrFlip shortcut",
                 ru: "другим хоткеем CyrFlip", uk: "іншим хоткеєм CyrFlip", de: "ein anderes CyrFlip-Kürzel",
                 it: "un'altra scorciatoia di CyrFlip", es: "otro atajo de CyrFlip",
                 fr: "un autre raccourci de CyrFlip", pt: "outro atalho do CyrFlip",

@@ -39,17 +39,21 @@ namespace CyrFlip
             // The master switch and the RDP option are this page's own controls now (S0062 D9): there is one
             // control and one view of it, where the overview used to carry a second switch beside the first.
             _enableHotkeys.Name = "setting.hotkeys-master";
+            _overviewResetAll = Button("Reset all...", AppGlyphs.Reset, ResetAllChords);
+            _overviewResetAll.Name = "group.overview";
+            // Everything that edits or commands stands in the first group (S0060 M4): the switches, the note that
+            // says what state they leave the hotkeys in, "Reset all" with the line that reports its result, and
+            // the lead-in to the list below. No row of this page is loose.
             var controls = new List<Control>
             {
                 Group("hotkeys/switches", "Main switches",
                     Setting(_enableHotkeys, "Master switch for all hotkeys. When off, CyrFlip intercepts none of the chords — keys reach the app as usual."),
-                    Setting(_deferRdp, "When a remote-desktop client window (mstsc/msrdc) is focused, CyrFlip does not intercept the hotkeys — the key travels to the remote session where that machine's CyrFlip handles it. Enable this if the app runs on both ends of the RDP connection.")),
-                _overviewNote,
+                    Setting(_deferRdp, "When a remote-desktop client window (mstsc/msrdc) is focused, CyrFlip does not intercept the hotkeys — the key travels to the remote session where that machine's CyrFlip handles it. Enable this if the app runs on both ends of the RDP connection."),
+                    _overviewNote,
+                    Setting(_overviewResetAll, "Puts the hotkeys and their switches back to what CyrFlip ships with. Modules, table rows and scenarios are not deleted or switched off."),
+                    _overviewStatus,
+                    new Label { Text = "A hotkey can be changed or reset here; the feature's own settings stay on its page.", AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 4, 3, 6) }),
             };
-            _overviewResetAll = Button("Reset all...", AppGlyphs.Reset, ResetAllChords);
-            _overviewResetAll.Name = "group.overview";
-            controls.Add(Setting(_overviewResetAll, "Puts the hotkeys and their switches back to what CyrFlip ships with. Modules, table rows and scenarios are not deleted or switched off."));
-            controls.Add(_overviewStatus);
 
             Dictionary<string, bool> saved = ParseGroupState(_config.SettingsGroupsState);
             foreach (ChordGroup group in Enum.GetValues(typeof(ChordGroup)))
@@ -62,7 +66,7 @@ namespace CyrFlip
                 controls.Add(box);
             }
 
-            return Page("Hotkeys", "The master switch and the full list of CyrFlip hotkeys: what each one does, whether it works right now and why. A hotkey can be changed or reset here; the feature's own settings stay on its page.", controls.ToArray());
+            return Page("Hotkeys", "The full list of CyrFlip hotkeys: what each one does, whether it works right now and why.", controls.ToArray());
         }
 
         /// <summary>Rebuilds every row from the live state, in the current language.</summary>
@@ -151,11 +155,11 @@ namespace CyrFlip
 
             if (row.HasSwitch)
             {
-                var on = new RowCheckBox { Checked = row.SwitchOn, AutoSize = true, Margin = new Padding(3, 6, 2, 2) };
+                var on = new RowCheckBox { Checked = row.SwitchOn, AutoSize = true, Margin = new Padding(3, 0, 2, 0), Anchor = AnchorStyles.Left };
                 on.CheckedChanged += (_, _) => { if (!_loading) OverviewSwitch(row, on.Checked); };
                 panel.Controls.Add(on);
             }
-            else panel.Controls.Add(new Label { AutoSize = false, Width = 26, Height = 18 });
+            else panel.Controls.Add(new Label { AutoSize = false, Width = 26, Height = 18, Anchor = AnchorStyles.Left });
 
             Label caption = ColumnLabel(row.Caption, _ovCaptionColumn);
             Label chord = ColumnLabel(row.ChordText, _ovChordColumn, ellipsis: false);
@@ -173,6 +177,7 @@ namespace CyrFlip
                 {
                     Text = stateText, AutoSize = false, Width = _ovStateColumn, Height = RowHeight,
                     TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = true, Margin = new Padding(3, 4, 3, 4),
+                    Anchor = AnchorStyles.Left,
                 };
                 link.LinkClicked += (_, _) => SelectPage(page);
                 state = link;
@@ -229,6 +234,9 @@ namespace CyrFlip
                 case ChordKind.History: _setHistoryHotkey(); break;
                 case ChordKind.QuickNotes: _setQuickNotesHotkey(); break;
                 case ChordKind.Screenshot: ScreenshotHotkeyChangeRequested?.Invoke(this, EventArgs.Empty); break;
+                case ChordKind.ScreenshotFull: ScreenshotFullHotkeyChangeRequested?.Invoke(this, EventArgs.Empty); break;
+                case ChordKind.ScreenshotAnnotateArea: ScreenshotAnnotateAreaHotkeyChangeRequested?.Invoke(this, EventArgs.Empty); break;
+                case ChordKind.ScreenshotFullAnnotate: ScreenshotFullAnnotateHotkeyChangeRequested?.Invoke(this, EventArgs.Empty); break;
                 case ChordKind.ScreenshotFolder: ScreenshotFolderHotkeyChangeRequested?.Invoke(this, EventArgs.Empty); break;
                 case ChordKind.TextMenu: TextMenuHotkeyChangeRequested?.Invoke(this, EventArgs.Empty); break;
                 case ChordKind.Symbols: SymbolsHotkeyChangeRequested?.Invoke(this, EventArgs.Empty); break;
@@ -296,6 +304,9 @@ namespace CyrFlip
                 case ChordKind.Symbols: SymbolsSettingChanged(() => _config.EnableSymbolsHotkey = on, reload: true); break;
                 case ChordKind.TrafficLight: TrafficLightSettingChanged(() => _config.EnableTrafficLightHotkey = on, reload: true); break;
                 case ChordKind.Screenshot: GraphicsSettingChanged(() => _config.EnableScreenshotHotkey = on, reload: true); break;
+                case ChordKind.ScreenshotFull: GraphicsSettingChanged(() => _config.EnableScreenshotFullHotkey = on, reload: true); break;
+                case ChordKind.ScreenshotAnnotateArea: GraphicsSettingChanged(() => _config.EnableScreenshotAnnotateAreaHotkey = on, reload: true); break;
+                case ChordKind.ScreenshotFullAnnotate: GraphicsSettingChanged(() => _config.EnableScreenshotFullAnnotateHotkey = on, reload: true); break;
                 case ChordKind.ScreenshotFolder: GraphicsSettingChanged(() => _config.EnableScreenshotFolderHotkey = on, reload: true); break;
                 case ChordKind.TextMenu: TextMenuSettingChanged(() => _config.EnableTextMenuHotkey = on, reload: true); break;
                 case ChordKind.Conversion when row.Source is LayoutConversionProfile conversion:

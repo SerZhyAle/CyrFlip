@@ -306,7 +306,7 @@ namespace CyrFlip
                 ur: "منتخب متن کو فوری نوٹس میں محفوظ کریں",
                 zh: "把选中的文本存入快速笔记");
 
-            Add("Set the quick-notes hotkey",
+            Add("Set the quick-notes shortcut",
                 ru: "Задать хоткей быстрых заметок", uk: "Задати хоткей швидких нотаток",
                 de: "Tastenkombination für Schnellnotizen festlegen", it: "Imposta la combinazione per le note rapide",
                 es: "Definir la combinación de las notas rápidas", fr: "Définir le raccourci des notes rapides",
@@ -415,6 +415,35 @@ namespace CyrFlip
                 zh: "笔记只保存在这台电脑上，并由 DPAPI 加密。不要在这里保存密码、生产环境令牌和私钥。");
 
             // ---- The settings tab ----
+
+            // S0060 M7: a one-sentence description; "stored exactly as typed" is the note of the editor group.
+            Add("A small local notepad: open it with a chord, drop in a fragment of code or a thought, close it.",
+                ru: "Маленький локальный блокнот: по хоткею открыть, бросить фрагмент кода или мысль, закрыть.",
+                uk: "Маленький локальний блокнот: за хоткеєм відкрити, кинути фрагмент коду чи думку, закрити.",
+                de: "Ein kleiner lokaler Notizblock: per Tastenkombination öffnen, einen Codeausschnitt oder Gedanken hineinwerfen, schließen.",
+                it: "Un piccolo blocco note locale: apri con una combinazione, butta dentro un frammento di codice o un pensiero, chiudi.",
+                es: "Un pequeño bloc de notas local: ábralo con una combinación, suelte un fragmento de código o una idea, ciérrelo.",
+                fr: "Un petit bloc-notes local : ouvrez-le par un raccourci, jetez-y un fragment de code ou une idée, refermez-le.",
+                pt: "Um pequeno bloco de notas local: abra com um atalho, jogue lá um trecho de código ou uma ideia, feche.",
+                ar: "مفكرة محلية صغيرة: افتحها باختصار، وألقِ فيها مقتطف شيفرة أو فكرة، ثم أغلقها.",
+                hi: "एक छोटा स्थानीय नोटपैड: हॉटकी से खोलें, कोड का अंश या कोई विचार डालें, बंद करें।",
+                bn: "একটি ছোট স্থানীয় নোটপ্যাড: হটকি দিয়ে খুলুন, কোডের অংশ বা একটি ভাবনা রাখুন, বন্ধ করুন।",
+                ur: "ایک چھوٹی مقامی نوٹ بک: ہاٹ کی سے کھولیں، کوڈ کا ٹکڑا یا کوئی خیال ڈالیں، بند کر دیں۔",
+                zh: "一个小小的本地记事本：用快捷键打开，扔进一段代码或一个想法，关掉。");
+
+            Add("The text is stored exactly as typed, with no markup, highlighting or auto-formatting, so code pastes back unchanged.",
+                ru: "Текст хранится ровно так, как набран, без разметки, подсветки и автоформатирования, поэтому код вставляется обратно без изменений.",
+                uk: "Текст зберігається саме так, як набраний, без розмітки, підсвічування й автоформатування, тому код вставляється назад без змін.",
+                de: "Der Text wird genau so gespeichert, wie er eingegeben wurde: ohne Markup, Hervorhebung oder Autoformatierung, sodass sich Code unverändert wieder einfügen lässt.",
+                it: "Il testo è conservato esattamente come è stato digitato, senza markup, evidenziazione o formattazione automatica, quindi il codice si reincolla senza modifiche.",
+                es: "El texto se guarda exactamente como se escribió, sin marcado, resaltado ni formato automático, así que el código se pega de vuelta sin cambios.",
+                fr: "Le texte est conservé exactement tel qu'il a été saisi, sans balisage, coloration ni mise en forme automatique : le code se recolle donc sans modification.",
+                pt: "O texto é guardado exatamente como foi digitado, sem marcação, realce nem formatação automática, então o código pode ser colado de volta sem alterações.",
+                ar: "يُحفظ النص تمامًا كما كُتب، بلا ترميز ولا تلوين ولا تنسيق تلقائي، فيمكن لصق الشيفرة مرة أخرى دون أي تغيير.",
+                hi: "पाठ ठीक वैसा ही सहेजा जाता है जैसा टाइप किया गया, बिना मार्कअप, हाइलाइटिंग या स्वतः-स्वरूपण के, इसलिए कोड बिना बदलाव के वापस चिपकाया जा सकता है।",
+                bn: "লেখা ঠিক যেমন টাইপ করা হয়েছে তেমনই রাখা হয়, মার্কআপ, হাইলাইট বা স্বয়ংক্রিয় বিন্যাস ছাড়াই, তাই কোড কোনো পরিবর্তন ছাড়াই ফিরিয়ে পেস্ট করা যায়।",
+                ur: "متن بالکل ویسے ہی محفوظ ہوتا ہے جیسا ٹائپ کیا گیا، بغیر مارک اپ، ہائی لائٹنگ یا خودکار فارمیٹنگ کے، اس لیے کوڈ بغیر کسی تبدیلی کے واپس چسپاں ہو جاتا ہے۔",
+                zh: "文本按输入原样保存，没有标记、语法着色或自动排版，因此代码可以不做任何改动地贴回去。");
 
             Add("A small local notepad: open it with a chord, drop in a fragment of code or a thought, close it. The text is stored exactly as it is - no markup, no highlighting, no auto-formatting - so it can be pasted back into the code without a single change.",
                 ru: "Маленький локальный блокнот: по хоткею открыть, бросить фрагмент кода или мысль, закрыть. Текст хранится как есть — без разметки, подсветки и автоформатирования, — поэтому его можно вставить обратно в код без единого изменения.",

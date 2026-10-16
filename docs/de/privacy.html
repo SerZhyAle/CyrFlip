@@ -28,7 +28,7 @@
   <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/CyrFlip/ur/privacy.html">
   <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/privacy.html">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","headline":"CyrFlip - Datenschutzerklärung","url":"https://serzhyale.github.io/CyrFlip/de/privacy.html","description":"CyrFlip erhebt, speichert, protokolliert und überträgt keine personenbezogenen Daten. Alles läuft auf Ihrem eigenen Gerät.","inLanguage":"de","about":{"@type":"SoftwareApplication","name":"CyrFlip","operatingSystem":"Windows"}}</script>
-  <meta name="source-sha256" content="f0acc1a5f07b080c192c226b9aaf38f81e83a96769c20f54e5b77b2aeb99c0a5">
+  <meta name="source-sha256" content="eb68ca84b8b726485d7e6652acb09aa1ec8a288a94c40c2e3a93e1d9cd3780c2">
   <!-- /doc-quality metadata -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -65,19 +65,28 @@
     <nav class="langbar" aria-label="Sprache"><a href="../ru/privacy.html" data-sza-lang="ru" lang="ru" hreflang="ru"><span class="code">RU</span><span class="endonym">Русский</span></a><a href="../privacy.html" data-sza-lang="en" lang="en" hreflang="en"><span class="code">EN</span><span class="endonym">English</span></a><a href="../uk/privacy.html" data-sza-lang="ua" lang="uk" hreflang="uk"><span class="code">UA</span><span class="endonym">Українська</span></a><a href="privacy.html" class="active" aria-current="page" lang="de" hreflang="de"><span class="code">DE</span><span class="endonym">Deutsch</span></a><a href="../it/privacy.html" lang="it" hreflang="it"><span class="code">IT</span><span class="endonym">Italiano</span></a><a href="../es/privacy.html" lang="es" hreflang="es"><span class="code">ES</span><span class="endonym">Español</span></a><a href="../fr/privacy.html" lang="fr" hreflang="fr"><span class="code">FR</span><span class="endonym">Français</span></a><a href="../pt/privacy.html" lang="pt" hreflang="pt"><span class="code">PT</span><span class="endonym">Português</span></a><a href="../ar/privacy.html" lang="ar" hreflang="ar"><span class="code">AR</span><span class="endonym" dir="rtl">العربية</span></a><a href="../hi/privacy.html" lang="hi" hreflang="hi"><span class="code">HI</span><span class="endonym">हिन्दी</span></a><a href="../bn/privacy.html" lang="bn" hreflang="bn"><span class="code">BN</span><span class="endonym">বাংলা</span></a><a href="../ur/privacy.html" lang="ur" hreflang="ur"><span class="code">UR</span><span class="endonym" dir="rtl">اردو</span></a><a href="../zh/privacy.html" lang="zh" hreflang="zh"><span class="code">ZH</span><span class="endonym">中文</span></a></nav>
     <section>
       <h1>Datenschutzerklärung</h1>
-      <p class="note">Stand: 7. Oktober 2026 · <a href="../privacy.html">English (Original)</a></p>
+      <p class="note">Stand: 16. Oktober 2026 · <a href="../privacy.html">English (Original)</a></p>
 
-      <p><strong>CyrFlip erhebt, speichert, protokolliert und überträgt keinerlei personenbezogene
-      Daten.</strong> Die App läuft vollständig auf Ihrem eigenen Gerät. Sie hat keine eigenen Server,
-      keine Telemetrie, keine Analyse, keine Werbung, kein Tracking und keine Benutzerkonten. Der
-      Entwickler erhält keine Daten über Sie oder Ihre Nutzung der App.</p>
+      <p><strong>CyrFlip erhebt keinerlei personenbezogene Daten, und der Entwickler erhält keine.</strong>
+      Die App hat keine eigenen Server, keine Telemetrie, keine Analyse, keine Werbung, kein Tracking und
+      keine Benutzerkonten und protokolliert Ihre Tastenanschläge nicht. Sie läuft auf Ihrem eigenen Gerät;
+      das Einzige, was sie je verlässt, sind die beiden optionalen, standardmäßig ausgeschalteten
+      Funktionen, die als Nächstes beschrieben werden, und nur an einen Ort, den Sie selbst gewählt haben.</p>
 
-      <p>Genau eine Funktion sendet überhaupt Text irgendwohin, und sie ist <strong>standardmäßig
-      ausgeschaltet</strong>: der optionale <em>Übersetzer</em>. Wenn Sie ihn einschalten und eine
-      Übersetzungstastenkombination drücken, geht der ausgewählte Text an die in CyrFlip eingestellte
+      <p>Genau zwei Funktionen senden überhaupt etwas irgendwohin, und beide sind <strong>standardmäßig
+      ausgeschaltet</strong>: der optionale <em>Übersetzer</em> und die optionale <em>Zwischenablage auf dem
+      Server</em>.</p>
+
+      <p>Wenn Sie den Übersetzer einschalten und eine Übersetzungstastenkombination drücken, geht der
+      ausgewählte Text an die in CyrFlip eingestellte
       Ollama-Adresse - standardmäßig <code>http://localhost:11434</code>, also ein Programm auf Ihrem
       eigenen Computer, sodass der Text das Gerät nicht verlässt. Ändern Sie die Adresse auf einen
       anderen Rechner, geht der Text dorthin; CyrFlip sagt das direkt neben der Einstellung.</p>
+
+      <p>Die Zwischenablage auf dem Server sendet <strong>den Inhalt Ihrer Zwischenablage</strong> - einen Text,
+      ein Bild oder eine Datei - an den Austauschserver, bei dem Sie angemeldet sind, und nur wenn Sie ihre
+      Schaltfläche, Tastenkombination oder Verknüpfung drücken. Der Inhalt wird zuvor auf Ihrem Computer
+      verschlüsselt, nur für Ihre eigenen Geräte. Siehe unten den Abschnitt zum Austauschserver.</p>
 
       <h2>Worauf die App zugreift und warum</h2>
       <ul class="features">
@@ -118,7 +127,9 @@
         <li><strong>Zwischenablage.</strong> Wenn Sie die Tastenkombination drücken, liest CyrFlip die
         Auswahl kurzzeitig (über ein simuliertes Kopieren), wandelt sie zwischen Layouts um, fügt das
         Ergebnis wieder ein und stellt den vorherigen Inhalt der Zwischenablage wieder her. Das
-        geschieht lokal und nur in dem Moment, in dem Sie es auslösen. Nichts davon wird gesendet.</li>
+        geschieht lokal und nur in dem Moment, in dem Sie es auslösen. Nichts davon wird dadurch gesendet;
+        die einzige Funktion, die die Zwischenablage je sendet, ist die optionale <em>Zwischenablage auf dem
+        Server</em> weiter unten, und nur wenn Sie ihre Schaltfläche drücken.</li>
 
         <li><strong>Optionaler Zwischenablageverlauf.</strong> <strong>Standardmäßig aus.</strong>
         Schalten Sie ihn ein, speichert CyrFlip erfassten Unicode-Text lokal. Der Verlauf wird mit
@@ -166,6 +177,30 @@
         Installationsprogramm von <code>ollama.com</code>; die Microsoft-Store-Version öffnet nur die
         Website. Welche Sprachen das Modell beherrscht, ist eine Frage an das Modell: CyrFlip reicht ihm
         nur den Text weiter.</li>
+
+        <li><strong>Optionale Zwischenablage auf dem Server.</strong> Diese Funktion ist <strong>standardmäßig
+        aus</strong>; solange sie aus ist, öffnet CyrFlip dafür keine Netzwerkverbindung. Sie braucht ein Konto
+        auf einem Austauschserver, den Sie oder jemand, dem Sie vertrauen, betreiben, und CyrFlip meldet sich
+        dort nur an: Sie geben einmal die Verbindungszeichenfolge des Servers, Ihren Anmeldenamen und Ihr
+        Passwort ein. Das Passwort wird nur für diese eine Anmeldung verwendet und nie gespeichert; das
+        Geräte-Token, das der Server zurückgibt, und ein privater Schlüssel, den CyrFlip für dieses Konto
+        erzeugt, werden mit Windows DPAPI für Ihr Windows-Konto verschlüsselt aufbewahrt. Wenn Sie
+        <em>Zwischenablage an den Server senden</em> drücken (Menü des Infobereichs, Verknüpfung oder
+        Tastenkombination), sendet CyrFlip <strong>genau das, was in diesem Moment in der Zwischenablage
+        liegt</strong> - einen Text, ein Bild oder eine Datei, auch ein Passwort, das Sie vor einer Minute
+        kopiert haben. Es gibt keine Vorschau, keine Bestätigung und keinen Filter; lösen Sie das Senden also
+        nur aus, wenn Sie es wirklich wollen. Der Wert wird vor dem Senden auf Ihrem Computer für die anderen
+        Geräte Ihres Kontos verschlüsselt, und der Server behält nur den letzten Wert, in seinem
+        Arbeitsspeicher. <em>Zwischenablage vom Server abrufen</em> legt den neuesten Wert des Servers in Ihre
+        Zwischenablage; eine empfangene Datei wird in einem Ordner gespeichert, den Sie sehen können
+        (standardmäßig <code>Downloads\CyrFlip</code>), und überschreibt nie eine andere Datei. Nichts wird
+        von selbst gesendet - es gibt keine Überwachung, keinen Timer und kein Senden beim Start. Der Austauschserver verbindet Ihre Geräte, deshalb kennt er die Namen Ihres Kontos, Ihrer Geräte, Ordner und Broadcasts, sieht, welche Geräte online sind, und wie viel gesendet wird und wann. Was durch ihn läuft, kann er nicht öffnen: Ordner und ihre Dateien, Broadcasts und die Zwischenablage werden auf Ihrem Gerät verschlüsselt und nur auf Ihren anderen Geräten oder von den Personen geöffnet, denen Sie Zugriff gegeben haben. Um hineinzusehen, müsste, wer den Server betreibt, ein eigenes Gerät zu Ihrem Konto hinzufügen, und es würde in Ihrer Geräteliste erscheinen.
+        CyrFlip führt ein Protokoll nur mit Arten, Größen und Ergebniscodes - nie mit einem
+        Zwischenablagewert, einem Dateinamen, einem Anmeldenamen oder einer Adresse - und dieses Protokoll ist
+        die einzige Spur, die es zu dieser Funktion schreibt, außer dem Kontoeintrag selbst (Adresse des
+        Servers, Ihr Anmeldename, ein Name, das angeheftete Zertifikat und die öffentlichen Schlüssel Ihrer
+        anderen Geräte), den Sie mit <em>Konto entfernen</em> löschen.</li>
+
         <li><strong>Bildschirmaufnahme.</strong> Nur wenn Sie die Tastenkombination für die Bildschirmaufnahme drücken
         oder im Menü des Infobereichs <em>Bildschirmausschnitt aufnehmen</em> wählen,
         nimmt CyrFlip ein Bild Ihrer Bildschirme so auf, wie sie sind, lässt Sie ein Rechteck auswählen und legt
@@ -234,10 +269,11 @@
       dessen, was CyrFlip nie tut, sagt dort dasselbe wie diese Seite.</p>
 
       <h2>Weitergabe von Daten</h2>
-      <p>Keine. CyrFlip gibt keine Daten an den Entwickler oder an Dritte weiter. Das Einzige, was
-      überhaupt je gesendet wird, ist der von Ihnen ausgewählte Text an die von Ihnen selbst gewählte
-      Übersetzer-Adresse - standardmäßig ein Programm auf Ihrem eigenen Computer - und nur solange diese
-      optionale Funktion eingeschaltet ist. Der Knopf <em>Protokolle an den Autor senden</em> ist keine Ausnahme: Er bereitet eine Nachricht in Ihrem eigenen Mailprogramm vor, das Archiv können Sie vorher ansehen, und senden können nur Sie.</p>
+      <p>Keine. CyrFlip gibt keine Daten an den Entwickler oder an Dritte weiter. Gesendet werden kann nur,
+      was Sie veranlassen, an den Ort, den Sie benennen, und nur solange die optionale Funktion
+      eingeschaltet ist: der von Ihnen ausgewählte Text an die von Ihnen selbst gewählte Übersetzer-Adresse
+      (standardmäßig ein Programm auf Ihrem eigenen Computer); und der Inhalt Ihrer Zwischenablage an den
+      Austauschserver, bei dem Sie angemeldet sind, verschlüsselt für Ihre eigenen Geräte. Der Knopf <em>Protokolle an den Autor senden</em> ist keine Ausnahme: Er bereitet eine Nachricht in Ihrem eigenen Mailprogramm vor, das Archiv können Sie vorher ansehen, und senden können nur Sie.</p>
 
       <h2>Diese Website</h2>
       <p>Dieser Abschnitt betrifft die Seiten, die Sie gerade lesen, nicht die App. Die App nimmt keinen Kontakt zu dieser Website auf, und die Website erhält nichts von der App.</p>

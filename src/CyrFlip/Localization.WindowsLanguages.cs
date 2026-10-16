@@ -11,6 +11,58 @@ namespace CyrFlip
                 ar: "لغات Windows", hi: "Windows की भाषाएँ", bn: "Windows-এর ভাষা",
                 ur: "Windows کی زبانیں", zh: "Windows 语言");
 
+            // S0060 M7: the page description is one sentence. The two facts the long form carried live where they
+            // apply: "nothing is downloaded" under the layout table, the display-language remark as the hint of
+            // the button that opens the Windows settings (the old three-sentence key below is no longer shown).
+            Add("Keyboard layouts, their order and the switch shortcuts - what the Windows «Language & region» pane used to do.",
+                ru: "Раскладки клавиатуры, их порядок и сочетания переключения - то, что раньше делалось в разделе Windows «Язык и регион».",
+                uk: "Розкладки клавіатури, їхній порядок і сполучення перемикання - те, що раніше робилося в розділі Windows «Мова й регіон».",
+                de: "Tastaturlayouts, ihre Reihenfolge und die Umschaltkürzel - was früher der Windows-Bereich «Sprache und Region» erledigte.",
+                it: "Layout di tastiera, il loro ordine e le scorciatoie di commutazione: ciò che prima faceva la sezione «Lingua e area geografica» di Windows.",
+                es: "Distribuciones de teclado, su orden y los atajos de cambio: lo que antes hacía el panel «Idioma y región» de Windows.",
+                fr: "Dispositions de clavier, leur ordre et les raccourcis de bascule : ce que faisait auparavant le volet «Langue et région» de Windows.",
+                pt: "Layouts de teclado, sua ordem e os atalhos de troca: o que antes fazia o painel «Idioma e região» do Windows.",
+                ar: "تخطيطات لوحة المفاتيح وترتيبها واختصارات التبديل - ما كانت تفعله سابقًا صفحة «اللغة والمنطقة» في Windows.",
+                hi: "कीबोर्ड लेआउट, उनका क्रम और स्विच करने के शॉर्टकट - वह सब जो पहले Windows के «भाषा और क्षेत्र» पैनल में होता था।",
+                bn: "কীবোর্ড লেআউট, তাদের ক্রম এবং পরিবর্তনের শর্টকাট - যা আগে Windows-এর «ভাষা ও অঞ্চল» পাতায় করতে হতো।",
+                ur: "کی بورڈ لے آؤٹ، ان کی ترتیب اور تبدیلی کے شارٹ کٹس - جو پہلے Windows کے «زبان اور علاقہ» صفحے میں ہوتا تھا۔",
+                zh: "键盘布局、它们的顺序以及切换快捷键 - 以前要在 Windows 的《语言和区域》面板里完成的事。");
+
+            Add("The layouts already ship with Windows - nothing is downloaded.",
+                ru: "Раскладки уже входят в состав Windows - ничего не скачивается.",
+                uk: "Розкладки вже входять до складу Windows - нічого не завантажується.",
+                de: "Die Layouts sind bereits Teil von Windows - es wird nichts heruntergeladen.",
+                it: "I layout sono già inclusi in Windows: non si scarica nulla.",
+                es: "Las distribuciones ya vienen con Windows: no se descarga nada.",
+                fr: "Les dispositions sont déjà livrées avec Windows - rien n'est téléchargé.",
+                pt: "Os layouts já vêm com o Windows - nada é baixado.",
+                ar: "التخطيطات مضمّنة في Windows أصلًا - ولا يُنزَّل أي شيء.",
+                hi: "लेआउट पहले से Windows के साथ आते हैं - कुछ भी डाउनलोड नहीं होता।",
+                bn: "লেআউটগুলি আগে থেকেই Windows-এর সঙ্গে আসে - কিছুই ডাউনলোড হয় না।",
+                ur: "لے آؤٹ پہلے ہی Windows کے ساتھ آتے ہیں - کچھ بھی ڈاؤن لوڈ نہیں ہوتا۔",
+                zh: "这些布局本来就随 Windows 提供 - 不会下载任何内容。");
+
+            Add("Opens the Windows settings, where a display language (the translation of Windows itself) is installed.",
+                ru: "Открывает настройки Windows, где устанавливается язык интерфейса (перевод самой Windows).",
+                uk: "Відкриває налаштування Windows, де встановлюється мова відображення (переклад самої Windows).",
+                de: "Öffnet die Windows-Einstellungen, in denen eine Anzeigesprache (die Übersetzung von Windows selbst) installiert wird.",
+                it: "Apre le impostazioni di Windows, dove si installa una lingua di visualizzazione (la traduzione di Windows stesso).",
+                es: "Abre la configuración de Windows, donde se instala un idioma de presentación (la traducción del propio Windows).",
+                fr: "Ouvre les paramètres Windows, où s'installe une langue d'affichage (la traduction de Windows lui-même).",
+                pt: "Abre as configurações do Windows, onde se instala um idioma de exibição (a tradução do próprio Windows).",
+                ar: "يفتح إعدادات Windows حيث تُثبَّت لغة العرض (ترجمة Windows نفسه).",
+                hi: "Windows सेटिंग्स खोलता है, जहाँ डिस्प्ले भाषा (यानी Windows का अपना अनुवाद) इंस्टॉल की जाती है।",
+                bn: "Windows সেটিংস খোলে, যেখানে প্রদর্শনের ভাষা (অর্থাৎ Windows-এর নিজের অনুবাদ) ইনস্টল করা হয়।",
+                ur: "Windows کی ترتیبات کھولتا ہے، جہاں ڈسپلے زبان (یعنی خود Windows کا ترجمہ) نصب کی جاتی ہے۔",
+                zh: "打开 Windows 设置，在那里安装显示语言（即 Windows 自身的翻译）。");
+
+            // The group of the deep link: the packaged-build warning and the button that opens the system's page.
+            Add("Windows settings",
+                ru: "Настройки Windows", uk: "Налаштування Windows", de: "Windows-Einstellungen", it: "Impostazioni di Windows",
+                es: "Configuración de Windows", fr: "Paramètres Windows", pt: "Configurações do Windows",
+                ar: "إعدادات Windows", hi: "Windows सेटिंग्स", bn: "Windows সেটিংস",
+                ur: "Windows کی ترتیبات", zh: "Windows 设置");
+
             Add("Everything that used to need the Windows «Language & region» pane: keyboard layouts, their order, and the switch shortcuts. The layouts already ship with Windows — nothing is downloaded. Installing a display language (translating Windows itself) stays behind the «Open Windows settings» button.",
                 ru: "Всё, что раньше требовало раздела «Язык и регион» в параметрах Windows: раскладки клавиатуры, порядок между ними и сочетания переключения. Раскладки уже входят в состав Windows — ничего не скачивается. Установка языка интерфейса (перевод самой Windows) остаётся за кнопкой «Открыть настройки Windows».",
                 uk: "Усе, що раніше вимагало розділу «Мова й регіон» у параметрах Windows: розкладки клавіатури, їхній порядок і сполучення перемикання. Розкладки вже входять до складу Windows — нічого не завантажується. Встановлення мови інтерфейсу (переклад самої Windows) лишається за кнопкою «Відкрити налаштування Windows».",
@@ -326,7 +378,7 @@ namespace CyrFlip
                 ur: "شارٹ کٹ Windows کی ترتیبات میں لکھ دیا گیا ہے — اسے سسٹم سنبھالے گا، CyrFlip نہیں۔ اگر یہ فوراً کام نہ کرے تو Windows سے سائن آؤٹ کر کے دوبارہ سائن اِن کریں۔",
                 zh: "快捷键已写入 Windows 设置——由系统处理，而不是 CyrFlip。如果没有立即生效，请注销 Windows 后重新登录。");
 
-            Add("Restore hotkeys",
+            Add("Restore shortcuts",
                 ru: "Вернуть хоткеи как было", uk: "Повернути хоткеї", de: "Kürzel zurücksetzen",
                 it: "Ripristina le scorciatoie", es: "Restaurar los atajos", fr: "Restaurer les raccourcis",
                 pt: "Restaurar os atalhos", ar: "استعادة الاختصارات", hi: "शॉर्टकट पुनर्स्थापित करें",

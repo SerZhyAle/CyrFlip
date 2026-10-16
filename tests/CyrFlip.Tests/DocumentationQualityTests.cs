@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -318,11 +318,14 @@ namespace CyrFlip.Tests
                     if (locale != "en") Assert.Contains("name=\"source-sha256\" content=\"" + digest + "\"", text);
                 }
             }
-            Assert.Equal(groups.Sum(g => g.Value.Length), Regex.Matches(sitemap, "<loc>").Count);
-            var rows = new JavaScriptSerializer().DeserializeObject(index) as object[];
-            Assert.NotNull(rows);
-            Assert.Equal(groups.Sum(g => g.Value.Length), rows!.Length);
-            foreach (var item in rows.Cast<Dictionary<string, object>>())
+            // The generated help set (S0075, docs/help/) is gated by tools/help/Test-ContextHelp.ps1; this inventory
+            // counts the hand-authored public pages, so the help discovery entries are counted out here.
+            var locations = Regex.Matches(sitemap, "<loc>([^<]+)</loc>").Cast<Match>().Select(m => m.Groups[1].Value).Where(u => !u.Contains("/help/")).ToList();
+            Assert.Equal(groups.Sum(g => g.Value.Length), locations.Count);
+            var rows = (new JavaScriptSerializer().DeserializeObject(index) as object[])!.Cast<Dictionary<string, object>>()
+                .Where(r => !((string)r["url"]).Contains("/help/")).ToList();
+            Assert.Equal(groups.Sum(g => g.Value.Length), rows.Count);
+            foreach (var item in rows)
             {
                 string address = (string)item["url"];
                 string locale = (string)item["lang"];

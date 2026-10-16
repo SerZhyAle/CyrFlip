@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -42,6 +42,8 @@ namespace CyrFlip
         private readonly Timer _retryTimer = new Timer { Interval = BusyRetryMs };
         private readonly ToolTip _toolTips = new ToolTip { ShowAlways = true };
         private Font? _clipboardFont;
+        // The script font of the current language (hi/bn/zh), handed to the form - ours to release.
+        private Font? _scriptFont;
 
         private string _uiLanguage = "ru";
         private IntPtr _lastActiveTarget = IntPtr.Zero;
@@ -164,9 +166,20 @@ namespace CyrFlip
             _retryTimer.Tick += OnRetryTick;
         }
 
+        internal void ApplyImportedPreferences()
+        {
+            _category = SymbolsData.NormalizeCategory(_config.SymbolsCategory);
+            _closeOnPick.Checked = _config.SymbolsCloseOnPick;
+            ApplyLanguage(_uiLanguage);
+        }
+
         public void ApplyLanguage(string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             _uiLanguage = uiLanguage;
+            // Direction and script font follow the language here too, live (APP-BEHAVIOUR rule 8): the
+            // palette is kept for the whole session, so a change made after it was built reaches it.
+            WindowScript.Apply(this, _uiLanguage, ref _scriptFont);
             Text = Localization.Translate(_uiLanguage, "Symbols window");
 
             _fieldCaption.Text = Localization.Translate(_uiLanguage, "Current clipboard");
@@ -630,7 +643,20 @@ namespace CyrFlip
                 _toolTips.Dispose();
             }
             base.Dispose(disposing);
-            if (disposing) _clipboardFont?.Dispose();
+            if (disposing)
+            {
+                _clipboardFont?.Dispose();
+                _scriptFont?.Dispose();
+            }
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            // A language change that flips the direction recreates the window; the clipboard listener
+            // belonged to the old handle and has to be registered again, or the field stops following
+            // the clipboard until the palette is hidden and shown.
+            if (_clipboardListening) _clipboardListening = WindowInterop.AddClipboardFormatListener(Handle);
         }
 
         /// <summary>

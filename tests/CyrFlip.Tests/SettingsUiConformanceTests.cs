@@ -298,7 +298,7 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void SearchDialogHasAQueryBoxThatFiltersAndCaptionsOnlyResults()
+        public void SearchDialogHasAQueryBoxThatFiltersAndShowsEachCaptionWithItsContext()
         {
             OnUiThread(() =>
             {
@@ -319,12 +319,17 @@ namespace CyrFlip.Tests
 
                 List<SettingsForm.SettingsSearchHit> index = form.BuildSearchIndex();
                 SettingsForm.SettingsSearchHit hit = index.First(h => h.Focus is CheckBox && h.Texts.Length > h.Caption.Length);
-                // A result shows the row's caption, not caption and description run together.
+                // A result shows the row's caption, not caption and description run together - and where it lives.
                 Assert.Equal(SettingsForm.OneLine(((CheckBox)hit.Focus).Text), hit.Caption);
+                Assert.StartsWith(hit.PageTitle, hit.Context);
 
                 query.Text = hit.Texts.Substring(hit.Caption.Length).Trim().Split(' ').First(w => w.Length > 4);
                 Assert.InRange(results.Items.Count, 1, all - 1);
-                Assert.True(results.Items.Cast<string>().All(item => !item.Contains("\n")));
+                // The item is the hit itself: the list draws its caption and, under it, "Page / Group" (S0060 M14),
+                // and a screen reader reads "caption - Page / Group". Neither is a run-together paragraph.
+                var items = results.Items.Cast<SettingsForm.SettingsSearchHit>().ToList();
+                Assert.True(items.All(item => !item.Caption.Contains("\n") && !item.Context.Contains("\n")));
+                Assert.True(items.All(item => item.ToString() == item.Caption + " - " + item.Context));
             });
         }
 

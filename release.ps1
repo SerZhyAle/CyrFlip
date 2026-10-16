@@ -1,4 +1,4 @@
-<#
+﻿<#
     CyrFlip РЕЛИЗ orchestrator.
 
     A РЕЛИЗ (release) is the paid, outward-facing path (vs a local "сборка" = build.ps1):
@@ -161,6 +161,11 @@ try {
         & (Join-Path $preflightRoot 'tools\checks\Test-CheckPlacement.ps1')
         if ($LASTEXITCODE -ne 0) { $preflightFails.Add("placement check failed (exit $LASTEXITCODE)") }
 
+        Step 'Context help'
+        & (Join-Path $preflightRoot 'tools\help\Test-ContextHelp.ps1')
+        if ($LASTEXITCODE -eq 1) { $preflightFails.Add('Context help inventory, pages or links failed.') }
+        elseif ($LASTEXITCODE -ne 0) { $preflightUnverified.Add("Context help could not be verified (exit $LASTEXITCODE).") }
+
         # POSITIONING.md (S0058): frozen anchors, retired leads and the descriptor on every public surface.
         Step 'Positioning'
         & (Join-Path $preflightRoot 'tools\site\Test-Positioning.ps1')
@@ -187,7 +192,13 @@ try {
             }
 
             $testResults = Join-Path $preflightRoot 'TestResults-preflight'
-            dotnet test CyrFlip.sln -c Release --no-build --nologo --logger trx --results-directory $testResults
+            # Includes the permanent S0072 migration, update-preserves and transfer/backup gates (G1-G5).
+            # The one place the 13-language UI sweeps run on this machine: nothing else sets CYRFLIP_SWEEP
+            # (UiSweepGate), so a release is the only thing that walks every window in every language.
+            $previousSweep = $env:CYRFLIP_SWEEP
+            $env:CYRFLIP_SWEEP = 'full'
+            try { dotnet test CyrFlip.sln -c Release --no-build --nologo --logger trx --results-directory $testResults }
+            finally { $env:CYRFLIP_SWEEP = $previousSweep }
             if ($LASTEXITCODE -ne 0) {
                 $preflightFails.Add("Unit tests failed (exit $LASTEXITCODE)")
             }

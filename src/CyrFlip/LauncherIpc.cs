@@ -33,9 +33,12 @@ namespace CyrFlip
     /// Identification level only and checks that the process serving it runs in its own session as
     /// its own user before it writes a byte.
     ///
-    /// <b>With the launcher off</b> only <see cref="ExitCommand"/> is honoured (open decision 1 of
-    /// S0008): the build and release scripts stop the tray process with it, and every other command
-    /// belongs to a feature the user has not switched on.
+    /// <b>With the launcher off</b> only the two <see cref="IsApplicationCommand">application commands</see>
+    /// are honoured (open decision 1 of S0008, amended by ticket S0060 P7-n): <see cref="ExitCommand"/>,
+    /// which the build and release scripts stop the tray process with, and <see cref="SettingsCommand"/>,
+    /// which opens CyrFlip's own settings window and is how a plain second launch reaches the live
+    /// instance (<c>APP-ACTIVATION</c> rule 7C). Every other command belongs to a feature the user has
+    /// not switched on.
     /// </summary>
     internal sealed class LauncherIpc : IDisposable
     {
@@ -43,6 +46,8 @@ namespace CyrFlip
         public const string RunPrefix = "/launcher-run:";
         public const string SettingsCommand = "/launcher-settings";
         public const string ExitCommand = "/exit";
+        public const string ClipboardSendCommand = "/clipboard-send";
+        public const string ClipboardGetCommand = "/clipboard-get";
 
         /// <summary>Longest line that can be a command; the longest real one is 50 characters.</summary>
         public const int MaxCommandChars = 256;
@@ -94,10 +99,24 @@ namespace CyrFlip
             => PipeNamePrefix + userSid + "_" + sessionId;
 
         /// <summary>
-        /// While false, every command but <see cref="ExitCommand"/> is dropped on the listener's
-        /// thread. Follows <c>EnableScenarioLauncher</c>.
+        /// While false, every command that is not an <see cref="IsApplicationCommand">application
+        /// command</see> is dropped on the listener's thread. Follows <c>EnableScenarioLauncher</c>.
         /// </summary>
         public void SetLauncherCommandsEnabled(bool enabled) => _launcherCommands = enabled;
+
+        /// <summary>
+        /// A command that belongs to the application, not to the launcher module: it is honoured whatever
+        /// the module's switch says. <c>/exit</c> stops the tray process (the build scripts), and
+        /// <c>/launcher-settings</c> opens the settings window - the one way a second launch of the exe
+        /// can answer the user (APP-ACTIVATION rule 7C: "a second launch must not vanish"), which has
+        /// nothing to do with scenarios even though the Jump List's "Manage scenarios" uses it too.
+        /// </summary>
+        internal static bool IsApplicationCommand(string command)
+            => command == ExitCommand || command == SettingsCommand || command == ClipboardSendCommand || command == ClipboardGetCommand;
+
+        /// <summary>Whether a parsed command is passed on to the subscriber while the launcher is on or off.</summary>
+        internal static bool IsAccepted(string command, bool launcherCommandsEnabled)
+            => launcherCommandsEnabled || IsApplicationCommand(command);
 
         /// <summary>
         /// The launcher command carried by the process arguments, or null. Strict by design: a
@@ -114,6 +133,8 @@ namespace CyrFlip
             string arg = line.Trim();
             if (arg.Equals(SettingsCommand, StringComparison.OrdinalIgnoreCase)) return SettingsCommand;
             if (arg.Equals(ExitCommand, StringComparison.OrdinalIgnoreCase)) return ExitCommand;
+            if (arg.Equals(ClipboardSendCommand, StringComparison.OrdinalIgnoreCase)) return ClipboardSendCommand;
+            if (arg.Equals(ClipboardGetCommand, StringComparison.OrdinalIgnoreCase)) return ClipboardGetCommand;
             if (arg.StartsWith(RunPrefix, StringComparison.OrdinalIgnoreCase)
                 && Guid.TryParse(arg.Substring(RunPrefix.Length), out Guid id))
                 return RunPrefix + id.ToString("D");
@@ -274,7 +295,7 @@ namespace CyrFlip
                 if (line != null) LauncherLog.Log("IPC: ignored a line that is not a command (" + line.Length + " chars)");
                 return;
             }
-            if (command != ExitCommand && !_launcherCommands)
+            if (!IsAccepted(command, _launcherCommands))
             {
                 LauncherLog.Log("IPC: ignored while the launcher is off: " + command);
                 return;

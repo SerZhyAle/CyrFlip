@@ -71,9 +71,9 @@ namespace CyrFlip.Tests
                 {
                     "Copy", "Cut", "Paste",
                     "---",
-                    "EN ⇄ RU", "Fix CapsLock", "Translate into English",
+                    "EN ⇄ RU", "Case flip", "Translate into English",
                     "---",
-                    "Quick launch", "Clipboard manager",
+                    "Quick launch", "Clipboard history",
                     "---",
                     "Settings",
                 }, Captions(menu));
@@ -104,13 +104,13 @@ namespace CyrFlip.Tests
                 Assert.False(Item(menu, "Copy").Enabled);
                 Assert.False(Item(menu, "Cut").Enabled);
                 Assert.False(Item(menu, "EN ⇄ RU").Enabled);
-                Assert.False(Item(menu, "Fix CapsLock").Enabled);
+                Assert.False(Item(menu, "Case flip").Enabled);
                 Assert.False(Item(menu, "Translate into English").Enabled);
 
                 // Present, just unavailable - and the rest of the menu is unaffected.
                 Assert.Equal(12, menu.Items.Count);
                 Assert.True(Item(menu, "Paste").Enabled);
-                Assert.True(Item(menu, "Clipboard manager").Enabled);
+                Assert.True(Item(menu, "Clipboard history").Enabled);
                 Assert.True(Item(menu, "Settings").Enabled);
             });
         }
@@ -131,7 +131,7 @@ namespace CyrFlip.Tests
                 Assert.True(Item(menu, "Copy").Enabled);
                 Assert.True(Item(menu, "Cut").Enabled);
                 Assert.True(Item(menu, "EN ⇄ RU").Enabled);
-                Assert.True(Item(menu, "Fix CapsLock").Enabled);
+                Assert.True(Item(menu, "Case flip").Enabled);
                 Assert.True(Item(menu, "Translate into English").Enabled);
             });
         }
@@ -172,7 +172,7 @@ namespace CyrFlip.Tests
                 {
                     "Copy", "Cut", "Paste",
                     "---",
-                    "Fix CapsLock",
+                    "Case flip",
                     "---",
                     "Settings",
                 }, Captions(menu));
@@ -306,7 +306,7 @@ namespace CyrFlip.Tests
 
                 Assert.Equal("Ctrl+C", ((ToolStripMenuItem)Item(menu, "Copy")).ShortcutKeyDisplayString);
                 Assert.Equal("Ctrl+Shift+F12", ((ToolStripMenuItem)Item(menu, "EN ⇄ RU")).ShortcutKeyDisplayString);
-                Assert.Equal("Ctrl+Shift+F11", ((ToolStripMenuItem)Item(menu, "Fix CapsLock")).ShortcutKeyDisplayString);
+                Assert.Equal("Ctrl+Shift+F11", ((ToolStripMenuItem)Item(menu, "Case flip")).ShortcutKeyDisplayString);
             });
         }
 
@@ -321,7 +321,7 @@ namespace CyrFlip.Tests
                 state.CaseShortcut = "";
                 Build(menu, state);
 
-                var item = (ToolStripMenuItem)Item(menu, "Fix CapsLock");
+                var item = (ToolStripMenuItem)Item(menu, "Case flip");
                 Assert.True(string.IsNullOrEmpty(item.ShortcutKeyDisplayString));
             });
         }
@@ -351,7 +351,7 @@ namespace CyrFlip.Tests
                 Build(menu, FullState(SelectionState.Present),
                     history: () => historyShown++, settings: () => settingsShown++);
 
-                Item(menu, "Clipboard manager").PerformClick();
+                Item(menu, "Clipboard history").PerformClick();
                 Item(menu, "Settings").PerformClick();
 
                 Assert.Equal(1, historyShown);
@@ -459,9 +459,9 @@ namespace CyrFlip.Tests
                     "---",
                     "Open “example.com”",
                     "---",
-                    "EN ⇄ RU", "Fix CapsLock", "Translate into English",
+                    "EN ⇄ RU", "Case flip", "Translate into English",
                     "---",
-                    "Quick launch", "Clipboard manager",
+                    "Quick launch", "Clipboard history",
                     "---",
                     "Settings",
                 }, Captions(menu));

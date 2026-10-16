@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Media;
 using System.Windows.Forms;
@@ -32,8 +33,39 @@ namespace CyrFlip
         /// <summary>The answer buttons in reading order, for the layout test.</summary>
         internal Button[] Buttons { get; }
 
-        internal ConfirmDialog(string language, string message, MessageBoxButtons buttons, MessageBoxIcon icon, bool danger, bool owned)
+        /// <summary>
+        /// What the box offers: the system-box answer set, or - for a failure (APP-BEHAVIOUR rule 6) - the
+        /// actions that continue the user's session: Retry (only when there is something to retry), the
+        /// folder of the logs, and Close.
+        /// </summary>
+        private readonly struct Presentation
         {
+            public Presentation(MessageBoxButtons buttons, bool danger) { Buttons = buttons; Danger = danger; Failure = false; CanRetry = false; }
+            private Presentation(bool canRetry) { Buttons = MessageBoxButtons.OK; Danger = false; Failure = true; CanRetry = canRetry; }
+            public static Presentation ForFailure(bool canRetry) => new Presentation(canRetry);
+            public MessageBoxButtons Buttons { get; }
+            public bool Danger { get; }
+            public bool Failure { get; }
+            public bool CanRetry { get; }
+        }
+
+        internal ConfirmDialog(string language, string message, MessageBoxButtons buttons, MessageBoxIcon icon, bool danger, bool owned)
+            : this(language, message, icon, owned, new Presentation(buttons, danger))
+        {
+            HelpLanguage = language;
+        }
+
+        /// <summary>The failure presentation (see <see cref="ShowFailure"/>); internal so the layout test builds it in 13 languages.</summary>
+        internal ConfirmDialog(string language, string message, bool canRetry, bool owned)
+            : this(language, message, MessageBoxIcon.Warning, owned, Presentation.ForFailure(canRetry))
+        {
+            HelpLanguage = language;
+        }
+
+        private ConfirmDialog(string language, string message, MessageBoxIcon icon, bool owned, Presentation presentation)
+        {
+            MessageBoxButtons buttons = presentation.Buttons;
+            bool danger = presentation.Danger;
             _message = message;
             _icon = icon;
             _owned = owned;
@@ -104,6 +136,29 @@ namespace CyrFlip
                 return button;
             }
 
+            if (presentation.Failure)
+            {
+                // A failure is a set of actions, not a verdict (APP-BEHAVIOUR rule 6): try again, look at the
+                // logs, or leave. Escape and the close box are Close; Enter retries when there is something to
+                // retry - nothing here is destructive - and closes otherwise.
+                var failureButtons = new List<Button>();
+                Button? retry = null;
+                if (presentation.CanRetry)
+                {
+                    retry = Answer(T("Retry"), DialogResult.Retry, AppGlyphs.Refresh, ButtonLook.Neutral);
+                    failureButtons.Add(retry);
+                }
+                Button logs = Answer(T("Open log folder"), DialogResult.None, AppGlyphs.Folder, ButtonLook.Neutral);
+                // The folder opens beside the box: the user reads the logs and comes back to the same choice.
+                logs.Click += (_, _) => OpenLogFolder();
+                failureButtons.Add(logs);
+                Button close = Answer(T("Close"), DialogResult.Cancel, AppGlyphs.Cancel, ButtonLook.Dismissing);
+                failureButtons.Add(close);
+                Buttons = failureButtons.ToArray();
+                AcceptButton = retry ?? close;
+                CancelButton = close;
+            }
+            else
             switch (buttons)
             {
                 case MessageBoxButtons.YesNo:
@@ -170,6 +225,37 @@ namespace CyrFlip
         public static DialogResult Show(string language, string message,
             MessageBoxButtons buttons = MessageBoxButtons.OK, MessageBoxIcon icon = MessageBoxIcon.None, bool danger = false)
             => Show(null, language, message, buttons, icon, danger);
+
+        /// <summary>
+        /// A failure of something the user asked for, as actions (<c>APP-BEHAVIOUR</c> rule 6, ticket S0060 P7):
+        /// the one-line cause, then <b>Retry</b> - only when <paramref name="retry"/> says what retrying is -,
+        /// <b>Open log folder</b> and <b>Close</b>. Escape is Close. The caller passes a message built from a
+        /// <see cref="FailureCause"/>, never an exception's text; the details are in the logs the second button
+        /// opens. <paramref name="retry"/> runs after the box is gone, on the caller's thread.
+        /// </summary>
+        public static DialogResult ShowFailure(IWin32Window? owner, string language, string message, Action? retry = null)
+        {
+            DialogResult answer;
+            using (var dialog = new ConfirmDialog(language, message, retry != null, owned: owner != null))
+                answer = owner != null ? dialog.ShowDialog(owner) : dialog.ShowDialog();
+            if (answer == DialogResult.Retry) retry?.Invoke();
+            return answer;
+        }
+
+        /// <summary>The folder the logs are in (<see cref="DataFolder.Current"/>) - the step a person takes before writing to the author.</summary>
+        private static void OpenLogFolder()
+        {
+            try
+            {
+                string folder = DataFolder.Current;
+                // A folder that was never created has nothing to show; the parent is the nearest honest place.
+                if (!System.IO.Directory.Exists(folder))
+                    folder = System.IO.Path.GetDirectoryName(folder.TrimEnd('\\', '/')) ?? folder;
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", "\"" + folder + "\"")
+                { UseShellExecute = true })?.Dispose();
+            }
+            catch { /* the shell refused: the box stays, the user still has Close and Retry */ }
+        }
 
         protected override void OnShown(EventArgs e)
         {

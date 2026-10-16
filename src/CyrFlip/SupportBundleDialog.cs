@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
@@ -28,6 +28,7 @@ namespace CyrFlip
 
         public SupportBundleDialog(SupportBundle.Result result, string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             _uiLanguage = uiLanguage;
             _result = result;
 
@@ -137,6 +138,7 @@ namespace CyrFlip
         /// <summary>Mirrors for Arabic/Urdu and picks a font that can draw the script.</summary>
         private void ApplyScript(string uiLanguage)
         {
+            HelpLanguage = uiLanguage;
             if (Localization.IsRightToLeft(uiLanguage)) { RightToLeft = RightToLeft.Yes; RightToLeftLayout = true; }
             string? family = Localization.FontFamily(uiLanguage);
             if (family == null) return;

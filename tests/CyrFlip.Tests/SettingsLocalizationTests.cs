@@ -41,8 +41,8 @@ namespace CyrFlip.Tests
             "Windows has no free slots left for language shortcuts.",
             "Could not write the shortcut to the Windows registry.",
             "The shortcut has been written to the Windows settings — the system will handle it, not CyrFlip. If it does not work right away, sign out of Windows and back in.",
-            "Restore the Windows language shortcuts to their original state?", "Fix CapsLock",
-            "Clipboard manager", "Delete all saved clipboard history?",
+            "Restore the Windows language shortcuts to their original state?", "Case flip",
+            "Clipboard history", "Delete all saved clipboard history?",
             // The conversion table (rows are rebuilt per refresh, so the walk can't see them).
             "Layout pair", "Shortcut", "The table is empty — no shortcut converts text right now.",
             "Change...", "(not installed)", "Install at least two layouts to create a conversion.",
@@ -50,24 +50,24 @@ namespace CyrFlip.Tests
             // Tray menu and tooltip (no control tree at all).
             "Show history", "Hide history", "Clipboard history", "Cursor: layout indicator",
             "Caret: overlay label", "Caret: dot style", "Settings...", "Exit",
-            "hotkeys are off", "case", "clipboard manager",
+            "hotkeys are off", "case flip", "clipboard history",
             "screen stays on", "keeping awake",
-            "Set case hotkey", "Set clipboard history hotkey",
+            "Set case shortcut", "Set clipboard history shortcut",
             // Tray hotkeys hover popup (S0059).
             "Text", "Conversion", "Translation", "Scenarios", "Mouse",
             "next layout", "settings", "Left Click", "Double Click", "switch layout",
             "screenshots folder", "open screenshots folder", "Hotkeys (tray menu)", "{0} more in Settings",
             // The screenshots folder chord (S0057): its dialog title and the two balloons - none of
             // which the walk over the settings control tree can reach.
-            "Set the screenshots folder hotkey", "The screenshots folder is unavailable: {0}",
+            "Set the screenshots folder shortcut", "The screenshots folder is unavailable: {0}",
             "This folder does not exist yet - it appears with the first saved capture.",
             "That combination is already taken by {0}. They can't share — pick another one.",
-            "the case-flip hotkey", "a layout conversion", "another CyrFlip hotkey",
+            "the case-flip shortcut", "a layout conversion", "another CyrFlip shortcut",
             // Dialogs and windows built outside the settings control tree.
-            "New combo (a modifier is required):", "New layout conversion", "Edit layout conversion",
-            "From layout:", "To layout:", "Hotkey:", "Conversion hotkey",
+            "New shortcut (a modifier is required):", "New layout conversion", "Edit layout conversion",
+            "From layout:", "To layout:", "Hotkey:", "Conversion shortcut",
             "The source and target layouts must be different.",
-            "Set a hotkey first.", "The hotkey \"{0}\" was not recognized.",
+            "Set a shortcut first.", "The shortcut \"{0}\" was not recognized.",
             "Some CyrFlip settings could not be read and were left as they are.",
             "Enter at least 3 characters:", "Text", "Date", "Source", "Close", "Restore to clipboard",
             // The exchange file (ticket S0023): the flow's dialogs and its import report.
@@ -195,7 +195,7 @@ namespace CyrFlip.Tests
             "Could not save the file: {0}", "Delete this note? There is no undo.",
             "Delete every quick note, the journal and its backup? There is no undo.",
             "Notes live only on this computer and are encrypted with DPAPI. Do not keep passwords, production tokens or private keys here.",
-            "Save the selection to quick notes", "Set the quick-notes hotkey",
+            "Save the selection to quick notes", "Set the quick-notes shortcut",
             "quick notes", "the quick notes",
             "Unreadable quick-note records: {0}. Every other note is there.",
             "Notes live only on this computer, in a file encrypted with the DPAPI of your Windows account. CyrFlip never sends them anywhere and indexes them with nothing.",
@@ -234,7 +234,7 @@ namespace CyrFlip.Tests
                 "These strings are shown to users but have no entry in Localization:\n" + string.Join("\n", missing));
         }
 
-        [Fact]
+        [UiSweepFact]
         public void EveryUserFacingStringTranslatesOutOfRussian()
         {
             var problems = new List<string>();

@@ -1,4 +1,4 @@
-<#
+﻿<#
     CyrFlip local build + deploy  ==  a "СБОРКА" (build) in this project's vocabulary.
 
     The default СБОРКА is FAST and fully LOCAL, costs no GitHub Actions minutes:
@@ -104,6 +104,9 @@ try {
     Write-Host 'Checking check placement..' -ForegroundColor Cyan
     & (Join-Path $PSScriptRoot 'tools\checks\Test-CheckPlacement.ps1')
     if ($LASTEXITCODE -ne 0) { throw "Placement checks failed (exit $LASTEXITCODE)." }
+
+    & (Join-Path $PSScriptRoot 'tools\help\Test-ContextHelp.ps1')
+    if ($LASTEXITCODE -ne 0) { throw "Help checks failed (exit $LASTEXITCODE)." }
 
     # POSITIONING.md (S0058): every public surface keeps the descriptor and the frozen anchors.
     Write-Host 'Checking positioning..' -ForegroundColor Cyan

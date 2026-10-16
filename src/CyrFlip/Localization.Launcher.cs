@@ -11,6 +11,36 @@ namespace CyrFlip
                 es: "Inicio rápido", fr: "Lancement rapide", pt: "Início rápido", ar: "تشغيل سريع",
                 hi: "त्वरित लॉन्च", bn: "দ্রুত চালু", ur: "فوری لانچ", zh: "快速启动");
 
+            // S0060 M7: a one-sentence description; "what changes while the switch is off" is the note of the
+            // Enable group, where the switch is (the long two-sentence key below is no longer shown).
+            Add("Run your programs, scripts and yt-dlp downloads from the tray, this table, a shortcut or the taskbar.",
+                ru: "Запускайте свои программы, скрипты и загрузки yt-dlp из трея, этой таблицы, по комбинации или с панели задач.",
+                uk: "Запускайте свої програми, скрипти та завантаження yt-dlp з трея, цієї таблиці, за комбінацією або з панелі завдань.",
+                de: "Starten Sie Ihre Programme, Skripte und yt-dlp-Downloads über das Tray, diese Tabelle, ein Tastenkürzel oder die Taskleiste.",
+                it: "Avvia i tuoi programmi, script e download yt-dlp dalla tray, da questa tabella, con una scorciatoia o dalla barra delle applicazioni.",
+                es: "Ejecute sus programas, scripts y descargas de yt-dlp desde la bandeja, esta tabla, un atajo o la barra de tareas.",
+                fr: "Lancez vos programmes, scripts et téléchargements yt-dlp depuis la zone de notification, ce tableau, un raccourci ou la barre des tâches.",
+                pt: "Execute seus programas, scripts e downloads do yt-dlp pela bandeja, por esta tabela, por um atalho ou pela barra de tarefas.",
+                ar: "شغّل برامجك وسكربتاتك وتنزيلات yt-dlp من الصينية أو من هذا الجدول أو باختصار أو من شريط المهام.",
+                hi: "अपने प्रोग्राम, स्क्रिप्ट और yt-dlp डाउनलोड ट्रे से, इस तालिका से, शॉर्टकट से या टास्कबार से चलाएँ।",
+                bn: "আপনার প্রোগ্রাম, স্ক্রিপ্ট ও yt-dlp ডাউনলোড ট্রে থেকে, এই টেবিল থেকে, শর্টকাট দিয়ে বা টাস্কবার থেকে চালান।",
+                ur: "اپنے پروگرام، اسکرپٹس اور yt-dlp ڈاؤن لوڈز ٹرے سے، اس جدول سے، شارٹ کٹ سے یا ٹاسک بار سے چلائیں۔",
+                zh: "可从托盘、此表格、快捷键或任务栏运行您的程序、脚本和 yt-dlp 下载。");
+
+            Add("While the switch is off, CyrFlip behaves exactly as before - no tray entry and no Jump List tasks.",
+                ru: "Пока выключатель снят, CyrFlip ведёт себя как раньше - ни пункта в трее, ни задач в Jump List.",
+                uk: "Поки перемикач вимкнено, CyrFlip поводиться як раніше - ні пункту в треї, ні завдань у Jump List.",
+                de: "Solange der Schalter aus ist, verhält sich CyrFlip wie zuvor - kein Tray-Eintrag, keine Jump-List-Aufgaben.",
+                it: "Finché l'interruttore è disattivato, CyrFlip si comporta come prima: nessuna voce nella tray e nessuna attività nella Jump List.",
+                es: "Mientras el interruptor esté apagado, CyrFlip se comporta como antes: sin entrada en la bandeja ni tareas en la Jump List.",
+                fr: "Tant que l'interrupteur est désactivé, CyrFlip se comporte comme avant - aucune entrée dans la zone de notification, aucune tâche dans la Jump List.",
+                pt: "Enquanto o interruptor estiver desligado, o CyrFlip se comporta como antes - sem item na bandeja e sem tarefas na Jump List.",
+                ar: "ما دام المفتاح مطفأً يتصرف CyrFlip كما كان - لا عنصر في الصينية ولا مهام في Jump List.",
+                hi: "जब तक स्विच बंद है, CyrFlip पहले जैसा ही व्यवहार करता है - न ट्रे में कोई पंक्ति, न Jump List में कार्य।",
+                bn: "সুইচ বন্ধ থাকা পর্যন্ত CyrFlip আগের মতোই আচরণ করে - ট্রেতে কোনো আইটেম নেই, Jump List-এ কোনো কাজ নেই।",
+                ur: "جب تک سوئچ بند ہے، CyrFlip پہلے جیسا ہی رہتا ہے - نہ ٹرے میں کوئی اندراج، نہ Jump List میں کام۔",
+                zh: "开关关闭时，CyrFlip 的行为与以前完全相同 - 托盘中没有该项，Jump List 中也没有任务。");
+
             Add("Your programs, scripts and yt-dlp downloads: run them from the tray menu, from this table, with a global shortcut, or from the Jump List of the CyrFlip taskbar icon. While the switch is off, CyrFlip behaves exactly as before — no tray entry and no Jump List tasks.",
                 ru: "Ваши программы, скрипты и загрузки yt-dlp: запуск из меню в трее, из этой таблицы, по глобальной комбинации и из Jump List значка CyrFlip на панели задач. Пока выключатель снят, CyrFlip ведёт себя как раньше — ни пункта в трее, ни задач в Jump List.",
                 uk: "Ваші програми, скрипти та завантаження yt-dlp: запуск із меню в треї, з цієї таблиці, за глобальною комбінацією та з Jump List значка CyrFlip на панелі завдань. Поки перемикач вимкнено, CyrFlip поводиться як раніше — ні пункту в треї, ні завдань у Jump List.",

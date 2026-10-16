@@ -138,7 +138,7 @@ function Export-Settings($settings,[string]$path) {
     Click $result 'OK'
     if (-not (Test-Path -LiteralPath $path)) { throw 'CyrFlip export failed. Refusing to change settings.' }
     $json = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ($json.format -ne 'CyrFlip Settings' -or $json.schemaVersion -ne 1) { throw 'Export is not a settings file.' }
+    if ($json.format -ne 'CyrFlip Settings' -or $json.schemaVersion -ne 2) { throw 'Export is not a settings file.' }
     return $json
 }
 function Write-Scene($values) {

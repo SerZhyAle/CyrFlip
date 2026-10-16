@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -249,40 +249,38 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void AnExportCarriesNoTargetsUnlessAsked()
+        public void AnExportAlwaysCarriesTheTargets()
         {
-            string plain = SettingsFileWriter.Write(WithTargets(), DateTime.UtcNow, "1.0");
-            Assert.DoesNotContain("TrafficLightTargets", plain);
-            Assert.DoesNotContain("nas.local", plain);
-
-            string asked = SettingsFileWriter.Write(WithTargets(), DateTime.UtcNow, "1.0", includeTrafficLightTargets: true);
-            Assert.Contains("TrafficLightTargets", asked);
-            Assert.Contains("nas.local:22", asked);
+            // S0072 D3: the S0069 D10 export ask retired - the file is declared complete, and the
+            // privacy line lives in the confirmation and on the General page.
+            string text = SettingsFileWriter.Write(WithTargets(), DateTime.UtcNow, "1.0");
+            Assert.Contains("TrafficLightTargets", text);
+            Assert.Contains("nas.local:22", text);
         }
 
         [Fact]
-        public void TheModuleSwitchIsNeverPartOfTheFile()
+        public void TheModuleSwitchIsPartOfTheFileSinceV2()
         {
             var config = WithTargets();
             config.EnableTrafficLight = true;
-            string text = SettingsFileWriter.Write(config, DateTime.UtcNow, "1.0", includeTrafficLightTargets: true);
+            string text = SettingsFileWriter.Write(config, DateTime.UtcNow, "1.0");
 
-            Assert.DoesNotContain("EnableTrafficLight", text);
-            Assert.Contains("EnableTrafficLight", SettingsFileInventory.Excluded.Keys);
-            Assert.DoesNotContain(SettingsFileInventory.Exported, e => e.Key == "EnableTrafficLight");
+            Assert.Contains("EnableTrafficLight", text);
+            Assert.DoesNotContain("EnableTrafficLight", SettingsFileInventory.Excluded.Keys);
+            Assert.Contains(SettingsFileInventory.Exported, e => e.Key == "EnableTrafficLight");
         }
 
         [Fact]
-        public void AnImportOffersTheTargetsOnlyAsAnOptInAndTheListSurvivesTheRoundTrip()
+        public void TheTargetsImportWithoutASeparateAskAndTheModuleStaysAsItWas()
         {
-            string text = SettingsFileWriter.Write(WithTargets(), DateTime.UtcNow, "1.0", includeTrafficLightTargets: true);
+            string text = SettingsFileWriter.Write(WithTargets(), DateTime.UtcNow, "1.0");
             SettingsFileDocument document = SettingsFileReader.Read(Encoding.UTF8.GetBytes(text));
             var local = new AppConfig();
 
             SettingsImportPlan plan = SettingsImportPlan.Build(local, document);
 
             SettingsImportChange change = Assert.Single(plan.Changes, c => c.Entry.Key == "TrafficLightTargets");
-            Assert.True(change.OptIn);
+            Assert.False(change.OptIn); // S0072 5.3: the file is complete; the import's record is the consent
             Assert.Single(plan.Candidate.TrafficLightTargets);
             Assert.Equal("nas.local:22", plan.Candidate.TrafficLightTargets[0].Address);
             Assert.False(plan.Candidate.EnableTrafficLight); // the module is left as it was: off
@@ -427,7 +425,7 @@ namespace CyrFlip.Tests
                 State = state, Reason = reason, CheckedAtUtc = DateTime.UtcNow, LatencyMs = state == TrafficState.Down ? (int?)null : 12,
             };
 
-        [Fact]
+        [UiSweepFact]
         public void TheBoardBuildsInAllThirteenLanguagesWithNoSurvivingCyrillicInLatinBuilds()
         {
             var problems = new List<string>();
@@ -682,6 +680,97 @@ namespace CyrFlip.Tests
             });
         }
 
+        [Fact]
+        public void MicroscopicSquaresAreHalfTheSmallSizeAndTheWindowHasOnlyTheGrid()
+        {
+            OnUiThread(() =>
+            {
+                var tiles = Four();
+                foreach (var tile in tiles) tile.Target.Group = "Office";
+                var config = new AppConfig { TrafficLightColumns = 3, TrafficLightTileSize = 0 };
+                using var window = new TrafficLightWindow(config, new TrafficLightBoardActions { Snapshot = () => tiles }, "English");
+                Size small = window.Board.TileSize;
+                Assert.True(OwnVisibility.Of(window.TitleBar));
+
+                config.TrafficLightTileSize = AppConfig.MicroscopicTrafficLightTileSize;
+                window.RefreshBoard();
+                Assert.Equal(new Size(small.Width / 2, small.Height / 2), window.Board.TileSize);
+                Assert.False(OwnVisibility.Of(window.TitleBar));
+                Assert.False(window.StatusLineVisible);
+                Assert.Equal(window.Board.GridWidth + 2, window.FitSize().Width);
+                Assert.Equal(window.Board.ContentHeightFor(window.Board.GridWidth) + 2, window.FitSize().Height);
+                Assert.Equal(2 * window.Board.TileSize.Height + 4 * window.Board.Gap,
+                    window.Board.ContentHeightFor(window.Board.GridWidth));
+
+                config.TrafficLightTileSize = 0;
+                window.RefreshBoard();
+                Assert.True(OwnVisibility.Of(window.TitleBar));
+                Assert.Equal(small, window.Board.TileSize);
+            });
+        }
+
+        private static void Pointer(Control control, string method, MouseButtons button, Point at, int clicks = 1)
+        {
+            const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            typeof(Control).GetMethod(method, flags)!.Invoke(control,
+                new object[] { new MouseEventArgs(button, clicks, at.X, at.Y, 0) });
+        }
+
+        [Fact]
+        public void MicroscopicTilesKeepTooltipsDragAfterMovementAndOpenSettingsOnDoubleClick()
+        {
+            OnUiThread(() =>
+            {
+                int edits = 0, checks = 0, drags = 0;
+                var config = new AppConfig { TrafficLightTileSize = AppConfig.MicroscopicTrafficLightTileSize };
+                using var window = new TrafficLightWindow(config, new TrafficLightBoardActions
+                {
+                    Snapshot = Four, EditTargets = () => edits++, CheckNow = _ => checks++,
+                }, "English");
+                var board = window.Board;
+                board.Size = new Size(400, 200);
+                board.CreateControl();
+                var items = TrafficLightBoardLayout.Compute(board.Tiles.ToList(), board.Width,
+                    board.EffectiveColumns, board.TileSize, board.Gap, 0, false, out _);
+                // Test the gesture without entering the native window-move loop.
+                using var gestures = new TrafficLightBoard { Size = board.Size };
+                gestures.SetSizeStep(AppConfig.MicroscopicTrafficLightTileSize);
+                gestures.SetTiles(Four());
+                gestures.CreateControl();
+                gestures.DragRequested += () => drags++;
+                foreach (var item in items.Where(i => i.IsTile))
+                {
+                    Point at = Centre(item.Bounds);
+                    MoveTo(board, at);
+                    Assert.Equal(board.TooltipFor(item.TileIndex), board.HoverTipText);
+                    Pointer(gestures, "OnMouseDown", MouseButtons.Left, at);
+                    Assert.Equal(item.TileIndex, gestures.FocusedTile);
+                    int before = drags;
+                    Pointer(gestures, "OnMouseMove", MouseButtons.Left, at);
+                    Assert.Equal(before, drags);
+                    Pointer(gestures, "OnMouseMove", MouseButtons.Left,
+                        new Point(at.X + SystemInformation.DragSize.Width + 1, at.Y));
+                    Assert.Equal(before + 1, drags);
+                    Pointer(gestures, "OnMouseUp", MouseButtons.Left, at);
+
+                    Pointer(board, "OnMouseDown", MouseButtons.Left, at);
+                    Pointer(board, "OnMouseUp", MouseButtons.Left, at);
+                    Pointer(board, "OnMouseDoubleClick", MouseButtons.Left, at, 2);
+                    Pointer(board, "OnMouseUp", MouseButtons.Left, at);
+                }
+                Assert.Equal(4, edits);
+                Assert.Equal(0, checks);
+                config.TrafficLightTileSize = 0;
+                window.RefreshBoard();
+                var smallItems = TrafficLightBoardLayout.Compute(board.Tiles.ToList(), board.Width,
+                    board.EffectiveColumns, board.TileSize, board.Gap, board.Font.Height + 4, false, out _);
+                Pointer(board, "OnMouseDoubleClick", MouseButtons.Left,
+                    Centre(smallItems.First(i => i.IsTile).Bounds), 2);
+                Assert.Equal(4, edits);
+                Assert.Equal(1, checks);
+            });
+        }
+
         private static TrafficLightTile TileOf(TrafficState state, bool enabled = true) => new TrafficLightTile
         {
             Target = new TrafficLightTarget { Id = "t", Label = "Router", Kind = "ping", Address = "10.0.0.1", Enabled = enabled },
@@ -800,7 +889,7 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void TheTitleBarHasItsFourButtonsAtTheTrailingEdgeAndMirrorsForRightToLeft()
+        public void TheTitleBarHasItsFourButtonsAtTheTrailingEdgeAndHelpBeforeThemAndMirrorsForRightToLeft()
         {
             OnUiThread(() =>
             {
@@ -814,6 +903,8 @@ namespace CyrFlip.Tests
                 Assert.Equal(bar.ZoneOf(0).Right, bar.ZoneOf(1).Left);          // the four are adjacent
                 Assert.Equal(4 * side, 400 - bar.ZoneOf(0).Left);
 
+                Assert.Equal(TitleCommand.Help, bar.CommandAt(4));
+                Assert.Equal(bar.ZoneOf(4).Right, bar.ZoneOf(0).Left);
                 bar.RightToLeft = RightToLeft.Yes;
                 Assert.Equal(0, bar.ZoneOf(3).Left);                            // mirrored: close at the leading edge
                 Assert.Equal(4 * side, bar.ZoneOf(0).Right);
@@ -950,7 +1041,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheBarsButtonsAreNamedForAScreenReaderInEveryLanguage()
         {
             var problems = new List<string>();
@@ -1061,13 +1152,102 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void TheColumnsAreAPreferenceTheSettingsFileDoesNotCarryInV1()
+        public void MicroscopicTileSizeSurvivesSavingAndLoading()
         {
-            Assert.Contains("TrafficLightColumns", SettingsFileInventory.Excluded.Keys);
+            var config = new AppConfig { EnableTrafficLight = true, TrafficLightTileSize = AppConfig.MicroscopicTrafficLightTileSize };
+            var key = new FakeColumnsKey();
+            config.SaveTo(key);
+            Assert.Equal(AppConfig.MicroscopicTrafficLightTileSize, key.Values["TrafficLightTileSize"]);
+            Assert.Equal(AppConfig.MicroscopicTrafficLightTileSize, AppConfig.LoadFrom(key, out _).TrafficLightTileSize);
+        }
+
+        [Fact]
+        public void TheColumnsAreExportedWithTheTrafficLightsModule()
+        {
+            SettingsFileEntry entry = Assert.Single(SettingsFileInventory.Exported, e => e.Key == "TrafficLightColumns");
+            Assert.Equal("trafficlight/module", entry.Group);
+            Assert.Equal("Tiles in a row", entry.Caption);
             Assert.DoesNotContain("TrafficLightWidth", SettingsFileInventory.Excluded.Keys);
         }
 
         private sealed class FakeColumnsKey : IConfigKey
+        {
+            public readonly Dictionary<string, object> Values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            public object? GetValue(string name) => Values.TryGetValue(name, out object? value) ? value : null;
+            public void SetValue(string name, object value, Microsoft.Win32.RegistryValueKind kind) => Values[name] = value;
+        }
+    }
+
+    /// <summary>
+    /// The board window's plate fades with the setting while the title bar's buttons and the tiles stay
+    /// solid: 0 the usual opaque window, 100 only the buttons and the tiles (the plate is see-through
+    /// there and lets clicks pass to whatever is under it).
+    /// </summary>
+    [Collection(SharedGdiCollection.Name)]
+    public class TrafficLightWindowTransparencyTests
+    {
+        [Fact]
+        public void ATransparentWindowIsLayeredWhileShownAndPlainAgainAtZero()
+        {
+            Exception? failure = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var config = new AppConfig { TrafficLightWindowTransparency = 100 };
+                    using var window = new TrafficLightWindow(config, new TrafficLightBoardActions(), "English");
+                    window.CreateControl();
+                    // Born transparent: the style is on the handle before the window is ever shown.
+                    Assert.NotEqual(0, GetWindowLong(window.Handle, GWL_EXSTYLE) & WS_EX_LAYERED);
+                    window.Show();
+                    Application.DoEvents();
+                    Assert.NotEqual(0, GetWindowLong(window.Handle, GWL_EXSTYLE) & WS_EX_LAYERED);
+                    config.TrafficLightWindowTransparency = 0;   // the settings page's own path
+                    window.ApplyBoardOptions();
+                    Application.DoEvents();
+                    Assert.Equal(0, GetWindowLong(window.Handle, GWL_EXSTYLE) & WS_EX_LAYERED);
+
+                    config.TrafficLightWindowTransparency = 40;
+                    window.ApplyBoardOptions();
+                    Application.DoEvents();   // a pump that must drain: the compose pass may not feed itself
+                    Assert.NotEqual(0, GetWindowLong(window.Handle, GWL_EXSTYLE) & WS_EX_LAYERED);
+                }
+                catch (Exception ex) { failure = ex; }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (failure != null) throw new Exception("UI thread failed: " + failure, failure);
+        }
+
+        [Fact]
+        public void TheTransparencyIsARegistryValueClampedOnLoadAndWrittenWithTheModule()
+        {
+            Assert.Equal(0, new AppConfig().TrafficLightWindowTransparency);   // 0: the window paints the usual opaque way
+
+            var config = new AppConfig { EnableTrafficLight = true, TrafficLightWindowTransparency = 60 };
+            var written = new FakeTransparencyKey();
+            config.SaveTo(written);
+            Assert.Equal(60, written.Values["TrafficLightWindowTransparency"]);
+
+            foreach (int[] pair in new[] { new[] { -5, 0 }, new[] { 105, 100 }, new[] { 40, 40 } })
+            {
+                var read = new FakeTransparencyKey();
+                read.Values["EnableTrafficLight"] = 1;
+                read.Values["TrafficLightWindowTransparency"] = pair[0];
+                Assert.Equal(pair[1], AppConfig.LoadFrom(read, out _).TrafficLightWindowTransparency);
+            }
+        }
+
+        [Fact]
+        public void TheTransparencyIsExportedWithTheTrafficLightsModule()
+        {
+            SettingsFileEntry entry = Assert.Single(SettingsFileInventory.Exported, e => e.Key == "TrafficLightWindowTransparency");
+            Assert.Equal("trafficlight/module", entry.Group);
+            Assert.Equal("Board window transparency", entry.Caption);
+        }
+
+        private sealed class FakeTransparencyKey : IConfigKey
         {
             public readonly Dictionary<string, object> Values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             public object? GetValue(string name) => Values.TryGetValue(name, out object? value) ? value : null;
@@ -1169,8 +1349,37 @@ namespace CyrFlip.Tests
     [Collection(SharedGdiCollection.Name)]
     public class TrafficLightSettingsPageTests
     {
+        [Theory]
+        [InlineData(0, 1)]
+        [InlineData(1, 2)]
+        [InlineData(2, 3)]
+        [InlineData(AppConfig.MicroscopicTrafficLightTileSize, 0)]
+        public void SizeChoicesKeepExistingSavedValuesAndApplyTheNewSize(int saved, int selected)
+        {
+            RegroupingHarness.OnUiThread(() =>
+            {
+                var config = RegroupingHarness.Config();
+                config.EnableTrafficLight = true;
+                config.TrafficLightTileSize = saved;
+                using SettingsForm form = TestForms.NewSettings(config);
+                var combo = Assert.IsType<ComboBox>(Assert.Single(form.Controls.Find("setting.traffic-light-tile-size", true)));
+                Assert.Equal(4, combo.Items.Count);
+                Assert.Equal("Микроскопический", combo.Items[0]);
+                Assert.Equal(selected, combo.SelectedIndex);
+                Assert.Equal(saved, config.TrafficLightTileSize);
+                combo.SelectedIndex = 0;
+                Assert.Equal(AppConfig.MicroscopicTrafficLightTileSize, config.TrafficLightTileSize);
+                combo.SelectedIndex = 1;
+                Assert.Equal(0, config.TrafficLightTileSize);
+                combo.SelectedIndex = 2;
+                Assert.Equal(1, config.TrafficLightTileSize);
+                combo.SelectedIndex = 3;
+                Assert.Equal(2, config.TrafficLightTileSize);
+            });
+        }
+
         [Fact]
-        public void ThePageHasItsThreeGroupsAndTheChordSwitchIsNamed()
+        public void ThePageHasItsFourGroupsAndTheChordSwitchIsNamed()
         {
             RegroupingHarness.OnUiThread(() =>
             {
@@ -1188,9 +1397,11 @@ namespace CyrFlip.Tests
                     }
                 }
                 Walk(page);
-                Assert.Equal(new[] { "trafficlight/module", "trafficlight/targets", "trafficlight/history" }, groups.ToArray());
+                // S0060 M4: the module switch leads in a group of its own, like the hotkeys page's.
+                Assert.Equal(new[] { "trafficlight/switches", "trafficlight/module", "trafficlight/targets", "trafficlight/history" }, groups.ToArray());
                 Assert.Single(form.Controls.Find("setting.traffic-light-chord", true));
                 Assert.Single(form.Controls.Find("setting.traffic-light", true));
+                Assert.Single(form.Controls.Find("setting.traffic-light-transparency", true));
             });
         }
     }

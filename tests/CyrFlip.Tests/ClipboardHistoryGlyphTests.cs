@@ -99,7 +99,7 @@ namespace CyrFlip.Tests
 
         // -- accessibility ------------------------------------------------------------------------------
 
-        [Fact]
+        [UiSweepFact]
         public void TheStripNamesItsGlyphOnlyControlsInEveryLanguage() => OnUiThread(() =>
         {
             string dir = Path.Combine(Path.GetTempPath(), "CyrFlipTests", Guid.NewGuid().ToString("N"));

@@ -280,6 +280,8 @@ namespace CyrFlip
         // self-contained DROPFILES block, so a byte copy of it round-trips verbatim.
         public const uint CF_DIB = 8;
         public const uint CF_HDROP = 15;
+        // CF_DIBV5 (CLIPBOARD-GUARD item O, second place of the image order after the registered PNG format).
+        public const uint CF_DIBV5 = 17;
 
         // The LCID Windows uses to synthesize CF_TEXT/CF_OEMTEXT from CF_UNICODETEXT. Without it the
         // system takes the input language of whichever thread wrote the clipboard - the clipboard
@@ -858,6 +860,38 @@ namespace CyrFlip
 
         [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
         public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
+
+        // ---- The board window's transparency (TrafficLightWindow.cs): a per-pixel layered window ----
+        public const int GWL_EXSTYLE = -20;
+        public const int ULW_ALPHA = 2;
+        public const byte AC_SRC_OVER = 0;
+        public const byte AC_SRC_ALPHA = 1;
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongW", SetLastError = true)]
+        public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        /// <summary>The whole window's pixels come from the bitmap, alpha per pixel (premultiplied).</summary>
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool UpdateLayeredWindow(IntPtr hWnd, IntPtr hdcDst, IntPtr pptDst,
+            ref System.Drawing.Size psize, IntPtr hdcSrc, ref System.Drawing.Point pprSrc, int crKey,
+            ref BLENDFUNCTION pblend, int dwFlags);
+
+        [DllImport("gdi32.dll", SetLastError = true)]
+        public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
+
+        [DllImport("gdi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool DeleteDC(IntPtr hdc);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct BLENDFUNCTION
+        {
+            public byte BlendOp;
+            public byte BlendFlags;
+            public byte SourceConstantAlpha;
+            public byte AlphaFormat;
+        }
 
     }
 }

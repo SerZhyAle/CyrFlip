@@ -44,15 +44,36 @@ namespace CyrFlip
         /// </summary>
         public const string DefaultQuickNotesHotkey = "Ctrl+Shift+Alt+N";
         /// <summary>
-        /// The region capture's chord (S0026). PrintScreen is the key people associate with
-        /// screenshots; with plain Ctrl it is unused by Windows (Alt = window, Win = file).
+        /// The region capture's chord (S0026, re-keyed by S0071). PrintScreen is the key people
+        /// associate with screenshots, but the shipped Ctrl+PrintScreen "never fired" for the owner -
+        /// Windows' own handling of the key is the suspect - so the shipped capture defaults moved to
+        /// the F-key family every other CyrFlip chord uses and the hook provably intercepts.
+        /// <see cref="Hotkey"/> still parses PrintScreen/PrtSc, so a user may bind it by hand.
         /// </summary>
-        public const string DefaultScreenshotHotkey = "Ctrl+PrintScreen";
+        public const string DefaultScreenshotHotkey = "Ctrl+F12";
         /// <summary>
-        /// Opens the folder the captures are saved into (S0057): the capture chord plus one modifier -
-        /// the same family shape the quick notes and the text menu use.
+        /// The instant all-displays capture (S0071): every monitor as one picture, no selection.
+        /// Bare Ctrl+F10..F12 hold folder, full and area capture in one row; the case flip keeps
+        /// Ctrl+Shift+F11 and the seeded EN ⇄ RU row keeps Ctrl+Shift+F12 - nothing is displaced.
         /// </summary>
-        public const string DefaultScreenshotFolderHotkey = "Ctrl+Shift+PrintScreen";
+        public const string DefaultScreenshotFullHotkey = "Ctrl+F11";
+        /// <summary>
+        /// Draw on an area capture (S0071). The first shipped chord on the Ctrl+Alt plane: the hook's
+        /// <see cref="ChordMatcher"/> tells AltGr (a fake LCtrl followed by RAlt) from a real Ctrl, so
+        /// typists on AltGr layouts cannot fire it by typing, and no layout maps an F-key into a character.
+        /// </summary>
+        public const string DefaultScreenshotAnnotateAreaHotkey = "Ctrl+Alt+F12";
+        /// <summary>Draw on the full capture (S0071), beside the area one on the Ctrl+Alt plane.</summary>
+        public const string DefaultScreenshotFullAnnotateHotkey = "Ctrl+Alt+F11";
+        /// <summary>The capture chord profiles carried before the S0071 re-key; the one-time migration compares against this, never a literal.</summary>
+        internal const string LegacyScreenshotHotkey = "Ctrl+PrintScreen";
+        /// <summary>
+        /// Opens the folder the captures are saved into (S0057), re-keyed by S0071: the old
+        /// Ctrl+Shift+PrintScreen had the same dead-key problem as the capture chord.
+        /// </summary>
+        public const string DefaultScreenshotFolderHotkey = "Ctrl+F10";
+        /// <summary>The folder chord profiles carried before the S0071 re-key; the migration compares against this.</summary>
+        internal const string LegacyScreenshotFolderHotkey = "Ctrl+Shift+PrintScreen";
         /// <summary>
         /// Opens the text context menu at the caret (S0045 K2): M for menu, in the quick notes' family
         /// (Ctrl+Shift+Alt+N) - Ctrl+Shift+F10, the Shift+F10 mnemonic, is the clipboard history's. Bound
@@ -221,7 +242,7 @@ namespace CyrFlip
         public bool LauncherFirstEnableDone { get; set; } = false;
         /// <summary>
         /// One-time marker for the Store build's move out of the machine-wide %ProgramData%\CyrFlip
-        /// (ticket S0016, <see cref="DataFolderMigration"/>): set once a migration pass finished with
+        /// (ticket S0016, data folder move): set once a migration pass finished with
         /// nothing left to retry, so the journal merge never runs twice.
         /// </summary>
         public bool DataFolderMigrated { get; set; } = false;
@@ -232,6 +253,19 @@ namespace CyrFlip
         /// </summary>
         public bool ShortcutsCreated { get; set; } = false;
         public bool WelcomeShown { get; set; } = false;
+        /// <summary>
+        /// The rolling settings backup in <c>Documents\CyrFlip\Backups</c> (S0072 section 4). On by
+        /// default: the owner's requirement - settings survive a Store reinstall - is impossible on
+        /// the packaged channel without it. Exported v2: it is a preference, and it travels.
+        /// </summary>
+        public bool SettingsBackupEnabled { get; set; } = true;
+        /// <summary>The restore question of the startup offer is unanswered (S0072 section 4). Machine
+        /// history - never in the settings file; while it is set the backup writer stays silent, so a
+        /// defaults-only profile cannot evict the backup the question is about.</summary>
+        public bool BackupOfferOpen { get; set; } = false;
+        /// <summary>The stamp of the backup the user declined to restore ("No - start fresh"); the
+        /// question never re-asks. Machine history, like <see cref="BackupOfferOpen"/>.</summary>
+        public string BackupRestoreDeclined { get; set; } = "";
         /// <summary>Load-time provenance only; never persisted.</summary>
         public bool IsFirstRun { get; private set; }
         /// <summary>
@@ -315,16 +349,43 @@ namespace CyrFlip
         public string ScreenshotHotkey { get; set; } = DefaultScreenshotHotkey;
         public bool EnableScreenshotHotkey { get; set; } = true;
         /// <summary>
+        /// The full capture's chord (S0071). Its own switch only, like the region capture's: the tray
+        /// item is always there and no module switch exists for the capture pair.
+        /// </summary>
+        public string ScreenshotFullHotkey { get; set; } = DefaultScreenshotFullHotkey;
+        public bool EnableScreenshotFullHotkey { get; set; } = true;
+        /// <summary>
+        /// The draw-on-capture module switch (S0071), default on ("optional but default-on"). Off =
+        /// neither annotate chord is bound, no editor can appear from any entry point.
+        /// </summary>
+        public bool EnableScreenshotAnnotate { get; set; } = true;
+        /// <summary>The area capture that opens the annotation editor (S0071); bound only while <see cref="EnableScreenshotAnnotate"/> and its own switch are on.</summary>
+        public string ScreenshotAnnotateAreaHotkey { get; set; } = DefaultScreenshotAnnotateAreaHotkey;
+        public bool EnableScreenshotAnnotateAreaHotkey { get; set; } = true;
+        /// <summary>The full capture that opens the annotation editor (S0071); same double gate.</summary>
+        public string ScreenshotFullAnnotateHotkey { get; set; } = DefaultScreenshotFullAnnotateHotkey;
+        public bool EnableScreenshotFullAnnotateHotkey { get; set; } = true;
+        /// <summary>
         /// The chord that opens <see cref="ScreenshotFolder"/> in Explorer (S0057). Bound only while
         /// <see cref="ScreenshotSaveEnabled"/> and <see cref="EnableScreenshotFolderHotkey"/> are both on.
         /// </summary>
         public string ScreenshotFolderHotkey { get; set; } = DefaultScreenshotFolderHotkey;
         public bool EnableScreenshotFolderHotkey { get; set; } = true;
-        /// <summary>Also write each captured region as a PNG into <see cref="ScreenshotFolder"/> (CAPTURE-OUTPUT).</summary>
-        public bool ScreenshotSaveEnabled { get; set; } = false;
+        /// <summary>
+        /// Also write each captured region as a PNG into <see cref="ScreenshotFolder"/> (CAPTURE-OUTPUT).
+        /// On by default since S0071: a fresh profile saves from the first capture. Existing profiles
+        /// keep their stored value - the S0071 migration never touches it (a privacy-relevant default
+        /// does not move under an installed base; Q2).
+        /// </summary>
+        public bool ScreenshotSaveEnabled { get; set; } = true;
         /// <summary>Empty = the <c>FOLDERID_Screenshots</c> known folder, resolved at save time (CAPTURE-OUTPUT rule 9).</summary>
         public string ScreenshotFolder { get; set; } = "";
         public int ScreenshotCount { get; set; } = 0;
+        /// <summary>
+        /// One-time marker of the S0071 chord re-key (section 4.3): present = the migration has run for
+        /// this profile. Machine history - it never joins the settings-file export (S0055).
+        /// </summary>
+        public bool ScreenshotKeyMigrationDone { get; set; } = false;
         /// <summary>The symbols window module switch (ticket S0056). Off by default.</summary>
         public bool EnableSymbols { get; set; } = false;
         public string SymbolsHotkey { get; set; } = DefaultSymbolsHotkey;
@@ -354,15 +415,42 @@ namespace CyrFlip
         public bool TrafficLightVisible { get; set; } = false;
         /// <summary>Always on top of other windows. A switch, not a second window (D3).</summary>
         public bool TrafficLightPinned { get; set; } = true;
-        /// <summary>0 small (a bare square), 1 medium, 2 large.</summary>
+        /// <summary>0 small (a bare square), 1 medium, 2 large, 3 microscopic. Existing values stay stable.</summary>
         public int TrafficLightTileSize { get; set; } = 1;
+        public const int MicroscopicTrafficLightTileSize = 3;
         /// <summary>Tiles in a row. The rows follow from the number of targets, and the window fits the grid.</summary>
         public int TrafficLightColumns { get; set; } = DefaultTrafficLightColumns;
         public const int DefaultTrafficLightColumns = 3;
         public const int MinTrafficLightColumns = 1;
         public const int MaxTrafficLightColumns = 12;
+        /// <summary>
+        /// The board window's transparency, percent (0..100): 0 the usual solid window, 100 only the title
+        /// bar's buttons and the tiles remain - the plate (the background, the bar, the status line, the
+        /// frame) is see-through and lets clicks pass to whatever is under it.
+        /// </summary>
+        public int TrafficLightWindowTransparency { get; set; } = 0;
         public int TrafficLightX { get; set; } = int.MinValue;
         public int TrafficLightY { get; set; } = int.MinValue;
+
+        // ---- The exchange server clipboard: send and get (ticket S0074). Off by default ----
+        /// <summary>Default hotkey for sending clipboard to server (shipped unassigned per D6).</summary>
+        public const string DefaultExchangeClipboardSendHotkey = "";
+        /// <summary>Default hotkey for getting clipboard from server (shipped unassigned per D6).</summary>
+        public const string DefaultExchangeClipboardGetHotkey = "";
+
+        /// <summary>The module switch. Off by default: opt-in (D1).</summary>
+        public bool EnableExchangeClipboard { get; set; } = false;
+        public string ExchangeClipboardSendHotkey { get; set; } = DefaultExchangeClipboardSendHotkey;
+        public bool EnableExchangeClipboardSendHotkey { get; set; } = true;
+        public string ExchangeClipboardGetHotkey { get; set; } = DefaultExchangeClipboardGetHotkey;
+        public bool EnableExchangeClipboardGetHotkey { get; set; } = true;
+        /// <summary>Default folder for received files from exchange server: Downloads\CyrFlip (D4).</summary>
+        public static readonly string DefaultExchangeClipboardReceivedFolder =
+            System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "CyrFlip");
+        /// <summary>Empty = user's Downloads\CyrFlip folder (D4).</summary>
+        public string ExchangeClipboardReceivedFolder { get; set; } = "";
+        /// <summary>Enrolled exchange account entries (excluded from settings-file export for credentials reason).</summary>
+        public List<ExchangeAccountEntry> ExchangeClipboardAccounts { get; set; } = new List<ExchangeAccountEntry>();
 
         /// <summary>
         /// UI language default for a fresh install (no saved value): follow the OS UI language when
@@ -436,6 +524,8 @@ namespace CyrFlip
             var cfg = new AppConfig();
             bool seeded = false;
             bool repaired = false;
+            // True when the S0071 chord re-key actually moved a stored chord: the pass persists at once.
+            bool migrated = false;
             {
                 if (key == null)
                 {
@@ -539,6 +629,9 @@ namespace CyrFlip
                     cfg.EnableQuickNotesHotkey = cfg.ReadBool(key, "EnableQuickNotesHotkey", cfg.EnableQuickNotesHotkey);
                     cfg.QuickNotesWordWrap = cfg.ReadBool(key, "QuickNotesWordWrap", cfg.QuickNotesWordWrap);
                     cfg.ExchangeNotesWarningOff = cfg.ReadBool(key, "ExchangeNotesWarningOff", cfg.ExchangeNotesWarningOff);
+                    cfg.SettingsBackupEnabled = cfg.ReadBool(key, "SettingsBackupEnabled", cfg.SettingsBackupEnabled);
+                    cfg.BackupOfferOpen = cfg.ReadBool(key, "BackupOfferOpen", cfg.BackupOfferOpen);
+                    cfg.BackupRestoreDeclined = cfg.ReadString(key, "BackupRestoreDeclined", cfg.BackupRestoreDeclined);
                     cfg.QuickNotesX = cfg.ReadInt(key, "QuickNotesX", cfg.QuickNotesX);
                     cfg.QuickNotesY = cfg.ReadInt(key, "QuickNotesY", cfg.QuickNotesY);
                     cfg.QuickNotesWidth = cfg.ReadInt(key, "QuickNotesWidth", cfg.QuickNotesWidth);
@@ -552,11 +645,21 @@ namespace CyrFlip
 
                     cfg.ScreenshotHotkey = cfg.ReadHotkey(key, "ScreenshotHotkey", cfg.ScreenshotHotkey);
                     cfg.EnableScreenshotHotkey = cfg.ReadBool(key, "EnableScreenshotHotkey", cfg.EnableScreenshotHotkey);
+                    cfg.ScreenshotFullHotkey = cfg.ReadHotkey(key, "ScreenshotFullHotkey", cfg.ScreenshotFullHotkey);
+                    cfg.EnableScreenshotFullHotkey = cfg.ReadBool(key, "EnableScreenshotFullHotkey", cfg.EnableScreenshotFullHotkey);
+                    cfg.EnableScreenshotAnnotate = cfg.ReadBool(key, "EnableScreenshotAnnotate", cfg.EnableScreenshotAnnotate);
+                    cfg.ScreenshotAnnotateAreaHotkey = cfg.ReadHotkey(key, "ScreenshotAnnotateAreaHotkey", cfg.ScreenshotAnnotateAreaHotkey);
+                    cfg.EnableScreenshotAnnotateAreaHotkey = cfg.ReadBool(key, "EnableScreenshotAnnotateAreaHotkey", cfg.EnableScreenshotAnnotateAreaHotkey);
+                    cfg.ScreenshotFullAnnotateHotkey = cfg.ReadHotkey(key, "ScreenshotFullAnnotateHotkey", cfg.ScreenshotFullAnnotateHotkey);
+                    cfg.EnableScreenshotFullAnnotateHotkey = cfg.ReadBool(key, "EnableScreenshotFullAnnotateHotkey", cfg.EnableScreenshotFullAnnotateHotkey);
                     cfg.ScreenshotFolderHotkey = cfg.ReadHotkey(key, "ScreenshotFolderHotkey", cfg.ScreenshotFolderHotkey);
                     cfg.EnableScreenshotFolderHotkey = cfg.ReadBool(key, "EnableScreenshotFolderHotkey", cfg.EnableScreenshotFolderHotkey);
                     cfg.ScreenshotSaveEnabled = cfg.ReadBool(key, "ScreenshotSaveEnabled", cfg.ScreenshotSaveEnabled);
                     cfg.ScreenshotFolder = cfg.ReadString(key, "ScreenshotFolder", cfg.ScreenshotFolder);
                     cfg.ScreenshotCount = cfg.ReadInt(key, "ScreenshotCount", cfg.ScreenshotCount);
+                    cfg.ScreenshotKeyMigrationDone = cfg.ReadBool(key, "ScreenshotKeyMigrationDone", cfg.ScreenshotKeyMigrationDone);
+                    if (NeedsScreenshotKeyMigration(Has(key, "ScreenshotKeyMigrationDone")))
+                        migrated = cfg.ApplyScreenshotKeyMigration();
 
                     cfg.EnableSymbols = cfg.ReadBool(key, "EnableSymbols", cfg.EnableSymbols);
                     cfg.SymbolsHotkey = cfg.ReadHotkey(key, "SymbolsHotkey", cfg.SymbolsHotkey);
@@ -576,17 +679,33 @@ namespace CyrFlip
                     cfg.TrafficLightTargets = cfg.ReadTable<TrafficLightTarget>(key, "TrafficLightTargets", TrafficLightTargetList.Sanitize, ref repaired);
                     cfg.TrafficLightVisible = cfg.ReadBool(key, "TrafficLightVisible", cfg.TrafficLightVisible);
                     cfg.TrafficLightPinned = cfg.ReadBool(key, "TrafficLightPinned", cfg.TrafficLightPinned);
-                    cfg.TrafficLightTileSize = Math.Max(0, Math.Min(2, cfg.ReadInt(key, "TrafficLightTileSize", cfg.TrafficLightTileSize)));
+                    cfg.TrafficLightTileSize = Math.Max(0, Math.Min(MicroscopicTrafficLightTileSize, cfg.ReadInt(key, "TrafficLightTileSize", cfg.TrafficLightTileSize)));
                     cfg.TrafficLightColumns = Math.Max(MinTrafficLightColumns, Math.Min(MaxTrafficLightColumns,
                         cfg.ReadInt(key, "TrafficLightColumns", cfg.TrafficLightColumns)));
+                    cfg.TrafficLightWindowTransparency = Math.Max(0, Math.Min(100,
+                        cfg.ReadInt(key, "TrafficLightWindowTransparency", cfg.TrafficLightWindowTransparency)));
                     cfg.TrafficLightX = cfg.ReadInt(key, "TrafficLightX", cfg.TrafficLightX);
                     cfg.TrafficLightY = cfg.ReadInt(key, "TrafficLightY", cfg.TrafficLightY);
+
+                    cfg.EnableExchangeClipboard = cfg.ReadBool(key, "EnableExchangeClipboard", cfg.EnableExchangeClipboard);
+                    cfg.ExchangeClipboardSendHotkey = cfg.ReadHotkey(key, "ExchangeClipboardSendHotkey", cfg.ExchangeClipboardSendHotkey);
+                    cfg.EnableExchangeClipboardSendHotkey = cfg.ReadBool(key, "EnableExchangeClipboardSendHotkey", cfg.EnableExchangeClipboardSendHotkey);
+                    cfg.ExchangeClipboardGetHotkey = cfg.ReadHotkey(key, "ExchangeClipboardGetHotkey", cfg.ExchangeClipboardGetHotkey);
+                    cfg.EnableExchangeClipboardGetHotkey = cfg.ReadBool(key, "EnableExchangeClipboardGetHotkey", cfg.EnableExchangeClipboardGetHotkey);
+                    cfg.ExchangeClipboardReceivedFolder = cfg.ReadString(key, "ExchangeClipboardReceivedFolder", cfg.ExchangeClipboardReceivedFolder);
+                    string? accountsJson = cfg.ReadOptionalString(key, "ExchangeClipboardAccounts", null);
+                    cfg.ExchangeClipboardAccounts = ExchangeAccountEntry.DeserializeList(accountsJson);
                 }
             }
-            mustSave = seeded || repaired;
+            mustSave = seeded || repaired || migrated;
             return cfg;
         }
 
+        /// <summary>
+        /// Raised at the end of every successful <see cref="Save"/>: the rolling backup (S0072) keeps
+        /// its copy fresh from this one hook. A subscriber must never fail the save.
+        /// </summary>
+        internal static Action? Saved;
         /// <summary>
         /// Persists the config. Answers whether it landed (S0065 E-9): Save used to be void, so no
         /// setting change could ever fail visibly - the machine whose registry is denied kept the
@@ -600,6 +719,7 @@ namespace CyrFlip
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 if (key == null) return false;
                 SaveTo(new RegistryConfigKey(key));
+                try { Saved?.Invoke(); } catch (Exception ex) { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "backup notification failed " + ex.GetType().Name); }
                 return true;
             }
             catch { return false; }
@@ -678,6 +798,9 @@ namespace CyrFlip
                 key.SetValue("EnableQuickNotesHotkey", EnableQuickNotesHotkey ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesWordWrap", QuickNotesWordWrap ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ExchangeNotesWarningOff", ExchangeNotesWarningOff ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("SettingsBackupEnabled", SettingsBackupEnabled ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("BackupOfferOpen", BackupOfferOpen ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("BackupRestoreDeclined", BackupRestoreDeclined, RegistryValueKind.String);
                 key.SetValue("QuickNotesX", QuickNotesX, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesY", QuickNotesY, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesWidth", QuickNotesWidth, RegistryValueKind.DWord);
@@ -689,11 +812,21 @@ namespace CyrFlip
                 key.SetValue("QuickNoteCount", QuickNoteCount, RegistryValueKind.DWord);
                 key.SetValue("ScreenshotHotkey", ScreenshotHotkey, RegistryValueKind.String);
                 key.SetValue("EnableScreenshotHotkey", EnableScreenshotHotkey ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ScreenshotFullHotkey", ScreenshotFullHotkey, RegistryValueKind.String);
+                key.SetValue("EnableScreenshotFullHotkey", EnableScreenshotFullHotkey ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("EnableScreenshotAnnotate", EnableScreenshotAnnotate ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ScreenshotAnnotateAreaHotkey", ScreenshotAnnotateAreaHotkey, RegistryValueKind.String);
+                key.SetValue("EnableScreenshotAnnotateAreaHotkey", EnableScreenshotAnnotateAreaHotkey ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("ScreenshotFullAnnotateHotkey", ScreenshotFullAnnotateHotkey, RegistryValueKind.String);
+                key.SetValue("EnableScreenshotFullAnnotateHotkey", EnableScreenshotFullAnnotateHotkey ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ScreenshotFolderHotkey", ScreenshotFolderHotkey, RegistryValueKind.String);
                 key.SetValue("EnableScreenshotFolderHotkey", EnableScreenshotFolderHotkey ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ScreenshotSaveEnabled", ScreenshotSaveEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ScreenshotFolder", ScreenshotFolder, RegistryValueKind.String);
                 key.SetValue("ScreenshotCount", ScreenshotCount, RegistryValueKind.DWord);
+                // S0071 4.3: written even when the pass moved nothing, so a fresh profile gets the
+                // marker on its first save and the block runs exactly once per profile.
+                key.SetValue("ScreenshotKeyMigrationDone", ScreenshotKeyMigrationDone ? 1 : 0, RegistryValueKind.DWord);
 
                 if (EnableSymbols || Has(key, "EnableSymbols"))
                 {
@@ -723,8 +856,20 @@ namespace CyrFlip
                     key.SetValue("TrafficLightPinned", TrafficLightPinned ? 1 : 0, RegistryValueKind.DWord);
                     key.SetValue("TrafficLightTileSize", TrafficLightTileSize, RegistryValueKind.DWord);
                     key.SetValue("TrafficLightColumns", TrafficLightColumns, RegistryValueKind.DWord);
+                    key.SetValue("TrafficLightWindowTransparency", TrafficLightWindowTransparency, RegistryValueKind.DWord);
                     key.SetValue("TrafficLightX", TrafficLightX, RegistryValueKind.DWord);
                     key.SetValue("TrafficLightY", TrafficLightY, RegistryValueKind.DWord);
+                }
+
+                WritePreserved(key, "ExchangeClipboardAccounts", ExchangeAccountEntry.SerializeList(ExchangeClipboardAccounts));
+                if (EnableExchangeClipboard || Has(key, "EnableExchangeClipboard"))
+                {
+                    key.SetValue("EnableExchangeClipboard", EnableExchangeClipboard ? 1 : 0, RegistryValueKind.DWord);
+                    key.SetValue("ExchangeClipboardSendHotkey", ExchangeClipboardSendHotkey, RegistryValueKind.String);
+                    key.SetValue("EnableExchangeClipboardSendHotkey", EnableExchangeClipboardSendHotkey ? 1 : 0, RegistryValueKind.DWord);
+                    key.SetValue("ExchangeClipboardGetHotkey", ExchangeClipboardGetHotkey, RegistryValueKind.String);
+                    key.SetValue("EnableExchangeClipboardGetHotkey", EnableExchangeClipboardGetHotkey ? 1 : 0, RegistryValueKind.DWord);
+                    key.SetValue("ExchangeClipboardReceivedFolder", ExchangeClipboardReceivedFolder, RegistryValueKind.String);
                 }
             }
         }
@@ -748,6 +893,7 @@ namespace CyrFlip
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 key?.SetValue("SettingsTab", SettingsTab, RegistryValueKind.DWord);
                 key?.SetValue("SettingsPageId", SettingsPageId, RegistryValueKind.String);
+                try { Saved?.Invoke(); } catch (Exception ex) { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "backup notification failed " + ex.GetType().Name); }
             }
             catch { }
         }
@@ -772,6 +918,7 @@ namespace CyrFlip
                 key.SetValue("SettingsWindowY", SettingsWindowY, RegistryValueKind.DWord);
                 key.SetValue("SettingsWindowWidth", SettingsWindowWidth, RegistryValueKind.DWord);
                 key.SetValue("SettingsWindowHeight", SettingsWindowHeight, RegistryValueKind.DWord);
+                try { Saved?.Invoke(); } catch (Exception ex) { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "backup notification failed " + ex.GetType().Name); }
             }
             catch { }
         }
@@ -933,6 +1080,7 @@ namespace CyrFlip
                 key.SetValue("QuickNotesWidth", QuickNotesWidth, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesHeight", QuickNotesHeight, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesSelected", QuickNotesSelected, RegistryValueKind.String);
+                try { Saved?.Invoke(); } catch (Exception ex) { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "backup notification failed " + ex.GetType().Name); }
             }
             catch { }
         }
@@ -948,6 +1096,7 @@ namespace CyrFlip
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 key?.SetValue("QuickNotesSelected", QuickNotesSelected, RegistryValueKind.String);
+                try { Saved?.Invoke(); } catch (Exception ex) { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "backup notification failed " + ex.GetType().Name); }
             }
             catch { }
         }
@@ -971,6 +1120,7 @@ namespace CyrFlip
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 key?.SetValue("SymbolsCloseOnPick", SymbolsCloseOnPick ? 1 : 0, RegistryValueKind.DWord);
+                try { Saved?.Invoke(); } catch (Exception ex) { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "backup notification failed " + ex.GetType().Name); }
             }
             catch { }
         }
@@ -982,6 +1132,7 @@ namespace CyrFlip
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 key?.SetValue("SymbolsCategory", SymbolsCategory, RegistryValueKind.String);
+                try { Saved?.Invoke(); } catch (Exception ex) { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "backup notification failed " + ex.GetType().Name); }
             }
             catch { }
         }
@@ -997,6 +1148,7 @@ namespace CyrFlip
                 key.SetValue("SymbolsY", SymbolsY, RegistryValueKind.DWord);
                 key.SetValue("SymbolsWidth", SymbolsWidth, RegistryValueKind.DWord);
                 key.SetValue("SymbolsHeight", SymbolsHeight, RegistryValueKind.DWord);
+                try { Saved?.Invoke(); } catch (Exception ex) { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "backup notification failed " + ex.GetType().Name); }
             }
             catch { }
         }
@@ -1011,6 +1163,7 @@ namespace CyrFlip
                 if (key == null) return;
                 key.SetValue("TrafficLightX", TrafficLightX, RegistryValueKind.DWord);
                 key.SetValue("TrafficLightY", TrafficLightY, RegistryValueKind.DWord);
+                try { Saved?.Invoke(); } catch (Exception ex) { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "backup notification failed " + ex.GetType().Name); }
             }
             catch { }
         }
@@ -1023,6 +1176,19 @@ namespace CyrFlip
             {
                 using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
                 key?.SetValue("TrafficLightVisible", TrafficLightVisible ? 1 : 0, RegistryValueKind.DWord);
+                try { Saved?.Invoke(); } catch (Exception ex) { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "backup notification failed " + ex.GetType().Name); }
+            }
+            catch { }
+        }
+
+        /// <summary>Persists enrolled exchange clipboard accounts to HKCU\Software\CyrFlip without overwriting other settings.</summary>
+        public void SaveExchangeAccounts()
+        {
+            if (_unreadable.Contains("*")) return;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                key?.SetValue("ExchangeClipboardAccounts", ExchangeAccountEntry.SerializeList(ExchangeClipboardAccounts), RegistryValueKind.String);
             }
             catch { }
         }
@@ -1068,6 +1234,43 @@ namespace CyrFlip
         /// </summary>
         internal static bool NeedsFlipRow(string? profilesJson, bool legacyValuesPresent, int rowCount)
             => profilesJson == null || (legacyValuesPresent && rowCount == 0);
+
+        /// <summary>
+        /// Whether the S0071 chord re-key still owes this profile its pass: true while the one-time
+        /// <c>ScreenshotKeyMigrationDone</c> marker is absent (a marker that is there but unreadable
+        /// counts as present - the caller checks <see cref="Has"/> before asking).
+        /// </summary>
+        internal static bool NeedsScreenshotKeyMigration(bool markerPresent) => !markerPresent;
+
+        /// <summary>
+        /// The re-key itself, exactly the two rows of S0071 section 4.3: a stored capture chord equal
+        /// by <see cref="ChordDefaults.SameChordToken"/> to the shipped Ctrl+PrintScreen moves to
+        /// Ctrl+F12, and a folder chord equal to the shipped Ctrl+Shift+PrintScreen to Ctrl+F10 - both
+        /// keys did not fire in practice (Windows' own handling of PrintScreen is the suspect).
+        /// Answers whether anything moved: the load persists the pass at once when it did.
+        ///
+        /// <para>Nothing else is touched. A stored value that is anything else was customised on
+        /// purpose and stays; every <c>Enable*</c> switch, the master switch, the case flip and the
+        /// seeded EN ⇄ RU row keep what they carry (the owner kept those chords - nothing is
+        /// displaced). The marker is set even when nothing moved: a fresh profile just gets the
+        /// marker, and the block runs its pass once per profile.</para>
+        /// </summary>
+        internal bool ApplyScreenshotKeyMigration()
+        {
+            bool moved = false;
+            if (ChordDefaults.SameChordToken(ScreenshotHotkey, LegacyScreenshotHotkey))
+            {
+                ScreenshotHotkey = DefaultScreenshotHotkey;
+                moved = true;
+            }
+            if (ChordDefaults.SameChordToken(ScreenshotFolderHotkey, LegacyScreenshotFolderHotkey))
+            {
+                ScreenshotFolderHotkey = DefaultScreenshotFolderHotkey;
+                moved = true;
+            }
+            ScreenshotKeyMigrationDone = true;
+            return moved;
+        }
 
         /// <summary>
         /// The seeded EN ⇄ RU row, carrying over the chord and the on/off switch that used to live in
@@ -1194,9 +1397,30 @@ namespace CyrFlip
         {
             string? raw = ReadOptionalString(key, name, null);
             if (raw == null) return def;
+            if (raw.Length == 0 && def.Length == 0) return "";
             if (Hotkey.TryParse(raw, out Hotkey parsed)) return parsed.Display;
             _unreadable.Add(name);
             return def;
+        }
+
+        /// <summary>
+        /// The exchange account entries (ticket S0074). Absent or empty is no entries; a value that is there but does not
+        /// parse is no entries <b>that are not saved over</b> until the person adds one - the tokens of the lost
+        /// entries stay in the secret store, and a hand-fixed value gets them back.
+        /// </summary>
+        private List<ExchangeAccountEntry> ReadAccounts(IConfigKey key)
+        {
+            const string name = "ExchangeClipboardAccounts";
+            object? val = Raw(key, name);
+            if (val == null) return new List<ExchangeAccountEntry>();
+            if (val is string json)
+            {
+                if (json.Trim().Length == 0) return new List<ExchangeAccountEntry>();
+                if (ExchangeAccountEntry.TryDeserializeList(json, out List<ExchangeAccountEntry> list)) return list;
+            }
+            _unreadable.Add(name);
+            _preserveRaw[name] = ExchangeAccountEntry.SerializeList(new ExchangeAccountEntry[0]);
+            return new List<ExchangeAccountEntry>();
         }
 
         internal string? ReadOptionalString(IConfigKey key, string name, string? def, bool preserve = false)

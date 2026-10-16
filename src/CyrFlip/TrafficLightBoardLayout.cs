@@ -83,7 +83,7 @@ namespace CyrFlip
 
             foreach (string group in order)
             {
-                if (group.Length > 0)
+                if (group.Length > 0 && captionHeight > 0)
                 {
                     items.Add(new BoardItem
                     {

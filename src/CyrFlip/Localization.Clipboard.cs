@@ -143,7 +143,7 @@ namespace CyrFlip
                 ur: "محفوظ شدہ تاریخ مٹائے بغیر نئی کاپیوں کا اندراج عارضی طور پر روک دیتا ہے۔ پاس ورڈ یا ذاتی ڈیٹا کے ساتھ کام کرتے وقت مفید۔",
                 zh: "暂时停止记录新的复制内容，但不删除已保存的历史。处理密码或私密数据时很有用。");
 
-            Add("Show clipboard manager on startup",
+            Add("Show clipboard history on startup",
                 ru: "Показывать окно менеджера буфера при запуске", uk: "Показувати менеджер буфера під час запуску",
                 de: "Zwischenablage-Manager beim Start anzeigen", it: "Mostra il gestore appunti all'avvio",
                 es: "Mostrar el gestor del portapapeles al iniciar",
