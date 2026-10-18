@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -44,11 +45,8 @@ namespace CyrFlip
             MultiSelect = false, HideSelection = false, HeaderStyle = ColumnHeaderStyle.Nonclickable,
         };
         private readonly TextBox _title = new TextBox { Dock = DockStyle.Fill };
-        private readonly TextBox _editor = new TextBox
-        {
-            Dock = DockStyle.Fill, Multiline = true, AcceptsTab = true, AcceptsReturn = true,
-            ScrollBars = ScrollBars.Both, MaxLength = 0,
-        };
+        private readonly QuickNotesTextEditor _textEditor = new QuickNotesTextEditor { Dock = DockStyle.Fill };
+        private readonly QuickNotesTextBox _editor;
         private readonly ListView _items = new ListView
         {
             Dock = DockStyle.Fill, View = View.Details, CheckBoxes = true, LabelEdit = true,
@@ -81,7 +79,8 @@ namespace CyrFlip
         // the initializer does not throw, it just quietly becomes something else. It is applied in
         // OnLoad instead, once the form has a real width.
         private readonly SplitContainer _split = new SplitContainer { Dock = DockStyle.Fill };
-        private const int ListWidth = 300;
+        private const int ListWidth = 480;
+        private TableLayoutPanel? _toolbar;
         // The four panels MinimumSize is measured from - see ApplyMinimumSize.
         private FlowLayoutPanel? _topRow;
         private FlowLayoutPanel? _kindRow;
@@ -122,6 +121,7 @@ namespace CyrFlip
             _exchange = exchange;
             _transfer.Visible = exchange != null;
             _language = config.UiLanguage;
+            _editor = _textEditor.TextBox;
 
             StartPosition = FormStartPosition.Manual;
             Size = new Size(config.QuickNotesWidth, config.QuickNotesHeight);
@@ -132,6 +132,7 @@ namespace CyrFlip
             BuildLayout();
             ApplyLanguage(_language);   // also sets MinimumSize, and grows Size to it
             ApplyWordWrap(config.QuickNotesWordWrap);
+            ApplyLineNumbers(config.QuickNotesLineNumbers);
 
             _searchTimer.Tick += (_, _) => { _searchTimer.Stop(); RefreshList(); };
             _search.TextChanged += (_, _) => { _searchTimer.Stop(); _searchTimer.Start(); };
@@ -176,6 +177,7 @@ namespace CyrFlip
             _service.Loaded += OnServiceLoaded;
             _service.SaveFailed += OnSaveFailed;
             _service.SaveRecovered += OnSaveRecovered;
+            _service.Saved += OnNoteSaved;
 
             KeyDown += OnKeyDown;
             ResizeEnd += (_, _) => SaveBounds();
@@ -260,6 +262,8 @@ namespace CyrFlip
 
         private void OnSaveRecovered(object? sender, EventArgs e) => OnUi(RefreshDates);
 
+        private void OnNoteSaved(object? sender, EventArgs e) => OnUi(UpdateRowText);
+
         /// <summary>Let go of the open note and empty every editor.</summary>
         private void ClearEditor()
         {
@@ -293,16 +297,20 @@ namespace CyrFlip
             top.Controls.Add(_transfer);
             top.Controls.Add(_settings);
 
-            _list.Columns.Add("", 240);
-            _list.Columns.Add("", 110);
+            _list.Columns.Add("", 180);
+            _list.Columns.Add("", 150);
+            _list.Columns.Add("", 150);
+            _list.ShowItemToolTips = true;
             _split.Panel1.Controls.Add(_list);
 
-            var right = _rightPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 4, Padding = new Padding(8, 6, 8, 6) };
+            var right = _rightPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5, Padding = new Padding(8, 6, 8, 6) };
             right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             right.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
+            right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            right.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             right.Controls.Add(_title, 0, 0);
             var kindRow = _kindRow = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0, 4, 0, 4) };
             kindRow.Controls.Add(_kindText);
@@ -321,20 +329,34 @@ namespace CyrFlip
             _itemsHost.Controls.Add(_items);
             _itemsHost.Controls.Add(itemButtons);
             body.Controls.Add(_itemsHost);
-            body.Controls.Add(_editor);
+            body.Controls.Add(_textEditor);
             right.Controls.Add(body, 0, 2);
 
             var bottom = _bottomRow = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0, 4, 0, 0) };
-            bottom.Controls.Add(_dates);
             bottom.Controls.Add(_copy);
             bottom.Controls.Add(_keep);
             bottom.Controls.Add(_export);
             bottom.Controls.Add(_delete);
             right.Controls.Add(bottom, 0, 3);
+            _dates.Dock = DockStyle.Fill;
+            _dates.Margin = new Padding(0);
+            right.Controls.Add(_dates, 0, 4);
 
             _split.Panel2.Controls.Add(right);
             Controls.Add(_split);
-            Controls.Add(top);
+            _toolbar = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty };
+            _toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            _toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            top.Dock = DockStyle.Fill;
+            _toolbar.Controls.Add(top, 0, 0);
+            Controls.Add(_toolbar);
+        }
+
+        internal void AttachHelpButton(Button button)
+        {
+            button.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            _toolbar!.Controls.Add(button, 1, 0);
+            ApplyMinimumSize();
         }
 
         /// <summary>
@@ -352,12 +374,12 @@ namespace CyrFlip
 
             int rightWidth = _bottomRow.PreferredSize.Width + _rightPanel.Padding.Horizontal;
             int clientWidth = Math.Max(
-                _topRow.PreferredSize.Width,
+                _topRow.PreferredSize.Width + (_toolbar?.GetControlFromPosition(1, 0)?.Width ?? 0),
                 ListWidth + _split.SplitterWidth + rightWidth);
 
             int clientHeight = _topRow.PreferredSize.Height
                 + _title.PreferredSize.Height + _kindRow.PreferredSize.Height
-                + _bottomRow.PreferredSize.Height + _rightPanel.Padding.Vertical
+                + _bottomRow.PreferredSize.Height + _dates.GetPreferredSize(new Size(Math.Max(1, rightWidth - _rightPanel.Padding.Horizontal), 0)).Height + _rightPanel.Padding.Vertical
                 + Font.Height * MinEditorRows;
 
             Size frame = Size - ClientSize;   // border + caption, whatever the theme makes of them
@@ -415,6 +437,7 @@ namespace CyrFlip
                 catch { try { _editorFont = new Font(FontFamily.GenericMonospace, SystemFonts.MessageBoxFont.SizeInPoints + 0.5f); } catch { } }
                 if (_editorFont != null) { _editor.Font = _editorFont; _items.Font = _editorFont; }
             }
+            _textEditor.ApplyLanguage(language);
 
             _newText.Text = T("Note");
             _newList.Text = T("Checklist");
@@ -436,6 +459,8 @@ namespace CyrFlip
             _delete.Text = T("Delete");
             _list.Columns[0].Text = T("Note");
             _list.Columns[1].Text = T("Created");
+            _list.Columns[2].Text = T("Changed");
+            SizeDateColumns();
             _items.Columns[0].Text = T("Item");
             RefreshList();
             RefreshDates();
@@ -445,8 +470,12 @@ namespace CyrFlip
 
         public void ApplyWordWrap(bool wrap)
         {
-            _editor.WordWrap = wrap;
-            _editor.ScrollBars = wrap ? ScrollBars.Vertical : ScrollBars.Both;
+            _textEditor.ApplyWordWrap(wrap);
+        }
+
+        public void ApplyLineNumbers(bool show)
+        {
+            _textEditor.ApplyLineNumbers(show);
         }
 
         private string T(string en) => Localization.Translate(_language, en);
@@ -571,7 +600,10 @@ namespace CyrFlip
             foreach (QuickNote note in found)
             {
                 var row = new ListViewItem(RowText(note)) { Tag = note };
-                row.SubItems.Add(note.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm"));
+                row.SubItems.Add(FormatNoteTime(note.CreatedAtUtc));
+                row.SubItems.Add(FormatNoteTime(note.UpdatedAtUtc));
+                row.ToolTipText = Localization.Format(T, "Created {0}, changed {1}",
+                    FormatNoteTime(note.CreatedAtUtc), FormatNoteTime(note.UpdatedAtUtc));
                 if (ReferenceEquals(note, _current)) row.Selected = true;
                 _list.Items.Add(row);
             }
@@ -581,6 +613,7 @@ namespace CyrFlip
                 : _search.Text.Trim().Length == 0
                 ? Localization.Format(T, "Notes: {0}", found.Count)
                 : Localization.Format(T, "Found: {0}", found.Count);
+            RefreshDates();
         }
 
         /// <summary>
@@ -666,7 +699,7 @@ namespace CyrFlip
         {
             bool checklist = kind == QuickNoteKind.Checklist;
             _itemsHost.Visible = checklist;
-            _editor.Visible = !checklist;
+            _textEditor.Visible = !checklist;
         }
 
         private void ReloadItems()
@@ -757,7 +790,15 @@ namespace CyrFlip
         {
             if (_current == null) return;
             foreach (ListViewItem row in _list.Items)
-                if (ReferenceEquals(row.Tag, _current)) { row.Text = RowText(_current); return; }
+                if (ReferenceEquals(row.Tag, _current))
+                {
+                    row.Text = RowText(_current);
+                    row.SubItems[1].Text = FormatNoteTime(_current.CreatedAtUtc);
+                    row.SubItems[2].Text = FormatNoteTime(_current.UpdatedAtUtc);
+                    row.ToolTipText = Localization.Format(T, "Created {0}, changed {1}", row.SubItems[1].Text, row.SubItems[2].Text);
+                    break;
+                }
+            RefreshDates();
         }
 
         private void OnKindChosen(QuickNoteKind kind)
@@ -825,6 +866,18 @@ namespace CyrFlip
             OnEdited(titleChanged: false);
         }
 
+        // User-facing dates use the agreed YY-MM-DD HH:mm format in local time; storage stays UTC.
+        internal static string FormatNoteTime(DateTime utc)
+            => utc == default ? "" : utc.ToLocalTime().ToString("yy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+        private void SizeDateColumns()
+        {
+            string sample = FormatNoteTime(new DateTime(2026, 12, 28, 23, 59, 0, DateTimeKind.Utc));
+            for (int i = 1; i <= 2; i++)
+                _list.Columns[i].Width = Math.Max(TextRenderer.MeasureText(sample, _list.Font).Width,
+                    TextRenderer.MeasureText(_list.Columns[i].Text, _list.Font).Width) + 20;
+        }
+
         private void RefreshDates()
         {
             if (_service.SaveFailing)
@@ -838,8 +891,8 @@ namespace CyrFlip
                 return;
             }
             _dates.Text = Localization.Format(T, "Created {0}, changed {1} | Lines: {2}, chars: {3}",
-                _current.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
-                _current.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
+                FormatNoteTime(_current.CreatedAtUtc),
+                FormatNoteTime(_current.UpdatedAtUtc),
                 _current.LineCount,
                 _current.CharacterCount);
         }
@@ -1040,7 +1093,11 @@ namespace CyrFlip
             current = image;
         }
 
-        protected override void OnThemeApplied(ThemePalette palette) => ApplyMoveGlyphs();
+        protected override void OnThemeApplied(ThemePalette palette)
+        {
+            _textEditor.ApplyTheme(palette);
+            ApplyMoveGlyphs();
+        }
 
         protected override void Dispose(bool disposing)
         {
@@ -1053,6 +1110,7 @@ namespace CyrFlip
                 _service.Loaded -= OnServiceLoaded;
                 _service.SaveFailed -= OnSaveFailed;
                 _service.SaveRecovered -= OnSaveRecovered;
+                _service.Saved -= OnNoteSaved;
                 _searchTimer.Stop();
                 _searchTimer.Dispose();
             }

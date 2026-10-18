@@ -5,7 +5,7 @@
 | **Id** | `ICON-SET` |
 | **Version** | 0.30, draft (the version `tools/IconGen` read when `Glyphs.g.cs` was generated) |
 | **Home** | `iconography/README.md` in the shared contracts catalog, section 2 |
-| **Role here** | consumer, contributor by proposal - **conformant on every surface the app draws** |
+| **Role here** | consumer, contributor by proposal - **partial; current glyphs regenerated, tour mapping and full surface verification pending** |
 
 ## What this repository must do to stay conformant
 
@@ -59,3 +59,12 @@ plan is in `PLAN/` (local, not published).
   record says the word goes beside the copy glyph and the check "never stands for it", and the theme control is the
   bare text glyph `◐` (40 pages) where `app.theme` is the meaning and `PAGE-STYLE` 1.4 asks for a labelled control.
   The native `<details>` marker is outside the vocabulary (0.22).
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

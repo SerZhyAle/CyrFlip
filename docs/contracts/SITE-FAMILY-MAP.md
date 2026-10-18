@@ -27,3 +27,12 @@ locale pages lists every row of section 2 except CyrFlip, each linking the produ
 (the link target is right and unchanged). That is a footer text edit in 11 generated pages and waits for the
 owner of this repository to order it. The 29 secondary pages carry the contact and hub link without the grid,
 as before - which footer a page that is not a landing carries is still open in the catalog.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

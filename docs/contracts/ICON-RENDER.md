@@ -33,3 +33,12 @@
   tone, `#808080`**, at 16 px with 20, 24 and 32 px forms. `LauncherShortcutIcons` draws the **decorated** look
   instead (the glyph on a round accent plate, sizes 16 to 48). The glyphs themselves are the right records
   (`app.settings`, `nav.exit`, `action.download`, `content.apps`); only the look differs.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

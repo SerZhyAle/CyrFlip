@@ -37,3 +37,12 @@ spec-id scheme, 0.10). One file stays an ordinary rule 3 case that no exception 
 
 Open: the stamp declares canon `2026.10.02.1` and its digest; the canon has moved since, so a reconciliation
 by the adoption run is owed (`RULE-DELIVERY` rule 5, warning rung). Never advance the version by hand.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

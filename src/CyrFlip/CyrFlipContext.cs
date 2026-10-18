@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -1734,7 +1734,7 @@ namespace CyrFlip
                 service.LoadAsync(_quickNotesRetired);
             }
             if (_quickNotesWindow == null || _quickNotesWindow.IsDisposed)
-                _quickNotesWindow = new QuickNotesWindow(_quickNotes, _config, ShowSettings, exchange: RunExchange);
+                _quickNotesWindow = new QuickNotesWindow(_quickNotes, _config, () => ShowSettings(SettingsPageKey.QuickNotes), exchange: RunExchange);
             return _quickNotesWindow;
         }
 
@@ -1830,6 +1830,7 @@ namespace CyrFlip
             if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed)
             {
                 _quickNotesWindow.ApplyWordWrap(_config.QuickNotesWordWrap);
+                _quickNotesWindow.ApplyLineNumbers(_config.QuickNotesLineNumbers);
                 // Switched off: the open note is written, then the window goes and with it the
                 // decrypted notes it was showing.
                 if (!_config.EnableQuickNotes)

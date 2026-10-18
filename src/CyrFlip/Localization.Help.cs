@@ -5,8 +5,8 @@ namespace CyrFlip
     {
         private static void AddHelpStrings()
         {
-            Add("Help", ru: "Справка", uk: "Довідка", de: "Hilfe", it: "Aiuto", es: "Ayuda", fr: "Aide", pt: "Ajuda", ar: "المساعدة", hi: "सहायता", bn: "সহায়তা", ur: "مدد", zh: "帮助");
-            Add("Help (F1)", ru: "Справка (F1)", uk: "Довідка (F1)", de: "Hilfe (F1)", it: "Aiuto (F1)", es: "Ayuda (F1)", fr: "Aide (F1)", pt: "Ajuda (F1)", ar: "المساعدة (F1)", hi: "सहायता (F1)", bn: "সহায়তা (F1)", ur: "مدد (F1)", zh: "帮助 (F1)");
+            Add("Help", ru: "Справка", uk: "Довідка", de: "Hilfe", it: "Aiuto", es: "Ayuda", fr: "Aide", pt: "Ajuda", ar: "مساعدة", hi: "सहायता", bn: "সাহায্য", ur: "مدد", zh: "帮助");
+            Add("Help (F1)", ru: "Справка (F1)", uk: "Довідка (F1)", de: "Hilfe (F1)", it: "Aiuto (F1)", es: "Ayuda (F1)", fr: "Aide (F1)", pt: "Ajuda (F1)", ar: "مساعدة (F1)", hi: "सहायता (F1)", bn: "সাহায্য (F1)", ur: "مدد (F1)", zh: "帮助 (F1)");
             Add("What this is for", ru: "Для чего это окно", uk: "Для чого це вікно", de: "Zweck", it: "A cosa serve", es: "Para qué sirve", fr: "À quoi cela sert", pt: "Para que serve", ar: "الغرض", hi: "इसका उपयोग", bn: "এর কাজ", ur: "مقصد", zh: "用途");
             Add("In this order", ru: "Порядок действий", uk: "Порядок дій", de: "Reihenfolge", it: "Ordine delle operazioni", es: "Orden de uso", fr: "Ordre des actions", pt: "Ordem de utilização", ar: "ترتيب الاستخدام", hi: "उपयोग का क्रम", bn: "ব্যবহারের ক্রম", ur: "استعمال کی ترتیب", zh: "使用顺序");
             Add("The elements", ru: "Элементы", uk: "Елементи", de: "Elemente", it: "Elementi", es: "Elementos", fr: "Éléments", pt: "Elementos", ar: "العناصر", hi: "तत्व", bn: "উপাদান", ur: "عناصر", zh: "界面元素");

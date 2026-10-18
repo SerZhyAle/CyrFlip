@@ -28,3 +28,12 @@ format without a time carrier and **no exception is owed** under rule 16's last 
 ZIP and `screenshot.log` are a report about the tool's own run (section 5, 0.3); the exchange file and the
 quick-notes export are exports whose format CyrFlip owns itself - all outside this contract. Saver failures
 are named in `screenshot.log` - failure kinds only, never a path.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

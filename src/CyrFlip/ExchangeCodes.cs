@@ -28,6 +28,7 @@ namespace CyrFlip
         public const string TlsFailed = "tls-failed";
         public const string CertificateChanged = "certificate-changed";
         public const string EmptyCredential = "empty-credential";
+        public const string FormatUnsupported = "format-unsupported";
         public const string SealedFailed = "sealed-failed";
 
         // ---- states and results ----

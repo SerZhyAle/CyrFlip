@@ -93,7 +93,7 @@ namespace CyrFlip
     /// caption, so one without a caption showed the keyboard focus nowhere; this one draws it round the
     /// box itself - only after keyboard navigation, like every other focus cue (<c>INPUT-PARITY</c> rule 2).
     /// </summary>
-    internal sealed class RowCheckBox : CheckBox
+    internal sealed class RowCheckBox : BooleanOptionCheckBox
     {
         protected override void OnPaint(PaintEventArgs e)
         {

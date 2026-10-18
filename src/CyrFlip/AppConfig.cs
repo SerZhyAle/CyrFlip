@@ -325,6 +325,10 @@ namespace CyrFlip
         /// </summary>
         public bool QuickNotesWordWrap { get; set; } = false;
         /// <summary>
+        /// Off by default: show a line numbers gutter along the left edge of the text editor (S0078).
+        /// </summary>
+        public bool QuickNotesLineNumbers { get; set; } = false;
+        /// <summary>
         /// "Do not warn again for notes" of the exchange-file export (ticket S0023, spec section 2).
         /// Only a notes-only export honours it: an export that carries clipboard history warns every time.
         /// </summary>
@@ -628,6 +632,7 @@ namespace CyrFlip
                     cfg.QuickNotesHotkey = cfg.ReadHotkey(key, "QuickNotesHotkey", cfg.QuickNotesHotkey);
                     cfg.EnableQuickNotesHotkey = cfg.ReadBool(key, "EnableQuickNotesHotkey", cfg.EnableQuickNotesHotkey);
                     cfg.QuickNotesWordWrap = cfg.ReadBool(key, "QuickNotesWordWrap", cfg.QuickNotesWordWrap);
+                    cfg.QuickNotesLineNumbers = cfg.ReadBool(key, "QuickNotesLineNumbers", cfg.QuickNotesLineNumbers);
                     cfg.ExchangeNotesWarningOff = cfg.ReadBool(key, "ExchangeNotesWarningOff", cfg.ExchangeNotesWarningOff);
                     cfg.SettingsBackupEnabled = cfg.ReadBool(key, "SettingsBackupEnabled", cfg.SettingsBackupEnabled);
                     cfg.BackupOfferOpen = cfg.ReadBool(key, "BackupOfferOpen", cfg.BackupOfferOpen);
@@ -797,6 +802,7 @@ namespace CyrFlip
                 key.SetValue("QuickNotesHotkey", QuickNotesHotkey, RegistryValueKind.String);
                 key.SetValue("EnableQuickNotesHotkey", EnableQuickNotesHotkey ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesWordWrap", QuickNotesWordWrap ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesLineNumbers", QuickNotesLineNumbers ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("ExchangeNotesWarningOff", ExchangeNotesWarningOff ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("SettingsBackupEnabled", SettingsBackupEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("BackupOfferOpen", BackupOfferOpen ? 1 : 0, RegistryValueKind.DWord);

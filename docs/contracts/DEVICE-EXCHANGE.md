@@ -65,3 +65,12 @@
 3. The Android reference client sends `list` and `clipboard-put` on one stream; the FMS_Win server accepts a put
    only as the first envelope after `welcome`. To be settled in the joint run (FMS_A S4213, S4244).
 4. Not built: a QR picture (the text of one is pasted), the Drive path of the clipboard (items CL, CP).
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

@@ -101,12 +101,15 @@ namespace CyrFlip.Tests
                 Assert.True(header is Button, "the first child of a group is its header button, got " + header.GetType().Name);
                 AccessibleObject accessible = header.AccessibilityObject;
                 Assert.True(accessible.State.HasFlag(AccessibleStates.Expanded), "state: " + accessible.State);
-                Assert.NotNull(((Button)header).Image);                       // nav.collapse drawn (open group)
+                // COLLAPSIBLE-GROUP 1.1 uses a native vector state triangle, not an action-chevron bitmap.
+                PointF[] open = CollapsibleGroup.StateTriangle(new Rectangle(0, 0, 16, 16), group.Expanded, false);
+                Assert.True(open[2].Y > open[0].Y);
                 Assert.Equal("Группа", accessible.Name);
                 group.Expanded = false;
                 Assert.True(accessible.State.HasFlag(AccessibleStates.Collapsed), "state after collapse: " + accessible.State);
                 Assert.False(accessible.State.HasFlag(AccessibleStates.Expanded));
-                Assert.NotNull(((Button)header).Image);                       // nav.expand drawn (closed group)
+                PointF[] closed = CollapsibleGroup.StateTriangle(new Rectangle(0, 0, 16, 16), group.Expanded, false);
+                Assert.True(closed[1].X > closed[0].X);
             });
         }
 

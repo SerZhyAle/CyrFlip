@@ -663,3 +663,6 @@
 {"file": "vscode-extension/CHANGELOG.md", "topic": "CHANGELOG", "area": "VS Code extension", "triggers": ["extension behavior or release changes"], "role": "source"}
 {"file": "vscode-extension/README.md", "topic": "README", "area": "VS Code extension", "triggers": ["extension behavior or release changes"], "role": "source"}
 {"file": "winget/README.md", "topic": "README", "area": "winget publishing", "triggers": ["manifest or release changes"], "role": "source"}
+{"file":"docs/contracts/UNIFIED-UI.md","topic":"Unified UI contracts","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}
+{"file":"docs/design/unified-ui.md","topic":"Unified UI migration","area":"UI design","triggers":["UI contract migration or evidence changes"],"role":"source"}
+{"file":"docs/design/contract-sync-20261017.md","topic":"Accepted contract synchronization","area":"contracts","triggers":["accepted contract behavior or verification changes"],"role":"source"}

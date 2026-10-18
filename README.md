@@ -82,7 +82,7 @@ Early development - which here means "it works, but we reserve the right to be h
   - **Quick launch** - the scenario launcher (see below).
   - **Exchange server** - the optional clipboard on the server (see below): the switch, the accounts, the two chords, the desktop shortcuts and the folder for received files.
   - **Hotkeys** - the master switch and the option to yield the chords to a focused remote-desktop client, then every CyrFlip chord in one list: what it does, whether it works right now and why not, with change, switch and reset on each row. A chord's own switch stays on the page of its feature.
-  - **About** - the **build version** (the same `YY.M.D.HHmm` stamp the release ZIP carries, so you can tell at a glance whether a fix is in your copy), links to the MIT licence and the privacy policy, plus the caret-position diagnostics and **Send logs to the author..** (see below).
+  - **About** - the **build version**, licence, privacy, downloads, support, required resources and related products. **Export diagnostics...** saves a local log archive without sending it; **Send logs to the author..** keeps its separate message-preview workflow. Caret-position diagnostics and offline Help are available here too.
 
 CyrFlip is a normal desktop app, not a Windows service: a global keyboard hook and the layout indicator must run in your interactive session, so "autostart" is a per-user startup entry rather than a service.
 

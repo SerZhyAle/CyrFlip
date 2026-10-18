@@ -68,6 +68,7 @@ namespace CyrFlip
             AddSettingsRowStrings();
             AddActivationStrings();
             AddHelpStrings();
+            AddUnifiedUiStrings();
         }
 
         /// <summary>Every registered source string with its translations (parallel to <see cref="Names"/>) - used by the localization tests.</summary>

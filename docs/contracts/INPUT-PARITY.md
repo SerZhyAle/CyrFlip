@@ -18,3 +18,12 @@
 - **Rule 3** - the Windows key alone is never bound.
 - The keyboard and mouse cells of the section 4 table describe what CyrFlip does; changing that behaviour
   changes the column first. The shared page is edited directly by its column steward, with a log row.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

@@ -100,6 +100,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
     # A run that discovered nothing also exits 0 (S0029 RB-6).
     & (Join-Path $PSScriptRoot 'tools\Assert-TestRun.ps1') -ResultsDirectory $testResults
+    if ($LASTEXITCODE -ne 0) { throw "Test result verification did not pass (exit $LASTEXITCODE)." }
 
     Write-Host 'Checking check placement..' -ForegroundColor Cyan
     & (Join-Path $PSScriptRoot 'tools\checks\Test-CheckPlacement.ps1')

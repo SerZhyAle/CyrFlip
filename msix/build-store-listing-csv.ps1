@@ -61,10 +61,8 @@ param(
     # one difference between the attempt that worked and the one that did not.
     [switch] $Faithful,
 
-    # Leave these Field rows empty even when we have copy for them, and write the result somewhere
-    # else. For bisecting an import Partner Center swallows without applying: it accepts the file
-    # and simply drops what it dislikes, so the only way to find the offending field is to feed it
-    # smaller sets and diff the next export.
+    # Legacy diagnostic selection. Accepted WINDOWS-STORE 0.2 bisection uses complete
+    # files from a fresh draft export, never blanked cells. This option cannot produce an import.
     [string[]] $SkipFields,
     [string]   $OutFile,
 
@@ -88,6 +86,10 @@ param(
     [switch] $LogoFlagOnly
 )
 $ErrorActionPreference = 'Stop'
+if ($SkipFields.Count -gt 0) {
+    Write-Host 'SkipFields cannot produce an import: bisect complete files based on a fresh draft export. Nothing was written.' -ForegroundColor Red
+    exit 1
+}
 
 $MsixDir = $PSScriptRoot
 $Export  = Join-Path $MsixDir 'store-listing-export.csv'
@@ -372,6 +374,10 @@ if ($FillNothing) {
     Assert-Writable $content 'the round trip'
     $rendered = [System.Text.Encoding]::UTF8.GetBytes($content)
     $expected = [System.IO.File]::ReadAllBytes($Sample)
+    # Preserve the input dialect for a no-change proof; actual import writers remain no-BOM.
+    if ($expected.Length -ge 3 -and $expected[0] -eq 0xEF -and $expected[1] -eq 0xBB -and $expected[2] -eq 0xBF) {
+        $rendered = [byte[]](@(0xEF, 0xBB, 0xBF) + $rendered)
+    }
     if ([System.Linq.Enumerable]::SequenceEqual([byte[]] $rendered, [byte[]] $expected)) {
         Write-Host ("Round trip is byte-identical: {0} bytes, {1} rows, nothing filled." -f $expected.Length, $rows.Count) -ForegroundColor Green
         exit 0

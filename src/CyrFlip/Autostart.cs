@@ -24,6 +24,9 @@ namespace CyrFlip
     {
         private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
         private const string ValueName = "CyrFlip";
+        // Machine-local intent survives a missing Windows Run entry. Kept out of settings export.
+        private const string PreferenceKey = @"Software\CyrFlip";
+        private const string PreferenceName = "StartWithWindows";
 
         /// <summary>TaskId of the manifest's windows.startupTask (msix/AppxManifest.xml).</summary>
         private const string StartupTaskId = "CyrFlipStartup";
@@ -46,7 +49,9 @@ namespace CyrFlip
             {
                 if (ManagedByWindows)
                     return StartupTaskEnabled(); // packaged: the startupTask is the truth, we only read it
-                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RunKey, writable: false);
+                using IRuntimeRegistryKey? preference = RuntimeRegistry.User.OpenSubKey(PreferenceKey);
+                if (preference?.GetValue(PreferenceName) is int enabled) return enabled != 0;
+                using IRuntimeRegistryKey? key = RuntimeRegistry.User.OpenSubKey(RunKey);
                 return key?.GetValue(ValueName) != null;
             }
         }
@@ -86,39 +91,51 @@ namespace CyrFlip
             state is int value && (value == StateEnabled || value == StateEnabledByPolicy);
 
         /// <summary>
-        /// Startup's "keep the Run entry pointing at the exe that is actually running". Writes only
-        /// when the stored command differs - rewriting a Run value on every launch is a persistence
+        /// Restores the Run entry when enabled in CyrFlip and keeps it pointing at the current exe.
+        /// Writes only when the command is missing or differs - rewriting on every launch is a persistence
         /// pattern some AV products score - and never throws: this runs on every start, and a Run key
         /// that policy or endpoint protection denies must not turn into a crash on every start.
         /// </summary>
         public static void SyncToThisExe()
         {
             if (ManagedByWindows) return;
-            SyncRunValue(
-                () =>
+            try
+            {
+                using IRuntimeRegistryKey? run = RuntimeRegistry.User.OpenSubKey(RunKey);
+                object? stored = run?.GetValue(ValueName);
+                using IRuntimeRegistryKey? preference = RuntimeRegistry.User.OpenSubKey(PreferenceKey);
+                object? saved = preference?.GetValue(PreferenceName);
+                // Upgrade: adopt the existing Run setting once; a fresh install stays off.
+                bool enabled = saved is int value ? value != 0 : stored != null;
+                if (!enabled) return;
+                if (saved == null)
                 {
-                    using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RunKey, writable: false);
-                    return key?.GetValue(ValueName);
-                },
-                command =>
+                    using IRuntimeRegistryKey migration = RuntimeRegistry.User.CreateSubKey(PreferenceKey);
+                    migration.SetValue(PreferenceName, 1, RegistryValueKind.DWord);
+                }
+                SyncRunValue(() => stored, command =>
                 {
-                    using RegistryKey key = Registry.CurrentUser.CreateSubKey(RunKey);
+                    using IRuntimeRegistryKey key = RuntimeRegistry.User.CreateSubKey(RunKey);
                     key.SetValue(ValueName, command, RegistryValueKind.String);
-                },
-                ExeCommand);
+                }, ExeCommand, restoreMissing: true);
+            }
+            catch (Exception ex)
+            {
+                LauncherLog.Log("Autostart sync failed: " + ex.GetType().Name);
+            }
         }
 
         /// <summary>
         /// The testable core of <see cref="SyncToThisExe"/>: true when it wrote. Only an existing entry
-        /// is refreshed (autostart off stays off), an equal one is left alone, and any failure is
-        /// swallowed.
+        /// is refreshed unless restoreMissing is set from the saved preference. An equal command
+        /// is left alone, and any failure is swallowed.
         /// </summary>
-        internal static bool SyncRunValue(Func<object?> read, Action<string> write, string command)
+        internal static bool SyncRunValue(Func<object?> read, Action<string> write, string command, bool restoreMissing = false)
         {
             try
             {
                 object? stored = read();
-                if (stored == null) return false; // autostart is off - nothing to keep in sync
+                if (stored == null && !restoreMissing) return false;
                 if (stored is string s && string.Equals(s, command, StringComparison.OrdinalIgnoreCase)) return false;
                 write(command);
                 return true;
@@ -133,11 +150,13 @@ namespace CyrFlip
         {
             if (ManagedByWindows)
                 return; // packaged: never write the virtualized Run key; the manifest handles it
-            using RegistryKey key = Registry.CurrentUser.CreateSubKey(RunKey);
+            using IRuntimeRegistryKey key = RuntimeRegistry.User.CreateSubKey(RunKey);
             if (enabled)
                 key.SetValue(ValueName, ExeCommand, RegistryValueKind.String);
             else if (key.GetValue(ValueName) != null)
                 key.DeleteValue(ValueName, throwOnMissingValue: false);
+            using IRuntimeRegistryKey preference = RuntimeRegistry.User.CreateSubKey(PreferenceKey);
+            preference.SetValue(PreferenceName, enabled ? 1 : 0, RegistryValueKind.DWord);
         }
     }
 }

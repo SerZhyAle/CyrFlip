@@ -11,12 +11,11 @@ namespace CyrFlip
     {
         /// <summary>An ordinary command: the mono look, the glyph in the text colour (item 5).</summary>
         Neutral,
-        /// <summary>The affirmative answer of a dialog - OK, Yes, Apply, Add: green glyph, tinted face.</summary>
+        /// <summary>The affirmative answer of a dialog: confirmation glyph, neutral face (BUTTONS 2.0).</summary>
         Affirmative,
-        /// <summary>The dismissing answer - Cancel, No, Close: red glyph, tinted face.</summary>
+        /// <summary>The dismissing answer - Cancel, No, Close: neutral glyph and face.</summary>
         Dismissing,
-        /// <summary>The dismissing answer of a confirmation of an irreversible act: red glyph and <b>no</b>
-        /// tint - the only red face in that window is the one that cannot be undone (item 7).</summary>
+        /// <summary>The safe answer of an irreversible confirmation: neutral glyph and face.</summary>
         DismissingSafe,
         /// <summary>The acting button of an irreversible confirmation: the <c>danger</c> face and its own ink.</summary>
         Acting,
@@ -28,7 +27,7 @@ namespace CyrFlip
     /// <summary>
     /// A command button's glyph (WINDOWS-UI section 11, ICON-RENDER section 14): the vocabulary's own
     /// picture for the caption's verb, 16 logical px, before the caption (after it for a "next"), with a
-    /// 6 logical px gap. One place does it for every button of the product, so a dialog answer, a
+    /// 8 logical px gap. One place does it for every button of the product, so a dialog answer, a
     /// settings command and the tour's navigation cannot drift apart.
     ///
     /// <para><b>Nothing is stored.</b> The glyph is filled from the shared path
@@ -40,25 +39,25 @@ namespace CyrFlip
     /// which is why the glyph is not an <see cref="ButtonBase.Image"/>: WinForms measures an image button
     /// in two different ways, and a button in a table cell came out narrower than its own caption.</para>
     ///
-    /// <para><b>The face.</b> An affirmative or dismissing answer also paints its flat face tinted with
-    /// its hue (<see cref="PaintFace"/>), entirely from the palette in every state.</para>
+    /// <para>BUTTONS 2.0 keeps ordinary answer faces neutral. Only a destructive confirmation's
+    /// acting button uses danger; affirmative confirmation glyphs keep their state.ok ink.</para>
     /// </summary>
     internal static class ButtonGlyphs
     {
         /// <summary>The glyph's tier beside a caption (ICON-RENDER section 3 rule 5), in logical px.</summary>
         public const int GlyphLogical = 16;
 
-        /// <summary>The gap between glyph and caption (WINDOWS-UI section 11 item 2), in logical px.</summary>
-        public const int GapLogical = 6;
+        /// <summary>The gap between glyph and caption (BUTTONS section 3), in logical px.</summary>
+        public const int GapLogical = 8;
 
         /// <summary>
-        /// The command-button metric of WINDOWS-UI section 5 ("Command button height / horizontal text
-        /// padding: 32 px / 16 px per side"; "gap in a multi-editor strip: 8 px"), in logical 96-DPI px.
+        /// The pointer command baseline of BUTTONS section 3, in logical 96-DPI px:
+        /// 32 high, 12 padding per side, 8 between commands.
         /// One place says it for the settings window's rows and header, so a command can no longer be
         /// 23 px high in one row and 28 in the next (ticket S0060 M12).
         /// </summary>
         public const int CommandHeightLogical = 32;
-        public const int CommandPaddingLogical = 16;
+        public const int CommandPaddingLogical = 12;
         public const int CommandGapLogical = 8;
 
         private sealed class Spec
@@ -140,7 +139,7 @@ namespace CyrFlip
 
         /// <summary>
         /// Give an attached command button the shared metric of a settings row (see
-        /// <see cref="CommandHeightLogical"/>): 16 logical px of padding on each side before the glyph's
+        /// <see cref="CommandHeightLogical"/>): 12 logical px of padding on each side before the glyph's
         /// room, a 32 logical px minimum height and a 4 + 4 px gap to its neighbours (8 between two
         /// buttons). All of it is scaled by the button's own DPI and re-asserted whenever the glyph's
         /// reservation is - a text, font, visibility or DPI change - so it cannot drift from the glyph.
@@ -174,21 +173,17 @@ namespace CyrFlip
             switch (look)
             {
                 case ButtonLook.Affirmative: return ThemePalette.AnswerInk.For(AnswerHue.Ok, palette);
-                case ButtonLook.Dismissing:
-                case ButtonLook.DismissingSafe: return ThemePalette.AnswerInk.For(AnswerHue.Error, palette);
                 case ButtonLook.Acting: return palette.AccentInk;
                 default: return palette.TextPrimary;
             }
         }
 
-        /// <summary>The hue whose 12 percent tint the answer's face takes, or null for a look that has none.</summary>
-        public static AnswerHue? TintOf(ButtonLook look)
-            => look == ButtonLook.Affirmative ? AnswerHue.Ok : look == ButtonLook.Dismissing ? AnswerHue.Error : (AnswerHue?)null;
+        /// <summary>Answer faces no longer have a semantic tint (BUTTONS 2.0 section 3.5).</summary>
+        public static AnswerHue? TintOf(ButtonLook look) => null;
 
         /// <summary>
         /// The face of a dialog's affirmative or dismissing answer, entirely from <paramref name="palette"/>
-        /// (WINDOWS-UI section 11 items 4 and 6): a flat face tinted 12 percent with the answer's hue; the
-        /// neutral flat face when the button is unavailable (no hue); the native face with system colours
+        /// (BUTTONS section 3.5): a neutral flat face; the native face with system colours
         /// under high contrast. Returns false for a button that is not such an answer, which takes the
         /// ordinary path of <see cref="ThemeApply"/>.
         ///
@@ -199,8 +194,9 @@ namespace CyrFlip
         internal static bool PaintFace(Button button, ThemePalette palette)
         {
             if (!Specs.TryGetValue(button, out Spec? spec)) return false;
-            AnswerHue? hue = TintOf(spec.Look);
-            if (hue == null) return false;
+            // BUTTONS section 3.5 supersedes the former green/red answer faces.
+            // Acting is already assigned the danger role by its confirmation dialog.
+            if (spec.Look == ButtonLook.Acting || spec.Look == ButtonLook.Neutral) return false;
 
             if (palette.Kind == ThemeKind.HighContrast)
             {
@@ -214,13 +210,12 @@ namespace CyrFlip
                 return true;
             }
 
-            bool tinted = button.Enabled;
             button.FlatStyle = FlatStyle.Flat;
-            SetColor(button, true, tinted ? ThemePalette.AnswerInk.Face(palette.Control, hue.Value, palette) : palette.Control);
+            SetColor(button, true, palette.Control);
             SetColor(button, false, palette.TextPrimary);
             button.FlatAppearance.BorderColor = palette.Border;
-            button.FlatAppearance.MouseOverBackColor = tinted ? ThemePalette.AnswerInk.Face(HoverBase(palette), hue.Value, palette) : palette.ControlHover;
-            button.FlatAppearance.MouseDownBackColor = tinted ? ThemePalette.AnswerInk.Face(palette.ControlPressed, hue.Value, palette) : palette.ControlPressed;
+            button.FlatAppearance.MouseOverBackColor = HoverBase(palette);
+            button.FlatAppearance.MouseDownBackColor = palette.ControlPressed;
             button.UseVisualStyleBackColor = false;
             return true;
         }
@@ -303,12 +298,13 @@ namespace CyrFlip
         /// </summary>
         private static void ReservePadding(Button button, Spec spec)
         {
-            double scale = Dpi(button) / 96.0;
+            UiMetrics metrics = UiMetrics.For(button);
+            double scale = Dpi(button) / 96.0 * metrics.InterfaceScale;
             Padding logical = BaseOf(button, spec);
             Padding basePadding = new Padding(
                 (int)Math.Round(logical.Left * scale), (int)Math.Round(logical.Top * scale),
                 (int)Math.Round(logical.Right * scale), (int)Math.Round(logical.Bottom * scale));
-            int add = button.Text.Length > 0 ? Device(GlyphLogical + GapLogical, scale) : 0;
+            int add = button.Text.Length > 0 ? Device((metrics.Touch ? 20 : GlyphLogical) + GapLogical, scale) : 0;
             bool right = GlyphOnRight(button);
             Padding wanted = right
                 ? new Padding(basePadding.Left, basePadding.Top, basePadding.Right + add, basePadding.Bottom)
@@ -317,7 +313,7 @@ namespace CyrFlip
             if (spec.CommandMetric)
             {
                 // Height is a floor, not a fixed size: a caption that wraps or a taller script still grows the button.
-                int height = Device(CommandHeightLogical, scale);
+                int height = Device(metrics.Touch ? 48 : CommandHeightLogical, scale);
                 // A picture-only command is a square of the command height; one with a caption is as wide as it needs.
                 int width = button.Text.Length == 0 ? height : 0;
                 if (button.MinimumSize.Height != height || button.MinimumSize.Width != width) button.MinimumSize = new Size(width, height);
@@ -364,8 +360,9 @@ namespace CyrFlip
         internal static Rectangle GlyphBox(Button button, Graphics g)
         {
             if (!Specs.TryGetValue(button, out Spec? spec)) return Rectangle.Empty;
-            double scale = Dpi(button) / 96.0;
-            int glyph = Device(GlyphLogical, scale);
+            UiMetrics metrics = UiMetrics.For(button);
+            double scale = Dpi(button) / 96.0 * metrics.InterfaceScale;
+            int glyph = Device(metrics.Touch ? 20 : GlyphLogical, scale);
             int gap = button.Text.Length > 0 ? Device(GapLogical, scale) : 0;
             Padding logical = BaseOf(button, spec);
             int baseLeft = (int)Math.Round(logical.Left * scale), baseRight = (int)Math.Round(logical.Right * scale);
@@ -374,8 +371,9 @@ namespace CyrFlip
 
             int captionWidth = 0;
             if (button.Text.Length > 0)
-                captionWidth = TextRenderer.MeasureText(g, button.Text, button.Font, Size.Empty,
-                    TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
+                captionWidth = Math.Min(Math.Max(1, contentWidth - glyph - gap),
+                    TextRenderer.MeasureText(g, button.Text, button.Font, Size.Empty,
+                        TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width);
             int group = glyph + gap + captionWidth;
             int start = contentLeft + Math.Max(0, (contentWidth - group) / 2);
             // The glyph is the first of the group in reading order unless it is declared to follow the caption.

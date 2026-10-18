@@ -51,6 +51,7 @@
     "EnableQuickNotesHotkey": true,
     "QuickNotesHotkey": "Ctrl+Shift+Alt+N",
     "QuickNotesWordWrap": false,
+    "QuickNotesLineNumbers": false,
     "ExchangeNotesWarningOff": false,
     "QuickNotesX": -2147483648,
     "QuickNotesY": -2147483648,

@@ -29,3 +29,12 @@ The exceptions of 2026-10-03 were closed the same day (ticket `S0047`) - see the
 section 3 rows for the commands and outputs. Rules 15 (the forbidden-terms list) and 18 (the IARC
 questionnaire) are still unevidenced here: neither artifact is in this repository's tree. Rung 4
 (the real import report with no "couldn't import" block) belongs to the next Store submission.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

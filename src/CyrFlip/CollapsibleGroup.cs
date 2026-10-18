@@ -14,14 +14,12 @@ namespace CyrFlip
     /// expanded/collapsed state to UI Automation and re-blends its band from the current palette on
     /// every theme change, so the mix never outlives the theme that produced it.
     ///
-    /// <para>The chevrons are the vocabulary's <c>nav.expand</c> / <c>nav.collapse</c> - the glyph names
-    /// the action a click performs, per the records' note - drawn in the theme's text colour like every
-    /// other glyph (ICON-RENDER section 3 rule 2). Both records are <c>rtl: fixed</c>, so the direction
-    /// does not mirror.</para>
+    /// <para>COLLAPSIBLE-GROUP section 3 owns the native filled state triangle: down when open,
+    /// reading-end when closed. This supersedes the older action-chevron convention.</para>
     /// </summary>
     internal sealed class CollapsibleGroup : FlowLayoutPanel
     {
-        public const int ChevronSize = 20;
+        public const int ChevronSize = 16;
         /// <summary>How far the header band leans toward the accent role; a mix of two roles, never a literal.</summary>
         internal const float BandAmount = 0.08f;
 
@@ -32,7 +30,6 @@ namespace CyrFlip
         // collapsed even when the user left it open.
         private bool _expanded = true;
         private string _summary = "";
-        private Bitmap? _chevron;
         private ThemePalette _palette = ThemePalette.Light;
 
         /// <param name="id">The stable internal id the group's expansion is remembered under - never a
@@ -44,7 +41,7 @@ namespace CyrFlip
             WrapContents = false;
             AutoSize = true;
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            Margin = new Padding(3, 6, 3, 2);
+            Margin = new Padding(3, 4, 3, 4);
 
             _header = new HeaderButton(this)
             {
@@ -56,7 +53,7 @@ namespace CyrFlip
                 TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
                 ImageAlign = System.Drawing.ContentAlignment.MiddleLeft,
                 TextImageRelation = TextImageRelation.ImageBeforeText,
-                Padding = new Padding(12, 11, 8, 11),
+                Padding = new Padding(32, 4, 8, 4),
                 Margin = new Padding(0),
                 UseMnemonic = false,
                 // No explicit AccessibleName: the button's own Text is its name, and Text is what the
@@ -64,6 +61,7 @@ namespace CyrFlip
             };
             _header.FlatAppearance.BorderSize = 0;
             _header.Click += (_, _) => Toggle();
+            _header.RightToLeftChanged += (_, _) => UpdateChevron();
 
             _body = new FlowLayoutPanel
             {
@@ -84,12 +82,25 @@ namespace CyrFlip
         /// caption: the page tells it how much room it has and the band takes all of it.</summary>
         public void FitWidth(int width)
         {
-            int wanted = Math.Max(160, width);
-            if (_header.MinimumSize.Width != wanted) _header.MinimumSize = new Size(wanted, 0);
+            int wanted = Math.Max(1, width);
+            UiMetrics metrics = UiMetrics.For(this);
+            int target = metrics.Device(this, metrics.Target);
+            _header.MaximumSize = new Size(wanted, 0);
+            if (_header.MinimumSize != new Size(wanted, target)) _header.MinimumSize = new Size(wanted, target);
+            int bodyWidth = Math.Max(1, wanted - _body.Margin.Horizontal);
+            _body.MinimumSize = new Size(bodyWidth, 0);
+            _body.MaximumSize = new Size(bodyWidth, 0);
+            UpdateChevron();
         }
 
         public string Id { get; }
         public FlowLayoutPanel Body => _body;
+
+        protected override void OnFontChanged(EventArgs e)
+        {
+            base.OnFontChanged(e);
+            if (_header != null) _header.Font = Font;
+        }
 
         /// <summary>The group's caption - the header button's text. The group deliberately does not
         /// override <see cref="Control.Text"/> for it: a second Text declaration makes every
@@ -114,12 +125,22 @@ namespace CyrFlip
             set
             {
                 if (_expanded == value) return;
+                ScrollableControl? viewport = Parent as ScrollableControl;
+                bool anchor = Visible && IsHandleCreated && viewport?.AutoScroll == true;
+                int before = anchor ? _header.PointToScreen(Point.Empty).Y : 0;
                 // Hand the focus to the header before the body goes (WINDOWS-UI section 3 rule 2).
                 if (!value && _body.ContainsFocus) _header.Focus();
                 _expanded = value;
                 _body.Visible = value;
                 UpdateChevron();
                 _header.Invalidate();
+                if (anchor && viewport != null)
+                {
+                    viewport.PerformLayout();
+                    int delta = _header.PointToScreen(Point.Empty).Y - before;
+                    if (delta != 0)
+                        viewport.AutoScrollPosition = new Point(-viewport.AutoScrollPosition.X, Math.Max(0, -viewport.AutoScrollPosition.Y + delta));
+                }
                 OnExpandedChanged(EventArgs.Empty);
             }
         }
@@ -145,17 +166,23 @@ namespace CyrFlip
 
         private void UpdateChevron()
         {
-            Bitmap? next = GlyphRenderer.Render(Expanded ? AppGlyphs.Collapse : AppGlyphs.Expand, ChevronSize, _palette.TextPrimary);
-            Image? previous = _header.Image;
-            _header.Image = next;
-            _chevron = next;
-            previous?.Dispose();
+            UiMetrics metrics = UiMetrics.For(this);
+            int inset = metrics.Device(this, metrics.Logical(ChevronSize + 16));
+            int pad = metrics.Device(this, metrics.Logical(8));
+            int vertical = metrics.Device(this, metrics.Logical(4));
+            bool rtl = _header.RightToLeft == RightToLeft.Yes;
+            Padding wanted = rtl ? new Padding(pad, vertical, inset, vertical) : new Padding(inset, vertical, pad, vertical);
+            if (_header.Padding != wanted) _header.Padding = wanted;
+            _header.Invalidate();
         }
 
-        protected override void Dispose(bool disposing)
+        internal static PointF[] StateTriangle(Rectangle box, bool expanded, bool rtl)
         {
-            if (disposing) { _chevron?.Dispose(); _chevron = null; _header.Image = null; }
-            base.Dispose(disposing);
+            if (expanded) return new[] { new PointF(box.Left, box.Top + box.Height * .25f),
+                new PointF(box.Right, box.Top + box.Height * .25f), new PointF(box.Left + box.Width / 2f, box.Top + box.Height * .75f) };
+            float start = rtl ? box.Right - box.Width * .25f : box.Left + box.Width * .25f;
+            float end = rtl ? box.Left + box.Width * .25f : box.Right - box.Width * .25f;
+            return new[] { new PointF(start, box.Top), new PointF(end, box.Top + box.Height / 2f), new PointF(start, box.Bottom) };
         }
 
         /// <summary>The header button, carrying the group's expanded state in its accessible object
@@ -163,13 +190,59 @@ namespace CyrFlip
         private sealed class HeaderButton : Button
         {
             private readonly CollapsibleGroup _owner;
+            private Point _press;
+            private bool _drag;
+            private Font? _headingFont;
 
-            public HeaderButton(CollapsibleGroup owner) { _owner = owner; }
+            public HeaderButton(CollapsibleGroup owner) { _owner = owner; MakeHeadingFont(); }
+
+            private void MakeHeadingFont()
+            {
+                if (Font.Bold) return;
+                Font? previous = _headingFont;
+                _headingFont = new Font(Font, FontStyle.Bold);
+                Font = _headingFont;
+                previous?.Dispose();
+            }
+
+            protected override void OnFontChanged(EventArgs e) { base.OnFontChanged(e); MakeHeadingFont(); }
+            protected override void OnMouseDown(MouseEventArgs e) { _press = e.Location; _drag = false; base.OnMouseDown(e); }
+            protected override void OnMouseMove(MouseEventArgs e)
+            {
+                if (e.Button == MouseButtons.Left && (Math.Abs(e.X - _press.X) > SystemInformation.DragSize.Width / 2
+                    || Math.Abs(e.Y - _press.Y) > SystemInformation.DragSize.Height / 2)) _drag = true;
+                base.OnMouseMove(e);
+            }
+            protected override void OnClick(EventArgs e) { if (!_drag) base.OnClick(e); }
+            protected override void OnKeyDown(KeyEventArgs e)
+            {
+                _drag = false;
+                HandleKeyDown(e);
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                UiMetrics metrics = UiMetrics.For(this);
+                int size = metrics.Device(this, metrics.Logical(ChevronSize));
+                int inset = metrics.Device(this, metrics.Logical(8));
+                bool rtl = RightToLeft == RightToLeft.Yes;
+                var box = new Rectangle(rtl ? Width - inset - size : inset, (Height - size) / 2, size, size);
+                using var ink = new SolidBrush(_owner._palette.TextPrimary);
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                e.Graphics.FillPolygon(ink, StateTriangle(box, _owner.Expanded, rtl));
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+                if (disposing) _headingFont?.Dispose();
+            }
 
             protected override bool IsInputKey(Keys keyData)
                 => keyData is Keys.Left or Keys.Right || base.IsInputKey(keyData);
 
-            protected override void OnKeyDown(KeyEventArgs e)
+            private void HandleKeyDown(KeyEventArgs e)
             {
                 // Left collapses and Right expands at the reading start; mirrored under RTL below.
                 if (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right)

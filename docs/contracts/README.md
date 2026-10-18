@@ -33,7 +33,7 @@ not a local edit and not a local copy kept "in sync".
 | [`WINDOWS-STORE.md`](WINDOWS-STORE.md) | `WINDOWS-STORE` | Producer - the MSIX and the Partner Center listing import; adopted 2026-10-03, the six exceptions closed the same day (ticket `S0047`); rules 15 and 18 still await their artifacts |
 | [`INSTALL-TRUST.md`](INSTALL-TRUST.md) | `INSTALL-TRUST` | Producer - adopted: `docs/trust.html` in 13 languages |
 | [`PAGE-CONTENT.md`](PAGE-CONTENT.md) | `PAGE-CONTENT` | Consumer - the landing page's content order and copy |
-| [`PAGE-STYLE.md`](PAGE-STYLE.md) | `PAGE-STYLE` | Consumer, *App - small* - the vendored kit and the page scripts |
+| [`PAGE-STYLE.md`](PAGE-STYLE.md) | `PAGE-STYLE` | Consumer, *App - medium* - the vendored kit and the page scripts; migration under S0076/S0077 |
 | [`SITE-FAMILY-MAP.md`](SITE-FAMILY-MAP.md) | `SITE-FAMILY-MAP` | Consumer and map row - the footer grid and the contact |
 | [`SITE-STRUCTURE.md`](SITE-STRUCTURE.md) | `SITE-STRUCTURE` | Consumer, guide tier (opted in 2026-10-07, ticket `S0049`) - the page set, the address scheme, the locale sets; three gaps in `S0051` |
 | [`SITE-EXPERIENCE.md`](SITE-EXPERIENCE.md) | `SITE-EXPERIENCE` | Consumer, guide tier - the kit, full width, shared language and theme, declared origins, keyboard and contrast; gaps in `S0052` and `S0053` |
@@ -51,3 +51,4 @@ not a local edit and not a local copy kept "in sync".
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `HARNESS-PROFILE` | Not bound - no profile, no harness tool |
 
 | [`CONTEXT-HELP.md`](CONTEXT-HELP.md) | `CONTEXT-HELP` | Consumer - F1, help buttons, shipped help map and offline localized pages; partial pending the release walk |
+| [`UNIFIED-UI.md`](UNIFIED-UI.md) | `UI-SIZING`, `BUTTONS`, `BOOLEAN-OPTION`, `COLLAPSIBLE-GROUP`, `SETTINGS-NAVIGATION` | Consumer - shared components; dated migration, evidence pending |

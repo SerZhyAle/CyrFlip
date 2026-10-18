@@ -32,6 +32,7 @@ param(
     [string]$Chrome,
     [string]$OutDir = (Join-Path ([IO.Path]::GetTempPath()) 'cyrflip-site-measure'),
     [int]$TimeoutSeconds = 420,
+    [string[]]$Pages,
     [switch]$Strict
 )
 
@@ -60,8 +61,18 @@ $listener = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
 $listener.Start(); $port = $listener.LocalEndpoint.Port; $listener.Stop()
 $base = "http://127.0.0.1:$port"
 
-$pages = @(Get-ChildItem $docs -Recurse -Filter *.html | ForEach-Object { $_.FullName.Substring($docs.Length + 1).Replace('\', '/') } | Sort-Object)
-Set-Content (Join-Path $OutDir 'pages.json') (ConvertTo-Json -InputObject @($pages)) -Encoding utf8
+$allPagePaths = @(Get-ChildItem $docs -Recurse -Filter *.html | ForEach-Object { $_.FullName.Substring($docs.Length + 1).Replace('\', '/') } | Sort-Object)
+if ($Pages.Count -gt 0) {
+    $missing = @($Pages | Where-Object { $allPagePaths -notcontains $_ })
+    if ($missing.Count -gt 0) {
+        Add-CheckFinding -Severity notverified -Name 'requested-pages' -Reason "Unknown pages: $($missing -join ', ')"
+        Complete-Check
+    }
+    $selectedPagePaths = @($Pages | Select-Object -Unique)
+    Write-Host "Requested browser sample: $($selectedPagePaths -join ', '); this is not full-corpus evidence."
+}
+else { $selectedPagePaths = $allPagePaths }
+Set-Content (Join-Path $OutDir 'pages.json') (ConvertTo-Json -InputObject @($selectedPagePaths)) -Encoding utf8
 
 $server = $null
 $browsers = @()
@@ -85,7 +96,7 @@ try {
         $argList = @('--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', "--user-data-dir=$profileDir", '--window-size=2600,1500')
         if ($pass.flag) { $argList += $pass.flag }
         $argList += "$base/harness/measure-run.html?mode=$($pass.mode)&name=$($pass.name)"
-        $proc = Start-Process -FilePath $Chrome -ArgumentList $argList -PassThru
+        $proc = Start-Process -FilePath $Chrome -ArgumentList $argList -WindowStyle Hidden -PassThru
         $browsers += $proc
         $result = Join-Path $OutDir "$($pass.name).json"
         $deadline = (Get-Date).AddSeconds($TimeoutSeconds)

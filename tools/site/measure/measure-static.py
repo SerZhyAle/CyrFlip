@@ -139,7 +139,9 @@ def resolver_text(p):
     return re.sub(r"\s+", " ", p.scripts[0]).strip() if p.scripts else ""
 
 
-res_hash = {f: hashlib.sha256(resolver_text(p).encode("utf-8")).hexdigest()[:12] for f, p in pages.items() if f not in forwarders}
+# PAGE-STYLE 3.1 consolidation item 4: context help is scriptless, in the app's
+# language, with its own theme layer. It remains in link/asset/discovery checks.
+res_hash = {f: hashlib.sha256(resolver_text(p).encode("utf-8")).hexdigest()[:12] for f, p in pages.items() if f not in forwarders and not f.startswith("help/")}
 guides = {}
 for f, p in pages.items():
     if f.endswith("guide.html"):
@@ -159,9 +161,9 @@ out = {
     "forwarders": {f: {"noindex": pages[f].noindex, "canonical": bool(pages[f].canonical), "refresh": pages[f].refresh,
                        "link": any(resolve(f, h) == "index.html" for h in pages[f].links)} for f in forwarders},
     "dangling_alternates": dangling,
-    "resolver_not_first": [f for f, p in pages.items() if not first_inline_before_stylesheet(p)],
+    "resolver_not_first": [f for f, p in pages.items() if not f.startswith("help/") and not first_inline_before_stylesheet(p)],
     "resolver_text_variants": len(set(res_hash.values())),
-    "pages_without_sza_lang": sorted(f for f, p in pages.items() if f not in forwarders and not any("sza-lang" in s for s in p.scripts)),
+    "pages_without_sza_lang": sorted(f for f, p in pages.items() if f not in forwarders and not f.startswith("help/") and not any("sza-lang" in s for s in p.scripts)),
     "pages_reading_or_writing_sza_theme": sum(1 for p in pages.values() if any("sza-theme" in s for s in p.scripts)),
     "has_404": os.path.exists(os.path.join(DOCS, "404.html")),
 }

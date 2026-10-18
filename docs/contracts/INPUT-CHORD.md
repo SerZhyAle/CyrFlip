@@ -23,3 +23,12 @@
 
 A change to any of these is a change to the contract first: CyrFlip owns it, so the owner amends it in the
 catalog (a dated section, a version) and then the code follows.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

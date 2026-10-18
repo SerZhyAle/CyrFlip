@@ -205,7 +205,8 @@ try {
             else {
                 # A run that discovered nothing also exits 0 (S0029 RB-6).
                 & (Join-Path $preflightRoot 'tools\Assert-TestRun.ps1') -ResultsDirectory $testResults
-                if ($LASTEXITCODE -ne 0) { $preflightFails.Add("Test discovery count check failed") }
+                if ($LASTEXITCODE -eq 2) { $preflightUnverified.Add("Requested tests did not all execute; see the test-run verdict") }
+                elseif ($LASTEXITCODE -ne 0) { $preflightFails.Add("Test discovery count check failed") }
                 else { Write-Host 'Detached-HEAD build + tests green.' -ForegroundColor Green }
             }
 
@@ -361,7 +362,7 @@ if ($preflightFails.Count -gt 0) {
 elseif ($preflightUnverified.Count -gt 0) {
     Write-Host "`nPREFLIGHT UNVERIFIED:" -ForegroundColor Yellow
     foreach ($u in $preflightUnverified) { Write-Host "  - $u" -ForegroundColor Yellow }
-    Write-Host "$($subjectName): NOT VERIFIED ($($preflightUnverified.Count))" -ForegroundColor Yellow
+    Write-Host "$($subjectName): COULD NOT VERIFY ($($preflightUnverified.Count))" -ForegroundColor Yellow
     exit 2
 }
 else {

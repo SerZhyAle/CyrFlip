@@ -1,5 +1,6 @@
-{"path": "", "anchor": "", "held_by": [{"surface": "in-app About tab", "file": "src/CyrFlip/SettingsForm.cs"}]}
-{"path": "privacy.html", "anchor": "", "held_by": [{"surface": "in-app About tab", "file": "src/CyrFlip/SettingsForm.cs"}, {"surface": "README", "file": "README.md"}, {"surface": "winget locale en-US", "file": "winget/SerZhyAle.CyrFlip.locale.en-US.yaml"}, {"surface": "first-run welcome tour", "file": "src/CyrFlip/WelcomeDialog.cs"}]}
+{"path": "", "anchor": "", "held_by": [{"surface": "in-app About resources", "file": "src/CyrFlip/AboutResources.cs"}]}
+{"path": "privacy.html", "anchor": "", "held_by": [{"surface": "in-app About resources", "file": "src/CyrFlip/AboutResources.cs"}, {"surface": "README", "file": "README.md"}, {"surface": "winget locale en-US", "file": "winget/SerZhyAle.CyrFlip.locale.en-US.yaml"}, {"surface": "first-run welcome tour", "file": "src/CyrFlip/WelcomeDialog.cs"}]}
+{"path": "guide.html", "anchor": "", "held_by": [{"surface": "in-app About resources", "file": "src/CyrFlip/AboutResources.cs"}]}
 {"path": "trust.html", "anchor": "", "held_by": [{"surface": "README", "file": "README.md"}, {"surface": "winget locale en-US", "file": "winget/SerZhyAle.CyrFlip.locale.en-US.yaml"}, {"surface": "first-run welcome tour", "file": "src/CyrFlip/WelcomeDialog.cs"}]}
 {"path": "guide.html", "anchor": "layout-colours", "held_by": [{"surface": "README", "file": "README.md"}, {"surface": "VS Code extension README", "file": "vscode-extension/README.md"}]}
 {"path": "ru/privacy.html", "anchor": "", "held_by": [{"surface": "README (ru)", "file": "README_RU.md"}, {"surface": "winget locale ru-RU", "file": "winget/SerZhyAle.CyrFlip.locale.ru-RU.yaml"}]}

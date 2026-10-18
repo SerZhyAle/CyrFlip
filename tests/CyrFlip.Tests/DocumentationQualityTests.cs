@@ -23,7 +23,7 @@ namespace CyrFlip.Tests
         private static IEnumerable<string> Corpus()
         {
             foreach (string file in Directory.GetFiles(Repo, "*.md", SearchOption.TopDirectoryOnly)) yield return file;
-            foreach (string subdir in new[] { "docs/contracts", "msix", "winget", "tools/uitest", "vscode-extension", ".github" })
+            foreach (string subdir in new[] { "docs/contracts", "docs/design", "msix", "winget", "tools/uitest", "vscode-extension", ".github" })
                 foreach (string file in Directory.GetFiles(Path.Combine(Repo, subdir), "*.md", SearchOption.TopDirectoryOnly)) yield return file;
             foreach (string file in Directory.GetFiles(Path.Combine(Repo, ".claude/skills"), "*.md", SearchOption.AllDirectories)) yield return file;
             foreach (string file in Directory.GetFiles(Docs, "*.html", SearchOption.AllDirectories)) yield return file;

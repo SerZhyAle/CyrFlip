@@ -43,6 +43,11 @@ namespace CyrFlip
             Buttons.Add(form, button);
             int edge = Math.Max(44, (int)Math.Round(44.0 * form.DeviceDpi / 96));
             button.Size = new Size(edge, edge);
+            if (form is QuickNotesWindow notes)
+            {
+                notes.AttachHelpButton(button);
+                return;
+            }
             TableLayoutPanel? table = form.Controls.OfType<TableLayoutPanel>().FirstOrDefault();
             if (row.form != "layer" && table != null)
             {

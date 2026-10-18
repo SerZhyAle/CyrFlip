@@ -82,6 +82,7 @@ namespace CyrFlip
             E("TranslateWindowWidth", "navigation/windows", "Translation window width"), E("TranslateWindowHeight", "navigation/windows", "Translation window height"),
             E("EnableQuickNotes", "notes/switches", "Enable the quick notes"), E("EnableQuickNotesHotkey", "notes/opening", "Quick notes"),
             E("QuickNotesHotkey", "notes/opening", "Set the quick-notes shortcut"), E("QuickNotesWordWrap", "notes/editor", "Wrap long lines in the editor"),
+            E("QuickNotesLineNumbers", "notes/editor", "Line numbers in the editor"),
             E("ExchangeNotesWarningOff", "notes/storage", "Don't warn again for notes"),
             E("QuickNotesX", "navigation/windows", "Quick-notes window position X"), E("QuickNotesY", "navigation/windows", "Quick-notes window position Y"),
             E("QuickNotesWidth", "navigation/windows", "Quick-notes window width"), E("QuickNotesHeight", "navigation/windows", "Quick-notes window height"),

@@ -217,7 +217,7 @@ namespace CyrFlip
 
         private string ReasonText(ExchangeConnectionParse parse)
         {
-            if (parse.Reason == "newer-major") return _t("This connection string comes from a newer version of the exchange. Update CyrFlip.");
+            if (parse.Reason == "newer-major") return _t(ExchangeMessages.UnsupportedFormatText);
             if (parse.Reason == "not-a-string")
                 return parse.Looks.Length > 0 ? _t("This is not a server connection string.") : _t("This is not a connection string. Paste the one the server's host gave you.");
             return _t("This connection string is damaged or incomplete. Ask whoever runs the server for a new one.");

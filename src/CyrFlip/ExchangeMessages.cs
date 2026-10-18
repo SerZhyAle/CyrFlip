@@ -42,6 +42,8 @@ namespace CyrFlip
     /// </summary>
     internal static class ExchangeMessages
     {
+        // DEVICE-EXCHANGE 1.3 consolidation wording; local and wire codes stay distinct.
+        internal const string UnsupportedFormatText = "This format is newer than this program supports. Nothing was imported. Use a compatible program.";
         // ---- item CY: the fifteen steps, in the contract's order. "Applies": any, network, internet. ----
         private sealed class Step
         {
@@ -77,7 +79,8 @@ namespace CyrFlip
             [ExchangeCodes.BadCredentials] = Row("The login or the password is wrong.", "credentials"),
             [ExchangeCodes.DeviceRevoked] = Row("This device was removed from the account.", "device-removed"),
             [ExchangeCodes.SignedOut] = Row("The password of this account was changed, so this device was signed out.", "credentials"),
-            [ExchangeCodes.VersionUnsupported] = Row("This program and the server speak different versions of the exchange.", "operator"),
+            [ExchangeCodes.VersionUnsupported] = Row(UnsupportedFormatText, ""),
+            [ExchangeCodes.FormatUnsupported] = Row(UnsupportedFormatText, ""),
             [ExchangeCodes.TlsRequired] = Row("The server accepts this only over a protected connection, and this one is not protected.", "operator"),
             [ExchangeCodes.IdCollision] = Row("The server already knows another device under this device's number. Remove this server from the list and add it again.", ""),
             [ExchangeCodes.Capacity] = Row("The server cannot take this: it has reached a limit of its own, or the item is too big to be listed.", "operator"),

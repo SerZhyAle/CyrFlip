@@ -6,8 +6,10 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('pass', 'fail', 'notverified', 'advisory')]
-    [string]$Outcome = 'pass'
+    [ValidateSet('pass', 'fail', 'notverified', 'advisory', 'notapplicable')]
+    [string]$Outcome = 'pass',
+    [Nullable[int]]$RunCount,
+    [int]$SkippedCount = 0
 )
 
 $ErrorActionPreference = 'Stop'
@@ -30,4 +32,7 @@ switch ($Outcome) {
     }
 }
 
-Complete-Check
+$arguments = @{}
+if ($null -ne $RunCount) { $arguments.RunCount = $RunCount; $arguments.SkippedCount = $SkippedCount }
+if ($Outcome -eq 'notapplicable') { $arguments.NotApplicableReason = 'caller deselected synthetic check' }
+Complete-Check @arguments

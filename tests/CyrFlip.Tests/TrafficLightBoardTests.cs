@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -1187,6 +1188,48 @@ namespace CyrFlip.Tests
     public class TrafficLightWindowTransparencyTests
     {
         [Fact]
+        public void NativeLayeredBitmapPreservesTransparentAndPremultipliedPixels()
+        {
+            using var surface = new Bitmap(2, 2, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            surface.SetPixel(0, 0, Color.FromArgb(0, 0, 0, 0));
+            surface.SetPixel(1, 0, Color.FromArgb(1, 1, 0, 0));
+            surface.SetPixel(0, 1, Color.FromArgb(128, 64, 32, 16));
+            surface.SetPixel(1, 1, Color.FromArgb(255, 50, 200, 80));
+            IntPtr bitmap = TrafficLightWindow.CreateLayeredBitmap(surface);
+            try
+            {
+                Assert.NotEqual(0, GetObject(bitmap, Marshal.SizeOf(typeof(NativeBitmap)), out NativeBitmap native));
+                Assert.NotEqual(IntPtr.Zero, native.Bits);
+                var pixels = new byte[16];
+                Marshal.Copy(native.Bits, pixels, 0, pixels.Length);
+                Assert.Equal(new byte[] { 0, 0, 0, 0, 0, 0, 1, 1, 16, 32, 64, 128, 80, 200, 50, 255 }, pixels);
+            }
+            finally { WindowInterop.DeleteObject(bitmap); }
+        }
+
+        [Fact]
+        public void BoardIsPinnedByDefaultAndAnExplicitUnpinSurvivesLoading()
+        {
+            Assert.True(new AppConfig().TrafficLightPinned);
+            var key = new FakeTransparencyKey();
+            key.Values["EnableTrafficLight"] = 1;
+            Assert.True(AppConfig.LoadFrom(key, out _).TrafficLightPinned);
+            key.Values["TrafficLightPinned"] = 0;
+            Assert.False(AppConfig.LoadFrom(key, out _).TrafficLightPinned);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeBitmap
+        {
+            public int Type, Width, Height, WidthBytes;
+            public ushort Planes, BitsPixel;
+            public IntPtr Bits;
+        }
+
+        [DllImport("gdi32.dll", EntryPoint = "GetObjectW")]
+        private static extern int GetObject(IntPtr bitmap, int size, out NativeBitmap value);
+
+        [Fact]
         public void ATransparentWindowIsLayeredWhileShownAndPlainAgainAtZero()
         {
             Exception? failure = null;
@@ -1245,6 +1288,81 @@ namespace CyrFlip.Tests
             SettingsFileEntry entry = Assert.Single(SettingsFileInventory.Exported, e => e.Key == "TrafficLightWindowTransparency");
             Assert.Equal("trafficlight/module", entry.Group);
             Assert.Equal("Board window transparency", entry.Caption);
+        }
+
+        [Fact]
+        public void AllButtonsAndTilesHaveNoSolidBackgroundAtFullTransparency()
+        {
+            Exception? failure = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var config = new AppConfig { TrafficLightWindowTransparency = 100 };
+                    var actions = new TrafficLightBoardActions
+                    {
+                        Snapshot = () => new List<TrafficLightTile>
+                        {
+                            new TrafficLightTile
+                            {
+                                Target = new TrafficLightTarget { Id = "t1", Label = "Host1", Kind = "ping", Address = "1.1.1.1", Enabled = true },
+                                State = TrafficState.Ok,
+                                LatencyMs = 15
+                            }
+                        }
+                    };
+                    using var window = new TrafficLightWindow(config, actions, "English");
+                    window.CreateControl();
+                    window.ShowBoard(takeFocus: false, IntPtr.Zero);
+                    Application.DoEvents();
+
+                    Assert.Equal(5, window.TitleBar.ButtonCount);
+
+                    using var surface = new Bitmap(window.Width, window.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                    window.DrawToBitmap(surface, new Rectangle(0, 0, window.Width, window.Height));
+                    window.ApplyPlateAlpha(surface);
+
+                    // Check all 5 buttons: for each button, background pixels must NOT be 255 (must be <= 1),
+                    // and there must be glyph pixels with alpha == 255.
+                    Point barAt = window.TitleBar.Location;
+                    for (int i = 0; i < window.TitleBar.ButtonCount; i++)
+                    {
+                        Rectangle zone = window.TitleBar.ZoneOf(i);
+                        zone.Offset(barAt);
+                        int glyphPixels = 0;
+                        int transparentPixels = 0;
+                        for (int y = zone.Top; y < zone.Bottom; y++)
+                        {
+                            for (int x = zone.Left; x < zone.Right; x++)
+                            {
+                                Color c = surface.GetPixel(x, y);
+                                if (c.A == 255) glyphPixels++;
+                                else if (c.A <= 1) transparentPixels++;
+                            }
+                        }
+                        Assert.True(glyphPixels > 0, $"Button {i} ({window.TitleBar.CommandAt(i)}) must have solid glyph pixels.");
+                        Assert.True(transparentPixels > 0, $"Button {i} ({window.TitleBar.CommandAt(i)}) must have transparent background pixels.");
+                    }
+
+                    // Check tile: inside rounded rect must be alpha 255, corners outside must be alpha 0.
+                    Point boardAt = window.Board.Location;
+                    var tileBounds = window.Board.TileBounds();
+                    Assert.Single(tileBounds);
+                    Rectangle tile = tileBounds[0];
+                    tile.Offset(boardAt);
+
+                    Color centerPixel = surface.GetPixel(tile.Left + tile.Width / 2, tile.Top + tile.Height / 2);
+                    Assert.Equal(255, centerPixel.A);
+
+                    Color cornerPixel = surface.GetPixel(tile.Left, tile.Top);
+                    Assert.Equal(0, cornerPixel.A);
+                }
+                catch (Exception ex) { failure = ex; }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (failure != null) throw new Exception("UI thread failed: " + failure, failure);
         }
 
         private sealed class FakeTransparencyKey : IConfigKey

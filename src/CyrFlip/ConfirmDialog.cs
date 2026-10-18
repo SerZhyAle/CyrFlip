@@ -116,8 +116,8 @@ namespace CyrFlip
 
             var row = new FlowLayoutPanel
             {
-                FlowDirection = FlowDirection.RightToLeft, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                Dock = DockStyle.Fill, Margin = new Padding(0), WrapContents = false,
+                FlowDirection = FlowDirection.LeftToRight, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                Dock = DockStyle.Fill, Margin = new Padding(0), WrapContents = true,
             };
             layout.Controls.Add(row, 0, 1);
             layout.SetColumnSpan(row, 2);
@@ -129,10 +129,11 @@ namespace CyrFlip
             {
                 var button = new Button
                 {
-                    Text = caption, DialogResult = result, AutoSize = true, MinimumSize = new Size(88, 0),
+                    Text = caption, DialogResult = result, AutoSize = true,
                     Margin = new Padding(6, 0, 0, 0),
                 };
                 ButtonGlyphs.Attach(button, glyph, look);
+                ButtonGlyphs.UseCommandMetric(button);
                 return button;
             }
 
@@ -190,9 +191,12 @@ namespace CyrFlip
                     break;
                 }
             }
-            // A right-to-left flow puts the first control added on the far right: the last answer goes
-            // in first so the row reads in the order of Buttons.
-            for (int i = Buttons.Length - 1; i >= 0; i--) row.Controls.Add(Buttons[i]);
+            // BUTTONS section 4.4: dismissal first, final affirmative last in reading order.
+            foreach (Button button in Buttons)
+                if (ReferenceEquals(button, CancelButton)) row.Controls.Add(button);
+            foreach (Button button in Buttons)
+                if (!ReferenceEquals(button, CancelButton)) row.Controls.Add(button);
+            CommandPanel.Fit(row, text.MaximumSize.Width);
             Controls.Add(layout);
         }
 

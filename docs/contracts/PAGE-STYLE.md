@@ -1,38 +1,20 @@
-# Pointer - `PAGE-STYLE`
+# Pointer - PAGE-STYLE
 
-| | |
-| --- | --- |
-| **Id** | `PAGE-STYLE` |
-| **Version** | 1.6, active |
-| **Home** | `product-web-pages/PAGE-STYLE.md` in the shared contracts catalog, with `reference/sza-kit.css` |
-| **Role here** | consumer, role *App - small* - the vendored kit and the page scripts |
+- **Id/version read:** PAGE-STYLE 3.1, active, 2026-10-18.
+- **Home:** shared catalog, `product-web-pages/PAGE-STYLE.md`, consolidation in its domain README.
+- **Role:** consumer, App - medium; public site and offline context-help corpus.
+- **Implementation:** partial; [scoped audit](../design/contract-sync-20261017.md), exception E4, and [UI migration](../design/unified-ui.md).
 
-## What this repository must do to stay conformant
+Both `docs/assets/sza-kit.css` and `docs/help/sza-kit.css` are generated reference
+copies, byte-identical to the current catalog artifact, SHA-256
+`e438fef279fea8165ba6db46289c3ab35ac2fbcfaa5b2ea50bb009716eddfac9`.
+The served kit retains `-text`; it is never edited locally. The identified
+BUTTONS 2.0 / COLLAPSIBLE-GROUP 1.1 adapter is at the end of `docs/style.css`.
+Kit provenance alone does not establish rendered conformance.
 
-- **`docs/assets/sza-kit.css` is a byte copy of the reference and is served as one.** It is marked `-text`
-  in `.gitattributes`, so no line-ending conversion touches it; it is never edited - local rules go in
-  `docs/style.css`.
-- **`sza-lang` holds only `ru`, `en` or `ua`.** The key is shared by every page on the
-  `serzhyale.github.io` origin: a reader maps `uk` to `ua` and sends any other value to the
-  `navigator.language` resolution, and a writer never stores anything else.
-- **The pre-paint theme resolver runs before any stylesheet**, RU/EN/UA come first on every page, no
-  emoji, monochrome marks only.
-
-Held across all 40 rendered HTML pages.
-
-
-## Conformance state
-
-Read at 1.6 on 2026-10-07 (ticket S0050); refreshed by S0052 the same day. **The vendored kit matches the
-current reference byte for byte:** 14521 bytes, SHA-256 `aea958f8..`, MD5 `e3075195..`, with `-text` retained.
-The site uses its full-width gutters; the local conformance gate pins both hashes. The catalog states that a kit revision carrying the 1.4
-targets (`.btn`, `.seg button`, `.theme-btn`, `.to-top` at 44px for every pointer), the 1.5 reduced-motion
-selector (`*, *::before, *::after`) and the `nav.expand` marker is **still owed and unpublished**: the reference
-file still lacks these revisions. The page stylesheet supplies 44px controls, reduced motion on pseudo-elements
-and contrast corrections in both themes while retaining the reference bytes (recorded in the registry).
-**Not held, in this repository's own pages:** the copy button's done state is the localized word
-("Copied", "Kopiert") but is drawn after a check-mark glyph, which 1.4 rules out (the copy glyph, not a status
-glyph, stands beside the word) - on the landing and the ten standalone pages; the theme control is the bare
-`◐` with no visible label (1.4, 4.3). **1.6 picker:** the guides, privacy pages and trust pages carry a row of
-endonym plus code (RU, EN, UA first, the current one `aria-current`) and write `sza-lang` for RU, EN and UA only on a choice
-(S0053 item C2). **Held:** `-text` on the kit file, `sza-lang` holds `ru`/`en`/`ua` only, pre-paint resolver, no emoji.
+Sections 4 and 12 and consolidation items 1-6 govern commands, state markers,
+theme labels, locale URLs, footer scope, code contrast and offline help. UI-SIZING
+and BUTTONS supersede earlier fixed geometry. The public source gate and dedicated
+offline-help gate run separately; scriptless help is not a scripted landing page.
+Full browser/zoom/RTL/input proof, remaining theme/query/support work and the
+offline-help adapter remain dated migration work, not automatic adoption.

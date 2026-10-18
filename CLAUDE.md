@@ -1,4 +1,4 @@
-﻿# CLAUDE.md
+# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -587,6 +587,15 @@ It runs in the **system tray** (the icon also shows the layout; right-click menu
 - `app.manifest` declares **PerMonitorV2 DPI awareness** (so rendered icons/labels are crisp on high-DPI) and Win10/11 `supportedOS`.
 
 ## In-app help (S0075)
+
+S0076/S0077 current UI authority, component inventory and permanent profile decisions are
+recorded in [docs/design/unified-ui.md](docs/design/unified-ui.md); the clause-by-clause
+accepted-proposal read and explicit remaining exceptions are in
+[docs/design/contract-sync-20261017.md](docs/design/contract-sync-20261017.md).
+BUTTONS 2.0 supersedes older red-dismissal/tinted-answer descriptions below.
+COLLAPSIBLE-GROUP 1.1 owns the native current-state triangle. `AboutResources` is
+the resource inventory; About's local diagnostic export uses `SupportBundle` without
+the separate mail handoff. No full UI conformance or release is claimed by these slices.
 
 `help-map.json` is the surface inventory and ships inside the exe. `ContextHelp` resolves both F1 and the
 help buttons; bare F1 remains a window command. Add a map row whenever adding a Form, settings page or tour
@@ -1375,6 +1384,7 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `QuickNotesHotkey` | `REG_SZ` | `Ctrl+Shift+Alt+N` | Opens a new note with the caret in the body; checked against every other chord owner (`ChordRegistry`). The default was `Ctrl+Alt+N` until S0004 - Ctrl+Alt is AltGr, and AltGr+N is "ń" on Polish; a stored `Ctrl+Alt+N` is kept, since the hook no longer reads AltGr as Ctrl+Alt |
 | `EnableQuickNotesHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound (only while `EnableQuickNotes`=1) |
 | `QuickNotesWordWrap` | `REG_DWORD` | `0` | 1 = the editor wraps long lines. Off by default: the body is more often code than prose |
+| `QuickNotesLineNumbers` | `REG_DWORD` | `0` | 1 = show line numbers gutter along the left edge of the editor (S0078). Off by default |
 | `ExchangeNotesWarningOff` | `REG_DWORD` | `0` | 1 = a **notes-only** export to the exchange file no longer shows the "plain unencrypted text" warning. An export that carries clipboard history always shows it (S0023) |
 | `SettingsBackupEnabled` | `REG_DWORD` | `1` | 1 = the rolling settings backup in `%USERPROFILE%\Documents\CyrFlip\Backups` is written (S0072): debounced after settings changes, keep-last-3, the writer silent while the restore question is open. Exported in the settings file v2 |
 | `BackupOfferOpen` | `REG_DWORD` | `0` | Marker: the "restore the backup found in Documents?" question is unanswered - it re-asks next start, and the backup writer stays silent while it is set (S0072). Machine history: never in the settings file |

@@ -58,6 +58,64 @@ namespace CyrFlip.Tests
             => new QuickNotesService(new QuickNotesStore(
                 Path.Combine(_root, name + "-" + QuickNotesStore.FileName), new FakeCipher()));
 
+        [Fact]
+        public void HelpUsesOnlyTheToolbarAndDetailsWrapBelowTheCommands()
+        {
+            OnUiThread(() =>
+            {
+                using QuickNotesService service = Service("layout");
+                using var window = new QuickNotesWindow(service, new AppConfig { UiLanguage = "ru" }, () => { });
+                window.Show();
+                Application.DoEvents();
+                var split = All(window).OfType<SplitContainer>().Single();
+                Button help = All(window).OfType<Button>().Single(b => b.Name == "contextHelp");
+                Assert.Equal(0, window.Padding.Right);
+                Assert.Equal(window.ClientSize.Width, split.Right);
+                Assert.True(help.Bottom <= split.Top);
+                var right = (TableLayoutPanel)typeof(QuickNotesWindow).GetField("_rightPanel", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
+                var commands = (FlowLayoutPanel)typeof(QuickNotesWindow).GetField("_bottomRow", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
+                var details = (Label)typeof(QuickNotesWindow).GetField("_dates", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
+                Assert.True(details.Top >= commands.Bottom);
+                string originalDetails = details.Text;
+                int oneLine = details.Height;
+                details.Text = string.Join(" ", Enumerable.Repeat("Long note details", 80));
+                right.PerformLayout();
+                Assert.True(details.Height > oneLine, "Details must wrap within the editor width.");
+                Assert.True(details.Right <= right.ClientSize.Width);
+                details.Text = originalDetails;
+                right.PerformLayout();
+            });
+        }
+
+        [Fact]
+        public void BothDateColumnsAndFooterFollowEditsAndUseTheAgreedLocalFormat()
+        {
+            OnUiThread(() =>
+            {
+                using QuickNotesService service = Service("dates");
+                using var window = new QuickNotesWindow(service, new AppConfig(), () => { });
+                window.ShowWithText("first");
+                window.CommitCurrent();
+                Application.DoEvents();
+                var list = (ListView)typeof(QuickNotesWindow).GetField("_list", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
+                var editor = (TextBox)typeof(QuickNotesWindow).GetField("_editor", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
+                var details = (Label)typeof(QuickNotesWindow).GetField("_dates", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
+                Assert.Equal(3, list.Columns.Count);
+                ListViewItem row = Assert.Single(list.Items.Cast<ListViewItem>());
+                var note = (QuickNote)row.Tag;
+                note.UpdatedAtUtc = note.CreatedAtUtc.AddDays(-1);
+                editor.AppendText(" changed");
+                service.Flush();
+                Application.DoEvents();
+                row = Assert.Single(list.Items.Cast<ListViewItem>());
+                Assert.Equal(QuickNotesWindow.FormatNoteTime(note.CreatedAtUtc), row.SubItems[1].Text);
+                Assert.Equal(QuickNotesWindow.FormatNoteTime(note.UpdatedAtUtc), row.SubItems[2].Text);
+                Assert.Contains(row.SubItems[2].Text, details.Text);
+                var utc = new DateTime(2026, 10, 18, 12, 34, 0, DateTimeKind.Utc);
+                Assert.Equal(utc.ToLocalTime().ToString("yy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture), QuickNotesWindow.FormatNoteTime(utc));
+            });
+        }
+
         [UiSweepFact]
         public void AGlyphOnlyButtonCarriesTheRecordsNameInEveryLanguage()
         {

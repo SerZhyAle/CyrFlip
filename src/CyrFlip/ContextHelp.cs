@@ -92,12 +92,17 @@ namespace CyrFlip
             Open(id, language, element);
         }
 
+        /// <summary>Where <see cref="Open(string, string, string?)"/> extracts to; null = the per-user default. A test seam.</summary>
+        internal static string? CacheRoot { get; set; }
+
         internal static async void Open(string id, string language, string? element = null)
         {
             string? relative = Resolve(id, language, element);
             if (relative == null) return;
-            try { string path = await Task.Run(() => Extract(relative)); Launch(path); }
-            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is System.ComponentModel.Win32Exception || ex is InvalidOperationException)
+            try { string path = await Task.Run(() => Extract(relative, CacheRoot)); Launch(path); }
+            // async void: whatever escapes here is raised on the UI thread and ends the process with every hotkey.
+            // A help request is never worth that - the fault is logged by type and the user is told in words.
+            catch (Exception ex)
             {
                 DiagnosticLog.Append(DiagnosticLog.Path("help.log"), "open failed " + ex.GetType().Name);
                 ConfirmDialog.Show(language, Localization.Translate(language, "Could not open local help. Try again after checking your default browser."), MessageBoxButtons.OK, MessageBoxIcon.Warning);

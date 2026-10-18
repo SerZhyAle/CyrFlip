@@ -48,3 +48,12 @@ Section 11 records S0072's private persistence and complete-transfer practice. T
 scenario snapshots, Documents rolling backup and restore preview implement it; the v1 reader remains.
 The automated gates cover format and persistence. Both distribution channels still need the owner-run
 G6 reinstall evidence before this ticket is Verified.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

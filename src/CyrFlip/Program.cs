@@ -76,7 +76,7 @@ namespace CyrFlip
                 e.SetObserved();
             };
 
-            // Keep the autostart entry pointing at whichever exe is actually running (the user may
+            // Restore autostart when enabled in CyrFlip and keep it pointing at this exe (the user may
             // have enabled "Start with Windows" from another build location). After the handlers,
             // and never throwing: a Run key the policy denies must not stop CyrFlip from starting.
             Autostart.SyncToThisExe();

@@ -29,7 +29,7 @@ namespace CyrFlip
             Add("live config in TranslationService", "TranslateEndpoint TranslateModel TranslateTimeoutSeconds TranslateKeepAliveMinutes TranslateAutoStartServer TranslateCopyResult TranslatePasteResult");
             Add("_translateWindow.RefreshImportedTimeout", "TranslateWindowTimeout");
             Add("_translateWindow.ShowSourcePanel", "TranslateShowSource"); Add("_translateWindow.ApplyOpacity", "TranslateWindowOpacity");
-            Add("RefreshQuickNotesSettings", "EnableQuickNotes QuickNotesWordWrap");
+            Add("RefreshQuickNotesSettings", "EnableQuickNotes QuickNotesWordWrap QuickNotesLineNumbers");
             Add("_hook.UpdateQuickNotesHotkey", "QuickNotesHotkey"); Add("_hook.UpdateQuickNotesEnabled", "EnableQuickNotesHotkey");
             Add("live config in exchange dialog", "ExchangeNotesWarningOff");
             Add("_hook.UpdateScreenshotHotkey", "ScreenshotHotkey"); Add("_hook.UpdateScreenshotEnabled", "EnableScreenshotHotkey");

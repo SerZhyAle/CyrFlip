@@ -36,3 +36,12 @@
   launch is a silent no-op and a command the live instance did not accept in time is dropped (logged,
   `LauncherIpc.TrySend`), not started as a second instance - a second hook would be worse than a lost Jump List
   click. Both are declared product choices.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

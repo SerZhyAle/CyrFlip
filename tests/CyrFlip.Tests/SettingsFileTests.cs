@@ -13,7 +13,7 @@ namespace CyrFlip.Tests
     {
         // S0072 classifies the current tree: the original spec counted 89/17 before the
         // backup markers and the S0071/S0074 preferences arrived. Credentials remain excluded.
-        private const int ExportedV2 = 104, ExcludedV2 = 21;
+        private const int ExportedV2 = 105, ExcludedV2 = 21;
         [Fact]
         public void EveryAppOwnedOverviewChordIsInTheTransferFile()
         {

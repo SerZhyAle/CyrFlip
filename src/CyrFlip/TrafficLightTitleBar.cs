@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -104,6 +104,8 @@ namespace CyrFlip
 
         private bool Rtl => RightToLeft == RightToLeft.Yes;
 
+        public int ButtonCount => Order.Length;
+
         /// <summary>The zone of button <paramref name="index"/> (in <see cref="Order"/>), mirrored for a right-to-left board.</summary>
         internal Rectangle ZoneOf(int index)
         {
@@ -162,8 +164,8 @@ namespace CyrFlip
             int gap = Math.Max(4, side / 4);
             if (_showTitle && _title.Length > 0)
             {
-                int left = Rtl ? ZoneOf(0).Right + gap : gap;
-                int right = Rtl ? Width - gap : ZoneOf(0).Left - gap;
+                int left = Rtl ? ZoneOf(4).Right + gap : gap;
+                int right = Rtl ? Width - gap : ZoneOf(4).Left - gap;
                 if (right - left > Font.Height * 3)
                     TextRenderer.DrawText(g, _title, Font, new Rectangle(left, 0, right - left, Height), _palette.TextPrimary,
                         TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter

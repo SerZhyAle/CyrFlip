@@ -72,6 +72,11 @@ namespace CyrFlip
                 es: "Elemento", fr: "Élément", pt: "Item",
                 ar: "عنصر", hi: "आइटम", bn: "আইটেম", ur: "آئٹم", zh: "条目");
 
+            Add("Changed",
+                ru: "Изменена", uk: "Змінено", de: "Geändert", it: "Modificata",
+                es: "Modificada", fr: "Modifiée", pt: "Alterada",
+                ar: "عُدلت", hi: "बदली गई", bn: "পরিবর্তিত", ur: "ترمیم شدہ", zh: "修改于");
+
             Add("Created",
                 ru: "Создана", uk: "Створено", de: "Erstellt", it: "Creata",
                 es: "Creada", fr: "Créée", pt: "Criada",
@@ -543,6 +548,44 @@ namespace CyrFlip
                 bn: "ডিফল্টে বন্ধ: নোটের মূল অংশ গদ্যের চেয়ে বেশি বার কোড হয়, আর মুড়ে যাওয়া কোডের লাইন মনে মনে জোড়া লাগাতে হয়। এখানে গদ্য লিখলে চালু করুন।",
                 ur: "بطور طے شدہ بند: نوٹ کا متن نثر سے زیادہ اکثر کوڈ ہوتا ہے، اور لپٹی ہوئی کوڈ کی سطر ذہن میں دوبارہ جوڑنی پڑتی ہے۔ اگر آپ یہاں نثر لکھتے ہیں تو اسے فعال کریں۔",
                 zh: "默认关闭：笔记正文多半是代码而非散文，而折行的代码要在脑子里再拼回去。若你在这里写文字，请打开它。");
+
+            Add("Line numbers",
+                ru: "Номера строк", uk: "Номери рядків", de: "Zeilennummern", it: "Numeri di riga",
+                es: "Números de línea", fr: "Numéros de ligne", pt: "Números de linha",
+                ar: "أرقام الأسطر", hi: "पंक्ति संख्याएँ", bn: "লাইন নম্বর", ur: "سطر کے نمبر", zh: "行号");
+
+            Add("Line numbers in the editor",
+                ru: "Номера строк в редакторе", uk: "Номери рядків у редакторі", de: "Zeilennummern im Editor", it: "Numeri di riga nell'editor",
+                es: "Números de línea en el editor", fr: "Numéros de ligne dans l'éditeur", pt: "Números de linha no editor",
+                ar: "أرقام الأسطر في المحرر", hi: "संपादक में पंक्ति संख्याएँ", bn: "সম্পাদকে লাইন নম্বর", ur: "ایڈیٹر میں سطر کے نمبر", zh: "在编辑器中显示行号");
+
+            Add("Shows line numbers next to logical lines. The marker (↳) shows wrapped lines.",
+                ru: "Показывает номера логических строк. Маркер (↳) указывает на перенесённые строки.",
+                uk: "Показує номери логічних рядків. Маркер (↳) вказує на перенесені рядки.",
+                de: "Zeigt Zeilennummern für logische Zeilen. Die Markierung (↳) zeigt umbrochene Zeilen.",
+                it: "Mostra i numeri di riga per le righe logiche. Il marcatore (↳) indica le righe a capo.",
+                es: "Muestra los números de línea lógicos. El marcador (↳) indica las líneas ajustadas.",
+                fr: "Affiche les numéros de ligne logiques. Le marqueur (↳) indique les lignes renvoyées.",
+                pt: "Mostra os números de linha lógicos. O marcador (↳) indica linhas quebradas.",
+                ar: "يعرض أرقام الأسطر المنطقية. تشير العلامة (↳) إلى الأسطر الملتفة.",
+                hi: "तार्किक पंक्तियों के लिए पंक्ति संख्याएँ दिखाता है। चिह्न (↳) लपेटी गई पंक्तियों को दर्शाता है।",
+                bn: "যৌক্তিক লাইনের নম্বর দেখায়। মার্কারটি (↳) মোড়ানো লাইন নির্দেশ করে।",
+                ur: "منطقی سطروں کے نمبر دکھاتا ہے۔ نشان (↳) لپٹی ہوئی سطروں کو ظاہر کرتا ہے۔",
+                zh: "显示逻辑行号。标记（↳）指示折行。");
+
+            Add("↳ Continuation of a wrapped line from above",
+                ru: "↳ Продолжение перенесённой строки сверху",
+                uk: "↳ Продовження перенесеного рядка зверху",
+                de: "↳ Fortsetzung einer umbrochenen Zeile von oben",
+                it: "↳ Continuazione di una riga a capo dall'alto",
+                es: "↳ Continuación de una línea ajustada desde arriba",
+                fr: "↳ Suite d'une ligne renvoyée du dessus",
+                pt: "↳ Continuação de uma linha quebrada de cima",
+                ar: "↳ متابعة لسطر ملتف من الأعلى",
+                hi: "↳ ऊपर से लपेटी गई पंक्ति की निरंतरता",
+                bn: "↳ উপর থেকে আসা মোড়ানো লাইনের ধারাবাহিকতা",
+                ur: "↳ اوپر سے لپٹی ہوئی سطر کا تسلسل",
+                zh: "↳ 上方折行文本的接续");
 
             Add("Export and storage",
                 ru: "Экспорт и хранение", uk: "Експорт і зберігання", de: "Export und Speicherung",

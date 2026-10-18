@@ -54,9 +54,9 @@ try {
     $kitBytes = [System.IO.File]::ReadAllBytes((Join-Path $repoRoot $kitPath))
     $md5 = [System.Security.Cryptography.MD5]::Create()
     $hash = [System.BitConverter]::ToString($md5.ComputeHash($kitBytes)).Replace("-", "").ToLower()
-    $expectedHash = "e307519533b1e7685fc47b30c4c18ebd"
+    $expectedHash = "a4f0bff36b5f02d117020ba8cfa995b6"
     Assert-Check "sza-kit.css md5 is $expectedHash" ($hash -eq $expectedHash) "Found hash $hash"
-    $expectedSha256 = 'aea958f805249d300b7417373e4cad18b44d7eed9765954df19ed710276c4c9e'
+    $expectedSha256 = 'e438fef279fea8165ba6db46289c3ab35ac2fbcfaa5b2ea50bb009716eddfac9'
     $kitSha256 = (Get-FileHash -LiteralPath $kitPath -Algorithm SHA256).Hash.ToLowerInvariant()
     Assert-Check 'sza-kit.css matches the catalog SHA-256 pin (S0052 B1)' ($kitSha256 -eq $expectedSha256) "Found $kitSha256"
 
@@ -119,6 +119,7 @@ try {
     # A5. Pre-paint Script Resolver Order (41 Rendered HTML Pages)
     Write-Host "`n=== A5. Pre-paint Script Preceding Stylesheet in All 41 Rendered Pages ===" -ForegroundColor Yellow
     $allHtml = Get-ChildItem -Path "docs" -Filter "*.html" -Recurse | Where-Object {
+        $_.FullName -notmatch '[\\/]help[\\/]' -and
         $_.FullName -notmatch '[\\/]en[\\/]index\.html' -and
         $_.FullName -notmatch '[\\/]ru[\\/]index\.html' -and
         $_.FullName -notmatch '[\\/]uk[\\/]index\.html'
@@ -232,7 +233,9 @@ try {
     $experienceErrors = @{
         main = @(); h1 = @(); skip = @(); locale = @(); inline = @(); nav = @(); headings = @()
     }
-    foreach ($page in (Get-ChildItem docs -Recurse -Filter *.html)) {
+    # PAGE-STYLE 3.1 consolidation item 4: offline context help has its own frame and
+    # no script. tools/help/Test-ContextHelp.ps1 checks that corpus in build/preflight.
+    foreach ($page in (Get-ChildItem docs -Recurse -Filter *.html | Where-Object { $_.FullName -notmatch '[\\/]help[\\/]' })) {
         $html = Get-Content -Raw -LiteralPath $page.FullName
         $name = $page.FullName.Substring($repoRoot.Length + 1)
         $mainTags = [regex]::Matches($html, '<main\b[^>]*>')

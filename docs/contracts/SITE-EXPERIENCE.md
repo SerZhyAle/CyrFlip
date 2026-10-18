@@ -34,3 +34,12 @@ each guide has six warnings before the instructions they concern, plus tip and o
 The conformance gate also guards landmarks, skip links, headings, locale attributes and inline styles.
 Publication of the refreshed assets, a real Tab walk, RTL visual review and the backdrop classification
 remain operator checks; local measurements do not certify the published host.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

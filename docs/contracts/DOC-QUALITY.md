@@ -60,3 +60,12 @@ The five points of section 8 each widen what conforms, so nothing above moved:
 
 The pages around the landing (which exist, how they look and behave, how they present the product) are
 `SITE-STRUCTURE`, `SITE-EXPERIENCE` and `SITE-REPRESENTATION`, which cite these rules and repeat none of them.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

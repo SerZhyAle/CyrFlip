@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,6 +79,9 @@ namespace CyrFlip
 
         /// <summary>Every write that had failed has now reached the journal.</summary>
         public event EventHandler? SaveRecovered;
+
+        /// <summary>A note reached disk, including an update after the debounce.</summary>
+        public event EventHandler? Saved;
 
         /// <summary>
         /// True while a write that failed has not yet been retried successfully (S0035 QN2-1). A
@@ -358,6 +361,7 @@ namespace CyrFlip
             lock (_gate)
                 recovered = _failed.Remove(id) && _failed.Count == 0 && _failedDeletes.Count == 0;
             if (recovered) SaveRecovered?.Invoke(this, EventArgs.Empty);
+            Saved?.Invoke(this, EventArgs.Empty);
         }
 
         private void DeleteWritten(Guid id)

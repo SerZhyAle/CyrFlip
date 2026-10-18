@@ -31,3 +31,12 @@ and no display-type full name in the hero); item 4 (the header carries no link t
 (the footer credit "Serhii Zhyhunenko" is not a link to the hub); item 7 and the layout contract (the vendored kit
 caps the container at 1100px - the same gap as `SITE-EXPERIENCE` rule 1, tracked in S0052 item B1). The
 acceptance test at 1280 and 360 was not run in a browser by this pass.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

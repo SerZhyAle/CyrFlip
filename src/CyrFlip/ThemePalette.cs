@@ -50,17 +50,17 @@ namespace CyrFlip
         /// <summary><c>success</c> (APP-STYLE 0.11) - a positive mark (the history strip's source app).</summary>
         Success,
         /// <summary>
-        /// <c>status.ok.fill</c> (proposed, ticket S0069 D15) - the green of a reachable target. A <b>fill</b>, not an
+        /// <c>status.ok.fill</c> (APP-STYLE 0.13) - the green of a reachable target. A <b>fill</b>, not an
         /// ink: <see cref="Success"/> is a text colour (dark green on a light surface) and cannot colour a tile.
         /// </summary>
         StatusOkFill,
-        /// <summary><c>status.warning.fill</c> (proposed) - the amber of a target that answers but is not right.</summary>
+        /// <summary><c>status.warning.fill</c> - the amber of a target that answers but is not right.</summary>
         StatusWarningFill,
-        /// <summary><c>status.error.fill</c> (proposed) - the red of a target that does not answer.</summary>
+        /// <summary><c>status.error.fill</c> - the red of a target that does not answer.</summary>
         StatusErrorFill,
-        /// <summary><c>status.unknown.fill</c> (proposed) - the gray of a target with no completed check yet.</summary>
+        /// <summary><c>status.unknown.fill</c> - the gray of a target with no completed check yet.</summary>
         StatusUnknownFill,
-        /// <summary><c>status.ink</c> (proposed) - the mark and the label drawn on any of the four fills.</summary>
+        /// <summary><c>status.ink</c> - the mark and the label drawn on any of the four fills.</summary>
         StatusInk,
     }
 

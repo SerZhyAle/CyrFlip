@@ -27,3 +27,12 @@ rest of the S0012 packet (`PLAN/`, local only).
 
 If an update check is ever added it is a network-surface change: off by default, opt-in, and declared on
 the privacy page in all 13 languages before it ships.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

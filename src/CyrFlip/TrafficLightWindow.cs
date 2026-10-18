@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -1219,7 +1219,7 @@ namespace CyrFlip
                 IntPtr drawn = IntPtr.Zero, previous = IntPtr.Zero;
                 try
                 {
-                    drawn = surface.GetHbitmap();
+                    drawn = CreateLayeredBitmap(surface);
                     previous = WindowInterop.SelectObject(memory, drawn);
                     var size = new Size(width, height);
                     Point source = Point.Empty;
@@ -1229,8 +1229,9 @@ namespace CyrFlip
                         SourceConstantAlpha = 255,
                         AlphaFormat = WindowInterop.AC_SRC_ALPHA,
                     };
-                    WindowInterop.UpdateLayeredWindow(Handle, screen, IntPtr.Zero, ref size, memory,
-                        ref source, 0, ref blend, WindowInterop.ULW_ALPHA);
+                    if (!WindowInterop.UpdateLayeredWindow(Handle, screen, IntPtr.Zero, ref size, memory,
+                        ref source, 0, ref blend, WindowInterop.ULW_ALPHA))
+                        throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
                 }
                 finally
                 {
@@ -1243,39 +1244,75 @@ namespace CyrFlip
             finally { _composing = false; }
         }
 
-        private void ApplyPlateAlpha(Bitmap surface)
+        /// <summary>Copy premultiplied BGRA bytes unchanged: GetHbitmap composites ARGB over a solid background.</summary>
+        internal static IntPtr CreateLayeredBitmap(Bitmap surface)
+        {
+            var info = new WindowInterop.BITMAPINFO
+            {
+                Header = new WindowInterop.BITMAPINFOHEADER
+                {
+                    Size = (uint)Marshal.SizeOf(typeof(WindowInterop.BITMAPINFOHEADER)),
+                    Width = surface.Width,
+                    Height = -surface.Height, // top-down, like the composed surface
+                    Planes = 1,
+                    BitCount = 32,
+                },
+            };
+            IntPtr bitmap = WindowInterop.CreateDIBSection(IntPtr.Zero, ref info, 0, out IntPtr bits, IntPtr.Zero, 0);
+            if (bitmap == IntPtr.Zero)
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+            try
+            {
+                BitmapData data = surface.LockBits(new Rectangle(Point.Empty, surface.Size),
+                    ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                try
+                {
+                    int rowBytes = surface.Width * 4;
+                    var row = new byte[rowBytes];
+                    for (int y = 0; y < surface.Height; y++)
+                    {
+                        Marshal.Copy(IntPtr.Add(data.Scan0, y * data.Stride), row, 0, rowBytes);
+                        Marshal.Copy(row, 0, IntPtr.Add(bits, y * rowBytes), rowBytes);
+                    }
+                }
+                finally { surface.UnlockBits(data); }
+                return bitmap;
+            }
+            catch
+            {
+                WindowInterop.DeleteObject(bitmap);
+                throw;
+            }
+        }
+
+        internal void ApplyPlateAlpha(Bitmap surface)
         {
             int plate = (int)Math.Round((100 - _transparency) * 255.0 / 100.0);
             if (plate >= 255) return;
             int bar = plate == 0 ? 1 : plate;
             int width = surface.Width, height = surface.Height;
             var solid = new bool[width * height];
-            void Keep(Rectangle r)
-            {
-                int left = Math.Max(0, r.Left), top = Math.Max(0, r.Top);
-                int right = Math.Min(width, r.Right), bottom = Math.Min(height, r.Bottom);
-                for (int y = top; y < bottom; y++)
-                    for (int x = left; x < right; x++)
-                        solid[y * width + x] = true;
-            }
+            var inZone = new bool[width * height];
+
             Point barAt = _titleBar.Location, boardAt = _board.Location;
-            // The microscopic step hides the whole bar: then there are no buttons to keep and no strip to
-            // drag by, and only the tiles stay above the plate.
             bool barVisible = _titleBar.Visible;
-            if (barVisible)
-                for (int i = 0; i < 4; i++)
-                {
-                    Rectangle zone = _titleBar.ZoneOf(i);
-                    zone.Offset(barAt);
-                    Keep(zone);
-                }
+            int barTop = barAt.Y, barBottom = barAt.Y + _titleBar.Height;
+
+            // 1. Tiles: only pixels strictly inside each tile's rounded rectangle are kept solid.
+            // Pixels in the 4 corners outside the rounded rectangle stay false (they fade with the plate,
+            // so at 100% transparency there are no white corner patches).
             foreach (Rectangle cell in _board.TileBounds())
             {
                 Rectangle tile = cell;
                 tile.Offset(boardAt);
-                Keep(tile);
+                int radius = Math.Min(Math.Min(tile.Width / 2, tile.Height / 2), Math.Max(1, tile.Height / 6));
+                int left = Math.Max(0, tile.Left), top = Math.Max(0, tile.Top);
+                int right = Math.Min(width, tile.Right), bottom = Math.Min(height, tile.Bottom);
+                for (int y = top; y < bottom; y++)
+                    for (int x = left; x < right; x++)
+                        if (IsInsideRoundedRect(x, y, tile, radius))
+                            solid[y * width + x] = true;
             }
-            int barTop = barAt.Y, barBottom = barAt.Y + _titleBar.Height;
 
             var bounds = new Rectangle(0, 0, width, height);
             BitmapData data = surface.LockBits(bounds, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
@@ -1283,6 +1320,66 @@ namespace CyrFlip
             {
                 var pixels = new byte[data.Stride * data.Height];
                 Marshal.Copy(data.Scan0, pixels, 0, pixels.Length);
+
+                // 2. Buttons: for all title bar buttons, only the glyph / hover plate pixels are kept visible;
+                // the background pixels in each button zone fade with the bar (no solid white boxes).
+                if (barVisible)
+                {
+                    Color barBg = _palette.SurfaceSunken;
+                    int bgB = barBg.B, bgG = barBg.G, bgR = barBg.R;
+
+                    for (int i = 0; i < _titleBar.ButtonCount; i++)
+                    {
+                        Rectangle zone = _titleBar.ZoneOf(i);
+                        zone.Offset(barAt);
+                        int zLeft = Math.Max(0, zone.Left), zRight = Math.Min(width, zone.Right);
+                        int zTop = Math.Max(0, zone.Top), zBottom = Math.Min(height, zone.Bottom);
+
+                        TitleCommand command = _titleBar.CommandAt(i);
+                        Color ink = command == TitleCommand.Pin
+                            ? HistoryStripGlyphs.PinColor(_titleBar.Pinned, _palette)
+                            : _palette.TextPrimary;
+                        int inkB = ink.B, inkG = ink.G, inkR = ink.R;
+                        int maxDiff = Math.Max(Math.Abs(inkR - bgR), Math.Max(Math.Abs(inkG - bgG), Math.Abs(inkB - bgB)));
+                        if (maxDiff < 1) maxDiff = 1;
+
+                        for (int y = zTop; y < zBottom; y++)
+                        {
+                            int row = y * data.Stride;
+                            for (int x = zLeft; x < zRight; x++)
+                            {
+                                inZone[y * width + x] = true;
+                                int at = row + x * 4;
+                                byte b = pixels[at], g = pixels[at + 1], r = pixels[at + 2];
+                                int diff = Math.Max(Math.Abs(r - bgR), Math.Max(Math.Abs(g - bgG), Math.Abs(b - bgB)));
+
+                                if (diff <= 4)
+                                {
+                                    pixels[at] = (byte)(b * bar / 255);
+                                    pixels[at + 1] = (byte)(g * bar / 255);
+                                    pixels[at + 2] = (byte)(r * bar / 255);
+                                    pixels[at + 3] = (byte)bar;
+                                }
+                                else
+                                {
+                                    double a = Math.Min(1.0, (double)diff / maxDiff);
+                                    int fgA = Math.Max(bar, Math.Min(255, (int)Math.Round(255 * a + bar * (1.0 - a))));
+                                    int fgB = Math.Min(255, (int)Math.Round(inkB * a + bgB * (1.0 - a) * bar / 255.0));
+                                    int fgG = Math.Min(255, (int)Math.Round(inkG * a + bgG * (1.0 - a) * bar / 255.0));
+                                    int fgR = Math.Min(255, (int)Math.Round(inkR * a + bgR * (1.0 - a) * bar / 255.0));
+                                    pixels[at] = (byte)fgB;
+                                    pixels[at + 1] = (byte)fgG;
+                                    pixels[at + 2] = (byte)fgR;
+                                    pixels[at + 3] = (byte)fgA;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 3. All remaining pixels:
+                // Solid tile pixels stay 100% opaque. Button zone pixels were already processed.
+                // Everything else fades with the plate (or bar).
                 for (int y = 0; y < height; y++)
                 {
                     int row = y * data.Stride;
@@ -1290,7 +1387,7 @@ namespace CyrFlip
                     for (int x = 0; x < width; x++)
                     {
                         int at = row + x * 4;
-                        if (solid[y * width + x]) continue;
+                        if (solid[y * width + x] || inZone[y * width + x]) continue;
                         int alpha = inBar ? bar : plate;
                         pixels[at] = (byte)(pixels[at] * alpha / 255);
                         pixels[at + 1] = (byte)(pixels[at + 1] * alpha / 255);
@@ -1301,6 +1398,38 @@ namespace CyrFlip
                 Marshal.Copy(pixels, 0, data.Scan0, pixels.Length);
             }
             finally { surface.UnlockBits(data); }
+        }
+
+        private static bool IsInsideRoundedRect(int x, int y, Rectangle r, int radius)
+        {
+            if (x < r.Left || x >= r.Right || y < r.Top || y >= r.Bottom) return false;
+            if (radius <= 0) return true;
+            int r2 = radius * radius;
+            if (x < r.Left + radius && y < r.Top + radius)
+            {
+                int dx = r.Left + radius - x - 1;
+                int dy = r.Top + radius - y - 1;
+                return dx * dx + dy * dy <= r2;
+            }
+            if (x >= r.Right - radius && y < r.Top + radius)
+            {
+                int dx = x - (r.Right - radius);
+                int dy = r.Top + radius - y - 1;
+                return dx * dx + dy * dy <= r2;
+            }
+            if (x < r.Left + radius && y >= r.Bottom - radius)
+            {
+                int dx = r.Left + radius - x - 1;
+                int dy = y - (r.Bottom - radius);
+                return dx * dx + dy * dy <= r2;
+            }
+            if (x >= r.Right - radius && y >= r.Bottom - radius)
+            {
+                int dx = x - (r.Right - radius);
+                int dy = y - (r.Bottom - radius);
+                return dx * dx + dy * dy <= r2;
+            }
+            return true;
         }
 
         // ---- the title bar's commands, the menu and the drag ----

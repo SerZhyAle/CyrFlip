@@ -54,7 +54,7 @@ namespace CyrFlip
             t = t.Trim();
             if (t.Length == 0) return NotAString(result, t);
 
-            // The prefix: FMSEXCH, one digit, a colon. A later major is "update", a zero is not ours at all.
+            // The prefix: FMSEXCH, one digit, a colon. A later major is refused whole; zero is not ours.
             if (!t.StartsWith("FMSEXCH", StringComparison.Ordinal) || t.Length < 9 || t[8] != ':'
                 || t[7] < '0' || t[7] > '9')
                 return NotAString(result, t);

@@ -11,6 +11,62 @@ namespace CyrFlip.Tests
     /// </summary>
     public class AutostartStateTests
     {
+        private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
+
+        [Fact]
+        public void Enabled_preference_survives_a_deleted_run_entry_and_restores_it()
+        {
+            WithRegistry(() =>
+            {
+                Autostart.Set(true);
+                using var run = RuntimeRegistry.User.CreateSubKey(RunKey);
+                string command = (string)run.GetValue("CyrFlip")!;
+                run.DeleteValue("CyrFlip");
+                Assert.True(Autostart.IsEnabled);
+                Autostart.SyncToThisExe();
+                Assert.Equal(command, run.GetValue("CyrFlip"));
+            });
+        }
+
+        [Fact]
+        public void Unchecking_prevents_restoration_on_later_launches()
+        {
+            WithRegistry(() =>
+            {
+                Autostart.Set(true);
+                Autostart.Set(false);
+                Autostart.SyncToThisExe();
+                Assert.False(Autostart.IsEnabled);
+                using var run = RuntimeRegistry.User.OpenSubKey(RunKey);
+                Assert.Null(run?.GetValue("CyrFlip"));
+            });
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Upgrade_adopts_existing_autostart_once(bool hadEntry)
+        {
+            WithRegistry(() =>
+            {
+                using var run = RuntimeRegistry.User.CreateSubKey(RunKey);
+                if (hadEntry) run.SetValue("CyrFlip", "old.exe", Microsoft.Win32.RegistryValueKind.String);
+                Autostart.SyncToThisExe();
+                Assert.Equal(hadEntry, Autostart.IsEnabled);
+                run.DeleteValue("CyrFlip");
+                Autostart.SyncToThisExe();
+                Assert.Equal(hadEntry, run.GetValue("CyrFlip") != null);
+            });
+        }
+
+        private static void WithRegistry(System.Action test)
+        {
+            var original = RuntimeRegistry.UserOverride.Value;
+            RuntimeRegistry.UserOverride.Value = new RuntimeDataSafetyTests.FakeRegistry();
+            try { test(); }
+            finally { RuntimeRegistry.UserOverride.Value = original; }
+        }
+
         [Theory]
         [InlineData(0, false)] // Disabled
         [InlineData(1, false)] // DisabledByUser

@@ -21,22 +21,31 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot 'checks/CheckVerdict.psm1') -Force
+Set-CheckSubject 'test-run'
 
+try {
 $files = @(Get-ChildItem -Path $ResultsDirectory -Filter '*.trx' -Recurse -ErrorAction SilentlyContinue)
-if ($files.Count -eq 0) { throw "No TRX file under '$ResultsDirectory' - the test run produced no results." }
+if ($files.Count -eq 0) { throw 'The test run produced no TRX results.' }
 
 $executed = 0
 $failed = 0
+$skipped = 0
 foreach ($file in $files) {
     [xml]$trx = Get-Content -LiteralPath $file.FullName -Raw
     $counters = $trx.TestRun.ResultSummary.Counters
     if (-not $counters) { throw "TRX '$($file.Name)' has no ResultSummary counters." }
     $executed += [int]$counters.executed
     $failed += [int]$counters.failed
+    $skipped += [int]$counters.notExecuted
 }
 
-if ($executed -eq 0) { throw 'The test run executed 0 tests - discovery found nothing.' }
-if ($executed -lt $Floor) { throw "The test run executed $executed tests, below the floor of $Floor - most of the suite did not run." }
-if ($failed -gt 0) { throw "The TRX reports $failed failed test(s)." }
+if ($executed -gt 0 -and $executed -lt $Floor) { Add-CheckFinding -Severity fail -Name 'test-floor' -Reason "Executed $executed tests, below the floor of $Floor." }
+if ($failed -gt 0) { Add-CheckFinding -Severity fail -Name 'failed-tests' -Reason "The TRX reports $failed failed test(s)." }
 
-Write-Host "Tests executed: $executed (floor $Floor), failed: 0." -ForegroundColor Green
+Complete-Check -RunCount $executed -SkippedCount $skipped
+}
+catch {
+    Add-CheckFinding -Severity notverified -Name 'trx-results' -Reason $_.Exception.Message
+    Complete-Check
+}

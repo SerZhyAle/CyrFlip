@@ -58,13 +58,13 @@ namespace CyrFlip.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void TheAnswerGlyphAndCaptionHoldTheirContrastOnTheTintedFaceInEveryState(bool dark)
+        public void TheAnswerGlyphAndCaptionHoldTheirContrastOnTheNeutralFaceInEveryState(bool dark)
         {
             ThemePalette palette = ThemePalette.For(dark ? ThemeKind.Dark : ThemeKind.Light); ThemeKind kind = palette.Kind;
             var report = new List<string>();
             foreach (ButtonLook look in new[] { ButtonLook.Affirmative, ButtonLook.Dismissing })
             {
-                AnswerHue hue = ButtonGlyphs.TintOf(look)!.Value;
+                Assert.Null(ButtonGlyphs.TintOf(look));
                 Color ink = ButtonGlyphs.InkFor(look, palette, true);
                 var faces = new Dictionary<string, Color>
                 {
@@ -74,7 +74,7 @@ namespace CyrFlip.Tests
                 };
                 foreach (KeyValuePair<string, Color> face in faces)
                 {
-                    Color painted = ThemePalette.AnswerInk.Face(face.Value, hue, palette);
+                    Color painted = face.Value;
                     double glyph = ThemePalette.Contrast(ink, painted), text = ThemePalette.Contrast(palette.TextPrimary, painted);
                     report.Add($"{kind} {look} {face.Key}: glyph {glyph:0.00}:1, caption {text:0.00}:1 on #{painted.R:X2}{painted.G:X2}{painted.B:X2}");
                     Assert.True(glyph >= 3.0, "glyph below 3:1 - " + report.Last());
@@ -116,7 +116,7 @@ namespace CyrFlip.Tests
         // ---- The geometry ----
 
         [Fact]
-        public void TheGlyphReservesSixteenPlusSixLogicalPixelsOnItsReadingStartSide()
+        public void TheGlyphReservesSixteenPlusEightLogicalPixelsOnItsReadingStartSide()
         {
             Sta(() =>
             {
@@ -134,7 +134,7 @@ namespace CyrFlip.Tests
                 Assert.Equal(new Padding(reserve, 0, 0, 0), ltr.Padding);
                 Assert.Equal(new Padding(0, 0, reserve, 0), next.Padding);   // a "next": the glyph follows the caption
                 Assert.Equal(new Padding(0, 0, reserve, 0), rtl.Padding);    // right-to-left: the reading start is the right
-                Assert.Equal(22, ButtonGlyphs.GlyphLogical + ButtonGlyphs.GapLogical);
+                Assert.Equal(24, ButtonGlyphs.GlyphLogical + ButtonGlyphs.GapLogical);
             });
         }
 
@@ -173,7 +173,7 @@ namespace CyrFlip.Tests
         // ---- The live look ----
 
         [Fact]
-        public void TheHueFollowsALiveThemeChangeAndTheFaceIsTintedFromThePalette()
+        public void TheAnswerInkFollowsALiveThemeChangeAndTheFaceStaysNeutral()
         {
             Sta(() =>
             {
@@ -187,8 +187,8 @@ namespace CyrFlip.Tests
                 foreach (ThemePalette palette in new[] { ThemePalette.Light, ThemePalette.Dark, ThemePalette.Light, ThemePalette.Dark })
                 {
                     ThemeApply.Apply(form, palette);
-                    Assert.Equal(ThemePalette.AnswerInk.Face(palette.Control, AnswerHue.Ok, palette), ok.BackColor);
-                    Assert.Equal(ThemePalette.AnswerInk.Face(palette.Control, AnswerHue.Error, palette), cancel.BackColor);
+                    Assert.Equal(palette.Control, ok.BackColor);
+                    Assert.Equal(palette.Control, cancel.BackColor);
                     Assert.Equal(FlatStyle.Flat, ok.FlatStyle);
 
                     // The pixel: a point inside the filled disc of the cross-in-a-circle is exactly its ink.
@@ -197,7 +197,7 @@ namespace CyrFlip.Tests
                     Rectangle box;
                     using (Graphics g = cancel.CreateGraphics()) box = ButtonGlyphs.GlyphBox(cancel, g);
                     Color sample = bitmap.GetPixel(box.X + box.Width / 7 + 1, box.Y + box.Height / 2);
-                    Color expected = ThemePalette.AnswerInk.For(AnswerHue.Error, palette);
+                    Color expected = palette.TextPrimary;
                     Assert.True(Math.Abs(sample.R - expected.R) + Math.Abs(sample.G - expected.G) + Math.Abs(sample.B - expected.B) < 24,
                         $"{palette.Kind}: the red disc is #{sample.R:X2}{sample.G:X2}{sample.B:X2}, expected #{expected.R:X2}{expected.G:X2}{expected.B:X2}");
                 }
@@ -205,7 +205,7 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void AnUnavailableAnswerTakesTheNeutralFaceAndComesBackTinted()
+        public void AnUnavailableAnswerRetainsTheNeutralFaceWhenReenabled()
         {
             Sta(() =>
             {
@@ -219,7 +219,7 @@ namespace CyrFlip.Tests
                 ok.Enabled = false;
                 Assert.Equal(ThemePalette.Dark.Control, ok.BackColor);   // no hue while unavailable
                 ok.Enabled = true;
-                Assert.Equal(ThemePalette.AnswerInk.Face(ThemePalette.Dark.Control, AnswerHue.Ok, ThemePalette.Dark), ok.BackColor);
+                Assert.Equal(ThemePalette.Dark.Control, ok.BackColor);
             });
         }
 
@@ -259,7 +259,8 @@ namespace CyrFlip.Tests
                     Assert.Same(safe, danger.CancelButton);
                     // The only red face is the acting one; the safe answer keeps the ordinary control face.
                     Assert.Equal(ThemePalette.Light.Danger, acting.BackColor);
-                    Assert.NotEqual(FlatStyle.Flat, safe.FlatStyle);
+                    Assert.Equal(ThemePalette.Light.Control, safe.BackColor);
+                    Assert.Equal(ThemePalette.Light.TextPrimary, safe.ForeColor);
                     Assert.Null(ButtonGlyphs.TintOf(ButtonGlyphs.LookOf(safe)));
 
                     using var plain = new ConfirmDialog("English", "Continue?", set, MessageBoxIcon.Question, danger: false, owned: true);
@@ -350,7 +351,7 @@ namespace CyrFlip.Tests
             => (Button?)typeof(QuickNotesWindow).GetField("_transfer", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(quickNotes);
 
         [Fact]
-        public void TheAnswerPairOfEveryDialogIsGreenAndRed()
+        public void TheAnswerPairOfEveryDialogRetainsItsSemanticRoles()
         {
             Sta(() =>
             {

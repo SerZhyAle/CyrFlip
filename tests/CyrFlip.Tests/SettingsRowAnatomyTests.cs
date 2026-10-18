@@ -339,9 +339,7 @@ namespace CyrFlip.Tests
             {
                 using SettingsForm form = Open("English");
                 var arrows = RegroupingHarness.Walk(form).OfType<Button>()
-                    // The header's contextHelp button is S0075's 44-px help target (ICON-RENDER rule 5 hit target),
-                    // not one of the strip's command arrows, so it is not held to the command-height metric.
-                    .Where(b => b.Text.Length == 0 && b.Image != null && !b.AutoSize && b.Name != "contextHelp").ToList();
+                    .Where(b => b.Text.Length == 0 && b.Image != null && !b.AutoSize).ToList();
                 Assert.True(arrows.Count >= 6, "only " + arrows.Count + " arrows were found");
                 int edge = ControlDpi.Scale(form.DeviceDpi, ButtonGlyphs.CommandHeightLogical);
                 Assert.True(edge >= 32);

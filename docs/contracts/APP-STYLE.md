@@ -39,3 +39,12 @@
 
 The Windows profile that section 10 introduces is [WINDOWS-UI](WINDOWS-UI.md). The plan and its decisions are in
 `PLAN/` (local, not published). The catalog registry row is updated by the contract sync, not from here.
+
+## Synchronization read - 2026-10-18
+
+The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+the current catalog target, implementation changes, scoped exceptions and evidence.
+Earlier version/evidence statements above are historical and do not certify the
+new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+for covered components. Previous verified implementation levels stay unchanged
+until their remaining evidence is recorded.

@@ -648,6 +648,7 @@ namespace CyrFlip
         /// </summary>
         private static void OnPaintDisabled(object? sender, PaintEventArgs e)
         {
+            if (sender is BooleanOptionCheckBox) return; // owns its complete scaled disabled rendering
             if (!(sender is Control control) || control.Enabled || control.Text.Length == 0 && control is Label) return;
             ThemePalette? palette = PaletteOf(control);
             if (palette == null || !palette.IsDark) return;

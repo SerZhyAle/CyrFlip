@@ -208,6 +208,65 @@ html[data-theme="light"] .hero .kicker { color: var(--acc-strong); }
 .wrap .swatch-e68742 { background:#E68742; }
 .wrap .swatch-e92d8f { background:#E92D8F; }
 .wrap .swatch-f06e9c { background:#F06E9C; }
+
+/* S0076: identified adapter for BUTTONS 2.0 / COLLAPSIBLE-GROUP 1.1.
+   PAGE-STYLE 3.1's vendored kit remains byte-identical. The website exposes no
+   compact mode. Stable CSS pointer capability chooses 44px pointer / 48px touch;
+   browser zoom and independent user font enlargement remain effective. */
+:root { --ui-target: 48px; --ui-gap: 8px; --ui-pad: 16px; --ui-glyph: 20px; }
+@media (pointer: fine) {
+  :root { --ui-target: 44px; --ui-pad: 12px; --ui-glyph: 16px; }
+}
+body .btn, body .theme-btn, body .copybox .copy, body .seg button {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--ui-gap);
+  width: max-content; max-width: 100%; height: auto; min-width: var(--ui-target);
+  min-height: var(--ui-target); padding: 4px var(--ui-pad); border: 1px solid var(--border);
+  border-radius: 4px; font-size: .92rem; line-height: 1.5; white-space: normal;
+  overflow-wrap: anywhere; flex: 0 1 auto; box-shadow: none; transform: none;
+  background: var(--bg-2); color: var(--text); text-align: center;
+}
+body .btn:hover, body .theme-btn:hover, body .copybox .copy:hover {
+  transform: none; box-shadow: none; background: var(--bg-3); color: var(--text);
+}
+body .btn:active, body .theme-btn:active { background: var(--card-hover); }
+body .btn-primary { background: var(--acc); color: var(--acc-ink); }
+body .btn-primary:hover, body .btn-primary:active { background: var(--acc-strong); color: var(--acc-ink); }
+body .btn:disabled, body .theme-btn:disabled, body .copybox .copy:disabled {
+  color: var(--muted); cursor: default;
+}
+body .channels, body .details-ctrl { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--ui-gap); }
+body .seg { border-radius: 4px; align-items: stretch; }
+body .seg button[aria-pressed="true"], body .seg button.on {
+  background: var(--acc); color: var(--acc-ink); text-decoration: underline; text-underline-offset: 3px;
+}
+body .copybox { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ui-gap); padding-inline-end: 1rem; }
+body .copybox .copy { position: static; margin-inline-start: auto; color: var(--code-ink); background: var(--code-bg); }
+body .copybox .copy:hover, body .copybox .copy.done { color: var(--code-ink); background: var(--code-bg); }
+body .copybox code { min-width: 0; overflow-wrap: anywhere; }
+body details.sec > summary {
+  align-items: center; min-height: var(--ui-target); gap: var(--ui-gap); padding-block: 8px;
+  background: var(--bg-3); color: var(--text); overflow-wrap: anywhere;
+}
+body details.sec > summary::after { content: none; }
+body details.sec > summary .secnum { color: var(--text); }
+body details.sec > summary::before {
+  content: ""; display: block; flex: none; width: var(--ui-glyph); height: var(--ui-glyph);
+  background: currentColor; clip-path: polygon(25% 0, 75% 50%, 25% 100%);
+}
+body[dir="rtl"] details.sec > summary::before, html[dir="rtl"] details.sec > summary::before {
+  clip-path: polygon(75% 0, 25% 50%, 75% 100%);
+}
+body details.sec[open] > summary::before {
+  clip-path: polygon(0 25%, 100% 25%, 50% 75%);
+}
+@media (forced-colors: active) {
+  body .btn, body .theme-btn, body .copybox .copy, body .seg button {
+    background: ButtonFace; color: ButtonText; border-color: ButtonText;
+  }
+  body .seg button[aria-pressed="true"], body .seg button.on { background: Highlight; color: HighlightText; }
+  body details.sec > summary { background: Canvas; color: CanvasText; }
+  body details.sec > summary::before { forced-color-adjust: none; background: CanvasText; }
+}
 .wrap .swatch-f0b88f { background:#F0B88F; }
 .wrap .swatch-f3b33d { background:#F3B33D; }
 .wrap .swatch-faeaa7 { background:#FAEAA7; }

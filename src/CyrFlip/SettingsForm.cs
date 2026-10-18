@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -127,6 +127,7 @@ namespace CyrFlip
         private readonly CheckBox _quickNotesEnabled = Check("Enable the quick notes");
         private readonly CheckBox _quickNotesHotkeyEnabled = Check("Quick notes");
         private readonly CheckBox _quickNotesWrap = Check("Wrap long lines in the editor");
+        private readonly CheckBox _quickNotesLineNumbers = Check("Line numbers");
         private readonly CheckBox _quickNotesExportMeta = Check("Add the dates when exporting");
         private readonly Label _quickNotesHotkeyValue = new Label { AutoSize = true };
         private readonly List<Control> _quickNotesControls = new List<Control>();
@@ -403,7 +404,11 @@ namespace CyrFlip
             _navVersion = new Label { Text = SupportBundle.AppVersion(), AutoSize = true, UseMnemonic = false, ForeColor = ThemePalette.Light.TextMuted };
             Controls.Add(_navVersion);
             _navVersion.BringToFront();
-            SizeChanged += (_, _) => PlaceNavVersion();
+            SizeChanged += (_, _) =>
+            {
+                PlaceNavVersion();
+                if (_tabs?.SelectedTab != null) ClampPage(ContentPanel(_tabs.SelectedTab));
+            };
             Controls.Add(tabs);
             // The page header (WINDOWS-UI section 2 rule 3): commands that act on the content pane,
             // at the reading end. Text commands rather than glyph-only tools, so the localized word is
@@ -438,7 +443,7 @@ namespace CyrFlip
                 // that was hidden while the window changed size is brought up to date here, before its
                 // scroll position is restored.
                 FlowLayoutPanel? selectedPanel = tabs.SelectedTab == null ? null : ContentPanel(tabs.SelectedTab);
-                if (selectedPanel != null && _staleClampPanels.Contains(selectedPanel))
+                if (selectedPanel != null)
                     ClampPage(selectedPanel);
                 RestoreViewport(tabs.SelectedIndex);
                 // Old installer downloads go when the translator page is looked at (S0037 TR-5).
@@ -533,6 +538,8 @@ namespace CyrFlip
                 QuickNotesSettingChanged(() => _config.EnableQuickNotesHotkey = _quickNotesHotkeyEnabled.Checked);
             _quickNotesWrap.CheckedChanged += (_, _) =>
                 QuickNotesSettingChanged(() => _config.QuickNotesWordWrap = _quickNotesWrap.Checked);
+            _quickNotesLineNumbers.CheckedChanged += (_, _) =>
+                QuickNotesSettingChanged(() => _config.QuickNotesLineNumbers = _quickNotesLineNumbers.Checked);
 
             // The Graphics tab (S0026), same shape again.
             _screenshotHotkeyEnabled.CheckedChanged += (_, _) =>
@@ -627,7 +634,6 @@ namespace CyrFlip
             _expandAllButton = expandAll; _collapseAllButton = collapseAll;
             var commands = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, WrapContents = false, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(0), Padding = new Padding(0) };
             Button help = GlyphCommand("contextHelp", AppGlyphs.Help, "Help (F1)", () => ContextHelp.Open(this));
-            help.MinimumSize = new Size(ControlDpi.Scale(DeviceDpi, 44), ControlDpi.Scale(DeviceDpi, 44));
             commands.Controls.Add(help);
             commands.Controls.Add(find);
             commands.Controls.Add(expandAll);
@@ -1432,6 +1438,9 @@ namespace CyrFlip
             // Last of the state passes: the tables and the buttons above have just been rebuilt and re-gated,
             // and the notes read what is greyed now (S0060 M5). Before the first size is derived from content.
             ApplyDependencyNotes();
+            // One checkbox name/state; the authored visible explanation is its accessible description too.
+            foreach (KeyValuePair<Control, Label> pair in _rowHints)
+                if (pair.Key is CheckBox box) box.AccessibleDescription = pair.Value.Text;
             if (_firstSize && IsHandleCreated)
             {
                 _firstSize = false;
@@ -1726,11 +1735,6 @@ namespace CyrFlip
         /// <summary>The current pixel height of one text line at the window's real DPI.</summary>
         private int TextLineHeight() => TextRenderer.MeasureText("Аg", Font).Height;
 
-        // The wrap width a text block was authored with (MaximumSize), remembered at first clamp, so a
-        // wider window returns it instead of keeping the narrow one (H3). One int per label.
-        private readonly System.Runtime.CompilerServices.ConditionalWeakTable<Label, System.Runtime.CompilerServices.StrongBox<int>> _textCaps
-            = new System.Runtime.CompilerServices.ConditionalWeakTable<Label, System.Runtime.CompilerServices.StrongBox<int>>();
-
         /// <summary>The narrowest wrap a text block degrades to before one-word lines.</summary>
         internal const int MinTextWidth = 220;
 
@@ -1738,7 +1742,7 @@ namespace CyrFlip
         /// Clamps every wrapping text block (page descriptions, hints, the muted prose labels) to the
         /// width its page actually has (H3): the authored caps (890/930 px) assumed the default window,
         /// and on a narrow window a hint kept overflowing into a horizontal scrollbar. Re-run on every
-        /// language pass and every page resize; a wider window restores the authored width.
+        /// language pass and every page resize; wider windows follow the available content space.
         /// </summary>
         private void ClampPageTextWidths()
         {
@@ -1788,13 +1792,7 @@ namespace CyrFlip
             {
                 if (child is Label label && label.MaximumSize.Width > 0)
                 {
-                    System.Runtime.CompilerServices.StrongBox<int> box;
-                    if (!_textCaps.TryGetValue(label, out box!))
-                    {
-                        box = new System.Runtime.CompilerServices.StrongBox<int>(label.MaximumSize.Width);
-                        _textCaps.Add(label, box);
-                    }
-                    int wanted = Math.Min(box.Value, Math.Max(MinTextWidth, available - child.Margin.Horizontal - child.Padding.Horizontal));
+                    int wanted = Math.Max(MinTextWidth, available - child.Margin.Horizontal - child.Padding.Horizontal);
                     if (label.MaximumSize.Width != wanted) label.MaximumSize = new Size(wanted, 0);
                 }
                 if (child is TableLayoutPanel { Tag: CaptionedRow captioned }) { FitCaptionedRow(captioned, available); continue; }
@@ -1802,7 +1800,9 @@ namespace CyrFlip
                 // the page's. Recurse only into containers that lay their children out top-down.
                 if (child is CollapsibleGroup group) { group.FitWidth(available - group.Margin.Horizontal); ClampTextWidths(group.Body, available - group.Margin.Horizontal - group.Body.Margin.Horizontal - group.Body.Padding.Horizontal); }
                 else if (child is FlowLayoutPanel flow && flow.FlowDirection == FlowDirection.TopDown)
-                    ClampTextWidths(flow, available - flow.Padding.Horizontal);
+                    ClampTextWidths(flow, available - flow.Margin.Horizontal - flow.Padding.Horizontal);
+                else if (child is FlowLayoutPanel commands)
+                    CommandPanel.Fit(commands, Math.Max(1, available - commands.Margin.Horizontal));
             }
         }
 
@@ -3091,7 +3091,9 @@ namespace CyrFlip
             panel.Controls.Add(Group("notes/editor", "Editor",
                 new Label { Text = "The text is stored exactly as typed, with no markup, highlighting or auto-formatting, so code pastes back unchanged.", AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 4, 3, 2) },
                 Track(Setting(_quickNotesWrap,
-                    "Off by default: the body of a note is more often code than prose, and a wrapped line of code is one you have to mentally un-wrap. Turn it on if you write prose here."))));
+                    "Off by default: the body of a note is more often code than prose, and a wrapped line of code is one you have to mentally un-wrap. Turn it on if you write prose here.")),
+                Track(Setting(_quickNotesLineNumbers,
+                    "Shows line numbers next to logical lines. The marker (↳) shows wrapped lines."))));
 
             panel.Controls.Add(Group("notes/storage", "Export and storage",
                 // Where the notes live and what is promised about them - the privacy paragraph that used to trail
@@ -3170,6 +3172,7 @@ namespace CyrFlip
             _quickNotesEnabled.Checked = _config.EnableQuickNotes;
             _quickNotesHotkeyEnabled.Checked = _config.EnableQuickNotesHotkey;
             _quickNotesWrap.Checked = _config.QuickNotesWordWrap;
+            _quickNotesLineNumbers.Checked = _config.QuickNotesLineNumbers;
             _quickNotesHotkeyValue.Text = _config.QuickNotesHotkey;
             foreach (Control control in _quickNotesControls) control.Enabled = _config.EnableQuickNotes;
         }
@@ -4521,16 +4524,7 @@ namespace CyrFlip
                     Margin = new Padding(3, 8, 3, 4),
                 },
                 new Label { Text = "Developer: SerZhyAle", AutoSize = true, Font = BoldFont, Margin = new Padding(3, 14, 3, 4) },
-                Link("App website: serzhyale.github.io/CyrFlip", "https://serzhyale.github.io/CyrFlip/"),
-                Link("GitHub: github.com/SerZhyAle/CyrFlip", "https://github.com/SerZhyAle/CyrFlip"),
-                Link("Developer website: sza.od.ua", "https://sza.od.ua/"),
-                // APP-SETTINGS rule 12: the About page answers "what does the user need to ask for help" -
-                // the licence of the application itself, and the privacy policy it keeps in 13 languages.
-                Link("Licence: MIT", "https://github.com/SerZhyAle/CyrFlip/blob/main/LICENSE"),
-                Link("Privacy policy", "https://serzhyale.github.io/CyrFlip/privacy.html"),
-                // The licence notice of the vendored vocabulary glyphs (ICON-EXTERNAL rule 5, ticket S0022 A10);
-                // the file itself also ships beside the exe and inside the MSIX.
-                Link("Third-party notices: Material Icons glyphs (Apache-2.0)", "https://github.com/SerZhyAle/CyrFlip/blob/main/THIRD-PARTY-NOTICES.txt"),
+                ResourceLinks(AboutResources.Product),
                 new Label { Text = "CyrFlip runs locally, with no telemetry and no network sync of clipboard history.", AutoSize = true, MaximumSize = new Size(690, 0), Padding = new Padding(0, 14, 0, 0), ForeColor = ThemePalette.Light.TextMuted }));
             panel.Controls.Add(Group("about/support", "Help and support",
                 Setting(Button("Help", AppGlyphs.Help, () => ContextHelp.Open("index", _config.UiLanguage)),
@@ -4538,8 +4532,48 @@ namespace CyrFlip
                 Setting(Button("Show the welcome tour..", AppGlyphs.Info, () => WelcomeRequested?.Invoke(this, EventArgs.Empty)),
                     "Get to know CyrFlip and set it up."),
                 Setting(Button("Diagnose caret position...", AppGlyphs.Verify, _diagnoseCaret), "Creates a local report of how Windows and UI Automation see the caret. Use it only when the marker is missing or misplaced in a particular app."),
+                Setting(_exportDiagnostics = Button("Export diagnostics...", AppGlyphs.Export, ExportDiagnostics),
+                    "Save a local log archive. Nothing is sent."),
                 Setting(_sendLogs = Button("Send logs to the author..", AppGlyphs.Email, SendLogsToAuthor), "Collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network. Clipboard history never goes into the archive.")));
+            panel.Controls.Add(Group("about/resources", "Resources", ResourceLinks(AboutResources.Dependencies)));
+            panel.Controls.Add(Group("about/related", "Related products", ResourceLinks(AboutResources.Related)));
             return page;
+        }
+
+        private Control ResourceLinks(AboutResources.Resource[] resources)
+        {
+            var links = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = Padding.Empty };
+            foreach (AboutResources.Resource resource in resources)
+            {
+                LinkLabel link = Link(resource.Caption, resource.Url);
+                link.Name = "resource." + resource.Id;
+                link.MaximumSize = new Size(890, 0);
+                links.Controls.Add(link);
+            }
+            return links;
+        }
+
+        private Button? _exportDiagnostics;
+
+        private void ExportDiagnostics()
+        {
+            if (_exportDiagnostics?.Enabled != true) return;
+            using var picker = new SaveFileDialog { FileName = "CyrFlip-diagnostics.zip", DefaultExt = "zip", AddExtension = true,
+                Filter = "ZIP (*.zip)|*.zip", OverwritePrompt = true, Title = Translate("Export diagnostics...") };
+            if (picker.ShowDialog(this) != DialogResult.OK) return;
+            _exportDiagnostics.Enabled = false;
+            try
+            {
+                string destination = picker.FileName;
+                BusyDialog.Run(this, _config.UiLanguage, () =>
+                {
+                    SupportBundle.Result result = SupportBundle.CreateDefault(_config, DateTime.Now);
+                    System.IO.File.Copy(result.ArchivePath, destination, overwrite: true);
+                    return true;
+                });
+            }
+            catch (Exception ex) { Fail(FailureCause.Describe(ex, _config.UiLanguage), ExportDiagnostics); }
+            finally { if (!IsDisposed) _exportDiagnostics.Enabled = true; }
         }
 
         /// <summary>A control of the About page, after a statement that only shapes it.</summary>
@@ -4615,7 +4649,7 @@ namespace CyrFlip
             link.LinkClicked += (_, _) => OpenAddress(url);
             return link;
         }
-        private static CheckBox Check(string text) => new CheckBox { Text = text, AutoSize = true, Margin = new Padding(3, 6, 3, 6) };
+        private static CheckBox Check(string text) => new BooleanOptionCheckBox { Text = text, AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
         private static Button Button(string text, Action action) { var button = new Button { Text = text, AutoSize = true, Margin = new Padding(4, 3, 4, 3) }; button.Click += (_, _) => action(); return button; }
 
         /// <summary>A command button with its verb's vocabulary glyph before the caption (WINDOWS-UI
@@ -4645,6 +4679,47 @@ namespace CyrFlip
         private const int CaptionedRowGap = 16;
         private int _editorColumn;
 
+        /// <summary>
+        /// Computes the true preferred height of an editors strip. In Windows Forms, ComboBox has AutoSize == false,
+        /// so FlowLayoutPanel.GetPreferredSize() measures it via SpecifiedBounds.Height (the unscaled 96-DPI default 21 px)
+        /// rather than its DPI-scaled native window height (PreferredHeight). Measuring children directly ensures
+        /// FlowLayoutPanel does not clip tall or scaled controls (e.g., ComboBox at high DPI).
+        /// </summary>
+        internal static int EditorsPreferredHeight(FlowLayoutPanel editors)
+        {
+            int required = editors.Padding.Vertical;
+            if (editors.FlowDirection == FlowDirection.TopDown)
+            {
+                foreach (Control child in editors.Controls)
+                {
+                    if (!child.Visible) continue;
+                    int h = Math.Max(child.Height, child.GetPreferredSize(Size.Empty).Height);
+                    required += h + child.Margin.Vertical;
+                }
+            }
+            else
+            {
+                int maxChild = 0;
+                foreach (Control child in editors.Controls)
+                {
+                    if (!child.Visible) continue;
+                    int h = Math.Max(child.Height, child.GetPreferredSize(Size.Empty).Height) + child.Margin.Vertical;
+                    if (h > maxChild) maxChild = h;
+                }
+                required += maxChild;
+            }
+            Size min = editors.MinimumSize;
+            try
+            {
+                editors.MinimumSize = Size.Empty;
+                return Math.Max(editors.GetPreferredSize(Size.Empty).Height, required);
+            }
+            finally
+            {
+                editors.MinimumSize = min;
+            }
+        }
+
         private static int WidestEditors(Control container)
         {
             int widest = 0;
@@ -4652,7 +4727,7 @@ namespace CyrFlip
             {
                 if (child is TableLayoutPanel { Tag: CaptionedRow row })
                 {
-                    row.Editors.MinimumSize = Size.Empty;
+                    row.Editors.MinimumSize = new Size(0, EditorsPreferredHeight(row.Editors));
                     widest = Math.Max(widest, row.Editors.GetPreferredSize(Size.Empty).Width);
                 }
                 else if (child is CollapsibleGroup group) widest = Math.Max(widest, WidestEditors(group.Body));
@@ -4684,6 +4759,7 @@ namespace CyrFlip
             table.Controls.Add(lead, 0, 0);
             table.Controls.Add(editors, 1, 0);
             table.Tag = new CaptionedRow(table, caption, hint, editors);
+            editors.MinimumSize = new Size(editors.MinimumSize.Width, EditorsPreferredHeight(editors));
             return table;
         }
 
@@ -4722,12 +4798,12 @@ namespace CyrFlip
         {
             // One editor column per page: every row of the page gives its editors the width of the widest, so
             // their left edges line up (WINDOWS-UI section 4: editors align to a shared page column).
-            row.Editors.MinimumSize = Size.Empty;
+            int editorHeight = EditorsPreferredHeight(row.Editors);
+            row.Editors.MinimumSize = new Size(0, editorHeight);
             int own = row.Editors.GetPreferredSize(Size.Empty).Width;
             int editorWidth = Math.Max(own, _editorColumn) + row.Editors.Margin.Horizontal;
-            row.Editors.MinimumSize = new Size(Math.Max(own, _editorColumn), 0);
+            row.Editors.MinimumSize = new Size(Math.Max(own, _editorColumn), editorHeight);
             int lead = Math.Max(MinTextWidth, available - row.Table.Margin.Horizontal - editorWidth - CaptionedRowGap);
-            lead = Math.Min(lead, CaptionedRowMaxLead);
             if ((int)row.Table.ColumnStyles[0].Width != lead) row.Table.ColumnStyles[0].Width = lead;
             // Each wraps inside its own inset: a switch's description stands under its text, not under its box.
             int captionWidth = Math.Max(1, lead - row.Caption.Margin.Horizontal);
@@ -4744,7 +4820,7 @@ namespace CyrFlip
         /// </summary>
         private static void AlignCaptionToEditors(CaptionedRow row)
         {
-            int strip = row.Editors.GetPreferredSize(Size.Empty).Height;
+            int strip = EditorsPreferredHeight(row.Editors);
             int centre = row.Editors.Margin.Top + strip / 2;
             int line = row.Caption.Font.Height + (row.Caption is CheckBox ? 4 : 0);
             int top = Math.Max(2, centre - line / 2);
@@ -4923,6 +4999,7 @@ namespace CyrFlip
         /// <summary>The distance from a checkbox/radio's left edge to where its caption text starts.</summary>
         internal static int CaptionTextInset(Control box)
         {
+            if (box is BooleanOptionCheckBox option) return option.CaptionInset;
             try
             {
                 using var graphics = box.CreateGraphics();

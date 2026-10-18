@@ -738,8 +738,19 @@ namespace CyrFlip
 
         public const uint LVM_GETHEADER = 0x101F;
 
+        public const uint EM_GETRECT = 0x00B2;
+        public const uint EM_GETFIRSTVISIBLELINE = 0x00CE;
+        public const uint EM_LINEINDEX = 0x00BB;
+        public const uint EM_POSFROMCHAR = 0x00D6;
+        public const uint EM_CHARFROMPOS = 0x00D7;
+        public const uint EM_LINEFROMCHAR = 0x00C9;
+        public const uint EM_LINESCROLL = 0x00B6;
+
         [DllImport("user32.dll", EntryPoint = "SendMessageW")]
         public static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", EntryPoint = "SendMessageW")]
+        public static extern IntPtr SendMessageRect(IntPtr hWnd, uint msg, IntPtr wParam, ref RECT lParam);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct COMBOBOXINFO
@@ -879,6 +890,33 @@ namespace CyrFlip
 
         [DllImport("gdi32.dll", SetLastError = true)]
         public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct BITMAPINFOHEADER
+        {
+            public uint Size;
+            public int Width;
+            public int Height;
+            public ushort Planes;
+            public ushort BitCount;
+            public uint Compression;
+            public uint SizeImage;
+            public int XPelsPerMeter;
+            public int YPelsPerMeter;
+            public uint ClrUsed;
+            public uint ClrImportant;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct BITMAPINFO
+        {
+            public BITMAPINFOHEADER Header;
+            public uint Colors;
+        }
+
+        [DllImport("gdi32.dll", SetLastError = true)]
+        public static extern IntPtr CreateDIBSection(IntPtr hdc, ref BITMAPINFO info, uint usage,
+            out IntPtr bits, IntPtr section, uint offset);
 
         [DllImport("gdi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]

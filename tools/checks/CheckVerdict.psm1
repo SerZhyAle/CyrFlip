@@ -1,5 +1,5 @@
 <#
-    CheckVerdict - standardized exit codes and verdict line helper (CHECK-VERDICT 0.9).
+    CheckVerdict - standardized exit codes and verdict line helper (CHECK-VERDICT 0.13).
 
     Exit codes:
       0 = PASS
@@ -11,7 +11,9 @@
       <subject>: PASS
       <subject>: PASS WITH ADVISORIES (<n>)
       <subject>: FAIL (<n>)
-      <subject>: NOT VERIFIED (<n>)
+      <subject>: COULD NOT VERIFY (<n>)
+      <subject>: NOT APPLICABLE (<reason>)
+      Test-count suffix when present: run=N skipped=M
 #>
 
 $script:Subject = 'check'
@@ -75,10 +77,20 @@ function Complete-Check {
     [CmdletBinding()]
     param(
         [string]$Subject,
-        [switch]$NoExit
+        [switch]$NoExit,
+        [ValidateRange(0, [int]::MaxValue)][int]$RunCount,
+        [ValidateRange(0, [int]::MaxValue)][int]$SkippedCount = 0,
+        [string]$NotApplicableReason
     )
 
     if ($Subject) { $script:Subject = $Subject }
+
+    $hasCounts = $PSBoundParameters.ContainsKey('RunCount')
+    if ($hasCounts -and -not $NotApplicableReason) {
+        if ($RunCount -eq 0) { Add-CheckFinding -Severity notverified -Name 'empty-test-run' -Reason 'No tests executed.' }
+        if ($SkippedCount -gt 0) { Add-CheckFinding -Severity notverified -Name 'skipped-tests' -Reason "$SkippedCount requested test(s) did not execute." }
+    }
+    $countSuffix = if ($hasCounts) { " (run=$RunCount skipped=$SkippedCount)" } else { '' }
 
     $fails       = @($script:Findings | Where-Object { $_.Severity -eq 'fail' })
     $notVerified = @($script:Findings | Where-Object { $_.Severity -eq 'notverified' })
@@ -109,22 +121,26 @@ function Complete-Check {
 
     if ($fails.Count -gt 0) {
         $code = 1
-        $verdictLine = "$($script:Subject): FAIL ($($fails.Count))"
+        $verdictLine = "$($script:Subject): FAIL ($($fails.Count))$countSuffix"
         Write-Host $verdictLine -ForegroundColor Red
     }
     elseif ($notVerified.Count -gt 0) {
         $code = 2
-        $verdictLine = "$($script:Subject): NOT VERIFIED ($($notVerified.Count))"
+        $verdictLine = "$($script:Subject): COULD NOT VERIFY ($($notVerified.Count))$countSuffix"
         Write-Host $verdictLine -ForegroundColor Yellow
     }
     elseif ($advisories.Count -gt 0) {
         $code = 3
-        $verdictLine = "$($script:Subject): PASS WITH ADVISORIES ($($advisories.Count))"
+        $verdictLine = "$($script:Subject): PASS WITH ADVISORIES ($($advisories.Count))$countSuffix"
         Write-Host $verdictLine -ForegroundColor Yellow
+    }
+    elseif ($NotApplicableReason) {
+        $verdictLine = "$($script:Subject): NOT APPLICABLE ($NotApplicableReason)$countSuffix"
+        Write-Host $verdictLine -ForegroundColor Cyan
     }
     else {
         $code = 0
-        $verdictLine = "$($script:Subject): PASS"
+        $verdictLine = "$($script:Subject): PASS$countSuffix"
         Write-Host $verdictLine -ForegroundColor Green
     }
 
