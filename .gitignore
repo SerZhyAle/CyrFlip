@@ -69,3 +69,6 @@ PLAN/
 
 # dotnet test --logger trx output (build.ps1 / CI, S0029 RB-6)
 TestResults/
+
+# Claude Code agent worktrees are local scratch; a tracked one has no .gitmodules entry and breaks actions/checkout.
+.claude/worktrees/
