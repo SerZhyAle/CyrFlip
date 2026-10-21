@@ -1045,6 +1045,7 @@ namespace CyrFlip.Tests
         [UiSweepFact]
         public void TheBarsButtonsAreNamedForAScreenReaderInEveryLanguage()
         {
+            const int Buttons = 5; // Help, Add, Edit, Pin, Close (TitleCommand)
             var problems = new List<string>();
             OnUiThread(() =>
             {
@@ -1055,9 +1056,9 @@ namespace CyrFlip.Tests
                     using var window = new TrafficLightWindow(new AppConfig { UiLanguage = language }, new TrafficLightBoardActions(), language);
                     window.CreateControl();
                     AccessibleObject bar = window.TitleBar.AccessibilityObject;
-                    if (bar.GetChildCount() != 4) { problems.Add(language + ": " + bar.GetChildCount() + " buttons"); continue; }
+                    if (bar.GetChildCount() != Buttons) { problems.Add(language + ": " + bar.GetChildCount() + " buttons"); continue; }
                     var names = new List<string>();
-                    for (int child = 0; child < 4; child++)
+                    for (int child = 0; child < Buttons; child++)
                     {
                         AccessibleObject button = bar.GetChild(child)!;
                         if (button.Role != AccessibleRole.PushButton) problems.Add(language + ": child " + child + " is " + button.Role);
@@ -1065,7 +1066,7 @@ namespace CyrFlip.Tests
                         if (string.IsNullOrWhiteSpace(button.Name)) problems.Add(language + ": a nameless button");
                         if (code != "ru" && code != "uk" && HasCyrillic(button.Name)) problems.Add(language + ": '" + button.Name + "'");
                     }
-                    if (names.Distinct().Count() != 4) problems.Add(language + ": two buttons share a name");
+                    if (names.Distinct().Count() != Buttons) problems.Add(language + ": two buttons share a name");
                 }
             });
             Assert.True(problems.Count == 0, string.Join("\n", problems));

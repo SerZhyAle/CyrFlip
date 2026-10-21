@@ -365,11 +365,15 @@ namespace CyrFlip.Tests
                         Select(form, page);
                         foreach (ComboBox combo in RegroupingHarness.Walk(page).OfType<ComboBox>())
                         {
-                            if (combo.DropDownStyle != ComboBoxStyle.DropDownList || combo.Items.Count == 0) continue;
-                            combos++;
-                            int widest = combo.Items.Cast<object>().Max(item => TextRenderer.MeasureText(item.ToString() ?? "", combo.Font).Width);
-                            int needed = widest + SystemInformation.VerticalScrollBarWidth;
-                            if (combo.Width < needed) problems.Add($"[{language}] {page.Text}: a drop-down is {combo.Width} px, its widest entry needs {needed}");
+                            // The width rule is about a fixed list; an editable box (the translator's model name) takes
+                            // whatever is typed into it, but it still stands beside its button on the same centre line.
+                            if (combo.DropDownStyle == ComboBoxStyle.DropDownList && combo.Items.Count > 0)
+                            {
+                                combos++;
+                                int widest = combo.Items.Cast<object>().Max(item => TextRenderer.MeasureText(item.ToString() ?? "", combo.Font).Width);
+                                int needed = widest + SystemInformation.VerticalScrollBarWidth;
+                                if (combo.Width < needed) problems.Add($"[{language}] {page.Text}: a drop-down is {combo.Width} px, its widest entry needs {needed}");
+                            }
 
                             // Level with whatever shares its strip - the buttons of the row are 32 px, the list as high
                             // as its font - so the pair stands on one centre line.

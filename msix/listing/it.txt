@@ -13,7 +13,7 @@ Anche il traduttore integrato è opzionale. Seleziona il testo ovunque in Window
 
 Conserva ciò che copi e scrivi. La cronologia degli appunti opzionale conserva localmente il testo recente, consultabile in una finestra dedicata; le voci si possono fissare, eliminare, mettere in pausa o cancellare, e ogni voce è cifrata con Windows DPAPI per il tuo account Windows. Le note rapide opzionali si aprono con Ctrl+Maiusc+Alt+N e conservano il testo esattamente com'è (niente Markdown, nessuna formattazione automatica), così un frammento di codice si reincolla senza modifiche; la ricerca guarda dentro ogni nota, e anche le note sono cifrate su disco. Note e cronologia degli appunti passano a un altro computer o a un telefono in un unico file di testo semplice che esporti e importi tu. Gli appunti opzionali sul tuo stesso server di scambio trasferiscono ai tuoi altri dispositivi un solo elemento copiato, che sia un testo, un'immagine o un file, dopo averlo cifrato sul tuo computer, e solo quando premi il pulsante.
 
-Avvia e cattura. Ctrl+Stamp blocca lo schermo, trascini un'area e l'immagine finisce negli appunti - e, se vuoi, viene salvata anche come PNG in una cartella. L'avvio rapido, un modulo opzionale, trasforma programmi, script e download yt-dlp in scenari che avvii dall'area di notifica, da una scorciatoia dedicata o dalla Jump List della barra delle applicazioni; gli scenari dello strumento autonomo OneClickRunner si possono importare senza toccare gli originali. Due interruttori impediscono a Windows di sospendersi o di spegnere lo schermo mentre lavori.
+Avvia e cattura. Ctrl+F12 blocca lo schermo, trascini un'area e l'immagine finisce negli appunti - e, se vuoi, viene salvata anche come PNG in una cartella. L'avvio rapido, un modulo opzionale, trasforma programmi, script e download yt-dlp in scenari che avvii dall'area di notifica, da una scorciatoia dedicata o dalla Jump List della barra delle applicazioni; gli scenari dello strumento autonomo OneClickRunner si possono importare senza toccare gli originali. Due interruttori impediscono a Windows di sospendersi o di spegnere lo schermo mentre lavori.
 
 Solo tuo. I moduli opzionali restano spenti finché non li attivi, ogni scorciatoia si può disattivare singolarmente, e CyrFlip può cedere le sue scorciatoie a una finestra di Desktop remoto in primo piano. L'interfaccia è disponibile in 13 lingue, comprese quelle che si scrivono da destra a sinistra, con tema chiaro, scuro o come Windows. CyrFlip gira nell'area di notifica, usa poca memoria e non richiede nulla di aggiuntivo su Windows 10/11. Ogni tasto rapido con il suo stato è riunito in un'unica lista delle impostazioni, dove reimpostarlo.
 
@@ -48,7 +48,7 @@ Note rapide opzionali che conservano il testo così com'è, perché il codice si
 @@Feature12
 Porta note e cronologia degli appunti su un altro computer in un unico file di scambio in testo semplice
 @@Feature13
-Acquisizione di un'area dello schermo negli appunti con Ctrl+Stamp, salvabile anche come PNG
+Acquisizione di un'area dello schermo negli appunti con Ctrl+F12, salvabile anche come PNG
 @@Feature14
 Avvio rapido opzionale: programmi, script e download yt-dlp come scenari - dall'area di notifica, da una scorciatoia o dalla Jump List
 @@Feature15

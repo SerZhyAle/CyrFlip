@@ -19,7 +19,7 @@ Description: >-
   table of layout pairs adds as many "from layout to layout" conversions as you need, each with its
   own chord, a second hotkey fixes an accidental CapsLock, and a settings window replaces the
   Windows language pane: install, reorder and remove keyboard layouts, choose the switch chord, and
-  assign per-language shortcuts that Windows itself handles. Ctrl+PrintScreen puts any screen
+  assign per-language shortcuts that Windows itself handles. Ctrl+F12 puts any screen
   region on the clipboard. The rest are optional modules, off until you switch them on: CyrFlip's
   own menu over a selection, opened by Ctrl and a right click; a translator that sends a selection
   to Ollama - a free program you install separately on your own computer - and shows the translation
@@ -35,13 +35,14 @@ Description: >-
   author button that packs CyrFlip's own logs into one archive for a report you send yourself. Ships
   as a single portable exe with no installer and no runtime dependencies.
 ReleaseNotes: |-
-  This release makes Settings follow the features and makes CyrFlip harder to knock over.
-  - Settings pages follow the features: Text correction holds the layout table and the case fix, the selection menu has a page of its own, Graphics is now Screenshots, General has four groups, and Hotkeys holds the master switch and the list of every chord.
-  - One failing action no longer takes CyrFlip down: a notice appears and the tray icon, the indicator and the hotkeys keep working; it closes itself only after five faults within five minutes.
-  - Safer data on failures: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so.
-  - Settings is built on first open, and with the clipboard history off CyrFlip does not touch its file at startup.
-  - The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons.
-  - New installs: Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.
+  This release adds the traffic light, drawing on screenshots and settings that survive a reinstall.
+  - Traffic light (off by default): list your own addresses, folders, drives and servers, and a small always-on-top board shows which of them answer right now - every state has a mark as well as a colour.
+  - Screenshots: Ctrl+F11 takes the whole screen; Ctrl+Alt+F12 and Ctrl+Alt+F11 open a drawing step (ellipses, rectangles, lines, arrows, an eraser, eight colours) before the picture is copied. New installs save captures as PNG files in the Screenshots folder, and Ctrl+F10 opens it.
+  - New default chords: Ctrl+F12 for the region capture and Ctrl+F10 for the capture folder (PrintScreen is no longer used). Installs that still had the old defaults are moved once; chords you set yourself stay as they are.
+  - Settings survive an update or a reinstall: the settings file carries everything - chords, tables, Quick launch scenarios, traffic-light targets - and the last three backups are kept in Documents\CyrFlip\Backups, with an offer to restore them on a fresh install.
+  - Clipboard on your own exchange server (off by default): send text, a picture or one file to your other devices, encrypted on your computer first and sent only when you press the button.
+  - Help: F1 or the ? button on every window and Help in the tray menu, with pages and screenshots in 13 languages.
+  - Quick notes can show line numbers (off by default).
 ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
 PrivacyUrl: https://serzhyale.github.io/CyrFlip/privacy.html
 InstallationNotes: "This build is not code-signed, so Windows SmartScreen or an antivirus may warn when CyrFlip first starts. What the warning means and what to click: https://serzhyale.github.io/CyrFlip/trust.html"

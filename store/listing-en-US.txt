@@ -21,7 +21,7 @@ The built-in translator is optional too. Select text anywhere in Windows, press 
 
 Keep what you copy and write. The optional clipboard history keeps recent text locally, searchable in its own window; entries can be pinned, deleted, paused or cleared, and every record is encrypted with Windows DPAPI for your Windows account. Optional quick notes open with Ctrl+Shift+Alt+N and keep text exactly as given - no Markdown, no auto-formatting - so a fragment of code pastes back unchanged; search looks inside every note, and the notes are encrypted on disk too. Notes and clipboard history move to another computer or a phone as one plain-text file you export and import yourself. An optional clipboard on your own exchange server passes one copied text, picture or file to your other devices, encrypted on your computer first, and only when you press the button.
 
-Launch and capture. Ctrl+PrintScreen freezes the screen, you drag a region, and the picture lands on the clipboard - optionally also saved as a PNG to a folder. Ctrl+Shift+PrintScreen opens that folder while saving is on. Quick launch, an optional module, turns your programs, scripts and yt-dlp downloads into scenarios you start from the tray, from a hotkey of their own or from the taskbar Jump List; scenarios from the standalone OneClickRunner tool can be imported without touching the originals. Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
+Launch and capture. Ctrl+F12 freezes the screen, you drag a region, and the picture lands on the clipboard - optionally also saved as a PNG to a folder. Ctrl+F10 opens that folder while saving is on. Quick launch, an optional module, turns your programs, scripts and yt-dlp downloads into scenarios you start from the tray, from a hotkey of their own or from the taskbar Jump List; scenarios from the standalone OneClickRunner tool can be imported without touching the originals. Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
 
 Yours alone. Optional modules stay off until you switch them on, every hotkey can be switched off on its own, and CyrFlip can hand its hotkeys to a focused Remote Desktop window. The interface is available in 13 languages, right-to-left ones included, with a light, dark or Windows-matching theme. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11. Every hotkey with its state sits in one Settings list, where any chord can be reset to its default.
 
@@ -46,7 +46,7 @@ PRODUCT FEATURES (max 200 chars each)
 • Optional encrypted clipboard history with search, pins and Windows DPAPI protection
 • Optional quick notes that keep text exactly as given, so code pastes back unchanged; encrypted on disk
 • Move notes and clipboard history to another computer in one plain-text exchange file
-• Screen-region capture to the clipboard on Ctrl+PrintScreen, optionally saved as PNG
+• Screen-region capture to the clipboard on Ctrl+F12, optionally saved as PNG
 • Optional Quick launch: programs, scripts and yt-dlp downloads as scenarios from the tray, a hotkey or the Jump List
 • Every hotkey in one list: what it does, whether it works, change or reset it there
 • Two keep-awake switches: no sleep and no screen blanking while you work
@@ -58,17 +58,15 @@ PRODUCT FEATURES (max 200 chars each)
 
 WHAT'S NEW IN THIS VERSION
 --------------------------
-Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+New: the traffic light. Switch it on, list your own addresses, folders, drives and servers, and a small board shows at a glance which of them answer right now - every state has a mark as well as a colour. It is off by default and checks only what you list.
 
-One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+Screenshots grew: Ctrl+F11 takes the whole screen at once, and Ctrl+Alt+F12 and Ctrl+Alt+F11 open a drawing step first - ellipses, rectangles, lines, arrows, an eraser and eight colours. New installs save captures as PNG files in the Screenshots folder, and Ctrl+F10 opens it. The capture chords left PrintScreen: Ctrl+F12 takes a region. Installs that still had the old defaults are moved once; chords you set yourself stay as they are.
 
-Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+Your settings survive an update or a reinstall. The settings file now carries everything - chords, tables, Quick launch scenarios, traffic-light targets - and CyrFlip keeps the last three backups in Documents\CyrFlip\Backups and offers to restore them on a fresh install.
 
-A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+New, off by default: the clipboard on your own exchange server. Send what you copied - text, a picture or one file - to your other devices; it is encrypted on your computer first and sent only when you press the button.
 
-The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
-
-New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.
+Help is one key away: F1 or the ? button on every window, and Help in the tray menu, with pages and screenshots in 13 languages. Quick notes can number its lines.
 
 
 SEARCH TERMS

@@ -13,7 +13,7 @@ El traductor integrado también es opcional. Selecciona texto en cualquier parte
 
 Guarda lo que copias y escribes. El historial opcional del portapapeles conserva localmente el texto reciente, con búsqueda en su propia ventana; las entradas se pueden fijar o borrar, el historial se puede pausar o vaciar, y cada registro se cifra con Windows DPAPI para tu cuenta de Windows. Las notas rápidas opcionales se abren con Ctrl+Mayús+Alt+N y conservan el texto tal cual - sin Markdown ni formato automático - para que un fragmento de código se pegue de vuelta sin cambios; la búsqueda mira dentro de cada nota, y las notas también se guardan cifradas en el disco. Las notas y el historial del portapapeles pasan a otro ordenador o a un teléfono en un único archivo de texto plano que exportas e importas tú mismo. Un portapapeles opcional en tu propio servidor de intercambio envía a tus otros dispositivos un solo elemento copiado, ya sea un texto, una imagen o un archivo, cifrado antes en tu ordenador, y solo cuando pulsas el botón.
 
-Lanza y captura. Ctrl+Impr Pant congela la pantalla, arrastras para marcar una región y la imagen llega al portapapeles - y, si quieres, también se guarda como PNG en una carpeta. El inicio rápido, un módulo opcional, convierte tus programas, scripts y descargas de yt-dlp en escenarios que lanzas desde la bandeja, con un atajo propio o desde la Jump List de la barra de tareas; los escenarios de la herramienta independiente OneClickRunner se pueden importar sin tocar los originales. Dos interruptores impiden que Windows se suspenda o apague la pantalla mientras trabajas.
+Lanza y captura. Ctrl+F12 congela la pantalla, arrastras para marcar una región y la imagen llega al portapapeles - y, si quieres, también se guarda como PNG en una carpeta. El inicio rápido, un módulo opcional, convierte tus programas, scripts y descargas de yt-dlp en escenarios que lanzas desde la bandeja, con un atajo propio o desde la Jump List de la barra de tareas; los escenarios de la herramienta independiente OneClickRunner se pueden importar sin tocar los originales. Dos interruptores impiden que Windows se suspenda o apague la pantalla mientras trabajas.
 
 Solo tuyo. Los módulos opcionales siguen apagados hasta que los activas, cada atajo se puede desactivar por separado y CyrFlip puede ceder sus atajos a una ventana de Escritorio remoto en primer plano. La interfaz está disponible en 13 idiomas, incluidos los que se escriben de derecha a izquierda, con tema claro, oscuro o como el de Windows. CyrFlip se ejecuta en la bandeja del sistema, usa poca memoria y no necesita nada más instalado en Windows 10/11. Todos los atajos con su estado están reunidos en una sola lista de la configuración, donde puedes restablecer cualquiera.
 
@@ -48,7 +48,7 @@ Notas rápidas opcionales que conservan el texto tal cual, para que el código s
 @@Feature12
 Pasa las notas y el historial del portapapeles a otro ordenador en un único archivo de texto plano
 @@Feature13
-Captura de una región de la pantalla al portapapeles con Ctrl+Impr Pant, y si quieres también como PNG
+Captura de una región de la pantalla al portapapeles con Ctrl+F12, y si quieres también como PNG
 @@Feature14
 Inicio rápido opcional: programas, scripts y descargas de yt-dlp como escenarios - desde la bandeja, con un atajo o desde la Jump List
 @@Feature15

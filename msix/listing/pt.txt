@@ -13,7 +13,7 @@ O tradutor integrado também é opcional. Selecione um texto em qualquer lugar d
 
 Guarde o que você copia e escreve. O histórico opcional da área de transferência mantém localmente o texto recente, pesquisável em uma janela própria; os itens podem ser fixados, excluídos, pausados ou limpos, e cada registro é criptografado com a DPAPI do Windows para a sua conta do Windows. As notas rápidas opcionais abrem com Ctrl+Shift+Alt+N e guardam o texto exatamente como foi dado - sem Markdown, sem formatação automática - então um trecho de código volta sem nenhuma alteração; a busca procura dentro de todas as notas, e elas também ficam criptografadas no disco. As notas e o histórico da área de transferência passam para outro computador ou para um celular em um único arquivo de texto simples que você mesmo exporta e importa. A área de transferência opcional no seu próprio servidor de troca passa para os seus outros dispositivos um texto, uma imagem ou um arquivo que você copiou, criptografando-o antes no seu computador, e somente quando você pressiona o botão.
 
-Inicie e capture. Ctrl+PrintScreen congela a tela, você arrasta uma região e a imagem vai para a área de transferência - e, se quiser, também é salva como PNG em uma pasta. O Início rápido, um módulo opcional, transforma seus programas, scripts e downloads do yt-dlp em cenários que você inicia pela área de notificação, por um atalho próprio ou pela Jump List da barra de tarefas; os cenários da ferramenta independente OneClickRunner podem ser importados sem tocar nos originais. Dois interruptores anti-suspensão impedem que o Windows durma ou apague a tela enquanto você trabalha.
+Inicie e capture. Ctrl+F12 congela a tela, você arrasta uma região e a imagem vai para a área de transferência - e, se quiser, também é salva como PNG em uma pasta. O Início rápido, um módulo opcional, transforma seus programas, scripts e downloads do yt-dlp em cenários que você inicia pela área de notificação, por um atalho próprio ou pela Jump List da barra de tarefas; os cenários da ferramenta independente OneClickRunner podem ser importados sem tocar nos originais. Dois interruptores anti-suspensão impedem que o Windows durma ou apague a tela enquanto você trabalha.
 
 Só seu. Os módulos opcionais ficam desligados até você ativá-los, cada atalho pode ser desligado separadamente, e o CyrFlip pode ceder seus atalhos a uma janela de Área de Trabalho Remota em primeiro plano. A interface está disponível em 13 idiomas, incluindo os escritos da direita para a esquerda, com tema claro, escuro ou igual ao do Windows. Ele roda na área de notificação, usa pouca memória e não exige nada extra instalado no Windows 10/11. Todos os atalhos, com o seu estado, ficam em uma única lista de configurações, onde qualquer um pode ser restaurado.
 
@@ -48,7 +48,7 @@ Notas rápidas opcionais que guardam o texto exatamente como foi dado, então o 
 @@Feature12
 Leve notas e histórico da área de transferência para outro computador em um único arquivo de troca em texto simples
 @@Feature13
-Captura de uma região da tela para a área de transferência com Ctrl+PrintScreen, com opção de salvar em PNG
+Captura de uma região da tela para a área de transferência com Ctrl+F12, com opção de salvar em PNG
 @@Feature14
 Início rápido opcional: programas, scripts e downloads do yt-dlp como cenários - pela área de notificação, por atalho ou pela Jump List
 @@Feature15

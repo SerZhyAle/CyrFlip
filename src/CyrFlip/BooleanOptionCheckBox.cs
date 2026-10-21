@@ -44,7 +44,8 @@ namespace CyrFlip
         protected override void OnPaint(PaintEventArgs e)
         {
             ThemePalette palette = ThemeApply.PaletteOf(this) ?? ThemePalette.Light;
-            Color back = BackColor.A == 255 && BackColor != Color.Transparent ? BackColor : palette.SurfaceWindow;
+            Color own = BackColor;
+            Color back = own.A == 255 ? own : palette.SurfaceWindow;
             using (var fill = new SolidBrush(back)) e.Graphics.FillRectangle(fill, ClientRectangle);
             UiMetrics metrics = UiMetrics.For(this);
             bool rtl = RightToLeft == RightToLeft.Yes;

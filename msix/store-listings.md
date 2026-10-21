@@ -40,7 +40,7 @@ The built-in translator is optional too. Select text anywhere in Windows, press 
 
 Keep what you copy and write. The optional clipboard history keeps recent text locally, searchable in its own window; entries can be pinned, deleted, paused or cleared, and every record is encrypted with Windows DPAPI for your Windows account. Optional quick notes open with Ctrl+Shift+Alt+N and keep text exactly as given - no Markdown, no auto-formatting - so a fragment of code pastes back unchanged; search looks inside every note, and the notes are encrypted on disk too. Notes and clipboard history move to another computer or a phone as one plain-text file you export and import yourself. An optional clipboard on your own exchange server passes one copied text, picture or file to your other devices, encrypted on your computer first, and only when you press the button.
 
-Launch and capture. Ctrl+PrintScreen freezes the screen, you drag a region, and the picture lands on the clipboard - optionally also saved as a PNG to a folder. Ctrl+Shift+PrintScreen opens that folder while saving is on. Quick launch, an optional module, turns your programs, scripts and yt-dlp downloads into scenarios you start from the tray, from a hotkey of their own or from the taskbar Jump List; scenarios from the standalone OneClickRunner tool can be imported without touching the originals. Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
+Launch and capture. Ctrl+F12 freezes the screen, you drag a region, and the picture lands on the clipboard - optionally also saved as a PNG to a folder. Ctrl+F10 opens that folder while saving is on. Quick launch, an optional module, turns your programs, scripts and yt-dlp downloads into scenarios you start from the tray, from a hotkey of their own or from the taskbar Jump List; scenarios from the standalone OneClickRunner tool can be imported without touching the originals. Two keep-awake switches stop Windows sleeping or blanking the screen while you work.
 
 Yours alone. Optional modules stay off until you switch them on, every hotkey can be switched off on its own, and CyrFlip can hand its hotkeys to a focused Remote Desktop window. The interface is available in 13 languages, right-to-left ones included, with a light, dark or Windows-matching theme. It runs in the system tray, uses little memory, and needs nothing extra installed on Windows 10/11. Every hotkey with its state sits in one Settings list, where any chord can be reset to its default.
 
@@ -65,7 +65,7 @@ Translation runs on Ollama on your own computer - installed separately, off unti
 Optional encrypted clipboard history with search, pins and Windows DPAPI protection
 Optional quick notes that keep text exactly as given, so code pastes back unchanged; encrypted on disk
 Move notes and clipboard history to another computer in one plain-text exchange file
-Screen-region capture to the clipboard on Ctrl+PrintScreen, optionally saved as PNG
+Screen-region capture to the clipboard on Ctrl+F12, optionally saved as PNG
 Optional Quick launch: programs, scripts and yt-dlp downloads as scenarios from the tray, a hotkey or the Jump List
 Every hotkey in one list: what it does, whether it works, change or reset it there
 Two keep-awake switches: no sleep and no screen blanking while you work
@@ -77,17 +77,15 @@ Open source - no telemetry and no data collection; the only network use is your 
 
 **What's new in this version**
 ```
-Settings now follow the features: Text correction holds the layout table and the case fix together, the selection menu has a page of its own, Graphics became Screenshots, General is split into four groups, and Hotkeys holds the master switch and the list of every chord. The page you had open is remembered.
+New: the traffic light. Switch it on, list your own addresses, folders, drives and servers, and a small board shows at a glance which of them answer right now - every state has a mark as well as a colour. It is off by default and checks only what you list.
 
-One failing action no longer takes CyrFlip down: a notice appears while the tray icon, the indicator and the hotkeys keep working. CyrFlip closes itself only after five faults within five minutes.
+Screenshots grew: Ctrl+F11 takes the whole screen at once, and Ctrl+Alt+F12 and Ctrl+Alt+F11 open a drawing step first - ellipses, rectangles, lines, arrows, an eraser and eight colours. New installs save captures as PNG files in the Screenshots folder, and Ctrl+F10 opens it. The capture chords left PrintScreen: Ctrl+F12 takes a region. Installs that still had the old defaults are moved once; chords you set yourself stay as they are.
 
-Your data is safer when something fails: unreadable settings no longer wipe the layout table or the Windows snapshots, a failed keyboard-layout change is rolled back, the notes journal survives a double failure, and a failed import, copy or erase says so instead of reporting success.
+Your settings survive an update or a reinstall. The settings file now carries everything - chords, tables, Quick launch scenarios, traffic-light targets - and CyrFlip keeps the last three backups in Documents\CyrFlip\Backups and offers to restore them on a fresh install.
 
-A calmer start: Settings is built when you first open it, and with the clipboard history off CyrFlip does not touch its file at startup.
+New, off by default: the clipboard on your own exchange server. Send what you copied - text, a picture or one file - to your other devices; it is encrypted on your computer first and sent only when you press the button.
 
-The welcome tour opens on a one-page index of everything CyrFlip does, and dialog buttons carry icons - green for OK, Yes and Add, red for Cancel and No.
-
-New installs use Ctrl+PrintScreen for the region capture and Ctrl+Shift+PrintScreen for opening the capture folder; existing installs keep their chords.
+Help is one key away: F1 or the ? button on every window, and Help in the tray menu, with pages and screenshots in 13 languages. Quick notes can number its lines.
 ```
 
 ---
@@ -111,7 +109,7 @@ CyrFlip - набор инструментов в трее для клавиат�
 
 Сохранять скопированное и записанное. Необязательная история буфера хранит недавний текст локально, с поиском в отдельном окне; записи можно закрепить, удалить, поставить запись на паузу или очистить, и каждая запись шифруется Windows DPAPI для вашей учётной записи. Необязательные быстрые заметки открываются по Ctrl+Shift+Alt+N и хранят текст ровно таким, каким его дали, - без Markdown и автоформатирования, - поэтому фрагмент кода вставляется обратно без изменений; поиск смотрит внутрь каждой заметки, и на диске заметки тоже зашифрованы. Заметки и историю буфера можно перенести на другой компьютер или телефон одним текстовым файлом, который вы сами экспортируете и импортируете. Необязательный буфер на вашем собственном сервере обмена передаёт на другие ваши устройства один скопированный текст, одно изображение или один файл, предварительно зашифровав на вашем компьютере, и только по нажатию кнопки.
 
-Запуск и снимок экрана. Ctrl+PrintScreen замораживает экран, вы выделяете область - и картинка попадает в буфер обмена, а по желанию сохраняется ещё и в PNG в папку. Пока включено сохранение, Ctrl+Shift+PrintScreen открывает эту папку. «Быстрый запуск», необязательный модуль, превращает ваши программы, скрипты и загрузки yt-dlp в сценарии, которые запускаются из трея, по собственному сочетанию или из Jump List панели задач; сценарии отдельной программы OneClickRunner можно импортировать, не трогая оригиналы. Два переключателя не дают Windows уснуть или погасить экран, пока вы работаете.
+Запуск и снимок экрана. Ctrl+F12 замораживает экран, вы выделяете область - и картинка попадает в буфер обмена, а по желанию сохраняется ещё и в PNG в папку. Пока включено сохранение, Ctrl+F10 открывает эту папку. «Быстрый запуск», необязательный модуль, превращает ваши программы, скрипты и загрузки yt-dlp в сценарии, которые запускаются из трея, по собственному сочетанию или из Jump List панели задач; сценарии отдельной программы OneClickRunner можно импортировать, не трогая оригиналы. Два переключателя не дают Windows уснуть или погасить экран, пока вы работаете.
 
 Только ваше. Необязательные модули выключены, пока вы их не включите, любую горячую клавишу можно выключить отдельно, а CyrFlip умеет отдавать свои сочетания активному окну удалённого рабочего стола. Интерфейс доступен на 13 языках, включая письмо справа налево, со светлой, тёмной или как в Windows темой. Программа работает в системном трее, расходует мало памяти и ничего не требует установить дополнительно на Windows 10/11. Все горячие клавиши со своим состоянием собраны в одном списке настроек, где любую можно вернуть к исходной.
 
@@ -136,7 +134,7 @@ CyrFlip - набор инструментов в трее для клавиат�
 Необязательная зашифрованная история буфера с поиском, закреплением и защитой Windows DPAPI
 Необязательные быстрые заметки хранят текст ровно таким, каким его дали, - код вставляется без правок; шифруются на диске
 Перенос заметок и истории буфера на другой компьютер одним открытым текстовым файлом
-Снимок области экрана в буфер обмена по Ctrl+PrintScreen, по желанию с сохранением в PNG
+Снимок области экрана в буфер обмена по Ctrl+F12, по желанию с сохранением в PNG
 Необязательный «Быстрый запуск»: программы, скрипты и загрузки yt-dlp как сценарии - из трея, по комбинации или из Jump List
 Все комбинации в одном списке: что делает каждая, работает ли, изменить или вернуть исходную можно там же
 Два переключателя «не спать»: без перехода в сон и без гашения экрана, пока вы работаете
@@ -148,17 +146,15 @@ CyrFlip - набор инструментов в трее для клавиат�
 
 **Что нового в этой версии**
 ```
-Настройки теперь идут за функциями: «Исправление текста» объединяет таблицу раскладок и исправление регистра, у меню над выделенным текстом своя страница, «Графика» стала «Снимками экрана», «Общие» разбиты на четыре группы, а «Горячие клавиши» содержат общий выключатель и список всех комбинаций. Открытая вами страница запоминается.
+Новое: светофор доступности. Включите его, перечислите свои адреса, папки, диски и серверы - и небольшая панель покажет, какие из них отвечают прямо сейчас; у каждого состояния есть не только цвет, но и значок. По умолчанию он выключен и проверяет только то, что вы перечислили.
 
-Сбой в одном действии больше не роняет CyrFlip: появляется уведомление, а значок в трее, индикатор и горячие клавиши продолжают работать. CyrFlip закрывается сам только после пяти сбоев за пять минут.
+Снимки экрана стали богаче: Ctrl+F11 снимает весь экран сразу, а Ctrl+Alt+F12 и Ctrl+Alt+F11 сначала открывают рисование - эллипсы, прямоугольники, линии, стрелки, ластик и восемь цветов. На новых установках снимки сохраняются в PNG в папку «Снимки экрана», а Ctrl+F10 открывает её. Комбинации ушли с PrintScreen: область снимает Ctrl+F12. Установки со старыми комбинациями по умолчанию один раз переносятся на новые; заданные вами вручную остаются как есть.
 
-Данные надёжнее при сбоях: нечитаемые настройки больше не стирают таблицу раскладок и снимки состояния Windows, неудачная смена раскладок клавиатуры откатывается, журнал заметок переживает двойной сбой, а неудавшиеся импорт, копирование или удаление сообщают об этом, а не об успехе.
+Настройки переживают обновление и переустановку. Файл настроек теперь содержит всё - комбинации, таблицы, сценарии «Быстрого запуска», цели светофора, а CyrFlip хранит три последние копии в Documents\CyrFlip\Backups и предлагает восстановить их на чистой установке.
 
-Спокойнее старт: окно настроек создаётся при первом открытии, а при выключенной истории буфера CyrFlip не обращается к её файлу при запуске.
+Новое, по умолчанию выключено: буфер обмена на вашем сервере обмена. Отправьте скопированное - текст, картинку или один файл - на другие свои устройства; оно шифруется на вашем компьютере и уходит только по нажатию кнопки.
 
-Приветственный тур начинается с одной страницы-оглавления обо всём, что умеет CyrFlip, а кнопки диалогов получили значки - зелёные у «ОК», «Да» и «Добавить», красные у «Отмена» и «Нет».
-
-На новых установках снимок области - Ctrl+PrintScreen, открытие папки со снимками - Ctrl+Shift+PrintScreen; на установках, где комбинации уже заданы, они сохраняются.
+Справка - одной клавишей: F1 или кнопка «?» в каждом окне и пункт «Справка» в меню трея, страницы со снимками экрана на 13 языках. Быстрые заметки умеют нумеровать строки.
 ```
 
 ---
@@ -182,7 +178,7 @@ CyrFlip - набір інструментів у треї для клавіат�
 
 Зберігати скопійоване й записане. Необов'язкова історія буфера зберігає нещодавній текст локально, з пошуком в окремому вікні; записи можна закріпити, видалити, поставити запис на паузу або очистити, і кожен запис шифрується Windows DPAPI для вашого облікового запису. Необов'язкові швидкі нотатки відкриваються за Ctrl+Shift+Alt+N і зберігають текст рівно таким, яким його дали, - без Markdown і автоформатування, - тож фрагмент коду вставляється назад без змін; пошук дивиться всередину кожної нотатки, і на диску нотатки теж зашифровані. Нотатки та історію буфера можна перенести на інший комп'ютер або телефон одним текстовим файлом, який ви самі експортуєте та імпортуєте. Необов'язковий буфер на вашому власному сервері обміну передає на інші ваші пристрої один скопійований текст, одне зображення або один файл, попередньо зашифрувавши на вашому комп'ютері, і лише після натискання кнопки.
 
-Запуск і знімок екрана. Ctrl+PrintScreen заморожує екран, ви виділяєте область - і зображення потрапляє в буфер обміну, а за бажанням зберігається ще й у PNG у теку. Поки ввімкнено збереження, Ctrl+Shift+PrintScreen відкриває цю теку. «Швидкий запуск», необов'язковий модуль, перетворює ваші програми, скрипти та завантаження yt-dlp на сценарії, які запускаються з трея, за власним сполученням або з Jump List панелі завдань; сценарії окремої програми OneClickRunner можна імпортувати, не чіпаючи оригіналів. Два перемикачі не дають Windows заснути чи погасити екран, поки ви працюєте.
+Запуск і знімок екрана. Ctrl+F12 заморожує екран, ви виділяєте область - і зображення потрапляє в буфер обміну, а за бажанням зберігається ще й у PNG у теку. Поки ввімкнено збереження, Ctrl+F10 відкриває цю теку. «Швидкий запуск», необов'язковий модуль, перетворює ваші програми, скрипти та завантаження yt-dlp на сценарії, які запускаються з трея, за власним сполученням або з Jump List панелі завдань; сценарії окремої програми OneClickRunner можна імпортувати, не чіпаючи оригіналів. Два перемикачі не дають Windows заснути чи погасити екран, поки ви працюєте.
 
 Лише ваше. Необов'язкові модулі вимкнені, доки ви їх не ввімкнете, будь-яку гарячу клавішу можна вимкнути окремо, а CyrFlip уміє віддавати свої сполучення активному вікну віддаленого робочого столу. Інтерфейс доступний 13 мовами, зокрема з письмом справа наліво, зі світлою, темною або як у Windows темою. Програма працює в системному треї, витрачає мало пам'яті й нічого не потребує встановлювати додатково на Windows 10/11. Усі гарячі клавіші зі своїм станом зібрані в одному списку налаштувань, де будь-яку можна повернути до початкової.
 
@@ -205,7 +201,7 @@ CyrFlip - набір інструментів у треї для клавіат�
 Необов'язкова зашифрована історія буфера з пошуком, закріпленням і захистом Windows DPAPI
 Необов'язкові швидкі нотатки зберігають текст рівно таким, яким його дали, - код вставляється без правок; шифруються на диску
 Перенесення нотаток та історії буфера на інший комп'ютер одним відкритим текстовим файлом
-Знімок області екрана в буфер обміну за Ctrl+PrintScreen, за бажанням зі збереженням у PNG
+Знімок області екрана в буфер обміну за Ctrl+F12, за бажанням зі збереженням у PNG
 Необов'язковий «Швидкий запуск»: програми, скрипти та завантаження yt-dlp як сценарії - з трея, за сполученням або з Jump List
 Усі сполучення в одному списку: що робить кожне, чи працює, змінити або повернути початкове можна там же
 Два перемикачі «не спати»: без переходу в сон і без гасіння екрана, поки ви працюєте
@@ -217,17 +213,15 @@ CyrFlip - набір інструментів у треї для клавіат�
 
 **Що нового в цій версії**
 ```
-Налаштування тепер ідуть за функціями: «Виправлення тексту» поєднує таблицю розкладок і виправлення регістру, у меню над виділеним текстом своя сторінка, «Графіка» стала «Знімками екрана», «Загальні» розбито на чотири групи, а «Гарячі клавіші» містять загальний вимикач і список усіх сполучень. Відкрита вами сторінка запам'ятовується.
+Нове: світлофор доступності. Увімкніть його, перелічіть власні адреси, теки, диски та сервери - і невелика панель покаже, які з них відповідають просто зараз; у кожного стану є не лише колір, а й значок. Типово він вимкнений і перевіряє лише те, що ви перелічили.
 
-Збій в одній дії більше не валить CyrFlip: з'являється сповіщення, а значок у треї, індикатор і гарячі клавіші далі працюють. CyrFlip закривається сам лише після п'яти збоїв за п'ять хвилин.
+Знімки екрана стали багатшими: Ctrl+F11 знімає весь екран одразу, а Ctrl+Alt+F12 і Ctrl+Alt+F11 спершу відкривають малювання - еліпси, прямокутники, лінії, стрілки, гумку та вісім кольорів. На нових установках знімки зберігаються в PNG у теку «Знімки екрана», а Ctrl+F10 відкриває її. Сполучення пішли з PrintScreen: область знімає Ctrl+F12. Установки зі старими типовими сполученнями один раз переносяться на нові; задані вами вручну лишаються як є.
 
-Дані надійніші при збоях: нечитабельні налаштування більше не стирають таблицю розкладок і знімки стану Windows, невдала зміна розкладок клавіатури відкочується, журнал нотаток переживає подвійний збій, а невдалі імпорт, копіювання чи видалення повідомляють про це, а не про успіх.
+Налаштування переживають оновлення й перевстановлення. Файл налаштувань тепер містить усе - сполучення, таблиці, сценарії «Швидкого запуску», цілі світлофора, а CyrFlip зберігає три останні копії в Documents\CyrFlip\Backups і пропонує відновити їх на чистій установці.
 
-Спокійніший старт: вікно налаштувань створюється під час першого відкриття, а коли історію буфера вимкнено, CyrFlip не звертається до її файлу під час запуску.
+Нове, типово вимкнено: буфер обміну на вашому сервері обміну. Надішліть скопійоване - текст, зображення або один файл - на інші свої пристрої; воно шифрується на вашому комп'ютері й іде лише після натискання кнопки.
 
-Вітальний тур починається з однієї сторінки-змісту про все, що вміє CyrFlip, а кнопки діалогів отримали значки - зелені в «ОК», «Так» і «Додати», червоні в «Скасувати» і «Ні».
-
-На нових установках знімок області - Ctrl+PrintScreen, відкриття теки зі знімками - Ctrl+Shift+PrintScreen; на установках, де сполучення вже задані, вони зберігаються.
+Довідка - однією клавішею: F1 або кнопка «?» у кожному вікні та пункт «Довідка» в меню трею, сторінки зі знімками екрана 13 мовами. Швидкі нотатки вміють нумерувати рядки.
 ```
 
 ---

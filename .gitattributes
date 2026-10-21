@@ -59,3 +59,5 @@ msix/store-listing-import-13-languages.csv -text
 *.vsix binary
 # DEVICE-EXCHANGE vector copies are held by a SHA-256 of their bytes (ticket S0074): an eol=crlf checkout would change the bytes.
 tests/CyrFlip.Tests/Fixtures/DeviceExchange/*.json text eol=lf
+# ANYWHERE-ACCESS descriptor vector: same SHA-256 byte pin (TrafficLightContractStringTests), same reason.
+tests/CyrFlip.Tests/Fixtures/AnywhereAccess/*.json text eol=lf

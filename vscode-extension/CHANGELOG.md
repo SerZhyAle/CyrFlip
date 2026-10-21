@@ -2,10 +2,11 @@
 
 All notable changes to the **CyrFlip - keyboard layout at the caret** extension are documented here.
 
-## [0.1.6] - 2026-10-10
+## [0.1.6] - 2026-10-21
 
 - **The description names the app the way it now introduces itself** - CyrFlip, a Windows tray toolkit for
   your keyboard and desktop - and says that the app must be running. Nothing in the extension's behaviour changed.
+- **A new icon:** a text caret beside a grid of tools, to match that introduction.
 
 ## [0.1.5] - 2026-10-01
 
