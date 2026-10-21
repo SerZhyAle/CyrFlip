@@ -66,6 +66,11 @@ namespace CyrFlip.Tests
                 using QuickNotesService service = Service("layout");
                 using var window = new QuickNotesWindow(service, new AppConfig { UiLanguage = "ru" }, () => { });
                 window.Show();
+                // The window's minimum is capped by the working area, and a 1024 px runner then leaves the details
+                // label about one pixel wide (it cannot wrap in no width). Give the window room whatever the display
+                // is, so this measures the layout and not the monitor.
+                window.MinimumSize = System.Drawing.Size.Empty;
+                window.ClientSize = new System.Drawing.Size(Math.Max(window.ClientSize.Width, 1400), window.ClientSize.Height);
                 Application.DoEvents();
                 var split = All(window).OfType<SplitContainer>().Single();
                 Button help = All(window).OfType<Button>().Single(b => b.Name == "contextHelp");
