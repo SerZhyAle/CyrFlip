@@ -17,7 +17,10 @@
 #>
 param(
     [Parameter(Mandatory = $true)][string]$ResultsDirectory,
-    [int]$Floor = 1000
+    [int]$Floor = 1000,
+    # Owner waiver (release.ps1 -SkipSweeps): tests that did not execute are named on the console instead of
+    # turning the verdict into COULD NOT VERIFY. A failure, an empty run or a run below the floor still fails.
+    [switch]$AllowSkipped
 )
 
 $ErrorActionPreference = 'Stop'
@@ -42,6 +45,11 @@ foreach ($file in $files) {
 
 if ($executed -gt 0 -and $executed -lt $Floor) { Add-CheckFinding -Severity fail -Name 'test-floor' -Reason "Executed $executed tests, below the floor of $Floor." }
 if ($failed -gt 0) { Add-CheckFinding -Severity fail -Name 'failed-tests' -Reason "The TRX reports $failed failed test(s)." }
+
+if ($AllowSkipped -and $skipped -gt 0) {
+    Write-Host "Waived: $skipped test(s) did not execute (-AllowSkipped; the UI sweeps are the release workflow's)." -ForegroundColor Yellow
+    $skipped = 0
+}
 
 Complete-Check -RunCount $executed -SkippedCount $skipped
 }

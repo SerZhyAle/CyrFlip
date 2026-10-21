@@ -35,7 +35,11 @@ param(
     # now, so this is a no-op.
     [switch] $AllowDirty,
     # Skip remote origin reachable check without failing with NOT VERIFIED (exit 2).
-    [switch] $Offline
+    [switch] $Offline,
+    # Owner waiver (2026-10-21): do not run the 13-language UI sweeps in this preflight (about an hour). Every other
+    # test still runs and any failure still fails the preflight; the skipped sweeps are named, not hidden. release.yml
+    # sets CYRFLIP_SWEEP=full itself, so the tag's own workflow still runs them before anything is signed or published.
+    [switch] $SkipSweeps
 )
 $ErrorActionPreference = 'Stop'
 $RepoRoot = $PSScriptRoot
@@ -196,7 +200,11 @@ try {
             # The one place the 13-language UI sweeps run on this machine: nothing else sets CYRFLIP_SWEEP
             # (UiSweepGate), so a release is the only thing that walks every window in every language.
             $previousSweep = $env:CYRFLIP_SWEEP
-            $env:CYRFLIP_SWEEP = 'full'
+            if ($SkipSweeps) {
+                $env:CYRFLIP_SWEEP = $null
+                Write-Host 'UI sweeps SKIPPED by owner waiver (-SkipSweeps): release.yml still runs them after the tag.' -ForegroundColor Yellow
+            }
+            else { $env:CYRFLIP_SWEEP = 'full' }
             try { dotnet test CyrFlip.sln -c Release --no-build --nologo --logger trx --results-directory $testResults }
             finally { $env:CYRFLIP_SWEEP = $previousSweep }
             if ($LASTEXITCODE -ne 0) {
@@ -204,7 +212,8 @@ try {
             }
             else {
                 # A run that discovered nothing also exits 0 (S0029 RB-6).
-                & (Join-Path $preflightRoot 'tools\Assert-TestRun.ps1') -ResultsDirectory $testResults
+                if ($SkipSweeps) { & (Join-Path $preflightRoot 'tools\Assert-TestRun.ps1') -ResultsDirectory $testResults -AllowSkipped }
+                else { & (Join-Path $preflightRoot 'tools\Assert-TestRun.ps1') -ResultsDirectory $testResults }
                 if ($LASTEXITCODE -eq 2) { $preflightUnverified.Add("Requested tests did not all execute; see the test-run verdict") }
                 elseif ($LASTEXITCODE -ne 0) { $preflightFails.Add("Test discovery count check failed") }
                 else { Write-Host 'Detached-HEAD build + tests green.' -ForegroundColor Green }
