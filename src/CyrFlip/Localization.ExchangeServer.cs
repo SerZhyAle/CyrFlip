@@ -24,6 +24,14 @@ namespace CyrFlip
                 ur: "جو کچھ کاپی کیا ہو اسے اپنے ذاتی ایکسچینج سرور کے ذریعے اپنے دوسرے آلات تک پہنچائیں۔",
                 zh: "通过您自己的交换服务器，把复制的内容传到您的其他设备上。");
 
+            // The full name of the program (EXCHANGE-MARK rule 14, the owner's answer of 2026-10-19): a proper name kept in
+            // English in every interface language, so every column is the name itself. It is the caption of the About
+            // credit, where the thing is named as itself; a marker, a row or a sentence says the term ("Exchange server").
+            Add("Media Exchange Server",
+                ru: "Media Exchange Server", uk: "Media Exchange Server", de: "Media Exchange Server", it: "Media Exchange Server",
+                es: "Media Exchange Server", fr: "Media Exchange Server", pt: "Media Exchange Server", ar: "Media Exchange Server",
+                hi: "Media Exchange Server", bn: "Media Exchange Server", ur: "Media Exchange Server", zh: "Media Exchange Server");
+
             Add("What this is",
                 ru: "Что это такое",
                 uk: "Що це таке",

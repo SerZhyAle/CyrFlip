@@ -33,6 +33,7 @@ namespace CyrFlip
         private readonly Label _labelHint = new Label { AutoSize = true, Margin = new Padding(3, 0, 3, 2) };
         private readonly Label _problem = new Label { AutoSize = true, Margin = new Padding(3, 6, 3, 2) };
         private readonly Label _details = new Label { AutoSize = true, Margin = new Padding(3, 0, 3, 2) };
+        private readonly ExchangeMarkPicture _mark;
         private readonly Button _nextHint;
         private readonly Button _ok;
         private readonly Button _cancel;
@@ -104,7 +105,23 @@ namespace CyrFlip
                 MaximumSize = new Size(textWidth, 0),
                 Margin = new Padding(3, 0, 3, 8),
             };
-            column.Controls.Add(intro);
+            // The screen where an account on the server is added or signed in again wears the mark at the top of its
+            // body, beside the intro (EXCHANGE-MARK rule 8 (a), S0079 M3); the caption bar keeps the program's icon.
+            // The intro gives up the mark's width, so the dialog is no wider than the fields under it.
+            _mark = new ExchangeMarkPicture(32) { Anchor = AnchorStyles.Top | AnchorStyles.Left, Margin = new Padding(3, 0, 10, 8) };
+            _mark.NameIn(_t);
+            intro.MaximumSize = new Size(Math.Max(1, textWidth - _mark.DeviceSize - _mark.Margin.Horizontal), 0);
+            var introRow = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                Margin = Padding.Empty,
+            };
+            introRow.Controls.Add(_mark);
+            introRow.Controls.Add(intro);
+            column.Controls.Add(introRow);
 
             if (existing == null)
             {
@@ -178,6 +195,12 @@ namespace CyrFlip
                 if (existing != null) _passwordBox.Focus(); else _connBox.Focus();
             };
             FormClosing += (_, _) => _lifetime.Cancel();
+        }
+
+        protected override void OnDpiChanged(int oldDpi, int newDpi)
+        {
+            base.OnDpiChanged(oldDpi, newDpi);
+            _mark.Rescale();
         }
 
         private Label Caption(string source) => new Label { Text = _t(source), AutoSize = true, Margin = new Padding(3, 4, 3, 2) };

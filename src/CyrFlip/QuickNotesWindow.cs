@@ -303,13 +303,12 @@ namespace CyrFlip
             _list.ShowItemToolTips = true;
             _split.Panel1.Controls.Add(_list);
 
-            var right = _rightPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5, Padding = new Padding(8, 6, 8, 6) };
+            var right = _rightPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 4, Padding = new Padding(8, 6, 8, 6) };
             right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             right.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-            right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             right.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             right.Controls.Add(_title, 0, 0);
             var kindRow = _kindRow = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0, 4, 0, 4) };
@@ -332,15 +331,20 @@ namespace CyrFlip
             body.Controls.Add(_textEditor);
             right.Controls.Add(body, 0, 2);
 
-            var bottom = _bottomRow = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0, 4, 0, 0) };
+            var footer = new TableLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, ColumnCount = 2, RowCount = 1, Margin = new Padding(0, 4, 0, 0) };
+            footer.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            footer.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            var bottom = _bottomRow = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, Margin = Padding.Empty };
             bottom.Controls.Add(_copy);
             bottom.Controls.Add(_keep);
             bottom.Controls.Add(_export);
             bottom.Controls.Add(_delete);
-            right.Controls.Add(bottom, 0, 3);
+            footer.Controls.Add(bottom, 0, 0);
             _dates.Dock = DockStyle.Fill;
             _dates.Margin = new Padding(0);
-            right.Controls.Add(_dates, 0, 4);
+            footer.Controls.Add(_dates, 1, 0);
+            right.Controls.Add(footer, 0, 3);
 
             _split.Panel2.Controls.Add(right);
             Controls.Add(_split);
@@ -372,14 +376,15 @@ namespace CyrFlip
         {
             if (_topRow == null || _kindRow == null || _bottomRow == null || _rightPanel == null) return;
 
-            int rightWidth = _bottomRow.PreferredSize.Width + _rightPanel.Padding.Horizontal;
+            int detailsWidth = Font.Height * 16;
+            int rightWidth = _bottomRow.PreferredSize.Width + detailsWidth + _rightPanel.Padding.Horizontal;
             int clientWidth = Math.Max(
                 _topRow.PreferredSize.Width + (_toolbar?.GetControlFromPosition(1, 0)?.Width ?? 0),
                 ListWidth + _split.SplitterWidth + rightWidth);
 
             int clientHeight = _topRow.PreferredSize.Height
                 + _title.PreferredSize.Height + _kindRow.PreferredSize.Height
-                + _bottomRow.PreferredSize.Height + _dates.GetPreferredSize(new Size(Math.Max(1, rightWidth - _rightPanel.Padding.Horizontal), 0)).Height + _rightPanel.Padding.Vertical
+                + Math.Max(_bottomRow.PreferredSize.Height, _dates.GetPreferredSize(new Size(detailsWidth, 0)).Height) + _rightPanel.Padding.Vertical
                 + Font.Height * MinEditorRows;
 
             Size frame = Size - ClientSize;   // border + caption, whatever the theme makes of them

@@ -69,6 +69,10 @@
          mark at any size without ExtractAssociatedIcon's 32px ceiling. WelcomeDialog looks it up
          by this exact LogicalName. -->
     <EmbeddedResource Include="..\..\assets\cyrflip.ico" LogicalName="CyrFlip.app.ico" />
+    <!-- The exchange server's mark (EXCHANGE-MARK, S0079): the catalog's PNG steps, embedded as they are so the
+         exe still ships alone. ExchangeMark reads them by this exact LogicalName and takes the step of the size it
+         needs; nothing is redrawn. -->
+    <EmbeddedResource Include="..\..\assets\exchange-mark\mark-*.png" LogicalName="CyrFlip.exchange-mark.%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- config.json is a legacy user migration source, never a new-install default (S0055).

@@ -745,6 +745,26 @@ namespace CyrFlip
         public const uint EM_CHARFROMPOS = 0x00D7;
         public const uint EM_LINEFROMCHAR = 0x00C9;
         public const uint EM_LINESCROLL = 0x00B6;
+        /// <summary>Visual rows (not logical lines) of an edit control - the number wrapping changes.</summary>
+        public const uint EM_GETLINECOUNT = 0x00BA;
+
+        /// <summary>
+        /// The two numbers of GDI's TEXTMETRIC an edit control builds its row height from:
+        /// <c>tmHeight + tmExternalLeading</c>. Neither <see cref="System.Drawing.Font.Height"/> nor
+        /// <c>TextRenderer.MeasureText</c> agrees with it (Consolas 10 pt: 15 in the edit, 16 and 17 there).
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct TEXTMETRIC
+        {
+            public int tmHeight, tmAscent, tmDescent, tmInternalLeading, tmExternalLeading;
+            public int tmAveCharWidth, tmMaxCharWidth, tmWeight, tmOverhang, tmDigitizedAspectX, tmDigitizedAspectY;
+            public char tmFirstChar, tmLastChar, tmDefaultChar, tmBreakChar;
+            public byte tmItalic, tmUnderlined, tmStruckOut, tmPitchAndFamily, tmCharSet;
+        }
+
+        [DllImport("gdi32.dll", EntryPoint = "GetTextMetricsW", CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetTextMetrics(IntPtr hdc, out TEXTMETRIC metrics);
 
         [DllImport("user32.dll", EntryPoint = "SendMessageW")]
         public static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);

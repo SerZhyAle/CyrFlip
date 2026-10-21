@@ -154,6 +154,19 @@ The rest needs you at the keyboard. In order:
      -> the note edit and all three copies are there, and quick-notes-diagnostics.log shows no
         second "journal compacted" line for that sign-out.
 
+  7. (S0078) Settings > Quick notes > Editor: tick "Номера строк" with a note open
+     -> the strip appears at once, the text keeps its caret, selection and top line;
+     paste a paragraph of ~3000 characters with wrap on and drag the scroll bar thumb, spin the wheel
+     over the text AND over the strip, press Page Up/Down, drag-select past the bottom edge
+     -> every number stays opposite its line the whole time, with no flicker and no lag;
+     scroll into the middle of the paragraph -> the first visible row reads "N" with an arrow,
+     once; the hover tip of the strip explains the arrow;
+     type until the line count passes 9, 99, 999 -> no digit is ever cut off;
+     switch to a checklist and back -> the checklist has no strip, the text has it again;
+     Ctrl+A, Ctrl+C, paste elsewhere -> no numbers in the clipboard; Ctrl+Z / Ctrl+Y still work;
+     repeat at 100 / 150 / 200 % display scaling, in the Arabic interface (the strip stays on the
+     left) and in the dark and high-contrast themes.
+
 Step 3 is the one worth being fussy about: the copy behind it is scaffolding, and the whole point
 of the feature is that the history stays the record of what YOU copied.
 '@

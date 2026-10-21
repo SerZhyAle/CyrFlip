@@ -32,6 +32,7 @@
 {"file": "docs/contracts/DEVICE-EXCHANGE.md", "topic": "DEVICE EXCHANGE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/DIAGNOSTIC-REPORT.md", "topic": "DIAGNOSTIC REPORT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/DOC-QUALITY.md", "topic": "DOC QUALITY", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/EXCHANGE-MARK.md", "topic": "EXCHANGE MARK", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/ICON-EXTERNAL.md", "topic": "ICON EXTERNAL", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/ICON-RENDER.md", "topic": "ICON RENDER", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/ICON-SET.md", "topic": "ICON SET", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}

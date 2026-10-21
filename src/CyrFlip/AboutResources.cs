@@ -28,7 +28,14 @@ namespace CyrFlip
             new Resource("guide", "Help", "https://serzhyale.github.io/CyrFlip/guide.html"),
             new Resource("ollama", "Ollama: local translation", "https://ollama.com/"),
             new Resource("yt-dlp", "yt-dlp: video downloads", "https://github.com/yt-dlp/yt-dlp"),
+            // What the program connects to when the clipboard on the server is on: the credit of the exchange server,
+            // which wears its mark (EXCHANGE-MARK rule 8 (e), S0079 M11) and is named as itself, by its full name
+            // (rule 14). The address is the portal's page in English; the About page opens the one of the interface language.
+            new Resource(ExchangeServerId, ExchangeMark.FullName, ExchangePortalLinks.For(ExchangePortalPage.Server, "en")),
         };
+
+        /// <summary>The id of the credit that shows the exchange server's mark.</summary>
+        internal const string ExchangeServerId = "exchange-server";
 
         internal static readonly Resource[] Related =
         {

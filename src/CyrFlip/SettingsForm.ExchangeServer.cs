@@ -169,6 +169,33 @@ namespace CyrFlip
             RebuildExchangeAccountsList();
         }
 
+        /// <summary>Every exchange mark of the window: the band's, the About credit's and each account entry's.</summary>
+        private IEnumerable<ExchangeMarkPicture> AllExchangeMarks()
+        {
+            foreach (ExchangeMarkPicture mark in _exchangeMarks) yield return mark;
+            foreach (Control row in _exchangeAccountsList.Controls)
+                foreach (ExchangeMarkPicture mark in MarksIn(row)) yield return mark;
+        }
+
+        private static IEnumerable<ExchangeMarkPicture> MarksIn(Control root)
+        {
+            if (root is ExchangeMarkPicture self) yield return self;
+            foreach (Control child in root.Controls)
+                foreach (ExchangeMarkPicture mark in MarksIn(child)) yield return mark;
+        }
+
+        /// <summary>An image-only mark is named by the term, in the interface language (ICON-RENDER rule 8, EXCHANGE-MARK rule 14).</summary>
+        private void NameExchangeMarks()
+        {
+            foreach (ExchangeMarkPicture mark in AllExchangeMarks()) mark.NameIn(Translate);
+        }
+
+        /// <summary>The window landed on a monitor of another DPI: each mark takes the size of the new one.</summary>
+        private void RescaleExchangeMarks()
+        {
+            foreach (ExchangeMarkPicture mark in AllExchangeMarks()) mark.Rescale();
+        }
+
         /// <summary>A chord for a label, or the word for "none" when it is unassigned.</summary>
         private string ChordText(string token)
             => token.Length == 0 ? Translate("Not assigned") : token;
@@ -212,6 +239,12 @@ namespace CyrFlip
             };
 
             var head = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = Padding.Empty };
+            // Each account entry wears the exchange server's mark before its label (EXCHANGE-MARK rule 8 (b), S0079 M4).
+            // The state line under it (signed in, sign-in needed, the server lacks a feature) carries none: it sits in
+            // this entry's row and a second picture in one row is noise (M5).
+            var mark = new ExchangeMarkPicture(24) { Anchor = AnchorStyles.Left, Margin = new Padding(3, 3, 6, 3) };
+            mark.NameIn(Translate);
+            head.Controls.Add(mark);
             head.Controls.Add(new Label
             {
                 Text = ExchangeClipboardService.LabelOf(entry), AutoSize = true, UseMnemonic = false, Font = BoldFont,

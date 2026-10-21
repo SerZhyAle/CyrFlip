@@ -183,6 +183,8 @@ html[data-theme="light"] .hero .kicker { color: var(--acc-strong); }
 .callout-warning { border-inline-start-color: var(--gold); }
 .callout-outcome { border-inline-start-color: var(--acc); }
 .wrap .tab-glyph { vertical-align: -4px; margin-inline-end: .45rem; }
+/* EXCHANGE-MARK rules 10 and 12: the exchange server's mark beside the heading of its chapter, never the product's icon. */
+.wrap .mark-inline { vertical-align: middle; margin-inline-end: .5rem; }
 .copy-state-glyph { vertical-align: -3px; margin-inline-end: .3rem; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

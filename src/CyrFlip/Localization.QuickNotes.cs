@@ -73,7 +73,7 @@ namespace CyrFlip
                 ar: "عنصر", hi: "आइटम", bn: "আইটেম", ur: "آئٹم", zh: "条目");
 
             Add("Changed",
-                ru: "Изменена", uk: "Змінено", de: "Geändert", it: "Modificata",
+                ru: "Изм", uk: "Змінено", de: "Geändert", it: "Modificata",
                 es: "Modificada", fr: "Modifiée", pt: "Alterada",
                 ar: "عُدلت", hi: "बदली गई", bn: "পরিবর্তিত", ur: "ترمیم شدہ", zh: "修改于");
 
@@ -128,7 +128,7 @@ namespace CyrFlip
                 zh: "创建于 {0}，修改于 {1}");
 
             Add("Created {0}, changed {1} | Lines: {2}, chars: {3}",
-                ru: "Создана {0}, изменена {1} | Строк: {2}, символов: {3}",
+                ru: "Созд: {0}, Изм: {1} | Стр: {2}, Симв: {3}",
                 uk: "Створено {0}, змінено {1} | Рядків: {2}, символів: {3}",
                 de: "Erstellt {0}, geändert {1} | Zeilen: {2}, Zeichen: {3}",
                 it: "Creata il {0}, modificata il {1} | Righe: {2}, caratteri: {3}",

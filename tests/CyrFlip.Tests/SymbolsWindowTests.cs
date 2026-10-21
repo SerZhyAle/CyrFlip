@@ -258,5 +258,35 @@ namespace CyrFlip.Tests
                 Assert.Empty(window.Grid.Entries);
             });
         }
+
+        [Fact]
+        public void WindowLayoutMaintainsFullWidthColumnsAndVisibleSearchBoxWhenHelpAttached()
+        {
+            OnUiThread(() =>
+            {
+                var config = new AppConfig { UiLanguage = "Русский", EnableSymbols = true, SymbolsCategory = SymbolsData.CategoryArrows };
+                using var window = new SymbolsWindow(config, "Русский", (_, onResult) => onResult(true, 1));
+                window.Show();
+
+                // Help button must be attached
+                Button? helpBtn = All(window).OfType<Button>().FirstOrDefault(b => b.Name == "contextHelp");
+                Assert.NotNull(helpBtn);
+
+                // Main layout must remain a 1-column layout
+                TableLayoutPanel layout = window.Controls.OfType<TableLayoutPanel>().Single();
+                Assert.Equal(1, layout.ColumnCount);
+
+                // Grid must fit all 12 columns
+                int expectedGridMin = SymbolGrid.Columns * window.Grid.CellPixelSize;
+                Assert.True(window.Grid.Width >= expectedGridMin,
+                    $"Grid width ({window.Grid.Width}) is smaller than 12 columns ({expectedGridMin})");
+
+                // Search box must have ample room, never crushed to zero
+                Assert.True(window.SearchBox.Width >= 100,
+                    $"Search box width ({window.SearchBox.Width}) is too small");
+
+                window.Hide();
+            });
+        }
     }
 }

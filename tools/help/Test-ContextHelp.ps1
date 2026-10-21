@@ -61,6 +61,32 @@ try {
                 if (-not (Test-Path -LiteralPath $resolved)) { Add-CheckFinding -Severity fail -Name 'broken-link' -Reason "$path -> $target" }
                 elseif ($parts.Count -gt 1 -and [IO.File]::ReadAllText($resolved) -notmatch ('id="' + [regex]::Escape($parts[1]) + '"')) { Add-CheckFinding -Severity fail -Name 'broken-anchor' -Reason "$path -> $target" }
             }
+            # EXCHANGE-MARK rules 10 and 11 (S0079). A page about the exchange server opens with the full form: the first image
+            # of <main>, the vendored file, 128 CSS px or more, once, with the full name as its alt (rule 14). The page of a
+            # surface that merely shows the mark carries the flat drawing inline beside its title, 24 to 32 px, its alt the
+            # term of DEVICE-EXCHANGE item CW in the page's language - read off this locale's own page of the server's settings.
+            # Every other page shows nothing, the open exchange file's included (a different thing that shares a word).
+            $mainAt = $html.IndexOf('<main>')
+            $main = if ($mainAt -ge 0) { $html.Substring($mainAt) } else { $html }
+            $markImages = @([regex]::Matches($main, '<img\b[^>]*exchange-mark/[^>]*>') | ForEach-Object { $_.Value })
+            if ($surface.id -in @('settings.ExchangeServer', 'exchange-account-dialog')) {
+                $first = [regex]::Match($main, '<img\b[^>]*>').Value
+                $okHead = $markImages.Count -eq 1 -and $first -eq $markImages[0] -and $main.StartsWith('<main><img') `
+                    -and $first -match 'src="\.\./exchange-mark/exchange-mark-full\.svg"' `
+                    -and $first -match 'width="(\d+)"' -and [int]$Matches[1] -ge 128 `
+                    -and $first -match 'alt="Media Exchange Server"'
+                if (-not $okHead) { Add-CheckFinding -Severity fail -Name 'exchange-mark-head' -Reason "$path : the full form must be the first and only mark of <main>, 128 px or more, alt = the full name" }
+            } elseif ($surface.id -eq 'settings.About') {
+                $serverPage = [IO.File]::ReadAllText((Join-Path $root "$locale/settings-exchangeserver.html"))
+                $term = [System.Net.WebUtility]::HtmlDecode([regex]::Match($serverPage, '<h1>(.*?)</h1>').Groups[1].Value)
+                $inline = if ($markImages.Count -eq 1) { $markImages[0] } else { '' }
+                $okInline = $inline -ne '' -and $inline -match 'src="\.\./exchange-mark/exchange-mark-small\.svg"' `
+                    -and $inline -match 'width="(\d+)"' -and [int]$Matches[1] -ge 24 -and [int]$Matches[1] -le 32 `
+                    -and $inline -match 'alt="([^"]*)"' -and [System.Net.WebUtility]::HtmlDecode($Matches[1]) -eq $term -and $term -ne ''
+                if (-not $okInline) { Add-CheckFinding -Severity fail -Name 'exchange-mark-inline' -Reason "$path : one flat mark, 24 to 32 px, alt = '$term'" }
+            } elseif ($markImages.Count -gt 0) {
+                Add-CheckFinding -Severity fail -Name 'exchange-mark-stray' -Reason "$path : a page that is not about the server and does not show the mark carries it"
+            }
             if ($surface.id -ne 'index') {
                 foreach ($section in @('purpose','order','elements','related')) { if ($html -notmatch "id=`"$section`"") { Add-CheckFinding -Severity fail -Name 'page-anatomy' -Reason "$path : $section" } }
                 foreach ($theme in @('light','dark')) { if (-not (Test-Path (Join-Path $root "$locale/$($surface.help)-$theme.png"))) { Add-CheckFinding -Severity fail -Name 'missing-capture' -Reason "$locale/$($surface.help)/$theme" } }

@@ -485,5 +485,164 @@ namespace CyrFlip.Tests
                 Assert.True(config.QuickNotesLineNumbers);
             });
         }
+
+        // =========================================================================
+        // 10. The index against an oracle that shares none of its code
+        // =========================================================================
+
+        /// <summary>Line starts by the plainest possible reading of the rule: a break is CRLF, LF or CR, a line starts after one.</summary>
+        private static System.Collections.Generic.List<int> NaiveLineStarts(string text)
+        {
+            var starts = new System.Collections.Generic.List<int> { 0 };
+            int i = 0;
+            while (i < text.Length)
+            {
+                if (text.Substring(i).StartsWith("\r\n", StringComparison.Ordinal)) { i += 2; starts.Add(i); }
+                else if (text[i] == '\r' || text[i] == '\n') { i += 1; starts.Add(i); }
+                else i++;
+            }
+            return starts;
+        }
+
+        [Fact]
+        public void LineIndexEqualsTheNaiveReadingOnARandomCorpusAndTheNoteCounter()
+        {
+            string[] pieces = { "a", "bb", "Привет", "\r\n", "\n", "\r", "\t", " ", "🌍", "\r\n\r\n", "x y z", "" };
+            var random = new Random(78);
+            var index = new QuickNotesLineIndex();
+            for (int round = 0; round < 600; round++)
+            {
+                var sb = new System.Text.StringBuilder();
+                for (int n = random.Next(0, 40); n > 0; n--) sb.Append(pieces[random.Next(pieces.Length)]);
+                string text = sb.ToString();
+
+                index.Update(text);
+                var expected = NaiveLineStarts(text);
+                Assert.Equal(expected, index.LineStarts.ToList());
+                Assert.Equal(new QuickNote { Kind = QuickNoteKind.Text, RawText = text }.LineCount, index.LineCount);
+
+                // The line of every character, by the same hand count, including the position past the end.
+                for (int ci = 0; ci <= text.Length; ci++)
+                {
+                    int wantLine = expected.Count(s => s <= ci);
+                    int line = index.GetLineNumber(ci, out bool isStart);
+                    Assert.True(line == wantLine, $"char {ci} of \"{text.Replace("\r", "\\r").Replace("\n", "\\n")}\": line {line}, expected {wantLine}");
+                    Assert.Equal(expected.Contains(ci), isStart);
+                }
+            }
+        }
+
+        [Fact]
+        public void EditingTheBreaksMovesTheStartsAsExpected()
+        {
+            var index = new QuickNotesLineIndex();
+            string text = "one\r\ntwo\r\nthree";
+            index.Update(text);
+            Assert.Equal(new[] { 0, 5, 10 }, index.LineStarts);
+
+            // Delete a break: two lines become one. Insert one in the middle of a word: one line becomes two.
+            index.Update(text.Remove(3, 2));
+            Assert.Equal(new[] { 0, 8 }, index.LineStarts);
+            index.Update(text.Insert(1, "\r\n"));
+            Assert.Equal(new[] { 0, 3, 7, 12 }, index.LineStarts);
+            // A CR typed in front of an existing LF joins it into one CRLF and the count does not grow.
+            index.Update("a\nb");
+            Assert.Equal(2, index.LineCount);
+            index.Update("a\r\nb");
+            Assert.Equal(2, index.LineCount);
+            // A very long line is one line.
+            index.Update(new string('x', 300000));
+            Assert.Equal(1, index.LineCount);
+        }
+
+        // =========================================================================
+        // 11. The rule of the numbers (item 3 and 4 of the ticket), without any window
+        // =========================================================================
+
+        private static string Labels(string text, params int[] rowStarts)
+        {
+            var index = new QuickNotesLineIndex();
+            index.Update(text);
+            int last = -1;
+            return string.Join("|", rowStarts.Select(start =>
+                QuickNotesGutterRule.TryLabel(index, start, ref last, out int line, out bool cont)
+                    ? new GutterLabel(0, line, cont).Text
+                    : "."));
+        }
+
+        [Fact]
+        public void TheTicketExampleReadsOneTwoBlankBlankThreeFour()
+        {
+            // "Альфа\nБета очень длинная\n\nГамма": line 2 on three visual rows.
+            string text = "Альфа\r\nБета очень длинная\r\n\r\nГамма";
+            int beta = text.IndexOf("Бета", StringComparison.Ordinal);
+            int empty = text.IndexOf("\r\n\r\n", StringComparison.Ordinal) + 2;
+            int gamma = text.IndexOf("Гамма", StringComparison.Ordinal);
+            // rows: Альфа | Бета очень | длинная (cont) | (cont) | empty line | Гамма
+            Assert.Equal("1|2|.|.|3|4", Labels(text, 0, beta, beta + 5, beta + 12, empty, gamma));
+            // Scrolled into line 2: the first visible row is a continuation - "2 ↳" - and the next continuation is silent.
+            Assert.Equal("2 ↳|.|3|4", Labels(text, beta + 5, beta + 12, empty, gamma));
+        }
+
+        [Fact]
+        public void AContinuationAtTheTopIsNamedOnceAndALineStartIsNeverMarked()
+        {
+            string text = "a b c d e f\r\nnext";
+            int next = text.IndexOf("next", StringComparison.Ordinal);
+            Assert.Equal("1 ↳|.|.|2", Labels(text, 4, 6, 8, next));
+            Assert.Equal("1|.|2", Labels(text, 0, 4, next));   // the same line from its start: no marker
+            Assert.Equal("1 ↳|2", Labels(text, 4, next));
+        }
+
+        // =========================================================================
+        // 12. Width: the digits never lose a pixel at 9 -> 10, 99 -> 100, 999 -> 1000
+        // =========================================================================
+
+        [Fact]
+        public void WidthStepsExactlyWhereTheDigitsDoAndFitsTheWidestLabel()
+        {
+            OnUiThread(() =>
+            {
+                using var font = new Font("Consolas", 10f);
+                int Width(int lines) => QuickNotesTextEditor.GutterWidthFor(lines, font, 96);
+
+                Assert.Equal(Width(1), Width(9));
+                Assert.True(Width(10) > Width(9), "9 -> 10 gains a digit");
+                Assert.Equal(Width(10), Width(99));
+                Assert.True(Width(100) > Width(99), "99 -> 100 gains a digit");
+                Assert.Equal(Width(100), Width(999));
+                Assert.True(Width(1000) > Width(999));
+                Assert.Equal(Width(1), Width(0));   // an empty note is one line, never zero digits
+
+                // The step is one more digit's advance, the same each time (monospace). A lone glyph's measure
+                // differs from its advance by the side bearing, so the advance is the difference of two strings.
+                int Measure(string s) => TextRenderer.MeasureText(s, font, new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine).Width;
+                int digit = Measure("888") - Measure("88");
+                Assert.Equal(digit, Width(10) - Width(9));
+                Assert.Equal(digit, Width(100) - Width(99));
+                Assert.Equal(digit, Width(1000) - Width(999));
+            });
+        }
+
+        [Theory]
+        [InlineData(96, 6)]    // 100 %
+        [InlineData(120, 8)]   // 125 %
+        [InlineData(144, 9)]   // 150 %
+        [InlineData(192, 12)]  // 200 %
+        [InlineData(288, 18)]  // 300 %
+        [InlineData(0, 6)]     // a control that does not know its dpi yet
+        public void PaddingScalesWithTheDisplay(int dpi, int expected)
+            => Assert.Equal(expected, QuickNotesTextEditor.ScaledPadding(dpi));
+
+        [Fact]
+        public void WidthGrowsWithTheFontAndTheDisplay()
+        {
+            OnUiThread(() =>
+            {
+                using var small = new Font("Consolas", 10f);
+                using var big = new Font("Consolas", 20f);
+                Assert.True(QuickNotesTextEditor.GutterWidthFor(500, big, 192) > QuickNotesTextEditor.GutterWidthFor(500, small, 96) * 1.8);
+            });
+        }
     }
 }

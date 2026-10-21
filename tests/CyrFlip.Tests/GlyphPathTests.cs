@@ -179,8 +179,10 @@ namespace CyrFlip.Tests
         // a catalog file as it is - it never redraws one - so a departure is named here, with the date it
         // was found, and the list can only shrink: the test fails once a listed glyph is back inside.
         //   action.paste  (found 2026-10-11, ICON-SET 0.30) - Material content_paste, ink y 0..22 of the
-        //   24 grid; the catalog is asked to re-export it inside the live area.
-        private static readonly HashSet<string> OutsideTheLiveArea = new HashSet<string> { "action.paste" };
+        //   24 grid; re-exported inside the live area by the catalog (ink 3.75..20.25 by 1..21.2 in the vendored
+        //   record, seen by this test on 2026-10-21), so it left the list - the list is empty and can only grow
+        //   again with a dated name.
+        private static readonly HashSet<string> OutsideTheLiveArea = new HashSet<string>();
 
         [Fact]
         public void EveryVendoredGlyphKeepsItsInkInsideOneToTwentyThree()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -46,6 +46,11 @@ namespace CyrFlip
             if (form is QuickNotesWindow notes)
             {
                 notes.AttachHelpButton(button);
+                return;
+            }
+            if (form is SymbolsWindow symbols)
+            {
+                symbols.AttachHelpButton(button);
                 return;
             }
             TableLayoutPanel? table = form.Controls.OfType<TableLayoutPanel>().FirstOrDefault();

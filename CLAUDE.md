@@ -257,6 +257,12 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    `CyrFlipContext.CaptureSelectionIntoQuickNote`, beside the translator's identical phase A, because it
    needs the context's `_busy` guard, `_clipboard` and history suppression and a separate class would only
    plumb all three back out.
+   **Line numbers (S0078, `QuickNotesLineNumbers`, off by default, applied live):** a strip beside the editor,
+   numbered by **logical** line (CRLF, LF and lone CR are one break each - `QuickNote.LineCount`'s rule). A
+   wrapped line is numbered once, at its first row; when its start has scrolled out of view, its first
+   visible row repeats the number once with a "↳". The numbers are never in the text, the clipboard, an
+   export or the journal, and showing, scrolling or toggling them writes nothing. Spec:
+   [PLAN/S0078_quick-notes-line-numbers.md](PLAN/S0078_quick-notes-line-numbers.md).
 
 9. **The app theme - "Как в Windows" / "Светлая" / "Тёмная" (ticket S0020, `APP-STYLE` sections 2-5).**
    One theme for every window, dialog and menu, chosen on the General tab (a drop-down like every other picker, stored as
@@ -564,6 +570,14 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    support bundle). Not built: a QR picture (the text of one is pasted), the Drive path of the clipboard. Spec:
    [PLAN/S0074_exchange-server-clipboard.md](PLAN/S0074_exchange-server-clipboard.md); the owner-run live check is
    `tools/uitest/Test-ExchangeClipboard.ps1`.
+   **The exchange server's mark (`EXCHANGE-MARK` 0.3, ticket S0079):** the coloured star the portfolio owner ordered for
+   the server stands beside its name - the settings page's header band, the sign-in dialog, each account entry, the About
+   credit "Media Exchange Server", two help pages, the guide chapter and the README headings - drawn by `ExchangeMark` /
+   `ExchangeMarkPicture` from **byte copies of the catalog's artwork, never redrawn**: `assets/exchange-mark/` (PNG steps,
+   embedded in the exe, plus the glyph master), `docs/assets/exchange-mark/` (site) and `docs/help/exchange-mark/` (help
+   set), all `-text` in `.gitattributes` and pinned by SHA-256 in `ExchangeMarkTests`. The page strip's one-tone glyph is
+   the same star through `tools/IconGen/glyph-overrides.txt` (delete the line when `ICON-SET` folds the proposal in); the
+   launcher icon, the open exchange file (S0023) and the `sftp` kind never wear it.
 It runs in the **system tray** (the icon also shows the layout; right-click menu = the history controls, the three indicator toggles, the two keep-awake switches, the **Launcher** submenu and **"Перевести буфер обмена"** - each visible only while its module is enabled - then Settings and Exit). **Tray mouse:** a **single left click switches the input language to the next one in Windows' rotation** (`LayoutSwitcher.SwitchToNext`), a **double click opens Settings**. Since the shell also delivers the first click of a double click as an ordinary click, the switch is deferred by `SystemInformation.DoubleClickTime` and cancelled when the double click arrives - and it targets `CursorIndicator.LastActiveWindow`, not the foreground window, because clicking the notification area moves the focus to the taskbar. See [PLAN/done/Spec_v1.1_Cursor_and_Caret.md](PLAN/done/Spec_v1.1_Cursor_and_Caret.md) for the indicator design.
 
 **On the mouse cursor (important):** `SetSystemCursor` is **global** - it changes every app's I-beam until restored. The default cursors are reloaded (`SystemParametersInfo(SPI_SETCURSORS)`) on `Dispose`, `Application.ApplicationExit`, `AppDomain.ProcessExit`, `UnhandledException` and the session end (see `LayoutCursor.ForceRestore`) - **but only when CyrFlip replaced the I-beam since the last reload**: `SPI_SETCURSORS` reloads the whole scheme, undoing cursors other tools set, so with the cursor change off (the default) it is never called. The one unavoidable gap is a hard `TerminateProcess` (kill). Only `OCR_IBEAM` is replaced (not the arrow). The *displayed* I-beam only repaints on `WM_SETCURSOR` (mouse move), so after a layout change `LayoutCursor` sends a zero-delta `SendInput` mouse move (`ForceCursorRefresh`) to repaint it in place.
@@ -914,6 +928,25 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   is nowhere until it has content, the 750 ms debounce and the flush-then-compact on exit.
   `QuickNotesWindow` is the only part that knows WinForms; `QuickNotesLog` is its one-line
   `DiagnosticLog` wrapper, and it records counts, never a note.
+- **QuickNotesTextEditor.cs** (S0078) - the editor the window hosts: a native `TextBox` (`QuickNotesTextBox`,
+  which tells its host after it handled a scroll, key, wheel, size, font or paint) beside the drawn
+  `QuickNotesLineGutter`. Rules that are not obvious from the code: the numbers are **read from the edit
+  control, never computed** - a row's Y is `EM_POSFROMCHAR` in the edit's client coordinates moved into the
+  gutter's **through the screen** (the edit has a 3-D border: the same number is not the same pixel), the
+  visible rows are those above `EM_GETRECT`'s bottom (the edit trims it to whole rows; a cut-off row has no
+  text and so no number), and a row's height is the edit's (`tmHeight + tmExternalLeading`, measured from two
+  rows or `GetTextMetrics`), **not** `Font.Height` (16 for Consolas 10 pt where the edit lays out 15). In an
+  EDIT "line" means visual row under WordWrap, so rows map to logical lines through `QuickNotesLineIndex`
+  (starts of lines, binary search), rebuilt **only when the text changes and only while the numbers are
+  shown** - scrolling and resizing never scan the text (`IndexBuilds` is the test seam). Nothing polls: a
+  cheap signature of the view (first row, row count, formatting rectangle) is compared after the messages
+  above and after `WM_PAINT`, and the strip repaints **synchronously** so it never trails the text by a
+  frame. An EDIT breaks a line only on CRLF (a bare LF or CR is a box glyph), which is why the window's
+  `ForDisplay` always hands it CRLF. The strip is physically on the left in an RTL window (the editor passes
+  no layout to its children); in high contrast the numbers use `text.primary`. `WordWrap` recreates the
+  handle, so the edit's undo history does not survive that one switch (it never did); the numbers toggle does
+  not recreate anything. `QuickNotesLineNumbersGeometryTests` compares pixels (ink of a number against ink of
+  the row's first characters) against an oracle that counts breaks by hand.
 - **CyrFlipExchangeModels.cs / CyrFlipExchangeWriter.cs / CyrFlipExchangeReader.cs / CyrFlipExchangeMerge.cs /
   ExchangeExportDialog.cs / ExchangeFlow.cs** - the open exchange file (feature 10). The first four know no
   WinForms and are what `CyrFlipExchangeTests` holds to the spec: the DTOs and caps, the writer (fence

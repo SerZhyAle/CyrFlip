@@ -131,3 +131,9 @@ details { padding: .5rem; margin-block: .75rem; border: 1px solid var(--border);
 a:focus-visible, summary:focus-visible { outline: 3px solid var(--acc); outline-offset: 3px; }
 footer { margin-block-start: 2rem; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; transition: none; animation: none; } }
+/* EXCHANGE-MARK rules 10 and 11: the exchange server's mark on the pages that show it. The head image is the full form at 128 px, once,
+   above the title; the inline mark is the flat drawing at 24 px beside it. Neither is mirrored in a right-to-left page (rule 2). */
+.mark-head { display: block; width: 128px; height: 128px; max-width: 100%; margin-block: 0 1rem; }
+.title-row { display: flex; align-items: center; gap: .6rem; }
+.title-row h1 { margin-block: 0; }
+.mark-inline { flex: none; width: 24px; height: 24px; }

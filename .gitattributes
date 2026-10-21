@@ -23,6 +23,12 @@
 # conversion, or GitHub Pages serves a CRLF copy that differs from the reference (a later line wins).
 docs/assets/sza-kit.css -text
 docs/help/sza-kit.css -text
+# EXCHANGE-MARK rule 6: the vendored artwork is a byte copy of the catalog's (a SHA-256 per file in its MANIFEST.json), so the
+# SVGs are never normalised - a CRLF checkout would change the bytes and Find-ExchangeMark would call the copy altered. The PNGs
+# are already binary; the folders are named so a later file dropped in cannot be missed.
+assets/exchange-mark/** -text
+docs/assets/exchange-mark/** -text
+docs/help/exchange-mark/** -text
 *.md       text eol=crlf
 *.txt      text eol=crlf
 

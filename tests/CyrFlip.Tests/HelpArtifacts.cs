@@ -184,8 +184,29 @@ namespace CyrFlip.Tests
         }
 
         private static string H(string value) => HttpUtility.HtmlEncode(value);
-        private static string Shell(string title, string locale, string body)
-            => "<!doctype html>\n<html lang=\"" + locale + "\" dir=\"" + (locale == "ar" || locale == "ur" ? "rtl" : "ltr") + "\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"referrer\" content=\"no-referrer\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src 'self' data:; style-src 'self'; base-uri 'none'; form-action 'none'\"><title>" + H(title) + " - CyrFlip</title><link rel=\"stylesheet\" href=\"../sza-kit.css\"><link rel=\"stylesheet\" href=\"../help.css\"><link rel=\"stylesheet\" href=\"../app-theme.css\"></head><body><main><h1>" + H(title) + "</h1>" + body + "</main></body></html>\n";
+        private static string Shell(string title, string locale, string body, string beforeTitle = "", string besideTitle = "")
+            => "<!doctype html>\n<html lang=\"" + locale + "\" dir=\"" + (locale == "ar" || locale == "ur" ? "rtl" : "ltr") + "\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"referrer\" content=\"no-referrer\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src 'self' data:; style-src 'self'; base-uri 'none'; form-action 'none'\"><title>" + H(title) + " - CyrFlip</title><link rel=\"stylesheet\" href=\"../sza-kit.css\"><link rel=\"stylesheet\" href=\"../help.css\"><link rel=\"stylesheet\" href=\"../app-theme.css\"></head><body><main>" + beforeTitle
+               + (besideTitle.Length == 0 ? "<h1>" + H(title) + "</h1>" : "<div class=\"title-row\">" + besideTitle + "<h1>" + H(title) + "</h1></div>")
+               + body + "</main></body></html>\n";
+
+        /// <summary>
+        /// The exchange server's mark on a help page (<c>EXCHANGE-MARK</c> rules 10 and 11, ticket S0079). A page whose
+        /// subject is the exchange server - the settings page and the sign-in dialog - opens with the full form at 128 px,
+        /// once, as the first element of <c>main</c>, its <c>alt</c> the full name (rule 14: a head image's alt is the
+        /// proper name, English in every language); the head image is its mark, so it takes no inline one (rule 11). A
+        /// page of a surface that merely shows the mark - the About page, whose resources list credits the server - shows
+        /// the flat drawing inline beside its title at 24 px, image-only, so its <c>alt</c> is the term of
+        /// <c>DEVICE-EXCHANGE</c> item CW in the page's language. The files are the help set's own byte copies under
+        /// <c>docs/help/exchange-mark/</c>: the set is unpacked to a per-user folder and cannot reach <c>docs/assets/</c>.
+        /// </summary>
+        internal static void ExchangeMarkFor(string surfaceId, string language, out string beforeTitle, out string besideTitle)
+        {
+            beforeTitle = besideTitle = "";
+            if (surfaceId == "settings.ExchangeServer" || surfaceId == "exchange-account-dialog")
+                beforeTitle = "<img class=\"mark-head\" src=\"../exchange-mark/exchange-mark-full.svg\" width=\"128\" height=\"128\" alt=\"" + H(ExchangeMark.FullName) + "\">";
+            else if (surfaceId == "settings.About")
+                besideTitle = "<img class=\"mark-inline\" src=\"../exchange-mark/exchange-mark-small.svg\" width=\"24\" height=\"24\" alt=\"" + H(Localization.Translate(language, ExchangeMark.TermKey)) + "\">";
+        }
 
         private static string Page(ContextHelp.Surface surface, string title, string purpose, List<HelpElements.Element> elements, string locale, string language, ContextHelp.Map map)
         {
@@ -199,7 +220,8 @@ namespace CyrFlip.Tests
                 html.Append("<details id=\"" + element.Anchor + "\"><summary>" + element.Number + ". " + H(element.Name) + "</summary><p>" + H(element.Explanation) + "</p><a href=\"settings-hotkeys.html\">" + T("Your shortcuts") + "</a></details>");
             html.Append("</section><nav id=\"related\"><h2>" + T("Related") + "</h2><a href=\"index.html\">" + T("Help") + "</a> · <a href=\"settings-hotkeys.html\">" + T("Your shortcuts") + "</a> · <a href=\"https://serzhyale.github.io/CyrFlip/" + (locale == "ru" || locale == "uk" ? locale + "/" : "") + "guide.html\">" + T("Guide") + "</a></nav>");
             html.Append("<footer>CyrFlip " + H(SupportBundle.AppVersion()) + " · " + T("Captured") + " " + DateTime.UtcNow.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) + " · <a href=\"index.html\">" + T("Help") + "</a> · <a href=\"mailto:sza@ukr.net\">" + T("Support") + "</a></footer>");
-            return Shell(title, locale, html.ToString());
+            ExchangeMarkFor(surface.id, language, out string beforeTitle, out string besideTitle);
+            return Shell(title, locale, html.ToString(), beforeTitle, besideTitle);
         }
     }
 }

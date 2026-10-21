@@ -645,7 +645,13 @@ namespace CyrFlip
             // the page list, which wrapped into a second column and moved the selected page's column beside
             // the pane - the items "jumped" and the pane covered them.
             _headerTitle = new Label { AutoSize = true, Font = TitleFont, Margin = new Padding(3, 4, 3, 8), UseMnemonic = false, Tag = "title" };
-            var titleBlock = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(0, 0, 0, 2) };
+            var titleBlock = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, WrapContents = false, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(0, 0, 0, 2) };
+            // The exchange server page's mark stands before its title (EXCHANGE-MARK rule 8 (a), S0079 M1) and exists
+            // only while that page is selected (SyncPageHeader). The row stays as tall as the title's, so the band is
+            // one height on every page; the margins centre the star on the title's letters, not on its leading.
+            _headerMark = new ExchangeMarkPicture(24) { Name = "headerExchangeMark", Anchor = AnchorStyles.Left, Margin = new Padding(3, 0, 6, 4), Visible = false };
+            _exchangeMarks.Add(_headerMark);
+            titleBlock.Controls.Add(_headerMark);
             titleBlock.Controls.Add(_headerTitle);
 
             // Column 0 is as wide as the page list below it, so the title block starts where the pane does.
@@ -677,6 +683,10 @@ namespace CyrFlip
 
         private TableLayoutPanel? _header;
         private Label? _headerTitle;
+        private ExchangeMarkPicture? _headerMark;
+        // The marks that live as long as the window (the band's and the About credit's); the account rows' own are
+        // rebuilt with the list and found by walking it (NameExchangeMarks).
+        private readonly List<ExchangeMarkPicture> _exchangeMarks = new List<ExchangeMarkPicture>();
         private Font? _titleFont;
         private readonly List<KeyValuePair<Button, string>> _headerCommandKeys = new List<KeyValuePair<Button, string>>();
 
@@ -712,6 +722,7 @@ namespace CyrFlip
             TabPage? page = _tabs.SelectedTab ?? (_tabs.TabCount > 0 ? _tabs.TabPages[0] : null);
             if (page == null) return;
             _headerTitle.Text = page.Text;
+            if (_headerMark != null) _headerMark.Visible = Equals(page.Tag, SettingsPageKey.ExchangeServer);
         }
         private Button? _expandAllButton, _collapseAllButton;
 
@@ -1521,6 +1532,7 @@ namespace CyrFlip
         {
             NameHeaderCommands();
             SyncPageHeader();
+            NameExchangeMarks();
             _launcherSearch.AccessibleName = Translate("Search:").TrimEnd(':', ' ');
             if (_launcherUp != null) _launcherUp.AccessibleName = Translate("Move up");
             if (_launcherDown != null) _launcherDown.AccessibleName = Translate("Move down");
@@ -1857,6 +1869,7 @@ namespace CyrFlip
                 AdjustTabStrip();
                 AlignChordColumn();
                 ReassertCommandMetrics();
+                RescaleExchangeMarks();
                 AlignHintAndCaptionColumns();
                 foreach (NumericUpDown editor in NumericEditors(this)) SettingsNumeric.Apply(editor);
             }
@@ -4545,12 +4558,41 @@ namespace CyrFlip
             var links = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = Padding.Empty };
             foreach (AboutResources.Resource resource in resources)
             {
+                if (resource.Id == AboutResources.ExchangeServerId)
+                {
+                    links.Controls.Add(ExchangeServerCredit(resource));
+                    continue;
+                }
                 LinkLabel link = Link(resource.Caption, resource.Url);
                 link.Name = "resource." + resource.Id;
                 link.MaximumSize = new Size(890, 0);
                 links.Controls.Add(link);
             }
             return links;
+        }
+
+        /// <summary>
+        /// The exchange server's credit on the About page (EXCHANGE-MARK rule 8 (e), S0079 M11): its mark at 16 px
+        /// before the link, which carries the full name (rule 14) and opens the portal's page about the server in the
+        /// interface language, the way the settings page's own link does. A row of its own, since a link label has no
+        /// picture slot.
+        /// </summary>
+        private Control ExchangeServerCredit(AboutResources.Resource resource)
+        {
+            // A two-column table, not a flow: the page's text clamp walks top-down flows for wrapping labels and hands a
+            // left-to-right flow to the command-button fit, and this row is neither. The link is the proper name, one short
+            // line, so it carries no wrap width to clamp.
+            var row = new TableLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty };
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            var mark = new ExchangeMarkPicture(16) { Name = "resource.exchange-server.mark", Anchor = AnchorStyles.Left, Margin = new Padding(3, 4, 4, 4) };
+            mark.NameIn(Translate);
+            var link = new LinkLabel { Text = resource.Caption, Name = "resource." + resource.Id, AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 4, 3, 4) };
+            link.LinkClicked += (_, _) => OpenAddress(ExchangePortalLinks.ForLanguage(ExchangePortalPage.Server, _config.UiLanguage));
+            row.Controls.Add(mark, 0, 0);
+            row.Controls.Add(link, 1, 0);
+            _exchangeMarks.Add(mark);
+            return row;
         }
 
         private Button? _exportDiagnostics;

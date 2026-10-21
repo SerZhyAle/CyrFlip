@@ -59,7 +59,7 @@ namespace CyrFlip.Tests
                 Path.Combine(_root, name + "-" + QuickNotesStore.FileName), new FakeCipher()));
 
         [Fact]
-        public void HelpUsesOnlyTheToolbarAndDetailsWrapBelowTheCommands()
+        public void HelpUsesOnlyTheToolbarAndDetailsWrapBesideTheCommands()
         {
             OnUiThread(() =>
             {
@@ -75,13 +75,15 @@ namespace CyrFlip.Tests
                 var right = (TableLayoutPanel)typeof(QuickNotesWindow).GetField("_rightPanel", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
                 var commands = (FlowLayoutPanel)typeof(QuickNotesWindow).GetField("_bottomRow", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
                 var details = (Label)typeof(QuickNotesWindow).GetField("_dates", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
-                Assert.True(details.Top >= commands.Bottom);
+                Assert.Same(commands.Parent, details.Parent);
+                Assert.True(details.Left >= commands.Right);
+                Assert.Equal(commands.Top, details.Top);
                 string originalDetails = details.Text;
                 int oneLine = details.Height;
                 details.Text = string.Join(" ", Enumerable.Repeat("Long note details", 80));
                 right.PerformLayout();
-                Assert.True(details.Height > oneLine, "Details must wrap within the editor width.");
-                Assert.True(details.Right <= right.ClientSize.Width);
+                Assert.True(details.Height > oneLine, "Details must wrap beside the commands.");
+                Assert.True(details.Right <= details.Parent!.ClientSize.Width);
                 details.Text = originalDetails;
                 right.PerformLayout();
             });

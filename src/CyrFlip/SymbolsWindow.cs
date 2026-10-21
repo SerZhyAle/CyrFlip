@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -31,6 +31,7 @@ namespace CyrFlip
         private readonly SymbolsClipboardMirror _mirror = new SymbolsClipboardMirror();
 
         private readonly TableLayoutPanel _layout = new TableLayoutPanel();
+        private readonly TableLayoutPanel _headerRow = new TableLayoutPanel();
         private readonly Label _fieldCaption = new Label();
         private readonly TextBox _textField = new TextBox();
         private readonly TableLayoutPanel _filterRow = new TableLayoutPanel();
@@ -96,16 +97,29 @@ namespace CyrFlip
             _layout.ColumnCount = 1;
             _layout.RowCount = 6;
             _layout.Padding = new Padding(6);
-            _layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // caption of the text field
+            _layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+            _layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // header row: field caption and optional help button
             _layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40)); // text field, sized in ApplyWindowGeometry
             _layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // symbol set and search
             _layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f)); // grid
             _layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // status
             _layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // close on pick
 
+            // Header row with the caption of the text field and the context help button
+            _headerRow.Dock = DockStyle.Fill;
+            _headerRow.ColumnCount = 2;
+            _headerRow.RowCount = 1;
+            _headerRow.Margin = new Padding(0);
+            _headerRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+            _headerRow.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            _headerRow.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
             // Caption of the text field
             _fieldCaption.AutoSize = true;
+            _fieldCaption.Dock = DockStyle.Fill;
+            _fieldCaption.TextAlign = ContentAlignment.MiddleLeft;
             _fieldCaption.Margin = new Padding(2, 0, 2, 2);
+            _headerRow.Controls.Add(_fieldCaption, 0, 0);
 
             // Text field: the picked characters, mirroring the clipboard
             _textField.Multiline = false;
@@ -154,7 +168,7 @@ namespace CyrFlip
             _closeOnPick.Checked = _config.SymbolsCloseOnPick;
             _closeOnPick.CheckedChanged += (_, _) => OnCloseOnPickChanged();
 
-            _layout.Controls.Add(_fieldCaption, 0, 0);
+            _layout.Controls.Add(_headerRow, 0, 0);
             _layout.Controls.Add(_textField, 0, 1);
             _layout.Controls.Add(_filterRow, 0, 2);
             _layout.Controls.Add(_grid, 0, 3);
@@ -171,6 +185,15 @@ namespace CyrFlip
             _category = SymbolsData.NormalizeCategory(_config.SymbolsCategory);
             _closeOnPick.Checked = _config.SymbolsCloseOnPick;
             ApplyLanguage(_uiLanguage);
+        }
+
+        internal void AttachHelpButton(Button button)
+        {
+            if (_headerRow.Controls.Contains(button)) return;
+            button.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            button.Margin = new Padding(2, 0, 0, 2);
+            _headerRow.Controls.Add(button, 1, 0);
+            ApplyWindowGeometry();
         }
 
         public void ApplyLanguage(string uiLanguage)
@@ -250,8 +273,11 @@ namespace CyrFlip
             // A fixed row: an automatic one let the table hand the grid's share to the list and the search box
             _layout.RowStyles[2] = new RowStyle(SizeType.Absolute, _filterRow.PreferredSize.Height + _filterRow.Margin.Vertical);
 
+            int headerHeight = _headerRow.PreferredSize.Height;
+            _layout.RowStyles[0] = new RowStyle(SizeType.Absolute, headerHeight + _headerRow.Margin.Vertical);
+
             int chrome = _layout.Padding.Vertical
-                + _fieldCaption.PreferredSize.Height + _fieldCaption.Margin.Vertical
+                + headerHeight + _headerRow.Margin.Vertical
                 + fieldHeight + _textField.Margin.Vertical
                 + _filterRow.PreferredSize.Height + _filterRow.Margin.Vertical
                 + _statusLabel.Height + _statusLabel.Margin.Vertical
@@ -616,6 +642,7 @@ namespace CyrFlip
             BackColor = palette.SurfaceWindow;
             ForeColor = palette.TextPrimary;
 
+            _headerRow.BackColor = palette.SurfaceWindow;
             _fieldCaption.BackColor = palette.SurfaceWindow;
             _fieldCaption.ForeColor = palette.TextMuted;
             _textField.BackColor = palette.SurfaceRaised;

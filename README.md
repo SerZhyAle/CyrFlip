@@ -124,7 +124,7 @@ A small local notepad for the thing you want to keep right now and find again la
 - **Stored locally and encrypted.** An append-only journal in the same folder as the other CyrFlip data, each record protected by Windows DPAPI for your account - title included, not just the body. Nothing goes to the network, nothing is indexed by Windows Search, and the clipboard history is never turned into notes by itself. It is **not** a secret store: don't keep passwords, production tokens or private keys there.
 - **Getting text out:** copy, export one note as `.txt` or `.md`, export every note into a single Markdown file, or **Copy for Google Keep** - the text goes to the clipboard and CyrFlip offers to open Keep, where you paste it. That is the honest limit: Google's Keep API is a Workspace-administrator interface, not something a personal account can use, so CyrFlip does not pretend to synchronize.
 
-## Clipboard on the server
+## <img src="docs/assets/exchange-mark/exchange-mark-small.svg" width="32" height="32" alt="Exchange server"> Clipboard on the server
 
 An optional module that passes **one thing you copied** - a text, a picture or one file - to your other devices through an **exchange server** that you or someone you trust runs. CyrFlip becomes one more device of your account there; it signs in to an existing account (ask whoever runs the server for an invitation) and does two things: **Send clipboard to server** and **Get clipboard from server**. **Off by default**; enable it on Settings → **Exchange server**. While it is off, CyrFlip opens no connection for it, and its tray items, shortcuts and chords are unavailable.
 
