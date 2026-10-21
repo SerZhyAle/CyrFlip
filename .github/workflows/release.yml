@@ -8,6 +8,10 @@ on:
       tag:
         description: 'Tag to release (e.g. v26.6.11.1700)'
         required: true
+      skip_sweeps:
+        description: 'Owner waiver: skip the 13-language UI sweeps (they alone outlast the job); every other test still runs'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -27,7 +31,7 @@ jobs:
   release:
     # Must be Windows: Authenticode signing uses signtool.exe from the Windows SDK.
     runs-on: windows-latest
-    timeout-minutes: 25            # sign + package take longer than CI — give extra headroom
+    timeout-minutes: 90            # the suite alone is ~20 min without the UI sweeps (25 min cut the 26.10.21.1750 run off in Test)
     # Expose only a boolean outside the signing step. The certificate and password must never be
     # available to checkout, cache, MSBuild, test code, or a third-party release action.
     env:
@@ -122,12 +126,16 @@ jobs:
         shell: pwsh
         # A release is where the 13-language UI sweeps run (tests/CyrFlip.Tests/UiSweepGate.cs).
         env:
-          CYRFLIP_SWEEP: full
+          # A tag push always sweeps; only a manual dispatch with the owner's skip_sweeps box ticked does not.
+          CYRFLIP_SWEEP: ${{ inputs.skip_sweeps == true && 'skipped' || 'full' }}
         # The TRX count check fails a run that discovered nothing, which exits 0 (S0029 RB-6).
         run: |
+          if ($env:CYRFLIP_SWEEP -ne 'full') { Write-Host 'UI sweeps SKIPPED by owner waiver (skip_sweeps).' }
           dotnet test CyrFlip.sln -c Release --no-build --logger trx --results-directory TestResults
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          ./tools/Assert-TestRun.ps1 -ResultsDirectory TestResults
+          $assert = @{ ResultsDirectory = 'TestResults' }
+          if ($env:CYRFLIP_SWEEP -ne 'full') { $assert.AllowSkipped = $true }
+          ./tools/Assert-TestRun.ps1 @assert
 
       # Authenticode-sign the exe BEFORE staging so the zipped/hashed artefact is the signed one.
       # Runs only when a signing certificate is configured (secrets SIGNING_CERT_BASE64 +
