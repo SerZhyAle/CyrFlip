@@ -258,6 +258,23 @@ namespace CyrFlip
                     }
         }
 
+        /// <summary>
+        /// True while a dependency note explains why this editor is greyed. The reason is then its accessible
+        /// description, and the row's hint must not replace it: a reader that hears what the switch does but not
+        /// why it cannot be used has lost the one sentence this pass exists to carry.
+        /// </summary>
+        private bool IsExplainedByDependencyNote(Control editor)
+        {
+            foreach (DependencyRule rule in _dependencyRules)
+            {
+                if (rule.Applied.Length == 0) continue;
+                foreach (Control dependent in rule.Dependents)
+                    foreach (Control candidate in EditorsOf(dependent))
+                        if (ReferenceEquals(candidate, editor)) return true;
+            }
+            return false;
+        }
+
         /// <summary>The note's left inset: the hint's (re-measured with the font), the row's own margin on top.</summary>
         private static int InsetOf(DependencyRule rule) => rule.Row.Margin.Left + (rule.Hint?.Margin.Left ?? 3);
 

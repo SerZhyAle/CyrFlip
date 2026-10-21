@@ -154,8 +154,10 @@ namespace CyrFlip.Tests
                     Label note = NoteOf(form, control)!;
                     Assert.False(OwnVisibility.Of(note), name + ": the note stays after the switch is on");
                     Assert.Equal("", note.Text);
+                    // A checkbox then reads its row's own hint (the visible explanation is its description too);
+                    // what must be gone is the reason it was unavailable.
                     foreach (Control editor in EditorsIn(control).DefaultIfEmpty(control))
-                        Assert.True(string.IsNullOrEmpty(editor.AccessibleDescription), name + ": the description stays");
+                        Assert.True(editor.AccessibleDescription != expected, name + ": the reason stays as the description");
                 }
             });
         }

@@ -1450,8 +1450,10 @@ namespace CyrFlip
             // and the notes read what is greyed now (S0060 M5). Before the first size is derived from content.
             ApplyDependencyNotes();
             // One checkbox name/state; the authored visible explanation is its accessible description too.
+            // The reason a switch is greyed (ApplyDependencyNotes, just above) outranks the hint: it is what the
+            // reader needs to hear while the control cannot be used.
             foreach (KeyValuePair<Control, Label> pair in _rowHints)
-                if (pair.Key is CheckBox box) box.AccessibleDescription = pair.Value.Text;
+                if (pair.Key is CheckBox box && !IsExplainedByDependencyNote(box)) box.AccessibleDescription = pair.Value.Text;
             if (_firstSize && IsHandleCreated)
             {
                 _firstSize = false;

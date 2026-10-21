@@ -326,10 +326,13 @@ namespace CyrFlip.Tests
             service.Touch(draft);
 
             DateTime deadline = DateTime.UtcNow.AddSeconds(10);
-            while (service.IsDraft(draft) && DateTime.UtcNow < deadline) Thread.Sleep(20);
+            // The draft stops being a draft before the timer thread raises Created, so wait for both - a loaded
+            // machine used to land between the two and read 0.
+            while ((service.IsDraft(draft) || Volatile.Read(ref created) == 0) && DateTime.UtcNow < deadline) Thread.Sleep(20);
 
             Assert.False(service.IsDraft(draft), "the debounce never flushed the draft");
             Assert.False(service.Commit(draft));   // the window's commit afterwards: nothing to do
+            Thread.Sleep(100);                      // a second raise would show up by now
             Assert.Equal(1, Volatile.Read(ref created));
         }
 
