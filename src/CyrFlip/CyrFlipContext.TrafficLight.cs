@@ -66,7 +66,7 @@ namespace CyrFlip
                     ShowTrafficLight(takeFocus: true);
             };
             ApplyTrafficLightModule();
-            if (_config.EnableTrafficLight && _config.TrafficLightVisible)
+            if (TrafficLightLaunch.ShowBoard(_config))
                 _ui?.Post(_ => ShowTrafficLight(takeFocus: false), null);
         }
 
@@ -431,5 +431,16 @@ namespace CyrFlip
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// Whether the board opens by itself when CyrFlip starts. Pure, so the rule is held by a test without a
+    /// window: never while the module is off; with "open at startup" on, every start; with it off, only the
+    /// start after the board was left visible.
+    /// </summary>
+    internal static class TrafficLightLaunch
+    {
+        internal static bool ShowBoard(AppConfig config)
+            => config.EnableTrafficLight && (config.TrafficLightShowAtStart || config.TrafficLightVisible);
     }
 }

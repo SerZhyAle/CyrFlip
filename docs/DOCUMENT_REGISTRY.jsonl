@@ -50,6 +50,7 @@
 {"file": "docs/contracts/SITE-FAMILY-MAP.md", "topic": "SITE FAMILY MAP", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/SITE-REPRESENTATION.md", "topic": "SITE REPRESENTATION", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/SITE-STRUCTURE.md", "topic": "SITE STRUCTURE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/TEST-LAB.md", "topic": "TEST LAB", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/UPDATE-MANIFEST.md", "topic": "UPDATE MANIFEST", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/WINDOWS-STORE.md", "topic": "WINDOWS STORE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/WINDOWS-UI.md", "topic": "WINDOWS UI", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}

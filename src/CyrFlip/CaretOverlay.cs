@@ -707,10 +707,13 @@ namespace CyrFlip
                     ApplyDpi(MarkerSize.MonitorDpi(monitor));
                 }
 
-                // The dot is placed as if it were the lettered badge and then centred in that badge's
-                // box, so switching the style never moves the marker: it sits where the letters would.
-                Point at = CaretPlacement.Place(caret, _slot, Screen.FromPoint(probe).Bounds);
-                at.Offset((_slot.Width - Width) / 2, (_slot.Height - Height) / 2);
+                // The dot sits right under the caret. It used to be placed as if it were the lettered
+                // badge and centred in that badge's box, which put it a line or more below the caret:
+                // the badge's slot is already dropped by half its height.
+                Rectangle bounds = Screen.FromPoint(probe).Bounds;
+                Point at = _dotMode
+                    ? CaretPlacement.PlaceDot(caret, Width, bounds)
+                    : CaretPlacement.Place(caret, _slot, bounds);
                 Location = at;
                 if (!Visible)
                     Show(); // ShowWithoutActivation => doesn't steal focus from the text field

@@ -417,6 +417,11 @@ namespace CyrFlip
         public List<TrafficLightTarget> TrafficLightTargets { get; set; } = new List<TrafficLightTarget>();
         /// <summary>The board was left visible; it reopens (without taking focus) at the next start.</summary>
         public bool TrafficLightVisible { get; set; } = false;
+        /// <summary>
+        /// Open the board by itself at every start of CyrFlip, while the module is on. Off = the board reopens
+        /// at the start only if it was left visible (<see cref="TrafficLightVisible"/>), as before this option.
+        /// </summary>
+        public bool TrafficLightShowAtStart { get; set; } = true;
         /// <summary>Always on top of other windows. A switch, not a second window (D3).</summary>
         public bool TrafficLightPinned { get; set; } = true;
         /// <summary>0 small (a bare square), 1 medium, 2 large, 3 microscopic. Existing values stay stable.</summary>
@@ -683,6 +688,7 @@ namespace CyrFlip
                     cfg.EnableTrafficLightHotkey = cfg.ReadBool(key, "EnableTrafficLightHotkey", cfg.EnableTrafficLightHotkey);
                     cfg.TrafficLightTargets = cfg.ReadTable<TrafficLightTarget>(key, "TrafficLightTargets", TrafficLightTargetList.Sanitize, ref repaired);
                     cfg.TrafficLightVisible = cfg.ReadBool(key, "TrafficLightVisible", cfg.TrafficLightVisible);
+                    cfg.TrafficLightShowAtStart = cfg.ReadBool(key, "TrafficLightShowAtStart", cfg.TrafficLightShowAtStart);
                     cfg.TrafficLightPinned = cfg.ReadBool(key, "TrafficLightPinned", cfg.TrafficLightPinned);
                     cfg.TrafficLightTileSize = Math.Max(0, Math.Min(MicroscopicTrafficLightTileSize, cfg.ReadInt(key, "TrafficLightTileSize", cfg.TrafficLightTileSize)));
                     cfg.TrafficLightColumns = Math.Max(MinTrafficLightColumns, Math.Min(MaxTrafficLightColumns,
@@ -859,6 +865,7 @@ namespace CyrFlip
                     key.SetValue("TrafficLightHotkey", TrafficLightHotkey, RegistryValueKind.String);
                     key.SetValue("EnableTrafficLightHotkey", EnableTrafficLightHotkey ? 1 : 0, RegistryValueKind.DWord);
                     key.SetValue("TrafficLightVisible", TrafficLightVisible ? 1 : 0, RegistryValueKind.DWord);
+                    key.SetValue("TrafficLightShowAtStart", TrafficLightShowAtStart ? 1 : 0, RegistryValueKind.DWord);
                     key.SetValue("TrafficLightPinned", TrafficLightPinned ? 1 : 0, RegistryValueKind.DWord);
                     key.SetValue("TrafficLightTileSize", TrafficLightTileSize, RegistryValueKind.DWord);
                     key.SetValue("TrafficLightColumns", TrafficLightColumns, RegistryValueKind.DWord);

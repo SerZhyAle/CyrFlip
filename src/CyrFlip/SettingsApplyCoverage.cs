@@ -40,6 +40,7 @@ namespace CyrFlip
             Add("live config at screenshot dispatch", "ScreenshotSaveEnabled");
             Add("live config at annotate dispatch", "EnableScreenshotAnnotate");
             Add("ApplyTrafficLightTargets", "TrafficLightTargets");
+            Add("live config at the next traffic light launch", "TrafficLightShowAtStart");
             // S0072: the v2 inventory's new consumers.
             Add("OnSymbolsChanged", "EnableSymbols EnableSymbolsHotkey SymbolsHotkey");
             Add("live config in SymbolsWindow", "SymbolsHideTypable SymbolsCloseOnPick");

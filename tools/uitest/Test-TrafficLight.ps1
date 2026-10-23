@@ -47,7 +47,7 @@ $key = 'HKCU:\Software\CyrFlip'
 # Everything the module reads or writes, the master switch, and the language the checklist is worded in.
 $names = @(
     'EnableTrafficLight', 'TrafficLightHotkey', 'EnableTrafficLightHotkey', 'TrafficLightTargets',
-    'TrafficLightVisible', 'TrafficLightPinned', 'TrafficLightTileSize', 'TrafficLightColumns',
+    'TrafficLightVisible', 'TrafficLightShowAtStart', 'TrafficLightPinned', 'TrafficLightTileSize', 'TrafficLightColumns',
     'TrafficLightX', 'TrafficLightY',
     'EnableHotkeys', 'UiLanguage', 'SettingsTab', 'SettingsPageId', 'SettingsGroupsState', 'WelcomeShown'
 )
@@ -221,6 +221,8 @@ try {
     Set-ItemProperty -Path $key -Name 'EnableTrafficLight' -Value 1 -Type DWord
     Set-ItemProperty -Path $key -Name 'EnableTrafficLightHotkey' -Value 1 -Type DWord
     Set-ItemProperty -Path $key -Name 'TrafficLightVisible' -Value 0 -Type DWord
+    # Off: scene 1 is about a board that stays hidden, so the "open at startup" option must not open it (scene 2a turns it on).
+    Set-ItemProperty -Path $key -Name 'TrafficLightShowAtStart' -Value 0 -Type DWord
     Set-ItemProperty -Path $key -Name 'TrafficLightTargets' -Value (ConvertTo-Json -InputObject @($rows) -Compress) -Type String
     if (Test-Path $journalPath) { Remove-Item -LiteralPath $journalPath -Force }
     $faultLinesBefore = if (Test-Path $faultLogPath) { @(Get-Content -LiteralPath $faultLogPath).Count } else { 0 }
@@ -229,7 +231,7 @@ try {
     Write-Host "Scene 1: app started (pid $($process.Id)); settling for $SettleSeconds s with the board hidden..." -ForegroundColor Cyan
     Start-Sleep -Seconds $SettleSeconds
 
-    Check 'board-hidden' (-not (Get-AppWindows | Where-Object { $_.Title -match 'traffic' })) 'the board did not open by itself while TrafficLightVisible=0.'
+    Check 'board-hidden' (-not (Get-AppWindows | Where-Object { $_.Title -match 'traffic' })) 'the board did not open by itself while TrafficLightVisible=0 and TrafficLightShowAtStart=0.'
     Check 'journal-exists' (Test-Path $journalPath) "polling ran with the board hidden; the journal is $journalPath."
     $journal = if (Test-Path $journalPath) { [IO.File]::ReadAllText($journalPath) } else { '' }
     Check 'journal-start-marker' ($journal -match '-- CyrFlip started, monitoring resumed --') 'the journal opens with its start marker.'
@@ -292,10 +294,25 @@ try {
     }
     else { $failures += 'no CyrFlip process to sample' }
 
-    # Scene 2: the same board left visible - it opens by itself at launch.
+    # Scene 2a: "Open the board when CyrFlip starts" on, the board closed last time - it still opens by itself.
+    Stop-CyrFlipApp
+    Start-Sleep -Milliseconds 700
+    Set-ItemProperty -Path $key -Name 'TrafficLightVisible' -Value 0 -Type DWord
+    Set-ItemProperty -Path $key -Name 'TrafficLightShowAtStart' -Value 1 -Type DWord
+    Start-CyrFlipApp -Configuration $Configuration | Out-Null
+    $optionBoard = $null
+    $optionDeadline = (Get-Date).AddSeconds(15)
+    while ((Get-Date) -lt $optionDeadline -and -not $optionBoard) {
+        $optionBoard = Get-AppWindows | Where-Object { $_.Title -match 'traffic' } | Select-Object -First 1
+        if (-not $optionBoard) { Start-Sleep -Milliseconds 400 }
+    }
+    Check 'board-opens-by-startup-option' ([bool]$optionBoard) 'the board opened at launch because TrafficLightShowAtStart=1, though TrafficLightVisible=0.'
+
+    # Scene 2: the same board left visible - with the option off it opens by itself at launch all the same.
     Stop-CyrFlipApp
     Start-Sleep -Milliseconds 700
     Set-ItemProperty -Path $key -Name 'TrafficLightVisible' -Value 1 -Type DWord
+    Set-ItemProperty -Path $key -Name 'TrafficLightShowAtStart' -Value 0 -Type DWord
     Start-CyrFlipApp -Configuration $Configuration | Out-Null
     $board = $null
     $deadline = (Get-Date).AddSeconds(15)

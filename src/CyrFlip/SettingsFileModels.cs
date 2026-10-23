@@ -111,6 +111,7 @@ namespace CyrFlip
             E("EnableTrafficLight", "trafficlight/switches", "Availability traffic light"),
             E("EnableTrafficLightHotkey", "trafficlight/switches", "Open from the keyboard"),
             E("TrafficLightHotkey", "trafficlight/switches", "Set the traffic light shortcut"),
+            E("TrafficLightShowAtStart", "trafficlight/module", "Board opens at startup"),
             E("TrafficLightPinned", "trafficlight/module", "Pinned on top"), E("TrafficLightTileSize", "trafficlight/module", "Tile size"),
             E("TrafficLightColumns", "trafficlight/module", "Tiles in a row"), E("TrafficLightWindowTransparency", "trafficlight/module", "Board window transparency"),
             E("TrafficLightX", "navigation/windows", "Traffic light board position X"), E("TrafficLightY", "navigation/windows", "Traffic light board position Y"),

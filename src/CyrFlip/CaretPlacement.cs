@@ -71,6 +71,26 @@ namespace CyrFlip
             return new Point(x, y);
         }
 
+        /// <summary>
+        /// Top-left of the dot-mode marker (a <paramref name="diameter"/> circle): centred under the
+        /// caret, just past the bottom of its line. The dot is <b>not</b> placed through the lettered
+        /// badge's slot - that slot is already dropped by half a badge, and a dot centred inside it
+        /// ended up a whole line or more below the caret. Above the line at the bottom edge of the
+        /// monitor, clamped inside it whatever happens.
+        /// </summary>
+        public static Point PlaceDot(CaretRect caret, int diameter, Rectangle monitor)
+        {
+            int x = caret.X - diameter / 2;
+            int y = caret.Bottom + GapY;
+
+            if (y + diameter > monitor.Bottom)
+                y = caret.Top - GapY - diameter;
+
+            x = Clamp(x, monitor.Left, monitor.Right - diameter);
+            y = Clamp(y, monitor.Top, monitor.Bottom - diameter);
+            return new Point(x, y);
+        }
+
         /// <summary>The point that decides which monitor the caret is on: inside the caret itself.</summary>
         public static Point MonitorProbe(CaretRect caret) => new Point(caret.X, caret.Top + caret.Height / 2);
 

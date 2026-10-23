@@ -115,6 +115,44 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
+        public void TheDotSitsCentredRightUnderTheCaret()
+        {
+            // Dot mode: no half-badge drop - the circle starts a pixel below the line, centred on the caret.
+            const int d = 8;
+            Point p = CaretPlacement.PlaceDot(new CaretRect(500, 300, 320), d, Primary);
+            Assert.Equal(new Point(500 - d / 2, 320 + CaretPlacement.GapY), p);
+        }
+
+        [Fact]
+        public void TheDotIsMuchCloserToTheLineThanTheLetteredBadge()
+        {
+            // The regression: the dot was centred in the badge's slot and landed ~27 px below a 20 px line.
+            var caret = new CaretRect(500, 300, 320);
+            Point dot = CaretPlacement.PlaceDot(caret, 8, Primary);
+            Point badge = CaretPlacement.Place(caret, new Size(30, 26), Primary);
+            Assert.True(dot.Y - caret.Bottom <= 2, "the dot floats away from the line");
+            Assert.True(dot.Y < badge.Y);
+        }
+
+        [Fact]
+        public void TheDotGoesAboveTheLineAtTheBottomEdge()
+        {
+            const int d = 8;
+            Point p = CaretPlacement.PlaceDot(new CaretRect(500, 1062, 1078), d, Primary);
+            Assert.Equal(1062 - CaretPlacement.GapY - d, p.Y);
+            Assert.True(p.Y + d <= 1062, "the dot covers the line being typed");
+        }
+
+        [Fact]
+        public void TheDotStaysInsideTheMonitor()
+        {
+            const int d = 8;
+            Assert.True(Primary.Contains(new Rectangle(CaretPlacement.PlaceDot(new CaretRect(1919, 500, 520), d, Primary), new Size(d, d))));
+            Assert.Equal(new Point(0, 0), CaretPlacement.PlaceDot(new CaretRect(-50, -40, -30), d, Primary));
+            Assert.True(Primary.Contains(new Rectangle(CaretPlacement.PlaceDot(new CaretRect(1915, 1060, 1079), d, Primary), new Size(d, d))));
+        }
+
+        [Fact]
         public void TheMonitorProbeIsInsideTheCaret()
         {
             var caret = new CaretRect(1919, 100, 120);

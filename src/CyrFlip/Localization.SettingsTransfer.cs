@@ -93,6 +93,10 @@ namespace CyrFlip
                 ru: "Задать сочетание для светофора", uk: "Задати сполучення для світлофора", de: "Ampelkürzel festlegen", it: "Imposta la scorciatoia del semaforo",
                 es: "Definir el atajo del semáforo", fr: "Définir le raccourci du feu", pt: "Definir o atalho do semáforo", ar: "حدد اختصار الإشارة",
                 hi: "ट्रैफ़िक लाइट का शॉर्टकट सेट करें", bn: "ট্রাফিক লাইটের শর্টকাট সেট করুন", ur: "ٹریفک لائٹ کا شارٹ کٹ سیٹ کریں", zh: "设置可用性看板快捷键");
+            Add("Board opens at startup",
+                ru: "Доска открывается при запуске", uk: "Дошка відкривається під час запуску", de: "Ampel öffnet sich beim Start", it: "Il semaforo si apre all'avvio",
+                es: "El semáforo se abre al iniciar", fr: "Le tableau s'ouvre au démarrage", pt: "O semáforo abre ao iniciar", ar: "تُفتح اللوحة عند بدء التشغيل",
+                hi: "शुरू होने पर बोर्ड खुलता है", bn: "শুরুতে বোর্ড খোলে", ur: "آغاز پر بورڈ کھلتا ہے", zh: "启动时打开面板");
             Add("Pinned on top",
                 ru: "Поверх окон", uk: "Поверх вікон", de: "Immer im Vordergrund", it: "Sempre in primo piano",
                 es: "Siempre visible", fr: "Toujours au premier plan", pt: "Sempre no topo", ar: "تثبيت في الأعلى",

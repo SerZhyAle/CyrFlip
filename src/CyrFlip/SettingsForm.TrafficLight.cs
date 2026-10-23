@@ -19,6 +19,7 @@ namespace CyrFlip
         private readonly CheckBox _tlEnabled = Check("Enable the availability traffic light");
         private readonly CheckBox _tlHotkeyEnabled = Check("Availability traffic light");
         private readonly Label _tlHotkeyValue = new Label { AutoSize = true };
+        private readonly CheckBox _tlShowAtStart = Check("Open the board when CyrFlip starts");
         private readonly CheckBox _tlPinned = Check("Keep the board on top of other windows");
         private readonly ComboBox _tlTileSize = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
         private readonly NumericUpDown _tlColumns = new NumericUpDown
@@ -73,6 +74,7 @@ namespace CyrFlip
         {
             _tlEnabled.Name = "setting.traffic-light";
             _tlHotkeyEnabled.Name = "setting.traffic-light-chord";
+            _tlShowAtStart.Name = "setting.traffic-light-start";
             _tlPinned.Name = "setting.traffic-light-pin";
             _tlTileSize.Name = "setting.traffic-light-tile-size";
             _tlColumns.Name = "setting.traffic-light-columns";
@@ -82,6 +84,8 @@ namespace CyrFlip
                 TrafficLightSettingChanged(() => _config.EnableTrafficLight = _tlEnabled.Checked, reload: true);
             _tlHotkeyEnabled.CheckedChanged += (_, _) =>
                 TrafficLightSettingChanged(() => _config.EnableTrafficLightHotkey = _tlHotkeyEnabled.Checked);
+            _tlShowAtStart.CheckedChanged += (_, _) =>
+                TrafficLightSettingChanged(() => _config.TrafficLightShowAtStart = _tlShowAtStart.Checked);
             _tlPinned.CheckedChanged += (_, _) =>
                 TrafficLightSettingChanged(() => _config.TrafficLightPinned = _tlPinned.Checked);
             _tlTileSize.SelectedIndexChanged += (_, _) =>
@@ -107,6 +111,7 @@ namespace CyrFlip
             _tlEnabled.Checked = _config.EnableTrafficLight;
             _tlHotkeyEnabled.Checked = _config.EnableTrafficLightHotkey;
             _tlHotkeyValue.Text = _config.TrafficLightHotkey;
+            _tlShowAtStart.Checked = _config.TrafficLightShowAtStart;
             _tlPinned.Checked = _config.TrafficLightPinned;
             FillTileSizeCombo();
             _tlTileSize.SelectedIndex = _config.TrafficLightTileSize == AppConfig.MicroscopicTrafficLightTileSize
@@ -143,6 +148,8 @@ namespace CyrFlip
             panel.Controls.Add(Group("trafficlight/module", "Board",
                 TrackTrafficLight(HotkeyRow(_tlHotkeyEnabled, _tlHotkeyValue, () => TrafficLightHotkeyChangeRequested?.Invoke(this, EventArgs.Empty),
                     "Shows the board and gives it focus; press again to hide. On the board: arrows, Enter, F5, Esc.")),
+                TrackTrafficLight(Setting(_tlShowAtStart,
+                    "On: the board appears at every start. Off: it reopens only if it was open when CyrFlip last closed.")),
                 TrackTrafficLight(Setting(_tlPinned,
                     "The board stays on top in a corner; drag it anywhere. It is hidden from screenshots and screen sharing.")),
                 TrackTrafficLight(Setting(LabeledRow("Tile size:", _tlTileSize),

@@ -754,21 +754,105 @@ namespace CyrFlip.Tests
                     Assert.Equal(before + 1, drags);
                     Pointer(gestures, "OnMouseUp", MouseButtons.Left, at);
 
+                    // A real double click, in WinForms' order: press, click, release, press, double click, release.
                     Pointer(board, "OnMouseDown", MouseButtons.Left, at);
+                    Pointer(board, "OnMouseClick", MouseButtons.Left, at);
                     Pointer(board, "OnMouseUp", MouseButtons.Left, at);
+                    Pointer(board, "OnMouseDown", MouseButtons.Left, at, 2);
                     Pointer(board, "OnMouseDoubleClick", MouseButtons.Left, at, 2);
                     Pointer(board, "OnMouseUp", MouseButtons.Left, at);
                 }
+                // Settings once per double click, and the first click of each pair checked that tile once.
                 Assert.Equal(4, edits);
-                Assert.Equal(0, checks);
-                config.TrafficLightTileSize = 0;
-                window.RefreshBoard();
-                var smallItems = TrafficLightBoardLayout.Compute(board.Tiles.ToList(), board.Width,
+                Assert.Equal(4, checks);
+            });
+        }
+
+        [Fact]
+        public void AClickOnATileChecksThatTargetNowAndNothingElseDoes()
+        {
+            OnUiThread(() =>
+            {
+                var checked_ = new List<string>();
+                var config = new AppConfig { TrafficLightTileSize = 0 };
+                using var window = new TrafficLightWindow(config, new TrafficLightBoardActions
+                {
+                    Snapshot = Four, CheckNow = checked_.Add,
+                }, "English");
+                var board = window.Board;
+                board.Size = new Size(400, 200);
+                board.CreateControl();
+                var all = TrafficLightBoardLayout.Compute(board.Tiles.ToList(), board.Width,
                     board.EffectiveColumns, board.TileSize, board.Gap, board.Font.Height + 4, false, out _);
-                Pointer(board, "OnMouseDoubleClick", MouseButtons.Left,
-                    Centre(smallItems.First(i => i.IsTile).Bounds), 2);
-                Assert.Equal(4, edits);
-                Assert.Equal(1, checks);
+                var items = all.Where(i => i.IsTile).ToList();
+                Point first = Centre(items[0].Bounds), second = Centre(items[1].Bounds);
+
+                // A click: press and release on one tile.
+                Pointer(board, "OnMouseDown", MouseButtons.Left, first);
+                Pointer(board, "OnMouseClick", MouseButtons.Left, first);
+                Pointer(board, "OnMouseUp", MouseButtons.Left, first);
+                Assert.Single(checked_);
+                Assert.Equal(board.Tiles[items[0].TileIndex].Target.Id, checked_[0]);
+
+                // A press on one tile released over another is no click on either.
+                Pointer(board, "OnMouseDown", MouseButtons.Left, first);
+                Pointer(board, "OnMouseClick", MouseButtons.Left, second);
+                Pointer(board, "OnMouseUp", MouseButtons.Left, second);
+                Assert.Single(checked_);
+
+                // The right button opens the menu, it does not check.
+                Pointer(board, "OnMouseDown", MouseButtons.Right, first);
+                Pointer(board, "OnMouseClick", MouseButtons.Right, first);
+                Pointer(board, "OnMouseUp", MouseButtons.Right, first);
+                Assert.Single(checked_);
+
+                // Empty space is not a tile.
+                var empty = new Point(board.Width - 2, board.Height - 2);
+                Assert.Equal(-1, TrafficLightBoardLayout.HitTest(all, empty));
+                Pointer(board, "OnMouseDown", MouseButtons.Left, empty);
+                Pointer(board, "OnMouseClick", MouseButtons.Left, empty);
+                Pointer(board, "OnMouseUp", MouseButtons.Left, empty);
+                Assert.Single(checked_);
+
+                // A double click checks once, not twice: the second press raises no click.
+                Pointer(board, "OnMouseDown", MouseButtons.Left, second);
+                Pointer(board, "OnMouseClick", MouseButtons.Left, second);
+                Pointer(board, "OnMouseUp", MouseButtons.Left, second);
+                Pointer(board, "OnMouseDown", MouseButtons.Left, second, 2);
+                Pointer(board, "OnMouseDoubleClick", MouseButtons.Left, second, 2);
+                Pointer(board, "OnMouseUp", MouseButtons.Left, second);
+                Assert.Equal(2, checked_.Count);
+            });
+        }
+
+        [Fact]
+        public void ADragOfTheMicroscopicBoardIsNotAClick()
+        {
+            OnUiThread(() =>
+            {
+                int drags = 0, activated = 0;
+                using var board = new TrafficLightBoard { Size = new Size(400, 200) };
+                board.SetSizeStep(AppConfig.MicroscopicTrafficLightTileSize);
+                board.SetTiles(Four());
+                board.CreateControl();
+                board.DragRequested += () => drags++;
+                board.TileActivated += _ => activated++;
+                Point at = Centre(TrafficLightBoardLayout.Compute(board.Tiles.ToList(), board.Width,
+                    board.EffectiveColumns, board.TileSize, board.Gap, 0, false, out _).First(i => i.IsTile).Bounds);
+
+                Pointer(board, "OnMouseDown", MouseButtons.Left, at);
+                Pointer(board, "OnMouseMove", MouseButtons.Left, new Point(at.X + SystemInformation.DragSize.Width + 1, at.Y));
+                Assert.Equal(1, drags);
+                // Were Windows to deliver a click after the move loop, it must not count.
+                Pointer(board, "OnMouseClick", MouseButtons.Left, at);
+                Pointer(board, "OnMouseUp", MouseButtons.Left, at);
+                Assert.Equal(0, activated);
+
+                // The same gesture without the movement is a click.
+                Pointer(board, "OnMouseDown", MouseButtons.Left, at);
+                Pointer(board, "OnMouseClick", MouseButtons.Left, at);
+                Pointer(board, "OnMouseUp", MouseButtons.Left, at);
+                Assert.Equal(1, activated);
             });
         }
 

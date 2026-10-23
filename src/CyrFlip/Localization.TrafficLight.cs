@@ -103,6 +103,25 @@ namespace CyrFlip
                 es: "Mantener el semáforo sobre las demás ventanas", fr: "Garder le tableau au-dessus des autres fenêtres", pt: "Manter o semáforo acima das outras janelas", ar: "إبقاء اللوحة فوق النوافذ الأخرى",
                 hi: "बोर्ड को अन्य विंडो के ऊपर रखें", bn: "বোর্ডকে অন্য উইন্ডোর উপরে রাখুন", ur: "بورڈ کو دوسری ونڈوز کے اوپر رکھیں", zh: "让面板保持在其他窗口上方");
 
+            Add("Open the board when CyrFlip starts",
+                ru: "Открывать доску при запуске CyrFlip", uk: "Відкривати дошку під час запуску CyrFlip", de: "Ampel beim Start von CyrFlip öffnen", it: "Apri il semaforo all'avvio di CyrFlip",
+                es: "Abrir el semáforo al iniciar CyrFlip", fr: "Ouvrir le tableau au démarrage de CyrFlip", pt: "Abrir o semáforo ao iniciar o CyrFlip", ar: "فتح اللوحة عند بدء تشغيل CyrFlip",
+                hi: "CyrFlip शुरू होने पर बोर्ड खोलें", bn: "CyrFlip চালু হলে বোর্ড খুলুন", ur: "CyrFlip شروع ہونے پر بورڈ کھولیں", zh: "CyrFlip 启动时打开面板");
+
+            Add("On: the board appears at every start. Off: it reopens only if it was open when CyrFlip last closed.",
+                ru: "Вкл.: доска появляется при каждом запуске. Выкл.: она открывается снова, только если была открыта при последнем закрытии CyrFlip.",
+                uk: "Увімк.: дошка з'являється під час кожного запуску. Вимк.: вона відкривається знову, лише якщо була відкрита під час останнього закриття CyrFlip.",
+                de: "An: Die Ampel erscheint bei jedem Start. Aus: Sie öffnet sich nur wieder, wenn sie beim letzten Beenden von CyrFlip offen war.",
+                it: "Attivo: il semaforo compare a ogni avvio. Disattivo: si riapre solo se era aperto quando CyrFlip è stato chiuso l'ultima volta.",
+                es: "Activado: el semáforo aparece en cada inicio. Desactivado: solo se reabre si estaba abierto al cerrar CyrFlip por última vez.",
+                fr: "Activé : le tableau apparaît à chaque démarrage. Désactivé : il ne se rouvre que s'il était ouvert à la dernière fermeture de CyrFlip.",
+                pt: "Ativado: o semáforo aparece a cada inicialização. Desativado: só reabre se estava aberto quando o CyrFlip foi fechado pela última vez.",
+                ar: "مفعّل: تظهر اللوحة عند كل بدء تشغيل. غير مفعّل: تُفتح من جديد فقط إذا كانت مفتوحة عند آخر إغلاق لـ CyrFlip.",
+                hi: "चालू: बोर्ड हर बार शुरू होने पर दिखता है। बंद: बोर्ड तभी फिर खुलता है जब CyrFlip के पिछली बार बंद होने पर वह खुला था।",
+                bn: "চালু: প্রতিবার শুরুতে বোর্ড দেখা যায়। বন্ধ: CyrFlip শেষবার বন্ধ হওয়ার সময় বোর্ড খোলা থাকলেই কেবল তা আবার খোলে।",
+                ur: "آن: بورڈ ہر آغاز پر ظاہر ہوتا ہے۔ آف: بورڈ صرف اسی صورت دوبارہ کھلتا ہے جب CyrFlip کے آخری بار بند ہونے پر وہ کھلا ہوا تھا۔",
+                zh: "开启：每次启动都会显示面板。关闭：仅当 CyrFlip 上次关闭时面板是打开的，才会再次打开。");
+
             Add("Drive",
                 ru: "Диск", uk: "Диск", de: "Laufwerk", it: "Unità",
                 es: "Unidad", fr: "Lecteur", pt: "Unidade", ar: "محرك الأقراص",

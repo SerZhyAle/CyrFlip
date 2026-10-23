@@ -58,6 +58,7 @@ namespace CyrFlip
         private readonly ToolTip _tip = new ToolTip { ShowAlways = true, InitialDelay = 250, ReshowDelay = 100, AutoPopDelay = 20000 };
         private int _tipTile = -1;
         private Point? _dragOrigin;
+        private int _pressedTile = -1;
 
         public TrafficLightBoard()
         {
@@ -69,7 +70,7 @@ namespace CyrFlip
             ApplyTheme(ThemePalette.Light);
         }
 
-        /// <summary>A tile was activated (double click, Enter): check that target now.</summary>
+        /// <summary>A tile was activated (click, Enter): check that target now, between its scheduled checks.</summary>
         public event Action<int>? TileActivated;
         /// <summary>The context menu was asked for - tile index or -1 - at a client point.</summary>
         public event Action<int, Point>? ContextMenuRequested;
@@ -97,6 +98,7 @@ namespace CyrFlip
         {
             _sizeStep = Math.Max(0, Math.Min(AppConfig.MicroscopicTrafficLightTileSize, step));
             _dragOrigin = null;
+            _pressedTile = -1;
             Relayout(force: true);
         }
 
@@ -482,6 +484,7 @@ namespace CyrFlip
                 if (!deadZone.Contains(e.Location))
                 {
                     _dragOrigin = null;
+                    _pressedTile = -1;      // a drag is not a click
                     Capture = false;
                     _hover = -1;
                     Invalidate();
@@ -517,6 +520,7 @@ namespace CyrFlip
                 return;
             }
             if (e.Button != MouseButtons.Left) return;
+            _pressedTile = hit;
             if (IsMicroscopic)
             {
                 _dragOrigin = e.Location;
@@ -534,6 +538,21 @@ namespace CyrFlip
                 Capture = false;
             }
             base.OnMouseUp(e);
+            if (e.Button == MouseButtons.Left) _pressedTile = -1;
+        }
+
+        /// <summary>
+        /// A click on a tile checks that target now. The press and the release must land on the same tile, and a
+        /// press that turned into a drag of the microscopic board never gets here (<see cref="_pressedTile"/> is
+        /// cleared when the drag starts). WinForms raises this before <see cref="OnMouseUp"/>, and never for the
+        /// second press of a double click, so a double click checks once.
+        /// </summary>
+        protected override void OnMouseClick(MouseEventArgs e)
+        {
+            base.OnMouseClick(e);
+            if (e.Button != MouseButtons.Left) return;
+            int hit = TileAt(e.Location);
+            if (hit >= 0 && hit == _pressedTile) TileActivated?.Invoke(hit);
         }
 
         protected override void OnMouseCaptureChanged(EventArgs e)
@@ -545,10 +564,9 @@ namespace CyrFlip
         protected override void OnMouseDoubleClick(MouseEventArgs e)
         {
             base.OnMouseDoubleClick(e);
-            int hit = TileAt(e.Location);
             if (e.Button != MouseButtons.Left) return;
+            // The first click of the pair already started the check; a second one would only repeat it.
             if (IsMicroscopic) SettingsRequested?.Invoke();
-            else if (hit >= 0) TileActivated?.Invoke(hit);
         }
 
         // ---- the tooltip: the same text on hover and beside the focused tile (D16) ----

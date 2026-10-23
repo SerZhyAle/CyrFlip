@@ -93,6 +93,7 @@
     "EnableTrafficLight": false,
     "EnableTrafficLightHotkey": true,
     "TrafficLightHotkey": "Ctrl+Shift+Alt+T",
+    "TrafficLightShowAtStart": true,
     "TrafficLightPinned": true,
     "TrafficLightTileSize": 1,
     "TrafficLightColumns": 3,

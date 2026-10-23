@@ -43,6 +43,7 @@ not a local edit and not a local copy kept "in sync".
 | [`CHECK-BASELINE.md`](CHECK-BASELINE.md) | `CHECK-BASELINE` | None - no accepted-debt file, declared |
 | [`CHECK-PLACEMENT.md`](CHECK-PLACEMENT.md) | `CHECK-PLACEMENT` | Producer - where each check runs |
 | [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md) | `BUILD-EVIDENCE` | Producer - the release ZIP carries its build's version and commit |
+| [`TEST-LAB.md`](TEST-LAB.md) | `TEST-LAB` | Reporter - one inventory of equipment, test practice and contract proof filed 2026-10-23 (ticket `S0080`); no profile, no harness change |
 | [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-INTERNAL-QUALITY` | Consumer - internal docs; held (most rules gated), ticket `S0028` |
 | [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-EXTERNAL-QUALITY` | Consumer - the `docs/` site in 13 languages; held and gated, ticket `S0028` |
 | [`UPDATE-MANIFEST.md`](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | Not bound - CyrFlip has no update check |
