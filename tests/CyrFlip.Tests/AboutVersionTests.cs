@@ -16,7 +16,7 @@ namespace CyrFlip.Tests
     [Collection(SharedGdiCollection.Name)]   // builds the real window - see SharedGdiCollection
     public class AboutVersionTests
     {
-        [Fact]
+        [UiSweepFact]
         public void The_about_tab_shows_the_build_version()
         {
             string text = "";
@@ -33,7 +33,7 @@ namespace CyrFlip.Tests
             Assert.NotEqual("unknown", version);
         }
 
-        [Fact]
+        [UiSweepFact]
         public void The_version_line_is_translated_with_the_rest_of_the_window()
         {
             string russian = "";

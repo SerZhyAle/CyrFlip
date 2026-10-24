@@ -196,7 +196,7 @@ namespace CyrFlip.Tests
             }
         }
 
-        [Fact]
+        [UiSweepFact]
         public void WindowsSetRightToLeftInArabic()
         {
             OnUiThread(() =>

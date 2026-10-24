@@ -96,7 +96,7 @@ namespace CyrFlip.Tests
         // A note is shown, scrolled and numbered - and stays exactly what it was
         // =========================================================================
 
-        [Fact]
+        [UiSweepFact]
         public void ShowingScrollingAndTogglingTheNumbersWritesNothingAndKeepsTheExactBytes()
         {
             OnUiThread(() =>

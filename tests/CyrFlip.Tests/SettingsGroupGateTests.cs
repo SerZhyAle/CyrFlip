@@ -40,7 +40,7 @@ namespace CyrFlip.Tests
                 + (editor != null ? " holding " + editor.GetType().Name + " \"" + editor.Text + "\"" : "");
         }
 
-        [Fact]
+        [UiSweepFact]
         public void NoPageMadeOfGroupsHoldsALooseEditorOrCommand()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -84,7 +84,7 @@ namespace CyrFlip.Tests
             Assert.False(CarriesAnEditor(new Label()));
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheModulePagesLeadWithAGroupHoldingTheirSwitch()
         {
             // The hotkeys page's precedent (hotkeys/switches) on every module page: the switch is in the first

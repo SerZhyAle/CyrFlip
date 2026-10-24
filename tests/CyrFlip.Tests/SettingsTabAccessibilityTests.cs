@@ -29,7 +29,7 @@ namespace CyrFlip.Tests
             if (failure != null) throw new Xunit.Sdk.XunitException("EXCEPTION: " + failure);
         }
 
-        [Fact]
+        [UiSweepFact]
         public void PageListExposesTabItems()
         {
             OnUiThread(() =>
@@ -53,7 +53,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void SelectedPageIsMarkedAndSelectable()
         {
             OnUiThread(() =>
@@ -81,7 +81,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TabItemsFollowALiveLanguageChange()
         {
             OnUiThread(() =>

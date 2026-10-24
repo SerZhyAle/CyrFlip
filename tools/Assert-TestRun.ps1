@@ -18,8 +18,9 @@
 param(
     [Parameter(Mandatory = $true)][string]$ResultsDirectory,
     [int]$Floor = 1000,
-    # Owner waiver (release.ps1 -SkipSweeps): tests that did not execute are named on the console instead of
-    # turning the verdict into COULD NOT VERIFY. A failure, an empty run or a run below the floor still fails.
+    # Owner waiver (2026-10-24, release.ps1, release.yml, ci.yml): the 13-language UI sweeps never run there, so
+    # tests that did not execute are named on the console instead of turning the verdict into COULD NOT VERIFY.
+    # A failure, an empty run or a run below the floor still fails.
     [switch]$AllowSkipped
 )
 
@@ -47,7 +48,7 @@ if ($executed -gt 0 -and $executed -lt $Floor) { Add-CheckFinding -Severity fail
 if ($failed -gt 0) { Add-CheckFinding -Severity fail -Name 'failed-tests' -Reason "The TRX reports $failed failed test(s)." }
 
 if ($AllowSkipped -and $skipped -gt 0) {
-    Write-Host "Waived: $skipped test(s) did not execute (-AllowSkipped; the UI sweeps are the release workflow's)." -ForegroundColor Yellow
+    Write-Host "Waived: $skipped test(s) did not execute (-AllowSkipped; the UI sweeps run only by hand)." -ForegroundColor Yellow
     $skipped = 0
 }
 

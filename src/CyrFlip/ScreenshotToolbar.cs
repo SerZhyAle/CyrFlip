@@ -16,6 +16,9 @@ namespace CyrFlip
     /// visible to the user's eye anyway, so <c>WDA_EXCLUDEFROMCAPTURE</c> is deliberately not used
     /// here (unlike the caret overlay, which hides from other people's captures).</para>
     ///
+    /// <para>Each tool button shows its shape as a vector preview (<see cref="AnnotationToolGlyph"/>) in the
+    /// theme's text ink; the active tool is the pressed one.</para>
+    ///
     /// <para>Chrome entirely from <c>ThemePalette</c> roles (<c>APP-STYLE</c> rule 4) - built in
     /// <c>ThemePalette.Light</c> like every control, and every themed part is its own
     /// <c>IThemeAware</c> control: the theme walk recolours each control when it reaches it, so no
@@ -285,6 +288,21 @@ namespace CyrFlip
 
             public AnnotationTool Tool { get; set; }
             public bool Selected { get; set; }
+
+            /// <summary>
+            /// The button's face is the tool's own picture, in the theme's text ink. It has no caption
+            /// (the tooltip and the accessible name carry the words), so without this it is a blank
+            /// square - which is what the toolbar shipped with.
+            /// </summary>
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                Rectangle box = ClientRectangle;
+                box.Inflate(-GlyphMargin, -GlyphMargin);
+                AnnotationToolGlyph.Draw(e.Graphics, Tool, box, ForeColor);
+            }
+
+            private const int GlyphMargin = 6;
 
             public void ApplyTheme(ThemePalette palette) => ApplyChrome(palette);
 

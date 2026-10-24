@@ -87,7 +87,7 @@ namespace CyrFlip.Tests
             return "";
         }
 
-        [Fact]
+        [UiSweepFact]
         public void EveryValueEditorOfTheBuiltWindowHasAMutedDescriptionInItsRow()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -113,7 +113,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void EveryExemptionNamesAnEditorThatExists()
         {
             RegroupingHarness.OnUiThread(() =>

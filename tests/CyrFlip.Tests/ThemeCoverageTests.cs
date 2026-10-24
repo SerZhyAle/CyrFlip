@@ -85,7 +85,7 @@ namespace CyrFlip.Tests
                 Assert.NotNull(typeof(AppConfig).Assembly.GetType(declared));
         }
 
-        [Fact]
+        [UiSweepFact]
         public void EveryWindowFollowsDarkHighContrastAndLight()
         {
             var problems = new List<string>();

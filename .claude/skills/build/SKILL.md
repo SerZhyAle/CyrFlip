@@ -24,7 +24,7 @@ executes steps 2 and 6; the rest is judgement you apply each time.
    It builds the app project in Release (no tests - the fast path), stages the single exe and
    deploys to the sync folders. `.\build.ps1 -Tests` adds the whole solution, `dotnet test` and the
    static checks. Neither runs the 13-language UI sweeps (they flash every window in every
-   language): only a release sets `CYRFLIP_SWEEP=full`. For a change to one window, sweep that
+   language), and neither does a release or CI: nothing sets `CYRFLIP_SWEEP=full` but a human. For a change to one window, sweep that
    window alone: `CYRFLIP_SWEEP=full dotnet test --filter <ThatWindowTests>`; never the whole
    interface. A clean build must be **warning-free** (csproj has `WarningsAsErrors`). If build or
    tests fail - stop and fix before committing.

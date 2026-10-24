@@ -21,7 +21,7 @@ namespace CyrFlip.Tests
     [Collection(SharedGdiCollection.Name)]
     public class SettingsOpenCostTests
     {
-        [Fact]
+        [UiSweepFact]
         public void ShowingTheWindowClampsOnlyThePageThatIsShown()
         {
             OnUiThread(() =>
@@ -48,7 +48,7 @@ namespace CyrFlip.Tests
         /// The other half of the same change: a page that was hidden while the window changed size is brought
         /// up to date when it is selected, so nothing is left at the width it was authored for.
         /// </summary>
-        [Fact]
+        [UiSweepFact]
         public void APageHiddenDuringAResizeIsClampedWhenItIsSelected()
         {
             OnUiThread(() =>

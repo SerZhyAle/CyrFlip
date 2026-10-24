@@ -74,7 +74,7 @@ namespace CyrFlip.Tests
             if (failure != null) throw new Xunit.Sdk.XunitException(failure.ToString());
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheOpacityLabelKeepsTheSliderValueAcrossARetranslation()
         {
             OnUiThread(() =>
@@ -90,7 +90,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void AnUnknownUiLanguageShowsTheLanguageTheUiFallsBackTo()
         {
             OnUiThread(() =>

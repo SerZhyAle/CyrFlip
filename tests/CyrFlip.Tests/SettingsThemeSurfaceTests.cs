@@ -58,7 +58,7 @@ namespace CyrFlip.Tests
             finally { DeleteDC(hdc); }
         }
 
-        [Fact]
+        [UiSweepFact]
         public void DarkFormAnswersCtColorStaticForADisabledTextBox()
         {
             OnUiThread(() =>
@@ -90,7 +90,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void LightFormLeavesCtColorStaticToTheSystem()
         {
             OnUiThread(() =>
@@ -105,7 +105,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void DarkNumericAnswersThroughItsOwnSubclass()
         {
             OnUiThread(() =>
@@ -130,7 +130,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void RightToLeftStripSitsOnTheRight()
         {
             OnUiThread(() =>

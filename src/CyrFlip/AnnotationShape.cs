@@ -53,6 +53,12 @@ namespace CyrFlip
             Index = index;
         }
 
+        /// <summary>Alpha of a filled kind's fill, under its opaque outline - the picture below stays readable.</summary>
+        public const int FillAlpha = 128;
+
+        /// <summary>The fill colour of a filled kind (and of its preview on the toolbar button): the ink at <see cref="FillAlpha"/>.</summary>
+        public static Color FillColor(Color ink) => Color.FromArgb(FillAlpha, ink);
+
         public AnnotationKind Kind { get; }
         /// <summary>The drag's start corner, virtual-screen physical pixels.</summary>
         public Point P1 { get; }
@@ -112,7 +118,7 @@ namespace CyrFlip
                     g.DrawEllipse(pen, Bounds);
                     break;
                 case AnnotationKind.FilledEllipse:
-                    using (var ellipseFill = new SolidBrush(Color.FromArgb(128, Ink)))
+                    using (var ellipseFill = new SolidBrush(FillColor(Ink)))
                         g.FillEllipse(ellipseFill, Bounds);
                     g.DrawEllipse(pen, Bounds);
                     break;
@@ -120,7 +126,7 @@ namespace CyrFlip
                     g.DrawRectangle(pen, Bounds);
                     break;
                 case AnnotationKind.FilledRectangle:
-                    using (var rectFill = new SolidBrush(Color.FromArgb(128, Ink)))
+                    using (var rectFill = new SolidBrush(FillColor(Ink)))
                         g.FillRectangle(rectFill, Bounds);
                     g.DrawRectangle(pen, Bounds);
                     break;

@@ -73,7 +73,7 @@ namespace CyrFlip.Tests
             return !weak.IsAlive;
         }
 
-        [Fact]
+        [UiSweepFact]
         public void EveryWindowIsCollectableOnceItIsDisposed()
         {
             OnSta(() =>

@@ -1552,7 +1552,7 @@ namespace CyrFlip.Tests
     [Collection(SharedGdiCollection.Name)]
     public class TrafficLightSettingsPageTests
     {
-        [Theory]
+        [UiSweepTheory]
         [InlineData(0, 1)]
         [InlineData(1, 2)]
         [InlineData(2, 3)]
@@ -1581,7 +1581,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void ThePageHasItsFourGroupsAndTheChordSwitchIsNamed()
         {
             RegroupingHarness.OnUiThread(() =>

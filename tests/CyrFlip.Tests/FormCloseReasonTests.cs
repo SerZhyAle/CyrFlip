@@ -49,7 +49,7 @@ namespace CyrFlip.Tests
         /// next open from the tray or the pipe threw ObjectDisposedException into the fatal path.
         /// The window must be hidden, alive, and openable again.
         /// </summary>
-        [Fact]
+        [UiSweepFact]
         public void A_bare_WmClose_hides_the_settings_window_instead_of_disposing_it() => OnUiThread(() =>
         {
             Form form = BuildSettings();
@@ -66,7 +66,7 @@ namespace CyrFlip.Tests
             finally { form.Dispose(); }
         });
 
-        [Fact]
+        [UiSweepFact]
         public void Settings_window_lets_windows_end_the_session() => OnUiThread(() =>
         {
             Form form = BuildSettings();

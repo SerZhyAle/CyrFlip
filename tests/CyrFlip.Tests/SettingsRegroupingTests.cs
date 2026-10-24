@@ -103,7 +103,7 @@ namespace CyrFlip.Tests
             ("L33", "group.overview", SettingsPageKey.Hotkeys, "hotkeys/switches"),
         };
 
-        [Fact]
+        [UiSweepFact]
         public void EveryLedgerRowExistsExactlyOnceOnItsPageAndInItsGroup()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -123,7 +123,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheSixOverviewGroupsAreOnTheMergedPage()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -136,7 +136,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheRetiredNoteAndTheDuplicateMasterAreGone()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -158,7 +158,7 @@ namespace CyrFlip.Tests
         private static object Field(object owner, string name)
             => typeof(SettingsForm).GetField(name, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(owner)!;
 
-        [Fact]
+        [UiSweepFact]
         public void TheMasterSwitchGreysTheCaseFixAndTheHistoryRowsOnTheirNewPages()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -180,7 +180,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheContextMenuSwitchGreysItsKeyboardChordAndTheMasterSwitchDoesNot()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -199,7 +199,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void ASearchForCapsLockAndForTheMenuChordLandOnTheirNewHomes()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -240,7 +240,7 @@ namespace CyrFlip.Tests
             (SettingsPageKey.About, "О программе"),
         };
 
-        [Fact]
+        [UiSweepFact]
         public void ThePagesAreInThePillarOrderWithTheirTitles()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -256,7 +256,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheRetiredOverviewPageHasNoTab()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -289,7 +289,7 @@ namespace CyrFlip.Tests
             [ChordKind.ExchangeGet] = "setting.exchange-clipboard-get-chord",
         };
 
-        [Fact]
+        [UiSweepFact]
         public void EveryFixedChordIsHeldByAControlOnTheOwnersPage()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -406,7 +406,7 @@ namespace CyrFlip.Tests
             Assert.Equal(raw, AppConfig.SanitizeViewport(raw));   // and the sanitizer keeps both shapes
         }
 
-        [Fact]
+        [UiSweepFact]
         public void ARememberedOverviewPageOpensTheMergedPage()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -418,7 +418,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void ALegacySettingsTabIndexLandsOnTheSamePageAsBefore()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -437,7 +437,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void AStoredKeyWinsOverALegacyIndex()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -455,7 +455,7 @@ namespace CyrFlip.Tests
     [Collection(SharedGdiCollection.Name)]
     public class AutomaticGroupTests
     {
-        [Fact]
+        [UiSweepFact]
         public void OnlyTheIndicatorsPageKeepsLooseRowsAndNoPageIsFoundByItsTitle()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -475,7 +475,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheRenamedPagesAreStillBuiltWhateverLanguageNamesThem()
         {
             RegroupingHarness.OnUiThread(() =>

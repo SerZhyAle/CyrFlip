@@ -36,7 +36,7 @@ namespace CyrFlip.Tests
             Assert.Equal(1, ContextHelp.ReadMap("{\"schemaVersion\":1,\"optionalFutureField\":true}").schemaVersion);
         }
 
-        [Fact]
+        [UiSweepFact]
         public void ExtractedFilesRepairCorruptionAndKeepTheElementFragment()
         {
             string root = Path.Combine(Path.GetTempPath(), "CyrFlipHelpTests", Guid.NewGuid().ToString("N"));
@@ -73,7 +73,7 @@ namespace CyrFlip.Tests
         }
 
         /// <summary>CONTEXT-HELP rule 3 and 7: F1 and the corner button are one ask with one answer, and the modal dialog stays open.</summary>
-        [Fact]
+        [UiSweepFact]
         public void F1AndTheHelpButtonOpenTheSameTargetAndLeaveTheDialogOpen()
         {
             string cache = Path.Combine(Path.GetTempPath(), "CyrFlipHelpTests", Guid.NewGuid().ToString("N"));

@@ -51,7 +51,7 @@ namespace CyrFlip.Tests
             }
         }
 
-        [Fact]
+        [UiSweepFact]
         public void AGroupHeaderIsNamedInTheCurrentLanguageAfterALiveSwitch()
         {
             OnUiThread(() =>
@@ -90,7 +90,7 @@ namespace CyrFlip.Tests
             Assert.True(problems.Count == 0, "APP-SETTINGS rule 10 - editors without a name:\n" + string.Join("\n", problems.Distinct().Take(40)));
         }
 
-        [Fact]
+        [UiSweepFact]
         public void ASwitchWithoutACaptionIsNamedAfterItsRow()
         {
             int inspected = 0;
@@ -114,7 +114,7 @@ namespace CyrFlip.Tests
             Assert.True(problems.Count == 0, string.Join("\n", problems.Distinct()));
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheHeaderCommandsAndAboutLinksFollowALiveLanguageSwitch()
         {
             OnUiThread(() =>
@@ -138,7 +138,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheLauncherOrderButtonsFollowTheLanguage()
         {
             OnUiThread(() =>
@@ -155,7 +155,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void ExpandAndCollapseAllAreAvailableOnlyOnAPageWithGroups()
         {
             var problems = new List<string>();
@@ -180,7 +180,7 @@ namespace CyrFlip.Tests
             Assert.True(problems.Count == 0, string.Join("\n", problems));
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheHeaderCommandsComeBeforeThePagesInTheTabOrder()
         {
             OnUiThread(() =>

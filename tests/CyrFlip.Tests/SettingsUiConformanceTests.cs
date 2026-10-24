@@ -113,7 +113,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void ExpansionSurvivesTheStateStringRoundTrip()
         {
             OnUiThread(() =>
@@ -262,7 +262,7 @@ namespace CyrFlip.Tests
 
         // ---- Discovery (WINDOWS-UI section 3 rules 4-5) ----
 
-        [Fact]
+        [UiSweepFact]
         public void SearchIndexCoversEveryPageAndMatchesDescriptions()
         {
             OnUiThread(() =>
@@ -300,7 +300,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void SearchDialogHasAQueryBoxThatFiltersAndShowsEachCaptionWithItsContext()
         {
             OnUiThread(() =>
@@ -393,7 +393,7 @@ namespace CyrFlip.Tests
 
         // ---- The theme round trip covers the new surfaces (WINDOWS-UI section 6.2) ----
 
-        [Fact]
+        [UiSweepFact]
         public void LightAfterDarkRestoresGroupBandsAndHints()
         {
             OnUiThread(() =>

@@ -125,7 +125,7 @@ namespace CyrFlip.Tests
         /// handle creatable (ThemeApply touches borders and styles, and a style change recreates the
         /// handle - which asks the control's font for a LOGFONT).
         /// </summary>
-        [Fact]
+        [UiSweepFact]
         public void NoWindowHoldsADisposedFontAfterAThemeSwitch()
         {
             OnSta(() =>
@@ -180,7 +180,7 @@ namespace CyrFlip.Tests
         /// created under exactly such a font. The row built here is never attached: across the family
         /// changes its every control must keep a usable font and be able to create its handle.
         /// </summary>
-        [Fact]
+        [UiSweepFact]
         public void ARowKeptOutOfTheTreeHoldsNoDisposedFontAfterAnyLanguageChange()
         {
             OnSta(() =>

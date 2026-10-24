@@ -463,7 +463,7 @@ namespace CyrFlip.Tests
         // 9. SettingsForm UI Checkbox Presence & Localization
         // =========================================================================
 
-        [Fact]
+        [UiSweepFact]
         public void SettingsForm_QuickNotesLineNumbersCheckBox_PresentAndLocalized()
         {
             OnUiThread(() =>

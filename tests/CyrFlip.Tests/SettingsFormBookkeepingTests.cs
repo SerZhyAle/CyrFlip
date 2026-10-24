@@ -55,7 +55,7 @@ namespace CyrFlip.Tests
         /// A value label - a chord, the version, the marker size - is filled by Reload. Registered as a
         /// "source original", every re-translation would put its first value back over the live one.
         /// </summary>
-        [Fact]
+        [UiSweepFact]
         public void NoValueLabelIsRememberedAsACaption()
         {
             OnSta(form =>
@@ -71,7 +71,7 @@ namespace CyrFlip.Tests
         }
 
         /// <summary>Called inside a loading section, the toggle reload must leave the section loading.</summary>
-        [Fact]
+        [UiSweepFact]
         public void ReloadingTheToggleComboRestoresTheLoadingFlag()
         {
             OnSta(form =>

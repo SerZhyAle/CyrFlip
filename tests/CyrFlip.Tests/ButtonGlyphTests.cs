@@ -272,7 +272,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void EveryCommandButtonOfEveryWindowCarriesAGlyphOrIsDeclared()
         {
             var problems = new List<string>();

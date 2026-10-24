@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -13,12 +14,14 @@ using Xunit.Sdk;
 // those sources changed", and equally "run in Release", re-runs them on nearly every test run
 // (both were tried: 2026-10-15 the first, then the build configuration - a Release run swept,
 // so build.ps1 -Tests and every hand-run Release `dotnet test` walked every window in every
-// language, S0072 included). The gate therefore asks for one thing and keeps no state:
+// language, S0072 included). Then a release preflight and CI that set it ran ~36 minutes for a
+// walk that had already passed once (owner, 2026-10-24: that is enough). The gate therefore asks
+// for one thing and keeps no state:
 //
-//   - a sweep runs only when CYRFLIP_SWEEP=full is set, in ANY configuration. release.ps1's
-//     preflight, release.yml and ci.yml set it on their `dotnet test` step, so the full walk is
-//     the release's own validation path and nothing else starts it;
-//   - everything else - Debug or Release, `dotnet test`, build.ps1 -Tests - skips every sweep;
+//   - a sweep runs only when CYRFLIP_SWEEP=full is set by hand, in ANY configuration. No script
+//     and no workflow sets it;
+//   - everything else - Debug or Release, `dotnet test`, build.ps1 -Tests, release.ps1, CI -
+//     skips every sweep;
 //   - a change to one window sweeps that window only: `CYRFLIP_SWEEP=full dotnet test
 //     --filter SymbolsWindowTests`. Never the whole interface for one window's change.
 //
@@ -34,6 +37,12 @@ namespace CyrFlip.Tests
     {
     }
 
+    /// <summary>[Theory] twin of <see cref="UiSweepFactAttribute"/>: every row is skipped unless the gate says sweep.</summary>
+    [XunitTestCaseDiscoverer("CyrFlip.Tests.UiSweepTheoryDiscoverer", "CyrFlip.Tests")]
+    public sealed class UiSweepTheoryAttribute : TheoryAttribute
+    {
+    }
+
     internal sealed class UiSweepFactDiscoverer : FactDiscoverer
     {
         public UiSweepFactDiscoverer(IMessageSink diagnosticMessageSink) : base(diagnosticMessageSink) { }
@@ -42,13 +51,46 @@ namespace CyrFlip.Tests
             => new UiSweepTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
     }
 
+    internal sealed class UiSweepTheoryDiscoverer : TheoryDiscoverer
+    {
+        public UiSweepTheoryDiscoverer(IMessageSink diagnosticMessageSink) : base(diagnosticMessageSink) { }
+
+        protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)
+            => new IXunitTestCase[] { new UiSweepTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, dataRow) };
+
+        protected override IEnumerable<IXunitTestCase> CreateTestCasesForTheory(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute)
+            => new IXunitTestCase[] { new UiSweepTheoryTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod) };
+    }
+
     /// <summary>A stock fact case that reports skipped when the gate says this configuration does not sweep.</summary>
     internal sealed class UiSweepTestCase : XunitTestCase
     {
         [Obsolete("Called by the deserializer", true)]
         public UiSweepTestCase() { }
 
-        public UiSweepTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod)
+        public UiSweepTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, object[]? testMethodArguments = null)
+            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments!) { }
+
+        public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
+        {
+            if (UiSweepGate.ShouldSkip(out var reason))
+            {
+                var test = new XunitTest(this, DisplayName);
+                messageBus.QueueMessage(new TestSkipped(test, reason));
+                messageBus.QueueMessage(new TestFinished(test, 0m, string.Empty));
+                return new RunSummary { Total = 1, Skipped = 1 };
+            }
+            return await base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
+        }
+    }
+
+    /// <summary>The theory whose rows could not be enumerated at discovery: one skip for the lot.</summary>
+    internal sealed class UiSweepTheoryTestCase : XunitTheoryTestCase
+    {
+        [Obsolete("Called by the deserializer", true)]
+        public UiSweepTheoryTestCase() { }
+
+        public UiSweepTheoryTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod)
             : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod) { }
 
         public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
@@ -77,8 +119,8 @@ namespace CyrFlip.Tests
                 reason = "";
                 return false;
             }
-            reason = "UI language sweep skipped: only a release run sweeps (release.ps1, release.yml, ci.yml set "
-                + EnvVar + "=full). To sweep one window: " + EnvVar + "=full dotnet test --filter <ThatWindowTests>.";
+            reason = "UI sweep skipped (builds real windows across languages or pages): it runs only when " + EnvVar + "=full is set by hand. To sweep one window: "
+                + EnvVar + "=full dotnet test --filter <ThatWindowTests>.";
             return true;
         }
     }

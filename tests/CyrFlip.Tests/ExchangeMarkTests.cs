@@ -329,7 +329,7 @@ namespace CyrFlip.Tests
 
         // ---- rung 3: the places of rule 8 that this program has ----
 
-        [Fact]
+        [UiSweepFact]
         public void TheBandShowsTheMarkOnlyOnTheExchangePageAndStaysOneHeight()
         {
             OnUiThread(() =>
@@ -369,7 +369,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void EveryAccountEntryWearsTheMarkBeforeItsLabel()
         {
             OnUiThread(() =>
@@ -390,7 +390,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheAboutCreditNamesTheServerByItsFullNameBesideTheMark()
         {
             OnUiThread(() =>

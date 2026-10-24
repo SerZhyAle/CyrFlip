@@ -36,7 +36,7 @@ namespace CyrFlip.Tests
 
         private static AppConfig Config() => new AppConfig { UiLanguage = "English", SettingsGroupsState = "", SettingsViewport = "" };
 
-        [Fact]
+        [UiSweepFact]
         public void DeviceDpiFollowsASimulatedDpiChange()
         {
             OnUiThread(() =>
@@ -100,7 +100,7 @@ namespace CyrFlip.Tests
             Assert.Equal(36, list.ImageSize.Height);
         }
 
-        [Fact]
+        [UiSweepFact]
         public void NarrowWindowClampsWrappingTextBlocks()
         {
             OnUiThread(() =>
@@ -122,7 +122,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TabStripIsCappedOnANarrowWindow()
         {
             OnUiThread(() =>

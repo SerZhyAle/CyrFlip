@@ -248,7 +248,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void LanguageChangeWhileModalRebuildsAndKeepsTheTourOpen()
         {
             Sta(() =>

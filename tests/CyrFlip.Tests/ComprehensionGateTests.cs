@@ -517,7 +517,7 @@ namespace CyrFlip.Tests
         internal static int Words(string text)
             => text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
 
-        [Fact]
+        [UiSweepFact]
         public void EveryPageHasOneShortDescriptionInEnglish()
         {
             RegroupingHarness.OnUiThread(() =>

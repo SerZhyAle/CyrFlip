@@ -117,7 +117,7 @@ namespace CyrFlip.Tests
 
         public static IEnumerable<object[]> ModuleCases() => Modules.Select(m => new object[] { m.Name });
 
-        [Theory]
+        [UiSweepTheory]
         [MemberData(nameof(ModuleCases))]
         public void EveryControlAModuleSwitchGreysIsExplainedAndTheNoteGoesWhenItComesBack(string moduleName)
         {
@@ -162,7 +162,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheNoteNamesTheSwitchInTheLanguageOnScreenAndFollowsALiveChange()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -183,7 +183,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheThreeRestoreButtonsSayThereIsNothingToRestoreWhileNothingIsSaved()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -217,7 +217,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void ANoteIsNotASettingOfItsOwnAndIsFoundByNoSearch()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -240,7 +240,7 @@ namespace CyrFlip.Tests
         /// Rows rebuilt from a table (layouts, language shortcuts, conversions, the hotkey list) are greyed one
         /// by one for the row's own reasons and are not part of this.
         /// </summary>
-        [Fact]
+        [UiSweepFact]
         public void NoEditorOfAModulePageIsGreyedWithoutItsReason()
         {
             RegroupingHarness.OnUiThread(() =>

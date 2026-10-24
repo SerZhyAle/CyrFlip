@@ -57,7 +57,7 @@ namespace CyrFlip.Tests
 
         // ---- WINDOWS-UI section 4, "Ordinary row" and "Boolean" ----
 
-        [Fact]
+        [UiSweepFact]
         public void EveryCaptionedRowKeepsItsCaptionAndDescriptionInTheLeadingColumn()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -110,7 +110,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheEditorsOfOnePageStandOnOneEdge()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -142,7 +142,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void NoCaptionedRowLeavesItsPageWhenThePageCanHoldIt()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -184,7 +184,7 @@ namespace CyrFlip.Tests
             ("_tlHotkeyEnabled", "the traffic light chord"),
         };
 
-        [Fact]
+        [UiSweepFact]
         public void EveryChordRowIsACaptionedBooleanWithTheChordAndItsButtonInTheEditorColumn()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -210,7 +210,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheScreenshotFolderIsACaptionedRowWithADescription()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -230,7 +230,7 @@ namespace CyrFlip.Tests
 
         // ---- WINDOWS-UI section 4, "Commands": a command is not a value row; its description starts under its caption ----
 
-        [Fact]
+        [UiSweepFact]
         public void ACommandsDescriptionStartsUnderTheCommandsCaptionText()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -275,7 +275,7 @@ namespace CyrFlip.Tests
 
         // ---- WINDOWS-UI section 5: the command metric ----
 
-        [Fact]
+        [UiSweepFact]
         public void EveryCommandButtonHasTheSharedHeightAndPaddingAndTheirGapIsTheMetric()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -330,7 +330,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheGlyphOnlyArrowsAreSquaresOfTheCommandHeight()
         {
             // The scaled value is the window's DeviceDpi, which on a test thread is the process DPI: what a monitor
@@ -449,7 +449,7 @@ namespace CyrFlip.Tests
 
         // ---- S0060 M14: the search says where a result lives, and finds only what can be changed or run ----
 
-        [Fact]
+        [UiSweepFact]
         public void EachSearchResultCarriesItsPageAndGroupBesideItsCaption()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -477,7 +477,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheIndexHoldsOnlyRowsWithAnEditorOrACommand()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -566,7 +566,7 @@ namespace CyrFlip.Tests
 
         // ---- S0060 U-L6: a field being typed in is not overwritten by a Reload ----
 
-        [Fact]
+        [UiSweepFact]
         public void AReloadDoesNotTypeOverATranslatorFieldTheUserIsEditing()
         {
             RegroupingHarness.OnUiThread(() =>
@@ -615,7 +615,7 @@ namespace CyrFlip.Tests
             Assert.True(SettingsForm.EscapeLeavesWindow(new ComboBox()));   // closed
         }
 
-        [Fact]
+        [UiSweepFact]
         public void AnOpenDropDownTakesTheEscapeAndTheWindowStaysThenLeavesOnTheNext()
         {
             RegroupingHarness.OnUiThread(() =>

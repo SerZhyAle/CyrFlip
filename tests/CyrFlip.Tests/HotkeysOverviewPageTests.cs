@@ -66,7 +66,7 @@ namespace CyrFlip.Tests
         private static Control FirstRowOf(SettingsForm form, string groupId)
             => form.Groups.Single(g => g.Id == groupId).Body.Controls[0];
 
-        [Fact]
+        [UiSweepFact]
         public void TheOnePageHoldsTheSwitchesGroupAndTheSixOverviewGroups()
         {
             OnUiThread(() =>
@@ -83,7 +83,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void EveryRowOfTheModelIsOnTheScreen()
         {
             OnUiThread(() =>
@@ -100,7 +100,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheWindowsGroupStartsCollapsedAndTheOthersOpen()
         {
             OnUiThread(() =>
@@ -148,7 +148,7 @@ namespace CyrFlip.Tests
             Assert.True(problems.Count == 0, string.Join("\n", problems.Take(30)));
         }
 
-        [Fact]
+        [UiSweepFact]
         public void AValueChangedBehindThePageShowsOnTheRowAndARefreshFiresNoHandler()
         {
             OnUiThread(() =>
@@ -186,7 +186,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void TheMasterSwitchIsOneControlWithOneHandler()
         {
             OnUiThread(() =>
@@ -206,7 +206,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void AChordFindsItsRowInTheSettingsSearch()
         {
             OnUiThread(() =>
@@ -222,7 +222,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void AnEmptyTableStillShowsItsGroupWithANote()
         {
             OnUiThread(() =>
@@ -234,7 +234,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void ARowOfAnOffModuleLinksToThePageOfThatModule()
         {
             OnUiThread(() =>
@@ -252,7 +252,7 @@ namespace CyrFlip.Tests
             });
         }
 
-        [Fact]
+        [UiSweepFact]
         public void EveryButtonOfARowNamesTheRowItActsOn()
         {
             OnUiThread(() =>

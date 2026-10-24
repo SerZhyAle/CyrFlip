@@ -25,6 +25,8 @@ so a synthesized chord would prove nothing:
   7. S0071 unattended: AnnotationComposer composes a red rectangle over a grabbed frame and the
      annotated PNG differs from the plain crop exactly inside the shape's bounds; an AnnotationEditor
      built over a synthetic frame answers OK with the composed image and Cancel with nothing;
+  7b. with -EditorWindows only: the real editor is opened for about a second and the toolbar must be
+     the window at its own centre, above every monitor window, also after a monitor window or a tool pick;
   8. with -Migration only: the S0071 chord re-key through the real exe - the script stages
      ScreenshotHotkey = Ctrl+PrintScreen (your value is backed up and restored), CyrFlip must NOT be
      running; starting it once must leave Ctrl+F12 and the migration marker in the registry;
@@ -49,6 +51,12 @@ Also run scene 4, which replaces whatever is on the clipboard.
 Also run scene 6 (S0057): CyrFlip must be running with saving on; the script asks you to press the
 chord and then checks the Explorer window it opened.
 
+.PARAMETER EditorWindows
+Also run scene 7b (S0071): opens the real annotation editor for about a second - it covers every
+monitor and takes the foreground - and checks that the toolbar is the window at its own centre and
+above every monitor window, also after a monitor window was activated. Do not touch the mouse or
+keyboard meanwhile: a focus change cancels the editor.
+
 .PARAMETER Migration
 Also run scene 8 (S0071): stages the legacy chord in the real registry (backed up first), starts the
 built exe once and reads the re-keyed values back. CyrFlip must not be running.
@@ -67,6 +75,7 @@ param(
     [switch]$FolderChord,
     [switch]$Migration,
     [switch]$FullChord,
+    [switch]$EditorWindows,
     [ValidateSet('Release', 'Debug')][string]$Configuration = 'Release'
 )
 
@@ -330,6 +339,128 @@ try {
 }
 finally {
     $composeFrame.Dispose()
+}
+
+# ---- 7b. S0071 the editor's real windows: the toolbar must be on top (opt-in, -EditorWindows) -------
+# The editor opens one topmost window per monitor and the topmost toolbar. The toolbar is useless
+# if a monitor window sits above it - it was invisible exactly that way. This scene opens the real
+# editor for about a second (it takes the foreground and covers every monitor), then asks Windows
+# what is at the toolbar's centre, both right after Show() and after a monitor window has been
+# activated the way a click on the picture activates it.
+if ($EditorWindows) {
+    if (-not ('EditorZ' -as [type])) {
+        Add-Type @'
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+public static class EditorZ {
+    private delegate bool EnumProc(IntPtr hwnd, IntPtr lParam);
+    [DllImport("user32.dll")] private static extern bool EnumWindows(EnumProc callback, IntPtr lParam);
+    [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr hwnd);
+    [DllImport("user32.dll")] private static extern IntPtr WindowFromPoint(POINT point);
+    [DllImport("user32.dll")] private static extern IntPtr GetAncestor(IntPtr hwnd, uint flags);
+    [StructLayout(LayoutKind.Sequential)] private struct POINT { public int X; public int Y; }
+    // Index in the top-to-bottom z-order of the visible top-level windows; -1 when absent.
+    public static int ZIndex(IntPtr target) {
+        int index = 0, found = -1;
+        EnumWindows(delegate (IntPtr h, IntPtr l) {
+            if (!IsWindowVisible(h)) return true;
+            if (h == target) { found = index; return false; }
+            index++;
+            return true;
+        }, IntPtr.Zero);
+        return found;
+    }
+    // The top-level window Windows reports at a screen point.
+    public static IntPtr RootAt(int x, int y) {
+        POINT p; p.X = x; p.Y = y;
+        IntPtr hit = WindowFromPoint(p);
+        return hit == IntPtr.Zero ? IntPtr.Zero : GetAncestor(hit, 2);
+    }
+}
+'@
+    }
+    $editorFields = [Reflection.BindingFlags]'NonPublic,Instance'
+    $virtualAll = $Capture.GetProperty('VirtualScreen', $bf).GetValue($null)
+    $liveFrame = Call $Capture 'Grab' @($virtualAll)
+    $liveMonitors = (Call $Capture 'MonitorBounds' @()).ToArray()
+    $translateLive = [Func[string, string]] { param($s) $s }
+    $liveCtor = $EditorType.GetConstructors($bf) | Where-Object { $_.GetParameters().Count -eq 6 } | Select-Object -First 1
+    $live = $liveCtor.Invoke(@($liveFrame, $virtualAll, $null, [Drawing.Rectangle[]]$liveMonitors, [IntPtr]::Zero, $translateLive))
+    try {
+        $live.Show()
+        for ($n = 0; $n -lt 12; $n++) { [Windows.Forms.Application]::DoEvents(); Start-Sleep -Milliseconds 50 }
+        $toolbar = $EditorType.GetField('_toolbar', $editorFields).GetValue($live)
+        $monitorWindows = @($EditorType.GetField('_windows', $editorFields).GetValue($live))
+        $tb = $toolbar.Bounds
+        $cx = $tb.X + [int]($tb.Width / 2); $cy = $tb.Y + [int]($tb.Height / 2)
+        Check 'the toolbar is visible and has a real size' ($toolbar.Visible -and $tb.Width -gt 100 -and $tb.Height -gt 20) "$($tb.Width)x$($tb.Height) at $($tb.X),$($tb.Y)"
+        $root = [EditorZ]::RootAt($cx, $cy)
+        Check 'the toolbar is the window at its own centre right after Show()' ($root -eq $toolbar.Handle) "at $cx,$cy is 0x$($root.ToString('X')), toolbar 0x$($toolbar.Handle.ToString('X'))"
+        $toolbarZ = [EditorZ]::ZIndex($toolbar.Handle)
+        $aboveAll = $true
+        foreach ($w in $monitorWindows) { if ([EditorZ]::ZIndex($w.Handle) -lt $toolbarZ) { $aboveAll = $false } }
+        Check 'the toolbar is above every monitor window in the z-order' $aboveAll "toolbar z=$toolbarZ"
+
+        # What a click on the picture does: a monitor window is activated and raised.
+        $activator = T 'ForegroundActivator'
+        $activateForm = $activator.GetMethod('Activate', $bf, $null, [Type[]]@([Windows.Forms.Form]), $null)
+        $pump = { for ($n = 0; $n -lt 4; $n++) { [Windows.Forms.Application]::DoEvents(); Start-Sleep -Milliseconds 25 } }
+        foreach ($w in $monitorWindows) {
+            $activateForm.Invoke($null, @([Windows.Forms.Form]$w)) | Out-Null
+            & $pump
+        }
+        $root = [EditorZ]::RootAt($cx, $cy)
+        Check 'the toolbar is still the window at its centre after a monitor window was activated' ($root -eq $toolbar.Handle) "at $cx,$cy is 0x$($root.ToString('X'))"
+
+        # What a click on a tool does: the toolbar takes the foreground, then the pick hands it back,
+        # so Esc, Enter and Ctrl+Z (the monitor windows' keys) keep working.
+        $activateForm.Invoke($null, @([Windows.Forms.Form]$toolbar)) | Out-Null
+        & $pump
+        $toolbarHadIt = [ScreenRegionUi]::GetForegroundWindow() -eq $toolbar.Handle
+        $toolType = T 'AnnotationTool'
+        $toolbar.GetType().GetMethod('PickTool', $editorFields).Invoke($toolbar, @([Enum]::Parse($toolType, 'Line'), $true)) | Out-Null
+        & $pump
+        $foreground = [ScreenRegionUi]::GetForegroundWindow()
+        $editorHasIt = $false
+        foreach ($w in $monitorWindows) { if ($w.Handle -eq $foreground) { $editorHasIt = $true } }
+        Check 'the toolbar could take the foreground (the premise of the next check)' $toolbarHadIt ''
+        Check 'after a tool pick the foreground is an editor window again' $editorHasIt "foreground 0x$($foreground.ToString('X'))"
+        $root = [EditorZ]::RootAt($cx, $cy)
+        Check 'the toolbar is still the window at its centre after a tool pick' ($root -eq $toolbar.Handle) "at $cx,$cy is 0x$($root.ToString('X'))"
+
+        # The tool buttons must show their shape - they were blank squares. Real screen pixels through
+        # the app's own grab (CAPTUREBLT: the toolbar is a layered window), each button against its
+        # own face colour.
+        $tb = $toolbar.Bounds
+        $shot = Call $Capture 'Grab' @($tb)
+        $toolButtons = $EditorType.Assembly.GetType('CyrFlip.ScreenshotToolbar').GetField('_tools', $editorFields).GetValue($toolbar)
+        foreach ($pair in $toolButtons.GetEnumerator()) {
+            $button = $pair.Value
+            $screenRect = $button.RectangleToScreen($button.ClientRectangle)
+            $left = $screenRect.X - $tb.X; $top = $screenRect.Y - $tb.Y
+            $face = $shot.GetPixel($left + 3, $top + 3)
+            $ink = 0
+            for ($y = $top + 5; $y -lt $top + $screenRect.Height - 5; $y++) {
+                for ($x = $left + 5; $x -lt $left + $screenRect.Width - 5; $x++) {
+                    $p = $shot.GetPixel($x, $y)
+                    if ([Math]::Abs($p.R - $face.R) -gt 24 -or [Math]::Abs($p.G - $face.G) -gt 24 -or [Math]::Abs($p.B - $face.B) -gt 24) { $ink++ }
+                }
+            }
+            Check "the $($pair.Key) button shows a picture" ($ink -ge 12) "$ink picture pixels"
+        }
+        $shotPath = Join-Path ([IO.Path]::GetTempPath()) 'CyrFlip-annotation-toolbar.png'
+        $shot.Save($shotPath, [Drawing.Imaging.ImageFormat]::Png)
+        $shot.Dispose()
+        Write-Host "    the toolbar as it is on screen: $shotPath" -ForegroundColor DarkGray
+    }
+    finally {
+        $live.GetType().GetMethod('Cancel').Invoke($live, @())
+        $live.Dispose()
+    }
+}
+else {
+    Write-Host '  [SKIP] the editor''s real windows - run with -EditorWindows (covers every monitor for about a second)' -ForegroundColor DarkGray
 }
 
 # ---- 8. the S0071 chord re-key through the real exe (opt-in, -Migration) ---------------------------

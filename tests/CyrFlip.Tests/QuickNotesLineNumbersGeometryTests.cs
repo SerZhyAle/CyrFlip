@@ -818,7 +818,7 @@ namespace CyrFlip.Tests
         // Cost on a note at the size limit
         // =========================================================================
 
-        [Fact]
+        [UiSweepFact]
         public void ANoteAtTheSizeLimitIsCheapToScrollResizeAndEdit()
         {
             OnUiThread(() =>

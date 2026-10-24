@@ -75,10 +75,10 @@ namespace CyrFlip
             foreach (Rectangle monitor in monitors)
                 _windows.Add(new MonitorWindow(this, monitor));
             _toolbar = new ScreenshotToolbar(_tool, _ink, translate);
-            _toolbar.ToolChanged += tool => { _tool = tool; };
-            _toolbar.ColorChanged += ink => { _ink = ink; RepaintAll(); };
+            _toolbar.ToolChanged += tool => { _tool = tool; FocusCanvas(); };
+            _toolbar.ColorChanged += ink => { _ink = ink; RepaintAll(); FocusCanvas(); };
             _toolbar.CancelRequested += Cancel;
-            _toolbar.ClearRequested += ClearAll;
+            _toolbar.ClearRequested += () => { ClearAll(); FocusCanvas(); };
             _toolbar.OkRequested += Ok;
             _toolbar.HelpAction += () => { if (_windows.Count > 0) ContextHelp.Open(_windows.FirstOrDefault(w => w.Monitor.Contains(ScreenCapture.CursorPosition())) ?? _windows[0]); };
         }
@@ -94,7 +94,7 @@ namespace CyrFlip
         {
             foreach (MonitorWindow window in _windows) window.Show();
             Point pointer = ScreenCapture.CursorPosition();
-            MonitorWindow active = _windows.Find(w => w.Monitor.Contains(pointer)) ?? _windows[0];
+            MonitorWindow active = WindowAt(pointer);
             ForegroundActivator.Activate(active);
             active.Focus();
             // The toolbar is shown near the current pointer and clamped into the pointer's monitor;
@@ -104,6 +104,38 @@ namespace CyrFlip
             _toolbar.PlaceNear(pointer);
             ForegroundActivator.Activate(active);
             active.Focus();
+            // Activating a topmost window raises it above the other topmost windows - the toolbar
+            // included - and the window covers its whole monitor, so without this the toolbar sits
+            // under it, shown and unreachable.
+            RaiseToolbar();
+        }
+
+        private MonitorWindow WindowAt(Point physical) => _windows.Find(w => w.Monitor.Contains(physical)) ?? _windows[0];
+
+        /// <summary>
+        /// The toolbar back on top of every editor window, without activating it. Called after Show and
+        /// after each activation of a monitor window (a click on the picture): Windows raises the
+        /// activated window, and the toolbar - a topmost window of the same band - is not owned by it.
+        /// </summary>
+        private void RaiseToolbar()
+        {
+            if (_finished || !_toolbar.IsHandleCreated) return;
+            WindowInterop.SetWindowPos(_toolbar.Handle, WindowInterop.HWND_TOPMOST, 0, 0, 0, 0,
+                WindowInterop.SWP_NOMOVE | WindowInterop.SWP_NOSIZE | WindowInterop.SWP_NOACTIVATE);
+        }
+
+        /// <summary>
+        /// A click on the toolbar makes it the foreground window, and Esc / Enter / Ctrl+Z belong to the
+        /// monitor windows - the keys went dead until the next click on the picture. After a pick the
+        /// foreground goes back to the editor window beside the toolbar.
+        /// </summary>
+        private void FocusCanvas()
+        {
+            if (_finished || _windows.Count == 0 || !_toolbar.IsHandleCreated) return;
+            Rectangle bounds = _toolbar.Bounds;
+            MonitorWindow canvas = WindowAt(new Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
+            ForegroundActivator.Activate(canvas);
+            canvas.Focus();
         }
 
         private void RepaintAll()
@@ -409,6 +441,16 @@ namespace CyrFlip
                         return true;
                 }
                 return base.ProcessCmdKey(ref msg, keyData);
+            }
+
+            /// <summary>
+            /// Windows raised this window above the toolbar as it activated. One message later, so the
+            /// raise lands after the system's own z-order change rather than before it.
+            /// </summary>
+            protected override void OnActivated(EventArgs e)
+            {
+                base.OnActivated(e);
+                if (IsHandleCreated) BeginInvoke(new Action(_owner.RaiseToolbar));
             }
 
             /// <summary>
