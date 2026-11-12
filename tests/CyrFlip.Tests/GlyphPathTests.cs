@@ -142,6 +142,25 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
+        public void TheUnpinnedPinIsAnOutlineAndThePinnedOneIsFilled()
+        {
+            // ICON-RENDER rule 4 (S0060 I-H1): the catalog draws action.pin--off with fill="none" and a stroke of 2;
+            // a Glyphs.g.cs without the stroke predates the reader that keeps it - run the glyphs verb of tools/IconGen.
+            GlyphRecord off = Glyphs.All.Single(r => r.Id == AppGlyphs.PinOff);
+            Assert.True(off.StrokeWidth == 2f, "action.pin--off carries no stroke - regenerate Glyphs.g.cs with tools/IconGen");
+            Assert.Equal(0f, Glyphs.All.Single(r => r.Id == AppGlyphs.Pin).StrokeWidth);
+            foreach (int size in new[] { 20, 48 })
+            {
+                using Bitmap? hollow = GlyphRenderer.Render(AppGlyphs.PinOff, size, Color.Black);
+                using Bitmap? filled = GlyphRenderer.Render(AppGlyphs.Pin, size, Color.Black);
+                Assert.NotNull(hollow); Assert.NotNull(filled);
+                int x = size / 2, y = (int)(size * 0.30f);   // the middle of the pin's head
+                Assert.Equal(0, hollow!.GetPixel(x, y).A);
+                Assert.Equal(255, filled!.GetPixel(x, y).A);
+            }
+        }
+
+        [Fact]
         public void ATransformIsAppliedToTheWholePath()
         {
             // translate(12 12) scale(0.5 0.5) translate(-12 -12) of a 24-square: a 12-square centred on (12,12).

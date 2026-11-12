@@ -9,11 +9,12 @@
 
 ## What this repository must do to stay conformant
 
-- **A check runs where its inputs change.** The CI path filter re-includes the three extension files the
-  suite reads (`layout-colors.json`, `extension.ts`, `package.json`), so a change to them runs the tests
-  that guard them.
+- **A check runs where its inputs change - within the 5 s line (S0081).** Between releases only the
+  static gates of 5 seconds or less run (`build.ps1 -Fast`); the unit suite runs at the release
+  (`release.ps1`, `release.yml`) and when the owner dispatches `ci.yml` by hand, so there is no CI path
+  filter any more.
 - **Each check has one declared runner class** - checked both ways (rule 2) by `Test-CheckPlacement.ps1`,
-  executed from `build.ps1` and `release.ps1`.
+  executed from `build.ps1 -Fast` / `-Tests` and `release.ps1`.
 
 ## The repository's classes against rule 8's vocabulary
 
@@ -21,8 +22,8 @@ The registry keeps its own finer classes, which rule 8 allows if each maps onto 
 
 | Registry class | Contract class (rule 8) |
 | --- | --- |
-| `per-change-local` (`build.ps1`, run by the agent's `build` skill) | `agent-closure` |
-| `ci` (`ci.yml`, skipped by `[skip ci]` on every build commit) | `per-change` only for a push without that marker - see below |
+| `per-change-local` (`build.ps1 -Fast`, run by the agent's `build` skill; `-Tests` is owner-named) | `agent-closure` |
+| `ci` (`ci.yml`, a manual dispatch only since S0081) | `hand-run` |
 | `release-preflight` (`release.ps1`), `release-tag` (`release.yml`) | `release` |
 | `operator-typed` (`tools/uitest/`, `tools/site/Measure-SiteContracts.ps1`) | `hand-run` |
 
@@ -31,8 +32,9 @@ The registry keeps its own finer classes, which rule 8 allows if each maps onto 
 - **Rule 8:** the mapping above is written only here; the registry file does not carry it, and it does not
   declare **per-change runner: none** with its reason (a solo developer on paid CI, whose build commits
   carry `[skip ci]`). `Test-CheckPlacement.ps1` also accepts only the five repository classes.
-- **Rule 2, trigger filter:** `DocumentationQualityTests` and `TrustPageTests` are in the suite, which is declared
-  `ci`, but read `**.md` and `docs/**`, which the filter excludes. Only `TrustPageTests` is named in the
-  `ci.yml` comment. Both run in `build.ps1` and the release preflight, which is where a docs-only change is
-  checked; the declaration should say so for both.
+- **Rule 2, trigger filter:** resolved by S0081 (2026-10-29) - `ci.yml` has no push trigger and so no path
+  filter; `DocumentationQualityTests` and `TrustPageTests` run with the whole suite at the release.
+- **Rule 8, per-change runner:** since S0081 the repository's per-change runner is `build.ps1 -Fast` (the
+  static gates, 5 s or less) and nothing runs the unit suite per change; the registry file still does not
+  carry that declaration.
 - The dated exceptions for these are in the catalog registry, not here.

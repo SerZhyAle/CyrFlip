@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CLIPBOARD-GUARD` |
-| **Version** | 0.11, draft (read 2026-10-16; section 8 of the contract, the owner amendment of 2026-10-14, binds for the exchange clipboard participant and is implemented, ticket S0074) |
+| **Version** | 0.11, draft (read 2026-10-29; section 8 of the contract, the owner amendment of 2026-10-14, binds for the exchange clipboard participant and is implemented, ticket S0074; item O.2 corrected 2026-10-29, ticket S0073) |
 | **Home** | `clipboard-guard/README.md` in the shared contracts catalog |
 | **Role here** | Owner, Producer and Consumer - Win32 clipboard access, backup and restore, the in-place pipeline, the privacy markers, and the exchange server clipboard participant |
 
@@ -32,7 +32,8 @@
     (`owner-timeout`); one operation at a time (`operation-running`).
   - **O** - a one-file `CF_HDROP` (several files or a folder is refused whole), else `CF_UNICODETEXT`, else the
     registered `PNG`, `CF_DIBV5`, `CF_DIB` in that order; a file is streamed from disk. Line ends of a text are
-    converted to LF because `DEVICE-EXCHANGE` item CB says so (recorded as a dated exception to O.2 in the registry).
+    converted to LF: since the 2026-10-29 correction item O.2 hands the wires line ends to `DEVICE-EXCHANGE` item CB,
+    so this is conformance, not an exception (`ExchangeClipboardSource.NormalizeLineEnds`).
   - **P** - the cap checked before anything is marshalled is the default 5 GiB; the server does not announce its
     own limit, so its `limit-reached` answer, given before a byte flows, is the final word.
   - **Q** - a received value is placed in one open: text as `CF_UNICODETEXT`, a picture as `PNG` + `CF_DIB`, a file saved

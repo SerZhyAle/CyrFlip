@@ -11,12 +11,14 @@ namespace CyrFlip
     internal sealed class ClipboardHistoryWindow : ThemedForm
     {
         private int HeaderHeight => Scale(44);
-        private int CellHeight => Scale(84);
+        // A cell holds three lines of text, so its height follows the text enlargement as well (UI-SIZING section 2 rule 3).
+        private int CellHeight => ScaleText(84);
         private int ResizeGrip => Scale(6);
         private int CellButtonWidth => Scale(32);
         // The pin answers the top of the button column, delete the rest of the cell.
         private int PinZoneHeight => Scale(36);
-        private int SearchButtonLeft => Scale(6);
+        // 28 logical px to the close button (S0060 I-M2, the ICON-RENDER target floor); it was 26.
+        private int SearchButtonLeft => Scale(4);
         private int HideButtonLeft => Scale(32);
         private int HeaderTextLeft => Scale(60);
         private const int WmNcHitTest = 0x0084;
@@ -46,11 +48,21 @@ namespace CyrFlip
         private int _wheelDelta;
         private int _dpi = 96;
         private const int WmDpiChanged = 0x02E0;
+        // The in-place editor of one entry's text (S0089): created on the first edit, hidden between edits.
+        private TextBox? _editor;
+        private Font? _editFont;
+        private ClipboardHistoryEntry? _editing;
+        // What the editor was handed: a text left as it was is no edit, although the control speaks CRLF.
+        private string _editOriginal = "";
 
         [DllImport("user32.dll")]
         private static extern uint GetDpiForWindow(IntPtr hwnd);
 
-        private int Scale(int pixels) => Math.Max(1, (int)Math.Round(pixels * _dpi / 96.0));
+        // The strip draws everything itself: geometry composes the monitor DPI with the interface scale, text
+        // additionally with the text enlargement (S0076, UI-SIZING section 2).
+        private UiMetrics _profile = UiMetrics.Pointer;
+        private int Scale(int pixels) => Math.Max(1, (int)Math.Round(pixels * _dpi / 96.0 * _profile.InterfaceScale));
+        private int ScaleText(int pixels) => Math.Max(1, (int)Math.Round(pixels * _dpi / 96.0 * _profile.InterfaceScale * _profile.TextScale));
         private int PageSize => Math.Max(1, (ClientSize.Height - HeaderHeight) / CellHeight);
         private int MaxFirstVisible => Math.Max(0, _service.Entries.Count - PageSize);
         // Built once instead of per paint - and the strip repaints on every copy. They follow the
@@ -63,7 +75,7 @@ namespace CyrFlip
         {
             HelpLanguage = config.UiLanguage;
             _service = service; _config = config; _openSearch = openSearch; _tellRestoreFailed = tellRestoreFailed;
-            Text = Localization.Translate(config.UiLanguage, "Clipboard history"); TopMost = true; ShowInTaskbar = false;
+            Text = Localization.Translate(config.UiLanguage, "Clipboard"); TopMost = true; ShowInTaskbar = false;
             RightToLeft = Localization.IsRightToLeft(config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
             RightToLeftLayout = RightToLeft == RightToLeft.Yes;
             // WinForms otherwise paints a second, native title bar above our owner-drawn header.
@@ -91,28 +103,34 @@ namespace CyrFlip
             // of AppConfig.Save(): forty-odd registry values plus a JSON serialization of both profile
             // tables, on the UI thread, to record a window that had moved four pixels.
             MouseUp += (_, _) => { if (_dragging) { _dragging = false; SaveBounds(); } };
-            Resize += (_, _) => { ClampViewport(); Invalidate(); };
+            Resize += (_, _) => { ClampViewport(); if (_editing != null) PlaceEditor(); Invalidate(); };
+            CompanionSurfaceRegistry.RegisterCompanion(this, CompanionSurfaceKind.ClipboardHistory);
+            VisibleChanged += (_, _) => CompanionSurfaceRegistry.ApplyToForm(this);
+            // Hiding the strip ends an edit the way a click outside does: the text is kept.
+            VisibleChanged += (_, _) => { if (!Visible) EndEdit(commit: true); };
         }
 
         public void ToggleVisible()
         {
             if (Visible) { Hide(); return; }
-            // The replay is lazy now (S0064 H-5): a start with the history off touches no file, so
-            // the file's records arrive on the first open instead of at startup.
-            _service.EnsureReplayed();
+            // The replay is lazy (S0064 H-5): a start with the history off touches no file, so the
+            // file's records are read on the first open - on the pool (S0082), the window showing at
+            // once and filling through Changed when they land.
+            _service.StartReplay();
             // ForegroundActivator, not Activate(): from the text context menu this process has no
             // foreground rights and Windows refuses the activation without saying so.
             RestorePlacement(); Show(); ForegroundActivator.Activate(this); Invalidate();
         }
 
-        public void ApplyOpacity() => Opacity = Math.Max(30, Math.Min(100, _config.ClipboardHistoryOpacity)) / 100.0;
+        public void ApplyOpacity() => Opacity = ThemePalette.ClampWindowOpacity(_config.ClipboardHistoryOpacity) / 100.0;
         public void RefreshHeader() => Invalidate(new Rectangle(0, 0, ClientSize.Width, HeaderHeight));
 
         /// <summary>Re-reads the UI language for the title and the owner-painted header, with no restart.</summary>
         public void ApplyLanguage()
         {
+            EndEdit(commit: true);   // a direction change recreates the handles under the editor
             HelpLanguage = _config.UiLanguage;
-            Text = Localization.Translate(_config.UiLanguage, "Clipboard history");
+            Text = Localization.Translate(_config.UiLanguage, "Clipboard");
             RightToLeft = Localization.IsRightToLeft(_config.UiLanguage) ? RightToLeft.Yes : RightToLeft.No;
             RightToLeftLayout = RightToLeft == RightToLeft.Yes;
             ApplyUiFont();
@@ -122,18 +140,31 @@ namespace CyrFlip
         private void ApplyUiFont()
         {
             Font? previous = _uiFont;
-            Font = _uiFont = new Font(Localization.FontFamily(_config.UiLanguage)
+            _uiFont = new Font(Localization.FontFamily(_config.UiLanguage)
                 ?? SystemFonts.MessageBoxFont.FontFamily.Name, 9f);
+            SetBaseFont(_uiFont);   // the size profile is composed on the new family at once
             previous?.Dispose();
         }
 
         /// <summary>
         /// INPUT-PARITY rules 1-2: every click on the strip has a key. Up/Down/Home/End move a keyboard
         /// cursor through the full history, scrolling it into view (drawn only once a key moved it, so a mouse user never sees it),
-        /// Enter restores that entry, Space pins or unpins it, Delete removes it, Ctrl+F opens the search.
+        /// Enter restores that entry, Space pins or unpins it, Delete removes it, F2 edits its text, Ctrl+F opens the search.
+        /// While an entry is edited every key is the editor's but three: Enter saves, Shift+Enter breaks the
+        /// line, Escape discards (S0089).
         /// </summary>
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
+            if (_editing != null)
+            {
+                switch (keyData)
+                {
+                    case Keys.Escape: EndEdit(commit: false); return true;
+                    case Keys.Enter: EndEdit(commit: true); return true;
+                    case Keys.Shift | Keys.Enter: _editor!.SelectedText = "\r\n"; return true;
+                }
+                return base.ProcessCmdKey(ref msg, keyData);
+            }
             if (keyData == Keys.Escape) { Hide(); return true; }
             if (keyData == (Keys.Control | Keys.F)) { _openSearch(); return true; }
             IReadOnlyList<ClipboardHistoryEntry> items = _service.Entries;
@@ -154,9 +185,107 @@ namespace CyrFlip
                     case Keys.Enter: RestoreEntry(item); return true;
                     case Keys.Space: _service.TogglePin(item); return true;
                     case Keys.Delete: _service.Delete(item); return true;
+                    case Keys.F2: BeginEdit(item); return true;
                 }
             }
             return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        /// <summary>
+        /// Open the editor over <paramref name="entry"/>'s cell with its whole text (S0089): the cell paints a
+        /// one-line preview, the editor holds what is stored. The caret starts where the preview does.
+        /// </summary>
+        private void BeginEdit(ClipboardHistoryEntry entry)
+        {
+            EndEdit(commit: true);
+            TextBox editor = EnsureEditor();
+            _editing = entry;
+            if (!PlaceEditor()) { _editing = null; return; }
+            // An EDIT control breaks a line only on CRLF.
+            editor.Text = entry.Text.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", "\r\n");
+            _editOriginal = editor.Text;
+            editor.Visible = true;
+            editor.Focus();
+            editor.Select(0, 0);
+            editor.ScrollToCaret();
+            Invalidate();
+        }
+
+        /// <summary>
+        /// Close the editor; with <paramref name="commit"/> its text replaces the entry's - through the service,
+        /// which leaves the entry as it was for an empty text. The keyboard focus comes back to the strip only
+        /// when the editor held it: a click in another window took it already.
+        /// </summary>
+        private void EndEdit(bool commit) => EndEdit(commit, refocus: _editor != null && _editor.Focused);
+
+        private void EndEdit(bool commit, bool refocus)
+        {
+            ClipboardHistoryEntry? entry = _editing;
+            TextBox? editor = _editor;
+            if (entry == null || editor == null) return;
+            // First: hiding the editor moves the focus, and its LostFocus comes back here.
+            _editing = null;
+            string text = editor.Text;
+            bool edited = !string.Equals(text, _editOriginal, StringComparison.Ordinal);
+            editor.Visible = false;
+            editor.Text = "";
+            _editOriginal = "";
+            if (refocus && Visible) Focus();
+            if (commit && edited) _service.UpdateText(entry, text);
+            Invalidate();
+        }
+
+        /// <summary>Keep the edited row in view and the editor over its text area; false when the entry is gone.</summary>
+        private bool PlaceEditor()
+        {
+            if (_editing == null || _editor == null) return false;
+            IReadOnlyList<ClipboardHistoryEntry> entries = _service.Entries;
+            int index = -1;
+            for (int i = 0; i < entries.Count; i++)
+                if (ReferenceEquals(entries[i], _editing)) { index = i; break; }
+            if (index < 0) return false;
+            if (index < _firstVisible) _firstVisible = index;
+            else if (index >= _firstVisible + PageSize) _firstVisible = index - PageSize + 1;
+            ClampViewport();
+            Rectangle text = TextZone(new Rectangle(0, HeaderHeight + (index - _firstVisible) * CellHeight, ClientSize.Width, CellHeight));
+            // The painted text's own column (DrawCell), clear of the window's resize grip.
+            _editor.Bounds = new Rectangle(text.X + Scale(6), text.Y + Scale(2),
+                Math.Max(Scale(20), text.Width - Scale(12)), Math.Max(Scale(20), text.Height - Scale(4)));
+            return true;
+        }
+
+        private TextBox EnsureEditor()
+        {
+            if (_editor == null)
+            {
+                _editor = new TextBox
+                {
+                    Multiline = true, WordWrap = true, ScrollBars = ScrollBars.Vertical, AcceptsReturn = false, AcceptsTab = false,
+                    BorderStyle = BorderStyle.FixedSingle, MaxLength = ClipboardHistoryService.MaxTextChars,
+                    CausesValidation = false, Visible = false,
+                };
+                // A click in another window, or anything else that takes the focus, saves the edit - once the
+                // focus has moved, so that hiding the editor cannot hand the focus back to it.
+                _editor.LostFocus += (_, _) =>
+                {
+                    ClipboardHistoryEntry? editing = _editing;
+                    if (editing == null || !IsHandleCreated) return;
+                    BeginInvoke(new Action(() =>
+                    {
+                        if (ReferenceEquals(_editing, editing) && _editor != null && !_editor.Focused) EndEdit(commit: true, refocus: false);
+                    }));
+                };
+                Controls.Add(_editor);
+            }
+            // Pixel units, like the painted cells: the strip, not WinForms, follows the monitor DPI and the size profile.
+            float pixels = (float)(9 * _dpi / 72.0 * _profile.InterfaceScale * _profile.TextScale);
+            if (_editFont == null || Math.Abs(_editFont.Size - pixels) > 0.01f || _editFont.FontFamily.Name != Font.FontFamily.Name)
+            {
+                _editFont = new Font(Font.FontFamily, pixels, FontStyle.Regular, GraphicsUnit.Pixel);
+                RetireFont(_editFont);   // the editor holds it: freed with the window, never before
+                _editor.Font = _editFont;
+            }
+            return _editor;
         }
 
         /// <summary>
@@ -194,12 +323,15 @@ namespace CyrFlip
         private void OnHistoryChanged(object? sender, EventArgs e)
         {
             ClampViewport();
+            // The edited row moves when a copy lands above it, and is gone after a clear: the editor follows it or closes.
+            if (_editing != null && !PlaceEditor()) EndEdit(commit: false);
             Invalidate();
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
+            if (_editing != null) return;   // the edited row stays under its editor
             _wheelDelta += e.Delta;
             int steps = _wheelDelta / SystemInformation.MouseWheelScrollDelta;
             _wheelDelta %= SystemInformation.MouseWheelScrollDelta;
@@ -232,6 +364,13 @@ namespace CyrFlip
                 var suggested = (WindowInterop.RECT)Marshal.PtrToStructure(m.LParam, typeof(WindowInterop.RECT));
                 Bounds = Rectangle.FromLTRB(suggested.Left, suggested.Top, suggested.Right, suggested.Bottom);
                 m.Result = IntPtr.Zero;
+                return;
+            }
+            // A click on the strip outside the editor saves the edit and does nothing else (S0089): it never
+            // reaches MouseDown, so it neither restores, pins, deletes, drags nor hides.
+            if (_editing != null && IsButtonDown(m.Msg))
+            {
+                EndEdit(commit: true);
                 return;
             }
             if (m.Msg == WmNcHitTest)
@@ -272,7 +411,7 @@ namespace CyrFlip
             // One Entries read per paint: the list is cached by the service, but the local keeps this
             // paint consistent (the caption count and the cells can't disagree).
             IReadOnlyList<ClipboardHistoryEntry> entries = _service.Entries;
-            string caption = Localization.Translate(_config.UiLanguage, "Clipboard history") + " (" + entries.Count + ")";
+            string caption = Localization.Translate(_config.UiLanguage, "Clipboard") + " (" + entries.Count + ")";
             // Keep the two actions before the caption: they remain reachable at every allowed width.
             // Vocabulary glyphs (ICON-SET), each centred in the zone the mouse hit test uses.
             HistoryStripGlyphs.DrawSearch(e.Graphics, SearchZone, palette, Scale(20));
@@ -340,7 +479,7 @@ namespace CyrFlip
                 new RectangleF(textLeft, bodyTop, textWidth, Math.Max(1, footerTop - Scale(4) - bodyTop)), BodyFormat);
             HistoryStripGlyphs.DrawPin(g, PinZone(r), entry.IsPinned, palette, Scale(20));
             HistoryStripGlyphs.DrawDelete(g, DeleteZone(r), palette, Scale(20));
-            string time = entry.CreatedAt.ToLocalTime().ToString("MM-dd:HH:mm");
+            string time = entry.CreatedAt.ToLocalTime().ToString("MM-dd HH:mm");
             float timeWidth = g.MeasureString(time, small).Width;
             g.DrawString(time, small, timeBrush,
                 new RectangleF(textLeft, footerTop, Math.Min(textWidth, timeWidth), small.GetHeight(g)), SingleLineFormat);
@@ -369,9 +508,14 @@ namespace CyrFlip
             if (index < 0 || index >= items.Count) return;
             ClipboardHistoryEntry item = items[index];
             if (e.X >= ClientSize.Width - CellButtonWidth) { if (e.Y - HeaderHeight - index * CellHeight < PinZoneHeight) _service.TogglePin(item); else _service.Delete(item); }
-            else if (e.Button == MouseButtons.Right) _service.TogglePin(item);
+            else if (e.Button == MouseButtons.Right) BeginEdit(item);
             else if (e.Button == MouseButtons.Left) RestoreEntry(item);
         }
+
+        /// <summary>The client-area button presses: WM_LBUTTONDOWN, WM_LBUTTONDBLCLK through WM_XBUTTONDBLCLK, ups excluded.</summary>
+        private static bool IsButtonDown(int msg)
+            => msg == 0x0201 || msg == 0x0203 || msg == 0x0204 || msg == 0x0206 || msg == 0x0207 || msg == 0x0209
+               || msg == 0x020B || msg == 0x020D;
 
         private void OnMouseMove(object? sender, MouseEventArgs e)
         {
@@ -408,13 +552,15 @@ namespace CyrFlip
         // ---- accessibility (ICON-RENDER rule 8) ----------------------------------------------------------
         // The strip is one owner-drawn surface with no child controls, so a screen reader would find a
         // single unnamed window. It exposes what a click can do as children instead: search and close in
-        // the header, then pin and delete for every visible cell - each named by the record's name in the
-        // UI language, the two that act on a row describing it by its preview.
+        // the header, then pin, delete and edit for every visible cell - each named by the record's name in
+        // the UI language, the three that act on a row describing it by its preview; the edit's description
+        // names its key (S0089). An open editor is the last child, with its own accessibility.
 
         private sealed class StripPart
         {
             public string Name = "";
             public string Description = "";
+            public string Shortcut = "";
             public AccessibleRole Role = AccessibleRole.PushButton;
             public bool Checked;
             public Rectangle Client;
@@ -445,6 +591,11 @@ namespace CyrFlip
                     Name = Localization.Translate(language, "Delete"), Description = preview,
                     Client = DeleteZone(cell), Invoke = () => _service.Delete(item),
                 });
+                parts.Add(new StripPart
+                {
+                    Name = Localization.Translate(language, "Edit"), Description = preview + " (F2)", Shortcut = "F2",
+                    Client = TextZone(cell), Invoke = () => BeginEdit(item),
+                });
             }
             return parts;
         }
@@ -455,11 +606,12 @@ namespace CyrFlip
         {
             private readonly ClipboardHistoryWindow _window;
             public StripAccessibleObject(ClipboardHistoryWindow window) : base(window) { _window = window; }
-            public override int GetChildCount() => _window.AccessibleParts().Count;
+            public override int GetChildCount() => _window.AccessibleParts().Count + (_window._editing != null ? 1 : 0);
             public override AccessibleObject? GetChild(int index)
             {
                 List<StripPart> parts = _window.AccessibleParts();
-                return index >= 0 && index < parts.Count ? new StripPartObject(this, _window, parts[index]) : null;
+                if (index >= 0 && index < parts.Count) return new StripPartObject(this, _window, parts[index]);
+                return index == parts.Count && _window._editing != null ? _window._editor?.AccessibilityObject : null;
             }
         }
 
@@ -472,6 +624,7 @@ namespace CyrFlip
             public override AccessibleObject Parent => _parent;
             public override string Name { get => _part.Name; set { } }
             public override string Description => _part.Description;
+            public override string KeyboardShortcut => _part.Shortcut;
             public override AccessibleRole Role => _part.Role;
             public override AccessibleStates State => AccessibleStates.Focusable | (_part.Checked ? AccessibleStates.Checked : AccessibleStates.None);
             public override Rectangle Bounds => _window.RectangleToScreen(_part.Client);
@@ -484,13 +637,15 @@ namespace CyrFlip
         private Rectangle HideZone => new Rectangle(HideButtonLeft, 0, HeaderTextLeft - HideButtonLeft, HeaderHeight);
         private Rectangle PinZone(Rectangle cell) => new Rectangle(cell.Right - CellButtonWidth, cell.Y, CellButtonWidth, PinZoneHeight);
         private Rectangle DeleteZone(Rectangle cell) => new Rectangle(cell.Right - CellButtonWidth, cell.Y + PinZoneHeight, CellButtonWidth, cell.Height - PinZoneHeight);
+        /// <summary>The text body beside the button column: a right click there edits the entry.</summary>
+        private Rectangle TextZone(Rectangle cell) => new Rectangle(cell.X, cell.Y, cell.Width - CellButtonWidth, cell.Height);
 
         /// <summary>The four fonts the strip paints with, derived from the window's own <see cref="Control.Font"/>.</summary>
         private void EnsureFonts()
         {
             if (_titleFont != null) return;
             // Pixel units keep text and owner-drawn geometry on the same monitor DPI.
-            float factor = _dpi / 72f;
+            float factor = (float)(_dpi / 72.0 * _profile.InterfaceScale * _profile.TextScale);
             _titleFont = new Font(Font.FontFamily, 8 * factor, FontStyle.Bold, GraphicsUnit.Pixel);
             _hotkeyFont = new Font(Font.FontFamily, 7.5f * factor, FontStyle.Regular, GraphicsUnit.Pixel);
             _bigFont = new Font(Font.FontFamily, 9 * factor, FontStyle.Bold, GraphicsUnit.Pixel);
@@ -516,6 +671,23 @@ namespace CyrFlip
         private void SetDpi(int dpi)
         {
             _dpi = dpi > 0 ? dpi : 96;
+            ApplyGeometry();
+        }
+
+        /// <summary>
+        /// The size profile changed: the strip's geometry and its four painting fonts are derived again, the
+        /// window's own size is only ever grown to the new minimum.
+        /// </summary>
+        protected override void OnUiProfileApplied(UiMetrics metrics)
+        {
+            base.OnUiProfileApplied(metrics);
+            _profile = metrics;
+            ApplyGeometry();
+        }
+
+        private void ApplyGeometry()
+        {
+            EndEdit(commit: true);   // a DPI or size-profile change saves the edit; nothing reopens
             DisposeFonts();
             MinimumSize = new Size(Scale(160), HeaderHeight + 3 * CellHeight);
             ClampViewport();
@@ -525,13 +697,14 @@ namespace CyrFlip
         protected override void OnFontChanged(EventArgs e)
         {
             base.OnFontChanged(e);
+            EndEdit(commit: true);
             DisposeFonts();   // rebuilt on the next paint, from the new family
             Invalidate();
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) { _service.Changed -= OnHistoryChanged; DisposeFonts(); _uiFont?.Dispose(); }
+            if (disposing) { CompanionSurfaceRegistry.UnregisterCompanion(this); _service.Changed -= OnHistoryChanged; DisposeFonts(); _uiFont?.Dispose(); }
             base.Dispose(disposing);
         }
 

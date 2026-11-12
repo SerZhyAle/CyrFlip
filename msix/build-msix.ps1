@@ -5,16 +5,17 @@
       1. Takes CyrFlip.exe from the released ZIP, or from an explicitly pre-built output (-NoBuild).
       2. Derives a Store-legal 4-part version (revision forced to 0) from the exe's YY.M.D.HHmm stamp.
       3. Stages the exe + THIRD-PARTY-NOTICES.txt, generates the required logo PNGs from assets/icon-256.png.
-      4. Fills the AppxManifest.xml placeholders (Identity Name / Publisher / version).
+      4. Fills the AppxManifest.xml placeholders (Identity Name / Publisher / version). The identity
+         comes from msix/identity.json, read first - a run that finds no file stops before it builds.
       5. Packs it into msix/dist/CyrFlip-<version>-x64.msix with makeappx (-SelfSign: ...-selfsigned.msix).
       6. Reads <Identity>, PublisherDisplayName, the version and the file list back OUT of the packed
          archive and compares them with the values the build reserved (WINDOWS-STORE rules 1-4).
 
     For the STORE you submit the UNSIGNED .msix - Microsoft re-signs it during certification, so
-    you don't need a paid code-signing certificate. The identity defaults ARE the frozen Store anchors
-    reserved in Partner Center (Product > Product identity): Name SZA.CyrFlip, Publisher
-    CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD, display name SZA (S0038 RP-2). They are never changed; the
-    script used to default to a test identity Partner Center rejects.
+    you don't need a paid code-signing certificate. The identity in msix/identity.json IS the set of
+    frozen Store anchors reserved in Partner Center (Product > Product identity): Name SZA.CyrFlip,
+    Publisher CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD, display name SZA (S0038 RP-2, S0100). They are
+    never changed; the script used to default to a test identity Partner Center rejects.
 
     For LOCAL testing, add -SelfSign: it creates a self-signed cert whose subject equals the Publisher,
     signs the package, and prints how to trust + install it. Add -TestIdentity as well to sideload beside
@@ -30,10 +31,12 @@
 #>
 [CmdletBinding()]
 param(
-    # Frozen anchors (hard invariant 1): the Store identity, never anything else by default.
-    [string] $IdentityName        = 'SZA.CyrFlip',
-    [string] $Publisher           = 'CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD',
-    [string] $PublisherDisplayName= 'SZA',
+    # Frozen anchors (hard invariant 1): left empty, they default to the Store identity in msix/identity.json,
+    # never to anything else. A value passed here still goes through the read-back, which compares the
+    # packed archive with the file - so another value fails closed, except under -TestIdentity.
+    [string] $IdentityName,
+    [string] $Publisher,
+    [string] $PublisherDisplayName,
     [string] $Configuration       = 'Release',
     [string] $ReleaseZip,
     [string] $Version,
@@ -44,13 +47,34 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-# The reserved Store anchors, held independently of the parameters: whatever a caller passes, the
-# package CyrFlip offers to Partner Center is compared against THESE (WINDOWS-STORE rule 1 - a
-# change orphans every installed copy). Only -TestIdentity, a local sideload family of its own,
-# may differ.
-$ReservedIdentityName         = 'SZA.CyrFlip'
-$ReservedPublisher            = 'CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD'
-$ReservedPublisherDisplayName = 'SZA'
+# The reserved Store anchors, read from msix/identity.json before anything else is resolved or built
+# (S0100): a missing or unreadable file, or a missing field, stops the run here. They are held
+# independently of the parameters: whatever a caller passes, the package CyrFlip offers to Partner
+# Center is compared against THESE (WINDOWS-STORE rule 1 - a change orphans every installed copy).
+# Only -TestIdentity, a local sideload family of its own, may differ.
+$IdentityFile = Join-Path $PSScriptRoot 'identity.json'
+if (-not (Test-Path -LiteralPath $IdentityFile)) {
+    throw "Store identity file not found: $IdentityFile. It pins the frozen Store anchors; nothing is built without it."
+}
+try { $StoreIdentity = [IO.File]::ReadAllText($IdentityFile) | ConvertFrom-Json }
+catch { throw "Store identity file $IdentityFile is not valid JSON: $($_.Exception.Message)" }
+foreach ($field in 'IdentityName', 'Publisher', 'PublisherDisplayName', 'StoreId', 'PackageFamilyName') {
+    $value = $StoreIdentity.$field
+    if ($value -isnot [string] -or [string]::IsNullOrWhiteSpace($value)) {
+        throw "Store identity file $IdentityFile has no usable '$field' (a non-empty string is required)."
+    }
+}
+if (-not $StoreIdentity.PackageFamilyName.StartsWith($StoreIdentity.IdentityName + '_', [StringComparison]::Ordinal)) {
+    throw "Store identity file ${IdentityFile}: PackageFamilyName '$($StoreIdentity.PackageFamilyName)' does not start with '$($StoreIdentity.IdentityName)_'."
+}
+$ReservedIdentityName         = $StoreIdentity.IdentityName
+$ReservedPublisher            = $StoreIdentity.Publisher
+$ReservedPublisherDisplayName = $StoreIdentity.PublisherDisplayName
+Write-Host "Store identity (msix\identity.json): $ReservedIdentityName / $ReservedPublisher / $ReservedPublisherDisplayName, Store ID $($StoreIdentity.StoreId)" -ForegroundColor DarkGray
+
+if (-not $IdentityName)         { $IdentityName         = $ReservedIdentityName }
+if (-not $Publisher)            { $Publisher            = $ReservedPublisher }
+if (-not $PublisherDisplayName) { $PublisherDisplayName = $ReservedPublisherDisplayName }
 
 if ($TestIdentity) {
     if (-not $SelfSign) { throw '-TestIdentity is for a self-signed local sideload only - add -SelfSign.' }

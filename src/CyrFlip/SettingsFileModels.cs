@@ -135,6 +135,9 @@ namespace CyrFlip
             Add("usage", "FlipCount CaseFlipCount TranslateCount QuickNoteCount ScreenshotCount SymbolsCount");
             Add("machine history", "QuickNotesNoticeShown ClipboardHistoryNoticeShown CursorNoticeShown TranslateSeeded LauncherFirstEnableDone DataFolderMigrated ShortcutsCreated WelcomeShown ScreenshotKeyMigrationDone BackupOfferOpen BackupRestoreDeclined");
             Add("Windows state", "LanguageHotkeysBackup InputLayoutsBackup InputMethodOverrideWritten");
+            // The size profile describes this PC's screen and input hardware, not the person (S0076): a touch
+            // laptop's choice must not follow a settings file onto a desktop with a mouse.
+            Add("this PC's display", "UiInputProfile UiInterfaceScale UiTextScale");
             Add("credentials", "ExchangeClipboardAccounts");
             return result;
         }

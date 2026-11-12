@@ -22,6 +22,13 @@ namespace CyrFlip
         public const int ChevronSize = 16;
         /// <summary>How far the header band leans toward the accent role; a mix of two roles, never a literal.</summary>
         internal const float BandAmount = 0.08f;
+        /// <summary>How much further toward the accent the band leans under the pointer and while pressed.</summary>
+        internal const float BandHoverStep = 0.06f, BandPressedStep = 0.12f;
+
+        /// <summary>The header band, <paramref name="step"/> past its resting mix - the fill the header's text
+        /// is measured on (<c>ThemePaletteTests</c>).</summary>
+        internal static Color BandFill(ThemePalette palette, float step = 0f)
+            => ThemePalette.Mix(palette.SurfaceWindow, palette.Accent, BandAmount + step);
 
         private readonly HeaderButton _header;
         private readonly FlowLayoutPanel _body;
@@ -96,6 +103,14 @@ namespace CyrFlip
         public string Id { get; }
         public FlowLayoutPanel Body => _body;
 
+        /// <summary>The size profile changed: the header's inset, state triangle and target are derived again
+        /// (UI-SIZING 1.1). The width is the page's to give; it calls <see cref="FitWidth"/> after.</summary>
+        internal void ApplyProfile()
+        {
+            UpdateChevron();
+            if (_header.MinimumSize.Width > 0) FitWidth(_header.MinimumSize.Width);
+        }
+
         protected override void OnFontChanged(EventArgs e)
         {
             base.OnFontChanged(e);
@@ -157,9 +172,9 @@ namespace CyrFlip
         public void ApplyPalette(ThemePalette palette)
         {
             _palette = palette;
-            _header.BackColor = ThemePalette.Mix(palette.SurfaceWindow, palette.Accent, BandAmount);
-            _header.FlatAppearance.MouseOverBackColor = ThemePalette.Mix(palette.SurfaceWindow, palette.Accent, BandAmount + 0.06f);
-            _header.FlatAppearance.MouseDownBackColor = ThemePalette.Mix(palette.SurfaceWindow, palette.Accent, BandAmount + 0.12f);
+            _header.BackColor = BandFill(palette);
+            _header.FlatAppearance.MouseOverBackColor = BandFill(palette, BandHoverStep);
+            _header.FlatAppearance.MouseDownBackColor = BandFill(palette, BandPressedStep);
             _header.ForeColor = palette.TextPrimary;
             UpdateChevron();
         }

@@ -117,6 +117,8 @@ namespace CyrFlip
             ApplyOpacity();
             ApplyTexts();
             ShowSourcePanel(config.TranslateShowSource);
+            CompanionSurfaceRegistry.RegisterCompanion(this, CompanionSurfaceKind.TranslationResult);
+            VisibleChanged += (_, _) => CompanionSurfaceRegistry.ApplyToForm(this);
         }
 
         /// <summary>The language the shown translation was asked for.</summary>
@@ -240,7 +242,7 @@ namespace CyrFlip
         }
 
         public void ApplyOpacity()
-            => Opacity = Math.Max(30, Math.Min(100, _config.TranslateWindowOpacity)) / 100.0;
+            => Opacity = ThemePalette.ClampWindowOpacity(_config.TranslateWindowOpacity) / 100.0;
 
         public void ApplyLanguage(string uiLanguage)
         {
@@ -334,11 +336,19 @@ namespace CyrFlip
         {
             if (disposing)
             {
+                CompanionSurfaceRegistry.UnregisterCompanion(this);
                 _autoClose.Dispose();
                 _watchForeground.Dispose();
             }
             base.Dispose(disposing);
             if (disposing) _ownFont?.Dispose(); // after the controls stop drawing with it
+        }
+
+        /// <summary>A language family or a size profile changed the typography: the status row follows it.</summary>
+        protected override void OnFontChanged(EventArgs e)
+        {
+            base.OnFontChanged(e);
+            _header.Height = Math.Max(20, Font.Height + 6);
         }
 
         // ---- internals -------------------------------------------------------------------
@@ -502,7 +512,8 @@ namespace CyrFlip
                 // A font handed to a control is never disposed by WinForms, and this runs again on
                 // every language change - so the one we replace has to be released by hand.
                 Font? replaced = _ownFont;
-                Font = _ownFont = new Font(wanted, SystemFonts.MessageBoxFont.SizeInPoints);
+                _ownFont = new Font(wanted, SystemFonts.MessageBoxFont.SizeInPoints);
+                SetBaseFont(_ownFont);   // the size profile is composed on the new family at once
                 replaced?.Dispose();
             }
             catch { /* the font is missing on this machine - keep the default */ }

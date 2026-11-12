@@ -102,11 +102,87 @@ namespace CyrFlip.Tests
             Assert.True(failures.Count == 0, name + " palette below target:\n" + string.Join("\n", failures));
         }
 
+        /// <summary>
+        /// WINDOWS-UI section 6 rule 4: a meaningful glyph holds 3:1 on the surface it is actually drawn on,
+        /// hover and selected included (S0060 T-M4) - the coloured glyph of a command or an answer button on
+        /// its face in every state, the message box's state glyph, and the mark on a traffic-light tile. The
+        /// border role is a separating line, not a glyph: Windows' own light ControlDark is 2.3:1 against
+        /// Control, and the contract asks nothing of it.
+        /// </summary>
+        [Theory]
+        [InlineData("Light")]
+        [InlineData("Dark")]
+        public void EveryGlyphInkHoldsThreeToOneOnItsSurfaces(string name)
+        {
+            if (name == "Light" && System.Windows.Forms.SystemInformation.HighContrast) return;
+            ThemePalette palette = Get(name);
+            var failures = new List<string>();
+            ThemeRole[] faces =
+            {
+                ThemeRole.SurfaceWindow, ThemeRole.SurfaceRaised, ThemeRole.SurfaceSelected, ThemeRole.SurfaceAlternate,
+                ThemeRole.Control, ThemeRole.ControlHover, ThemeRole.ControlPressed,
+            };
+            foreach (ThemeRole ink in new[] { ThemeRole.Accent, ThemeRole.Warning, ThemeRole.Danger, ThemeRole.Success, ThemeRole.Info })
+                foreach (ThemeRole face in faces)
+                    Measure(palette, ink, face, 3.0, failures);
+            foreach (ThemeRole fill in new[] { ThemeRole.StatusOkFill, ThemeRole.StatusWarningFill, ThemeRole.StatusErrorFill, ThemeRole.StatusUnknownFill })
+                Measure(palette, ThemeRole.StatusInk, fill, 3.0, failures);
+            Assert.True(failures.Count == 0, name + " glyph inks below 3:1:\n" + string.Join("\n", failures));
+        }
+
         private void Measure(ThemePalette palette, ThemeRole text, ThemeRole surface, double target, List<string> failures)
         {
             double ratio = ThemePalette.Contrast(palette[text], palette[surface]);
             _output.WriteLine($"{palette.Kind,-6} {text,-14} on {surface,-16} {ratio,5:0.00}:1 (target {target}:1)");
             if (ratio < target) failures.Add($"{text} on {surface}: {ratio:0.00}:1, target {target}:1");
+        }
+
+        /// <summary>
+        /// The fills no role names - mixes the code makes of two roles (WINDOWS-UI section 6, COLLAPSIBLE-GROUP),
+        /// each measured with the ink actually drawn on it and printed (S0093 section 5 test 1): the group header
+        /// band at rest, hovered and pressed; the page list's hovered and selected rows and the selection bar; the
+        /// neutral button's hover face; the traffic-light title bar's command plates with their glyphs. The
+        /// answer-tinted face (<c>ThemePalette.AnswerInk.Face</c>) is left out: no button paints it since BUTTONS
+        /// section 3.5. Each fill comes from the function the control paints with, never a copied amount.
+        /// </summary>
+        [Theory]
+        [InlineData("Light")]
+        [InlineData("Dark")]
+        public void EveryDerivedFillHoldsItsContrast(string name)
+        {
+            if (name == "Light" && System.Windows.Forms.SystemInformation.HighContrast) return;
+            ThemePalette palette = Get(name);
+            var failures = new List<string>();
+            (string Name, Color Fill)[] textFills =
+            {
+                ("group band", CollapsibleGroup.BandFill(palette)),
+                ("group band hover", CollapsibleGroup.BandFill(palette, CollapsibleGroup.BandHoverStep)),
+                ("group band pressed", CollapsibleGroup.BandFill(palette, CollapsibleGroup.BandPressedStep)),
+                ("rail hot row", SettingsRail.RowFill(palette, selected: false, hot: true)),
+                ("rail selected row", SettingsRail.RowFill(palette, selected: true, hot: false)),
+                ("button hover", ButtonGlyphs.HoverBase(palette)),
+            };
+            foreach ((string fillName, Color fill) in textFills)
+                MeasureFill(palette, "text.primary", palette.TextPrimary, fillName, fill, 4.5, failures);
+
+            // Non-text marks owe 3:1 (WINDOWS-UI section 6 rule 4), pressed included.
+            MeasureFill(palette, "accent bar", palette.Accent, "rail selected row", SettingsRail.RowFill(palette, true, false), 3.0, failures);
+            foreach (bool down in new[] { false, true })
+            {
+                Color plate = TrafficLightTitleBar.PlateFill(palette, down);
+                string plateName = down ? "title plate pressed" : "title plate hover";
+                MeasureFill(palette, "glyph text.primary", palette.TextPrimary, plateName, plate, 3.0, failures);
+                MeasureFill(palette, "pin off (muted)", HistoryStripGlyphs.PinColor(false, palette), plateName, plate, 3.0, failures);
+                MeasureFill(palette, "pin on (danger)", HistoryStripGlyphs.PinColor(true, palette), plateName, plate, 3.0, failures);
+            }
+            Assert.True(failures.Count == 0, name + " derived fills below target:\n" + string.Join("\n", failures));
+        }
+
+        private void MeasureFill(ThemePalette palette, string ink, Color inkColor, string fill, Color fillColor, double target, List<string> failures)
+        {
+            double ratio = ThemePalette.Contrast(inkColor, fillColor);
+            _output.WriteLine($"{palette.Kind,-6} {ink,-20} on {fill,-20} {ratio,5:0.00}:1 (target {target}:1)");
+            if (ratio < target) failures.Add($"{ink} on {fill}: {ratio:0.00}:1, target {target}:1");
         }
 
         [Fact]

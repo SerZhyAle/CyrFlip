@@ -13,7 +13,7 @@ namespace CyrFlip.Tests
     {
         // S0072 classifies the current tree: the original spec counted 89/17 before the
         // backup markers and the S0071/S0074 preferences arrived. Credentials remain excluded.
-        private const int ExportedV2 = 106, ExcludedV2 = 21;
+        private const int ExportedV2 = 106, ExcludedV2 = 24;   // 21 + the three per-PC display values of S0076
         [Fact]
         public void EveryAppOwnedOverviewChordIsInTheTransferFile()
         {
@@ -66,6 +66,7 @@ namespace CyrFlip.Tests
             Assert.Equal(3, SettingsFileInventory.Excluded.Values.Count(reason => reason == "Windows state"));
             Assert.Equal(6, SettingsFileInventory.Excluded.Values.Count(reason => reason == "usage"));
             Assert.Equal(1, SettingsFileInventory.Excluded.Values.Count(reason => reason == "credentials"));
+            Assert.Equal(3, SettingsFileInventory.Excluded.Values.Count(reason => reason == "this PC's display"));
         }
         [Fact]
         public void TheSyntheticScenariosEntryIsNotARegistryValue()

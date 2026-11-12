@@ -131,19 +131,28 @@ namespace CyrFlip.Tests
         }
 
         [UiSweepFact]
-        public void RightToLeftStripSitsOnTheRight()
+        public void RightToLeftRailSitsOnTheRight()
         {
             OnUiThread(() =>
             {
                 using var form = TestForms.NewSettings(Config("العربية"));
-                Assert.Equal(TabAlignment.Right, form.Tabs!.Alignment);
+                form.Show();
+                Application.DoEvents();
                 Assert.Equal(RightToLeft.Yes, form.RightToLeft);
+                // The rail rides the reading start: on screen it is in the right half of a mirrored window.
+                System.Drawing.Rectangle rail = form.RailHost.RectangleToScreen(form.RailHost.ClientRectangle);
+                System.Drawing.Rectangle client = form.RectangleToScreen(form.ClientRectangle);
+                Assert.True(rail.Left > client.Left + client.Width / 2, "the rail should be at the right: " + rail + " in " + client);
             });
 
             OnUiThread(() =>
             {
                 using var form = TestForms.NewSettings(Config());
-                Assert.Equal(TabAlignment.Left, form.Tabs!.Alignment);
+                form.Show();
+                Application.DoEvents();
+                System.Drawing.Rectangle rail = form.RailHost.RectangleToScreen(form.RailHost.ClientRectangle);
+                System.Drawing.Rectangle client = form.RectangleToScreen(form.ClientRectangle);
+                Assert.True(rail.Right < client.Left + client.Width / 2, "the rail should be at the left: " + rail + " in " + client);
             });
         }
 

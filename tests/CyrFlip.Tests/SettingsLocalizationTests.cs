@@ -45,7 +45,7 @@ namespace CyrFlip.Tests
             "Clipboard history", "Delete all saved clipboard history?",
             // The conversion table (rows are rebuilt per refresh, so the walk can't see them).
             "Layout pair", "Shortcut", "The table is empty — no shortcut converts text right now.",
-            "Change...", "(not installed)", "Install at least two layouts to create a conversion.",
+            "Edit...", "(not installed)", "Install at least two layouts to create a conversion.",
             "The {0} combination is already used by «{1}».",
             // Tray menu and tooltip (no control tree at all).
             "Show history", "Hide history", "Clipboard history", "Cursor: layout indicator",
@@ -126,7 +126,7 @@ namespace CyrFlip.Tests
             "The scenario was not found — open CyrFlip to refresh the Jump List.",
             "yt-dlp download", "Link to download:", "Start",
             "New scenario", "Edit scenario", "Type:", "Name:", "Program or script",
-            "yt-dlp: download a link", "Path:", "Arguments:", "Working folder:", "Browse...",
+            "yt-dlp: download a link", "Path:", "Arguments:", "Working folder:", "Choose file...", "Choose folder...",
             "Run as administrator", "Download folder (empty = Downloads):",
             "Extra yt-dlp options:",
             "The link is asked for on every run. The yt-dlp program must be available on PATH.",

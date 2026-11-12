@@ -44,17 +44,29 @@ The same notes must land in **four** places. Missing one ships a release with st
       [vscode-extension/CHANGELOG.md](../../../vscode-extension/CHANGELOG.md), and bump `version`
       in `vscode-extension/package.json`.
 
-Also update README EN/RU + the site under `docs/` (the trilingual root page, the EN/RU/UK guides and
-the 13 language first pages) if user-facing behaviour changed. Commit
+Also update README EN/RU + the site under `docs/` (the EN, RU and UK landings, the EN/RU/UK guides and
+the 10 other language first pages) if user-facing behaviour changed. Commit
 these doc changes as a normal `/build` commit **first** (they ride to GitHub Pages on push).
+
+- [ ] **Release facts on the site** - pin the version and render it into the 13 landings:
+      `.\tools\site\Render-ReleaseFacts.ps1 -Version <ver>` (writes `tools/site/release-facts.json`, the
+      version, its date and the versioned ZIP and `.sha256` links, and the landing JSON-LD
+      `softwareVersion`). Commit it with the doc changes, then run every `release.ps1` call below with
+      `-Version <ver>`. The preflight checks HEAD states that version; when it does not, it renders the facts
+      into the working tree and fails, so a forgotten render costs one more preflight, never a release
+      without the facts.
 
 ## Phase 2 - Preflight (free, no git changes, no GitHub minutes)
 
 ```powershell
 .\release.ps1
 ```
-Runs on-main + dirty-tree reporting, a full local build + test, the listing-mirror drift check
-(`render-listing-mirrors.ps1 -Check`), computes the version, and prints the checklist. If anything
+Runs on-main + dirty-tree reporting, the full local build (whole solution, version-pinned) and every
+test tier the release owns (`dotnet test` + `Assert-TestRun`), the IconGen build, the placement, help,
+positioning, site-facts and release-facts gates, the listing-mirror and CSV drift checks
+(`render-listing-mirrors.ps1 -Check`, `build-store-listing-csv.ps1 -Check`), computes the version, and
+prints the checklist. Between releases only `.\build.ps1 -Fast` runs (S0081); this is where everything
+slower runs. If anything
 is red - fix it now, before spending a minute on GitHub.
 
 ## Phase 3 - Trigger the signed GitHub build (this spends minutes)
@@ -62,8 +74,8 @@ is red - fix it now, before spending a minute on GitHub.
 ```powershell
 .\release.ps1 -Push
 ```
-Creates the empty `release: vX` anchor commit (no `[skip ci]`, so the tag's workflow runs; the
-`release:` prefix makes `ci.yml` skip the branch push → no double-bill), tags `vX`, pushes
+Creates the empty `release: vX` anchor commit (no `[skip ci]`, so the tag's workflow runs; `ci.yml`
+runs only on a manual dispatch, so the branch push bills nothing), tags `vX`, pushes
 branch + tag. The tag fires `release.yml` → **signed** `CyrFlip-<ver>-windows-x64.zip` + `.sha256`
 + GitHub Release. Watch it (`gh run watch`) and confirm it is **green**. Copy the **ZIP asset URL**
 and the **SHA256** from the run log - the next steps need them.
@@ -92,8 +104,16 @@ and the **SHA256** from the run log - the next steps need them.
       ```powershell
       .\msix\build-msix.ps1 -ReleaseZip <downloaded-release-ZIP> -Version <ver>
       ```
-      The Store identity (`SZA.CyrFlip` / `CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD` / `SZA`) is the
-      script's default, and it refuses an exe whose `ProductVersion` is not `<ver>+<tag commit>`.
+      The Store identity (`SZA.CyrFlip` / `CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD` / `SZA`) is read
+      from `msix/identity.json` (the script stops without it), and the script refuses an exe whose
+      `ProductVersion` is not `<ver>+<tag commit>`. The upload stays the Partner Center flow below. The
+      Store machine channel (`msstore`, a service principal the owner configured) is read-only here:
+      the preflight of `release.ps1` already read the live state before the tag (the canon's shared
+      `Store-Preflight.ps1`, one `msstore submission get`; exit 1 stops the release with the reason, exit 2
+      prints that the Store step is manual and changes nothing; one evidence line per run in
+      `artifacts\store-channel-evidence.jsonl`; `-SkipStoreChannel` leaves it out). Never run a write verb,
+      and never touch a submission made in the console - a pending console draft is why the preflight can
+      say exit 1 (detail in `msix/README.md`).
       Upload the **unsigned** `.msix` (Microsoft re-signs). Partner Center → CyrFlip → **Create
       new submission** → replace the package → refresh all 13 listings + the **"What's new"**
       from `msix/store-listing-export.csv` → Submit. Detail: [msix/README.md](../../../msix/README.md),

@@ -29,6 +29,17 @@ namespace CyrFlip
     {
         private static readonly TitleCommand[] Order = { TitleCommand.Add, TitleCommand.Edit, TitleCommand.Pin, TitleCommand.Close, TitleCommand.Help };
 
+        /// <summary>
+        /// How far a command's plate leans from the bar's surface toward the text ink under the pointer and
+        /// while pressed. The pressed step is the largest that keeps the unpinned pin (<c>text.muted</c>) at
+        /// WINDOWS-UI section 6 rule 4's 3:1 on the light plate - 0.22 left it at 2.70:1 (S0093).
+        /// </summary>
+        internal const float PlateHoverAmount = 0.12f, PlatePressedAmount = 0.17f;
+
+        /// <summary>The plate under a hovered or pressed command, the fill its glyph is measured on.</summary>
+        internal static Color PlateFill(ThemePalette palette, bool down)
+            => ThemePalette.Mix(palette.SurfaceSunken, palette.TextPrimary, down ? PlatePressedAmount : PlateHoverAmount);
+
         private ThemePalette _palette = ThemePalette.Light;
         private Func<string, string> _t = s => s;
         private string _title = "";
@@ -125,6 +136,23 @@ namespace CyrFlip
 
         internal TitleCommand CommandAt(int index) => Order[index];
 
+        /// <summary>Where the title is drawn, or empty when the bar shows no title (no words, or no room).</summary>
+        internal Rectangle TitleTextArea()
+        {
+            if (!_showTitle || _title.Length == 0) return Rectangle.Empty;
+            int gap = Math.Max(4, Side / 4);
+            int left = Rtl ? ZoneOf(4).Right + gap : gap;
+            int right = Rtl ? Width - gap : ZoneOf(4).Left - gap;
+            return right - left > Font.Height * 3 ? new Rectangle(left, 0, right - left, Height) : Rectangle.Empty;
+        }
+
+        /// <summary>
+        /// The part of the bar the title's ink lies on, which keeps a solid underlay while the plate around it
+        /// fades (S0093 Q5): the text's own extent with a small margin, inside <see cref="TitleTextArea"/>.
+        /// </summary>
+        internal Rectangle TitleUnderlay()
+            => TrafficLightWindow.TextUnderlay(TitleTextArea(), _title, Font, Rtl);
+
         /// <summary>The words a button says on hover and to a screen reader.</summary>
         internal string CaptionOf(TitleCommand command)
         {
@@ -160,17 +188,11 @@ namespace CyrFlip
             using (var pen = new Pen(_palette.Border, 1f))
                 g.DrawLine(pen, 0, Height - 1, Width, Height - 1);
 
-            int side = Side;
-            int gap = Math.Max(4, side / 4);
-            if (_showTitle && _title.Length > 0)
-            {
-                int left = Rtl ? ZoneOf(4).Right + gap : gap;
-                int right = Rtl ? Width - gap : ZoneOf(4).Left - gap;
-                if (right - left > Font.Height * 3)
-                    TextRenderer.DrawText(g, _title, Font, new Rectangle(left, 0, right - left, Height), _palette.TextPrimary,
-                        TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter
-                        | (Rtl ? TextFormatFlags.RightToLeft | TextFormatFlags.Right : TextFormatFlags.Left));
-            }
+            Rectangle titleArea = TitleTextArea();
+            if (!titleArea.IsEmpty)
+                TextRenderer.DrawText(g, _title, Font, titleArea, _palette.TextPrimary,
+                    TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter
+                    | (Rtl ? TextFormatFlags.RightToLeft | TextFormatFlags.Right : TextFormatFlags.Left));
 
             for (int i = 0; i < Order.Length; i++)
             {
@@ -180,7 +202,7 @@ namespace CyrFlip
                 if (hot)
                 {
                     Rectangle plate = Rectangle.Inflate(zone, -2, -2);
-                    using (var brush = new SolidBrush(ThemePalette.Mix(_palette.SurfaceSunken, _palette.TextPrimary, down ? 0.22f : 0.12f)))
+                    using (var brush = new SolidBrush(PlateFill(_palette, down)))
                         g.FillRectangle(brush, plate);
                 }
 

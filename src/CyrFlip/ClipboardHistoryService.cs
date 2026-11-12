@@ -5,6 +5,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using static CyrFlip.WindowInterop;
 
@@ -28,6 +29,8 @@ namespace CyrFlip
         /// <summary>WM_APP + 0x31: "run what is queued in <see cref="_toOwner"/>". Private to this window.</summary>
         private const int WmRunQueued = 0x8000 + 0x31;
         private const int MaxTextBytes = 128 * 1024;
+        /// <summary>The capture cap in UTF-16 code units - the most an edit of an entry may hold (S0089).</summary>
+        internal const int MaxTextChars = MaxTextBytes / sizeof(char);
         // The entries, their display order and the Uuid index, all maintained incrementally. The
         // history is unbounded by design, so nothing may cost O(history) per copy - see
         // <see cref="ClipboardHistoryOrder"/> for why that class exists at all.
@@ -39,6 +42,16 @@ namespace CyrFlip
         private readonly string _dir;
         private readonly IQuickNotesCipher _cipher;
         private int _replayQueued;
+        // The pool's part of the replay - the decrypt and parse (S0064 H-5, S0082). Null until the
+        // first StartReplay; merged into the list on the owner thread, once (_replayApplied).
+        private Task<ReplayResult>? _replay;
+        private bool _replayApplied;
+        // Ids the user erased (x or an edit) before the replay was merged: the pool may have read their
+        // lines before the purge, and the merge must not bring them back (S0089).
+        private readonly HashSet<string> _erasedBeforeReplay = new HashSet<string>(StringComparer.Ordinal);
+        // The list was cleared before the replay was merged: the replay read the file that Clear deleted, so
+        // none of its entries may come back (S0097).
+        private bool _clearedBeforeReplay;
         private readonly ConcurrentQueue<Action> _toOwner = new ConcurrentQueue<Action>();
         private int _runQueuedPosted;
         private bool _enabled;
@@ -111,56 +124,76 @@ namespace CyrFlip
 
         /// <summary>
         /// Replay the journal into the list on the pool, once per service: the decrypt of a large file
-        /// no longer runs on the hooks' thread at startup (S0064 H-5). Copies made while the replay is
-        /// in flight are already in the list, and the merge below skips them by Uuid.
+        /// never runs on the hooks' thread - not at startup (S0064 H-5), and not when the manager
+        /// window or the exchange file asks for the records while the history is off (S0082; at
+        /// 131 us a record, 2 300 records already cross <c>LowLevelHooksTimeout</c>). Copies made
+        /// while the replay is in flight are already in the list, and the merge skips them by Uuid.
+        /// Owner thread only.
         /// </summary>
-        private void StartReplay()
+        internal void StartReplay()
         {
             if (Interlocked.Exchange(ref _replayQueued, 1) != 0) return;
             ClipboardHistoryJournal journal = EnsureJournal();
-            ThreadPool.QueueUserWorkItem(_ =>
+            _replay = Task.Run(() =>
             {
                 var replayed = new ClipboardHistoryOrder();
                 int skipped = 0;
                 try { skipped = journal.Load(replayed); }
                 catch { replayed.Clear(); skipped = 0; }
-                PostToOwner(() =>
-                {
-                    if (_disposed) return;
-                    SkippedRecords = skipped;
-                    if (skipped > 0)
-                        ClipboardHistoryLog.Log("history: " + skipped + " unreadable records skipped on load");
-                    MergeReplayed(replayed);
-                });
+                return new ReplayResult(replayed, skipped);
             });
+            _replay.ContinueWith(_ => PostToOwner(CompleteReplay), TaskScheduler.Default);
         }
 
         /// <summary>
-        /// Complete the replay on the calling thread when it has not run yet (S0064 H-5). For callers
-        /// that must see the file's records now, while the history is switched off: opening the
-        /// manager window and the exchange export - explicit user actions, unlike the start.
-        /// UI thread only, like everything that touches the list.
+        /// Start the replay when it has not started and return its pool part - the decrypt and parse,
+        /// which completes without the owner thread. A caller that must see every record of the file
+        /// (the exchange export and import) waits for it with the message loop running
+        /// (<c>BusyDialog.Wait</c>) and then calls <see cref="CompleteReplay"/> (S0082). Owner thread only.
         /// </summary>
-        internal void EnsureReplayed()
+        internal Task ReplayAsync()
         {
-            if (Interlocked.Exchange(ref _replayQueued, 1) != 0) return;
-            ClipboardHistoryJournal journal = EnsureJournal();
-            var replayed = new ClipboardHistoryOrder();
-            int skipped = 0;
-            try { skipped = journal.Load(replayed); }
-            catch { replayed.Clear(); skipped = 0; }
-            SkippedRecords = skipped;
-            if (skipped > 0)
-                ClipboardHistoryLog.Log("history: " + skipped + " unreadable records skipped on load");
-            MergeReplayed(replayed);
+            StartReplay();
+            return _replay ?? Task.CompletedTask;
         }
 
-        /// <summary>Move the replayed entries into the live list; a Uuid already captured live stays as it is.</summary>
+        /// <summary>
+        /// Merge a replay the pool has finished into the list, once: what the posted message does, and
+        /// what a caller that has just waited for <see cref="ReplayAsync"/> does at once rather than
+        /// wait for that message. A replay still in flight is left alone. Owner thread only; cheap -
+        /// the decrypt is already done.
+        /// </summary>
+        internal void CompleteReplay()
+        {
+            Task<ReplayResult>? replay = _replay;
+            if (_disposed || _replayApplied || replay == null || !replay.IsCompleted) return;
+            _replayApplied = true;
+            ReplayResult result = replay.Result;
+            SkippedRecords = result.Skipped;
+            if (result.Skipped > 0)
+                ClipboardHistoryLog.Log("history: " + result.Skipped + " unreadable records skipped on load");
+            MergeReplayed(result.Entries);
+        }
+
+        private sealed class ReplayResult
+        {
+            public ReplayResult(ClipboardHistoryOrder entries, int skipped) { Entries = entries; Skipped = skipped; }
+            public ClipboardHistoryOrder Entries { get; }
+            public int Skipped { get; }
+        }
+
+        /// <summary>
+        /// Move the replayed entries into the live list; a Uuid already captured live stays as it is. When the
+        /// list was cleared before the merge, the whole result is dropped (S0097): the file it was read from is gone.
+        /// </summary>
         private void MergeReplayed(ClipboardHistoryOrder replayed)
         {
             bool added = false;
-            foreach (ClipboardHistoryEntry entry in replayed.Entries)
-                if (_order.Add(entry)) added = true;
+            if (!_clearedBeforeReplay)
+                foreach (ClipboardHistoryEntry entry in replayed.Entries)
+                    if (!_erasedBeforeReplay.Contains(entry.Uuid) && _order.Add(entry)) added = true;
+            _erasedBeforeReplay.Clear();
+            _clearedBeforeReplay = false;
             if (added) RaiseChanged();
             ReplayFinished?.Invoke(this, EventArgs.Empty);
         }
@@ -202,14 +235,71 @@ namespace CyrFlip
 
         public void Delete(ClipboardHistoryEntry entry)
         {
-            _order.Remove(entry);
-            EnsureJournal().Append(ClipboardHistoryJournal.Record.Of("delete", entry));
+            Erase(entry);
             RaiseChanged();
+        }
+
+        /// <summary>Out of the list and out of the file: the journal's delete rewrites it without the entry's lines (CH2-5).</summary>
+        private void Erase(ClipboardHistoryEntry entry)
+        {
+            _order.Remove(entry);
+            if (!_replayApplied) _erasedBeforeReplay.Add(entry.Uuid);
+            EnsureJournal().Append(ClipboardHistoryJournal.Record.Of("delete", entry));
+        }
+
+        /// <summary>
+        /// The user's correction of an entry's text (S0089). An id is the hash of its text - the exchange
+        /// file refuses one that is not - so the edit is the old entry erased exactly as "x" erases it and
+        /// an entry written under the new text, carrying the date, the pin and the source; the journal
+        /// gains no action, and a build that predates the edit reads the file as it is. A text another
+        /// entry already holds merges into that entry, which keeps its date and becomes pinned when either
+        /// was. Nothing changes for an empty or whitespace text (an edit never deletes), the same text, or
+        /// a text over the capture cap (<see cref="ItemTooLarge"/> says so). The clipboard is not touched.
+        /// Returns the entry that now holds the text, or null when nothing changed. UI thread only.
+        /// </summary>
+        public ClipboardHistoryEntry? UpdateText(ClipboardHistoryEntry entry, string text)
+        {
+            if (_disposed || entry == null || !ReferenceEquals(_order.Find(entry.Uuid), entry)) return null;
+            if (string.IsNullOrWhiteSpace(text)) return null;
+            if (Encoding.Unicode.GetByteCount(text) > MaxTextBytes)
+            {
+                ItemTooLarge?.Invoke(this, EventArgs.Empty);
+                return null;
+            }
+            string uuid = Hash(text);
+            if (uuid == entry.Uuid) return null;
+            ClipboardHistoryEntry? other = _order.Find(uuid);
+            Erase(entry);
+            if (other != null)
+            {
+                if (entry.IsPinned && !other.IsPinned)
+                {
+                    _order.Update(other, other.CreatedAt, true);
+                    EnsureJournal().Append(ClipboardHistoryJournal.Record.Of("pin", other));
+                }
+                RaiseChanged();
+                return other;
+            }
+            var edited = new ClipboardHistoryEntry
+            {
+                Uuid = uuid,
+                Text = text,
+                CreatedAt = entry.CreatedAt,
+                IsPinned = entry.IsPinned,
+                SourceApp = entry.SourceApp,
+                SourceTitle = entry.SourceTitle,
+            };
+            _order.Add(edited);
+            EnsureJournal().Append(ClipboardHistoryJournal.Record.Of("add", edited));
+            RaiseChanged();
+            return edited;
         }
 
         public void Clear()
         {
             _order.Clear();
+            // A replay still in flight read the file this deletes; its entries must not come back (S0097).
+            if (!_replayApplied) _clearedBeforeReplay = true;
             EnsureJournal().Clear(deleted =>
             {
                 if (!deleted) PostToOwner(() => ClearFailed?.Invoke(this, EventArgs.Empty));

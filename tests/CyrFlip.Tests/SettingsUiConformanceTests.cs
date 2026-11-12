@@ -377,9 +377,9 @@ namespace CyrFlip.Tests
         {
             foreach (ThemePalette palette in new[] { ThemePalette.Light, ThemePalette.Dark, ThemePalette.HighContrast })
             {
-                Color selected = ThemePalette.Mix(palette.SurfaceWindow, palette.Accent, 0.18f);
-                Color hovered = ThemePalette.Mix(palette.SurfaceWindow, palette.Accent, 0.09f);
-                Color band = ThemePalette.Mix(palette.SurfaceWindow, palette.Accent, CollapsibleGroup.BandAmount);
+                Color selected = ThemePalette.Mix(palette.SurfaceWindow, palette.Accent, SettingsRail.SelectedFillAmount);
+                Color hovered = ThemePalette.Mix(palette.SurfaceWindow, palette.Accent, SettingsRail.HotFillAmount);
+                Color band = CollapsibleGroup.BandFill(palette);
                 Assert.True(ThemePalette.Contrast(palette.TextPrimary, selected) >= 4.5,
                     $"{palette}: selected nav fill holds only {ThemePalette.Contrast(palette.TextPrimary, selected):F2}:1");
                 Assert.True(ThemePalette.Contrast(palette.TextPrimary, hovered) >= 4.5,

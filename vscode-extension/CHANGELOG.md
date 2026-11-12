@@ -2,6 +2,18 @@
 
 All notable changes to the **CyrFlip - keyboard layout at the caret** extension are documented here.
 
+## Unreleased
+
+- **British English has a blue of its own.** The UK keyboard (`00000809`) gets the shade `#2F8CF0`, so
+  US and British English are told apart at the editor caret too, even when both read `EN`. The US blue
+  and every other colour stay as they were.
+- **Written for every layout, not one language pair.** The description, the keywords and this README
+  address anyone who types in two or more keyboard layouts, whatever the languages. The README says what
+  the marker shows: the language's letters, the layout's own shade for the 25 curated layouts, and one
+  label and one colour for layouts of one language outside them - US English and Irish English both
+  show `EN` in the same blue. It also says that the extension runs on Windows beside the CyrFlip app and
+  shows nothing without it. Nothing in the extension's behaviour changed; the icon stays as it is.
+
 ## [0.1.6] - 2026-10-21
 
 - **The description names the app the way it now introduces itself** - CyrFlip, a Windows tray toolkit for

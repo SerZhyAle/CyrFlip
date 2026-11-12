@@ -95,6 +95,24 @@ namespace CyrFlip
         };
     }
 
+    /// <summary>What <c>settings_saved</c> says (item EO).</summary>
+    internal sealed class ExchangeStandardSaved
+    {
+        public long Version = -1;
+        /// <summary>RFC 3339 in UTC, the server's clock at the accepted save.</summary>
+        public string UpdatedAt = "";
+    }
+
+    /// <summary>What <c>settings_standard_payload</c> carries (item EO).</summary>
+    internal sealed class ExchangeStandardPayload
+    {
+        public string AppId = "";
+        /// <summary>-1 when absent or not an integer.</summary>
+        public long FormatVersion = -1;
+        public string Payload = "";
+        public string UpdatedAt = "";
+    }
+
     internal sealed class ExchangeEnrollRequest
     {
         public string Host = "";
@@ -294,6 +312,56 @@ namespace CyrFlip
             catch (Exception ex) when (IsNetworkFailure(ex) || ex is ExchangeFailure)
             {
                 return ExchangeOutcome.Fail<ExchangeValueHeader?>(CodeOf(ex, session.Connection, ct, true));
+            }
+        }
+
+        // ---- the settings standard on the control stream (DEVICE-EXCHANGE 1.12, items EN to ER) ----
+
+        /// <summary>
+        /// <c>settings_save_standard</c>: answered by <c>settings_saved</c> or <c>refused</c>. A stream that closes
+        /// after the save was written is <see cref="ExchangeCodes.SaveUnconfirmed"/> - whether it was stored is not
+        /// known, and a repeat is safe (item ER).
+        /// </summary>
+        public async Task<ExchangeOutcome<ExchangeStandardSaved>> SaveStandardAsync(ExchangeSession session, string payload, CancellationToken ct)
+        {
+            bool sent = false;
+            try
+            {
+                await session.Connection.SendAsync(ExchangeMembers.SettingsSaveStandard(SettingsStandard.AppId,
+                    SettingsStandard.FormatVersion, payload, DateTime.UtcNow), ct).ConfigureAwait(false);
+                sent = true;
+                ExchangeFrame? answer = await ReceiveAnswerAsync(session, ct, "settings_saved").ConfigureAwait(false);
+                if (answer == null) return ExchangeOutcome.Fail<ExchangeStandardSaved>(ExchangeCodes.SaveUnconfirmed);
+                if (answer.Type == "refused") return ExchangeOutcome.Fail<ExchangeStandardSaved>(ReasonOf(answer));
+                return ExchangeOutcome.Success(new ExchangeStandardSaved { Version = answer.Long("version"), UpdatedAt = answer.Str("updatedAt") });
+            }
+            catch (Exception ex) when (IsNetworkFailure(ex) || ex is ExchangeFailure)
+            {
+                string code = CodeOf(ex, session.Connection, ct, true);
+                return ExchangeOutcome.Fail<ExchangeStandardSaved>(sent && code == ExchangeCodes.Unanswered ? ExchangeCodes.SaveUnconfirmed : code);
+            }
+        }
+
+        /// <summary><c>settings_get_standard</c>: answered by <c>settings_standard_payload</c> or <c>refused</c>; stores nothing.</summary>
+        public async Task<ExchangeOutcome<ExchangeStandardPayload>> GetStandardAsync(ExchangeSession session, CancellationToken ct)
+        {
+            try
+            {
+                await session.Connection.SendAsync(ExchangeMembers.SettingsGetStandard(SettingsStandard.AppId), ct).ConfigureAwait(false);
+                ExchangeFrame? answer = await ReceiveAnswerAsync(session, ct, "settings_standard_payload").ConfigureAwait(false);
+                if (answer == null) return ExchangeOutcome.Fail<ExchangeStandardPayload>(ExchangeCodes.Unanswered);
+                if (answer.Type == "refused") return ExchangeOutcome.Fail<ExchangeStandardPayload>(ReasonOf(answer));
+                return ExchangeOutcome.Success(new ExchangeStandardPayload
+                {
+                    AppId = answer.Str("appId"),
+                    FormatVersion = answer.Long("formatVersion"),
+                    Payload = answer.Str("settingsPayload"),
+                    UpdatedAt = answer.Str("updatedAt"),
+                });
+            }
+            catch (Exception ex) when (IsNetworkFailure(ex) || ex is ExchangeFailure)
+            {
+                return ExchangeOutcome.Fail<ExchangeStandardPayload>(CodeOf(ex, session.Connection, ct, true));
             }
         }
 

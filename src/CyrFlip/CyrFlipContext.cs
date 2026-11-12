@@ -170,6 +170,7 @@ namespace CyrFlip
             // First, before any window or menu exists: every one of them is painted when it is created
             // (ticket S0020), and the tray menu reads the process-wide renderer this installs.
             ThemeManager.Initialize(ThemeModes.Parse(_config.Theme));
+            UiProfileManager.Initialize(_config);
             // Before anything reads the notes journal or writes a log: the Store build's one-time move out
             // of the machine-wide %ProgramData%\CyrFlip (ticket S0016). A no-op unpackaged and after the first run.
             DataFolderMigration.RunOnce(_config);
@@ -2847,7 +2848,13 @@ namespace CyrFlip
         /// </summary>
         private void SwitchLayoutFromTray()
         {
-            bool switched = LayoutSwitcher.SwitchToNext(_indicator.LastActiveWindow);
+            IntPtr lastActive = _indicator.LastActiveWindow;
+            if (lastActive != IntPtr.Zero)
+                ForegroundActivator.Activate(lastActive);
+
+            bool switched = LayoutSwitcher.SwitchToNext(lastActive);
+            if (switched)
+                _indicator.Poll();
             if (!switched)
                 _tray.ShowBalloonTip(2000, "CyrFlip",
                     T("Nothing to switch to: Windows has only one keyboard layout installed."), ToolTipIcon.Info);
@@ -2898,6 +2905,7 @@ namespace CyrFlip
                 UpdateTrayTexts();
                 RefreshJumpList();
             };
+            settings.SettingsStandardRequested += RunSettingsStandard;
             settings.ExchangeClipboardSendHotkeyChangeRequested += (_, _) => OnSetExchangeSendHotkey();
             settings.ExchangeClipboardGetHotkeyChangeRequested += (_, _) => OnSetExchangeGetHotkey();
             settings.GraphicsChanged += (_, _) => OnGraphicsChanged();
@@ -3683,6 +3691,7 @@ namespace CyrFlip
                 _settings?.Dispose();
                 CleanupTray();
                 ThemeManager.Shutdown();   // after every window: nothing left for it to hold
+                UiProfileManager.Shutdown();
                 DiagnosticLog.Flush(SessionEndSequence.LogDrain); // last: everything above may still have logged
             }
             base.Dispose(disposing);

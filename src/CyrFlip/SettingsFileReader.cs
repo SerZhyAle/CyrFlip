@@ -57,19 +57,7 @@ namespace CyrFlip
                         var entry = SettingsFileInventory.Exported.FirstOrDefault(e => e.Key == pair.Key && e.IsTable == (section == "tables"));
                         if (entry == null) { doc.UnknownKeys++; continue; }
                         if (pair.Value == null) continue;
-                        object? value = null;
-                        if (entry.IsTable)
-                        {
-                            if (pair.Value is object[] rows)
-                            {
-                                if (rows.Length > MaxRows) throw new SettingsFileException("limit");
-                                // A malformed row costs the entire table key, not the other settings.
-                                if (rows.All(r => ValidRow(r, entry.Key))) value = serializer.Serialize(rows);
-                            }
-                        }
-                        else if (entry.Property!.PropertyType == typeof(bool) && pair.Value is bool b) value = b ? 1 : 0;
-                        else if (entry.Property!.PropertyType == typeof(int) && pair.Value is int i) value = i;
-                        else if (entry.Property!.PropertyType == typeof(string) && pair.Value is string s) value = s;
+                        object? value = ConvertValue(entry, pair.Value, serializer);
                         if (value == null) doc.Issues.Add(new SettingsFileIssue(pair.Key, "kind"));
                         else doc.Values.Add(pair.Key, value);
                     }
@@ -79,6 +67,26 @@ namespace CyrFlip
             catch (SettingsFileException) { throw; }
             catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is DecoderFallbackException)
             { throw new SettingsFileException("format"); }
+        }
+        /// <summary>
+        /// One parsed JSON value as the registry form of <paramref name="entry"/> (a bool as 0/1, a table as its JSON
+        /// text), or null when its kind is wrong. Shared by the settings file and the exchange server's settings
+        /// standard (S0095), so both read a value by one rule.
+        /// </summary>
+        internal static object? ConvertValue(SettingsFileEntry entry, object raw, JavaScriptSerializer serializer)
+        {
+            if (entry.IsTable)
+            {
+                if (!(raw is object[] rows)) return null;
+                if (rows.Length > MaxRows) throw new SettingsFileException("limit");
+                // A malformed row costs the entire table key, not the other settings.
+                return rows.All(r => ValidRow(r, entry.Key)) ? serializer.Serialize(rows) : null;
+            }
+            Type type = entry.Property!.PropertyType;
+            if (type == typeof(bool) && raw is bool b) return b ? 1 : 0;
+            if (type == typeof(int) && raw is int i) return i;
+            if (type == typeof(string) && raw is string s) return s;
+            return null;
         }
         private static void ReadScenarios(SettingsFileDocument doc, object? raw)
         {

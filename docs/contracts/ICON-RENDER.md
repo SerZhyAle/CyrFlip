@@ -24,7 +24,10 @@
   (section 12 item H) a product that **declares itself pointer-first in its registry row** sizes to 28 without
   detecting touch, which is the declaration the exception is waiting for.
 - **The layout badge is out** - `LAYOUT-PALETTE` draws it; the tray icon is the full-colour live badge (rule 9).
-- **Navigation identity inks (0.16, section 11)** are a permission; this product does not use them.
+- **Navigation identity inks (0.16, section 11)**: the settings page rail uses them - one semantic table
+  (`ThemePalette.NavInk`, light and dark values, the text role under high contrast) on every destination, never
+  mixed with monochrome glyphs. `SettingsRailTests` holds 3:1 on the actual normal, hover and selected row fills.
+  `SETTINGS-NAVIGATION` section 2 rule 3 governs this choice (ticket S0076).
 
 ## Open deviation (2026-10-07, not yet fixed)
 
@@ -36,9 +39,9 @@
 
 ## Synchronization read - 2026-10-18
 
-The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+The current clause-to-surface audit (ticket S0077) records
 the current catalog target, implementation changes, scoped exceptions and evidence.
 Earlier version/evidence statements above are historical and do not certify the
-new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+new target. The shared UI profile (ticket S0076) governs precedence
 for covered components. Previous verified implementation levels stay unchanged
 until their remaining evidence is recorded.

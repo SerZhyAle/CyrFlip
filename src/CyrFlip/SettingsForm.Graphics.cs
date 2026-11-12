@@ -124,7 +124,7 @@ namespace CyrFlip
             // The setting names itself and says what it does (APP-SETTINGS rule 3: caption, control and hint).
             var folderCaption = new Label { Text = "Folder for screen region captures", AutoSize = true, Tag = "caption" };
             var buttons = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = Padding.Empty };
-            Button choose = Button("Choose...", AppGlyphs.ChooseFolder, ChooseScreenshotFolder);
+            Button choose = Button("Choose folder...", AppGlyphs.ChooseFolder, ChooseScreenshotFolder);
             Button open = Button("Open folder", AppGlyphs.Folder, OpenScreenshotFolder);
             buttons.Controls.Add(choose);
             buttons.Controls.Add(open);

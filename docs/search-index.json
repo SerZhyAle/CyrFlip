@@ -3,7 +3,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/guide.html",
     "lang": "en",
     "title": "CyrFlip - setup guide",
-    "description": "Set up CyrFlip, a tray toolkit for your keyboard and desktop: the layout marker, conversions, notes and more. The VS Code extension is optional.",
+    "description": "Set up CyrFlip, a tray toolkit for your keyboard and desktop: the layout marker, conversions, notes, the optional VS Code extension and more.",
     "headings": [
       "CyrFlip setup guide",
       "Find a task",
@@ -84,7 +84,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/store.html",
     "lang": "en",
     "title": "CyrFlip in the Microsoft Store",
-    "description": "What the Microsoft Store build of CyrFlip does differently: Windows owns its startup, its files live in the package folder, and it never.",
+    "description": "How the Store build of CyrFlip differs: Windows owns its startup, its files live in the package folder, and it never downloads an installer.",
     "headings": [
       "CyrFlip in the Microsoft Store",
       "Windows owns its startup",
@@ -123,7 +123,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/privacy.html",
     "lang": "en",
     "title": "CyrFlip - Privacy Policy",
-    "description": "CyrFlip does not collect, store, log, or transmit any personal data. It runs entirely on your own device.",
+    "description": "CyrFlip keeps no diary of what you type and sends nothing by default; the translator and the server clipboard send data only when switched on.",
     "headings": [
       "Privacy Policy",
       "What the app accesses, and why",
@@ -140,7 +140,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/ru/privacy.html",
     "lang": "ru",
     "title": "CyrFlip - политика конфиденциальности",
-    "description": "CyrFlip не собирает, не хранит, не журналирует и не передаёт персональные данные. Всё работает на вашем устройстве.",
+    "description": "CyrFlip не ведёт дневник ввода и по умолчанию ничего не отправляет; переводчик и буфер на сервере передают данные, только когда включены.",
     "headings": [
       "Политика конфиденциальности",
       "К чему приложение обращается и зачем",
@@ -157,7 +157,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/uk/privacy.html",
     "lang": "uk",
     "title": "CyrFlip - політика конфіденційності",
-    "description": "CyrFlip не збирає, не зберігає, не журналює й не передає персональних даних. Усе працює на вашому пристрої.",
+    "description": "CyrFlip не веде щоденника набраного тексту і типово нічого не надсилає; перекладач і буфер на сервері передають дані, лише коли ввімкнені.",
     "headings": [
       "Політика конфіденційності",
       "До чого застосунок звертається і навіщо",
@@ -174,7 +174,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/de/privacy.html",
     "lang": "de",
     "title": "CyrFlip - Datenschutzerklärung",
-    "description": "CyrFlip erhebt, speichert, protokolliert und überträgt keine personenbezogenen Daten. Alles läuft auf Ihrem eigenen Gerät.",
+    "description": "CyrFlip zeichnet Ihre Eingaben nicht auf und sendet standardmäßig nichts; Übersetzer und Server-Zwischenablage senden Daten nur, wenn eingeschaltet.",
     "headings": [
       "Datenschutzerklärung",
       "Worauf die App zugreift und warum",
@@ -191,7 +191,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/it/privacy.html",
     "lang": "it",
     "title": "CyrFlip - Informativa sulla privacy",
-    "description": "CyrFlip non raccoglie, non conserva, non registra e non trasmette dati personali. Tutto gira sul tuo dispositivo.",
+    "description": "CyrFlip non registra ciò che digiti e di base non invia nulla; il traduttore e gli appunti sul server inviano dati solo se li attivi.",
     "headings": [
       "Informativa sulla privacy",
       "A cosa accede l'app, e perché",
@@ -208,7 +208,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/es/privacy.html",
     "lang": "es",
     "title": "CyrFlip - Política de privacidad",
-    "description": "CyrFlip no recopila, almacena, registra ni transmite ningún dato personal. Funciona por completo en tu propio dispositivo.",
+    "description": "CyrFlip no registra lo que escribes y por omisión no envía nada; el traductor y el portapapeles en el servidor envían datos solo si los activas.",
     "headings": [
       "Política de privacidad",
       "A qué accede la aplicación, y por qué",
@@ -225,7 +225,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/fr/privacy.html",
     "lang": "fr",
     "title": "CyrFlip - Politique de confidentialité",
-    "description": "CyrFlip ne collecte, ne stocke, ne journalise ni ne transmet aucune donnée personnelle. Tout se passe sur votre propre appareil.",
+    "description": "CyrFlip n'enregistre pas votre saisie et n'envoie rien par défaut ; le traducteur et le presse-papiers sur le serveur n'envoient qu'une fois activés.",
     "headings": [
       "Politique de confidentialité",
       "Ce à quoi l'application accède, et pourquoi",
@@ -242,7 +242,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/pt/privacy.html",
     "lang": "pt",
     "title": "CyrFlip - Política de privacidade",
-    "description": "O CyrFlip não coleta, armazena, registra nem transmite quaisquer dados pessoais. Tudo acontece no seu próprio dispositivo.",
+    "description": "O CyrFlip não registra o que você digita e, por padrão, não envia nada; o tradutor e a área de transferência no servidor só enviam se ativados.",
     "headings": [
       "Política de privacidade",
       "A que o aplicativo acessa, e por quê",
@@ -259,7 +259,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/ar/privacy.html",
     "lang": "ar",
     "title": "CyrFlip - سياسة الخصوصية",
-    "description": "لا يجمع CyrFlip أي بيانات شخصية ولا يخزّنها ولا يسجّلها ولا ينقلها. كل شيء يجري على جهازك أنت.",
+    "description": "لا يسجّل CyrFlip ما تكتبه ولا يرسل شيئًا افتراضيًا؛ لا يرسل المترجم والحافظة على الخادم بيانات إلا عند تشغيلهما.",
     "headings": [
       "سياسة الخصوصية",
       "ما الذي يصل إليه التطبيق، ولماذا",
@@ -276,7 +276,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/hi/privacy.html",
     "lang": "hi",
     "title": "CyrFlip - गोपनीयता नीति",
-    "description": "CyrFlip कोई व्यक्तिगत डेटा एकत्र, संग्रहीत, अभिलिखित या प्रेषित नहीं करता। सब कुछ आपके ही उपकरण पर होता है।",
+    "description": "CyrFlip आपके टाइप किए का कोई रिकॉर्ड नहीं रखता और डिफ़ॉल्ट रूप से कुछ नहीं भेजता; अनुवादक और सर्वर पर क्लिपबोर्ड केवल चालू होने पर डेटा भेजते हैं।",
     "headings": [
       "गोपनीयता नीति",
       "ऐप किन चीज़ों तक पहुँचता है, और क्यों",
@@ -293,7 +293,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/bn/privacy.html",
     "lang": "bn",
     "title": "CyrFlip - গোপনীয়তা নীতি",
-    "description": "CyrFlip কোনো ব্যক্তিগত তথ্য সংগ্রহ, সংরক্ষণ, নথিভুক্ত বা প্রেরণ করে না। সবকিছু আপনার নিজের যন্ত্রেই ঘটে।",
+    "description": "CyrFlip আপনার টাইপ করা কিছুর হিসাব রাখে না এবং পূর্বনির্ধারিতভাবে কিছু পাঠায় না; অনুবাদক ও সার্ভারে ক্লিপবোর্ড কেবল চালু থাকলে তথ্য পাঠায়।",
     "headings": [
       "গোপনীয়তা নীতি",
       "অ্যাপ কীসে হাত দেয়, আর কেন",
@@ -310,7 +310,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/ur/privacy.html",
     "lang": "ur",
     "title": "CyrFlip - پرائیویسی پالیسی",
-    "description": "CyrFlip کوئی ذاتی معلومات جمع، محفوظ، درج یا منتقل نہیں کرتی۔ سب کچھ آپ ہی کے آلے پر ہوتا ہے۔",
+    "description": "CyrFlip آپ کے ٹائپ کیے ہوئے کا کوئی ریکارڈ نہیں رکھتی اور طے شدہ طور پر کچھ نہیں بھیجتی؛ مترجم اور سرور پر کلپ بورڈ صرف آن ہونے پر ڈیٹا بھیجتے ہیں۔",
     "headings": [
       "پرائیویسی پالیسی",
       "ایپ کس چیز تک رسائی لیتی ہے، اور کیوں",
@@ -327,7 +327,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/zh/privacy.html",
     "lang": "zh",
     "title": "CyrFlip - 隐私政策",
-    "description": "CyrFlip 隐私政策：应用在你自己的设备上运行，不收集任何内容，也没有自己的服务器；可选的翻译功能只把你选中的文本发送到你指定的 Ollama 地址，默认就是你自己的电脑。",
+    "description": "CyrFlip 不记录你输入的内容，默认不发送任何东西；翻译和服务器上的剪贴板只有在开启后才会发送数据。",
     "headings": [
       "隐私政策",
       "应用访问什么，为什么",
@@ -531,7 +531,7 @@
     "url": "https://serzhyale.github.io/CyrFlip/ur/trust.html",
     "lang": "ur",
     "title": "CyrFlip - Windows یا اینٹی وائرس کیوں خبردار کر سکتا ہے",
-    "description": "CyrFlip کے بارے میں Windows SmartScreen یا اینٹی وائرس کی تنبیہ کا کیا مطلب ہے، یہ کیوں ظاہر ہوتی ہے، ٹھیک ٹھیک کیا کلک کرنا ہے، اور CyrFlip کیا.",
+    "description": "CyrFlip کے بارے میں SmartScreen یا اینٹی وائرس کی تنبیہ کا کیا مطلب ہے، یہ کیوں ظاہر ہوتی ہے، کیا کلک کرنا ہے، اور CyrFlip کیا کبھی نہیں کرتی۔",
     "headings": [
       "Windows یا کوئی اینٹی وائرس CyrFlip کے بارے میں کیوں خبردار کر سکتا ہے",
       "تنبیہ کیا ہے",
@@ -562,21 +562,138 @@
     ]
   },
   {
+    "url": "https://serzhyale.github.io/CyrFlip/support.html",
+    "lang": "en",
+    "title": "CyrFlip support - how to report a problem",
+    "description": "How to report a CyrFlip problem or ask a question: the issue tracker, a private email, and the log archive you send yourself.",
+    "headings": [
+      "Support",
+      "Report a problem or suggest something",
+      "Write privately",
+      "What to include",
+      "Send the logs from the About tab",
+      "Before you write"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ru/support.html",
+    "lang": "ru",
+    "title": "CyrFlip: поддержка и сообщение о проблеме",
+    "description": "Как сообщить о проблеме CyrFlip или задать вопрос: трекер задач, личная почта и архив логов, который вы отправляете сами.",
+    "headings": [
+      "Поддержка",
+      "Сообщить о проблеме или предложить идею",
+      "Написать лично",
+      "Что указать",
+      "Отправить логи с вкладки «О программе»",
+      "Прежде чем писать"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/uk/support.html",
+    "lang": "uk",
+    "title": "CyrFlip: підтримка та повідомлення про проблему",
+    "description": "Як повідомити про проблему CyrFlip або поставити запитання: трекер задач, особиста пошта й архів логів, який ви надсилаєте самі.",
+    "headings": [
+      "Підтримка",
+      "Повідомити про проблему або запропонувати ідею",
+      "Написати особисто",
+      "Що вказати",
+      "Надіслати логи з вкладки «Про програму»",
+      "Перш ніж писати"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/faq.html",
+    "lang": "en",
+    "title": "CyrFlip FAQ - common questions",
+    "description": "Short answers: is CyrFlip a keylogger, does it switch layouts by itself, why the translator needs Ollama, and why Windows warns about the ZIP.",
+    "headings": [
+      "Frequently asked questions",
+      "Is it a keylogger?",
+      "Does it switch the layout by itself?",
+      "Why does the translator need Ollama?",
+      "Why does Windows warn about the ZIP?"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ru/faq.html",
+    "lang": "ru",
+    "title": "CyrFlip: частые вопросы",
+    "description": "Короткие ответы: кейлоггер ли CyrFlip, переключает ли он раскладку сам, зачем переводчику Ollama и почему Windows предупреждает про ZIP.",
+    "headings": [
+      "Частые вопросы",
+      "Это кейлоггер?",
+      "Переключает ли он раскладку сам?",
+      "Зачем переводчику Ollama?",
+      "Почему Windows предупреждает про ZIP?"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/uk/faq.html",
+    "lang": "uk",
+    "title": "CyrFlip: поширені запитання",
+    "description": "Короткі відповіді: чи CyrFlip кейлогер, чи перемикає він розкладку сам, навіщо перекладачу Ollama і чому Windows попереджає про ZIP.",
+    "headings": [
+      "Поширені запитання",
+      "Це кейлогер?",
+      "Чи перемикає він розкладку сам?",
+      "Навіщо перекладачу Ollama?",
+      "Чому Windows попереджає про ZIP?"
+    ]
+  },
+  {
     "url": "https://serzhyale.github.io/CyrFlip/",
     "lang": "en",
     "title": "CyrFlip - a tray toolkit for your keyboard and desktop",
     "description": "Windows tray toolkit: the layout at the caret, one-key fixes for wrong-layout text, plus an optional selection menu, translator, notes and launcher.",
     "headings": [
-      "Печатайте в нужной раскладке, а инструменты для текста держите под рукой.Type in the right layout, and keep your text tools one chord away.Друкуйте в потрібній розкладці, а інструменти для тексту тримайте під рукою.",
-      "Что умеет CyrFlipWhat CyrFlip doesЩо вміє CyrFlip",
-      "Увидеть раскладку до вводаSee the layout before typingПобачити розкладку до введення",
-      "Исправить текст в неверной раскладке и CapsLockFix wrong-layout text and CapsLockВиправити текст у хибній розкладці й CapsLock",
-      "Действовать над выделеннымAct on a selectionДіяти над виділеним",
-      "Сохранить скопированное и записанноеKeep what you copy and writeЗберегти скопійоване й записане",
-      "Запуск и снимок экранаLaunch and captureЗапуск і знімок екрана",
-      "Только вашеYours aloneЛише ваше",
-      "Продолжить по своей задачеContinue with your taskПродовжити зі своїм завданням",
-      "Подробности и ограниченияDetails and limitationsПодробиці та обмеження"
+      "Type in the right layout, and keep your text tools one chord away.",
+      "What CyrFlip does",
+      "See the layout before typing",
+      "Fix wrong-layout text and CapsLock",
+      "Act on a selection",
+      "Keep what you copy and write",
+      "Launch and capture",
+      "Yours alone",
+      "Continue with your task",
+      "Details and limitations"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/ru/",
+    "lang": "ru",
+    "title": "CyrFlip - инструменты для клавиатуры и рабочего стола",
+    "description": "Набор инструментов в трее: раскладка у каретки, исправление текста в неверной раскладке и необязательные меню, переводчик, заметки и запуск.",
+    "headings": [
+      "Печатайте в нужной раскладке, а инструменты для текста держите под рукой.",
+      "Что умеет CyrFlip",
+      "Увидеть раскладку до ввода",
+      "Исправить текст в неверной раскладке и CapsLock",
+      "Действовать над выделенным",
+      "Сохранить скопированное и записанное",
+      "Запуск и снимок экрана",
+      "Только ваше",
+      "Продолжить по своей задаче",
+      "Подробности и ограничения"
+    ]
+  },
+  {
+    "url": "https://serzhyale.github.io/CyrFlip/uk/",
+    "lang": "uk",
+    "title": "CyrFlip - інструменти для клавіатури та робочого столу",
+    "description": "Набір інструментів у треї: розкладка біля каретки, виправлення тексту в хибній розкладці та необов’язкові меню, перекладач, нотатки й запуск.",
+    "headings": [
+      "Друкуйте в потрібній розкладці, а інструменти для тексту тримайте під рукою.",
+      "Що вміє CyrFlip",
+      "Побачити розкладку до введення",
+      "Виправити текст у хибній розкладці й CapsLock",
+      "Діяти над виділеним",
+      "Зберегти скопійоване й записане",
+      "Запуск і знімок екрана",
+      "Лише ваше",
+      "Продовжити зі своїм завданням",
+      "Подробиці та обмеження"
     ]
   },
   {

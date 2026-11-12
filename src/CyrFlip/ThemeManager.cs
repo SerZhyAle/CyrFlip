@@ -89,6 +89,7 @@ namespace CyrFlip
         private static SynchronizationContext? _ui;
         private static ThemeMode _mode = ThemeMode.System;
         private static ThemeKind _kind = ThemeKind.Light;
+        private static int _contrastStamp;
         private static bool _systemDarkKnown;
         private static bool _systemDark;
         private static int _systemDarkReadAt;
@@ -113,6 +114,7 @@ namespace CyrFlip
                 SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             }
             _kind = ResolveNow(forceRead: true);
+            _contrastStamp = ContrastStamp(_kind);
             ApplyProcessWide();
         }
 
@@ -208,13 +210,41 @@ namespace CyrFlip
         {
             if (!_initialized) return;
             ThemeKind kind = ResolveNow(forceRead);
-            if (kind == _kind) return;
+            int stamp = ContrastStamp(kind);
+            if (kind == _kind && stamp == _contrastStamp) return;
             _kind = kind;
+            _contrastStamp = stamp;
             ApplyProcessWide();
             // A copy: applying the theme can create a handle, and a handle's creation attaches.
             foreach (Form form in Attached.ToArray())
                 if (!form.IsDisposed) Apply(form);
         }
+
+        /// <summary>
+        /// Which high-contrast scheme is on, as a stamp of its colours (S0060 T-M2 c). One scheme replacing
+        /// another leaves the kind at <see cref="ThemeKind.HighContrast"/>, so without the stamp nothing was
+        /// re-applied and the owner-drawn parts kept the old scheme's ink. The high-contrast roles are system
+        /// colours, read live; the framework refreshes them on its own preference signal, which may come
+        /// after ours - a later signal then sees the new stamp. 0 outside high contrast.
+        /// </summary>
+        internal static int ContrastStamp(ThemeKind kind)
+        {
+            if (kind != ThemeKind.HighContrast) return 0;
+            ThemePalette palette = ThemePalette.HighContrast;
+            unchecked
+            {
+                int stamp = 17;
+                foreach (ThemeRole role in ContrastStampRoles)
+                    stamp = stamp * 31 + palette[role].ToArgb();
+                return stamp == 0 ? 1 : stamp;
+            }
+        }
+
+        private static readonly ThemeRole[] ContrastStampRoles =
+        {
+            ThemeRole.SurfaceWindow, ThemeRole.SurfaceRaised, ThemeRole.SurfaceSelected, ThemeRole.Border,
+            ThemeRole.TextPrimary, ThemeRole.TextDisabled, ThemeRole.AccentInk, ThemeRole.Link,
+        };
 
         private static void Apply(Form form)
         {
@@ -353,7 +383,29 @@ namespace CyrFlip
         protected override void OnHandleCreated(EventArgs e)
         {
             ThemeManager.Attach(this);
+            // The size profile is chosen once per opening (UI-SIZING section 2 rule 1), before the first paint.
+            UiProfileManager.Attach(this);
             base.OnHandleCreated(e);
+        }
+
+        // The companion registry learns which window of ours is active from here (S0098): its message filter
+        // never saw the WM_ACTIVATE that Windows sends, WinForms raises these events for it.
+        protected override void OnActivated(EventArgs e)
+        {
+            base.OnActivated(e);
+            CompanionSurfaceRegistry.NotifyFormActivated(this);
+        }
+
+        protected override void OnDeactivate(EventArgs e)
+        {
+            base.OnDeactivate(e);
+            CompanionSurfaceRegistry.NotifyFormLeft();
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            base.OnFormClosed(e);
+            CompanionSurfaceRegistry.NotifyFormLeft();
         }
 
         protected override void WndProc(ref Message m)
@@ -405,5 +457,76 @@ namespace CyrFlip
         /// strip's cells, the settings window's page icons).
         /// </summary>
         protected virtual void OnThemeApplied(ThemePalette palette) { }
+
+        private Font? _profileBase;
+        private Font? _profileFont;
+        private readonly List<Font> _profileRetired = new List<Font>();
+
+        internal void RaiseUiProfileApplied(UiMetrics metrics) => OnUiProfileApplied(metrics);
+
+        /// <summary>
+        /// The size profile changed (or was chosen for the first time): the window's typography follows the
+        /// interface scale and the text enlargement together, and the covered components measure again.
+        /// A window that manages its own fonts (the settings window re-derives them per language) overrides
+        /// this and calls <see cref="UiProfileManager.Reflow"/> itself.
+        /// </summary>
+        protected virtual void OnUiProfileApplied(UiMetrics metrics)
+        {
+            ApplyProfileFont(metrics, adoptAssigned: true);
+            SuspendLayout();
+            try { UiProfileManager.Reflow(this); }
+            finally { ResumeLayout(true); }
+        }
+
+        /// <summary>
+        /// The window's own unscaled font changed - a language whose script has a family of its own. The size
+        /// profile is composed on top of it at once, so a language switch never drops the user's interface and
+        /// text size (UI-SIZING section 2 rule 3). A window that derives its font itself calls this instead of
+        /// assigning <see cref="Control.Font"/>.
+        /// </summary>
+        internal void SetBaseFont(Font baseFont)
+        {
+            _profileBase = baseFont;
+            ApplyProfileFont(UiMetrics.For(this), adoptAssigned: false);
+        }
+
+        /// <summary>A font a control may still hold: freed with the window, never before (CRASH-1).</summary>
+        protected void RetireFont(Font? font)
+        {
+            if (font != null && !_profileRetired.Contains(font)) _profileRetired.Add(font);
+        }
+
+        private void ApplyProfileFont(UiMetrics metrics, bool adoptAssigned)
+        {
+            // A font the window assigned itself since the last pass is its new base, not something to scale away.
+            if (_profileBase == null || (adoptAssigned && !ReferenceEquals(Font, _profileFont) && !ReferenceEquals(Font, _profileBase)))
+                _profileBase = Font;
+            Font baseFont = _profileBase;
+            float points = UiProfiles.FontPoints(baseFont.SizeInPoints, metrics);
+            if (Math.Abs(points - baseFont.SizeInPoints) <= 0.01f)
+            {
+                if (!ReferenceEquals(Font, baseFont)) Font = baseFont;
+                return;
+            }
+            if (_profileFont == null || Math.Abs(_profileFont.SizeInPoints - points) > 0.01f
+                || _profileFont.Style != baseFont.Style || _profileFont.FontFamily.Name != baseFont.FontFamily.Name)
+            {
+                Font? previous = _profileFont;
+                // A font a control may still hold is retired, never disposed here (CRASH-1): freed with the window.
+                _profileFont = new Font(baseFont.FontFamily, points, baseFont.Style, GraphicsUnit.Point);
+                if (previous != null) _profileRetired.Add(previous);
+            }
+            if (!ReferenceEquals(Font, _profileFont)) Font = _profileFont;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (!disposing) return;
+            foreach (Font retired in _profileRetired) retired.Dispose();
+            _profileRetired.Clear();
+            _profileFont?.Dispose();
+            _profileFont = null;
+        }
     }
 }

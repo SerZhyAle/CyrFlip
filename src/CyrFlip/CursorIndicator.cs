@@ -54,7 +54,7 @@ namespace CyrFlip
             Poll();
         }
 
-        private void Poll()
+        internal void Poll()
         {
             IntPtr foreground = GetForegroundWindow();
             if (IsUserWindow(foreground)) _lastActive = foreground;

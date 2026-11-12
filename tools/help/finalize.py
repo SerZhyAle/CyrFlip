@@ -110,7 +110,7 @@ for locale in locales:
     if locale == 'en':
         continue
     path = ROOT / 'docs' / locale / 'index.html'
-    if not path.exists():  # RU/UK share the trilingual root page.
+    if not path.exists():  # every language has its own landing file (RU and UK are standalone pages too).
         continue
     page = path.read_text(encoding='utf-8-sig')
     snippet = '<p class="context-help-link"><a href="../help/' + locale + '/index.html">' + html.escape(deck['Help'][locale]) + '</a></p>'
@@ -120,7 +120,7 @@ for locale in locales:
 path = ROOT / 'docs/index.html'
 page = path.read_text(encoding='utf-8-sig')
 page = re.sub(r'<p class="context-help-link">.*?</p>', '', page, flags=re.S)
-snippet = '<p class="context-help-link">' + ''.join('<a data-l="' + ('ua' if code == 'uk' else code) + '" href="help/' + code + '/index.html">' + html.escape(deck['Help'][code]) + '</a>' for code in ('en', 'ru', 'uk')) + '</p>'
+snippet = '<p class="context-help-link"><a href="help/en/index.html">' + html.escape(deck['Help']['en']) + '</a></p>'
 page = page.replace('</main>', snippet + '\n</main>', 1)
 path.write_text(page, encoding='utf-8')
 for locale in ('en', 'ru', 'uk'):
@@ -156,10 +156,20 @@ for locale, filename in [('en', 'README.md'), ('ru', 'README_RU.md'), ('uk', 'RE
 
 # Published addresses and search entries are generated from the same page list.
 all_pages = sorted(p.relative_to(ROOT / 'docs').as_posix() for p in HELP.rglob('*.html'))
+# CONTEXT-HELP 0.2 item G (DOC-EXTERNAL-QUALITY 0.13 item O): a help page is out of the sitemap and carries
+# noindex, and robots.txt does not block it. The generator writes the tag; this keeps every page holding it.
+NOINDEX = '<meta name="robots" content="noindex">'
+for page in all_pages:
+    path = ROOT / 'docs' / page
+    text = path.read_text(encoding='utf-8')
+    if NOINDEX not in text:
+        text, count = re.subn(r'(<meta name="referrer" content="no-referrer">)', lambda m: m.group(1) + NOINDEX, text, count=1)
+        if not count:
+            text = text.replace('<head>', '<head>' + NOINDEX, 1)
+        path.write_text(text, encoding='utf-8')
 sitemap_path = ROOT / 'docs/sitemap.xml'
 sitemap = sitemap_path.read_text(encoding='utf-8-sig')
-sitemap = re.sub(r'\s*<url><loc>' + re.escape(BASE) + r'help/.*?</loc></url>', '', sitemap)
-sitemap = sitemap.replace('</urlset>', ''.join('  <url><loc>' + BASE + page + '</loc></url>\n' for page in all_pages) + '</urlset>')
+sitemap = re.sub(r'\s*<url><loc>' + re.escape(BASE) + r'help/.*?</loc>(?:<lastmod>[^<]*</lastmod>)?</url>', '', sitemap)
 sitemap_path.write_text(sitemap, encoding='utf-8')
 search_path = ROOT / 'docs/search-index.json'
 search = [row for row in json.loads(search_path.read_text(encoding='utf-8-sig')) if '/help/' not in row['url']]

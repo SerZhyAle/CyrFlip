@@ -391,6 +391,24 @@ Human checklist (the unattended half ends here - the staged board is on screen n
   [ ] A long language (de, hi), Arabic (right to left), 125 % / 200 % scaling: nothing clipped, tiles mirrored.
   [ ] Settings page: the module switch off stops every probe within a few seconds (traffic-light.log and the
       journal stop growing); the tray summary and the tray item disappear.
+  [ ] S0084: with the module off, switch it on on the settings page - the board appears at once, above the settings
+      window, and the settings window keeps the focus (the next key still goes to it). No restart, no chord.
+  [ ] S0084: hide the board (x), then change the pin, the tile size, the columns, the transparency or a target
+      (add, edit, switch a row off, move, delete) - the board reappears showing the change, above the settings
+      window, without the focus. Change the chord, its switch or "Open the board when CyrFlip starts" instead:
+      the hidden board stays hidden.
+  [ ] S0084: unpinned board under the settings window - a change brings it above the settings window; it does not
+      move, the pin stays off, and a click on the settings window puts the settings window back on top.
+  [ ] S0096: pinned board, settings window open and active - switch the pin off and on again on the settings page,
+      then open a drop-down of the page (Tile size) or of the target dialog (Kind): no part of the board is over the
+      list. Close it and click an editor window - the pinned board is on top of the editor again. The same after
+      switching the interface language to Arabic or Urdu with the settings window open.
+  [ ] S0098: settings window closed, board pinned and over the spot where a window will open: open a CyrFlip window
+      that is not a companion - the history search window, or the confirmation that comes before a program path
+      selected in the text menu is run. The board gives up its place on top while that window is the active one
+      and is on top again once it is closed, and also once the focus goes to another program. Open a drop-down
+      of a window that has no settings window behind it with the board over the spot: no part of the board is over
+      the list.
 '@ -ForegroundColor Yellow
 
     if ($Interactive) { [void](Read-Host 'Press Enter when the checklist is done - the settings and the journal are put back after that') }

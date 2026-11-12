@@ -42,6 +42,8 @@ namespace CyrFlip
         public byte[]? Bytes;
         public string FilePath = "";
         public string Name = "";
+        /// <summary>The box's <c>mimeType</c>, empty when it carries none.</summary>
+        public string MimeType = "";
         public long ClearSize;
         public string SourceDeviceName = "";
         public string StoredAt = "";
@@ -289,7 +291,8 @@ namespace CyrFlip
 
                     if (received.Kind == ExchangeClipboardPayload.File && partPath != null)
                     {
-                        string final = ExchangeClipboardSink.UniquePath(folder, received.Name);
+                        string final = ExchangeClipboardSink.UniquePath(folder, received.Name,
+                            ExchangeClipboardSink.NamelessName(received.StoredAt, received.MimeType, DateTime.UtcNow));
                         File.Move(partPath, final);
                         partPath = null;
                         received.FilePath = final;
@@ -327,7 +330,7 @@ namespace CyrFlip
 
             try
             {
-                if (!TryReadBoxPayload(boxPayload, out string kind, out string name, out long clearSize, out string clearSha))
+                if (!TryReadBoxPayload(boxPayload, out string kind, out string name, out string mimeType, out long clearSize, out string clearSha))
                     return ExchangeCodes.SealedFailed;
                 if (header.Size != ExchangeE2e.SealedLength(clearSize)) return ExchangeCodes.SealedFailed;
 
@@ -377,6 +380,7 @@ namespace CyrFlip
                 {
                     Kind = kind,
                     Name = kind == ExchangeClipboardPayload.File ? name : "",
+                    MimeType = mimeType,
                     ClearSize = clearSize,
                     Bytes = memory?.ToArray(),
                 };
@@ -428,6 +432,12 @@ namespace CyrFlip
         /// </summary>
         private void ApplyAndSave(ExchangeAccountEntry entry, string? refusal, ExchangeSession? session = null)
         {
+            if (LearnFrom(entry, refusal, session)) _saveAccounts();
+        }
+
+        /// <summary>The body of <see cref="ApplyAndSave"/>: true when the entry changed and must be saved. Shared with the settings standard (S0095).</summary>
+        internal static bool LearnFrom(ExchangeAccountEntry entry, string? refusal, ExchangeSession? session)
+        {
             bool changed = false;
             if (refusal != null && ExchangeCodes.AsksForPassword(refusal))
             {
@@ -443,7 +453,7 @@ namespace CyrFlip
                 ExchangePin after = session.Connection.Trust.PinAfter(entry.Pin);
                 if (after.Leaf != entry.PinLeaf) { entry.SetPin(after); changed = true; }
             }
-            if (changed) _saveAccounts();
+            return changed;
         }
 
         private static ExchangeDeviceKey? LoadDeviceKey(ExchangeAccountEntry entry)
@@ -483,15 +493,16 @@ namespace CyrFlip
             return new JavaScriptSerializer().Serialize(members);
         }
 
-        private static bool TryReadBoxPayload(byte[] json, out string kind, out string name, out long size, out string sha)
+        private static bool TryReadBoxPayload(byte[] json, out string kind, out string name, out string mimeType, out long size, out string sha)
         {
-            kind = ""; name = ""; size = -1; sha = "";
+            kind = ""; name = ""; mimeType = ""; size = -1; sha = "";
             try
             {
                 var map = new JavaScriptSerializer().DeserializeObject(Encoding.UTF8.GetString(json)) as Dictionary<string, object>;
                 if (map == null) return false;
                 kind = map.TryGetValue("kind", out object? k) && k is string ks ? ks : "";
                 name = map.TryGetValue("name", out object? n) && n is string ns ? ns : "";
+                mimeType = map.TryGetValue("mimeType", out object? m) && m is string ms ? ms : "";
                 sha = map.TryGetValue("sha256", out object? s) && s is string ss ? ss : "";
                 if (map.TryGetValue("size", out object? z))
                 {

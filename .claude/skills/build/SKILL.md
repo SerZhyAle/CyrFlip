@@ -1,11 +1,11 @@
 ---
 name: build
-description: Prepare and execute a CyrFlip СБОРКА (local build) - the free, iterative path. Build Release, run tests, verify the change, capture user-facing notes for the next release's "What's new", and commit with [skip ci] so no GitHub minutes are spent. Use when the user asks to build, do a сборка, or commit a change.
+description: Prepare and execute a CyrFlip СБОРКА (local build) - the free, iterative path. Run the fast static gates (5 s or less), build Release when asked, verify the change, capture user-facing notes for the next release's "What's new", and commit with [skip ci] so no GitHub minutes are spent. Use when the user asks to build, do a сборка, or commit a change.
 ---
 
 # /build - СБОРКА (local build)
 
-A **СБОРКА** is the free, iterative loop: build the exe, test locally, verify, commit.
+A **СБОРКА** is the free, iterative loop: fast checks, build the exe, verify, commit. The full test suite is the release tier.
 It spends **zero GitHub minutes** (commits carry `[skip ci]`). The paid, outward-facing
 path is `/release`. Concept reference: [RELEASE.md](../../../RELEASE.md).
 
@@ -17,17 +17,23 @@ executes steps 2 and 6; the rest is judgement you apply each time.
 1. **Understand the change.** Confirm what was asked and which files/modules it touches.
    If nothing is staged/changed yet, do the edit first.
 
-2. **Build + test locally** (the script does this):
+2. **Check, then build** - between releases nothing slower than 5 seconds runs unless the owner
+   names that run (S0081, `TESTING_AND_QA` section 2):
    ```powershell
-   .\build.ps1
+   .\build.ps1 -Fast                    # the static gates, ~4 s; -Area narrows it (placement, help,
+                                        # positioning, site, listing) - run after every edit
+   .\build.ps1                          # the СБОРКА the owner asked for: app-only build + stage + deploy
    ```
-   It builds the app project in Release (no tests - the fast path), stages the single exe and
-   deploys to the sync folders. `.\build.ps1 -Tests` adds the whole solution, `dotnet test` and the
-   static checks. Neither runs the 13-language UI sweeps (they flash every window in every
-   language), and neither does a release or CI: nothing sets `CYRFLIP_SWEEP=full` but a human. For a change to one window, sweep that
-   window alone: `CYRFLIP_SWEEP=full dotnet test --filter <ThatWindowTests>`; never the whole
-   interface. A clean build must be **warning-free** (csproj has `WarningsAsErrors`). If build or
-   tests fail - stop and fix before committing.
+   `-Fast` builds nothing, tests nothing and leaves the running tray app alone. The default run
+   builds the app project in Release, stages the single exe and deploys to the sync folders - it is
+   the build the owner asked for, never an agent's routine check after an edit.
+   `.\build.ps1 -Tests` (the whole solution, `dotnet test` and the static checks, minutes) is the
+   **release tier**: run it only when the owner names it; otherwise the release preflight runs it.
+   A code change is then reported as "not built, not tested until the release", with the skipped
+   command named as a `RELEASE` item. The 13-language UI sweeps run nowhere automatically: nothing
+   sets `CYRFLIP_SWEEP=full` but a human, for one window only. A clean build must be
+   **warning-free** (csproj has `WarningsAsErrors`). If a build, a test or a gate fails - stop and
+   fix before committing.
 
 3. **Verify the actual behaviour** when the change is interop/UI (hook, clipboard flip,
    cursor/caret overlay, layout detection) - unit tests don't cover these. Run the exe and
@@ -66,5 +72,7 @@ executes steps 2 and 6; the rest is judgement you apply each time.
 
 ## Done means
 
-Build + tests green, behaviour verified where it matters, any user-facing change captured for
-"What's new", and (if asked) committed with `[skip ci]`.
+`.\build.ps1 -Fast` green, the build green when the owner asked for one, the slower rungs named as
+"not built, not tested until the release" (or run because the owner named them), behaviour verified
+where it matters, any user-facing change captured for "What's new", and (if asked) committed with
+`[skip ci]`.

@@ -99,6 +99,11 @@ namespace CyrFlip
             [ExchangeCodes.KeyChanged] = Row("The protection key of this device has changed, so nothing is sent to it. Remove the device from the account and add it again.", ""),
             [ExchangeCodes.ServerNoE2e] = Row("This server cannot carry protected content, so folders, broadcasts and the clipboard do not go through it.", "operator"),
             [ExchangeCodes.SealedFailed] = Row("This could not be opened on this device. Try again from the other device.", ""),
+            // the settings standard (DEVICE-EXCHANGE 1.12, item EP)
+            [ExchangeCodes.NotFound] = Row("No standard settings are saved on the server for this program yet. Save them first.", ""),
+            [ExchangeCodes.InvalidPayload] = Row("The server did not accept these settings: they are damaged or too large.", ""),
+            [ExchangeCodes.AppIdMismatch] = Row("This server does not keep settings of this program for this account.", "operator"),
+            [ExchangeCodes.VersionIncompatible] = Row("The server does not support this version of the settings format.", "operator"),
 
             // This program's own sentences, for classes the table has no row for (item CZ allows a local class).
             [ExchangeCodes.ServerNoClipboard] = Row("This server does not keep the clipboard.", "operator"),
@@ -115,6 +120,8 @@ namespace CyrFlip
             [ExchangeCodes.NoAccounts] = Row("First add an account on an exchange server.", ""),
             [ExchangeCodes.KeyLost] = Row("The protection key of this account is gone from this computer. Remove the account and add it again.", ""),
             [ExchangeCodes.TooLarge] = Row("This clipboard value is too large for this program to receive.", ""),
+            [ExchangeCodes.ServerNoSettings] = Row("This server does not keep standard settings.", "operator"),
+            [ExchangeCodes.SaveUnconfirmed] = Row("The server did not answer, so it is not known whether the settings were saved. Saving again is safe.", ""),
         };
 
         private static KeyValuePair<string, string> Row(string what, string step)

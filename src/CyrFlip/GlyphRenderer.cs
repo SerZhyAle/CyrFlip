@@ -42,7 +42,9 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// Fills the glyph into <paramref name="box"/> (the 24 grid scaled to it) with one colour.
+        /// Fills the glyph into <paramref name="box"/> (the 24 grid scaled to it) with one colour - or, for a record
+        /// drawn as an outline (<see cref="GlyphRecord.StrokeWidth"/>), strokes it in that colour with SVG's
+        /// defaults: butt caps, miter joins, miter limit 4.
         /// <paramref name="rightToLeft"/> mirrors the glyphs whose record says <c>mirror</c> and no others.
         /// </summary>
         public static bool Draw(Graphics g, string id, RectangleF box, Color color, bool rightToLeft = false)
@@ -58,8 +60,17 @@ namespace CyrFlip
                 g.TranslateTransform(box.X, box.Y);
                 g.ScaleTransform(box.Width / Grid, box.Height / Grid);
                 if (mirror) { g.TranslateTransform(Grid, 0); g.ScaleTransform(-1, 1); }
-                using var brush = new SolidBrush(color);
-                g.FillPath(brush, path);
+                GlyphRecord record = Records[id];
+                if (record.StrokeWidth > 0f)
+                {
+                    using var pen = OutlinePen(record, color);
+                    g.DrawPath(pen, path);
+                }
+                else
+                {
+                    using var brush = new SolidBrush(color);
+                    g.FillPath(brush, path);
+                }
             }
             finally { g.Restore(state); }
             return true;
@@ -102,14 +113,22 @@ namespace CyrFlip
 
         /// <summary>
         /// The bounding box of the glyph's ink in grid units, measured on the flattened outline (the box
-        /// of a curved path's control points is wider than its ink). Null when the glyph cannot be drawn.
+        /// of a curved path's control points is wider than its ink) - widened by the pen for an outlined record.
+        /// Null when the glyph cannot be drawn.
         /// </summary>
         public static RectangleF? InkBounds(string id)
         {
             using GraphicsPath? path = CreatePath(id);
             if (path == null) return null;
+            GlyphRecord record = Records[id];
+            if (record.StrokeWidth > 0f)
+                using (Pen pen = OutlinePen(record, Color.Empty)) path.Widen(pen, null, 0.05f);   // only the width counts
             path.Flatten(null, 0.05f);
             return path.GetBounds();
         }
+
+        /// <summary>The pen of an outlined record, in grid units (the caller's transform scales it with the glyph).</summary>
+        private static Pen OutlinePen(GlyphRecord record, Color color)
+            => new Pen(color, record.GridStrokeWidth) { LineJoin = LineJoin.Miter, MiterLimit = 4f, StartCap = LineCap.Flat, EndCap = LineCap.Flat };
     }
 }

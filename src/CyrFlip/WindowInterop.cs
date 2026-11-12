@@ -446,6 +446,7 @@ namespace CyrFlip
         public static extern bool ClientToScreen(IntPtr hWnd, ref POINT lpPoint);
 
         // ---- Overlay window placement (CaretOverlay.cs) ----
+        public const int WS_EX_TOPMOST = 0x8;
         public const int WS_EX_TRANSPARENT = 0x20;   // click-through
         public const int WS_EX_TOOLWINDOW = 0x80;    // no taskbar/alt-tab entry
         public const int WS_EX_LAYERED = 0x80000;

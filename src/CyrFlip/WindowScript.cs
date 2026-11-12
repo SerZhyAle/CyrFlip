@@ -53,7 +53,10 @@ namespace CyrFlip
                 return false; // the family is missing on this machine - the current font stays
             }
             Font? previous = ownFont;
-            form.Font = ownFont = next;
+            ownFont = next;
+            // The size profile is composed on the new family at once (UI-SIZING section 2 rule 3).
+            if (form is ThemedForm sized) sized.SetBaseFont(next);
+            else form.Font = next;
             previous?.Dispose();
             return true;
         }

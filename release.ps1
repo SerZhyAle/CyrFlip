@@ -1,4 +1,4 @@
-﻿<#
+<#
     CyrFlip РЕЛИЗ orchestrator.
 
     A РЕЛИЗ (release) is the paid, outward-facing path (vs a local "сборка" = build.ps1):
@@ -9,6 +9,15 @@
       .\release.ps1                 # PREFLIGHT only: on-main check, local build+test, compute version,
                                     #   print the full checklist. Makes NO git changes, spends NO GitHub
                                     #   minutes. Run this first, every time.
+
+    The preflight also reads the live Microsoft Store state, read-only, before the tag (S0100): a pending
+    submission, a version that is not newer or a price that is not Free stops the release with the reason; an
+    unconfigured or unavailable channel prints that the Store step is manual and changes nothing (-SkipStoreChannel
+    leaves the check out). The Store upload itself stays manual; see msix\README.md.
+
+    The site states the release (S0024 F16): the preflight checks that HEAD's landings carry the version
+    being released (tools\site\Render-ReleaseFacts.ps1 -Check). When they do not, it renders them into the
+    working tree - files only, no git change - and fails; commit them and re-run with the same -Version.
 
     A dirty working tree is NOT a blocker: this is a single-developer project, and stopping a
     preflight over uncommitted files was pure friction. The preflight says how many files are
@@ -21,8 +30,8 @@
       .\release.ps1 -Version 26.6.27.1600 -Push   # pin an explicit version instead of "now"
 
     Why a dedicated "release:" anchor: the tag must point at a commit WITHOUT [skip ci]
-    (local сборки carry [skip ci]); the "release:" prefix makes ci.yml skip the branch push so we
-    are not billed twice (CI on the branch + release.yml on the tag).
+    (local сборки carry [skip ci]). ci.yml runs only on a manual dispatch (S0081), so the branch push
+    bills nothing and only release.yml runs, on the tag.
 #>
 [CmdletBinding()]
 param(
@@ -34,8 +43,12 @@ param(
     # Kept so older invocations and the checklists that mention it still run: dirty is the default
     # now, so this is a no-op.
     [switch] $AllowDirty,
-    # Skip remote origin reachable check without failing with NOT VERIFIED (exit 2).
+    # Skip remote origin reachable check without failing with NOT VERIFIED (exit 2). Also leaves the Store
+    # channel preflight out (it reads the live Store over the network): the Store step is then manual.
     [switch] $Offline,
+    # Leave the read-only Store channel preflight out of this run (S0100): the Store step is manual. For the day a
+    # submission the owner made in Partner Center is pending on purpose and would stop the tag (rule 23(a)).
+    [switch] $SkipStoreChannel,
     # No-op since 2026-10-24: the 13-language UI sweeps no longer run in any release path (they passed once and that
     # is enough), so there is nothing left to skip. Kept so an older invocation still parses.
     [switch] $SkipSweeps
@@ -165,8 +178,10 @@ try {
         if ($LASTEXITCODE -ne 0) { $preflightFails.Add("placement check failed (exit $LASTEXITCODE)") }
 
         Step 'Context help'
-        & (Join-Path $preflightRoot 'tools\help\Test-ContextHelp.ps1')
-        if ($LASTEXITCODE -eq 1) { $preflightFails.Add('Context help inventory, pages or links failed.') }
+        # -Release: captures older than their inputs fail here (CONTEXT-HELP rung 2); regenerate with
+        # tools\help\Generate-Help.ps1 and tools\help\finalize.py, then commit the help set.
+        & (Join-Path $preflightRoot 'tools\help\Test-ContextHelp.ps1') -Release
+        if ($LASTEXITCODE -eq 1) { $preflightFails.Add('Context help inventory, pages, links or capture freshness failed. Run tools\help\Test-ContextHelp.ps1 -Release.') }
         elseif ($LASTEXITCODE -ne 0) { $preflightUnverified.Add("Context help could not be verified (exit $LASTEXITCODE).") }
 
         # POSITIONING.md (S0058): frozen anchors, retired leads and the descriptor on every public surface.
@@ -180,6 +195,26 @@ try {
         & (Join-Path $preflightRoot 'tools\site\Test-SiteFacts.ps1')
         if ($LASTEXITCODE -eq 1) { $preflightFails.Add('A public page drifted from tools\site\site-facts.json (edition, channel name, Windows minimum or language count). Run tools\site\Test-SiteFacts.ps1.') }
         elseif ($LASTEXITCODE -ne 0) { $preflightUnverified.Add("Site facts check could not read a source (exit $LASTEXITCODE).") }
+
+        # The 13 landings state the version this run releases (S0024 F16): HEAD must carry them, so the tagged
+        # revision does. When it does not, the facts are rendered into the working tree - files only, no git
+        # change - and the preflight fails until they are reviewed and committed.
+        Step 'Release facts'
+        $factsScript = Join-Path $preflightRoot 'tools\site\Render-ReleaseFacts.ps1'
+        if (-not (Test-Path $factsScript)) {
+            $preflightUnverified.Add('tools\site\Render-ReleaseFacts.ps1 is not in HEAD, so the release facts could not be checked.')
+        }
+        else {
+            & $factsScript -Version $Version -Check -Root $preflightRoot
+            if ($LASTEXITCODE -eq 1) {
+                & (Join-Path $RepoRoot 'tools\site\Render-ReleaseFacts.ps1') -Version $Version -Root $RepoRoot
+                if ($LASTEXITCODE -eq 0) {
+                    $preflightFails.Add("The site did not state $Tag. Its release facts are now rendered into the working tree (tools\site\release-facts.json and the 13 landings): review the diff, commit it, and run the preflight again with -Version $Version.")
+                }
+                else { $preflightFails.Add("The site does not state $Tag and tools\site\Render-ReleaseFacts.ps1 -Version $Version could not render it (exit $LASTEXITCODE).") }
+            }
+            elseif ($LASTEXITCODE -ne 0) { $preflightUnverified.Add("Release facts could not be checked (exit $LASTEXITCODE).") }
+        }
 
         dotnet build CyrFlip.sln -c Release -p:Version=$Version --nologo
         if ($LASTEXITCODE -ne 0) {
@@ -212,6 +247,12 @@ try {
                 elseif ($LASTEXITCODE -ne 0) { $preflightFails.Add("Test discovery count check failed") }
                 else { Write-Host 'Detached-HEAD build + tests green.' -ForegroundColor Green }
             }
+
+            # The icon generator compiles this repository's LayoutStyle.cs; branch CI used to build it on
+            # every push, and since S0081 ci.yml runs only on a manual dispatch, so the release builds it.
+            Step 'IconGen build'
+            dotnet build (Join-Path $preflightRoot 'tools\IconGen') -c Release --nologo
+            if ($LASTEXITCODE -ne 0) { $preflightFails.Add("The IconGen tool does not build (exit $LASTEXITCODE)") }
 
             # The VS Code extension is compiled by nothing else before it is published by hand, and its
             # source once shipped changes that out/extension.js never had (S0029 RB-7). Compile it here
@@ -260,6 +301,23 @@ try {
         }
         elseif ($LASTEXITCODE -ne 0) {
             $preflightFails.Add("Store listing import CSV check failed (exit $LASTEXITCODE).")
+        }
+
+        # The read-only Store channel preflight (S0100, WINDOWS-STORE 0.4 section D rules 21, 23, 26): the shared
+        # canon script reads the live Store state with `msstore submission get`, nothing else, and says whether the
+        # Store step can go on. It runs BEFORE the tag. Only a refusal (exit 1) stops the release; an unavailable
+        # channel (exit 2) prints one line - the Store step is manual - and changes neither the list nor the verdict.
+        Step 'Store channel preflight (read-only)'
+        if ($SkipStoreChannel -or $Offline) {
+            Write-Host 'Store step is manual (the Store channel preflight was left out by -SkipStoreChannel or -Offline).'
+        }
+        else {
+            & (Join-Path $preflightRoot 'msix\Invoke-StoreChannelPreflight.ps1') -Version $Version `
+                -IdentityFile (Join-Path $preflightRoot 'msix\identity.json') `
+                -EvidenceFile (Join-Path $RepoRoot 'artifacts\store-channel-evidence.jsonl')
+            if ($LASTEXITCODE -eq 1) {
+                $preflightFails.Add('The Store channel refuses this release (reason above): clear the pending Store submission in Partner Center or fix what it names, then run the preflight again; -SkipStoreChannel leaves this check out and the Store step stays manual.')
+            }
         }
     }
     finally { Pop-Location }
@@ -340,12 +398,15 @@ Step "РЕЛИЗ checklist for $Tag  (see RELEASE.md for detail)"
         wingetcreate submits Microsoft's template untouched - empty description, every box unticked.
 
 [ ] 4. Microsoft Store (MSIX):  .\msix\build-msix.ps1 -ReleaseZip <downloaded-release-ZIP> -Version $Version
-        (the Store identity SZA.CyrFlip / CN=F98ACEDB-... / SZA is the script's default; it checks the
-        exe was built from this tag's commit.)
+        (the Store identity SZA.CyrFlip / CN=F98ACEDB-... / SZA is read from msix\identity.json - the
+        script stops without it; it checks the exe was built from this tag's commit.)
         Then Partner Center -> CyrFlip -> Create new submission -> replace .msix -> Store listings
         -> Import from msix/store-listing-export.csv (the source of truth, all 13 languages; use
         build-store-listing-csv.ps1 -ImportFolder when screenshots go with the copy) -> Submit.
-        (Store ID 9NB4W41NGQJ4)
+        (Store ID 9NB4W41NGQJ4) The upload is manual. The owner's msstore channel is read-only here:
+        the preflight above already read the live state before the tag (shared canon script, one
+        `submission get`, evidence line in artifacts\store-channel-evidence.jsonl); no write verb is
+        ever run, and a submission made in the console is changed in the console only (msix/README.md).
 
 [ ] 5. VS Code extension (only if vscode-extension/ changed):
         bump version in vscode-extension/package.json, then in that folder:

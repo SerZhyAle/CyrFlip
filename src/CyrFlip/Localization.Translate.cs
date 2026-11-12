@@ -137,7 +137,7 @@ namespace CyrFlip
                 zh: "模型：");
 
             Add("Download the model",
-                ru: "Загрузить модель",
+                ru: "Скачать модель",
                 uk: "Завантажити модель",
                 de: "Modell herunterladen",
                 it: "Scarica il modello",

@@ -75,19 +75,19 @@ namespace CyrFlip
             _executablePanel = TypeSection();
             _executablePanel.Controls.Add(Caption(T("Path:")), 0, 0);
             _executablePanel.Controls.Add(_path, 1, 0);
-            _executablePanel.Controls.Add(Browse(T("Browse..."), AppGlyphs.ChooseFile, BrowsePath), 2, 0);
+            _executablePanel.Controls.Add(Browse(T("Choose file..."), AppGlyphs.ChooseFile, BrowsePath), 2, 0);
             _executablePanel.Controls.Add(Caption(T("Arguments:")), 0, 1);
             _executablePanel.Controls.Add(_arguments, 1, 1);
             _executablePanel.Controls.Add(Caption(T("Working folder:")), 0, 2);
             _executablePanel.Controls.Add(_workingDir, 1, 2);
-            _executablePanel.Controls.Add(Browse(T("Browse..."), AppGlyphs.ChooseFolder, BrowseWorkingDir), 2, 2);
+            _executablePanel.Controls.Add(Browse(T("Choose folder..."), AppGlyphs.ChooseFolder, BrowseWorkingDir), 2, 2);
             _executablePanel.Controls.Add(_runAsAdmin, 1, 3);
             _executablePanel.SetColumnSpan(_runAsAdmin, 2);
 
             _ytDlpPanel = TypeSection();
             _ytDlpPanel.Controls.Add(Caption(T("Download folder (empty = Downloads):")), 0, 0);
             _ytDlpPanel.Controls.Add(_ytOutput, 1, 0);
-            _ytDlpPanel.Controls.Add(Browse(T("Browse..."), AppGlyphs.ChooseFolder, BrowseOutput), 2, 0);
+            _ytDlpPanel.Controls.Add(Browse(T("Choose folder..."), AppGlyphs.ChooseFolder, BrowseOutput), 2, 0);
             _ytDlpPanel.Controls.Add(Caption(T("Extra yt-dlp options:")), 0, 1);
             _ytDlpPanel.Controls.Add(_ytFormat, 1, 1);
             // A stored value outside the allowed set is kept but not passed (S0008 LS-4) - say so

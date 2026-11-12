@@ -82,9 +82,11 @@ try {
     Assert-Check "index.html normalizes 'uk' -> 'ua' and validates ru|en|ua" $hasNormalizingScript "Normalization logic missing or altered"
 
     # A3 & A4. Family Grid across 11 Landing Pages
-    Write-Host "`n=== A3 & A4. Family Grid (8 Sibling Tools) across 11 Landing Pages ===" -ForegroundColor Yellow
+    Write-Host "`n=== A3 & A4. Family Grid (8 Sibling Tools) across 13 Landing Pages ===" -ForegroundColor Yellow
     $landingPages = @(
         "docs/index.html",
+        "docs/ru/index.html",
+        "docs/uk/index.html",
         "docs/ar/index.html",
         "docs/bn/index.html",
         "docs/de/index.html",
@@ -116,15 +118,13 @@ try {
         Assert-Check "$lp has tools-grid with 8 family links" ($hasGrid -and $count -eq 8) "Found $count family links in $lp"
     }
 
-    # A5. Pre-paint Script Resolver Order (41 Rendered HTML Pages)
-    Write-Host "`n=== A5. Pre-paint Script Preceding Stylesheet in All 41 Rendered Pages ===" -ForegroundColor Yellow
+    # A5. Pre-paint Script Resolver Order (52 Rendered HTML Pages)
+    Write-Host "`n=== A5. Pre-paint Script Preceding Stylesheet in All 52 Rendered Pages ===" -ForegroundColor Yellow
     $allHtml = Get-ChildItem -Path "docs" -Filter "*.html" -Recurse | Where-Object {
         $_.FullName -notmatch '[\\/]help[\\/]' -and
-        $_.FullName -notmatch '[\\/]en[\\/]index\.html' -and
-        $_.FullName -notmatch '[\\/]ru[\\/]index\.html' -and
-        $_.FullName -notmatch '[\\/]uk[\\/]index\.html'
+        $_.FullName -notmatch '[\\/]en[\\/]index\.html'
     }
-    Assert-Check "Found 44 rendered HTML pages (43 plus the not-found page)" ($allHtml.Count -eq 44) "Found $($allHtml.Count) rendered pages"
+    Assert-Check "Found 52 rendered HTML pages (51 plus the not-found page)" ($allHtml.Count -eq 52) "Found $($allHtml.Count) rendered pages"
     foreach ($h in $allHtml) {
         $c = Get-Content -Raw $h.FullName
         $scriptPos = $c.IndexOf('<script')
@@ -134,7 +134,7 @@ try {
     }
 
     # A6. Copy Button Fallback & Localization
-    Write-Host "`n=== A6. Copy Button Parity across 11 Landing Pages ===" -ForegroundColor Yellow
+    Write-Host "`n=== A6. Copy Button Parity across 13 Landing Pages ===" -ForegroundColor Yellow
     foreach ($lp in $landingPages) {
         $c = Get-Content -Raw $lp
         $hasExecCommand = $c -match 'execCommand'
@@ -195,10 +195,14 @@ try {
         Assert-Check "$lp has <= 6 cards (found $cardCount) and unsigned caveat" ($cardCount -le 6 -and $hasCaveat) "Cards=$cardCount, Caveat=$hasCaveat"
     }
 
-    # A12. Localized OG/Twitter Metadata in setLang
-    Write-Host "`n=== A12. Localized OG/Twitter Metadata in index.html ===" -ForegroundColor Yellow
-    $hasMetaMap = ($indexContent -match 'META\s*=\s*\{') -and ($indexContent -match 'og:title') -and ($indexContent -match 'og:description')
-    Assert-Check "index.html updates og:title and og:description dynamically" $hasMetaMap "Missing META map or dynamic updater"
+    # A12. Share-card tags are static on every landing (a script that rewrites them shows scrapers and visitors two texts)
+    Write-Host "`n=== A12. Static OG/Twitter Metadata on the Landing Pages ===" -ForegroundColor Yellow
+    foreach ($lp in $landingPages) {
+        $c = Get-Content -Raw $lp
+        $hasTags = ($c -match 'property="og:title"') -and ($c -match 'property="og:description"') -and ($c -match 'name="twitter:title"')
+        $rewrites = ($c -match 'setLang') -or ($c -match 'META\s*=\s*\{') -or ($c -match "querySelector\('meta\[property=""og:")
+        Assert-Check "$lp carries og/twitter tags and no script rewrites them" ($hasTags -and -not $rewrites) "Tags=$hasTags, Rewrites=$rewrites"
+    }
 
     # A13. Touch Targets (44px) & Prefers-Reduced-Motion
     Write-Host "`n=== A13. Touch Targets (44px) & Reduced Motion ===" -ForegroundColor Yellow
@@ -213,9 +217,10 @@ try {
     Assert-Check "Found 13 privacy pages" ($privacyPages.Count -eq 13) "Found $($privacyPages.Count) pages"
     foreach ($pp in $privacyPages) {
         $c = Get-Content -Raw $pp.FullName
-        $hreflangCount = ([regex]::Matches($c, '<link rel="alternate" hreflang="')).Count
+        $hreflangCount = ([regex]::Matches($c, '<link rel="alternate" hreflang="(?!x-default")')).Count
+        $hasXDefault = $c -match '<link rel="alternate" hreflang="x-default" href="https://serzhyale\.github\.io/CyrFlip/privacy\.html">'
         $hasLangbar = $c -match '<nav class="langbar"'
-        Assert-Check "$($pp.FullName.Substring($repoRoot.Length + 1)) has 13 hreflangs and langbar" ($hreflangCount -eq 13 -and $hasLangbar) "Hreflangs=$hreflangCount, Langbar=$hasLangbar"
+        Assert-Check "$($pp.FullName.Substring($repoRoot.Length + 1)) has 13 hreflangs, x-default and langbar" ($hreflangCount -eq 13 -and $hasXDefault -and $hasLangbar) "Hreflangs=$hreflangCount, XDefault=$hasXDefault, Langbar=$hasLangbar"
     }
 
     # A15. READMEs: No 'Related project' & Author section

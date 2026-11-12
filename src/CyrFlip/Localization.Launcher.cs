@@ -536,10 +536,16 @@ namespace CyrFlip
                 es: "Carpeta de trabajo:", fr: "Dossier de travail :", pt: "Pasta de trabalho:",
                 ar: "مجلد العمل:", hi: "कार्य फ़ोल्डर:", bn: "কার্য ফোল্ডার:", ur: "ورکنگ فولڈر:", zh: "工作文件夹：");
 
-            Add("Browse...",
-                ru: "Обзор...", uk: "Огляд...", de: "Durchsuchen...", it: "Sfoglia...", es: "Examinar...",
-                fr: "Parcourir...", pt: "Procurar...", ar: "استعراض...", hi: "ब्राउज़ करें...",
-                bn: "ব্রাউজ...", ur: "براؤز...", zh: "浏览...");
+            // The vocabulary's names of action.choose-file / action.choose-folder (ICON-SET rule 3, S0060 I-M11).
+            Add("Choose file...",
+                ru: "Выбрать файл...", uk: "Вибрати файл...", de: "Datei auswählen...", it: "Scegli file...",
+                es: "Elegir archivo...", fr: "Choisir un fichier...", pt: "Escolher arquivo...", ar: "اختيار ملف...",
+                hi: "फ़ाइल चुनें...", bn: "ফাইল বেছে নিন...", ur: "فائل منتخب کریں...", zh: "选择文件...");
+
+            Add("Choose folder...",
+                ru: "Выбрать папку...", uk: "Вибрати теку...", de: "Ordner auswählen...", it: "Scegli cartella...",
+                es: "Elegir carpeta...", fr: "Choisir un dossier...", pt: "Escolher pasta...", ar: "اختيار مجلد...",
+                hi: "फ़ोल्डर चुनें...", bn: "ফোল্ডার বেছে নিন...", ur: "فولڈر منتخب کریں...", zh: "选择文件夹...");
 
             Add("Run as administrator",
                 ru: "Запускать от имени администратора", uk: "Запускати від імені адміністратора",

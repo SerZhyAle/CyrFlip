@@ -3,7 +3,7 @@
 - **Id/version read:** CHECK-VERDICT 0.13, draft, 2026-10-18.
 - **Home:** shared catalog, `automated-checks/README.md`, sections 2, 10 and consolidation.
 - **Role:** producer (checks, TRX wrapper), consumer (build/release orchestration).
-- **Implementation:** partial; [audit](../design/contract-sync-20261017.md), E3.
+- **Implementation:** partial; audit (ticket S0077), E3.
 
 `tools/checks/CheckVerdict.psm1` writes canonical words and retains the exit-code
 precedence: failure, could-not-verify, advisory, pass, deliberate not-applicable.

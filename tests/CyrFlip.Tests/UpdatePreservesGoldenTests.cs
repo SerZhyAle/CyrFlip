@@ -66,7 +66,7 @@ namespace CyrFlip.Tests
                 ["SettingsTab"] = 5,
                 ["SettingsWindowX"] = 11, ["SettingsWindowY"] = 12, ["SettingsWindowWidth"] = 1024, ["SettingsWindowHeight"] = 700,
                 ["ClipboardHistoryX"] = 21, ["ClipboardHistoryY"] = 22, ["ClipboardHistoryWidth"] = 300, ["ClipboardHistoryHeight"] = 420,
-                ["ClipboardHistoryOpacity"] = 70,
+                ["ClipboardHistoryOpacity"] = 85,
                 ["CursorSize"] = 36,
                 ["TranslateTimeoutSeconds"] = 240, ["TranslateKeepAliveMinutes"] = 45,
                 ["TranslateWindowWidth"] = 720, ["TranslateWindowHeight"] = 480, ["TranslateWindowOpacity"] = 80, ["TranslateWindowTimeout"] = 30,

@@ -27,9 +27,39 @@ namespace CyrFlip
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
         }
 
+        private bool _hostOnly;
+
+        /// <summary>
+        /// True when the pages are navigated by a <see cref="SettingsRail"/> and this control only hosts them
+        /// (SETTINGS-NAVIGATION section 2): the native strip has no display area, the pages fill the control, the
+        /// control is not a tab stop of its own and an assistive walker sees one pane, not a second page list.
+        /// </summary>
+        internal bool HostOnly
+        {
+            get => _hostOnly;
+            set
+            {
+                if (_hostOnly == value) return;
+                _hostOnly = value;
+                TabStop = !value;
+                SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
+                Invalidate();
+            }
+        }
+
+        private const int TCM_ADJUSTRECT = 0x1328;
+
+        protected override void WndProc(ref Message m)
+        {
+            // The display rectangle the control asks itself for is the whole client when there is no strip to leave room for.
+            if (_hostOnly && m.Msg == TCM_ADJUSTRECT) return;
+            base.WndProc(ref m);
+        }
+
         public void ApplyTheme(ThemePalette palette)
         {
             _palette = palette;
+            if (_hostOnly) { Invalidate(); return; }
             // Painted here in light and dark alike: the native strip draws a bordered box round every page
             // name, which is not the navigation list WINDOWS-UI section 2 describes (an accent bar and a soft
             // fill, nothing else). High contrast keeps the native paint and its system colours.
@@ -42,6 +72,7 @@ namespace CyrFlip
         protected override void OnPaint(PaintEventArgs e)
         {
             using (var back = new SolidBrush(_palette.SurfaceWindow)) e.Graphics.FillRectangle(back, ClientRectangle);
+            if (_hostOnly) { base.OnPaint(e); return; }
             for (int i = 0; i < TabCount; i++)
             {
                 Rectangle bounds = GetTabRect(i);
@@ -52,7 +83,23 @@ namespace CyrFlip
             base.OnPaint(e);
         }
 
-        protected override AccessibleObject CreateAccessibilityInstance() => new ThemeTabControlAccessibleObject(this);
+        protected override AccessibleObject CreateAccessibilityInstance()
+            => _hostOnly ? new HostPaneAccessibleObject(this) : new ThemeTabControlAccessibleObject(this);
+
+        /// <summary>
+        /// The hosted pages as one pane whose only child is the page on screen: the page list the user navigates is
+        /// the rail's, and a second, hidden list of tab items would be read twice by a screen reader.
+        /// </summary>
+        internal sealed class HostPaneAccessibleObject : Control.ControlAccessibleObject
+        {
+            public HostPaneAccessibleObject(ThemeTabControl owner) : base(owner) { }
+            private TabControl? Tabs => Owner as TabControl;
+            public override AccessibleRole Role => AccessibleRole.Pane;
+            public override int GetChildCount() => Tabs?.SelectedTab == null ? 0 : 1;
+            public override AccessibleObject? GetChild(int index) => index == 0 ? Tabs?.SelectedTab?.AccessibilityObject : null;
+            public override AccessibleObject? GetSelected() => null;
+            public override AccessibleObject? HitTest(int x, int y) => GetChild(0);
+        }
 
         /// <summary>
         /// The page list as a <c>PageTabList</c>. net48 returns null from

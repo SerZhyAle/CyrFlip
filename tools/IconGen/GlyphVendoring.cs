@@ -72,7 +72,7 @@ namespace IconGen
                 if (!vocabulary.TryGetValue(baseId, out Dictionary<string, object>? record))
                     return Fail(Contract + ": no vocabulary record for '" + baseId + "'; nothing written");
 
-                if (!TryReadSvg(File.ReadAllText(svgPath), out string d, out float[]? matrix, out bool evenOdd, out string problem))
+                if (!TryReadSvg(File.ReadAllText(svgPath), out string d, out float[]? matrix, out bool evenOdd, out float strokeWidth, out string problem))
                     return Fail(Contract + ": " + id + ".svg: " + problem);
 
                 string status = EnumValue(record, "status", new[] { "active", "proposed" }, "proposed", id);
@@ -88,7 +88,7 @@ namespace IconGen
                     // the override has done its job and the line should be deleted, not kept as dead weight.
                     if (d == replacement.PathData)
                         Console.WriteLine("  note: the catalog's glyph for " + id + " is now the override's - remove it from " + overridesFile);
-                    d = replacement.PathData; matrix = null; evenOdd = false; source = replacement.Source;
+                    d = replacement.PathData; matrix = null; evenOdd = false; strokeWidth = 0f; source = replacement.Source;
                 }
 
                 builder.Append("            new GlyphRecord(\"").Append(id).Append("\", \"").Append(Escape(d)).Append("\", ");
@@ -96,6 +96,7 @@ namespace IconGen
                 else builder.Append("new float[] { ").Append(string.Join(", ", matrix.Select(v => v.ToString("R", CultureInfo.InvariantCulture) + "f"))).Append(" }");
                 builder.Append(", \"").Append(status).Append("\", \"").Append(rtl).Append("\", \"").Append(Escape(source)).Append("\"");
                 if (evenOdd) builder.Append(", evenOdd: true");
+                if (strokeWidth > 0f) builder.Append(", strokeWidth: ").Append(strokeWidth.ToString("R", CultureInfo.InvariantCulture)).Append("f");
                 builder.Append("),\n");
             }
             builder.Append("        };\n    }\n}\n");
@@ -208,15 +209,19 @@ namespace IconGen
 
         /// <summary>
         /// One <c>&lt;path d&gt;</c>, optionally inside a <c>&lt;g transform&gt;</c> made of translate and scale
-        /// (the two files the exporter normalised into the ink box). The one rendering attribute honoured is
+        /// (the two files the exporter normalised into the ink box). Two rendering attributes are honoured:
         /// <c>fill-rule</c> (<c>nonzero</c>, SVG's default, or <c>evenodd</c>), read from the path or, failing
-        /// that, an element above it: a glyph drawn with the wrong rule fills or punches its overlaps the wrong
-        /// way round, and nothing in the build would say so. Anything else is refused by name, so a glyph the
-        /// renderer could draw wrongly is a generator failure rather than a silent misdrawing.
+        /// that, an element above it - a glyph drawn with the wrong rule fills or punches its overlaps the wrong
+        /// way round, and nothing in the build would say so; and the outlined form of a state (ICON-RENDER rule 4,
+        /// <c>action.pin--off</c>): <c>fill="none"</c> with <c>stroke="currentColor"</c> and an optional
+        /// <c>stroke-width</c> (SVG's default 1), carried as <paramref name="strokeWidth"/>, 0 for a filled glyph
+        /// (S0060 I-H1 - this reader used to pass the stroke attributes by unread, so the outline was vendored as
+        /// a fill). Anything else is refused by name, so a glyph the renderer could draw wrongly is a generator
+        /// failure rather than a silent misdrawing.
         /// </summary>
-        internal static bool TryReadSvg(string svg, out string pathData, out float[]? matrix, out bool evenOdd, out string problem)
+        internal static bool TryReadSvg(string svg, out string pathData, out float[]? matrix, out bool evenOdd, out float strokeWidth, out string problem)
         {
-            pathData = ""; matrix = null; evenOdd = false; problem = "";
+            pathData = ""; matrix = null; evenOdd = false; strokeWidth = 0f; problem = "";
             foreach (Match tag in Regex.Matches(svg, @"<\s*([A-Za-z][A-Za-z0-9]*)"))
             {
                 string name = tag.Groups[1].Value;
@@ -232,6 +237,7 @@ namespace IconGen
             Match inherited = Regex.Match(svg, @"fill-rule\s*=\s*""([^""]*)""");
             Match chosen = own.Success ? own : inherited;
             evenOdd = chosen.Success && chosen.Groups[1].Value == "evenodd";
+            if (!TryReadPaint(svg, out strokeWidth, out problem)) return false;
             pathData = Regex.Replace(paths[0].Groups[1].Value.Trim(), @"\s+", " ");
 
             Match group = Regex.Match(svg, @"<g\b[^>]*\btransform\s*=\s*""([^""]*)""");
@@ -249,6 +255,40 @@ namespace IconGen
             if (Regex.Replace(group.Groups[1].Value, @"(translate|scale)\s*\([^)]*\)|\s", "").Length != 0)
             { problem = "group transform other than translate and scale"; return false; }
             matrix = m;
+            return true;
+        }
+
+        /// <summary>
+        /// The paint of the one path: a fill in <c>currentColor</c> (the default when nothing says otherwise), or an
+        /// outline - <c>fill="none"</c> and <c>stroke="currentColor"</c>, with a positive <c>stroke-width</c>. A
+        /// fill and a stroke together, another colour, a <c>style</c> attribute or any other <c>stroke-*</c>
+        /// attribute (caps, joins, dashes) is refused: the renderer draws SVG's defaults and nothing else.
+        /// </summary>
+        internal static bool TryReadPaint(string svg, out float strokeWidth, out string problem)
+        {
+            strokeWidth = 0f; problem = "";
+            if (Regex.IsMatch(svg, @"\bstyle\s*=")) { problem = "a style attribute is not supported"; return false; }
+            Match other = Regex.Match(svg, @"\bstroke-(?!width\b)[a-z-]+\s*=");
+            if (other.Success) { problem = other.Value.TrimEnd('=', ' ') + " is not supported"; return false; }
+            string? Attribute(string name)
+            {
+                Match own = Regex.Match(Regex.Match(svg, @"<path\b[^>]*>", RegexOptions.Singleline).Value, @"\b" + name + @"\s*=\s*""([^""]*)""");
+                Match any = own.Success ? own : Regex.Match(svg, @"\b" + name + @"\s*=\s*""([^""]*)""");
+                return any.Success ? any.Groups[1].Value.Trim() : null;
+            }
+            string? fill = Attribute("fill"), stroke = Attribute("stroke"), width = Attribute("stroke-width");
+            if (fill != null && fill != "none" && fill != "currentColor") { problem = "fill '" + fill + "' is not supported"; return false; }
+            if (stroke == null || stroke == "none")
+            {
+                if (fill == "none") { problem = "a path with no fill and no stroke draws nothing"; return false; }
+                if (width != null) { problem = "stroke-width without a stroke"; return false; }
+                return true;
+            }
+            if (stroke != "currentColor") { problem = "stroke '" + stroke + "' is not supported"; return false; }
+            if (fill != "none") { problem = "a fill and a stroke together are not supported"; return false; }
+            strokeWidth = 1f;
+            if (width != null && (!float.TryParse(width, NumberStyles.Float, CultureInfo.InvariantCulture, out strokeWidth) || strokeWidth <= 0f))
+            { problem = "stroke-width '" + width + "' is not a positive number"; return false; }
             return true;
         }
 

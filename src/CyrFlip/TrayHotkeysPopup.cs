@@ -47,6 +47,14 @@ namespace CyrFlip
             Controls.Add(_table);
 
             ApplyLanguage(uiLanguage);
+            CompanionSurfaceRegistry.RegisterCompanion(this, CompanionSurfaceKind.TrayHotkeys);
+            VisibleChanged += (_, _) => CompanionSurfaceRegistry.ApplyToForm(this);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) CompanionSurfaceRegistry.UnregisterCompanion(this);
+            base.Dispose(disposing);
         }
 
         protected override bool ShowWithoutActivation => true;

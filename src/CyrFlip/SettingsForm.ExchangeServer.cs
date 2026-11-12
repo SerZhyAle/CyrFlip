@@ -30,6 +30,10 @@ namespace CyrFlip
             Margin = new Padding(3, 4, 3, 4)
         };
         private readonly List<Control> _exchangeControls = new List<Control>();
+        private readonly List<KeyValuePair<string, CheckBox>> _standardGroupBoxes = new List<KeyValuePair<string, CheckBox>>();
+
+        /// <summary>"Save as STANDARD" (true) or "Read STANDARD" (false) on an entry, with the chosen group ids (S0095).</summary>
+        internal event Action<ExchangeAccountEntry, bool, IReadOnlyList<string>>? SettingsStandardRequested;
 
         public event EventHandler? ExchangeClipboardChanged;
         public event EventHandler? ExchangeClipboardSendHotkeyChangeRequested;
@@ -94,6 +98,13 @@ namespace CyrFlip
                 TrackExchange(Button("Add account..", AppGlyphs.Add, AddExchangeAccount)),
                 _exchangeAccountsList));
 
+            panel.Controls.Add(Group("exchange/standard", "Standard settings",
+                Note("Save your settings on the server as the standard and read them on your other computers. Both buttons ask first; nothing is sent or read by itself."),
+                Note("Whoever runs the server can read the saved settings."),
+                Note("Passwords, folders, addresses and window positions stay on this computer."),
+                Note("The buttons stand beside an account whose server keeps standard settings."),
+                StandardGroupsRow()));
+
             var shortcutRows = new List<Control>
             {
                 TrackExchange(HotkeyRow(_exchangeClipboardSendHotkeyEnabled, _exchangeClipboardSendHotkeyValue,
@@ -130,6 +141,55 @@ namespace CyrFlip
             var link = new LinkLabel { Text = english, AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
             link.LinkClicked += (_, _) => OpenAddress(ExchangePortalLinks.ForLanguage(page, _config.UiLanguage));
             return link;
+        }
+
+        /// <summary>
+        /// The groups of the settings standard the two actions carry (S0095, item EQ): one switch per group, all on at
+        /// first. The choice lives as long as this window and is not a setting: it says what the next act takes.
+        /// </summary>
+        private Control StandardGroupsRow()
+        {
+            var block = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(3, 7, 3, 7) };
+            block.Controls.Add(new Label { Text = "Groups to save or read", AutoSize = true, UseMnemonic = false, Font = BoldFont, Margin = new Padding(3, 4, 3, 2) });
+            var boxes = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = true, MaximumSize = new Size(890, 0), Margin = Padding.Empty };
+            foreach (SettingsStandardGroup group in SettingsStandard.Groups)
+            {
+                var box = Check(group.Caption);
+                box.Name = "setting.exchange-standard-" + group.Id;
+                box.Checked = true;
+                box.Margin = new Padding(3, 2, 12, 2);
+                _standardGroupBoxes.Add(new KeyValuePair<string, CheckBox>(group.Id, box));
+                boxes.Controls.Add(TrackExchange(box));
+            }
+            block.Controls.Add(boxes);
+            block.Controls.Add(new Label
+            {
+                Text = "Each group holds the settings of one page. A save keeps only the groups chosen here; a read changes only them.",
+                AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 2, 3, 3),
+            });
+            return block;
+        }
+
+        private IReadOnlyList<string> ChosenStandardGroups()
+            => _standardGroupBoxes.Where(p => p.Value.Checked).Select(p => p.Key).ToArray();
+
+        /// <summary>The two acts beside an account whose server lists <c>settings</c>, and when this run last saw its standard.</summary>
+        private Control StandardActionsRow(ExchangeAccountEntry entry, Func<string, string> t)
+        {
+            var row = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, FlowDirection = FlowDirection.LeftToRight, WrapContents = true, Margin = new Padding(0, 0, 0, 2) };
+            Button save = Button(t("Save as STANDARD"), AppGlyphs.Export, () => SettingsStandardRequested?.Invoke(entry, true, ChosenStandardGroups()));
+            Button read = Button(t("Read STANDARD"), AppGlyphs.Import, () => SettingsStandardRequested?.Invoke(entry, false, ChosenStandardGroups()));
+            save.Enabled = read.Enabled = !entry.NeedsSignIn && _config.EnableExchangeClipboard;
+            row.Controls.Add(TrackExchange(save));
+            row.Controls.Add(TrackExchange(read));
+            KeyValuePair<bool, string>? seen = SettingsStandard.LastSeen(entry.Id);
+            if (seen != null)
+                row.Controls.Add(new Label
+                {
+                    Text = Localization.Format(t, seen.Value.Key ? "Standard saved: {0}" : "Standard read: {0}", CyrFlipContext.ShownTime(seen.Value.Value)),
+                    AutoSize = true, UseMnemonic = false, Anchor = AnchorStyles.Left, ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(8, 8, 3, 3),
+                });
+            return row;
         }
 
         private Control ExchangeFolderRow()
@@ -288,6 +348,9 @@ namespace CyrFlip
                 Text = state, AutoSize = true, UseMnemonic = false, MaximumSize = new Size(860, 0),
                 ForeColor = ink, Margin = new Padding(3, 0, 3, 2),
             });
+            // Shown only when the server listed "settings" (item EO): a server without it is never sent the frames.
+            if (ExchangeSettingsStandardService.Offered(entry))
+                row.Controls.Add(StandardActionsRow(entry, t));
             return row;
         }
 

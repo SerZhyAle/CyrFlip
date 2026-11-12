@@ -23,6 +23,10 @@ namespace CyrFlip
         internal bool Touch { get; }
         internal double InterfaceScale { get; }
         internal double TextScale { get; }
+
+        /// <summary>The same input profile and both scales (a profile is a value, not an identity).</summary>
+        internal bool Same(UiMetrics other)
+            => Touch == other.Touch && InterfaceScale.Equals(other.InterfaceScale) && TextScale.Equals(other.TextScale);
         internal int Target => Logical(Touch ? 48 : 32);
         internal int Glyph => Logical(Touch ? 20 : 16);
         internal int Checkbox => Logical(Touch ? 24 : 20);
@@ -39,7 +43,7 @@ namespace CyrFlip
         }
 
         // A surface owner changes this deliberately between interactions, never on input-device events.
-        // Full product profile selection remains tracked by the S0076 migration record.
+        // Production surfaces get theirs from UiProfileManager when their handle is created.
         internal static void Set(Control surface, UiMetrics metrics)
         {
             Profiles.Remove(surface);

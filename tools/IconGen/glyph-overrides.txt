@@ -3,6 +3,7 @@
 #
 # source.exchange-server: EXCHANGE-MARK section 6 - the portfolio owner ordered (2026-10-19) that the exchange server's
 # one-tone star stand in the page strip's row in place of the catalog's two server bays, until ICON-SET folds the
-# proposal in (iconography/PROPOSAL-2026-10-19-exchange-server-mark.md). The run says so when the catalog's own drawing
-# becomes this one: delete the line then.
+# proposal in (iconography/PROPOSAL-2026-10-19-exchange-server-mark.md). ICON-SET 0.37 carries the star in vocabulary.jsonl;
+# the generated glyphs/source.exchange-server.svg this verb reads follows the catalog owner's next exporter run. The run
+# says so when the catalog's own drawing becomes this one: delete the line then.
 source.exchange-server assets/exchange-mark/exchange-mark-mono.svg

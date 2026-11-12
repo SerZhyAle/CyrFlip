@@ -9,7 +9,8 @@
 
 ## What this repository does to stay conformant
 
-Held today: the identity defaults are the reserved anchors and `build-msix.ps1` reads `<Identity>`,
+Held today: the identity pinned in `msix/identity.json` is the reserved anchors (the build reads it
+first and stops without it) and `build-msix.ps1` reads `<Identity>`,
 `PublisherDisplayName`, the version and the file list back out of the packed archive, comparing them
 with the reserved values (rules 1-3, conformance rung 3); the build asserts no `AppxSignature.p7x`
 on the upload candidate and the self-signed build writes `...-selfsigned.msix`, never the same name
@@ -25,6 +26,19 @@ committed `-text` and `-FillNothing` writes it back byte for byte (rule 13, conf
 en-us, ru and uk and the machine-translated columns carry the English text folded to 1500 (rule 16);
 `Title` is one string in every column (rule 14).
 
+The submission channel (section D of the 0.4 amendment of 2026-11-12, ticket `S0100`) is used read-only:
+the identity file above is rule 19's pinned file (`StoreId` read from it, no `IarcRatingId` - this repository holds
+no record of one), and the release preflight runs the canon's shared read-only preflight **before the tag**
+(`msix/Invoke-StoreChannelPreflight.ps1` -> `Store-Preflight.ps1`, one `submission get`): rule 21 (an unavailable
+channel prints one line and the Store step stays manual; the channel never fails a release after the tag),
+rule 23 (a), (b), (d) and rule 25 (a pending submission, a version not newer than every live package, a price
+that is not `Free`, no live submission all stop the release; (c) is held by the build's no-`AppxSignature.p7x`
+assertion, since the package does not exist yet), and rule 26's evidence line (time, Store ID, MSIX version and
+outcome, nothing from the Store's response) in `artifacts/store-channel-evidence.jsonl`. The channel's Measured
+and UNVERIFIED marks stand: no write - create, update, upload, commit, publish - has been made through it, the
+upload stays the Partner Center web flow, and rules 22 and 24 are not exercised here. The registry rows read 0.4
+when this product next verifies; this pointer does not claim conformance to 0.4.
+
 The exceptions of 2026-10-03 were closed the same day (ticket `S0047`) - see the catalog registry
 section 3 rows for the commands and outputs. Rules 15 (the forbidden-terms list) and 18 (the IARC
 questionnaire) are still unevidenced here: neither artifact is in this repository's tree. Rung 4
@@ -32,9 +46,9 @@ questionnaire) are still unevidenced here: neither artifact is in this repositor
 
 ## Synchronization read - 2026-10-18
 
-The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+The current clause-to-surface audit (ticket S0077) records
 the current catalog target, implementation changes, scoped exceptions and evidence.
 Earlier version/evidence statements above are historical and do not certify the
-new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+new target. The shared UI profile (ticket S0076) governs precedence
 for covered components. Previous verified implementation levels stay unchanged
 until their remaining evidence is recorded.

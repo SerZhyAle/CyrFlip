@@ -31,6 +31,8 @@ namespace CyrFlip
         public const string CapabilityE2e = "e2e-v1";
         public const string FeatureClipboard = "clipboard";
         public const string FeatureSealed = "sealed";
+        /// <summary>The server keeps application settings standards (<c>DEVICE-EXCHANGE</c> 1.12, item EO).</summary>
+        public const string FeatureSettings = "settings";
 
         public const string KindSealed = "sealed";
 
@@ -196,6 +198,20 @@ namespace CyrFlip
                 .Add("kind", ExchangeWire.KindSealed)
                 .Add("size", sealedSize)
                 .Add("sealed", new ExchangeRawJson(boxJson));
+
+        /// <summary>
+        /// <c>settings_save_standard</c> (item EO): the payload travels as a string; <c>timestamp</c> is informational
+        /// and the server never orders by it. The frame names are snake case on purpose - they are the contract's.
+        /// </summary>
+        public static ExchangeMembers SettingsSaveStandard(string appId, int formatVersion, string settingsPayload, DateTime utcNow)
+            => new ExchangeMembers("settings_save_standard")
+                .Add("appId", appId)
+                .Add("formatVersion", formatVersion)
+                .Add("settingsPayload", settingsPayload)
+                .Add("timestamp", utcNow.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture));
+
+        public static ExchangeMembers SettingsGetStandard(string appId)
+            => new ExchangeMembers("settings_get_standard").Add("appId", appId);
 
         /// <summary>An object member without a <c>type</c> (the nested <c>e2eKey</c>).</summary>
         internal sealed class Plain

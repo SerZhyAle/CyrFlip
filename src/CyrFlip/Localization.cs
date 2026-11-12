@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace CyrFlip
 {
@@ -61,6 +62,7 @@ namespace CyrFlip
             AddSettingsStrings();
             AddWelcomeStrings();
             AddSettingsTransferStrings();
+            AddSettingsStandardStrings();
             AddSymbolsStrings();
             AddHotkeysOverviewStrings();
             AddTrayPopupStrings();
@@ -122,16 +124,38 @@ namespace CyrFlip
 
         private static string FormatTemplate(string template, string en, object?[] args)
         {
-            try
-            {
-                return string.Format(template, args);
-            }
-            catch (FormatException)
-            {
-                try { return string.Format(en, args); }
-                catch { return template; }
-            }
+            // APP-BEHAVIOUR rule 7: a broken translation shows the source sentence, a missing argument renders a
+            // blank (S0060 U-L2 - it used to show the raw "{1}"), an unparseable template renders itself.
+            if (TryFormat(template, args, out string text) || TryFormat(en, args, out text)) return text;
+            object?[] padded = PadToPlaceholders(template, args);
+            if (padded.Length > args.Length && TryFormat(template, padded, out text)) return text;
+            padded = PadToPlaceholders(en, args);
+            if (padded.Length > args.Length && TryFormat(en, padded, out text)) return text;
+            return template;
         }
+
+        private static bool TryFormat(string template, object?[] args, out string text)
+        {
+            try { text = string.Format(template, args); return true; }
+            catch (FormatException) { text = template; return false; }
+        }
+
+        /// <summary>The arguments with blanks added up to the highest index the template names.</summary>
+        private static object?[] PadToPlaceholders(string template, object?[] args)
+        {
+            int highest = -1;
+            foreach (Match m in PlaceholderIndex.Matches(template))
+                if (int.TryParse(m.Groups[1].Value, out int index) && index > highest && index < MaxPaddedIndex) highest = index;
+            if (highest < args.Length) return args;
+            var padded = new object?[highest + 1];
+            Array.Copy(args, padded, args.Length);
+            for (int i = args.Length; i < padded.Length; i++) padded[i] = string.Empty;
+            return padded;
+        }
+
+        // An escaped "{{" is not a placeholder; an index past this is a typo, not a sentence to pad.
+        private static readonly Regex PlaceholderIndex = new Regex(@"(?<!\{)\{(\d{1,3})(?=[,:}])", RegexOptions.Compiled);
+        private const int MaxPaddedIndex = 100;
 
         /// <summary>Arabic and Urdu are written right-to-left; WinForms has to mirror for them.</summary>
         public static bool IsRightToLeft(string language)

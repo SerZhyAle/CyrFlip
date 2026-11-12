@@ -12,7 +12,9 @@ Store-distributed build is also the most effective answer to the Avast/AVG `IDP.
 | File | Purpose |
 | --- | --- |
 | [AppxManifest.xml](AppxManifest.xml) | Package manifest (full-trust app, `runFullTrust`, `startupTask`). Has `__PLACEHOLDERS__`. |
-| [build-msix.ps1](build-msix.ps1) | Builds Release, stages payload, generates logo PNGs, fills the manifest, packs the `.msix`, then reads `<Identity>`, `PublisherDisplayName`, the version and the file list back **out of the packed archive** and compares them with the reserved Store anchors (WINDOWS-STORE rules 1-4) - a bare build can no longer produce a Store-invalid package silently. |
+| [identity.json](identity.json) | The Store identity in one machine-readable file: `IdentityName`, `Publisher`, `PublisherDisplayName`, `StoreId`, `PackageFamilyName`. The build script reads it before it builds anything and stops without it; `tools/site/Test-Positioning.ps1` holds every value against `POSITIONING.md`. Public values only - no account identifier, no credential. |
+| [build-msix.ps1](build-msix.ps1) | Builds Release, stages payload, generates logo PNGs, fills the manifest, packs the `.msix`, then reads `<Identity>`, `PublisherDisplayName`, the version and the file list back **out of the packed archive** and compares them with the reserved Store anchors in `identity.json` (WINDOWS-STORE rules 1-4) - a bare build can no longer produce a Store-invalid package silently. |
+| [Invoke-StoreChannelPreflight.ps1](Invoke-StoreChannelPreflight.ps1) | The release's read-only Store check before the tag: calls the canon's shared `Store-Preflight.ps1` with `identity.json` and the MSIX version, maps its answer to exit 0 / 1 / 2 and appends one evidence line per run. It runs no `msstore` verb of its own (see the read-only preflight note below). |
 | [store-listing-export.csv](store-listing-export.csv) | **The source of truth for every word of the listing**, in the app's 13 listing languages (a fresh export may carry more or fewer columns - Partner Center reorders and drops them between submissions; a shipped language with no column fails the builder's run): Partner Center's bulk export/import format (Description, ReleaseNotes, Product features, Search terms). Replace it with a **fresh export before every import** (WINDOWS-STORE rule 6 - a held export goes stale the moment any import changes the submission). Edit here, then re-import via *Store listings → Import* in Partner Center - keeps the listing content under version control instead of only living in the Partner Center UI. Screenshot/logo asset rows are Partner-Center-hosted URLs, left as-is. |
 | [store-listing-import-13-languages.csv](store-listing-import-13-languages.csv) | **Generated** - the export above with every empty cell filled, ready for *Store listings → Import*. Do not hand-edit; run `build-store-listing-csv.ps1`. |
 | [store-listing-export.sample.csv](store-listing-export.sample.csv) | The emptied fixture (WINDOWS-STORE rule 13): the export with every copy cell emptied and every language column present, marked `-text` in `.gitattributes` so git never touches its bytes. `-FillNothing` must write it back byte for byte. Regenerate with `-WriteSample` after every fresh export. |
@@ -55,21 +57,24 @@ package declares the `runFullTrust` restricted capability.
 
 1. Create a **free** developer account and sign in to [Partner Center](https://partner.microsoft.com/dashboard).
 2. **Reserve the app name** "CyrFlip" (Apps and games ▸ New product ▸ MSIX or PWA app).
-3. Open **Product ▸ Product identity** and copy the three values Microsoft assigned you:
-   - **Package/Identity/Name** → pass as `-IdentityName`
-   - **Package/Identity/Publisher** (e.g. `CN=ABCD1234-..`) → pass as `-Publisher`
-   - **Package/Properties/PublisherDisplayName** → pass as `-PublisherDisplayName`
+3. Open **Product ▸ Product identity** and copy the three values Microsoft assigned you into
+   [identity.json](identity.json), beside the Store ID and the package family name:
+   - **Package/Identity/Name** → `IdentityName`
+   - **Package/Identity/Publisher** (e.g. `CN=ABCD1234-..`) → `Publisher`
+   - **Package/Properties/PublisherDisplayName** → `PublisherDisplayName`
 
 These **must match exactly**, or the Store rejects the upload.
 
-**CyrFlip is already reserved** (Store ID `9NB4W41NGQJ4`). Reuse these exact identity values for
-every build/update (they're public - they live inside every published `.msix`):
+**CyrFlip is already reserved** (Store ID `9NB4W41NGQJ4`). The build reads these exact identity values
+from `identity.json` for every build/update (they're public - they live inside every published `.msix`):
 
-| Parameter | Value |
+| `identity.json` field | Value |
 | --- | --- |
-| `-IdentityName` | `SZA.CyrFlip` |
-| `-Publisher` | `CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD` |
-| `-PublisherDisplayName` | `SZA` |
+| `IdentityName` | `SZA.CyrFlip` |
+| `Publisher` | `CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD` |
+| `PublisherDisplayName` | `SZA` |
+| `StoreId` | `9NB4W41NGQJ4` |
+| `PackageFamilyName` | `SZA.CyrFlip_fdk7e19xt9z9j` |
 
 ## Build a Store-ready package
 
@@ -79,9 +84,12 @@ Requires the Windows SDK (`makeappx`): `winget install Microsoft.WindowsSDK`.
 .\build-msix.ps1 -ReleaseZip <the tag's release ZIP> -Version <YY.M.D.HHmm>
 ```
 
-The identity above is the script's default - it never defaults to anything else (S0038 RP-2) - and
-it refuses an exe whose `ProductVersion` is not `<version>+<tag commit>`, i.e. one not built from the
-tag (RP-3).
+The identity above is read from `identity.json` - the script has no other default (S0038 RP-2) and
+stops before it builds when the file is missing, unreadable or lacks a field. `-IdentityName`,
+`-Publisher` and `-PublisherDisplayName` stay for naming another value on purpose; the read-back
+compares the packed archive with the file, so a Store build with another value fails closed (only
+`-TestIdentity` may differ). The script also refuses an exe whose `ProductVersion` is not
+`<version>+<tag commit>`, i.e. one not built from the tag (RP-3).
 
 Output: `msix/dist/CyrFlip-<version>-x64.msix`, **unsigned** - that's correct, upload it as-is. A
 `-SelfSign` build writes `CyrFlip-<version>-x64-selfsigned.msix` instead: the two never share one
@@ -172,11 +180,48 @@ For an existing app you only create a new submission - the identity above is unc
 5. **Submit**. Certification typically takes a few business days; a keyboard-hook app can draw extra
    review - the runFullTrust justification in `store-listings.md` pre-empts most questions.
 
-> **Automating with the `msstore` CLI?** It works only with an Azure AD service principal
-> (`msstore reconfigure --tenantId .. --sellerId .. --clientId .. --clientSecret ..`). The
+> **The Store machine channel (`msstore`, the Store submission API).** It works only with a service
+> principal - a Microsoft Entra application with the Manager (Windows) role in Partner Center, set
+> up with `msstore reconfigure --tenantId .. --sellerId .. --clientId .. --clientSecret ..`. The
 > interactive `msstore reconfigure` **fails on an individual developer account** ("Error while
-> retrieving Organization" - no Azure AD org), so for an individual account the **Partner Center
-> web flow above is the practical path**.
+> retrieving Organization"). The owner has set one up on their machine; its key stays in the owner's
+> own `msstore` configuration and goes nowhere else - not into this repository, a ticket or a log, and
+> no account identifier is written here either. Three read-only calls are used from here:
+> `msstore apps list`, `msstore submission status 9NB4W41NGQJ4` and `msstore submission get
+> 9NB4W41NGQJ4` (all three answered for CyrFlip on 2026-11-11). No write call - create, update,
+> upload, commit, publish, delete, rollout - has ever been made through the channel, and none is made
+> without the owner's words in chat naming the product and the package version. A submission made in
+> Partner Center is changed in Partner Center only. So the upload, the listing import and the submit
+> stay the **Partner Center web flow above**; the channel only reads the live state. `submission get`
+> prints JSON wrapped at 80 columns (strip the raw CR and LF before parsing; the escaped `\r\n`
+> inside values stay) and, with no pending submission, silently returns the last published one -
+> read its `Status`, never the mere existence of JSON.
+
+> **The read-only preflight before the tag (S0100).** `release.ps1` runs
+> [Invoke-StoreChannelPreflight.ps1](Invoke-StoreChannelPreflight.ps1) in its preflight, before the tag
+> exists. That script does not talk to the CLI: it finds the canon's shared `tools/Store-Preflight.ps1` (the
+> `sza` plugin - `CLAUDE_PLUGIN_ROOT`, else the newest copy in the plugin cache), hands it the Store ID from
+> `identity.json` (`WINDOWS-STORE` 0.4 section D, rule 19) and the MSIX version the release is about to build
+> (the same remap as `build-msix.ps1`), and the shared script issues one `msstore submission get <Store ID>`
+> and nothing else - an allow-list inside it refuses every other verb. **Exit 1** fails the preflight with the
+> reason: a submission is pending (whoever made it), the MSIX version is not newer than every live package, the
+> price object is not `Free`, the product has no live submission, or the Store state cannot be read (rule 23 (a),
+> (b), (d) and rule 25). **Exit 2** prints one line - the Store step is manual - and changes nothing: the CLI is
+> missing or unconfigured, the token is refused, the recorded credential expired, or the shared script is not
+> installed; a release never fails after the tag because of the channel (rule 21). The recorded expiry date of
+> the credential (a date, never the key) is read from the environment variable
+> `CYRFLIP_STORE_CREDENTIAL_EXPIRY` when the owner sets it. `release.ps1 -SkipStoreChannel` (and `-Offline`)
+> leaves the check out for the day a submission the owner made in Partner Center is pending on purpose.
+> Each run appends one line to `artifacts\store-channel-evidence.jsonl`: time, product, Store ID, MSIX version,
+> `ready` / `refused` / `manual` and the exit code - values the script sets itself, so no account identifier,
+> credential or upload address can reach the record (rule 26). The preflight does not look at the package
+> (rule 23 (c)): none exists before the tag, and `build-msix.ps1` asserts no `AppxSignature.p7x` on the
+> upload candidate. A console-made draft makes the check exit 1 until the owner commits or deletes it in
+> Partner Center - that is rule 23 (a), not a defect. The contract's Measured and UNVERIFIED marks stand: no
+> write has been made through the channel, so nothing here proves a draft, an upload or a commit. The upload,
+> the listing import and the submit stay the Partner Center web flow above.
+> `tools/checks/Test-StoreChannelPreflight.ps1` (part of `build.ps1 -Fast`, about one second) holds the whole
+> path against a stub `msstore`, with no network and no credential.
 
 > **Heads-up on certification:** a global keyboard hook + clipboard access can draw extra review (it
 > looks like a keylogger to automated checks). Describe the layout-indicator/transliterator purpose

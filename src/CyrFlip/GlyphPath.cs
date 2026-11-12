@@ -23,11 +23,22 @@ namespace CyrFlip
         public string Source { get; }
         /// <summary>The SVG <c>fill-rule</c> was <c>evenodd</c>; false is the nonzero default.</summary>
         public bool EvenOdd { get; }
+        /// <summary>
+        /// The outline width in the path's own units (before <see cref="Transform"/>) of a glyph drawn as a stroke -
+        /// the outlined form of a state, <c>action.pin--off</c> (ICON-RENDER rule 4); 0 for a filled glyph.
+        /// </summary>
+        public float StrokeWidth { get; }
 
-        public GlyphRecord(string id, string pathData, float[]? transform, string status, string rtl, string source, bool evenOdd = false)
+        public GlyphRecord(string id, string pathData, float[]? transform, string status, string rtl, string source, bool evenOdd = false, float strokeWidth = 0f)
         {
             Id = id; PathData = pathData; Transform = transform; Status = status; Rtl = rtl; Source = source; EvenOdd = evenOdd;
+            StrokeWidth = strokeWidth;
         }
+
+        /// <summary>The outline width in grid units: <see cref="StrokeWidth"/> scaled by the record's own transform.</summary>
+        public float GridStrokeWidth => Transform == null || Transform.Length != 6
+            ? StrokeWidth
+            : StrokeWidth * (float)Math.Sqrt(Math.Abs(Transform[0] * Transform[3] - Transform[1] * Transform[2]));
     }
 
     /// <summary>

@@ -21,6 +21,11 @@ namespace CyrFlip
         public const string RateLimited = "rate-limited";
         public const string LimitReached = "limit-reached";
         public const string NotPermitted = "not-permitted";
+        // the settings standard (DEVICE-EXCHANGE 1.12, item EP)
+        public const string NotFound = "not-found";
+        public const string InvalidPayload = "invalid-payload";
+        public const string AppIdMismatch = "app-id-mismatch";
+        public const string VersionIncompatible = "version-incompatible";
 
         // ---- local classes (item CZ, kind "local") ----
         public const string Unreachable = "unreachable";
@@ -67,12 +72,17 @@ namespace CyrFlip
         public const string TooLarge = "too-large";
         /// <summary>The private device key of the entry is gone (item DF): the entry cannot seal or open and must be added again.</summary>
         public const string KeyLost = "key-lost";
+        /// <summary>The server's <c>welcome</c> lists no <c>settings</c> (item EO): the standard's frames are never sent.</summary>
+        public const string ServerNoSettings = "server-no-settings";
+        /// <summary>A save was sent and the stream closed before its answer (item ER): whether it was stored is not known.</summary>
+        public const string SaveUnconfirmed = "save-unconfirmed";
 
         /// <summary>The wire reasons of 7.10 this program tells apart; anything else is a generic refusal.</summary>
         private static readonly HashSet<string> WireReasons = new HashSet<string>
         {
             BadCredentials, DeviceRevoked, SignedOut, VersionUnsupported, TlsRequired, IdCollision, Capacity,
             Unavailable, RateLimited, LimitReached, NotPermitted,
+            NotFound, InvalidPayload, AppIdMismatch, VersionIncompatible,
         };
 
         public static bool IsKnownWireReason(string reason) => WireReasons.Contains(reason);

@@ -3,8 +3,8 @@
 
     Reads the facts block of POSITIONING.md and checks three things:
       1. Frozen anchors - each { file, regex, value } still reads back as its value: the exe and product
-         name, the winget identifier / package name / moniker, the MSIX identity defaults and display
-         names, the startup task id, the VS Code extension id. A rename here orphans installed users.
+         name, the winget identifier / package name / moniker, the MSIX identity file (msix/identity.json)
+         and display names, the startup task id, the VS Code extension id. A rename here orphans installed users.
       2. Retired phrases - none of the old "this is a layout fixer" leads survives on a public surface.
       3. The descriptor's mark - the per-language phrase of the descriptor appears where a reader meets
          the product first: the landing pages (title or description), the Store listing (short
@@ -72,7 +72,7 @@ foreach ($anchor in $facts.frozen) {
 }
 
 # --- the surfaces ---------------------------------------------------------------------------------
-$standalone = @($locales | Where-Object { $_ -notin @('en', 'ru', 'uk') })
+$standalone = @($locales | Where-Object { $_ -ne 'en' })   # RU and UK have their own landing files too
 $surfaces = [ordered]@{}
 foreach ($rel in @('docs/index.html', 'docs/guide.html', 'docs/ru/guide.html', 'docs/uk/guide.html',
                    'README.md', 'README_RU.md', 'README_UK.md', 'msix/AppxManifest.xml',
@@ -112,8 +112,8 @@ function Head-Of([string]$html) {
     return "$title`n$desc"
 }
 
-# Landing: the trilingual page carries all three of its languages, each other page its own.
-foreach ($code in @('en', 'ru', 'uk')) { Require-Mark "docs/index.html ($code)" $surfaces['docs/index.html'] $code }
+# Landing: every language has its own page; the root is the English one.
+foreach ($code in @('en')) { Require-Mark "docs/index.html ($code)" $surfaces['docs/index.html'] $code }
 foreach ($code in $standalone) { Require-Mark "docs/$code/index.html title or description" (Head-Of $surfaces["docs/$code/index.html"]) $code }
 Require-Mark 'docs/guide.html description' (Head-Of $surfaces['docs/guide.html']) 'en'
 Require-Mark 'docs/ru/guide.html description' (Head-Of $surfaces['docs/ru/guide.html']) 'ru'

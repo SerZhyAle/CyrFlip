@@ -50,9 +50,12 @@ namespace CyrFlip.Tests
             Assert.Equal(service.Entries[first].Preview, window.AccessibilityObject.GetChild(2).Description);
             ClipboardHistoryEntry item = service.Entries[first];
             int header = Property(window, "HeaderHeight");
-            typeof(ClipboardHistoryWindow).GetMethod("OnMouseDown", Private, null, new[] { typeof(object), typeof(MouseEventArgs) }, null)!.Invoke(window,
-                new object?[] { window, new MouseEventArgs(MouseButtons.Right, 1, window.Width / 2, header + 10, 0) });
-            Assert.True(item.IsPinned);
+            // S0089: a right click on the text edits the scrolled row's entry; it no longer pins.
+            MouseDown(window, MouseButtons.Right, window.Width / 2, header + 10);
+            Assert.Same(item, Editing(window));
+            Assert.False(item.IsPinned);
+            Key(window, Keys.Escape);
+            Assert.Null(Editing(window));
 
             Wheel(window, -12000);
             Assert.Equal(service.Entries.Count - Property(window, "PageSize"), Field(window, "_firstVisible"));
@@ -123,6 +126,87 @@ namespace CyrFlip.Tests
                 bitmap.Save(Path.Combine(output, "clipboard-history-" + dpi + ".png"));
             }
         });
+
+        [Fact]
+        public void TheCaptionNamesTheWindowClipboard() => WithWindow((window, service) =>
+        {
+            Assert.Equal(Localization.Translate("Русский", "Clipboard"), window.Text);
+            Assert.Equal("Буфер обмена", window.Text);
+        });
+
+        [Fact]
+        public void RightClickEditsTheWholeTextAndEscapeDiscards() => WithWindow((window, service) =>
+        {
+            ClipboardHistoryEntry item = service.Entries[0];
+            string original = item.Text;
+            MouseDown(window, MouseButtons.Right, Scale(window, 40), Property(window, "HeaderHeight") + 10);
+            Assert.Same(item, Editing(window));
+            Assert.Equal(original, Editor(window).Text);   // the stored text, not the painted preview
+            Assert.Equal(ClipboardHistoryService.MaxTextChars, Editor(window).MaxLength);
+
+            Editor(window).Text = "discarded";
+            Key(window, Keys.Escape);
+
+            Assert.Null(Editing(window));
+            Assert.Same(item, service.Entries[0]);
+            Assert.Equal(original, item.Text);
+        });
+
+        [Fact]
+        public void EnterSavesTheEditAndEveryOtherKeyIsTheEditors() => WithWindow((window, service) =>
+        {
+            int count = service.Entries.Count;
+            ClipboardHistoryEntry item = service.Entries[0];
+            Key(window, Keys.Down);
+            Key(window, Keys.F2);
+            Assert.Same(item, Editing(window));
+
+            // While editing, Delete is the editor's key: the entry stays.
+            object[] args = { new Message(), Keys.Delete };
+            Assert.False((bool)typeof(ClipboardHistoryWindow).GetMethod("ProcessCmdKey", Private)!.Invoke(window, args)!);
+            Assert.Contains(item, service.Entries);
+
+            Editor(window).Text = "corrected text";
+            Key(window, Keys.Enter);
+
+            Assert.Null(Editing(window));
+            Assert.Equal(count, service.Entries.Count);
+            Assert.DoesNotContain(item, service.Entries);
+            ClipboardHistoryEntry edited = service.Entries.Single(e => e.Text == "corrected text");
+            Assert.Equal(ClipboardHistoryService.Hash("corrected text"), edited.Uuid);
+            Assert.Equal(item.CreatedAt, edited.CreatedAt);
+        });
+
+        [Fact]
+        public void AClickOutsideTheEditorSavesAndDoesNothingElse() => WithWindow((window, service) =>
+        {
+            int header = Property(window, "HeaderHeight"), row = Property(window, "CellHeight");
+            ClipboardHistoryEntry item = service.Entries[0];
+            ClipboardHistoryEntry bystander = service.Entries[2];
+            MouseDown(window, MouseButtons.Right, Scale(window, 40), header + 10);
+            Editor(window).Text = "saved by the click";
+
+            // A left click on row 2's delete glyph: without the edit it would delete that row.
+            int x = window.ClientSize.Width - Property(window, "CellButtonWidth") / 2;
+            int y = header + 2 * row + row - 6;
+            Message click = Message.Create(window.Handle, 0x0201, IntPtr.Zero, (IntPtr)((y << 16) | (x & 0xffff)));
+            typeof(ClipboardHistoryWindow).GetMethod("WndProc", Private)!.Invoke(window, new object[] { click });
+
+            Assert.Null(Editing(window));
+            Assert.Contains(bystander, service.Entries);
+            Assert.DoesNotContain(item, service.Entries);
+            Assert.Contains(service.Entries, e => e.Text == "saved by the click");
+        });
+
+        private static ClipboardHistoryEntry? Editing(ClipboardHistoryWindow window)
+            => (ClipboardHistoryEntry?)typeof(ClipboardHistoryWindow).GetField("_editing", Private)!.GetValue(window);
+        private static TextBox Editor(ClipboardHistoryWindow window)
+            => (TextBox)typeof(ClipboardHistoryWindow).GetField("_editor", Private)!.GetValue(window)!;
+        private static int Scale(ClipboardHistoryWindow window, int pixels)
+            => (int)typeof(ClipboardHistoryWindow).GetMethod("Scale", Private, null, new[] { typeof(int) }, null)!.Invoke(window, new object[] { pixels })!;
+        private static void MouseDown(ClipboardHistoryWindow window, MouseButtons button, int x, int y)
+            => typeof(ClipboardHistoryWindow).GetMethod("OnMouseDown", Private, null, new[] { typeof(object), typeof(MouseEventArgs) }, null)!.Invoke(window,
+                new object?[] { window, new MouseEventArgs(button, 1, x, y, 0) });
 
         private static int Property(ClipboardHistoryWindow window, string name)
             => (int)typeof(ClipboardHistoryWindow).GetProperty(name, Private)!.GetValue(window)!;

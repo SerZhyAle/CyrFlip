@@ -126,7 +126,7 @@ namespace CyrFlip
             using (Font system = SystemFonts.MessageBoxFont)
             {
                 Font next = new Font(Localization.FontFamily(language) ?? system.FontFamily.Name, system.SizeInPoints);
-                Font? old = _ownFont; Font = _ownFont = next; old?.Dispose();
+                Font? old = _ownFont; _ownFont = next; SetBaseFont(next); old?.Dispose();
             }
             ScheduleRefresh();
         }

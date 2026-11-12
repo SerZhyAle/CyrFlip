@@ -123,6 +123,11 @@ namespace CyrFlip.Tests
         public string SlotStoredAt = "";
         /// <summary>When set, the server announces this digest instead of the real one (a damaged transfer).</summary>
         public string? ShaOverride;
+
+        // the settings standard of appId "cyrflip" (DEVICE-EXCHANGE 1.12, item EN): stored as received, never read
+        public string? StandardPayload;
+        public long StandardVersion;
+        public string StandardUpdatedAt = "";
     }
 
     /// <summary>
@@ -141,6 +146,8 @@ namespace CyrFlip.Tests
         public readonly List<string> Seen = new List<string>();        // "type" of every frame the server read, in order
         public readonly List<string> Connections = new List<string>(); // "first envelope" per connection
         public bool Unreachable;
+        /// <summary>A settings request closes the stream with no answer (item ER, interrupted operations).</summary>
+        public bool DropSettingsAnswer;
         /// <summary>Runs once, right after clipboard-info was answered (a value replaced meanwhile).</summary>
         public Action? OnInfoAnswered;
         private int _tokenCounter;
@@ -251,6 +258,10 @@ namespace CyrFlip.Tests
                             break;
                         case "keepalive":
                             await Write(s, new ExchangeMembers("keepalive")); break;
+                        case "settings_save_standard":
+                        case "settings_get_standard":
+                            if (DropSettingsAnswer) return; // the stream closes after the request, before its answer
+                            await Write(s, Standard(account!, next)); break;
                         default:
                             return; // a known envelope that is invalid on a control stream closes it (the real server)
                     }
@@ -286,6 +297,35 @@ namespace CyrFlip.Tests
                 devices.Add(rec);
             }
             return new ExchangeMembers("directory").Add("revision", 5).Add("devices", devices);
+        }
+
+        /// <summary>
+        /// The two settings frames as item EO orders the checks: a guest, then <c>appId</c>, then <c>formatVersion</c>,
+        /// then the payload's shape, then (a get) whether a standard is stored. The server never reads inside it.
+        /// </summary>
+        private ExchangeMembers Standard(FakeAccount account, ExchangeFrame request)
+        {
+            ExchangeMembers Refused(string reason) => new ExchangeMembers("refused").Add("reason", reason).Add("message", "scripted");
+            if (account.Kind == "guest") return Refused("not-permitted");
+            if (request.Str("appId") != "cyrflip") return Refused("app-id-mismatch");
+            if (request.Type == "settings_get_standard")
+            {
+                if (account.StandardPayload == null) return Refused("not-found");
+                return new ExchangeMembers("settings_standard_payload").Add("appId", "cyrflip").Add("formatVersion", 1)
+                    .Add("settingsPayload", account.StandardPayload).Add("updatedAt", account.StandardUpdatedAt);
+            }
+            if (request.Long("formatVersion") != 1) return Refused("version-incompatible");
+            string payload = request.Str("settingsPayload");
+            Dictionary<string, object>? root = null;
+            try { root = new System.Web.Script.Serialization.JavaScriptSerializer().DeserializeObject(payload) as Dictionary<string, object>; }
+            catch (ArgumentException) { }
+            if (root == null || Encoding.UTF8.GetByteCount(payload) > 65536 || !(root.TryGetValue("version", out object? v) && v is int n && n == 1)
+                || !(root.TryGetValue("groups", out object? g) && g is Dictionary<string, object>))
+                return Refused("invalid-payload");
+            account.StandardPayload = payload;
+            account.StandardVersion++;
+            account.StandardUpdatedAt = "2026-11-12T10:00:0" + (account.StandardVersion % 10) + "Z";
+            return new ExchangeMembers("settings_saved").Add("appId", "cyrflip").Add("version", account.StandardVersion).Add("updatedAt", account.StandardUpdatedAt);
         }
 
         private ExchangeMembers Info(FakeAccount account)

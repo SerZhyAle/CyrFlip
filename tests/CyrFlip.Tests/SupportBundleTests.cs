@@ -176,6 +176,10 @@ namespace CyrFlip.Tests
             Assert.Contains("layout.txt", result.Dropped);
             // Silent truncation is what reads as "the author got everything".
             Assert.Contains("Dropped (total size limit)", ReadEntry(result.ArchivePath, SupportBundle.ReportName));
+            // DIAGNOSTIC-REPORT 0.15 item 1: the dropped log stands in the bundle as the archive_cap marker.
+            Assert.Equal("[Diag] LOG OMITTED | reason=archive_cap | source_bytes=400" + Environment.NewLine,
+                ReadEntry(result.ArchivePath, "layout.txt"));
+            Assert.DoesNotContain("layout.txt", Names(result));
         }
 
         [Fact]

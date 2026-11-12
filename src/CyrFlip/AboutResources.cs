@@ -37,6 +37,29 @@ namespace CyrFlip
         /// <summary>The id of the credit that shows the exchange server's mark.</summary>
         internal const string ExchangeServerId = "exchange-server";
 
+        // The Russian and Ukrainian site, guide and privacy pages are addresses of their own (S0024 P3.6); every other
+        // interface language opens the resource's own address, the English page with its language row.
+        private static readonly string[][] LanguagePages =
+        {
+            new[] { "site", "ru", "https://serzhyale.github.io/CyrFlip/ru/" },
+            new[] { "site", "uk", "https://serzhyale.github.io/CyrFlip/uk/" },
+            new[] { "privacy", "ru", "https://serzhyale.github.io/CyrFlip/ru/privacy.html" },
+            new[] { "privacy", "uk", "https://serzhyale.github.io/CyrFlip/uk/privacy.html" },
+            new[] { "guide", "ru", "https://serzhyale.github.io/CyrFlip/ru/guide.html" },
+            new[] { "guide", "uk", "https://serzhyale.github.io/CyrFlip/uk/guide.html" },
+        };
+
+        /// <summary>The address to open for the interface language (an endonym of <see cref="Localization.Names"/>),
+        /// read when the link is clicked, so a language switch needs no rebuilt page.</summary>
+        internal static string UrlFor(Resource resource, string uiLanguage)
+        {
+            int index = System.Array.IndexOf(Localization.Names, uiLanguage);
+            string code = index >= 0 && index < Localization.Codes.Length ? Localization.Codes[index] : "en";
+            foreach (string[] page in LanguagePages)
+                if (page[0] == resource.Id && page[1] == code) return page[2];
+            return resource.Url;
+        }
+
         internal static readonly Resource[] Related =
         {
             new Resource("extension", "VS Code extension: layout at the caret", "https://marketplace.visualstudio.com/items?itemName=SerZhyAle.cyrflip-vscode"),

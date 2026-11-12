@@ -123,7 +123,7 @@ namespace CyrFlip.Tests
         }
 
         [UiSweepFact]
-        public void TabStripIsCappedOnANarrowWindow()
+        public void PageRailIsCappedOnANarrowWindowAndDocksOrDrawers()
         {
             OnUiThread(() =>
             {
@@ -133,14 +133,13 @@ namespace CyrFlip.Tests
                 form.Reload();   // ends with ApplyLanguage -> AdjustTabStrip
                 Application.DoEvents();
 
-                TabControl? tabs = form.Tabs;
-                Assert.NotNull(tabs);
-                int cap = Math.Max(170, tabs!.Width / 4);
-                Assert.True(tabs.ItemSize.Height <= cap,
-                    "H3 - the strip reached " + tabs.ItemSize.Height + " px on a " + tabs.Width + " px window (cap " + cap + ")");
+                // H3: the rail never takes more than 30 per cent of the window (its own minimum aside); a caption
+                // longer than that wraps whole in a taller row, it is never cut with an ellipsis.
+                int cap = Math.Max(form.ClientSize.Width * 3 / 10, 170);
+                Assert.True(form.RailHost.Width <= cap || form.RailMode == SettingsRailMode.Drawer,
+                    "H3 - the rail reached " + form.RailHost.Width + " px on a " + form.ClientSize.Width + " px window (cap " + cap + ")");
             });
         }
-
         private static System.Collections.Generic.IEnumerable<Label> WalkForLabels(Control root)
         {
             foreach (Control child in root.Controls)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -26,9 +26,10 @@ namespace CyrFlip
     /// The swatches are content, not theme, drawn in <see cref="SwatchButton.OnPaint"/> so no control
     /// property ever carries a colour the theme cannot reach, and they keep their colours in high
     /// contrast (<see cref="AnnotationPalette"/>, the LAYOUT-PALETTE precedent). <c>Opacity</c> is
-    /// 0.67 - the "33% transparency" of the request read as transparency, a toolbar you can see the
-    /// picture through but read at once (open question Q3: one constant if 33% opacity was meant).
-    /// The position is session-only, never stored.</para>
+    /// <see cref="ToolbarOpacity"/>, the computed floor of S0093: the whole window is blended with
+    /// the screen, so the ground under every caption is the screen's too, and the floor is the lowest
+    /// opacity at which the body text and the button captions still hold 4.5:1 over any backdrop grey
+    /// (the light OK caption decides it). The position is session-only, never stored.</para>
     /// </summary>
     internal sealed class ScreenshotToolbar : ThemedForm, IThemeAware
     {
@@ -40,14 +41,20 @@ namespace CyrFlip
         public event Action? ClearRequested;
         public event Action? OkRequested;
 
-        /// <summary>"33% transparency" (S0071 6.4, Q3).</summary>
         internal event Action? HelpAction;
         internal void ShowContextHelp() => HelpAction?.Invoke();
 
-        public const double ToolbarOpacity = 0.67;
+        /// <summary>
+        /// The window's opacity: the lowest at which <c>text.primary</c> on the button faces and
+        /// <c>accent.ink</c> on the OK face hold 4.5:1 over every backdrop grey in both themes (S0093,
+        /// owner decisions Q1 = b and Q4 = B; derived and held by <c>PanelColorContractTests</c>). It was
+        /// 0.67 (S0071 6.4), under which dark body text fell to 4.41:1 and the light OK caption to 2.89:1.
+        /// </summary>
+        public const double ToolbarOpacity = 0.90;
 
         private readonly Dictionary<AnnotationTool, ToolButton> _tools = new Dictionary<AnnotationTool, ToolButton>();
         private readonly List<SwatchButton> _swatches = new List<SwatchButton>();
+        private readonly List<SeparatorBar> _separators = new List<SeparatorBar>();
         private readonly Func<string, string> _translate;
         private AnnotationTool _tool;
         private Color _ink = AnnotationPalette.Default;
@@ -90,12 +97,17 @@ namespace CyrFlip
             row.MouseUp += EndDrag;
             Controls.Add(row);
 
-            Label Separ() => new SeparatorBar
+            Label Separ()
             {
-                Width = 2,
-                Height = 26,
-                Margin = new Padding(4, 3, 4, 3),
-            };
+                var bar = new SeparatorBar
+                {
+                    Width = 2,
+                    Height = 26,
+                    Margin = new Padding(4, 3, 4, 3),
+                };
+                _separators.Add(bar);
+                return bar;
+            }
 
             foreach (AnnotationTool toolKind in new[]
                      {
@@ -272,6 +284,23 @@ namespace CyrFlip
             Invalidate();
         }
 
+        /// <summary>
+        /// The size profile reaches the fixed-size parts too (S0076, UI-SIZING section 2): the captioned commands
+        /// follow the window font in the base class, the tools, the swatches and the dividers the interface scale here.
+        /// </summary>
+        protected override void OnUiProfileApplied(UiMetrics metrics)
+        {
+            base.OnUiProfileApplied(metrics);
+            SuspendLayout();
+            try
+            {
+                foreach (ToolButton tool in _tools.Values) tool.Size = new Size(metrics.Logical(28), metrics.Logical(26));
+                foreach (SwatchButton swatch in _swatches) swatch.Size = new Size(metrics.Logical(22), metrics.Logical(22));
+                foreach (SeparatorBar bar in _separators) bar.Height = metrics.Logical(26);
+            }
+            finally { ResumeLayout(true); }
+        }
+
         /// <summary>A shape tool: a check box drawn as a button, pressed while it is the active tool.</summary>
         private sealed class ToolButton : CheckBox, IThemeAware
         {
@@ -298,11 +327,11 @@ namespace CyrFlip
             {
                 base.OnPaint(e);
                 Rectangle box = ClientRectangle;
-                box.Inflate(-GlyphMargin, -GlyphMargin);
+                // 6 of the ordinary 26 px: the picture keeps its proportion at every interface size.
+                int margin = Math.Max(2, (int)Math.Round(ClientSize.Height * 6 / 26.0));
+                box.Inflate(-margin, -margin);
                 AnnotationToolGlyph.Draw(e.Graphics, Tool, box, ForeColor);
             }
-
-            private const int GlyphMargin = 6;
 
             public void ApplyTheme(ThemePalette palette) => ApplyChrome(palette);
 

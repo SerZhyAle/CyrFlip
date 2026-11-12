@@ -63,6 +63,31 @@ namespace CyrFlip
             new Recommended { Code = "UK", Name = "Ukrainian", Klids = new[] { "00000422", "00020422" } }, // Ukrainian, Ukrainian (Enhanced)
         };
 
+        /// <summary>
+        /// Layouts the marker gives a shade of their own without the "add popular languages" button
+        /// installing them (ticket S0085): US and British users must tell the two English keyboards
+        /// apart, but adding the British one to <see cref="Popular"/> would install it for everyone who
+        /// presses that button.
+        /// </summary>
+        public static readonly Recommended[] ColouredOnly =
+        {
+            new Recommended { Code = "EN", Name = "English", Klids = new[] { "00000809" } }, // United Kingdom
+        };
+
+        /// <summary>
+        /// The curated code of a layout the marker colours: <see cref="LabelForKlid"/>, then
+        /// <see cref="ColouredOnly"/>. "" for a layout with no shade of its own.
+        /// </summary>
+        public static string MarkerLabelForKlid(string klid)
+        {
+            string label = LabelForKlid(klid);
+            if (label.Length > 0) return label;
+            foreach (Recommended language in ColouredOnly)
+                foreach (string candidate in language.Klids)
+                    if (string.Equals(candidate, klid, StringComparison.OrdinalIgnoreCase)) return language.Code;
+            return "";
+        }
+
         public static string LabelForKlid(string klid)
         {
             foreach (Recommended language in Popular)

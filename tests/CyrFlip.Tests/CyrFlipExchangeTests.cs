@@ -417,7 +417,8 @@ namespace CyrFlip.Tests
             {
                 // The replay is lazy now (S0064 H-5): a start with the history off reads no journal,
                 // so reading the entries starts it - as the manager window and the export do in the app.
-                history.EnsureReplayed();
+                Assert.True(history.ReplayAsync().Wait(TimeSpan.FromSeconds(10)));
+                history.CompleteReplay();
                 Assert.Contains(notes.Notes, n => n.RawText == Hostile && n.CreatedAtUtc == Created);
                 Assert.Contains(history.Entries, e => e.Text == "b" && e.IsPinned);
                 // An export of what was imported is the same file again.

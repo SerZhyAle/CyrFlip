@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,7 +23,7 @@ namespace CyrFlip.Tests
         private static IEnumerable<string> Corpus()
         {
             foreach (string file in Directory.GetFiles(Repo, "*.md", SearchOption.TopDirectoryOnly)) yield return file;
-            foreach (string subdir in new[] { "docs/contracts", "docs/design", "msix", "winget", "tools/uitest", "vscode-extension", ".github" })
+            foreach (string subdir in new[] { "docs/contracts", "msix", "winget", "tools/uitest", "vscode-extension", ".github" })
                 foreach (string file in Directory.GetFiles(Path.Combine(Repo, subdir), "*.md", SearchOption.TopDirectoryOnly)) yield return file;
             foreach (string file in Directory.GetFiles(Path.Combine(Repo, ".claude/skills"), "*.md", SearchOption.AllDirectories)) yield return file;
             foreach (string file in Directory.GetFiles(Docs, "*.html", SearchOption.AllDirectories)) yield return file;
@@ -194,7 +194,9 @@ namespace CyrFlip.Tests
                 string text = File.ReadAllText(page);
                 if (Regex.IsMatch(text, "http-equiv=[\"']refresh[\"']", RegexOptions.IgnoreCase))
                     errors.Add("resolves to a forwarder, not a page: " + entry.Key);
-                if (!sitemap.Contains("<loc>" + SiteBase + entry.Path + "</loc>"))
+                // A help page is held but never in the sitemap (CONTEXT-HELP 0.2 item G, S0077).
+                if (!entry.Path.StartsWith("help/", StringComparison.Ordinal)
+                    && !sitemap.Contains("<loc>" + SiteBase + entry.Path + "</loc>"))
                     errors.Add("not in the sitemap: " + entry.Key);
                 if (entry.Anchor.Length > 0 && !Regex.IsMatch(text, "\\bid=[\"']" + Regex.Escape(entry.Anchor) + "[\"']"))
                     errors.Add("anchor is missing on its page: " + entry.Key);
@@ -228,8 +230,8 @@ namespace CyrFlip.Tests
             var lostAnchor = Fresh(); lostAnchor.First(e => e.Anchor == "layout-colours").Anchor = "layout-colors";
             Assert.NotEmpty(CompareHeldAddresses(lostAnchor, found, sitemap));
 
-            var forwarder = Fresh(); forwarder.Add(new HeldEntry { Path = "ru/", Files = new SortedSet<string>(new[] { "README_RU.md" }) });
-            Assert.Contains(CompareHeldAddresses(forwarder, found, sitemap), e => e.Contains("listed but held by no source: ru/"));
+            var forwarder = Fresh(); forwarder.Add(new HeldEntry { Path = "en/", Files = new SortedSet<string>(new[] { "README.md" }) });
+            Assert.Contains(CompareHeldAddresses(forwarder, found, sitemap), e => e.Contains("listed but held by no source: en/"));
 
             var missing = Fresh(); missing.RemoveAt(0);
             Assert.Contains(CompareHeldAddresses(missing, found, sitemap), e => e.Contains("held outside the site but not in the list"));
@@ -289,8 +291,9 @@ namespace CyrFlip.Tests
         public void PublicPagesHaveCompleteSeoAndFreshTranslations()
         {
             var groups = new Dictionary<string, string[]> {
-                ["index"] = Locales.Except(new[] { "ru", "uk" }).ToArray(),
-                ["guide"] = new[] { "en", "ru", "uk" }, ["store"] = new[] { "en", "ru", "uk" }, ["privacy"] = Locales, ["trust"] = Locales };
+                ["index"] = Locales,
+                ["guide"] = new[] { "en", "ru", "uk" }, ["store"] = new[] { "en", "ru", "uk" }, ["privacy"] = Locales, ["trust"] = Locales,
+                ["support"] = new[] { "en", "ru", "uk" }, ["faq"] = new[] { "en", "ru", "uk" } };
             var sitemap = File.ReadAllText(Path.Combine(Docs, "sitemap.xml"));
             var index = File.ReadAllText(Path.Combine(Docs, "search-index.json"));
             foreach (var group in groups)

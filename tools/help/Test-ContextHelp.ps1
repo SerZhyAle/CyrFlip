@@ -1,5 +1,9 @@
-﻿[CmdletBinding()]
-param()
+﻿# Exit codes (CHECK-VERDICT): 0 pass, 1 defect, 2 could not verify.
+# -Release also fails captures older than their inputs (CONTEXT-HELP rung 2, the static form of 0.2 item D);
+# between releases that count is only reported, because regenerating the captures is a release-tier run.
+# The same holds for help pages without noindex or listed in the sitemap (CONTEXT-HELP 0.2 item G).
+[CmdletBinding()]
+param([switch]$Release)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 Import-Module (Join-Path $repo 'tools/checks/CheckVerdict.psm1') -Force
@@ -92,6 +96,44 @@ try {
                 foreach ($theme in @('light','dark')) { if (-not (Test-Path (Join-Path $root "$locale/$($surface.help)-$theme.png"))) { Add-CheckFinding -Severity fail -Name 'missing-capture' -Reason "$locale/$($surface.help)/$theme" } }
             }
         }
+    }
+    # Rung 2. freshness.json is written by finalize.py after Generate-Help.ps1: the digest of every capture and of every
+    # input a capture can show. A capture that differs from its digest, or is missing or unrecorded, did not come from the
+    # generator (rule 14); an input that changed since makes the whole set stale.
+    $freshnessPath = Join-Path $root 'freshness.json'
+    if (-not (Test-Path -LiteralPath $freshnessPath)) { throw 'docs/help/freshness.json is missing; run tools/help/finalize.py.' }
+    $freshness = Get-Content -LiteralPath $freshnessPath -Raw | ConvertFrom-Json
+    $digestOf = { param($path) (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() }
+    $recordedImages = @{}
+    foreach ($entry in $freshness.images.PSObject.Properties) { $recordedImages[$entry.Name] = $entry.Value }
+    foreach ($png in Get-ChildItem $root -Recurse -Filter '*.png') {
+        $name = $png.FullName.Substring($repo.Length + 1).Replace('\', '/')
+        if (-not $recordedImages.ContainsKey($name)) { Add-CheckFinding -Severity fail -Name 'capture-unrecorded' -Reason "$name is not in freshness.json" }
+        elseif ((& $digestOf $png.FullName) -ne $recordedImages[$name]) { Add-CheckFinding -Severity fail -Name 'capture-edited' -Reason "$name differs from its generated digest" }
+        $recordedImages.Remove($name)
+    }
+    foreach ($name in $recordedImages.Keys) { Add-CheckFinding -Severity fail -Name 'capture-missing' -Reason $name }
+    # The input set is finalize.py's: every source file of the app plus the renderer and the window inventory it reuses.
+    $inputs = @(Get-ChildItem (Join-Path $repo 'src/CyrFlip') -Filter '*.cs' | ForEach-Object { 'src/CyrFlip/' + $_.Name }) +
+        @('tests/CyrFlip.Tests/HelpArtifacts.cs', 'tests/CyrFlip.Tests/ThemeCoverageTests.cs')
+    $recordedInputs = @{}
+    foreach ($entry in $freshness.inputs.PSObject.Properties) { $recordedInputs[$entry.Name] = $entry.Value }
+    $stale = @($inputs | Where-Object { -not $recordedInputs.ContainsKey($_) -or (& $digestOf (Join-Path $repo $_)) -ne $recordedInputs[$_] }) +
+        @($recordedInputs.Keys | Where-Object { $_ -notin $inputs })
+    if ($stale.Count -gt 0) {
+        $reason = "$($stale.Count) capture input(s) changed since the last generator run (first: $(@($stale | Sort-Object)[0])); run tools/help/Generate-Help.ps1, then python tools/help/finalize.py"
+        if ($Release) { Add-CheckFinding -Severity fail -Name 'capture-stale' -Reason $reason }
+        else { Write-Host "Capture freshness, judged at the release only: $reason" -ForegroundColor DarkGray }
+    }
+    # CONTEXT-HELP 0.2 item G (S0077): every help page carries noindex and none is in the sitemap. Both are written by the
+    # help regeneration (HelpArtifacts.cs, finalize.py), a release-tier run, so between releases this is only reported.
+    $unindexed = @(Get-ChildItem $root -Recurse -Filter '*.html' | Where-Object { [IO.File]::ReadAllText($_.FullName) -notmatch '<meta name="robots" content="noindex">' })
+    $sitemapPath = Join-Path $repo 'docs/sitemap.xml'
+    $listed = if (Test-Path -LiteralPath $sitemapPath) { [regex]::Matches([IO.File]::ReadAllText($sitemapPath), '<loc>[^<]*/help/[^<]*</loc>').Count } else { 0 }
+    if ($unindexed.Count -gt 0 -or $listed -gt 0) {
+        $reason = "$($unindexed.Count) help page(s) without noindex, $listed help address(es) in docs/sitemap.xml; run tools/help/Generate-Help.ps1, then python tools/help/finalize.py"
+        if ($Release) { Add-CheckFinding -Severity fail -Name 'help-indexed' -Reason $reason }
+        else { Write-Host "Help search-engine rule, judged at the release only: $reason" -ForegroundColor DarkGray }
     }
     foreach ($css in Get-ChildItem $root -Filter '*.css') {
         $text = [regex]::Replace([IO.File]::ReadAllText($css.FullName), '/\*[\s\S]*?\*/', '')

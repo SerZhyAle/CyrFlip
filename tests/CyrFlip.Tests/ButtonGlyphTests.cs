@@ -331,7 +331,10 @@ namespace CyrFlip.Tests
                             bool declared = button.GetType().Name == "HeaderButton"   // the group's own chevron (CollapsibleGroup)
                                 // The quick notes' "Transfer..." opens a menu of both directions of the exchange file: the
                                 // vocabulary has no record for it yet (PROPOSAL-2026-10-11-cyrflip-button-meanings).
-                                || (pair.Key == "QuickNotesWindow" && button.Parent != null && TransferButtonOf(pair.Value) == button);
+                                || (pair.Key == "QuickNotesWindow" && button.Parent != null && TransferButtonOf(pair.Value) == button)
+                                // The settings window's "Pages" button opens the page drawer in the narrow mode (S0076 M3):
+                                // the vocabulary has no record for a menu or a page list, and a button never borrows a neighbour's.
+                                || (pair.Key == "SettingsForm" && PagesButtonOf(pair.Value) == button);
                             if (ButtonGlyphs.IsAttached(button)) withGlyph++;
                             else if (glyphOnly) glyphOnlyCount++;
                             else if (declared) declaredCount++;
@@ -349,6 +352,9 @@ namespace CyrFlip.Tests
 
         private static Button? TransferButtonOf(Form quickNotes)
             => (Button?)typeof(QuickNotesWindow).GetField("_transfer", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(quickNotes);
+
+        private static Button? PagesButtonOf(Form settings)
+            => (Button?)typeof(SettingsForm).GetField("_pagesButton", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(settings);
 
         [Fact]
         public void TheAnswerPairOfEveryDialogRetainsItsSemanticRoles()

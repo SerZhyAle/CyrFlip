@@ -233,8 +233,8 @@ namespace CyrFlip.Tests
         {
             File.WriteAllText(Path.Combine(_dir, "doc.txt"), "x");
             File.WriteAllText(Path.Combine(_dir, "doc (1).txt"), "x");
-            Assert.Equal(Path.Combine(_dir, "doc (2).txt"), ExchangeClipboardSink.UniquePath(_dir, "doc.txt"));
-            Assert.Equal(Path.Combine(_dir, "fresh.txt"), ExchangeClipboardSink.UniquePath(_dir, "fresh.txt"));
+            Assert.Equal(Path.Combine(_dir, "doc (2).txt"), ExchangeClipboardSink.UniquePath(_dir, "doc.txt", "unused"));
+            Assert.Equal(Path.Combine(_dir, "fresh.txt"), ExchangeClipboardSink.UniquePath(_dir, "fresh.txt", "unused"));
         }
 
         [Theory]
@@ -243,12 +243,33 @@ namespace CyrFlip.Tests
         [InlineData("a?b*c.txt", "a_b_c.txt")]
         [InlineData("CON", "_CON")]
         [InlineData("nul.txt", "_nul.txt")]
-        [InlineData("..", "received-file")]
-        [InlineData("   ", "received-file")]
+        [InlineData("..", "NAMELESS")]
+        [InlineData("   ", "NAMELESS")]
         [InlineData("name. ", "name")]
         public void AReceivedNameIsOnlyABaseNameWindowsAccepts(string given, string expected)
         {
-            Assert.Equal(expected, ExchangeClipboardSink.SafeName(given));
+            Assert.Equal(expected, ExchangeClipboardSink.SafeName(given, "NAMELESS"));
+        }
+
+        /// <summary>DEVICE-EXCHANGE 1.11 item EL (S0077): a nameless value is clipboard-yyyyMMdd-HHmmss + the MIME type's extension, UTC.</summary>
+        [Theory]
+        [InlineData("2026-10-29T14:30:05Z", "image/png", "clipboard-20261029-143005.png")]
+        [InlineData("2026-10-29T16:30:05+02:00", "text/plain", "clipboard-20261029-143005.txt")]
+        [InlineData("2026-10-29T14:30:05Z", "application/octet-stream", "clipboard-20261029-143005")]
+        [InlineData("2026-10-29T14:30:05Z", "", "clipboard-20261029-143005")]
+        [InlineData("", "image/jpeg", "clipboard-20261030-010203.jpg")]
+        [InlineData("not a time", "", "clipboard-20261030-010203")]
+        public void ANamelessValueIsNamedFromStoredAtInUtc(string storedAt, string mime, string expected)
+        {
+            var now = new DateTime(2026, 10, 30, 1, 2, 3, DateTimeKind.Utc);
+            Assert.Equal(expected, ExchangeClipboardSink.NamelessName(storedAt, mime, now));
+        }
+
+        [Fact]
+        public void AFileWhoseNameCleansToNothingTakesTheNamelessForm()
+        {
+            string nameless = ExchangeClipboardSink.NamelessName("2026-10-29T14:30:05Z", "application/pdf", DateTime.UtcNow);
+            Assert.Equal(Path.Combine(_dir, "clipboard-20261029-143005.pdf"), ExchangeClipboardSink.UniquePath(_dir, "..", nameless));
         }
 
         [Fact]

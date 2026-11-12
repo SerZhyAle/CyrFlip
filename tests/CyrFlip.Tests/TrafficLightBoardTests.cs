@@ -1450,6 +1450,67 @@ namespace CyrFlip.Tests
             if (failure != null) throw new Exception("UI thread failed: " + failure, failure);
         }
 
+        /// <summary>
+        /// S0093 Q5 (mechanism a): at full plate transparency the board's words - the status line, a group caption -
+        /// keep a solid underlay of their own extent, so their contrast is the opaque palette pair, while the rest of
+        /// the line's band still fades with the plate.
+        /// </summary>
+        [Fact]
+        public void TheBoardsWordsKeepASolidUnderlayAtFullTransparency()
+        {
+            Exception? failure = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var config = new AppConfig { TrafficLightWindowTransparency = 100, TrafficLightTileSize = 2, TrafficLightColumns = 4 };
+                    var actions = new TrafficLightBoardActions
+                    {
+                        Snapshot = () => new List<TrafficLightTile>
+                        {
+                            new TrafficLightTile
+                            {
+                                Target = new TrafficLightTarget { Id = "t1", Label = "Host1", Kind = "ping", Address = "1.1.1.1", Enabled = true, Group = "Office" },
+                                State = TrafficState.Ok,
+                                LatencyMs = 15
+                            }
+                        }
+                    };
+                    using var window = new TrafficLightWindow(config, actions, "English");
+                    window.CreateControl();
+                    window.ShowBoard(takeFocus: false, IntPtr.Zero);
+                    Application.DoEvents();
+
+                    using var surface = new Bitmap(window.Width, window.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                    window.DrawToBitmap(surface, new Rectangle(0, 0, window.Width, window.Height));
+                    window.ApplyPlateAlpha(surface);
+
+                    Label status = window.StatusLine;
+                    Assert.True(status.Visible && status.Text.Length > 0, "the status line is shown with words on it");
+                    Rectangle words = TrafficLightWindow.TextUnderlay(
+                        new Rectangle(status.Left + status.Padding.Left, status.Top, status.Width - status.Padding.Horizontal, status.Height),
+                        status.Text, status.Font, rtl: false);
+                    Assert.False(words.IsEmpty);
+                    Assert.True(words.Right < status.Right - 4, "the underlay is the words, not the whole band");
+                    Assert.Equal(255, surface.GetPixel(words.Left + 1, words.Top + words.Height / 2).A);
+                    Assert.Equal(255, surface.GetPixel(words.Right - 1, words.Top + 1).A);
+                    Assert.True(surface.GetPixel(status.Right - 2, status.Top + status.Height / 2).A <= 1, "the band beyond the words fades");
+
+                    Point boardAt = window.Board.Location;
+                    List<Rectangle> captions = window.Board.TextUnderlays();
+                    Assert.Single(captions);
+                    Rectangle caption = captions[0];
+                    caption.Offset(boardAt);
+                    Assert.Equal(255, surface.GetPixel(caption.Left + caption.Width / 2, caption.Top + caption.Height / 2).A);
+                }
+                catch (Exception ex) { failure = ex; }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (failure != null) throw new Exception("UI thread failed: " + failure, failure);
+        }
+
         private sealed class FakeTransparencyKey : IConfigKey
         {
             public readonly Dictionary<string, object> Values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);

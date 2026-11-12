@@ -274,7 +274,10 @@ namespace CyrFlip
             public string ArchivePath = "";
             public long ArchiveBytes;
             public List<Entry> Entries = new List<Entry>();
-            /// <summary>Files that existed but did not fit the total budget - never silently forgotten.</summary>
+            /// <summary>
+            /// Files that existed but did not fit the total budget - never silently forgotten: each stands in the
+            /// archive as a <see cref="DiagnosticLog.ArchiveCapMarker"/> line under its own name.
+            /// </summary>
             public List<string> Dropped = new List<string>();
         }
 
@@ -330,6 +333,9 @@ namespace CyrFlip
 
             byte[] report = Encoding.UTF8.GetBytes(reportText);
             var payloads = new List<KeyValuePair<Entry, byte[]>>();
+            // DIAGNOSTIC-REPORT 0.15 item 1: a log left out at the budget stands in the bundle as the marker.
+            // Not counted against the budget and not an Entry - the dialog lists it under Dropped.
+            var standIns = new List<KeyValuePair<string, byte[]>>();
             long total = report.Length + (environment?.Length ?? 0);
 
             foreach (string name in LogFiles)
@@ -337,11 +343,13 @@ namespace CyrFlip
                 string path = Path.Combine(logDir, name);
                 // Redaction precedes truncation (DIAGNOSTIC-REPORT section 8 C): the file is read whole,
                 // scrubbed and redacted, and only then cut to its tail.
-                byte[]? bytes = Collect(path, name, maxFileBytes, redactor, maxRedactableBytes, out long omitted);
+                byte[]? bytes = Collect(path, name, maxFileBytes, redactor, maxRedactableBytes, out long omitted, out long sourceBytes);
                 if (bytes == null) continue;                       // absent file is not an error
                 if (total + bytes.Length > maxTotalBytes)
                 {
                     result.Dropped.Add(name);
+                    standIns.Add(new KeyValuePair<string, byte[]>(name,
+                        Encoding.UTF8.GetBytes(DiagnosticLog.ArchiveCapMarker(sourceBytes) + Environment.NewLine)));
                     continue;
                 }
                 total += bytes.Length;
@@ -367,6 +375,7 @@ namespace CyrFlip
                 Write(zip, ReportName, report);
                 if (environment != null) Write(zip, EnvironmentName, environment);
                 foreach (var payload in payloads) Write(zip, payload.Key.Name, payload.Value);
+                foreach (var standIn in standIns) Write(zip, standIn.Key, standIn.Value);
             }
 
             result.ArchiveBytes = new FileInfo(result.ArchivePath).Length;
@@ -548,9 +557,11 @@ namespace CyrFlip
         /// - the tail starts just past the first newline, so the archive never opens on half a line, and
         ///   the marker states how much was left out.
         /// </summary>
-        private static byte[]? Collect(string path, string name, int maxBytes, DiagnosticRedactor redactor, long maxRedactable, out long omitted)
+        private static byte[]? Collect(string path, string name, int maxBytes, DiagnosticRedactor redactor, long maxRedactable,
+            out long omitted, out long sourceBytes)
         {
             omitted = 0;
+            sourceBytes = 0;
             try
             {
                 if (!File.Exists(path)) return null;
@@ -558,6 +569,7 @@ namespace CyrFlip
                 using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 {
                     long length = stream.Length;
+                    sourceBytes = length;
                     if (length > maxRedactable)
                     {
                         omitted = length;

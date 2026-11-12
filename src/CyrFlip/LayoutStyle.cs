@@ -15,7 +15,7 @@ namespace CyrFlip
     /// legibility constraints, and the 0.6 opacity of a badge drawn over the user's own text.
     ///
     /// The palette has two levels and one exit. <see cref="Curated"/> gives each of the thirteen curated
-    /// languages its own colour (what the two letters name); <see cref="Layouts"/> gives each of their 25
+    /// languages its own colour (what the two letters name); <see cref="Layouts"/> gives each of their 26
     /// keyboard layouts a shade inside that language's hue (what the two letters cannot name, since US
     /// and Dvorak both read "EN"); everything else is <see cref="Other"/>.
     ///
@@ -63,7 +63,8 @@ namespace CyrFlip
         /// language" first and "which of its layouts" second.</para>
         ///
         /// <para>The set is exactly the layouts of the thirteen curated languages
-        /// (<c>WorldLayouts.Popular</c>, 25 of them). Anything else - a Polish keyboard, a Japanese IME -
+        /// (<c>WorldLayouts.Popular</c>, 25 of them) plus the ones coloured without being offered for
+        /// installation (<c>WorldLayouts.ColouredOnly</c>: the British keyboard, ticket S0085). Anything else - a Polish keyboard, a Japanese IME -
         /// is <see cref="Other"/>: one colour, deliberately, because there is no honest way to hand out
         /// distinct recognisable colours for the ~218 layouts Windows ships.</para>
         /// </summary>
@@ -72,6 +73,7 @@ namespace CyrFlip
             { "00000409", ColorTranslator.FromHtml("#4DA3FF") }, // EN  US
             { "00020409", ColorTranslator.FromHtml("#0A58FF") }, // EN  US-International
             { "00010409", ColorTranslator.FromHtml("#C2E3F4") }, // EN  US-Dvorak
+            { "00000809", ColorTranslator.FromHtml("#2F8CF0") }, // EN  United Kingdom (coloured, not offered: WorldLayouts.ColouredOnly)
             { "00000804", ColorTranslator.FromHtml("#F3B33D") }, // ZH  Simplified (zh-CN)
             { "00000404", ColorTranslator.FromHtml("#FAEAA7") }, // ZH  Traditional (zh-TW)
             { "00000439", ColorTranslator.FromHtml("#E68742") }, // HI  Devanagari-INSCRIPT

@@ -153,6 +153,34 @@ namespace CyrFlip
             return bounds;
         }
 
+        /// <summary>
+        /// Where the board's own words lie - the group captions and the empty-board message - in the board's
+        /// client coordinates, scrolled as they are painted: the window keeps a solid underlay under each while
+        /// the plate around them fades (S0093 Q5, mechanism a).
+        /// </summary>
+        internal List<Rectangle> TextUnderlays()
+        {
+            var bounds = new List<Rectangle>();
+            bool rtl = RightToLeft == RightToLeft.Yes;
+            if (_items.Count == 0)
+            {
+                var message = new Rectangle(Gap, Gap, Math.Max(1, ClientSize.Width - 2 * Gap), Font.Height * 3);
+                bounds.Add(TrafficLightWindow.TextUnderlay(message,
+                    _t("Add targets on the \"Availability traffic light\" settings page."), Font, rtl, wrap: true));
+                return bounds;
+            }
+            Point offset = AutoScrollPosition;
+            foreach (BoardItem item in _items)
+                if (!item.IsTile)
+                {
+                    Rectangle r = item.Bounds;
+                    r.Offset(offset);
+                    Rectangle under = TrafficLightWindow.TextUnderlay(r, item.Caption, Font, rtl);
+                    if (!under.IsEmpty) bounds.Add(under);
+                }
+            return bounds;
+        }
+
         // ---- layout ----
 
         /// <summary>The tile's size at the current font and step: measured, never a pixel constant.</summary>
@@ -839,6 +867,9 @@ namespace CyrFlip
 
         public TrafficLightTitleBar TitleBar => _titleBar;
 
+        /// <summary>The status line under the title (tests: its words keep a solid underlay, S0093 Q5).</summary>
+        internal Label StatusLine => _status;
+
         /// <summary>False on the bare-square step: there is no status line there.</summary>
         internal bool StatusLineVisible => _statusShown;
 
@@ -894,6 +925,8 @@ namespace CyrFlip
             ApplyLanguage(uiLanguage);
             ApplyThemePalette(ThemePalette.Light);
             ApplyTransparency();
+            CompanionSurfaceRegistry.RegisterCompanion(this, CompanionSurfaceKind.TrafficLight, () => _config.TrafficLightPinned);
+            VisibleChanged += (_, _) => CompanionSurfaceRegistry.ApplyToForm(this);
         }
 
         public void ApplyLanguage(string uiLanguage)
@@ -968,8 +1001,11 @@ namespace CyrFlip
 
         public void ApplyPinned()
         {
+            // The setter raises or lowers the real window at once, whether or not a dialog has made the
+            // registry yield it; the registry call after it puts the window where the policy says (S0096).
             TopMost = _config.TrafficLightPinned;
             _titleBar.Pinned = _config.TrafficLightPinned;
+            CompanionSurfaceRegistry.ApplyToForm(this);
         }
 
         // ---- showing, focus and hiding (D16) ----
@@ -995,6 +1031,23 @@ namespace CyrFlip
         {
             ForegroundActivator.Activate(this);
             _board.Focus();
+        }
+
+        /// <summary>
+        /// Puts the board above the window the user works in, without activating it (S0084): a change made on
+        /// the settings page is seen on the board even when the settings window covers it. The topmost /
+        /// not-topmost pair is <see cref="ForegroundActivator"/>'s raise - a plain <c>HWND_NOTOPMOST</c> does
+        /// nothing to a window that is not topmost already - and it ends not topmost, which is both the
+        /// unpinned board and the pinned one yielding to the settings window (S0094). A board that is topmost
+        /// right now is above that window already and is left alone. Neither the position nor the pin changes.
+        /// </summary>
+        public void RaiseWithoutFocus()
+        {
+            if (IsDisposed || !IsHandleCreated || !Visible) return;
+            if ((WindowInterop.GetWindowLong(Handle, WindowInterop.GWL_EXSTYLE) & WindowInterop.WS_EX_TOPMOST) != 0) return;
+            const uint flags = WindowInterop.SWP_NOMOVE | WindowInterop.SWP_NOSIZE | WindowInterop.SWP_NOACTIVATE;
+            WindowInterop.SetWindowPos(Handle, WindowInterop.HWND_TOPMOST, 0, 0, 0, 0, flags);
+            WindowInterop.SetWindowPos(Handle, WindowInterop.HWND_NOTOPMOST, 0, 0, 0, 0, flags);
         }
 
         /// <summary>
@@ -1153,6 +1206,20 @@ namespace CyrFlip
             ScheduleCompose();
         }
 
+        /// <summary>
+        /// The size profile changed: the window font follows it in the base class, and the tiles, the title bar and
+        /// the status line are measured from that font, so the board is refitted exactly as after a DPI change.
+        /// </summary>
+        protected override void OnUiProfileApplied(UiMetrics metrics)
+        {
+            base.OnUiProfileApplied(metrics);
+            ApplyMetrics();
+            if (!_placed) return;   // the first placement fits the board itself
+            LoadContent();
+            FitToContent();
+            ScheduleCompose();
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -1303,6 +1370,27 @@ namespace CyrFlip
             }
         }
 
+        /// <summary>The margin, in pixels, a text underlay keeps around the ink it carries.</summary>
+        internal const int UnderlayMargin = 3;
+
+        /// <summary>
+        /// The solid underlay of a text drawn in <paramref name="area"/>: the text's measured extent at its
+        /// reading start (right for a right-to-left board), widened by <see cref="UnderlayMargin"/> and kept
+        /// inside the area; empty for an empty area or text. The plate's transparency fades everything else
+        /// on the board, so this is the ground the text's contrast is measured on (S0093 Q5, mechanism a).
+        /// </summary>
+        internal static Rectangle TextUnderlay(Rectangle area, string text, Font font, bool rtl, bool wrap = false)
+        {
+            if (area.Width <= 0 || area.Height <= 0 || string.IsNullOrEmpty(text)) return Rectangle.Empty;
+            TextFormatFlags flags = TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding
+                | (wrap ? TextFormatFlags.WordBreak : TextFormatFlags.SingleLine);
+            Size measured = TextRenderer.MeasureText(text, font, new Size(area.Width, wrap ? area.Height : int.MaxValue), flags);
+            int width = Math.Min(area.Width, measured.Width + 2 * UnderlayMargin);
+            int height = wrap ? Math.Min(area.Height, measured.Height + 2 * UnderlayMargin) : area.Height;
+            int x = rtl ? area.Right - width : area.Left;
+            return new Rectangle(x, area.Top, width, height);
+        }
+
         internal void ApplyPlateAlpha(Bitmap surface)
         {
             int plate = (int)Math.Round((100 - _transparency) * 255.0 / 100.0);
@@ -1315,6 +1403,37 @@ namespace CyrFlip
             Point barAt = _titleBar.Location, boardAt = _board.Location;
             bool barVisible = _titleBar.Visible;
             int barTop = barAt.Y, barBottom = barAt.Y + _titleBar.Height;
+
+            // 0. Words: the title, the status line, the group captions and the empty-board message keep a
+            // solid underlay at any transparency (S0093 Q5) - text over a fading plate sits on the desktop,
+            // below its contrast norm. The plate around each still fades.
+            void KeepSolid(Rectangle area)
+            {
+                int left = Math.Max(0, area.Left), top = Math.Max(0, area.Top);
+                int right = Math.Min(width, area.Right), bottom = Math.Min(height, area.Bottom);
+                for (int y = top; y < bottom; y++)
+                    for (int x = left; x < right; x++)
+                        solid[y * width + x] = true;
+            }
+            if (barVisible)
+            {
+                Rectangle title = _titleBar.TitleUnderlay();
+                if (!title.IsEmpty) { title.Offset(barAt); KeepSolid(title); }
+            }
+            if (_statusShown && _status.Visible)
+            {
+                Rectangle line = _status.Bounds;
+                Rectangle inner = new Rectangle(line.Left + _status.Padding.Left, line.Top,
+                    Math.Max(0, line.Width - _status.Padding.Horizontal), line.Height);
+                Rectangle status = TextUnderlay(inner, _status.Text, _status.Font, RightToLeft == RightToLeft.Yes);
+                if (!status.IsEmpty) KeepSolid(status);
+            }
+            foreach (Rectangle words in _board.TextUnderlays())
+            {
+                Rectangle under = words;
+                under.Offset(boardAt);
+                KeepSolid(under);
+            }
 
             // 1. Tiles: only pixels strictly inside each tile's rounded rectangle are kept solid.
             // Pixels in the 4 corners outside the rounded rectangle stay false (they fade with the plate,
@@ -1551,7 +1670,11 @@ namespace CyrFlip
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) _refresh.Dispose();
+            if (disposing)
+            {
+                CompanionSurfaceRegistry.UnregisterCompanion(this);
+                _refresh.Dispose();
+            }
             base.Dispose(disposing);
             if (disposing) _scriptFont?.Dispose();
         }

@@ -153,6 +153,8 @@ namespace CyrFlip
                     break;
                 case ComboBox combo:
                     state.Flat = combo.FlatStyle;
+                    // Every list of every window: the companions step aside while one is open (S0098).
+                    CompanionSurfaceRegistry.WatchDropdown(combo);
                     break;
                 case TabPage page:
                     state.UseVisualStyleBackColor = page.UseVisualStyleBackColor;
@@ -195,11 +197,13 @@ namespace CyrFlip
                     combo.FlatStyle = state.Flat;
                     break;
                 case LinkLabel link:
-                    bool dark = palette.IsDark;
-                    link.LinkColor = dark ? palette.Link : state.LinkColor;
-                    link.ActiveLinkColor = dark ? palette.Link : state.ActiveLinkColor;
-                    link.VisitedLinkColor = dark ? palette.Link : state.VisitedLinkColor;
-                    link.DisabledLinkColor = dark ? palette.TextDisabled : state.DisabledLinkColor;
+                    // High contrast takes the role too (S0060 T-M2 b): the built link blue is 2.44:1 on a
+                    // high-contrast black, while the role there is Windows' own HotTrack.
+                    bool themed = palette.IsDark || palette.Kind == ThemeKind.HighContrast;
+                    link.LinkColor = themed ? palette.Link : state.LinkColor;
+                    link.ActiveLinkColor = themed ? palette.Link : state.ActiveLinkColor;
+                    link.VisitedLinkColor = themed ? palette.Link : state.VisitedLinkColor;
+                    link.DisabledLinkColor = themed ? palette.TextDisabled : state.DisabledLinkColor;
                     break;
                 case ListView list:
                     // Owner-drawn only for the header, and only in dark: the native header ignores every

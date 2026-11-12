@@ -42,6 +42,11 @@ namespace CyrFlip
         // The theme (ticket S0020, the owner's rework of 2026-10-08): a drop-down in the shape of the
         // chord one - a translated caption over the invariant token, refilled by ReloadThemeCombo.
         private readonly ComboBox _themeCombo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 200 };
+        // The size profile (UI-SIZING, ticket S0076): three drop-downs of the same shape - a translated caption
+        // over a stored token or per-cent step, refilled by ReloadUiProfileCombos.
+        private readonly ComboBox _inputProfileCombo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 200 };
+        private readonly ComboBox _interfaceScaleCombo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 120 };
+        private readonly ComboBox _textScaleCombo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 120 };
         private readonly CheckBox _caret = Check("Show layout label near the caret");
         private readonly CheckBox _dot = Check("Compact dot instead of language letters");
         // The marker size (S0011 LI-3): three steps, see MarkerSize.Presets. The caption beside it is a
@@ -53,7 +58,7 @@ namespace CyrFlip
         private readonly CheckBox _history = Check("Enable clipboard history");
         private readonly CheckBox _pause = Check("Pause history capture");
         private readonly CheckBox _historyStartup = Check("Show clipboard history on startup");
-        private readonly TrackBar _opacity = new TrackBar { Minimum = 30, Maximum = 100, TickFrequency = 10, SmallChange = 5, LargeChange = 10, Width = 245 };
+        private readonly TrackBar _opacity = new TrackBar { Minimum = ThemePalette.TranslucentWindowMinOpacity, Maximum = 100, TickFrequency = 2, SmallChange = 5, LargeChange = 10, Width = 245 };
         private readonly Label _opacityValue = new Label { AutoSize = true };
         private readonly Label _caseHotkeyValue = new Label { AutoSize = true };
         private readonly Label _historyHotkeyValue = new Label { AutoSize = true };
@@ -160,12 +165,10 @@ namespace CyrFlip
         /// <summary>True while saved group/viewport state is being restored, so the restores themselves
         /// do not write the same state back (and never run as user edits - WINDOWS-UI section 3 rule 4).</summary>
         private bool _restoringContext;
-        private int _hoveredTab = -1;
         /// <summary>True while the window still holds the content-fit default size: the first
         /// ApplyLanguage then re-derives it from the laid-out content (WINDOWS-UI section 5).</summary>
         private bool _firstSize;
         /// <summary>The DPI the page icons were last rendered for, so a monitor change re-renders them.</summary>
-        private int _tabIconDpi = 96;
         private SettingsWheelFilter? _wheelFilter;
         // Everything below is a GDI resource this window owns and therefore has to free: WinForms
         // disposes neither a font handed to a control, nor an ImageList merely assigned to one, nor the
@@ -186,8 +189,6 @@ namespace CyrFlip
         /// rebuilt on every settings change, and a font handed to a control is never freed by WinForms.
         /// </summary>
         private Font BoldFont => _boldFont ?? (_boldFont = new Font(Font, FontStyle.Bold));
-        private ImageList? _tabIcons;
-        private ThemePalette _tabIconsPalette = ThemePalette.Light;
         private System.Drawing.Icon? _ownIcon;
         private TabControl? _tabs;
         private FlowLayoutPanel? _launcherPanel;
@@ -287,6 +288,10 @@ namespace CyrFlip
             Func<int>? getHistoryCount = null, Func<int>? getQuickNotesCount = null)
         {
             _config = config;
+            // The window opens at the profile the user chose (UI-SIZING section 2 rule 1): metrics first, so the
+            // first language pass already derives its fonts and geometry at the right size.
+            UiMetrics.Set(this, UiProfileManager.Current);
+            _appliedProfile = UiProfileManager.Current;
             _launcherStore = launcherStore;
             _setLauncherEnabled = setLauncherEnabled;
             _setQuickNotesHotkey = setQuickNotesHotkey; _openQuickNotes = openQuickNotes;
@@ -316,29 +321,19 @@ namespace CyrFlip
             // Vertical tab strip on the left: the captions are long in most of the 13 languages and a
             // horizontal strip either clipped them or wrapped into a second row that moved on click.
             // Left alignment draws the caption rotated unless we own-draw it - hence OwnerDrawFixed.
+            // The pages are hosted by a TabControl whose native strip is not shown (HostOnly); the destinations
+            // are listed by the scrollable SettingsRail beside it (SETTINGS-NAVIGATION section 2), which cannot
+            // wrap into a second column and keeps every caption whole.
             var tabs = new ThemeTabControl
             {
                 Dock = DockStyle.Fill, Alignment = TabAlignment.Left, Multiline = true,
                 SizeMode = TabSizeMode.Fixed, DrawMode = TabDrawMode.OwnerDrawFixed,
                 ItemSize = new Size(34, 200),
+                HostOnly = true,
             };
             _tabs = tabs;
-            _tabIcons = CreateTabIcons(ThemePalette.Light, 96);
-            _tabIconDpi = DeviceDpi;
-            tabs.ImageList = _tabIcons;
-            tabs.DrawItem += DrawTab;
-            // INPUT-PARITY rule 2: the focus frame follows the strip's focus (DrawTab). The hover fill
-            // follows the pointer (WINDOWS-UI section 2 rule 2).
-            tabs.GotFocus += (_, _) => tabs.Invalidate();
-            tabs.LostFocus += (_, _) => tabs.Invalidate();
-            tabs.MouseMove += (_, e) =>
-            {
-                int index = TabIndexAt(e.Location);
-                if (index == _hoveredTab) return;
-                _hoveredTab = index;
-                tabs.Invalidate();
-            };
-            tabs.MouseLeave += (_, _) => { if (_hoveredTab != -1) { _hoveredTab = -1; tabs.Invalidate(); } };
+            _rail = new SettingsRail { Dock = DockStyle.Fill };
+            _railHost = new Panel { Dock = DockStyle.Left, Name = "settingsRailHost", Margin = Padding.Empty, Padding = Padding.Empty };
             _uiLanguage.Items.AddRange(Localization.Names);
             // The page order is the pillar order of POSITIONING.md (S0062 section 4); each page is built by
             // its own method and added in SettingsPageKeys.DisplayOrder, so the order is one table.
@@ -346,6 +341,9 @@ namespace CyrFlip
             _symbolsHotkeyEnabled.Name = "setting.symbols-chord";
             _uiLanguage.Name = "setting.ui-language";
             _themeCombo.Name = "setting.theme";
+            _inputProfileCombo.Name = "setting.ui-input";
+            _interfaceScaleCombo.Name = "setting.ui-interface-scale";
+            _textScaleCombo.Name = "setting.ui-text-scale";
             _autostart.Name = "setting.autostart";
             _startMenuShortcut.Name = "setting.shortcut-start-menu";
             _desktopShortcut.Name = "setting.shortcut-desktop";
@@ -356,6 +354,10 @@ namespace CyrFlip
                 Group("general/language", "Language and theme",
                     Setting(LanguageRow(), "Choose the CyrFlip interface language. The choice is saved and also applies to the tray menu."),
                     Setting(ThemeRow(), "“Same as Windows” - CyrFlip is light or dark with Windows and follows it when it switches, without a restart. Windows contrast themes always take precedence over this setting. The layout marker at the cursor and caret does not change with the theme: its colour names the layout.")),
+                Group("general/display", "Size and input",
+                    Setting(ComboRow("Input:", _inputProfileCombo), "Touch screen makes every control large enough for a finger. CyrFlip never switches this on its own."),
+                    Setting(ComboRow("Interface size:", _interfaceScaleCombo), "Scales text, icons, checkboxes, spacing and click targets together in every CyrFlip window. Applied at once."),
+                    Setting(ComboRow("Text size:", _textScaleCombo), "Enlarges text only, on top of the interface size; windows grow to fit it. Applied at once.")),
                 Group("general/startup", "Startup",
                 Setting(_autostart, Autostart.ManagedByWindows
                     ? "Windows itself owns autostart for the Microsoft Store build. The checkbox shows the current state, and clicking it opens Settings ▸ Apps ▸ Startup, where autostart is turned on or off."
@@ -401,15 +403,28 @@ namespace CyrFlip
             foreach (SettingsPageKey key in SettingsPageKeys.DisplayOrder) tabs.TabPages.Add(pages[key]);
             // The build version at the foot of the page list, beside the product name in the header band: it is
             // where the eye goes to ask "which build is this" (the About page keeps the full line).
-            _navVersion = new Label { Text = SupportBundle.AppVersion(), AutoSize = true, UseMnemonic = false, ForeColor = ThemePalette.Light.TextMuted };
-            Controls.Add(_navVersion);
-            _navVersion.BringToFront();
+            _navVersion = new Label { Text = SupportBundle.AppVersion(), AutoSize = true, UseMnemonic = false, ForeColor = ThemePalette.Light.TextMuted, Dock = DockStyle.Bottom, Padding = new Padding(16, 6, 8, 12) };
+            _railHost.Controls.Add(_rail);
+            _railHost.Controls.Add(_navVersion);
+            RefreshRailEntries();
+            _navigation.RecordFromEnvironment();
+            _rail.SelectedIndexChanged += (_, _) =>
+            {
+                if (_syncingRail || _tabs == null || _rail.SelectedIndex < 0) return;
+                // The timing starts at the input that chose the destination, not at this handler.
+                BeginNavigationTrace(_rail.SelectedIndex, _rail.InputStamp);
+                _tabs.SelectedIndex = _rail.SelectedIndex;
+            };
+            _rail.DestinationChosen += (_, _) => OnRailDestinationChosen();
+
+            _rail.Leave += (_, _) => { if (_railMode == SettingsRailMode.Drawer && _drawerOpen && !_pagesButtonFocused()) CloseDrawer(false); };
             SizeChanged += (_, _) =>
             {
-                PlaceNavVersion();
+                AdjustRailForWidth();
                 if (_tabs?.SelectedTab != null) ClampPage(ContentPanel(_tabs.SelectedTab));
             };
             Controls.Add(tabs);
+            Controls.Add(_railHost);
             // The page header (WINDOWS-UI section 2 rule 3): commands that act on the content pane,
             // at the reading end. Text commands rather than glyph-only tools, so the localized word is
             // the control's own caption and no accessible-name pass can miss it.
@@ -428,11 +443,15 @@ namespace CyrFlip
             else if (_config.SettingsTab > 0 && SettingsPageKeys.FromLegacyIndex(_config.SettingsTab) is SettingsPageKey legacyPage)
                 SelectPage(legacyPage);
             _lastPageIndex = tabs.SelectedIndex;
+            SyncRailSelection();
             UpdateHeaderCommands();
             // A TabControl reports no selected page before its handle exists, so the first state is taken then.
-            tabs.HandleCreated += (_, _) => UpdateHeaderCommands();
+            tabs.HandleCreated += (_, _) => { UpdateHeaderCommands(); SyncRailSelection(); };
             tabs.SelectedIndexChanged += (_, _) =>
             {
+                // A change that did not come from the rail (search, a link, code) is timed from here.
+                if (tabs.SelectedIndex >= 0) BeginNavigationTrace(tabs.SelectedIndex, 0);
+                SyncRailSelection();
                 UpdateHeaderCommands();
                 if (!_restoringContext) _config.SaveSettingsTab(tabs.SelectedIndex, tabs.SelectedTab?.Tag?.ToString());
                 // The page being left keeps where it was scrolled to; the page being entered gets it
@@ -444,7 +463,7 @@ namespace CyrFlip
                 // scroll position is restored.
                 FlowLayoutPanel? selectedPanel = tabs.SelectedTab == null ? null : ContentPanel(tabs.SelectedTab);
                 if (selectedPanel != null)
-                    ClampPage(selectedPanel);
+                    ClampPageWhenStale(selectedPanel);
                 RestoreViewport(tabs.SelectedIndex);
                 // Old installer downloads go when the translator page is looked at (S0037 TR-5).
                 if (ReferenceEquals(tabs.SelectedTab, translatePage))
@@ -528,6 +547,9 @@ namespace CyrFlip
             _toggleCombo.SelectedIndexChanged += (_, _) => OnToggleChanged();
             _uiLanguage.SelectedIndexChanged += (_, _) => { if (!_loading && _uiLanguage.SelectedItem is string language) { _setUiLanguage(language); ApplyLanguage(); } };
             _themeCombo.SelectedIndexChanged += (_, _) => ThemeChosen();
+            _inputProfileCombo.SelectedIndexChanged += (_, _) => UiProfileChosen();
+            _interfaceScaleCombo.SelectedIndexChanged += (_, _) => UiProfileChosen();
+            _textScaleCombo.SelectedIndexChanged += (_, _) => UiProfileChosen();
             _opacity.ValueChanged += (_, _) => { if (!_loading) { _opacityValue.Text = _opacity.Value + "%"; _setOpacity(_opacity.Value); } };
 
             // The quick-notes tab, same shape as the translator's: write the value, say "something
@@ -611,7 +633,12 @@ namespace CyrFlip
             // no real layout (and the window may have no handle to post the restore to).
             // The restored page is applied to the native control with its handle, which can be after the first
             // header sync: take the title once more when the window is really on screen.
-            Shown += (_, _) => { UpdateHeaderCommands(); RestoreViewport(_tabs == null ? 0 : _tabs.SelectedIndex); };
+            Shown += (_, _) =>
+            {
+                UpdateHeaderCommands();
+                RestoreViewport(_tabs == null ? 0 : _tabs.SelectedIndex);
+                // The destination on screen when the window appears is not a first visit that can still be timed.
+                if (_tabs?.SelectedTab?.Tag is SettingsPageKey shown) _navigation.MarkVisited(shown.ToString());            };
             // The rectangle is written when the window goes away, never while the user drags it
             // (APP-BEHAVIOUR rule 10).
             FormClosing += (_, _) => SaveUiContext();
@@ -654,12 +681,20 @@ namespace CyrFlip
             titleBlock.Controls.Add(_headerMark);
             titleBlock.Controls.Add(_headerTitle);
 
+            // The button that opens the page menu when it does not fit beside the content (SETTINGS-NAVIGATION
+            // section 2 rule 6): shown only in the drawer mode, a plain captioned command. The vocabulary has no record for a
+            // menu or a page list, so it waits for one and carries no glyph (declared in ButtonGlyphTests, like the notes' "Transfer...").
+            _pagesButton = new Button { Name = "settingsPages", Text = "Pages", AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(16, 8, 3, 4), UseMnemonic = false, Visible = false, TabStop = true };
+            _pagesButton.Click += (_, _) => { if (_drawerOpen) CloseDrawer(true); else OpenDrawer(); };
+            var brandBlock = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, WrapContents = false, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(0), Padding = new Padding(0) };
+            brandBlock.Controls.Add(_pagesButton);
+            brandBlock.Controls.Add(brand);
             // Column 0 is as wide as the page list below it, so the title block starts where the pane does.
             var header = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 3, RowCount = 1, Margin = new Padding(0), Padding = new Padding(0, 8, 14, 0), BackColor = ThemePalette.Light.SurfaceWindow };
             header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200));
             header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            header.Controls.Add(brand, 0, 0);
+            header.Controls.Add(brandBlock, 0, 0);
             header.Controls.Add(titleBlock, 1, 0);
             header.Controls.Add(commands, 2, 0);
             commands.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -728,12 +763,6 @@ namespace CyrFlip
 
         private Label? _navVersion;
 
-        private void PlaceNavVersion()
-        {
-            if (_tabs == null || _navVersion == null) return;
-            int x = RightToLeft == RightToLeft.Yes ? ClientSize.Width - _navVersion.Width - 16 : 16;
-            _navVersion.Location = new Point(Math.Max(0, x), Math.Max(0, ClientSize.Height - _navVersion.Height - 12));
-        }
         /// <summary>Expand all / Collapse all act on the groups of the current page; on a page with none they
         /// would do nothing, so they are unavailable rather than silently inert (WINDOWS-UI section 2 rule 3).</summary>
         private void UpdateHeaderCommands()
@@ -1417,6 +1446,7 @@ namespace CyrFlip
                 ReloadToggleCombo();
                 ReloadContextMenuChords();
                 ReloadThemeCombo();
+                ReloadUiProfileCombos();
                 FitDropDowns();
                 AlignChordColumn();
                 AdjustTabStrip();
@@ -1704,46 +1734,150 @@ namespace CyrFlip
             }
             catch { return new Size(1340, 940); }
         }
-
         /// <summary>
-        /// Sizes the left tab strip to the widest caption in the current language. With
-        /// <see cref="TabAlignment.Left"/> the two <c>ItemSize</c> components swap meaning:
-        /// <b>Width</b> is the height of one tab, <b>Height</b> is how far the strip reaches sideways.
-        /// The reach is capped (H3): a long language on a narrow window keeps a strip that fits beside
-        /// the content - the caption itself degrades through the draw's ellipsis instead of pushing it.
+        /// <summary>
+        /// Re-reads the page captions into the rail and decides docked or drawer for the current width (the page
+        /// list scrolls, so it never wraps into a second column and the window no longer grows to hold every row).
         /// </summary>
         private void AdjustTabStrip()
         {
-            if (_tabs == null) return;
-            int widest = 0;
-            using (var bold = new Font(Font, FontStyle.Bold))
-                foreach (TabPage page in _tabs.TabPages)
-                    widest = Math.Max(widest, TextRenderer.MeasureText(page.Text, bold).Width);
-            // Measured, not Font.Height: a Font object caches its pixel height at creation DPI, and the
-            // row must grow with the monitor the window is on now (S0060 P2).
-            int rowHeight = Math.Max(40, TextLineHeight() + 22);
-
-            // The page list must never run out of height. A vertical TabControl is always multiline: when the
-            // pages do not fit in one column the native control starts a second one, moves the column of the
-            // selected page beside the pane and leaves the pane where it was - pages then jump and vanish
-            // behind the content. So the rows are counted against the window: the minimum height grows to hold
-            // every row (plus the build number under them), and on a screen too short even for that the rows
-            // themselves are made lower rather than letting the strip wrap.
-            int count = Math.Max(1, _tabs.TabCount);
-            int band = _header == null ? 0 : _header.GetPreferredSize(new Size(Math.Max(1, ClientSize.Width), 0)).Height;
-            int foot = (_navVersion == null ? 0 : _navVersion.Height + 12) + 12;
-            int chrome = Math.Max(0, Height - ClientSize.Height);
-            int baseMinimum = ControlDpi.Scale(DeviceDpi, 620);
+            if (_tabs == null || _rail == null || _railHost == null) return;
+            RefreshRailEntries();
+            // The page list scrolls (SettingsRail), so the window no longer grows to hold every row: the rows
+            // are measured whole at the width the rail is given, and what does not fit is reached by scrolling.
+            // The minimum is the authored 620 logical px, never more than the screen offers.
             int screenHeight = Screen.FromControl(this).WorkingArea.Height;
-            int fits = (screenHeight - chrome - band - foot) / count;
-            rowHeight = Math.Max(Math.Min(rowHeight, fits), TextLineHeight() + 8);
-            int minimum = Math.Max(baseMinimum, chrome + band + count * rowHeight + foot);
+            int minimum = Math.Min(ControlDpi.Scale(DeviceDpi, 620), screenHeight);
             if (MinimumSize.Height != minimum) MinimumSize = new Size(MinimumSize.Width, minimum);
+            AdjustRailForWidth();
+        }
 
-            int cap = Math.Max(170, Math.Min(widest + 60 + TabIconSizeFor(DeviceDpi) - TabIconSize, Math.Max(170, _tabs.Width / 4)));
-            _tabs.ItemSize = new Size(rowHeight, cap);
-            if (_header != null) _header.ColumnStyles[0].Width = cap;
-            PlaceNavVersion();
+        private readonly PageNavigationTrace _navigation = new PageNavigationTrace();
+
+        /// <summary>The activation-to-frame timing of page changes (SETTINGS-NAVIGATION section 5); records only when switched on.</summary>
+        internal PageNavigationTrace NavigationTrace => _navigation;
+
+        private void BeginNavigationTrace(int index, long startStamp)
+        {
+            if (_tabs == null || index < 0 || index >= _tabs.TabCount || _restoringContext) return;
+            string key = _tabs.TabPages[index].Tag?.ToString() ?? index.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            _navigation.Begin(this, index, key, startStamp);
+        }
+
+        // ---- The page rail (SETTINGS-NAVIGATION section 2) ----
+        private SettingsRail _rail = null!;
+        private Panel _railHost = null!;
+        private Button? _pagesButton;
+        private bool _syncingRail;
+        private bool _drawerOpen;
+        private SettingsRailMode _railMode = SettingsRailMode.Docked;
+        private int _railWidth;
+
+        /// <summary>The mode the page menu is in at the current width (the documented breakpoint, <see cref="SettingsRailLayout.Decide"/>).</summary>
+        internal SettingsRailMode RailMode => _railMode;
+        internal SettingsRail Rail => _rail;
+        internal bool DrawerOpen => _drawerOpen;
+        internal Control RailHost => _railHost;
+
+        private bool _pagesButtonFocused() => _pagesButton != null && _pagesButton.Focused;
+
+        /// <summary>The rail's rows, read from the pages: captions are current in the language on screen, glyphs are the vocabulary's.</summary>
+        private void RefreshRailEntries()
+        {
+            if (_tabs == null || _rail == null) return;
+            var entries = new List<SettingsRail.Entry>(_tabs.TabCount);
+            foreach (TabPage page in _tabs.TabPages)
+            {
+                int kind = page.ImageIndex >= 0 && page.ImageIndex < TabKinds.Length ? TabKinds[page.ImageIndex] : -1;
+                entries.Add(new SettingsRail.Entry { Caption = page.Text, GlyphId = TabGlyphId(kind), Kind = kind, Tag = page.Tag });
+            }
+            _rail.SetEntries(entries);
+            SyncRailSelection();
+        }
+
+        private void SyncRailSelection()
+        {
+            if (_tabs == null || _rail == null || _syncingRail) return;
+            _syncingRail = true;
+            try { if (_tabs.SelectedIndex >= 0) _rail.SelectedIndex = _tabs.SelectedIndex; }
+            finally { _syncingRail = false; }
+        }
+
+        /// <summary>
+        /// Decide docked or drawer for the width the window has now and place the rail host. Runs on every language,
+        /// profile, DPI and size change - never per input event, and never while the user holds a page change.
+        /// </summary>
+        private void AdjustRailForWidth()
+        {
+            if (_tabs == null || _rail == null || _railHost == null || _header == null) return;
+            UiMetrics metrics = UiMetrics.For(this);
+            int minRail = metrics.Device(this, metrics.Logical(170));
+            int widest = _rail.WidestRow();
+            int width = SettingsRailLayout.RailWidth(widest, minRail, ClientSize.Width * 3 / 10);
+            int minContent = metrics.Device(this, metrics.Logical(SettingsRailLayout.MinContentLogical));
+            SettingsRailMode mode = SettingsRailLayout.Decide(ClientSize.Width, width, minContent);
+            _railWidth = width;
+            if (mode == SettingsRailMode.Docked)
+            {
+                if (_drawerOpen) CloseDrawer(false);
+                _railMode = mode;
+                if (_pagesButton != null && _pagesButton.Visible) _pagesButton.Visible = false;
+                _railHost.SuspendLayout();
+                if (_railHost.Dock != DockStyle.Left) _railHost.Dock = DockStyle.Left;
+                _railHost.Visible = true;
+                if (_railHost.Width != width) _railHost.Width = width;
+                _railHost.ResumeLayout(true);
+                _header.ColumnStyles[0].SizeType = SizeType.Absolute;
+                _header.ColumnStyles[0].Width = width;
+            }
+            else
+            {
+                bool changed = _railMode != mode;
+                _railMode = mode;
+                if (_pagesButton != null && !_pagesButton.Visible) _pagesButton.Visible = true;
+                _header.ColumnStyles[0].SizeType = SizeType.AutoSize;
+                if (changed || !_drawerOpen)
+                {
+                    _railHost.Dock = DockStyle.None;
+                    _railHost.Visible = _drawerOpen;
+                }
+                if (_drawerOpen) PlaceDrawer();
+            }
+        }
+
+        /// <summary>The drawer is the same rail, over the content at the reading start, below the header band.</summary>
+        private void PlaceDrawer()
+        {
+            if (_header == null) return;
+            int top = _header.Bottom;
+            _railHost.Bounds = new Rectangle(0, top, _railWidth, Math.Max(1, ClientSize.Height - top));
+            _railHost.BringToFront();
+        }
+
+        private void OpenDrawer()
+        {
+            if (_railMode != SettingsRailMode.Drawer || _drawerOpen) return;
+            _drawerOpen = true;
+            PlaceDrawer();
+            _railHost.Visible = true;
+            _railHost.BringToFront();
+            _rail.Focus();
+            _rail.EnsureVisible(_rail.SelectedIndex);
+        }
+
+        private void CloseDrawer(bool returnFocus)
+        {
+            if (!_drawerOpen) return;
+            _drawerOpen = false;
+            if (_railMode == SettingsRailMode.Drawer) _railHost.Visible = false;
+            // Focus returns to the control that opened the drawer, with the destination and content context kept.
+            if (returnFocus && _pagesButton != null && _pagesButton.Visible) _pagesButton.Focus();
+        }
+
+        /// <summary>A destination was chosen from the rail: a drawer closes on it and the page it chose takes the user in.</summary>
+        private void OnRailDestinationChosen()
+        {
+            if (_railMode == SettingsRailMode.Drawer && _drawerOpen) CloseDrawer(true);
         }
 
         /// <summary>The current pixel height of one text line at the window's real DPI.</summary>
@@ -1765,6 +1899,10 @@ namespace CyrFlip
                 ClampPage(ContentPanel(page));
         }
 
+        /// <summary>The test seam of the suspended clamp: off, every cap lays its row out at once, which is what
+        /// <c>SettingsPagePanelTests</c> compares the suspended clamp against.</summary>
+        internal static bool SuspendClampLayout = true;
+
         /// <summary>
         /// One page's share of <see cref="ClampPageTextWidths"/>. A page panel's own Resize re-clamps only
         /// that page: it used to re-clamp all thirteen, and showing the window resizes every panel several
@@ -1773,10 +1911,57 @@ namespace CyrFlip
         /// </summary>
         private void ClampPage(FlowLayoutPanel flow)
         {
-            _staleClampPanels.Remove(flow);
-            PageClampCount++;
-            _editorColumn = WidestEditors(flow);
-            ClampTextWidths(flow, flow.ClientSize.Width - flow.Padding.Horizontal);
+            // Under one suspension: every caption's new cap would otherwise lay its row, its group and the page
+            // out again on the spot, and a page has dozens of them (the clamp was most of a first page visit).
+            // The one layout at the end can show or hide the page's scroll bar, and the Resize that follows asks for
+            // a clamp from inside the page's own layout, where a resumed layout is dropped: that request is turned
+            // into another pass after this one, at the width the scroll bar left.
+            if (SuspendClampLayout && !_clampingPages.Add(flow)) { _clampAgainPages.Add(flow); return; }
+            try
+            {
+                for (int pass = 0; pass < 3; pass++)
+                {
+                    _clampAgainPages.Remove(flow);
+                    _staleClampPanels.Remove(flow);
+                    PageClampCount++;
+                    _editorColumn = WidestEditors(flow);
+                    if (SuspendClampLayout) SuspendLayoutDeep(flow);
+                    try { ClampTextWidths(flow, flow.ClientSize.Width - flow.Padding.Horizontal); }
+                    finally { if (SuspendClampLayout) ResumeLayoutDeep(flow); }
+                    _clampStamps[flow] = ClampStamp(flow);
+                    if (!_clampAgainPages.Contains(flow)) break;
+                }
+            }
+            finally
+            {
+                _clampingPages.Remove(flow);
+                _clampAgainPages.Remove(flow);
+            }
+        }
+
+        private readonly HashSet<FlowLayoutPanel> _clampingPages = new HashSet<FlowLayoutPanel>();
+        private readonly HashSet<FlowLayoutPanel> _clampAgainPages = new HashSet<FlowLayoutPanel>();
+
+        // What a clamp was last done for: the width it clamped to and how many controls the page had. A page whose
+        // stamp is unchanged has nothing new to measure, so choosing it again does not (ticket S0076 M3: the clamp
+        // was 40 to 60 per cent of every warm page change - it re-set the minimum size of every editor strip, and each
+        // assignment re-laid the strip out).
+        private readonly Dictionary<FlowLayoutPanel, (int width, int controls)> _clampStamps = new Dictionary<FlowLayoutPanel, (int width, int controls)>();
+
+        private static (int width, int controls) ClampStamp(FlowLayoutPanel flow) => (flow.ClientSize.Width, CountControls(flow));
+
+        private static int CountControls(Control root)
+        {
+            int count = 1;
+            foreach (Control child in root.Controls) count += CountControls(child);
+            return count;
+        }
+
+        /// <summary>The clamp for a page that has just been chosen: skipped when nothing it depends on changed since the last one.</summary>
+        private void ClampPageWhenStale(FlowLayoutPanel flow)
+        {
+            if (!_staleClampPanels.Contains(flow) && _clampStamps.TryGetValue(flow, out var stamp) && stamp.Equals(ClampStamp(flow))) return;
+            ClampPage(flow);
         }
 
         /// <summary>
@@ -1845,7 +2030,7 @@ namespace CyrFlip
                     widest = Math.Max(widest, width);
                     tallest = Math.Max(tallest, height);
                 }
-                int strip = _tabs.ItemSize.Height;
+                int strip = _railWidth;
                 Rectangle work = Screen.FromControl(this).WorkingArea;
                 int width2 = Math.Min(work.Width - 60, Math.Max(MinimumSize.Width, widest + strip + flowChrome()));
                 int height2 = Math.Min(work.Height - 60, Math.Max(MinimumSize.Height, tallest + flowChrome() + 8));
@@ -1877,118 +2062,18 @@ namespace CyrFlip
             }
             finally { ResumeLayoutDeep(this); }
             ClampPageTextWidths();
-            RebuildTabIcons(newDpi);
-        }
-
-        /// <summary>Render the page glyphs again at the monitor's DPI (the icon is a bitmap, not a font).</summary>
-        private void RebuildTabIcons(int dpi)
-        {
-            if (_tabs == null || dpi == _tabIconDpi) return;
-            _tabIconDpi = dpi;
-            if (_tabIcons == null) return;
-            ImageList previous = _tabIcons;
-            _tabIcons = CreateTabIcons(_tabIconsPalette, dpi);
-            _tabs.ImageList = _tabIcons;
-            previous.Dispose();
-            _tabs.Invalidate();
-        }
-
-        /// <summary>Owner-draws one left-aligned tab: icon + horizontal caption, the selected one bold
-        /// on a soft accent fill with an accent bar at the reading start, a lighter accent fill on
-        /// hover, and a dotted focus frame when the strip holds the keyboard (WINDOWS-UI section 2
-        /// rule 2: hover, focus and selection are distinguishable; colour is not the only indication -
-        /// the selection also bolds the caption and draws the bar, the hover underlines the caption).
-        /// Mirrored for a right-to-left language (H7): the strip switches to <c>TabAlignment.Right</c>
-        /// in <see cref="ApplyScript"/>, the bar moves to the outer edge and the icon rides the
-        /// reading start - everything drawn here in the control's own unmirrored coordinates.</summary>
-        private void DrawTab(object? sender, DrawItemEventArgs e)
-        {
-            if (_tabs == null || e.Index < 0 || e.Index >= _tabs.TabPages.Count) return;
-            TabPage page = _tabs.TabPages[e.Index];
-            bool selected = _tabs.SelectedIndex == e.Index;
-            bool hovered = e.Index == _hoveredTab;
-            bool rtl = RightToLeft == RightToLeft.Yes;
-            Rectangle bounds = e.Bounds;
-            ThemePalette palette = ThemeApply.PaletteOf(_tabs) ?? ThemePalette.Light;
-            // The fills are mixes of two roles, re-mixed on every paint from the palette being applied
-            // - never literals, so a theme switch repaints them correctly (APP-STYLE section 3).
-            Color back = selected ? ThemePalette.Mix(palette.SurfaceWindow, palette.Accent, 0.18f)
-                : hovered ? ThemePalette.Mix(palette.SurfaceWindow, palette.Accent, 0.14f)
-                : palette.SurfaceWindow;
-            using (var fill = new SolidBrush(back))
-                e.Graphics.FillRectangle(fill, bounds);
-            if (selected)
-            {
-                int barX = rtl ? bounds.Right - 4 : bounds.Left;
-                using (var accent = new SolidBrush(palette.Accent))
-                    e.Graphics.FillRectangle(accent, barX, bounds.Top, 4, bounds.Height);
-            }
-
-            bool hasIcon = _tabs.ImageList != null && page.ImageIndex >= 0 && page.ImageIndex < _tabs.ImageList.Images.Count;
-            Image? icon = hasIcon ? _tabs.ImageList!.Images[page.ImageIndex] : null;
-            int textLeft, textRight;
-            if (rtl)
-            {
-                // Reading start is the right edge: icon first, caption to its left (H7).
-                int iconX = bounds.Right - 12 - (icon?.Width ?? 0);
-                if (icon != null)
-                    e.Graphics.DrawImage(icon, iconX, bounds.Top + (bounds.Height - icon.Height) / 2, icon.Width, icon.Height);
-                textRight = icon != null ? iconX - 9 : bounds.Right - 12;
-                textLeft = bounds.Left + 8;
-            }
-            else
-            {
-                int x = bounds.Left + 12;
-                if (icon != null)
-                {
-                    e.Graphics.DrawImage(icon, x, bounds.Top + (bounds.Height - icon.Height) / 2, icon.Width, icon.Height);
-                    x += icon.Width + 9;
-                }
-                textLeft = x;
-                textRight = bounds.Right - 8;
-            }
-            var flags = TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix
-                | (rtl ? TextFormatFlags.RightToLeft | TextFormatFlags.Right : TextFormatFlags.Left);
-            FontStyle style = selected ? FontStyle.Bold : hovered ? FontStyle.Underline : FontStyle.Regular;
-            using (var font = new Font(Font, style))
-                TextRenderer.DrawText(e.Graphics, page.Text, font,
-                    Rectangle.FromLTRB(textLeft, bounds.Top, Math.Max(textLeft + 10, textRight), bounds.Bottom),
-                    palette.TextPrimary, flags);
-            // The native strip's own focus rectangle is gone with the owner draw; a keyboard user
-            // still has to see that the page list holds the focus (INPUT-PARITY rule 2).
-            if (selected && _tabs.Focused)
-                using (var focus = new Pen(palette.TextPrimary) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dot })
-                    e.Graphics.DrawRectangle(focus, bounds.Left + 7, bounds.Top + 3, bounds.Width - 12, bounds.Height - 7);
-        }
-
-        /// <summary>The hovered tab under a strip-local point (left-aligned tabs stack one per row).</summary>
-        private int TabIndexAt(Point location)
-        {
-            // The tab rectangles themselves, not ItemSize arithmetic: the strip starts a few pixels
-            // below the control's top, so a division by the row height lit the wrong row at its edges.
-            if (_tabs == null) return -1;
-            for (int i = 0; i < _tabs.TabPages.Count; i++)
-                if (_tabs.GetTabRect(i).Contains(location)) return i;
-            return -1;
         }
 
         /// <summary>
         /// The page icons are the mono look (ICON-RENDER section 10 C: tabs), in the theme's text colour -
         /// which is what the dark theme changes - so they are drawn again when it changes (S0021 A10 item 3,
         /// S0022 A2). The selected page keeps its accent bar; that is not a glyph. The groups' header
-        /// bands and chevrons re-mix from the same palette, and the nav fills in DrawTab mix on paint.
+        /// bands and chevrons re-mix from the same palette, and the rail mixes its fills on paint.
         /// </summary>
         protected override void OnThemeApplied(ThemePalette palette)
         {
             foreach (Button button in _moveButtons.ToArray()) ApplyMoveGlyph(button, palette);
             foreach (CollapsibleGroup group in _groups) group.ApplyPalette(palette);
-            if (_tabs == null || _tabIcons == null || ReferenceEquals(_tabIconsPalette, palette)) return;
-            ImageList previous = _tabIcons;
-            _tabIcons = CreateTabIcons(palette, _tabIconDpi);
-            _tabIconsPalette = palette;
-            _tabs.ImageList = _tabIcons;
-            previous.Dispose();
-            _tabs.Invalidate();
         }
 
         // The buttons that move a row. Each carries the vocabulary's move-up or move-down (S0022 A4) in the
@@ -2030,6 +2115,8 @@ namespace CyrFlip
         {
             if (keyData == Keys.Escape)
             {
+                // An open page drawer closes first and gives the focus back to its button (SETTINGS-NAVIGATION rule 6).
+                if (_railMode == SettingsRailMode.Drawer && _drawerOpen) { CloseDrawer(true); return true; }
                 // An open drop-down list closes first: WinForms offers the key here before the combo box
                 // sees it, so without this a reflexive Escape would hide the window over a pending choice.
                 if (!EscapeLeavesWindow(ActiveControl)) return base.ProcessCmdKey(ref msg, keyData);
@@ -2057,8 +2144,8 @@ namespace CyrFlip
         /// Mirrors the window for Arabic and Urdu and swaps in a font that covers the script when the
         /// default UI font does not (Devanagari, Bengali, Chinese). Both have to be applied to the
         /// whole form: WinForms propagates <c>RightToLeft</c> and <c>Font</c> to child controls. The
-        /// page strip joins the mirror through <c>TabAlignment.Right</c> (H7) rather than
-        /// <c>RightToLeftLayout</c>: the strip is owner-drawn, and a mirrored device context would
+        /// page rail (a dock on the reading-start side) follows the mirror, and draws itself in the form's direction rather than
+        /// through a mirrored device context, which would
         /// flip the native text under it while the GDI+ fills stay put.
         /// </summary>
         private void ApplyScript()
@@ -2066,11 +2153,11 @@ namespace CyrFlip
             bool rtl = Localization.IsRightToLeft(_config.UiLanguage);
             RightToLeft = rtl ? RightToLeft.Yes : RightToLeft.No;
             RightToLeftLayout = rtl;
-            if (_tabs != null && (_tabs.Alignment == TabAlignment.Right) != rtl)
-                _tabs.Alignment = rtl ? TabAlignment.Right : TabAlignment.Left;
             string? family = Localization.FontFamily(_config.UiLanguage);
             string wanted = family ?? MessageBoxFont.FontFamily.Name;
-            if (Font.FontFamily.Name == wanted) return;
+            // Typography follows the interface scale and the text enlargement together (UI-SIZING section 2 rule 3).
+            float points = UiProfiles.FontPoints(MessageBoxFont.SizeInPoints, UiMetrics.For(this));
+            if (Font.FontFamily.Name == wanted && Math.Abs(Font.SizeInPoints - points) < 0.05f) return;
             try
             {
                 // Both fonts are ours: WinForms disposes neither the font assigned to a control nor
@@ -2082,7 +2169,7 @@ namespace CyrFlip
                 // makes and ends at window teardown, where no row outlives the window.
                 Font? previousOwn = _ownFont;
                 Font? previousBold = _boldFont;
-                Font = _ownFont = new Font(wanted, MessageBoxFont.SizeInPoints);
+                Font = _ownFont = new Font(wanted, points);
                 _boldFont = null;       // BoldFont re-derives itself from the new font on first use
                 Font? previousTitle = _titleFont;
                 _titleFont = null;
@@ -2093,6 +2180,37 @@ namespace CyrFlip
                 if (previousTitle != null) _retiredFonts.Add(previousTitle);
             }
             catch { /* the font is missing on this machine - keep the default */ }
+        }
+
+        private UiMetrics _appliedProfile = UiMetrics.Pointer;
+        private bool _applyingProfile;
+
+        /// <summary>
+        /// The user chose another size profile while the window is open (or the window got its first one): fonts,
+        /// covered components and every font-derived width are derived again at the final width and the obsolete
+        /// cached heights are released (UI-SIZING 1.1). The window keeps its page, its edits and its rectangle.
+        /// </summary>
+        protected override void OnUiProfileApplied(UiMetrics metrics)
+        {
+            if (_tabs == null || _applyingProfile || metrics.Same(_appliedProfile)) return;
+            _applyingProfile = true;
+            try
+            {
+                _appliedProfile = metrics;
+                bool loading = _loading;
+                _loading = true;
+                try
+                {
+                    SuspendLayoutDeep(this);
+                    try { UiProfileManager.Reflow(this); }
+                    finally { ResumeLayoutDeep(this); }
+                    ApplyLanguage();
+                }
+                finally { _loading = loading; }
+                _rail.InvalidateMetrics();
+                ClampPageTextWidths();
+            }
+            finally { _applyingProfile = false; }
         }
 
         /// <summary>
@@ -2386,7 +2504,7 @@ namespace CyrFlip
             if (!_config.EnableHotkeys) pair.ForeColor = ThemePalette.Light.TextMuted;
             row.Controls.Add(pair);
             row.Controls.Add(ColumnLabel(profile.Hotkey, _chordColumn, ellipsis: false));
-            row.Controls.Add(Button(Translate("Change..."), AppGlyphs.Edit, () => EditConversionProfile(profile)));
+            row.Controls.Add(Button(Translate("Edit..."), AppGlyphs.Edit, () => EditConversionProfile(profile)));
             row.Controls.Add(Button(Translate("Delete"), AppGlyphs.Delete, () => RemoveConversionProfile(profile)));
             NameRow(row, LayoutName(profile.SourceKlid) + " ⇄ " + LayoutName(profile.TargetKlid) + " " + profile.Hotkey);
             return row;
@@ -3038,7 +3156,7 @@ namespace CyrFlip
             panel.Controls.Add(Group("clipboard/window", "History window",
                 HotkeyRow(_historyEnabled, _historyHotkeyValue, _setHistoryHotkey, "Shows or hides the text-history window. Two CyrFlip actions cannot share one shortcut."),
                 Setting(_historyStartup, "Remembers whether the clipboard manager window is open: if you closed it, it stays closed on the next launch (history is still captured in the background)."),
-                Setting(opacityLine, "Sets the floating history window opacity from 30% to 100%. Applied immediately."),
+                Setting(opacityLine, "Sets the floating history window opacity from 78% to 100%. Applied immediately."),
                 Setting(searchHistory, "Opens a separate window to search by a text fragment. Enter at least three characters to search.")));
 
             Button clearHistory = Button("Clear all history", AppGlyphs.ClearAll, () =>
@@ -3442,7 +3560,7 @@ namespace CyrFlip
             row.Controls.Add(target);
             row.Controls.Add(ColumnLabel(profile.Hotkey.Length > 0 ? profile.Hotkey : Translate("Not assigned"),
                 _translateChordColumn, ellipsis: false));
-            row.Controls.Add(Button(Translate("Change..."), AppGlyphs.Edit, () => EditTranslationProfile(profile)));
+            row.Controls.Add(Button(Translate("Edit..."), AppGlyphs.Edit, () => EditTranslationProfile(profile)));
             row.Controls.Add(Button(Translate("Delete"), AppGlyphs.Delete, () => RemoveTranslationProfile(profile)));
             NameRow(row, TranslationLanguages.Label(profile.TargetLang, _config.UiLanguage) + " " + profile.Hotkey);
             return row;
@@ -3689,7 +3807,7 @@ namespace CyrFlip
 
             var row1 = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 2, 3, 0) };
             row1.Controls.Add(LauncherButton("Add...", AppGlyphs.Add, LauncherAdd));
-            row1.Controls.Add(LauncherButton("Change...", AppGlyphs.Edit, LauncherEdit));
+            row1.Controls.Add(LauncherButton("Edit...", AppGlyphs.Edit, LauncherEdit));
             row1.Controls.Add(LauncherButton("Run", AppGlyphs.Run, LauncherRun));
             row1.Controls.Add(LauncherButton("Clone", AppGlyphs.Copy, LauncherClone));
             row1.Controls.Add(LauncherButton("Delete", AppGlyphs.Delete, LauncherRemove));
@@ -3729,7 +3847,7 @@ namespace CyrFlip
                 context.Items.Clear();
                 if (SelectedLauncherScenario() == null) { e.Cancel = true; return; }
                 context.Items.Add(new ToolStripMenuItem(Translate("Run"), null, (_, _) => LauncherRun()));
-                context.Items.Add(new ToolStripMenuItem(Translate("Change..."), null, (_, _) => LauncherEdit()));
+                context.Items.Add(new ToolStripMenuItem(Translate("Edit..."), null, (_, _) => LauncherEdit()));
                 context.Items.Add(new ToolStripMenuItem(Translate("Clone"), null, (_, _) => LauncherClone()));
                 context.Items.Add(new ToolStripMenuItem(Translate("Export... (short form)"), null, (_, _) => LauncherExport()));
                 context.Items.Add(new ToolStripSeparator());
@@ -4196,7 +4314,7 @@ namespace CyrFlip
         private TabPage Page(string title, string description, params Control[] controls)
         {
             var page = new TabPage(title);
-            var panel = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Padding = new Padding(16), BackColor = ThemePalette.Light.SurfaceRaised };
+            var panel = new SettingsPagePanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true, Padding = new Padding(16), BackColor = ThemePalette.Light.SurfaceRaised };
             // A narrower window clamps the wrapping text blocks to what the page has (H3); re-clamped
             // on every resize, since the authored cap comes back when the window grows again.
             panel.Resize += (_, _) => ClampPageOnResize(panel);
@@ -4438,6 +4556,70 @@ namespace CyrFlip
             _loading = loading;
         }
 
+        private Control ComboRow(string caption, ComboBox combo)
+        {
+            var row = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(3, 5, 3, 5) };
+            row.Controls.Add(new Label { Text = caption, AutoSize = true, Tag = "caption", Padding = new Padding(0, 7, 0, 0) });
+            row.Controls.Add(combo);
+            return row;
+        }
+
+        /// <summary>
+        /// One of the three size-profile drop-downs was changed: store the validated values and give the new
+        /// profile to every open window at once (UI-SIZING section 2 rule 1 - an explicit choice, no restart).
+        /// The profile never follows the pointer, the pen or the touch screen.
+        /// </summary>
+        private void UiProfileChosen()
+        {
+            if (_loading) return;
+            if (_inputProfileCombo.SelectedItem is ProfileItem input) _config.UiInputProfile = input.Token;
+            if (_interfaceScaleCombo.SelectedItem is ProfileItem scale) _config.UiInterfaceScale = UiProfiles.NormalizeInterface(scale.Percent);
+            if (_textScaleCombo.SelectedItem is ProfileItem text) _config.UiTextScale = UiProfiles.NormalizeText(text.Percent);
+            SaveConfig();
+            UiProfileManager.Set(UiProfiles.ParseInput(_config.UiInputProfile), _config.UiInterfaceScale, _config.UiTextScale);
+        }
+
+        /// <summary>Refill the three size drop-downs in the current language; the stored values are invariant tokens and per-cent steps.</summary>
+        private void ReloadUiProfileCombos()
+        {
+            bool loading = _loading;
+            _loading = true;
+            try
+            {
+                _inputProfileCombo.Items.Clear();
+                UiInput current = UiProfiles.ParseInput(_config.UiInputProfile);
+                foreach (UiInput input in new[] { UiInput.Pointer, UiInput.Touch })
+                {
+                    int i = _inputProfileCombo.Items.Add(new ProfileItem { Token = UiProfiles.Token(input), Label = Translate(input == UiInput.Touch ? "Touch screen" : "Mouse and keyboard") });
+                    if (input == current) _inputProfileCombo.SelectedIndex = i;
+                }
+                FillPercentCombo(_interfaceScaleCombo, UiProfiles.InterfaceSteps, UiProfiles.NormalizeInterface(_config.UiInterfaceScale));
+                FillPercentCombo(_textScaleCombo, UiProfiles.TextSteps, UiProfiles.NormalizeText(_config.UiTextScale));
+                int input2 = ComboWidth(_inputProfileCombo.Items.Cast<ProfileItem>().Select(item => item.Label), 200);
+                _inputProfileCombo.Width = input2;
+                _inputProfileCombo.DropDownWidth = input2;
+            }
+            finally { _loading = loading; }
+        }
+
+        private static void FillPercentCombo(ComboBox combo, int[] steps, int selected)
+        {
+            combo.Items.Clear();
+            foreach (int step in steps)
+            {
+                int i = combo.Items.Add(new ProfileItem { Percent = step, Label = step.ToString(System.Globalization.CultureInfo.InvariantCulture) + "%" });
+                if (step == selected) combo.SelectedIndex = i;
+            }
+        }
+
+        private sealed class ProfileItem
+        {
+            public string Token = "";
+            public int Percent;
+            public string Label = "";
+            public override string ToString() => Label;
+        }
+
         private sealed class ThemeItem
         {
             public ThemeMode Mode;
@@ -4544,7 +4726,7 @@ namespace CyrFlip
             panel.Controls.Add(Group("about/support", "Help and support",
                 Setting(Button("Help", AppGlyphs.Help, () => ContextHelp.Open("index", _config.UiLanguage)),
                     "Help is available offline. Press F1 in a CyrFlip window or use its help button."),
-                Setting(Button("Show the welcome tour..", AppGlyphs.Info, () => WelcomeRequested?.Invoke(this, EventArgs.Empty)),
+                Setting(Button("Show the welcome tour..", AppGlyphs.Tour, () => WelcomeRequested?.Invoke(this, EventArgs.Empty)),
                     "Get to know CyrFlip and set it up."),
                 Setting(Button("Diagnose caret position...", AppGlyphs.Verify, _diagnoseCaret), "Creates a local report of how Windows and UI Automation see the caret. Use it only when the marker is missing or misplaced in a particular app."),
                 Setting(_exportDiagnostics = Button("Export diagnostics...", AppGlyphs.Export, ExportDiagnostics),
@@ -4565,7 +4747,8 @@ namespace CyrFlip
                     links.Controls.Add(ExchangeServerCredit(resource));
                     continue;
                 }
-                LinkLabel link = Link(resource.Caption, resource.Url);
+                var link = new LinkLabel { Text = resource.Caption, AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
+                link.LinkClicked += (_, _) => OpenAddress(AboutResources.UrlFor(resource, _config.UiLanguage));
                 link.Name = "resource." + resource.Id;
                 link.MaximumSize = new Size(890, 0);
                 links.Controls.Add(link);
@@ -4686,12 +4869,6 @@ namespace CyrFlip
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
             }
-        }
-        private LinkLabel Link(string text, string url)
-        {
-            var link = new LinkLabel { Text = text, AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
-            link.LinkClicked += (_, _) => OpenAddress(url);
-            return link;
         }
         private static CheckBox Check(string text) => new BooleanOptionCheckBox { Text = text, AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
         private static Button Button(string text, Action action) { var button = new Button { Text = text, AutoSize = true, Margin = new Padding(4, 3, 4, 3) }; button.Click += (_, _) => action(); return button; }
@@ -5068,7 +5245,7 @@ namespace CyrFlip
             value.Margin = new Padding(3, 0, 6, 0);
             if (!_chordValueLabels.Contains(value)) _chordValueLabels.Add(value);
             editors.Controls.Add(value);
-            editors.Controls.Add(Button("Change...", AppGlyphs.Edit, change));
+            editors.Controls.Add(Button("Edit...", AppGlyphs.Edit, change));
             Control row = CaptionedBoolean(enable, editors, description);
             _rowHints[enable] = ((CaptionedRow)row.Tag!).Hint;   // the dependency pass stands its "why it is off" note under this row
             return row;
@@ -5138,14 +5315,17 @@ namespace CyrFlip
         {
             // Base first: it disposes the control tree, and the launcher ListView still points at
             // the ImageList while it does.
-            if (disposing && _wheelFilter != null) Application.RemoveMessageFilter(_wheelFilter);
+            if (disposing)
+            {
+                CompanionSurfaceRegistry.SetDialogActive(false);
+                if (_wheelFilter != null) Application.RemoveMessageFilter(_wheelFilter);
+            }
             base.Dispose(disposing);
             if (disposing)
             {
                 _launcherIcons.Dispose();
                 _launcherImages.Dispose();
                 foreach (Bitmap bitmap in _launcherBitmaps) bitmap.Dispose();
-                _tabIcons?.Dispose();   // assigned to the TabControl, which never owned it
                 _glyphTips.Dispose();
                 _boldFont?.Dispose();
                 _titleFont?.Dispose();

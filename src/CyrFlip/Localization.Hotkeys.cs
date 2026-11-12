@@ -119,10 +119,11 @@ namespace CyrFlip
                 ur: "جب ریموٹ ڈیسک ٹاپ کلائنٹ (mstsc/msrdc) کی ونڈو فوکس میں ہو تو CyrFlip شارٹ کٹس نہیں روکتا — کی ریموٹ سیشن تک جاتی ہے جہاں وہاں کا CyrFlip اسے سنبھالتا ہے۔ اگر ایپ RDP کنکشن کے دونوں سروں پر چل رہی ہو تو یہ آن کریں۔",
                 zh: "当远程桌面客户端窗口（mstsc/msrdc）处于前台时，CyrFlip 不拦截快捷键——按键会传到远程会话，由那台机器上的 CyrFlip 处理。如果两端都运行本程序，请启用此项。");
 
-            Add("Change...",
-                ru: "Изменить...", uk: "Змінити...", de: "Ändern...", it: "Modifica...", es: "Cambiar...",
-                fr: "Modifier...", pt: "Alterar...", ar: "تغيير...", hi: "बदलें...", bn: "বদলান...",
-                ur: "تبدیل کریں...", zh: "更改...");
+            // The vocabulary's name of action.edit, the glyph the button carries (ICON-SET rule 3, S0060 I-M11).
+            Add("Edit...",
+                ru: "Редактировать...", uk: "Редагувати...", de: "Bearbeiten...", it: "Modifica...", es: "Editar...",
+                fr: "Modifier...", pt: "Editar...", ar: "تعديل...", hi: "संपादित करें...", bn: "সম্পাদনা...",
+                ur: "ترمیم کریں...", zh: "编辑...");
 
             // ---- HotkeyDialog ----
             Add("New shortcut (a modifier is required):",

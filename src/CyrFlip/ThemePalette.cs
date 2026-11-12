@@ -272,14 +272,14 @@ namespace CyrFlip
             {
                 [0] = Pair("#4DD0E1", "#00838F"),   // General - cyan
                 [1] = Pair("#66BB6A", "#2E7D32"),   // Indicators - green
-                [2] = Pair("#FFA726", "#E16200"),   // Hotkeys - amber
+                [2] = Pair("#FFA726", "#BA4F00"),   // Hotkeys - amber (light darkened for 3:1 on hover/selected, S0076)
                 [3] = Pair("#FF7043", "#D84315"),   // Clipboard - orange
                 [5] = Pair("#9E9E9E", "#616161"),   // About - grey
                 [6] = Pair("#42A5F5", "#1565C0"),   // Windows languages - blue
                 [7] = Pair("#F06292", "#AD1457"),   // Conversions - pink
                 [8] = Pair("#EF5350", "#C62828"),   // Quick launch - red
                 [9] = Pair("#7986CB", "#303F9F"),   // Translate - indigo
-                [10] = Pair("#AB47BC", "#6A1B9A"),  // Quick notes - purple
+                [10] = Pair("#BA68C8", "#6A1B9A"),  // Quick notes - purple (dark lightened for 3:1 on hover/selected, S0076)
                 [11] = Pair("#26A69A", "#00695C"),  // Graphics - teal
                 [12] = Pair("#90A4AE", "#455A64"),  // Symbols - blue grey
                 [14] = Pair("#D4E157", "#827717"),  // Selection menu - lime
@@ -405,6 +405,94 @@ namespace CyrFlip
                 a.R + (int)Math.Round((b.R - a.R) * amount),
                 a.G + (int)Math.Round((b.G - a.G) * amount),
                 a.B + (int)Math.Round((b.B - a.B) * amount));
+        }
+
+        /// <summary>
+        /// The lowest opacity, in per cent, the clipboard history and translation windows may be drawn at
+        /// (S0093, owner decision Q4 = B): the lowest at which their body text on every row and surface and
+        /// their button captions on every face hold 4.5:1 over any backdrop grey, in both themes - the dark
+        /// hovered button decides it. Derived and held by <c>PanelColorContractTests</c>; the sliders start
+        /// here and a stored lower value is raised to it on load. Their secondary inks (hints, marks, the
+        /// header accent, greyed buttons) are a recorded exception below their norm.
+        /// </summary>
+        public const int TranslucentWindowMinOpacity = 78;
+
+        /// <summary>A stored or chosen window opacity, in per cent, kept inside the readable range.</summary>
+        public static int ClampWindowOpacity(int percent)
+            => Math.Max(TranslucentWindowMinOpacity, Math.Min(100, percent));
+
+        /// <summary>
+        /// A colour with alpha composed over an opaque backdrop - source-over on the sRGB-encoded channels, which
+        /// is what GDI+ <c>SourceOver</c> and the layered-window blend do: each channel is
+        /// <c>layer x a + backdrop x (1 - a)</c>, rounded to the nearest byte (the quotient by 255 is never an
+        /// exact half). The backdrop's own alpha is ignored and the result is opaque. The one point of alpha
+        /// arithmetic (S0093): a translucent surface's promise is measured on what this returns, never on the
+        /// palette value alone.
+        /// </summary>
+        public static Color Over(Color layer, Color backdrop)
+        {
+            int alpha = layer.A;
+            return Color.FromArgb(
+                Compose(layer.R, backdrop.R, alpha),
+                Compose(layer.G, backdrop.G, alpha),
+                Compose(layer.B, backdrop.B, alpha));
+        }
+
+        private static int Compose(int top, int bottom, int alpha)
+            => (int)Math.Round((top * alpha + bottom * (255 - alpha)) / 255.0);
+
+        /// <summary>
+        /// The alpha byte a window drawn at <paramref name="opacity"/> is blended with: WinForms truncates
+        /// (<c>Form.OpacityAsByte</c> is <c>(byte)(Opacity * 255)</c>), so 0.67 is 170, not 171.
+        /// </summary>
+        public static int WindowAlpha(double opacity)
+            => (byte)(Math.Max(0.0, Math.Min(1.0, opacity)) * 255.0f);
+
+        /// <summary>
+        /// The lowest contrast between an ink and its ground over every backdrop grey from black to white,
+        /// and the grey it happens on. The screen under a translucent surface can be anything, so the worst
+        /// grey is the promise, not the typical one (S0093). Each function maps the backdrop to the colour
+        /// that reaches the eye.
+        /// </summary>
+        public static double WorstOverGrey(Func<Color, Color> ink, Func<Color, Color> ground, out int worstGrey)
+        {
+            double worst = double.MaxValue;
+            worstGrey = 0;
+            for (int level = 0; level <= 255; level++)
+            {
+                Color backdrop = Color.FromArgb(level, level, level);
+                double ratio = Contrast(ink(backdrop), ground(backdrop));
+                if (ratio < worst) { worst = ratio; worstGrey = level; }
+            }
+            return worst;
+        }
+
+        /// <summary>
+        /// <see cref="WorstOverGrey"/> for an ink and a ground that are both drawn inside one window whose
+        /// whole surface is blended at <paramref name="opacity"/> (<c>Form.Opacity</c>).
+        /// </summary>
+        public static double WorstThroughWindow(Color ink, Color ground, double opacity, out int worstGrey)
+        {
+            int alpha = WindowAlpha(opacity);
+            Color seenInk = Color.FromArgb(alpha, ink), seenGround = Color.FromArgb(alpha, ground);
+            return WorstOverGrey(b => Over(seenInk, b), b => Over(seenGround, b), out worstGrey);
+        }
+
+        /// <summary>
+        /// The lowest value in <paramref name="lowest"/>..<paramref name="highest"/> from which every higher
+        /// value holds <paramref name="target"/>, or null when even <paramref name="highest"/> does not. Walked
+        /// down from the top rather than searched, so a step that rounding happens to push under the target
+        /// can never leave a floor with a failing value above it.
+        /// </summary>
+        public static int? LowestHolding(int lowest, int highest, Func<int, double> worstAt, double target)
+        {
+            int? floor = null;
+            for (int value = highest; value >= lowest; value--)
+            {
+                if (worstAt(value) < target) break;
+                floor = value;
+            }
+            return floor;
         }
     }
 }

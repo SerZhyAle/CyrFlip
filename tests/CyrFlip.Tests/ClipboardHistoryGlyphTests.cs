@@ -113,9 +113,9 @@ namespace CyrFlip.Tests
                     using var form = new ClipboardHistoryWindow(service, new AppConfig { UiLanguage = language }, () => { });
                     IntPtr handle = form.Handle;
                     AccessibleObject strip = form.AccessibilityObject;
-                    Assert.Equal(4, strip.GetChildCount());   // search, close, then pin and delete of the one row
-                    string[] keys = { "Search history", "Close", "Pin", "Delete" };
-                    for (int i = 0; i < 4; i++)
+                    Assert.Equal(5, strip.GetChildCount());   // search, close, then pin, delete and edit of the one row
+                    string[] keys = { "Search history", "Close", "Pin", "Delete", "Edit" };
+                    for (int i = 0; i < 5; i++)
                     {
                         AccessibleObject child = strip.GetChild(i);
                         Assert.False(string.IsNullOrWhiteSpace(child.Name), language + " child " + i);
@@ -125,6 +125,9 @@ namespace CyrFlip.Tests
                     Assert.Equal(AccessibleRole.CheckButton, strip.GetChild(2).Role);
                     Assert.True((strip.GetChild(2).State & AccessibleStates.Checked) != 0, "the pinned row's pin reports itself checked");
                     Assert.Equal("first entry", strip.GetChild(2).Description);
+                    // S0089: the edit names its key (INPUT-PARITY rules 1-2).
+                    Assert.Equal("F2", strip.GetChild(4).KeyboardShortcut);
+                    Assert.Contains("F2", strip.GetChild(4).Description);
                 }
             }
             finally

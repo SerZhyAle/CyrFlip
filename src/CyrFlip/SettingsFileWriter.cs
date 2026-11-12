@@ -22,7 +22,7 @@ namespace CyrFlip
         /// enabled, but since v2 the file carries them whatever the switch says - an off module exports
         /// its defaults, and importing them keeps it off.
         /// </summary>
-        private static readonly IReadOnlyDictionary<string, object> Defaults =
+        internal static readonly IReadOnlyDictionary<string, object> Defaults =
             MemoryConfigKey.Capture(new AppConfig { EnableSymbols = true, EnableTrafficLight = true, EnableExchangeClipboard = true }).Values;
         /// <param name="scenarios">
         /// The verbatim scenario documents of the quick-launch store (S0072 5.3); an empty store writes

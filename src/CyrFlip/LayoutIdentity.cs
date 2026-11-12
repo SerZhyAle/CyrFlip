@@ -101,14 +101,16 @@ namespace CyrFlip
             // A language's primary keyboard installed under another language (S0036 UI-3): Windows
             // files Canadian French (00001009) under French (Canada), which loads as 10090C0C - the high
             // word is the layout's own KLID word. Taken only when the machine has that layout and our
-            // table calls it the HKL's language; US under Russian stays Russian's, as an alternate
+            // table calls it the HKL's language (the British keyboard under English (US), 08090409 - S0085);
+            // US under Russian stays Russian's, as an alternate
             // under another language does above.
             if ((high & 0xF000) != 0xF000 && (high & 0xF000) != 0xE000 && known != null)
             {
                 string candidate = "0000" + high.ToString("X4", CultureInfo.InvariantCulture);
+                string label = WorldLayouts.MarkerLabelForKlid(candidate);
                 if (known.Contains(candidate)
-                    && WorldLayouts.LabelForKlid(candidate).Length > 0
-                    && WorldLayouts.LabelForKlid(candidate) == WorldLayouts.CodeForLangId(langId))
+                    && label.Length > 0
+                    && label == WorldLayouts.CodeForLangId(langId))
                     return candidate;
             }
 

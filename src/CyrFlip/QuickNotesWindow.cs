@@ -432,16 +432,10 @@ namespace CyrFlip
             if (Font.FontFamily.Name != family)
             {
                 Font? previous = _ownFont;
-                try { Font = _ownFont = new Font(family, SystemFonts.MessageBoxFont.SizeInPoints); previous?.Dispose(); } catch { }
+                // The size profile is composed on the new family at once (UI-SIZING section 2 rule 3).
+                try { _ownFont = new Font(family, SystemFonts.MessageBoxFont.SizeInPoints); SetBaseFont(_ownFont); previous?.Dispose(); } catch { }
             }
-            // The editor keeps a monospace face whatever the UI font is: the body is as often code
-            // as prose, and a proportional face silently misaligns everything that was aligned.
-            if (_editorFont == null)
-            {
-                try { _editorFont = new Font("Consolas", SystemFonts.MessageBoxFont.SizeInPoints + 0.5f); }
-                catch { try { _editorFont = new Font(FontFamily.GenericMonospace, SystemFonts.MessageBoxFont.SizeInPoints + 0.5f); } catch { } }
-                if (_editorFont != null) { _editor.Font = _editorFont; _items.Font = _editorFont; }
-            }
+            if (_editorFont == null) ApplyEditorFont(UiMetrics.For(this));
             _textEditor.ApplyLanguage(language);
 
             _newText.Text = T("Note");
@@ -1102,6 +1096,39 @@ namespace CyrFlip
         {
             _textEditor.ApplyTheme(palette);
             ApplyMoveGlyphs();
+        }
+
+        /// <summary>
+        /// The size profile changed: the window font follows it in the base class, the editor's monospace face here,
+        /// and the measured minimum is taken again (a stored size is only ever grown to it, never shrunk).
+        /// </summary>
+        protected override void OnUiProfileApplied(UiMetrics metrics)
+        {
+            base.OnUiProfileApplied(metrics);
+            ApplyEditorFont(metrics);
+            ApplyMinimumSize();
+        }
+
+        /// <summary>
+        /// The editor keeps a monospace face whatever the UI font is: the body is as often code as prose, and a
+        /// proportional face silently misaligns everything that was aligned. Its size composes the profile's
+        /// interface and text scale like every other typography (UI-SIZING section 2 rule 3).
+        /// </summary>
+        private void ApplyEditorFont(UiMetrics metrics)
+        {
+            float basePoints;
+            using (Font system = SystemFonts.MessageBoxFont) basePoints = system.SizeInPoints + 0.5f;
+            float points = UiProfiles.FontPoints(basePoints, metrics);
+            if (_editorFont != null && Math.Abs(_editorFont.SizeInPoints - points) <= 0.01f) return;
+            Font? next = null;
+            try { next = new Font("Consolas", points); }
+            catch { try { next = new Font(FontFamily.GenericMonospace, points); } catch { } }
+            if (next == null) return;
+            Font? previous = _editorFont;
+            _editorFont = next;
+            _editor.Font = next;
+            _items.Font = next;
+            RetireFont(previous);   // the edit control may still hold it until its next paint (CRASH-1)
         }
 
         protected override void Dispose(bool disposing)

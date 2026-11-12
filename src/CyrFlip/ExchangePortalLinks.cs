@@ -19,9 +19,9 @@ namespace CyrFlip
     /// way the phone app does. The addresses are full literals on purpose - a link that is built from pieces cannot be
     /// found when a page is renamed - and <c>ExchangePortalLinksTests</c> holds their shape.
     ///
-    /// <para>The portal stays another product's: CyrFlip keeps no copy of its text, only the address. Until
-    /// the portal publishes a page, its address answers 404; the settings page and the guide say what the thing is
-    /// in their own words, so the link adds to them and never carries them.</para>
+    /// <para>The portal stays another product's: CyrFlip keeps no copy of its text, only the address. The
+    /// settings page and the guide say what the thing is in their own words, so the link adds to them and never
+    /// carries them - a renamed or unpublished portal page costs a link, not an explanation.</para>
     /// </summary>
     internal static class ExchangePortalLinks
     {

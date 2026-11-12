@@ -68,6 +68,8 @@ namespace IconGen
             SavePng(DrawBanner(1280, 360), Path.Combine(assets, "banner.png"));
             SavePng(DrawBanner(1280, 360), Path.Combine(docsAssets, "banner.png"));
             SavePng(DrawBanner(1280, 640), Path.Combine(assets, "social-preview.png"));
+            // Open Graph card served from the site itself (canon PROMOTION.md section 3: 1200x630).
+            SavePng(DrawBanner(1200, 630), Path.Combine(docsAssets, "social-card.png"));
 
             // --- Cursor preview (illustrative; the live cursor is LayoutCursor) ---
             SavePng(DrawCursorPreview(560, 200), Path.Combine(assets, "cursor-preview.png"));
@@ -247,7 +249,8 @@ namespace IconGen
             }
 
             // Tagline - auto-fit to the available width so it never clips.
-            const string tagline = "Fix text typed on the wrong keyboard layout - instantly.";
+            // The full name of POSITIONING.md: the wordmark plus the descriptor.
+            const string tagline = "A tray toolkit for your keyboard and desktop";
             float maxTagW = w - textLeft - w * 0.05f;
             using var tagFont = FitFont(g, "Segoe UI", FontStyle.Regular, h * 0.072f, tagline, maxTagW);
             using (var mutedBrush = new SolidBrush(Muted))
@@ -256,7 +259,7 @@ namespace IconGen
             }
 
             // Demo chip on the right (only on the wider/taller social image).
-            if (w >= 1280 && h >= 600)
+            if (h >= 600)
             {
                 DrawDemo(g, w, h);
             }

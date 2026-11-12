@@ -83,10 +83,10 @@ namespace CyrFlip.Tests
                 var slider = Field<TrackBar>(form, "_opacity");
                 var label = Field<Label>(form, "_opacityValue");
 
-                slider.Value = 55;
+                slider.Value = 85;
                 form.GetType().GetMethod("ApplyLanguage", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(form, null);
 
-                Assert.Equal("55%", label.Text);
+                Assert.Equal("85%", label.Text);
             });
         }
 

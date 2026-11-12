@@ -40,6 +40,12 @@ namespace CyrFlip
                 es: "Portapapeles", fr: "Presse-papiers", pt: "Área de transferência",
                 ar: "الحافظة", hi: "क्लिपबोर्ड", bn: "ক্লিপবোর্ড", ur: "کلپ بورڈ", zh: "剪贴板");
 
+            // S0089: the accessible name of a history cell's text edit (F2, or a right click on the text).
+            Add("Edit",
+                ru: "Редактировать", uk: "Редагувати", de: "Bearbeiten", it: "Modifica", es: "Editar",
+                fr: "Modifier", pt: "Editar", ar: "تعديل", hi: "संपादित करें", bn: "সম্পাদনা",
+                ur: "ترمیم کریں", zh: "编辑");
+
             Add("History is stored locally only and encrypted with Windows DPAPI for your account.",
                 ru: "История хранится только локально и шифруется Windows DPAPI для вашей учётной записи.",
                 uk: "Історія зберігається лише локально та шифрується Windows DPAPI для вашого облікового запису.",
@@ -175,19 +181,19 @@ namespace CyrFlip
                 hi: "इतिहास विंडो की पारदर्शिता:", bn: "ইতিহাস উইন্ডোর স্বচ্ছতা:",
                 ur: "تاریخ ونڈو کی شفافیت:", zh: "历史窗口透明度：");
 
-            Add("Sets the floating history window opacity from 30% to 100%. Applied immediately.",
-                ru: "Задаёт прозрачность плавающего окна истории от 30% до 100%. Значение применяется сразу.",
-                uk: "Задає прозорість плаваючого вікна історії від 30% до 100%. Застосовується одразу.",
-                de: "Legt die Deckkraft des schwebenden Verlaufsfensters von 30 % bis 100 % fest. Wirkt sofort.",
-                it: "Imposta l'opacità della finestra flottante della cronologia dal 30% al 100%. Si applica subito.",
-                es: "Ajusta la opacidad de la ventana flotante del historial del 30% al 100%. Se aplica de inmediato.",
-                fr: "Définit l'opacité de la fenêtre flottante d'historique de 30 % à 100 %. Effet immédiat.",
-                pt: "Define a opacidade da janela flutuante do histórico de 30% a 100%. Aplicado imediatamente.",
-                ar: "يضبط شفافية نافذة السجل العائمة من 30% إلى 100%. يُطبَّق فورًا.",
-                hi: "तैरती इतिहास विंडो की अपारदर्शिता 30% से 100% तक सेट करता है। तुरंत लागू होता है।",
-                bn: "ভাসমান ইতিহাস উইন্ডোর অস্বচ্ছতা ৩০% থেকে ১০০% পর্যন্ত নির্ধারণ করে। সঙ্গে সঙ্গে কার্যকর হয়।",
-                ur: "تیرتی تاریخ ونڈو کی دھندلاہٹ 30% سے 100% تک مقرر کرتا ہے۔ فوراً لاگو ہوتا ہے۔",
-                zh: "将浮动历史窗口的不透明度设为 30% 到 100%，立即生效。");
+            Add("Sets the floating history window opacity from 78% to 100%. Applied immediately.",
+                ru: "Задаёт прозрачность плавающего окна истории от 78% до 100%. Значение применяется сразу.",
+                uk: "Задає прозорість плаваючого вікна історії від 78% до 100%. Застосовується одразу.",
+                de: "Legt die Deckkraft des schwebenden Verlaufsfensters von 78 % bis 100 % fest. Wirkt sofort.",
+                it: "Imposta l'opacità della finestra flottante della cronologia dal 78% al 100%. Si applica subito.",
+                es: "Ajusta la opacidad de la ventana flotante del historial del 78% al 100%. Se aplica de inmediato.",
+                fr: "Définit l'opacité de la fenêtre flottante d'historique de 78 % à 100 %. Effet immédiat.",
+                pt: "Define a opacidade da janela flutuante do histórico de 78% a 100%. Aplicado imediatamente.",
+                ar: "يضبط شفافية نافذة السجل العائمة من 78% إلى 100%. يُطبَّق فورًا.",
+                hi: "तैरती इतिहास विंडो की अपारदर्शिता 78% से 100% तक सेट करता है। तुरंत लागू होता है।",
+                bn: "ভাসমান ইতিহাস উইন্ডোর অস্বচ্ছতা ৭৮% থেকে ১০০% পর্যন্ত নির্ধারণ করে। সঙ্গে সঙ্গে কার্যকর হয়।",
+                ur: "تیرتی تاریخ ونڈو کی دھندلاہٹ 78% سے 100% تک مقرر کرتا ہے۔ فوراً لاگو ہوتا ہے۔",
+                zh: "将浮动历史窗口的不透明度设为 78% 到 100%，立即生效。");
 
             Add("Search history",
                 ru: "Поиск по истории", uk: "Пошук в історії", de: "Verlauf durchsuchen",

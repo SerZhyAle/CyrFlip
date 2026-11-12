@@ -136,9 +136,9 @@ Human checklist (the unattended half ends here - tick each against the window th
       - the row shows it off, and the other way round. Neither place fires a change twice. The master switch is one
       control on this page: untick it and every row says "горячие клавиши выключены"; "Исправить CapsLock" and
       "Менеджер буфера" are greyed on their own pages.
-  [ ] Change a chord from here ("Изменить..."): a chord another action holds is refused with its name.
+  [ ] Change a chord from here ("Редактировать..."): a chord another action holds is refused with its name.
   [ ] Press the changed chord in Notepad: the LIVE hook acts on it (a real keypress, by you).
-  [ ] Keyboard only: Tab into a row, Up/Down move between rows, Enter on "Изменить...", Space on a switch,
+  [ ] Keyboard only: Tab into a row, Up/Down move between rows, Enter on "Редактировать...", Space on a switch,
       Delete on a conversion/translation/scenario row clears its chord; focus survives every rebuild.
   [ ] "Сбросить все...": the confirmation counts what changes and names rows it cannot reset; Yes is red;
       Escape answers No. After Yes this page, the feature pages and the real chords all show the shipped values.

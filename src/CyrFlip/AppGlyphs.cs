@@ -80,5 +80,6 @@ namespace CyrFlip
         public const string Folder = "content.folder";
         public const string Checklist = "content.checklist";
         public const string Help = "app.help";
+        public const string Tour = "app.tour";
     }
 }

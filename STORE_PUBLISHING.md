@@ -38,6 +38,7 @@ clipboard, `SetSystemCursor`, etc. - so the desktop app behaves exactly as unpac
 | File | Role |
 | --- | --- |
 | `msix/AppxManifest.xml` | Package manifest: Identity placeholders, `runFullTrust`, `startupTask`, visual assets. |
+| `msix/identity.json` | The Store identity (name, publisher, display name, Store ID, package family name) - read first by the build script, which stops without it. |
 | `msix/build-msix.ps1` | build → version remap → stage payload → generate logos → fill manifest → `makeappx pack` → optional self-sign. |
 | `msix/README.md` | Build/submit instructions. |
 
@@ -73,13 +74,16 @@ Pitfalls hit in practice:
 1. **Account settings → Programs → Windows → Get started** (NOT "Windows Desktop Applications" - that
    one is telemetry for EV-signed Win32 apps). Registration is free (choose **Individual**).
 2. **Create a new product → MSIX or PWA app** → reserve the app name.
-3. **Product ▸ Product identity** → copy three values:
-   - `Package/Identity/Name` → `-IdentityName`
-   - `Package/Identity/Publisher` (e.g. `CN=..`) → `-Publisher`
-   - `Package/Properties/PublisherDisplayName` → `-PublisherDisplayName`
-4. Build the Store package (no `-SelfSign`) with those values and upload the **unsigned** `.msix`:
+3. **Product ▸ Product identity** → copy three values into `msix/identity.json`:
+   - `Package/Identity/Name` → `IdentityName`
+   - `Package/Identity/Publisher` (e.g. `CN=..`) → `Publisher`
+   - `Package/Properties/PublisherDisplayName` → `PublisherDisplayName`
+
+   Beside them the file carries the product's `StoreId` and `PackageFamilyName`.
+4. Build the Store package (no `-SelfSign`) - the script reads the identity from that file - and upload
+   the **unsigned** `.msix`:
    ```powershell
-   .\msix\build-msix.ps1 -IdentityName "<Name>" -Publisher "<CN=..>" -PublisherDisplayName "<..>"
+   .\msix\build-msix.ps1 -ReleaseZip <the tag's release ZIP> -Version <YY.M.D.HHmm>
    ```
 
 ---
@@ -110,8 +114,8 @@ justification + a clear description pre-empt most questions.
 
 The identity is fixed once the app is reserved, so an update is just a new submission:
 
-1. Rebuild the package with the **same** `-IdentityName` / `-Publisher` / `-PublisherDisplayName`.
-   The version remap (`YY.(M*100+D).HHmm.0`) is monotonic, so the new package is automatically newer
+1. Rebuild the package - the **same** identity is read from `msix/identity.json`, and the build's
+   read-back fails when the packed archive differs from it. The version remap (`YY.(M*100+D).HHmm.0`) is monotonic, so the new package is automatically newer
    - no manual bump. Verify it exceeds the currently published version.
 2. Partner Center ▸ **Create new submission** ▸ replace the package ▸ refresh the listing(s) ▸ submit.
 3. **Localized listings**: all 13 live in `msix/store-listing-export.csv`, the source of truth, and go
@@ -123,18 +127,23 @@ The identity is fixed once the app is reserved, so an update is just a new submi
    language is independent of the package's `<Resource Language>` set, so an English-UI app can still
    have a Russian product page.
 
-> **`msstore` CLI caveat:** automation needs an Azure AD **service principal**
-> (`msstore reconfigure --tenantId .. --sellerId .. --clientId .. --clientSecret ..`). The
-> interactive `msstore reconfigure` **fails on an individual developer account** ("Error while
-> retrieving Organization" - there is no Azure AD org behind a personal MSA). For individual
-> accounts, the Partner Center web submission is the reliable path.
+> **The Store machine channel (`msstore`):** it needs a service principal - a Microsoft Entra
+> application with the Manager (Windows) role in Partner Center - because the interactive
+> `msstore reconfigure` **fails on an individual developer account** ("Error while retrieving
+> Organization"). Read-only calls work (`msstore apps list`, `msstore submission status <Store ID>`,
+> `msstore submission get <Store ID>`); no write call has ever been made through it, and the
+> Partner Center web submission stays the way a submission is created, uploaded and sent. The release
+> preflight reads the live state through it once, before the tag (shared canon script, one
+> `submission get`, a refusal stops the release, an unavailable channel prints that the Store step is
+> manual). What may be run, the credential rules, the preflight and the output traps are in
+> [msix/README.md](msix/README.md).
 
 ---
 
 ## Reuse checklist for the next product
 
 1. Copy **`msix/`** → edit `AppxManifest.xml` (`DisplayName`, `Description`, `Application Id`) and the
-   `build-msix.ps1` parameter defaults.
+   `msix/identity.json` (the identity the build script reads).
 2. Copy **`tools/store/make-screenshot.ps1`** and the **store branch of `tools/IconGen`** → point at the
    new app's assets.
 3. Copy **`docs/privacy.html`** → rewrite the "what the app accesses" section for the new product.

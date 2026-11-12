@@ -189,6 +189,7 @@ html[data-theme="light"] .hero .kicker { color: var(--acc-strong); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+.wrap .swatch-2f8cf0 { background:#2F8CF0; }
 .wrap .swatch-0a58ff { background:#0A58FF; }
 .wrap .swatch-35c6b4 { background:#35C6B4; }
 .wrap .swatch-3fd039 { background:#3FD039; }

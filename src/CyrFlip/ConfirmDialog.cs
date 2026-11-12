@@ -28,10 +28,12 @@ namespace CyrFlip
         private readonly MessageBoxIcon _icon;
         private readonly bool _owned;
         private readonly Font? _ownFont;
-        private readonly Bitmap? _iconImage;
 
         /// <summary>The answer buttons in reading order, for the layout test.</summary>
         internal Button[] Buttons { get; }
+
+        /// <summary>The kind-of-box glyph beside the message, or null for a box without one (for the tests).</summary>
+        internal ConfirmStateGlyph? StateGlyph { get; }
 
         /// <summary>
         /// What the box offers: the system-box answer set, or - for a failure (APP-BEHAVIOUR rule 6) - the
@@ -95,13 +97,14 @@ namespace CyrFlip
                 ColumnCount = 2, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Dock = DockStyle.Fill, Padding = new Padding(14, 14, 14, 10),
             };
-            Icon? systemIcon = SystemIconFor(icon);
-            if (systemIcon != null)
+            string? glyph = GlyphFor(icon);
+            if (glyph != null)
             {
-                _iconImage = systemIcon.ToBitmap();
-                layout.Controls.Add(new PictureBox
+                // ICON-SET: the vocabulary's own picture of the box's kind, drawn in the theme on every paint -
+                // the system bitmap was a light-theme picture that never followed dark or high contrast.
+                layout.Controls.Add(StateGlyph = new ConfirmStateGlyph(glyph, (int)Math.Round(32 * DeviceDpi / 96f))
                 {
-                    Image = _iconImage, SizeMode = PictureBoxSizeMode.AutoSize, Margin = new Padding(0, 2, 12, 0),
+                    Margin = new Padding(0, 2, 12, 0),
                 }, 0, 0);
             }
             var text = new Label
@@ -111,8 +114,8 @@ namespace CyrFlip
                 MaximumSize = new Size(TextRenderer.MeasureText(new string('x', 70), Font).Width, 0),
                 Margin = new Padding(0, 4, 0, 14),
             };
-            layout.Controls.Add(text, systemIcon != null ? 1 : 0, 0);
-            if (systemIcon == null) layout.SetColumnSpan(text, 2);
+            layout.Controls.Add(text, glyph != null ? 1 : 0, 0);
+            if (glyph == null) layout.SetColumnSpan(text, 2);
 
             var row = new FlowLayoutPanel
             {
@@ -290,18 +293,22 @@ namespace CyrFlip
             if (disposing)
             {
                 _ownFont?.Dispose();
-                _iconImage?.Dispose();
             }
         }
 
-        private static Icon? SystemIconFor(MessageBoxIcon icon)
+        /// <summary>
+        /// The vocabulary record for the box's kind (S0060 I-M8). A question has no record of its own - the
+        /// question mark in a circle is <c>app.help</c>, "explain this option", which is not what a question
+        /// box does - so it takes <c>app.info</c>, the meaning of a box that tells before it asks.
+        /// </summary>
+        internal static string? GlyphFor(MessageBoxIcon icon)
         {
             switch (icon)
             {
-                case MessageBoxIcon.Information: return SystemIcons.Information;
-                case MessageBoxIcon.Warning: return SystemIcons.Warning;
-                case MessageBoxIcon.Error: return SystemIcons.Error;
-                case MessageBoxIcon.Question: return SystemIcons.Question;
+                case MessageBoxIcon.Information: return AppGlyphs.Info;
+                case MessageBoxIcon.Question: return AppGlyphs.Info;
+                case MessageBoxIcon.Warning: return AppGlyphs.StatusWarning;
+                case MessageBoxIcon.Error: return AppGlyphs.StatusError;
                 default: return null;
             }
         }
@@ -316,6 +323,52 @@ namespace CyrFlip
                 case MessageBoxIcon.Question: return SystemSounds.Question;
                 default: return null;
             }
+        }
+    }
+
+    /// <summary>
+    /// The glyph beside a <see cref="ConfirmDialog"/> message, in the colour look of ICON-SET section 10
+    /// item C (a state indicator): a status record in its state's role, a content record in the accent.
+    /// It is decoration of the message - the text carries the meaning - so it takes no focus and no name.
+    /// </summary>
+    internal sealed class ConfirmStateGlyph : Control, IThemeAware
+    {
+        private ThemePalette _palette = ThemePalette.Light;
+
+        public ConfirmStateGlyph(string glyph, int size)
+        {
+            Glyph = glyph;
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint
+                | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            TabStop = false;
+            AccessibleRole = AccessibleRole.Graphic;
+            Size = MinimumSize = MaximumSize = new Size(size, size);
+        }
+
+        internal string Glyph { get; }
+
+        /// <summary>The ink the glyph is drawn in under <paramref name="palette"/>.</summary>
+        internal Color InkFor(ThemePalette palette)
+        {
+            switch (Glyph)
+            {
+                case AppGlyphs.StatusError: return palette.Danger;
+                case AppGlyphs.StatusWarning: return palette.Warning;
+                default: return palette.Accent;
+            }
+        }
+
+        public void ApplyTheme(ThemePalette palette)
+        {
+            _palette = palette;
+            Invalidate();
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            e.Graphics.Clear(BackColor);
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            GlyphRenderer.Draw(e.Graphics, Glyph, new RectangleF(0, 0, Width, Height), InkFor(_palette));
         }
     }
 }

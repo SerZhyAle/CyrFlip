@@ -39,8 +39,8 @@ namespace CyrFlip
                 ColumnCount = 2, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Dock = DockStyle.Fill, Padding = new Padding(14, 14, 14, 10),
             };
-            layout.Controls.Add(new PictureBox
-            { Image = SystemIcons.Information.ToBitmap(), SizeMode = PictureBoxSizeMode.AutoSize, Margin = new Padding(0, 2, 12, 0) }, 0, 0);
+            layout.Controls.Add(new ConfirmStateGlyph(AppGlyphs.Info, (int)Math.Round(32 * DeviceDpi / 96f))
+            { Margin = new Padding(0, 2, 12, 0) }, 0, 0);
             string message = Localization.Format(T, "A settings backup from {0} was found. Restore it? Everything in it will be applied: shortcuts, the traffic-light targets, the quick-launch scenarios and all the other settings.", backupDate);
             layout.Controls.Add(new Label
             {

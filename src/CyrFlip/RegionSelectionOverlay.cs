@@ -186,7 +186,8 @@ namespace CyrFlip
         private Rectangle LabelRect(Rectangle selection)
         {
             if (selection.Width <= 0 && selection.Height <= 0) return Rectangle.Empty;
-            _labelFont ??= new Font(SystemFonts.MessageBoxFont.FontFamily, 9f);
+            // Not a ThemedForm (it paints the user's own screen), so it reads the size profile once per capture.
+            _labelFont ??= new Font(SystemFonts.MessageBoxFont.FontFamily, UiProfiles.FontPoints(9f, UiProfileManager.Current));
             if (_labelSize.IsEmpty)
             {
                 Size text = TextRenderer.MeasureText("99999 × 99999", _labelFont);

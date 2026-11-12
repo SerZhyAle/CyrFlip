@@ -97,10 +97,9 @@ namespace CyrFlip
                 noteList = new List<QuickNote>(notes.Notes);
             }
             // Snapshots taken here; selecting, formatting and writing them is the worker's (S0030 HT-2).
-            // An export must see the file's records even while the history is switched off, so the
-            // lazy replay (S0064 H-5) is completed here, on the thread that owns the list - the one
-            // caller that pays for it synchronously, by explicit user request.
-            if (pinned || rest) _history.EnsureReplayed();
+            // An export must see the file's records even while the history is switched off (the lazy
+            // replay, S0064 H-5) or its startup replay is still in flight - waited for on the pool (S0082).
+            if (pinned || rest) WaitForHistory(owner);
             List<ClipboardHistoryEntry>? history = pinned || rest ? new List<ClipboardHistoryEntry>(_history.Entries) : null;
             List<ClipboardHistoryEntry>? selected = null;
             int trimmed = 0;
@@ -205,6 +204,7 @@ namespace CyrFlip
                 _commitOpenNote();
                 WaitForNotes(owner, notes); // the plan is about all the notes, not about the replay so far
             }
+            if (history) WaitForHistory(owner); // the same for the history's startup replay (S0082)
             ExchangeMergeReport noteplan = notes?.PlanImport(read.Notes, includeNew) ?? new ExchangeMergeReport();
             ExchangeMergeReport historyplan = history ? _history.PlanImport(read.Clipboard) : new ExchangeMergeReport();
 
@@ -256,6 +256,17 @@ namespace CyrFlip
         private void WaitForNotes(IWin32Window? owner, QuickNotesService notes)
         {
             if (!notes.IsLoaded) BusyDialog.Wait(owner, _config.UiLanguage, notes.LoadAsync());
+        }
+
+        /// <summary>
+        /// Every record of the history file in the list before the caller reads it: the replay's
+        /// decrypt waited for on the pool with the message loop running (S0082 - it ran on the hooks'
+        /// thread here), then merged at once on this thread.
+        /// </summary>
+        private void WaitForHistory(IWin32Window? owner)
+        {
+            BusyDialog.Wait(owner, _config.UiLanguage, _history.ReplayAsync());
+            _history.CompleteReplay();
         }
 
         private void Tell(IWin32Window? owner, string message, MessageBoxIcon icon)

@@ -267,6 +267,18 @@ namespace CyrFlip
             }
         }
 
+        /// <summary>
+        /// A change the board draws was made on the settings page (S0084): the board shows it at once. A hidden
+        /// board - one the user hid included - is shown without the focus (D16), and the board is raised above
+        /// the settings window that would otherwise cover it; its position and the pin stay as they are.
+        /// </summary>
+        private void ShowTrafficLightResult()
+        {
+            if (!_config.EnableTrafficLight) return;
+            if (!(_trafficWindow is { IsDisposed: false, Visible: true })) ShowTrafficLight(takeFocus: false);
+            _trafficWindow?.RaiseWithoutFocus();
+        }
+
         /// <summary>The tray item takes the focus onto the board, exactly as the chord does (D16).</summary>
         private void ShowTrafficLightFromTray() => ToggleTrafficLightFromChord();
 
@@ -371,6 +383,7 @@ namespace CyrFlip
         {
             settings.TrafficLightChanged += (_, _) => OnTrafficLightChanged();
             settings.TrafficLightTargetsChanged += (_, _) => OnTrafficLightTargetsChanged();
+            settings.TrafficLightResultRequested += (_, _) => ShowTrafficLightResult();
             settings.TrafficLightHotkeyChangeRequested += (_, _) => OnSetTrafficLightHotkey();
             settings.OpenTrafficLightRequested += (_, _) => ShowTrafficLight(takeFocus: true);
             settings.TrafficLightCheckAllRequested += (_, _) => _trafficScheduler?.RequestAll();
@@ -442,5 +455,30 @@ namespace CyrFlip
     {
         internal static bool ShowBoard(AppConfig config)
             => config.EnableTrafficLight && (config.TrafficLightShowAtStart || config.TrafficLightVisible);
+    }
+
+    /// <summary>
+    /// Which change on the settings page puts the board in front of the user (ticket S0084): switching the
+    /// module on, and every setting the board draws - its pin, tile size, columns, transparency and targets -
+    /// so the result is seen where it is made, a board the user hid included. The chord and the startup
+    /// preference change nothing on the board and leave it where it is. Pure, so the classification is held
+    /// by a test that also fails when a new traffic light setting is left unclassified.
+    /// </summary>
+    internal static class TrafficLightPresentation
+    {
+        internal static readonly IReadOnlyCollection<string> BoardSettings = new[]
+        {
+            nameof(AppConfig.TrafficLightPinned), nameof(AppConfig.TrafficLightTileSize), nameof(AppConfig.TrafficLightColumns),
+            nameof(AppConfig.TrafficLightWindowTransparency), nameof(AppConfig.TrafficLightTargets),
+        };
+
+        internal static readonly IReadOnlyCollection<string> QuietSettings = new[]
+        {
+            nameof(AppConfig.EnableTrafficLightHotkey), nameof(AppConfig.TrafficLightHotkey), nameof(AppConfig.TrafficLightShowAtStart),
+        };
+
+        internal static bool ShowsBoard(string setting, AppConfig config)
+            => config.EnableTrafficLight
+               && (setting == nameof(AppConfig.EnableTrafficLight) || BoardSettings.Contains(setting));
     }
 }

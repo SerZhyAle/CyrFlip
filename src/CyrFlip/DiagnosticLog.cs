@@ -163,6 +163,14 @@ namespace CyrFlip
             MarkerPrefix + "LOG OMITTED | reason=oversized_untrusted | source_bytes="
             + sourceBytes.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
+        /// <summary>
+        /// A whole log left out of the bundle because the archive's size budget was reached
+        /// (<c>DIAGNOSTIC-REPORT</c> 0.15 item 1); <paramref name="sourceBytes"/> is the source's size as read.
+        /// </summary>
+        internal static string ArchiveCapMarker(long sourceBytes) =>
+            MarkerPrefix + "LOG OMITTED | reason=archive_cap | source_bytes="
+            + sourceBytes.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
         /// <summary>What every marker line starts with, old or new, so a scrub can let it through.</summary>
         internal const string MarkerPrefix = "[Diag] ";
 

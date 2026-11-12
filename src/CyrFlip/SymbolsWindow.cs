@@ -89,6 +89,8 @@ namespace CyrFlip
             InitializeComponents();
             ApplyLanguage(_uiLanguage);
             ApplyThemePalette(ThemePalette.Light);
+            CompanionSurfaceRegistry.RegisterCompanion(this, CompanionSurfaceKind.Symbols);
+            VisibleChanged += (_, _) => CompanionSurfaceRegistry.ApplyToForm(this);
         }
 
         private void InitializeComponents()
@@ -637,6 +639,16 @@ namespace CyrFlip
             ApplyThemePalette(palette);
         }
 
+        /// <summary>
+        /// The size profile changed: the window font (and with it the grid's cells and symbol face) follows it in the
+        /// base class, and the twelve-cell width and the measured rows are taken again here.
+        /// </summary>
+        protected override void OnUiProfileApplied(UiMetrics metrics)
+        {
+            base.OnUiProfileApplied(metrics);
+            ApplyWindowGeometry();
+        }
+
         private void ApplyThemePalette(ThemePalette palette)
         {
             BackColor = palette.SurfaceWindow;
@@ -665,6 +677,7 @@ namespace CyrFlip
         {
             if (disposing)
             {
+                CompanionSurfaceRegistry.UnregisterCompanion(this);
                 StopClipboardMirror();
                 _retryTimer.Dispose();
                 _toolTips.Dispose();

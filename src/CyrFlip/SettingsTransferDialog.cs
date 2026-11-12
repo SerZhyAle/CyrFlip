@@ -17,7 +17,11 @@ namespace CyrFlip
         private readonly Font? _ownFont;
         internal SettingsImportPlan Plan { get; private set; }
         internal ISet<string> SelectedKeys { get; private set; } = new HashSet<string>();
-        internal SettingsTransferDialog(string language, SettingsFileDocument document, Func<ISet<string>, SettingsImportPlan> build)
+        /// <param name="source">
+        /// What the values come from, shown in place of the file's version and date - the settings standard of an
+        /// exchange server names its server and the time it was saved (S0095). Null for a settings file.
+        /// </param>
+        internal SettingsTransferDialog(string language, SettingsFileDocument document, Func<ISet<string>, SettingsImportPlan> build, string? source = null)
         {
             HelpLanguage = language;
             _language = language; _build = build;
@@ -35,8 +39,8 @@ namespace CyrFlip
                 ColumnCount = 1, Dock = DockStyle.Fill, Padding = new Padding(12) };
             int width = Math.Min(Screen.PrimaryScreen.WorkingArea.Width * 3 / 4, TextRenderer.MeasureText(new string('x', 90), Font).Width);
             layout.Controls.Add(new Label { AutoSize = true, MaximumSize = new Size(width, 0), UseMnemonic = false,
-                Text = Localization.Format(T, "File version: {0}; date: {1}", document.App, document.ExportedAtUtc) });
-            if (Version.TryParse(document.App, out Version? version) && version > typeof(AppConfig).Assembly.GetName().Version)
+                Text = source ?? Localization.Format(T, "File version: {0}; date: {1}", document.App, document.ExportedAtUtc) });
+            if (source == null && Version.TryParse(document.App, out Version? version) && version > typeof(AppConfig).Assembly.GetName().Version)
                 layout.Controls.Add(new Label { AutoSize = true, MaximumSize = new Size(width, 0), Text = T("This file was created by a newer CyrFlip version.") });
             var choices = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false };
             foreach (var group in Plan.Changes.Where(c => !c.OptIn).GroupBy(c => c.Entry.Group))

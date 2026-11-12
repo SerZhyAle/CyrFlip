@@ -48,15 +48,15 @@ On your first launch, a five-step welcome tour introduces CyrFlip and offers to 
 
 ## Status
 
-Early development - which here means "it works, but we reserve the right to be humble about it." CyrFlip is made and supported by one person, so an answer to an issue may not be instant. See
+CyrFlip is made and supported by one person, so an answer to an issue may not be instant. What to attach to a report is in [Reporting a problem](#reporting-a-problem). See
 [CLAUDE.md](CLAUDE.md) for the architecture and conventions.
 
 ## How it works
 
 1. CyrFlip watches the active keyboard layout and shows its two-letter code in three places: next to the blinking **text caret**, on the system **I-beam** mouse cursor (optional), and on the **tray icon**. Beside the caret and on the mouse pointer the marker is **translucent**, so the text under it stays readable, and its letters are fitted to the badge with one pixel of border around them. When CapsLock is on, all three get a thin coloured frame.
-   The **letters name the language** - US and Dvorak both read `EN` - and the **colour names the layout**: each of the 25 keyboard layouts of the 13 curated languages has its own shade of its language's colour, so Russian is always red but Russian Typewriter is a different red. That is what the compact **dot style** shows, where the colour is the whole marker. Any other layout keeps its language's letters (`PL`, `JA`, `TR`) and one neutral colour. [The full table is in the guide.](https://serzhyale.github.io/CyrFlip/guide.html#layout-colours)
+   The **letters name the language** - US and Dvorak both read `EN` - and the **colour names the layout**: each of the 25 keyboard layouts of the 13 curated languages, and the British English keyboard, has its own shade of its language's colour, so Russian is always red but Russian Typewriter is a different red, and US and British English are two different blues. That is what the compact **dot style** shows, where the colour is the whole marker. Any other layout keeps its language's letters (`PL`, `JA`, `TR`) and one neutral colour. [The full table is in the guide.](https://serzhyale.github.io/CyrFlip/guide.html#layout-colours)
 2. A global low-level keyboard hook listens for the hotkeys; on trigger, the selection is copied, transformed, and pasted back. Two fixed chords - the **case fix** (**Ctrl+Shift+F11**) and the **clipboard manager** (**Ctrl+Shift+F10**) - plus every row of your conversion table, which starts life with **EN ⇄ RU on Ctrl+Shift+F12**.
-3. **Clipboard history** is opt-in. It keeps Unicode text in a compact topmost strip; choose an item with the mouse, pin or delete it, search the whole history, or toggle the strip with **Ctrl+Shift+F10**. The encrypted local history is protected with Windows DPAPI and can be paused or cleared.
+3. **Clipboard history** is opt-in. It keeps Unicode text in a compact topmost strip titled **Clipboard**; choose an item with the mouse, pin or delete it, correct its text in place (right-click the text or press **F2**; **Enter** or a click outside saves, **Shift+Enter** starts a new line, **Esc** cancels), search the whole history, or toggle the strip with **Ctrl+Shift+F10**. The encrypted local history is protected with Windows DPAPI and can be paused or cleared.
 
 > The cursor change is system-wide (`SetSystemCursor`) and is restored when CyrFlip exits. Only the text I-beam is changed, not the normal arrow pointer.
 
@@ -132,6 +132,7 @@ An optional module that passes **one thing you copied** - a text, a picture or o
 - **The server cannot read it.** The value is encrypted on your computer for your other devices before it leaves; the server keeps only the last value, in its memory, for your account alone. It does see that you are online, which devices you have, and how much is sent and when.
 - **One object at a time.** Several files or a folder go as one archive you make first.
 - **Get takes the newest.** With several accounts it places the value that is newest by the server's own time. A received text is an ordinary copy, so the clipboard history records it like any other; a received file lands in `Downloads\CyrFlip` (changeable) and never overwrites a file that exists.
+- **Standard settings.** Beside an account whose server keeps standard settings, **Save as STANDARD** saves the groups of settings you tick on the page to the server - it replaces the standard saved there - and **Read STANDARD** on your other computer applies them after showing every change. Both ask first; nothing is sent or read by itself, and a later change on one computer stays there. Passwords, folders, addresses, window positions and the display size never leave the computer, and whoever runs the server can read the saved settings.
 - **Trust before the password.** The sign-in dialog shows the server and its certificate before you type the password and says where the password will go; a self-signed certificate is pinned once you accept its fingerprint, and a different one is then refused. The password is used once and never stored; the device token and the key are protected with Windows DPAPI.
 - **Three ways to run it:** the tray menu, a chord (both ship **without** a combination - you choose, and CyrFlip refuses one that another feature holds) and a desktop shortcut or a Jump List task. **Cancel the clipboard transfer** in the tray menu stops one in progress.
 - **Explained in the program and on the portal:** the settings page says what the server can and cannot see, in the contract's own words, and links to [About the clipboard on the server](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-clipboard.html) and [About the exchange server](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-server.html) on the exchange portal.
@@ -143,7 +144,9 @@ editor caret**.
 
 **How they link up:** CyrFlip writes the current layout code to `%LOCALAPPDATA%\CyrFlip\layout.txt` (for a Microsoft Store install, the apps own per-user folder `%LOCALAPPDATA%\Packages\SZA.CyrFlip_fdk7e19xt9z9j\LocalCache\Local\CyrFlip\layout.txt`, plus a copy under `%ProgramData%\CyrFlip` for older extension versions; the extension reads the newest per-user file, and the app removes the files when it exits)
 (see [LayoutPublisher.cs](src/CyrFlip/LayoutPublisher.cs)); the extension watches that file and draws
-the two-letter marker of **any** layout at the caret, plus a status-bar indicator. **CyrFlip must be running** for the
+the language code of whatever layout is active at the caret, plus a status-bar indicator - for any two or more layouts,
+whatever the languages. Layouts of one language share their code, and outside the 26 layouts with a shade of their own their colour too:
+US and Irish English both show `EN` in the same blue, while British English has a blue of its own. **CyrFlip must be running** for the
 marker to appear.
 
 - **Install** - from the VS Code Marketplace: search **"CyrFlip"** (publisher *SerZhyAle*), or

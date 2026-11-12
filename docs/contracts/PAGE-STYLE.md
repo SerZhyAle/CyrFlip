@@ -3,7 +3,7 @@
 - **Id/version read:** PAGE-STYLE 3.1, active, 2026-10-18.
 - **Home:** shared catalog, `product-web-pages/PAGE-STYLE.md`, consolidation in its domain README.
 - **Role:** consumer, App - medium; public site and offline context-help corpus.
-- **Implementation:** partial; [scoped audit](../design/contract-sync-20261017.md), exception E4, and [UI migration](../design/unified-ui.md).
+- **Implementation:** partial; scoped audit (ticket S0077), exception E4, and UI migration (ticket S0076).
 
 Both `docs/assets/sza-kit.css` and `docs/help/sza-kit.css` are generated reference
 copies, byte-identical to the current catalog artifact, SHA-256

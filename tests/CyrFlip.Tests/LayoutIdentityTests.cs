@@ -115,6 +115,24 @@ namespace CyrFlip.Tests
             Assert.Equal("RU", LayoutIdentity.CodeFor(0x04090419u, klid));
         }
 
+        /// <summary>
+        /// S0085: the British keyboard in both shapes - under its own English (UK) it is 08090809, added
+        /// under English (US) it is 08090409 - is one layout with its own shade and the code "EN"; under
+        /// Russian it stays Russian's.
+        /// </summary>
+        [Theory]
+        [InlineData(0x08090809u, "00000809", "EN")]
+        [InlineData(0x08090409u, "00000809", "EN")]
+        [InlineData(0x08090419u, "00000419", "RU")]
+        public void TheBritishKeyboardIsFoundInBothShapes(uint hkl, string expectedKlid, string expectedCode)
+        {
+            var known = new HashSet<string>(Known, StringComparer.OrdinalIgnoreCase) { "00000809" };
+            string klid = LayoutIdentity.Resolve(hkl, Map, known);
+            Assert.Equal(expectedKlid, klid);
+            Assert.Equal(expectedCode, LayoutIdentity.CodeFor(hkl, klid));
+            Assert.False(LayoutIdentity.NeedsReread(hkl, Map, known));
+        }
+
         /// <summary>A layout the machine's store does not list is not guessed at.</summary>
         [Fact]
         public void AnUnknownPrimaryKeyboardFallsBackAndAsksForAReread()

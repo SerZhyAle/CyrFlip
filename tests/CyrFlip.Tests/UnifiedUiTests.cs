@@ -147,6 +147,21 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
+        public void AboutSiteLinksOpenTheInterfaceLanguagePageWhereOneExists()
+        {
+            AboutResources.Resource Find(string id) => AboutResources.Product.Concat(AboutResources.Dependencies).Single(r => r.Id == id);
+            string Name(string code) => Localization.Names[Array.IndexOf(Localization.Codes, code)];
+            Assert.Equal("https://serzhyale.github.io/CyrFlip/ru/", AboutResources.UrlFor(Find("site"), Name("ru")));
+            Assert.Equal("https://serzhyale.github.io/CyrFlip/uk/privacy.html", AboutResources.UrlFor(Find("privacy"), Name("uk")));
+            Assert.Equal("https://serzhyale.github.io/CyrFlip/ru/guide.html", AboutResources.UrlFor(Find("guide"), Name("ru")));
+            // Every other language, an unknown name and a resource without language pages keep the resource's own address.
+            Assert.Equal(Find("privacy").Url, AboutResources.UrlFor(Find("privacy"), Name("de")));
+            Assert.Equal(Find("site").Url, AboutResources.UrlFor(Find("site"), Name("en")));
+            Assert.Equal(Find("site").Url, AboutResources.UrlFor(Find("site"), "not a language"));
+            Assert.Equal(Find("repository").Url, AboutResources.UrlFor(Find("repository"), Name("ru")));
+        }
+
+        [Fact]
         public void ConfirmationUsesSafeFirstReadingOrderWithoutChangingDefault()
         {
             Sta(() =>

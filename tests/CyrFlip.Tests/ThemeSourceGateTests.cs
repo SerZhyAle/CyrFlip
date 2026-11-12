@@ -32,8 +32,11 @@ namespace CyrFlip.Tests
             "AnnotationPalette.cs", "AnnotationShape.cs",
         };
 
+        // The stock brushes and pens and a parsed HTML colour are colour literals too (S0060 T-M5); a
+        // conversion of a colour already in hand (ColorTranslator.ToWin32) is not.
         private static readonly Regex ColourLiteral = new Regex(
-            @"SystemColors\.\w+|Color\.FromArgb\s*\(|Color\.(?!Empty\b|Transparent\b|FromArgb\b|FromName\b|FromKnownColor\b)[A-Z]\w*",
+            @"SystemColors\.\w+|\bSystem(?:Brushes|Pens)\.\w+|\b(?:Brushes|Pens)\.[A-Z]\w*|ColorTranslator\.From(?:Html|Ole|Win32)\s*\("
+            + @"|Color\.FromArgb\s*\(|Color\.(?!Empty\b|Transparent\b|FromArgb\b|FromName\b|FromKnownColor\b)[A-Z]\w*",
             RegexOptions.Compiled);
 
         private static readonly Regex Comment = new Regex(@"^\s*///?", RegexOptions.Compiled);
@@ -85,6 +88,10 @@ namespace CyrFlip.Tests
             Assert.Matches(ColourLiteral, "ForeColor = SystemColors.GrayText");
             Assert.Matches(ColourLiteral, "new Pen(Color.Firebrick)");
             Assert.DoesNotMatch(ColourLiteral, "BackColor = Color.Empty");
+            Assert.Matches(ColourLiteral, "g.FillRectangle(Brushes.White, r)");
+            Assert.Matches(ColourLiteral, "ForeColor = ColorTranslator.FromHtml(\"#202020\")");
+            Assert.DoesNotMatch(ColourLiteral, "StaticBrushes.TryGetValue(colorref, out IntPtr brush)");
+            Assert.DoesNotMatch(ColourLiteral, "int ink = ColorTranslator.ToWin32(color)");
         }
     }
 }

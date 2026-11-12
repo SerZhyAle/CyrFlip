@@ -129,6 +129,7 @@ namespace CyrFlip
                 Application.SetCompatibleTextRenderingDefault(false);
                 AppConfig config = AppConfig.Load();
                 ThemeManager.Initialize(ThemeModes.Parse(config.Theme));
+                UiProfileManager.Initialize(config);
                 ConfirmDialog.Show(config.UiLanguage,
                     Localization.Translate(config.UiLanguage,
                         "CyrFlip is already running but is not answering. Check the notification area, or end it in Task Manager."),
@@ -169,6 +170,7 @@ namespace CyrFlip
                 }
                 // The link prompt and the error box of this process follow the theme too (S0020).
                 ThemeManager.Initialize(ThemeModes.Parse(config.Theme));
+                UiProfileManager.Initialize(config);
 
                 var store = new LauncherScenarioStore();
                 LauncherScenario? scenario = store.Find(id);

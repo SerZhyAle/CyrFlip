@@ -208,6 +208,22 @@ namespace CyrFlip
         /// </summary>
         public string Theme { get; set; } = ThemeModes.SystemToken;
         /// <summary>
+        /// The input profile every window opens with (UI-SIZING section 2 rule 1, ticket S0076): the invariant
+        /// token <c>pointer</c> or <c>touch</c>. Chosen by the user on the General page, never inferred from
+        /// the device; an unknown token reads as <c>pointer</c>. Per-PC display state, so it is not in the settings file.
+        /// </summary>
+        public string UiInputProfile { get; set; } = UiProfiles.PointerToken;
+        /// <summary>
+        /// Interface scale in per cent (typography, glyphs, checkbox drawing, padding, gaps and targets move
+        /// together): one of <see cref="UiProfiles.InterfaceSteps"/>, 100 = ordinary; anything else reads as 100.
+        /// </summary>
+        public int UiInterfaceScale { get; set; } = UiProfiles.OrdinaryPercent;
+        /// <summary>
+        /// Text enlargement in per cent, independent of the interface scale: one of
+        /// <see cref="UiProfiles.TextSteps"/>, 100 = ordinary; anything else reads as 100.
+        /// </summary>
+        public int UiTextScale { get; set; } = UiProfiles.OrdinaryPercent;
+        /// <summary>
         /// Snapshot of Windows' own input-language hotkeys as they were before CyrFlip first touched
         /// them (see <see cref="LanguageHotkeys"/>). Captured once, never overwritten, so "put it back
         /// as it was" always means the state the user arrived with - not the state after our last edit.
@@ -535,6 +551,16 @@ namespace CyrFlip
             bool repaired = false;
             // True when the S0071 chord re-key actually moved a stored chord: the pass persists at once.
             bool migrated = false;
+            // True when a stored window opacity sat below the readable floor and was raised to it (S0093):
+            // the raised value is written back at once, the way a repaired table is.
+            bool raised = false;
+            int ReadWindowOpacity(IConfigKey from, string name, int fallback)
+            {
+                int stored = cfg.ReadInt(from, name, fallback);
+                int kept = ThemePalette.ClampWindowOpacity(stored);
+                if (kept > stored) raised = true;
+                return kept;
+            }
             {
                 if (key == null)
                 {
@@ -568,7 +594,7 @@ namespace CyrFlip
                     cfg.ClipboardHistoryY = cfg.ReadInt(key, "ClipboardHistoryY", cfg.ClipboardHistoryY);
                     cfg.ClipboardHistoryWidth = cfg.ReadInt(key, "ClipboardHistoryWidth", cfg.ClipboardHistoryWidth);
                     cfg.ClipboardHistoryHeight = cfg.ReadInt(key, "ClipboardHistoryHeight", cfg.ClipboardHistoryHeight);
-                    cfg.ClipboardHistoryOpacity = Math.Max(30, Math.Min(100, cfg.ReadInt(key, "ClipboardHistoryOpacity", cfg.ClipboardHistoryOpacity)));
+                    cfg.ClipboardHistoryOpacity = ReadWindowOpacity(key, "ClipboardHistoryOpacity", cfg.ClipboardHistoryOpacity);
                     // Every number is clamped to what its UI (or its consumer) can take (CF-1): a cursor
                     // of 0 px cannot be drawn, and a timeout past ~24.8 days overflows Timer.Interval.
                     cfg.CursorSize = Math.Max(12, Math.Min(128, cfg.ReadInt(key, "CursorSize", cfg.CursorSize)));
@@ -593,6 +619,10 @@ namespace CyrFlip
                     cfg.EnableTextMenuHotkey = cfg.ReadBool(key, "EnableTextMenuHotkey", cfg.EnableTextMenuHotkey);
                     // Parse, not the raw string, for the same reason: an unknown token reads as "system".
                     cfg.Theme = ThemeModes.Token(ThemeModes.Parse(cfg.ReadString(key, "Theme", cfg.Theme)));
+                    // The size profile (S0076): an unknown token or a step that is not offered reads as ordinary.
+                    cfg.UiInputProfile = UiProfiles.Token(UiProfiles.ParseInput(cfg.ReadString(key, "UiInputProfile", cfg.UiInputProfile)));
+                    cfg.UiInterfaceScale = UiProfiles.NormalizeInterface(cfg.ReadInt(key, "UiInterfaceScale", cfg.UiInterfaceScale));
+                    cfg.UiTextScale = UiProfiles.NormalizeText(cfg.ReadInt(key, "UiTextScale", cfg.UiTextScale));
                     // The one-time Windows snapshots cannot be taken again: an unreadable one is kept
                     // on disk untouched rather than replaced by "" on the next save.
                     cfg.LanguageHotkeysBackup = cfg.ReadString(key, "LanguageHotkeysBackup", cfg.LanguageHotkeysBackup, preserve: true);
@@ -619,7 +649,7 @@ namespace CyrFlip
                     cfg.TranslateWindowTimeout = Math.Max(0, Math.Min(600, cfg.ReadInt(key, "TranslateWindowTimeout", cfg.TranslateWindowTimeout)));
                     cfg.TranslateWindowWidth = cfg.ReadInt(key, "TranslateWindowWidth", cfg.TranslateWindowWidth);
                     cfg.TranslateWindowHeight = cfg.ReadInt(key, "TranslateWindowHeight", cfg.TranslateWindowHeight);
-                    cfg.TranslateWindowOpacity = Math.Max(30, Math.Min(100, cfg.ReadInt(key, "TranslateWindowOpacity", cfg.TranslateWindowOpacity)));
+                    cfg.TranslateWindowOpacity = ReadWindowOpacity(key, "TranslateWindowOpacity", cfg.TranslateWindowOpacity);
 
                     bool profilesPresent = Has(key, "LayoutConversionProfiles");
                     string? legacyHotkey = cfg.ReadOptionalString(key, "Hotkey", null);
@@ -708,7 +738,7 @@ namespace CyrFlip
                     cfg.ExchangeClipboardAccounts = ExchangeAccountEntry.DeserializeList(accountsJson);
                 }
             }
-            mustSave = seeded || repaired || migrated;
+            mustSave = seeded || repaired || migrated || raised;
             return cfg;
         }
 
@@ -779,6 +809,9 @@ namespace CyrFlip
                 key.SetValue("TextMenuHotkey", TextMenuHotkey, RegistryValueKind.String);
                 key.SetValue("EnableTextMenuHotkey", EnableTextMenuHotkey ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("Theme", Theme, RegistryValueKind.String);
+                key.SetValue("UiInputProfile", UiProfiles.Token(UiProfiles.ParseInput(UiInputProfile)), RegistryValueKind.String);
+                key.SetValue("UiInterfaceScale", UiProfiles.NormalizeInterface(UiInterfaceScale), RegistryValueKind.DWord);
+                key.SetValue("UiTextScale", UiProfiles.NormalizeText(UiTextScale), RegistryValueKind.DWord);
                 WritePreserved(key, "LanguageHotkeysBackup", LanguageHotkeysBackup);
                 WritePreserved(key, "InputLayoutsBackup", InputLayoutsBackup);
                 key.SetValue("InputMethodOverrideWritten", InputMethodOverrideWritten, RegistryValueKind.String);

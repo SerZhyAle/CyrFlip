@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -235,6 +236,14 @@ namespace CyrFlip
 
         public static string Guess(string extension)
             => ByExtension.TryGetValue(extension ?? "", out string? mime) ? mime : "application/octet-stream";
+
+        /// <summary>The usual extension of <paramref name="mimeType"/> with its dot (the first one listed), else empty.</summary>
+        public static string ExtensionFor(string mimeType)
+        {
+            foreach (KeyValuePair<string, string> pair in ByExtension)
+                if (string.Equals(pair.Value, mimeType ?? "", StringComparison.OrdinalIgnoreCase)) return pair.Key;
+            return "";
+        }
     }
 
     /// <summary>
@@ -253,11 +262,14 @@ namespace CyrFlip
                 ? AppConfig.DefaultExchangeClipboardReceivedFolder
                 : config.ExchangeClipboardReceivedFolder;
 
-        /// <summary>A name that does not exist in <paramref name="folder"/>: the received name, then <c>name (1).ext</c>, <c>(2)</c> and so on.</summary>
-        public static string UniquePath(string folder, string name, Func<string, bool>? exists = null)
+        /// <summary>
+        /// A name that does not exist in <paramref name="folder"/>: the received name, then <c>name (1).ext</c>, <c>(2)</c> and so on.
+        /// A name that cleans to nothing is replaced by <paramref name="nameless"/> (<see cref="NamelessName"/>).
+        /// </summary>
+        public static string UniquePath(string folder, string name, string nameless, Func<string, bool>? exists = null)
         {
             exists ??= File.Exists;
-            string safe = SafeName(name);
+            string safe = SafeName(name, nameless);
             string stem = Path.GetFileNameWithoutExtension(safe);
             string ext = Path.GetExtension(safe);
             string candidate = Path.Combine(folder, safe);
@@ -266,8 +278,24 @@ namespace CyrFlip
             return candidate;
         }
 
-        /// <summary>Only the base name, with every character Windows refuses replaced; never empty, never a reserved dot name.</summary>
-        internal static string SafeName(string name)
+        /// <summary>
+        /// The name of a received value that has none (<c>DEVICE-EXCHANGE</c> 1.11 item EL):
+        /// <c>clipboard-&lt;yyyyMMdd-HHmmss&gt;&lt;ext&gt;</c> from <paramref name="storedAt"/> in UTC, else
+        /// <paramref name="utcNow"/>; the extension is the MIME type's usual one, nothing when it has none.
+        /// A hint to the person only - nothing parses it.
+        /// </summary>
+        internal static string NamelessName(string storedAt, string mimeType, DateTime utcNow)
+        {
+            DateTime at = DateTimeOffset.TryParse(storedAt ?? "", CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal, out DateTimeOffset stored) ? stored.UtcDateTime : utcNow;
+            return "clipboard-" + at.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + MimeTypes.ExtensionFor(mimeType);
+        }
+
+        /// <summary>
+        /// Only the base name, with every character Windows refuses replaced; never a reserved dot name, and
+        /// <paramref name="nameless"/> when nothing is left.
+        /// </summary>
+        internal static string SafeName(string name, string nameless)
         {
             string baseName = name ?? "";
             int cut = baseName.LastIndexOfAny(new[] { '/', '\\' });
@@ -277,7 +305,7 @@ namespace CyrFlip
             foreach (char c in baseName)
                 sb.Append(Array.IndexOf(invalid, c) >= 0 || c < 0x20 ? '_' : c);
             string cleaned = sb.ToString().Trim().TrimEnd('.', ' ');
-            if (cleaned.Length == 0 || cleaned == "." || cleaned == "..") return "received-file";
+            if (cleaned.Length == 0 || cleaned == "." || cleaned == "..") return nameless;
             if (IsReservedDeviceName(cleaned)) cleaned = "_" + cleaned;
             return cleaned.Length > 200 ? cleaned.Substring(0, 200) : cleaned;
         }

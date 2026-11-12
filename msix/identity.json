@@ -1,0 +1,8 @@
+{
+  "$comment": "The Microsoft Store identity of CyrFlip, read by build-msix.ps1 before it builds anything (a run that finds no file stops). These are the frozen anchors (hard invariant 1): they are public, they live inside every published .msix, and changing one orphans every installed copy. tools/site/Test-Positioning.ps1 holds each value against POSITIONING.md. No account identifier and no credential belongs in this file. There is no IARC rating id field because this repository holds no record of one.",
+  "IdentityName": "SZA.CyrFlip",
+  "Publisher": "CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD",
+  "PublisherDisplayName": "SZA",
+  "StoreId": "9NB4W41NGQJ4",
+  "PackageFamilyName": "SZA.CyrFlip_fdk7e19xt9z9j"
+}

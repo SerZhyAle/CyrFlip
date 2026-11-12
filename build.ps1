@@ -1,13 +1,23 @@
 ﻿<#
     CyrFlip local build + deploy  ==  a "СБОРКА" (build) in this project's vocabulary.
 
-    The default СБОРКА is FAST and fully LOCAL, costs no GitHub Actions minutes:
+    The default СБОРКА is fully LOCAL and costs no GitHub Actions minutes:
       build Release (the app project only) -> stage the single self-contained exe -> deploy to sync folders.
     net48 needs no bundled runtime. Mirrors the convention across SerZhyAle's Windows apps.
     The test suite (CyrFlip.Tests, ~1200 net48/WinForms tests) and the static checks are NOT part of the
-    default run - they are what made every сборка of this small tray app take minutes. The full validation lives in:
-      -Tests        build the whole solution -> dotnet test -> Assert-TestRun -> the three static checks
-      release.ps1   the preflight before every release runs the same full validation
+    default run - they are what made every сборка of this small tray app take minutes.
+
+    Between releases only the checks of 5 seconds or less run (S0081, TESTING_AND_QA section 2):
+      -Fast         the static gates only - no build, no test, the running app left alone; -Area narrows
+                    it to the touched area (placement, help, positioning, site, listing, store - the last only when asked for, to keep the default under 5 s). Each gate was
+                    timed at 0.4-2.5 s on 2026-10-29.
+    Everything slower runs only when the owner names that run, or at the release:
+      (default)     the app-only build + stage + deploy - the owner's СБОРКА
+      -Tests        build the whole solution -> dotnet test -> Assert-TestRun -> the static checks
+      release.ps1   the preflight before every release runs the full validation
+
+    Exit codes: 0 pass; 1 a build, test or gate failed (-Fast: a gate reported a defect); 2 could not
+    verify (no dotnet SDK; -Fast: a gate could not read its inputs).
 
     Optionally it also commits the result (the "если удачно - коммитим" half of a сборка):
       -Commit            git add -A + commit AFTER a green build/test
@@ -28,9 +38,50 @@ param(
     [switch] $Push,
     [switch] $NoRun,
     # Full validation: the whole solution + dotnet test + the static checks (the slow path).
-    [switch] $Tests
+    [switch] $Tests,
+    # The between-release tier: the static gates only, each 5 s or less (S0081).
+    [switch] $Fast,
+    [ValidateSet('placement', 'help', 'positioning', 'site', 'listing', 'store')]
+    [string[]] $Area
 )
 $ErrorActionPreference = 'Stop'
+
+if ($Area -and -not $Fast) { throw '-Area narrows -Fast; pass -Fast as well.' }
+if ($Fast) {
+    if ($Tests -or $Commit) { throw '-Fast runs the static gates only; it does not combine with -Tests or -Commit.' }
+    # No build, no test, no deploy and the running tray app is left alone: this is what an agent runs
+    # after an edit between releases. A gate's exit code 1 is a defect, anything else non-zero is unverified.
+    $gates = [ordered]@{
+        placement   = @('tools\checks\Test-CheckPlacement.ps1')
+        help        = @('tools\help\Test-ContextHelp.ps1')
+        positioning = @('tools\site\Test-Positioning.ps1')
+        site        = @('tools\site\Test-SiteFacts.ps1')
+        # The two listing scripts rewrite their targets without -Check; here they only compare.
+        listing     = @('msix\render-listing-mirrors.ps1 -Check', 'msix\build-store-listing-csv.ps1 -Check')
+        # The release's read-only Store channel preflight, against a stub msstore: no network, no credential (S0100).
+        store       = @('tools\checks\Test-StoreChannelPreflight.ps1')
+    }
+    # 'store' (about 1 s) is asked for with -Area store: with it in the default set the whole tier passes 5 s.
+    $selected = if ($Area) { $Area } else { @($gates.Keys | Where-Object { $_ -ne 'store' }) }
+    $failed = 0; $unverified = 0
+    $clock = [Diagnostics.Stopwatch]::StartNew()
+    foreach ($name in $selected) {
+        foreach ($gate in $gates[$name]) {
+            $script = Join-Path $PSScriptRoot ($gate -replace ' -Check$', '')
+            $gateArgs = if ($gate.EndsWith(' -Check')) { @{ Check = $true } } else { @{} }
+            Write-Host "Fast gate: $gate" -ForegroundColor Cyan
+            & $script @gateArgs
+            if ($LASTEXITCODE -eq 1) { $failed++ }
+            elseif ($LASTEXITCODE -ne 0) { $unverified++ }
+        }
+    }
+    $clock.Stop()
+    Write-Host ('Fast gates took {0:N1} s; not built, not tested until the release.' -f $clock.Elapsed.TotalSeconds)
+    if ($failed -gt 0) { Write-Host "fast-checks: FAIL ($failed)"; exit 1 }
+    if ($unverified -gt 0) { Write-Host "fast-checks: NOT VERIFIED ($unverified)"; exit 2 }
+    Write-Host 'fast-checks: PASS'
+    exit 0
+}
 
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
     Write-Host 'dotnet SDK not found on PATH.' -ForegroundColor Red

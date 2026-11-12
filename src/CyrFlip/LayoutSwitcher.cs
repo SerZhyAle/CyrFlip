@@ -14,6 +14,8 @@ namespace CyrFlip
     /// </summary>
     internal static class LayoutSwitcher
     {
+        private static readonly IntPtr HWND_BROADCAST = (IntPtr)0xFFFF;
+
         /// <summary>
         /// Switch the foreground input thread to the exact configured keyboard layout. Only a layout
         /// the user really has installed is used - see <see cref="KeyboardLayoutConverter.ResolveInstalled"/>,
@@ -24,7 +26,14 @@ namespace CyrFlip
             if (hwnd == IntPtr.Zero) return;
             IntPtr target = KeyboardLayoutConverter.ResolveInstalled(targetKlid);
             if (target != IntPtr.Zero)
-                PostMessage(hwnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, target);
+            {
+                IntPtr inputWnd = CursorIndicator.InputWindow(hwnd);
+                PostMessage(inputWnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, target);
+                if (inputWnd != hwnd)
+                    PostMessage(hwnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, target);
+                PostMessage(HWND_BROADCAST, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, target);
+                ActivateKeyboardLayout(target, 0);
+            }
         }
 
         /// <summary>
@@ -39,18 +48,30 @@ namespace CyrFlip
         /// <returns>True when a switch was requested.</returns>
         public static bool SwitchToNext(IntPtr hwnd)
         {
-            if (hwnd == IntPtr.Zero) return false;
-
             IntPtr[] installed = KeyboardLayoutConverter.InstalledLayouts();
             if (installed.Length < 2) return false;
 
-            IntPtr current = GetKeyboardLayout(GetWindowThreadProcessId(hwnd, out _));
+            IntPtr inputWnd = hwnd != IntPtr.Zero ? CursorIndicator.InputWindow(hwnd) : IntPtr.Zero;
+            IntPtr target = inputWnd != IntPtr.Zero ? inputWnd : hwnd;
+
+            IntPtr current = target != IntPtr.Zero
+                ? GetKeyboardLayout(GetWindowThreadProcessId(target, out _))
+                : GetKeyboardLayout(0);
+
             int index = Array.IndexOf(installed, current);
             // An unlisted current layout (shouldn't happen) still gives a sensible destination.
             IntPtr next = index >= 0 ? installed[(index + 1) % installed.Length] : installed[0];
-            if (next == current) return false;
+            if (next == current)
+                next = installed[(index + 1 + installed.Length) % installed.Length == 0 ? 1 : 0];
 
-            PostMessage(hwnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, next);
+            if (target != IntPtr.Zero)
+            {
+                PostMessage(target, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, next);
+                if (hwnd != IntPtr.Zero && hwnd != target)
+                    PostMessage(hwnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, next);
+            }
+            PostMessage(HWND_BROADCAST, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, next);
+            ActivateKeyboardLayout(next, 0);
             return true;
         }
     }

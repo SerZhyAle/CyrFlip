@@ -1,49 +1,15 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-    # Path filtering: doc/plan/asset-only changes must not burn a full (×2-cost)
-    # Windows build. Code lives under src/ and tests/ — everything else is excluded, with one
-    # deliberate exception: the test suite reads three files of the VS Code extension
-    # (LayoutColorsTests the palette copy, ExtensionContractConstantsTests the signal timings), so a
-    # change to exactly those files runs the tests that guard them (CHECK-PLACEMENT rule 2). The site
-    # pages TrustPageTests reads are NOT re-included: those tests run in build.ps1 and the release
-    # preflight, which is where a docs-only change is checked. `paths` with `!` patterns replaces
-    # `paths-ignore` because only `paths` can re-include; a later pattern overrides an earlier one.
-    paths:
-      - '**'
-      - '!**.md'
-      - '!docs/**'
-      - '!PLAN/**'
-      - '!winget/**'
-      - '!assets/**'
-      - 'assets/cyrflip.ico'
-      - 'assets/oneclickrunner-source/app.ico'
-      - '!vscode-extension/**'
-      - 'vscode-extension/src/layout-colors.json'
-      - 'vscode-extension/src/extension.ts'
-      - 'vscode-extension/package.json'
-      - '!.github/ISSUE_TEMPLATE/**'
-  pull_request:
-    branches: [main]
-    paths:
-      - '**'
-      - '!**.md'
-      - '!docs/**'
-      - '!PLAN/**'
-      - '!winget/**'
-      - '!assets/**'
-      - 'assets/cyrflip.ico'
-      - 'assets/oneclickrunner-source/app.ico'
-      - '!vscode-extension/**'
-      - 'vscode-extension/src/layout-colors.json'
-      - 'vscode-extension/src/extension.ts'
-      - 'vscode-extension/package.json'
-      - '!.github/ISSUE_TEMPLATE/**'
+  # Between releases nothing slower than 5 seconds runs (S0081, TESTING_AND_QA section 2), and this job
+  # is a full solution build plus the whole unit suite - so it no longer runs on a push or a pull request.
+  # It runs only when the owner names it (Actions -> CI -> Run workflow). The release runs the same build
+  # and suite against the tag's own tree: release.ps1 (the preflight, which also builds IconGen) and
+  # release.yml (after the tag).
+  workflow_dispatch:
 
-# A new push to the same ref cancels the previous still-running CI run, so a burst
-# of commits costs one active run instead of N parallel Windows runs.
+# A second dispatch on the same ref cancels the previous still-running CI run, so a burst
+# of dispatches costs one active run instead of N parallel Windows runs.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -53,12 +19,9 @@ permissions:
 
 jobs:
   build-test:
-    # Skip the release commit (release.ps1 makes a "release: vX" commit + tag): the tag
-    # fires release.yml which already builds+tests, so running CI here too would double-bill.
-    # PRs always run. A local "сборка" commit carries [skip ci] and is skipped natively by GitHub.
-    if: ${{ github.event_name == 'pull_request' || !startsWith(github.event.head_commit.message, 'release:') }}
+    # Started by hand only (see the trigger above); the release commit and the tag never reach it.
     # net48 unit tests need real Windows (Mono is unreliable for WinForms/P-Invoke
-    # assemblies) — so the runner stays Windows; savings come from caching + filters below.
+    # assemblies) — so the runner stays Windows; savings come from the NuGet cache below.
     runs-on: windows-latest
     timeout-minutes: 15            # guard against a hung job (a normal run is < 5 min)
     steps:

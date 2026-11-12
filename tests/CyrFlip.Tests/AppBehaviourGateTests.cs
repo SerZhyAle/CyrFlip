@@ -159,7 +159,10 @@ namespace CyrFlip.Tests
 
             // Broken templates must never throw
             Assert.Equal("Unclosed {0 bracket", Localization.Format("English", "Unclosed {0 bracket", "arg"));
-            Assert.Equal("Index out of bounds {99}", Localization.Format("English", "Index out of bounds {99}", "arg"));
+            // A missing argument renders a blank (APP-BEHAVIOUR rule 7, S0060 U-L2), never the raw placeholder.
+            Assert.Equal("Index out of bounds ", Localization.Format("English", "Index out of bounds {99}", "arg"));
+            Assert.Equal("a  b", Localization.Format("English", "a {1} b", "x"));
+            Assert.Equal("{1} is literal", Localization.Format("English", "{{1}} is literal"));
             Assert.Equal("Broken {notanumber}", Localization.Format("English", "Broken {notanumber}", "arg"));
             Assert.Equal("", Localization.Format("English", null!, "arg"));
         }

@@ -57,20 +57,23 @@
 
 ## Open items
 
-1. The portal page `exchange-clipboard.html` (and `-ru`, `-uk`) is another product's and was not published when this
-   was written; the settings page and the guide link to it and say what the feature is in their own words.
+1. ~~The portal page `exchange-clipboard.html` was not published.~~ Closed 2026-10-25: the portal publishes
+   `exchange-clipboard` and `exchange-server` in English, `-ru` and `-uk` (all six answer HTTP 200, and the clipboard
+   page names CyrFlip as a participant with the same rules this program builds). The pages stay another product's;
+   the settings page and the guide link to them and still say what the feature is in their own words.
 2. `CLIPBOARD-GUARD` item O reads the clipboard as file, text, picture; item CB of this contract lists file, picture,
-   text and says to convert line ends to LF. This program follows item O for the order and item CB for the wire
-   (recorded as a dated exception in the registry until one text is amended).
+   text. This program follows item O for the order. ~~The line ends~~ closed 2026-10-29 (S0073): `CLIPBOARD-GUARD` item
+   O.2 now hands the wires line ends to item CB, so the LF this program sends is conformance and the registry
+   exception is closed. The order of kinds is still read differently by the two texts.
 3. The Android reference client sends `list` and `clipboard-put` on one stream; the FMS_Win server accepts a put
    only as the first envelope after `welcome`. To be settled in the joint run (FMS_A S4213, S4244).
 4. Not built: a QR picture (the text of one is pasted), the Drive path of the clipboard (items CL, CP).
 
 ## Synchronization read - 2026-10-18
 
-The [current clause-to-surface audit](../design/contract-sync-20261017.md) records
+The current clause-to-surface audit (ticket S0077) records
 the current catalog target, implementation changes, scoped exceptions and evidence.
 Earlier version/evidence statements above are historical and do not certify the
-new target. The [shared UI profile](../design/unified-ui.md) governs precedence
+new target. The shared UI profile (ticket S0076) governs precedence
 for covered components. Previous verified implementation levels stay unchanged
 until their remaining evidence is recorded.

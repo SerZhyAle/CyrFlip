@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -107,6 +108,95 @@ namespace CyrFlip.Tests
             Assert.Null(failure);
             Assert.Equal(0, before);
             Assert.Equal(1, after);
+        }
+
+        /// <summary>A cipher that remembers which threads decrypted - every journal line is one call.</summary>
+        private sealed class ThreadRecordingCipher : IQuickNotesCipher
+        {
+            private readonly FakeCipher _inner = new FakeCipher();
+            public readonly ConcurrentBag<int> UnprotectThreads = new ConcurrentBag<int>();
+            public string Protect(string plain) => _inner.Protect(plain);
+
+            public string? Unprotect(string cipher)
+            {
+                UnprotectThreads.Add(Environment.CurrentManagedThreadId);
+                return _inner.Unprotect(cipher);
+            }
+        }
+
+        /// <summary>
+        /// Ticket S0082: asking for the file's records with the history off (the manager window, the
+        /// exchange export) replays the journal on the pool, never on the thread that asked - the UI
+        /// thread is the hooks' thread, and at 131 us a record a large journal stalled both hooks.
+        /// The merge is the owner's, exactly once, whether the caller completes it or the posted
+        /// message does.
+        /// </summary>
+        [Fact]
+        public void The_replay_asked_for_with_the_history_off_decrypts_on_the_pool_and_merges_once()
+        {
+            string dir = Path.Combine(Path.GetTempPath(), "CyrFlipTests", Guid.NewGuid().ToString("N"));
+            const int Records = 50;
+            var cipher = new ThreadRecordingCipher();
+            int ownerThread = 0, rightAfter = -1, beforeComplete = -1, afterComplete = -1, afterPump = -1, finished = 0;
+            bool sameTask = false, loaded = false;
+            Exception? failure = null;
+
+            Directory.CreateDirectory(dir);
+            using (var journal = new ClipboardHistoryJournal(Path.Combine(dir, "clipboard-history.log"), cipher))
+            {
+                for (int i = 0; i < Records; i++)
+                {
+                    string text = "entry " + i;
+                    journal.Append(ClipboardHistoryJournal.Record.Of("add", new ClipboardHistoryEntry
+                    {
+                        Uuid = ClipboardHistoryService.Hash(text), Text = text, CreatedAt = new DateTime(2026, 10, 29, 12, 0, i, DateTimeKind.Utc),
+                    }));
+                }
+            }
+
+            var owner = new Thread(() =>
+            {
+                try
+                {
+                    var service = new ClipboardHistoryService(enabled: false, paused: false, dir, cipher);
+                    try
+                    {
+                        ownerThread = Environment.CurrentManagedThreadId;
+                        service.ReplayFinished += (_, _) => finished++;
+                        Task replay = service.ReplayAsync();
+                        rightAfter = service.Entries.Count;          // nothing was read on this thread
+                        sameTask = ReferenceEquals(replay, service.ReplayAsync());
+                        loaded = replay.Wait(TimeSpan.FromSeconds(10));
+                        beforeComplete = service.Entries.Count;      // the pool does not touch the list
+                        service.CompleteReplay();
+                        afterComplete = service.Entries.Count;
+                        var clock = Stopwatch.StartNew();
+                        while (clock.Elapsed < TimeSpan.FromMilliseconds(200))
+                        {
+                            Application.DoEvents();                  // the posted merge finds it done
+                            Thread.Sleep(5);
+                        }
+                        afterPump = service.Entries.Count;
+                    }
+                    finally { service.Dispose(); }
+                }
+                catch (Exception e) { failure = e; }
+            });
+            owner.SetApartmentState(ApartmentState.STA);
+            owner.Start();
+            owner.Join();
+            try { Directory.Delete(dir, true); } catch { }
+
+            Assert.Null(failure);
+            Assert.True(loaded);
+            Assert.True(sameTask);
+            Assert.Equal(0, rightAfter);
+            Assert.Equal(0, beforeComplete);
+            Assert.Equal(Records, afterComplete);
+            Assert.Equal(Records, afterPump);
+            Assert.Equal(1, finished);
+            Assert.NotEmpty(cipher.UnprotectThreads);
+            Assert.DoesNotContain(ownerThread, cipher.UnprotectThreads);
         }
     }
 }

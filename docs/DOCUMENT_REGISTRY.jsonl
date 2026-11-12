@@ -61,6 +61,7 @@
 {"file": "docs/es/index.html", "topic": "index", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/es/privacy.html", "topic": "privacy", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/es/trust.html", "topic": "trust", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
+{"file": "docs/faq.html", "topic": "faq", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/fr/index.html", "topic": "index", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/fr/privacy.html", "topic": "privacy", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/fr/trust.html", "topic": "trust", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
@@ -635,20 +636,25 @@
 {"file": "docs/pt/index.html", "topic": "index", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/pt/privacy.html", "topic": "privacy", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/pt/trust.html", "topic": "trust", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
+{"file": "docs/ru/faq.html", "topic": "faq", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/ru/guide.html", "topic": "guide", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/ru/index.html", "topic": "index", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/ru/privacy.html", "topic": "privacy", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/ru/store.html", "topic": "store", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
+{"file": "docs/ru/support.html", "topic": "support", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/ru/trust.html", "topic": "trust", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/search-index.json", "topic": "search index", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "render"}
 {"file": "docs/sitemap.xml", "topic": "sitemap", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "render"}
 {"file": "docs/store.html", "topic": "store", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
+{"file": "docs/support.html", "topic": "support", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/termbase.json", "topic": "termbase", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/trust.html", "topic": "trust", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
+{"file": "docs/uk/faq.html", "topic": "faq", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/uk/guide.html", "topic": "guide", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/uk/index.html", "topic": "index", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/uk/privacy.html", "topic": "privacy", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/uk/store.html", "topic": "store", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
+{"file": "docs/uk/support.html", "topic": "support", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/uk/trust.html", "topic": "trust", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/ur/index.html", "topic": "index", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/ur/privacy.html", "topic": "privacy", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
@@ -665,6 +671,8 @@
 {"file": "vscode-extension/CHANGELOG.md", "topic": "CHANGELOG", "area": "VS Code extension", "triggers": ["extension behavior or release changes"], "role": "source"}
 {"file": "vscode-extension/README.md", "topic": "README", "area": "VS Code extension", "triggers": ["extension behavior or release changes"], "role": "source"}
 {"file": "winget/README.md", "topic": "README", "area": "winget publishing", "triggers": ["manifest or release changes"], "role": "source"}
-{"file":"docs/contracts/UNIFIED-UI.md","topic":"Unified UI contracts","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}
-{"file":"docs/design/unified-ui.md","topic":"Unified UI migration","area":"UI design","triggers":["UI contract migration or evidence changes"],"role":"source"}
-{"file":"docs/design/contract-sync-20261017.md","topic":"Accepted contract synchronization","area":"contracts","triggers":["accepted contract behavior or verification changes"],"role":"source"}
+{"file":"docs/contracts/UI-SIZING.md","topic":"UI SIZING","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}
+{"file":"docs/contracts/BUTTONS.md","topic":"BUTTONS","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}
+{"file":"docs/contracts/BOOLEAN-OPTION.md","topic":"BOOLEAN OPTION","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}
+{"file":"docs/contracts/COLLAPSIBLE-GROUP.md","topic":"COLLAPSIBLE GROUP","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}
+{"file":"docs/contracts/SETTINGS-NAVIGATION.md","topic":"SETTINGS NAVIGATION","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}

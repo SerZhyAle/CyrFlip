@@ -69,18 +69,22 @@ namespace CyrFlip
         /// The import transaction over one file (S0055 I1..I6, S0072 6): read, preview, snapshot - settings and scenario store -
         /// commit, live refresh.
         /// </summary>
-        private bool ImportDocument(string path)
+        private bool ImportDocument(string path) => ImportDocument(() => SettingsFileReader.ReadFile(path), null);
+
+        /// <param name="load">Reads the document; runs on the pool behind the busy dialog.</param>
+        /// <param name="source">The line the preview shows in place of the file's version and date, or null for a file.</param>
+        private bool ImportDocument(Func<SettingsFileDocument> load, string? source)
         {
             string language = _config.UiLanguage;
             try
             {
-                var document = BusyDialog.Run(_settings, language, () => SettingsFileReader.ReadFile(path));
+                var document = BusyDialog.Run(_settings, language, load);
                 var scenarios = _launcherStore.All.ToArray(); var windows = LanguageHotkeys.ReadAll();
                 var installed = new HashSet<string>(InputLayouts.ListInstalled().Select(r => r.Klid), StringComparer.OrdinalIgnoreCase);
                 var local = MemoryConfigKey.Capture(_config).Load();
                 SettingsImportPlan plan;
                 using (var preview = new SettingsTransferDialog(language, document,
-                    selected => SettingsImportPlan.Build(local, document, scenarios, windows, HotkeyRules.Check, installed, selected)))
+                    selected => SettingsImportPlan.Build(local, document, scenarios, windows, HotkeyRules.Check, installed, selected), source))
                 {
                     if (preview.ShowDialog(DialogOwner()) != DialogResult.OK) return false;
                     plan = preview.Plan;

@@ -103,21 +103,24 @@ namespace CyrFlip.Tests
         }
 
         /// <summary>
-        /// The colour table and the curated layout list are two halves of one promise: every layout
-        /// CyrFlip offers to install has a colour, and no colour describes a layout nobody can reach.
-        /// They are edited in different files, so nothing but this test keeps them in step.
+        /// The colour table and the curated layout lists are two halves of one promise: every layout
+        /// CyrFlip offers to install has a colour, and no colour describes a layout outside the two
+        /// lists - <c>WorldLayouts.Popular</c> (offered) and <c>WorldLayouts.ColouredOnly</c> (coloured
+        /// only, S0085). They are edited in different files, so nothing but this test keeps them in step.
         /// </summary>
         [Fact]
         public void EveryCuratedLayoutHasItsOwnColour()
         {
             var curatedKlids = new List<string>();
-            foreach (WorldLayouts.Recommended language in WorldLayouts.Popular)
-                foreach (string klid in language.Klids)
-                {
-                    curatedKlids.Add(klid);
-                    Assert.True(LayoutStyle.Layouts.ContainsKey(klid),
-                        klid + " (" + language.Code + ") is offered in the settings but has no colour");
-                }
+            foreach (WorldLayouts.Recommended[] list in new[] { WorldLayouts.Popular, WorldLayouts.ColouredOnly })
+                foreach (WorldLayouts.Recommended language in list)
+                    foreach (string klid in language.Klids)
+                    {
+                        Assert.DoesNotContain(klid, curatedKlids);
+                        curatedKlids.Add(klid);
+                        Assert.True(LayoutStyle.Layouts.ContainsKey(klid),
+                            klid + " (" + language.Code + ") is curated but has no colour");
+                    }
 
             Assert.Equal(curatedKlids.Count, LayoutStyle.Layouts.Count);
             foreach (string klid in LayoutStyle.Layouts.Keys)
@@ -206,6 +209,22 @@ namespace CyrFlip.Tests
                     Assert.Equal(key.ToUpperInvariant(), key);
         }
 
+        /// <summary>
+        /// S0085: the British keyboard has a shade of its own, so US and UK English are told apart even
+        /// in dot mode - while the US shade, which is also the English language colour, stays as it was.
+        /// </summary>
+        [Fact]
+        public void BritishAndUsEnglishHaveDifferentShades()
+        {
+            Assert.Equal("#4DA3FF", Hex(LayoutStyle.ColorForLayout("00000409", "EN")));
+            Assert.Equal("#4DA3FF", Hex(LayoutStyle.Curated["EN"]));
+            Color british = LayoutStyle.ColorForLayout("00000809", "EN");
+            Assert.NotEqual(Hex(LayoutStyle.Curated["EN"]), Hex(british));
+            Assert.True(Distance(british, LayoutStyle.Curated["EN"]) >= 40);
+            Assert.Equal("EN", WorldLayouts.MarkerLabelForKlid("00000809"));
+            Assert.Equal("", WorldLayouts.LabelForKlid("00000809")); // never offered for installation
+        }
+
         /// <summary>The marker is drawn over arbitrary application backgrounds, so no shade may be dark.</summary>
         [Fact]
         public void EveryLayoutColourIsBright()
@@ -218,14 +237,15 @@ namespace CyrFlip.Tests
 
         /// <summary>
         /// The three rungs of <see cref="LayoutStyle.ColorForLayout"/>: the layout's own shade, then
-        /// its language's colour (a British or Swiss keyboard is not curated but is still English or
-        /// German), then the one colour for everything else.
+        /// its language's colour (a Swiss or Irish keyboard is not curated but is still German or
+        /// English), then the one colour for everything else.
         /// </summary>
         [Fact]
         public void AnUncuratedLayoutFallsBackToItsLanguageThenToOther()
         {
             Assert.Equal(LayoutStyle.Layouts["00010419"], LayoutStyle.ColorForLayout("00010419", "RU"));
-            Assert.Equal(LayoutStyle.Curated["EN"], LayoutStyle.ColorForLayout("00000809", "EN")); // UK keyboard
+            Assert.Equal(LayoutStyle.Curated["DE"], LayoutStyle.ColorForLayout("00000807", "DE")); // Swiss German
+            Assert.Equal(LayoutStyle.Curated["EN"], LayoutStyle.ColorForLayout("00001809", "EN")); // Irish
             Assert.Equal(LayoutStyle.Curated["EN"], LayoutStyle.ColorForLayout(null, "EN"));
             Assert.Equal(LayoutStyle.Other, LayoutStyle.ColorForLayout("00000415", "PL"));
             Assert.Equal(LayoutStyle.Other, LayoutStyle.ColorFor("JA"));

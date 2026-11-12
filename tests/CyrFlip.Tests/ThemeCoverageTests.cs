@@ -303,17 +303,25 @@ namespace CyrFlip.Tests
         {
             Dictionary<string, string> built = Snapshot(form);
 
-            ThemeApply.Apply(form, ThemePalette.Dark);
+            Theme(form, ThemePalette.Dark);
             DarkProblems(form, name, problems);
 
-            ThemeApply.Apply(form, ThemePalette.HighContrast);
+            Theme(form, ThemePalette.HighContrast);
             SystemOnlyProblems(form, name, problems);
 
-            ThemeApply.Apply(form, ThemePalette.Light);
+            Theme(form, ThemePalette.Light);
             Dictionary<string, string> back = Snapshot(form);
             foreach (KeyValuePair<string, string> pair in built)
                 if (!back.TryGetValue(pair.Key, out string? now) || now != pair.Value)
                     problems.Add($"{name}: light did not restore {pair.Key}: built {pair.Value}, now {now}");
+        }
+
+        // What ThemeManager does to a window: the walk, then the window's own OnThemeApplied (S0060 T-M5) - the
+        // colours a window paints there itself are held by the same checks as the ones the walk sets.
+        private static void Theme(Form form, ThemePalette palette)
+        {
+            ThemeApply.Apply(form, palette);
+            (form as ThemedForm)?.RaiseThemeApplied(palette);
         }
 
         // By what a colour is for, not merely by value: the dark text colour is exactly the light "control"

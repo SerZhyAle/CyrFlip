@@ -46,6 +46,12 @@ namespace CyrFlip
         internal event EventHandler? TrafficLightHotkeyChangeRequested;
         /// <summary>The list of targets was edited here (added, changed, removed, moved).</summary>
         internal event EventHandler? TrafficLightTargetsChanged;
+        /// <summary>
+        /// A change the board draws was made here - the module switched on, its look or its targets
+        /// (<see cref="TrafficLightPresentation"/>, S0084): raised after the change itself, so the board the
+        /// context brings forward already carries it.
+        /// </summary>
+        internal event EventHandler? TrafficLightResultRequested;
         internal event EventHandler? OpenTrafficLightRequested;
         internal event EventHandler? TrafficLightCheckAllRequested;
         /// <summary><c>open</c>, <c>folder</c> or <c>clear</c> - the journal lives with the context.</summary>
@@ -57,15 +63,26 @@ namespace CyrFlip
         /// <summary>One check of a candidate target for the editor's "Check now"; the default runs the real probes.</summary>
         internal Func<TrafficLightTarget, CancellationToken, Task<ProbeOutcome>>? TrafficLightCheck { get; set; }
 
-        private void TrafficLightSettingChanged(Action apply, bool reload = false)
+        /// <param name="setting">The <see cref="AppConfig"/> property the control writes - what decides whether the board is brought forward.</param>
+        private void TrafficLightSettingChanged(string setting, Action apply, bool reload = false)
         {
             if (_loading) return;
             apply();
             TrafficLightChanged?.Invoke(this, EventArgs.Empty);
             if (reload) Reload();
+            RequestTrafficLightResult(setting);
         }
 
-        private void NotifyTrafficLightTargetsChanged() => TrafficLightTargetsChanged?.Invoke(this, EventArgs.Empty);
+        private void NotifyTrafficLightTargetsChanged()
+        {
+            TrafficLightTargetsChanged?.Invoke(this, EventArgs.Empty);
+            RequestTrafficLightResult(nameof(AppConfig.TrafficLightTargets));
+        }
+
+        private void RequestTrafficLightResult(string setting)
+        {
+            if (TrafficLightPresentation.ShowsBoard(setting, _config)) TrafficLightResultRequested?.Invoke(this, EventArgs.Empty);
+        }
 
         private Control TrackTrafficLight(Control control) { _tlControls.Add(control); return control; }
 
@@ -81,26 +98,26 @@ namespace CyrFlip
             _tlTransparency.Name = "setting.traffic-light-transparency";
             _tlAddBox.Name = "setting.traffic-light-add";
             _tlEnabled.CheckedChanged += (_, _) =>
-                TrafficLightSettingChanged(() => _config.EnableTrafficLight = _tlEnabled.Checked, reload: true);
+                TrafficLightSettingChanged(nameof(AppConfig.EnableTrafficLight), () => _config.EnableTrafficLight = _tlEnabled.Checked, reload: true);
             _tlHotkeyEnabled.CheckedChanged += (_, _) =>
-                TrafficLightSettingChanged(() => _config.EnableTrafficLightHotkey = _tlHotkeyEnabled.Checked);
+                TrafficLightSettingChanged(nameof(AppConfig.EnableTrafficLightHotkey), () => _config.EnableTrafficLightHotkey = _tlHotkeyEnabled.Checked);
             _tlShowAtStart.CheckedChanged += (_, _) =>
-                TrafficLightSettingChanged(() => _config.TrafficLightShowAtStart = _tlShowAtStart.Checked);
+                TrafficLightSettingChanged(nameof(AppConfig.TrafficLightShowAtStart), () => _config.TrafficLightShowAtStart = _tlShowAtStart.Checked);
             _tlPinned.CheckedChanged += (_, _) =>
-                TrafficLightSettingChanged(() => _config.TrafficLightPinned = _tlPinned.Checked);
+                TrafficLightSettingChanged(nameof(AppConfig.TrafficLightPinned), () => _config.TrafficLightPinned = _tlPinned.Checked);
             _tlTileSize.SelectedIndexChanged += (_, _) =>
             {
                 if (_loading || _tlTileSize.SelectedIndex < 0) return;
-                TrafficLightSettingChanged(() => _config.TrafficLightTileSize = _tlTileSize.SelectedIndex == 0
+                TrafficLightSettingChanged(nameof(AppConfig.TrafficLightTileSize), () => _config.TrafficLightTileSize = _tlTileSize.SelectedIndex == 0
                     ? AppConfig.MicroscopicTrafficLightTileSize : _tlTileSize.SelectedIndex - 1);
             };
             _tlColumns.ValueChanged += (_, _) =>
-                TrafficLightSettingChanged(() => _config.TrafficLightColumns = (int)_tlColumns.Value);
+                TrafficLightSettingChanged(nameof(AppConfig.TrafficLightColumns), () => _config.TrafficLightColumns = (int)_tlColumns.Value);
             _tlTransparency.ValueChanged += (_, _) =>
             {
                 if (_loading) return;
                 _tlTransparencyValue.Text = _tlTransparency.Value + "%";
-                TrafficLightSettingChanged(() => _config.TrafficLightWindowTransparency = _tlTransparency.Value);
+                TrafficLightSettingChanged(nameof(AppConfig.TrafficLightWindowTransparency), () => _config.TrafficLightWindowTransparency = _tlTransparency.Value);
             };
             _tlAddBox.KeyDown += OnTrafficLightAddKeyDown;
             _tlAddBox.TextChanged += (_, _) => ClearTrafficLightAddStatus();
@@ -343,7 +360,7 @@ namespace CyrFlip
             foreach (Label l in new[] { state, caption, kind, address, interval, checkedAt }) row.Controls.Add(l);
             _tlRowLabels[target.Id] = new KeyValuePair<Label, Label>(state, checkedAt);
 
-            row.Controls.Add(Button(Translate("Change..."), AppGlyphs.Edit, () => EditTrafficLightTarget(target)));
+            row.Controls.Add(Button(Translate("Edit..."), AppGlyphs.Edit, () => EditTrafficLightTarget(target)));
             Button up = Button("", AppGlyphs.MoveUp, () => MoveTrafficLightTarget(target, -1));
             Button down = Button("", AppGlyphs.MoveDown, () => MoveTrafficLightTarget(target, 1));
             up.Enabled = index > 0; down.Enabled = index < count - 1;

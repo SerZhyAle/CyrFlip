@@ -192,7 +192,7 @@ namespace CyrFlip
 
             if (!row.ReadOnly)
             {
-                panel.Controls.Add(Button(Translate("Change..."), AppGlyphs.Edit, () => OverviewChange(row)));
+                panel.Controls.Add(Button(Translate("Edit..."), AppGlyphs.Edit, () => OverviewChange(row)));
                 Button reset = Button(Translate(row.ResetRestoresDefault ? "Set default" : "Clear"), row.ResetRestoresDefault ? AppGlyphs.Reset : AppGlyphs.ClearInput, () => OverviewReset(row));
                 reset.Enabled = row.CanReset;
                 panel.Controls.Add(reset);
@@ -302,7 +302,7 @@ namespace CyrFlip
                 case ChordKind.History: Changed(_setHistoryEnabled, on); break;
                 case ChordKind.QuickNotes: QuickNotesSettingChanged(() => _config.EnableQuickNotesHotkey = on, reload: true); break;
                 case ChordKind.Symbols: SymbolsSettingChanged(() => _config.EnableSymbolsHotkey = on, reload: true); break;
-                case ChordKind.TrafficLight: TrafficLightSettingChanged(() => _config.EnableTrafficLightHotkey = on, reload: true); break;
+                case ChordKind.TrafficLight: TrafficLightSettingChanged(nameof(AppConfig.EnableTrafficLightHotkey), () => _config.EnableTrafficLightHotkey = on, reload: true); break;
                 case ChordKind.Screenshot: GraphicsSettingChanged(() => _config.EnableScreenshotHotkey = on, reload: true); break;
                 case ChordKind.ScreenshotFull: GraphicsSettingChanged(() => _config.EnableScreenshotFullHotkey = on, reload: true); break;
                 case ChordKind.ScreenshotAnnotateArea: GraphicsSettingChanged(() => _config.EnableScreenshotAnnotateAreaHotkey = on, reload: true); break;
