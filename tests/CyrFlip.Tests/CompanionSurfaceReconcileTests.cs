@@ -52,10 +52,12 @@ namespace CyrFlip.Tests
         private static void Pin(Form form)
         {
             form.TopMost = true;
-            if (!IsTopmost(form))
-                WindowInterop.SetWindowPos(form.Handle, WindowInterop.HWND_TOPMOST, 0, 0, 0, 0,
-                    WindowInterop.SWP_NOMOVE | WindowInterop.SWP_NOSIZE | WindowInterop.SWP_NOACTIVATE);
+            if (!IsTopmost(form)) RaiseWithoutActivation(form);
         }
+
+        private static void RaiseWithoutActivation(Form form) =>
+            WindowInterop.SetWindowPos(form.Handle, WindowInterop.HWND_TOPMOST, 0, 0, 0, 0,
+                WindowInterop.SWP_NOMOVE | WindowInterop.SWP_NOSIZE | WindowInterop.SWP_NOACTIVATE);
 
         /// <summary>Runs the thread's posted messages (the registry defers its rebuilt-handle reconcile by one turn).</summary>
         private static bool PumpUntil(Func<bool> done)
@@ -150,6 +152,9 @@ namespace CyrFlip.Tests
                         form.RightToLeft = RightToLeft.Yes;
                         form.RightToLeftLayout = true;
                         Assert.NotEqual(before, form.Handle);
+                        // The new window gets WS_EX_TOPMOST from Form.TopMost at creation; where Windows does not
+                        // honour that for this process (see Pin) it is raised the same way. The registry is judged below.
+                        if (!IsTopmost(form)) RaiseWithoutActivation(form);
                         Assert.True(IsTopmost(form));
 
                         Assert.True(PumpUntil(() => !IsTopmost(form)), "the registry never lowered the rebuilt window");

@@ -69,11 +69,21 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
-        public void PinnedIsTheFilledPinAndNotPinnedIsTheOutlineWithMoreInkWhenFilled()
+        public void PinnedIsTheFilledPinAndNotPinnedIsTheOutline()
         {
             Assert.Equal("action.pin", HistoryStripGlyphs.PinId(true));
             Assert.Equal("action.pin--off", HistoryStripGlyphs.PinId(false));
-            Assert.True(Ink(AppGlyphs.Pin) > Ink(AppGlyphs.PinOff), "the pinned (filled) form must carry more ink than the outline");
+            // Not "more ink": the catalog draws the outline with a stroke of 2 on a thin pin, which can carry as much
+            // ink as the fill. What tells the two apart is the middle of the head - filled in one, empty in the other.
+            foreach (int size in new[] { 24, 48 })
+            {
+                using Bitmap? filled = GlyphRenderer.Render(AppGlyphs.Pin, size, Color.Black);
+                using Bitmap? outline = GlyphRenderer.Render(AppGlyphs.PinOff, size, Color.Black);
+                Assert.NotNull(filled); Assert.NotNull(outline);
+                int x = size / 2, y = (int)(size * 0.30f);
+                Assert.Equal(255, filled!.GetPixel(x, y).A);
+                Assert.Equal(0, outline!.GetPixel(x, y).A);
+            }
         }
 
         [Fact]
