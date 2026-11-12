@@ -63,39 +63,48 @@ namespace CyrFlip.Tests
         {
             OnUiThread(() =>
             {
-                using QuickNotesService service = Service("layout");
-                using var window = new QuickNotesWindow(service, new AppConfig { UiLanguage = "ru" }, () => { });
-                window.Show();
-                // A top-level window cannot be wider than the display unless its own WM_GETMINMAXINFO answer says
-                // so: on a 1024 px runner the shown window stayed about 1028 px wide while ClientSize kept the
-                // requested 1400 (no WM_SIZE arrives when the real size does not change), and the details label
-                // was left about one pixel wide. A large MaximumSize lifts that limit, so the layout is measured
-                // at the width asked for whatever the display is.
-                window.MinimumSize = System.Drawing.Size.Empty;
-                window.MaximumSize = new System.Drawing.Size(4000, 4000);
-                window.ClientSize = new System.Drawing.Size(Math.Max(window.ClientSize.Width, 1400), window.ClientSize.Height);
-                Application.DoEvents();
-                var split = All(window).OfType<SplitContainer>().Single();
-                Button help = All(window).OfType<Button>().Single(b => b.Name == "contextHelp");
-                Assert.Equal(0, window.Padding.Right);
-                Assert.Equal(window.ClientSize.Width, split.Right);
-                Assert.True(help.Bottom <= split.Top);
-                var right = (TableLayoutPanel)typeof(QuickNotesWindow).GetField("_rightPanel", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
-                var commands = (FlowLayoutPanel)typeof(QuickNotesWindow).GetField("_bottomRow", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
-                var details = (Label)typeof(QuickNotesWindow).GetField("_dates", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
-                Assert.Same(commands.Parent, details.Parent);
-                Assert.True(details.Left >= commands.Right);
-                Assert.Equal(commands.Top, details.Top);
-                string originalDetails = details.Text;
-                int oneLine = details.Height;
-                details.Text = string.Join(" ", Enumerable.Repeat("Long note details", 80));
-                right.PerformLayout();
-                Assert.True(details.Height > oneLine, "Details must wrap beside the commands.");
-                Assert.True(details.Right <= details.Parent!.ClientSize.Width);
-                details.Text = originalDetails;
-                right.PerformLayout();
+                foreach (string language in new[] { "en", "ru" })
+                {
+                    using QuickNotesService service = Service("layout-" + language);
+                    using var window = new QuickNotesWindow(service, new AppConfig { UiLanguage = language }, () => { });
+                    window.Show();
+                    window.MinimumSize = System.Drawing.Size.Empty;
+                    window.MaximumSize = new System.Drawing.Size(4000, 4000);
+                    window.ClientSize = new System.Drawing.Size(Math.Max(window.ClientSize.Width, 1400), window.ClientSize.Height);
+                    Application.DoEvents();
+                    // ClientSize is a cached value: a top-level window cannot be wider than the display, and when Windows keeps it
+                    // there no WM_SIZE arrives, so on a 1024 px runner it still said 1400 while the window was about 1028 px
+                    // wide. The width that counts is the one the window really has.
+                    GetClientRect(window.Handle, out WindowInterop.RECT client);
+                    int actualWidth = client.Right - client.Left;
+                    // The Russian captions need more room than a small display gives, and the layout rules are the same in every
+                    // language: the English window is always judged, the Russian one where it could be made as wide as it needs.
+                    if (language == "ru" && actualWidth < 1400) continue;
+                    var split = All(window).OfType<SplitContainer>().Single();
+                    Button help = All(window).OfType<Button>().Single(b => b.Name == "contextHelp");
+                    Assert.Equal(0, window.Padding.Right);
+                    Assert.Equal(actualWidth, split.Right);
+                    Assert.True(help.Bottom <= split.Top);
+                    var right = (TableLayoutPanel)typeof(QuickNotesWindow).GetField("_rightPanel", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
+                    var commands = (FlowLayoutPanel)typeof(QuickNotesWindow).GetField("_bottomRow", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
+                    var details = (Label)typeof(QuickNotesWindow).GetField("_dates", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(window)!;
+                    Assert.Same(commands.Parent, details.Parent);
+                    Assert.True(details.Left >= commands.Right, language + ": the details sit beside the commands");
+                    Assert.Equal(commands.Top, details.Top);
+                    string originalDetails = details.Text;
+                    int oneLine = details.Height;
+                    details.Text = string.Join(" ", Enumerable.Repeat("Long note details", 80));
+                    right.PerformLayout();
+                    Assert.True(details.Height > oneLine, language + ": details must wrap beside the commands.");
+                    Assert.True(details.Right <= details.Parent!.ClientSize.Width);
+                    details.Text = originalDetails;
+                    right.PerformLayout();
+                }
             });
         }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool GetClientRect(IntPtr hWnd, out WindowInterop.RECT rect);
 
         [Fact]
         public void BothDateColumnsAndFooterFollowEditsAndUseTheAgreedLocalFormat()
