@@ -244,6 +244,7 @@ Windows SmartScreen («Система Windows защитила ваш компь
 MIT - см. [LICENSE](LICENSE).
 
 
+
 <!-- S0075 -->
 Справка доступна без сети. Нажмите F1 в окне CyrFlip или кнопку справки. [Справка](https://serzhyale.github.io/CyrFlip/help/ru/index.html).
 <!-- /S0075 -->

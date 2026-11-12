@@ -9,10 +9,10 @@
 {"path": "uk/privacy.html", "anchor": "", "held_by": [{"surface": "in-app About resources", "file": "src/CyrFlip/AboutResources.cs"}, {"surface": "README (uk)", "file": "README_UK.md"}, {"surface": "winget locale uk-UA", "file": "winget/SerZhyAle.CyrFlip.locale.uk-UA.yaml"}]}
 {"path": "uk/trust.html", "anchor": "", "held_by": [{"surface": "README (uk)", "file": "README_UK.md"}, {"surface": "winget locale uk-UA", "file": "winget/SerZhyAle.CyrFlip.locale.uk-UA.yaml"}]}
 {"path": "uk/guide.html", "anchor": "layout-colours", "held_by": [{"surface": "README (uk)", "file": "README_UK.md"}]}
-{"path": "help/en/index.html", "anchor": "", "held_by": [{"surface": "README", "file": "README.md"}]}
-{"path": "help/ru/index.html", "anchor": "", "held_by": [{"surface": "README", "file": "README_RU.md"}]}
-{"path": "help/uk/index.html", "anchor": "", "held_by": [{"surface": "README", "file": "README_UK.md"}]}
 {"path": "ru/", "anchor": "", "held_by": [{"surface": "in-app About resources", "file": "src/CyrFlip/AboutResources.cs"}]}
 {"path": "uk/", "anchor": "", "held_by": [{"surface": "in-app About resources", "file": "src/CyrFlip/AboutResources.cs"}]}
 {"path": "ru/guide.html", "anchor": "", "held_by": [{"surface": "in-app About resources", "file": "src/CyrFlip/AboutResources.cs"}]}
 {"path": "uk/guide.html", "anchor": "", "held_by": [{"surface": "in-app About resources", "file": "src/CyrFlip/AboutResources.cs"}]}
+{"path": "help/en/index.html", "anchor": "", "held_by": [{"surface": "README", "file": "README.md"}]}
+{"path": "help/ru/index.html", "anchor": "", "held_by": [{"surface": "README", "file": "README_RU.md"}]}
+{"path": "help/uk/index.html", "anchor": "", "held_by": [{"surface": "README", "file": "README_UK.md"}]}

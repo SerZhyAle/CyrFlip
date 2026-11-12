@@ -22,12 +22,15 @@
 {"file": "docs/contracts/APP-BEHAVIOUR.md", "topic": "APP BEHAVIOUR", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/APP-SETTINGS.md", "topic": "APP SETTINGS", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/APP-STYLE.md", "topic": "APP STYLE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/BOOLEAN-OPTION.md", "topic": "BOOLEAN OPTION", "area": "contracts", "triggers": ["UI contract migration changes"], "role": "source"}
 {"file": "docs/contracts/BUILD-EVIDENCE.md", "topic": "BUILD EVIDENCE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/BUTTONS.md", "topic": "BUTTONS", "area": "contracts", "triggers": ["UI contract migration changes"], "role": "source"}
 {"file": "docs/contracts/CAPTURE-OUTPUT.md", "topic": "CAPTURE OUTPUT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/CHECK-BASELINE.md", "topic": "CHECK BASELINE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/CHECK-PLACEMENT.md", "topic": "CHECK PLACEMENT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/CHECK-VERDICT.md", "topic": "CHECK VERDICT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/CLIPBOARD-GUARD.md", "topic": "CLIPBOARD GUARD", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/COLLAPSIBLE-GROUP.md", "topic": "COLLAPSIBLE GROUP", "area": "contracts", "triggers": ["UI contract migration changes"], "role": "source"}
 {"file": "docs/contracts/CONTEXT-HELP.md", "topic": "context help", "area": "in-app help", "triggers": ["window, control, help copy or locale changes"], "role": "source"}
 {"file": "docs/contracts/DEVICE-EXCHANGE.md", "topic": "DEVICE EXCHANGE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/DIAGNOSTIC-REPORT.md", "topic": "DIAGNOSTIC REPORT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
@@ -46,11 +49,13 @@
 {"file": "docs/contracts/README.md", "topic": "README", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/REPO-STAMP.md", "topic": "REPO STAMP", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/SCENARIO-FILE.md", "topic": "SCENARIO FILE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/SETTINGS-NAVIGATION.md", "topic": "SETTINGS NAVIGATION", "area": "contracts", "triggers": ["UI contract migration changes"], "role": "source"}
 {"file": "docs/contracts/SITE-EXPERIENCE.md", "topic": "SITE EXPERIENCE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/SITE-FAMILY-MAP.md", "topic": "SITE FAMILY MAP", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/SITE-REPRESENTATION.md", "topic": "SITE REPRESENTATION", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/SITE-STRUCTURE.md", "topic": "SITE STRUCTURE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/TEST-LAB.md", "topic": "TEST LAB", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/UI-SIZING.md", "topic": "UI SIZING", "area": "contracts", "triggers": ["UI contract migration changes"], "role": "source"}
 {"file": "docs/contracts/UPDATE-MANIFEST.md", "topic": "UPDATE MANIFEST", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/WINDOWS-STORE.md", "topic": "WINDOWS STORE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/WINDOWS-UI.md", "topic": "WINDOWS UI", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
@@ -671,8 +676,3 @@
 {"file": "vscode-extension/CHANGELOG.md", "topic": "CHANGELOG", "area": "VS Code extension", "triggers": ["extension behavior or release changes"], "role": "source"}
 {"file": "vscode-extension/README.md", "topic": "README", "area": "VS Code extension", "triggers": ["extension behavior or release changes"], "role": "source"}
 {"file": "winget/README.md", "topic": "README", "area": "winget publishing", "triggers": ["manifest or release changes"], "role": "source"}
-{"file":"docs/contracts/UI-SIZING.md","topic":"UI SIZING","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}
-{"file":"docs/contracts/BUTTONS.md","topic":"BUTTONS","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}
-{"file":"docs/contracts/BOOLEAN-OPTION.md","topic":"BOOLEAN OPTION","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}
-{"file":"docs/contracts/COLLAPSIBLE-GROUP.md","topic":"COLLAPSIBLE GROUP","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}
-{"file":"docs/contracts/SETTINGS-NAVIGATION.md","topic":"SETTINGS NAVIGATION","area":"contracts","triggers":["UI contract migration changes"],"role":"source"}

@@ -696,19 +696,19 @@
       "zh": "在哪里找到 CyrFlip"
     },
     "clipboard-history-window": {
-      "en": "Clipboard history",
-      "ru": "История буфера",
-      "uk": "Історія буфера",
-      "de": "Zwischenablage-Verlauf",
-      "it": "Cronologia appunti",
-      "es": "Historial del portapapeles",
-      "fr": "Historique du presse-papiers",
-      "pt": "Histórico da área de transferência",
-      "ar": "سجل الحافظة",
-      "hi": "क्लिपबोर्ड इतिहास",
-      "bn": "ক্লিপবোর্ড ইতিহাস",
-      "ur": "کلپ بورڈ تاریخ",
-      "zh": "剪贴板历史"
+      "en": "Clipboard",
+      "ru": "Буфер обмена",
+      "uk": "Буфер обміну",
+      "de": "Zwischenablage",
+      "it": "Appunti",
+      "es": "Portapapeles",
+      "fr": "Presse-papiers",
+      "pt": "Área de transferência",
+      "ar": "الحافظة",
+      "hi": "क्लिपबोर्ड",
+      "bn": "ক্লিপবোর্ড",
+      "ur": "کلپ بورڈ",
+      "zh": "剪贴板"
     },
     "clipboard-history-search-window": {
       "en": "Search history",

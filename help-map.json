@@ -50,7 +50,7 @@
     {
       "id": "clipboard-history-window",
       "type": "CyrFlip.ClipboardHistoryWindow",
-      "name": "Clipboard history",
+      "name": "Clipboard",
       "form": "page",
       "help": "clipboard-history-window",
       "related": [

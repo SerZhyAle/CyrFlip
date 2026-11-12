@@ -245,6 +245,7 @@ Windows SmartScreen або антивірус можуть зупинити `Cyr
 MIT - див. [LICENSE](LICENSE).
 
 
+
 <!-- S0075 -->
 Довідка доступна без мережі. Натисніть F1 у вікні CyrFlip або кнопку довідки. [Довідка](https://serzhyale.github.io/CyrFlip/help/uk/index.html).
 <!-- /S0075 -->
