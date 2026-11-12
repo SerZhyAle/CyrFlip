@@ -314,7 +314,7 @@ namespace CyrFlip
             int skipped = 0;
             try
             {
-                foreach (string line in File.ReadLines(_path))
+                foreach (string line in ReadLinesShared(_path))
                 {
                     if (string.IsNullOrWhiteSpace(line)) continue;
                     try
@@ -326,6 +326,20 @@ namespace CyrFlip
             }
             catch { skipped++; }
             return skipped;
+        }
+
+        /// <summary>
+        /// The lines of the file, read while this process's own writer may hold it open for appending:
+        /// <c>File.ReadLines</c> asks for <c>FileShare.Read</c>, which a handle with write access refuses, and
+        /// <see cref="Load"/> would then count the whole file as one unreadable record - a replay that overlaps
+        /// a copy (the writer opens the file on the first record) lost the entire history on screen.
+        /// </summary>
+        private static IEnumerable<string> ReadLinesShared(string path)
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new StreamReader(stream, Encoding.UTF8, true);
+            string? line;
+            while ((line = reader.ReadLine()) != null) yield return line;
         }
 
         /// <summary>False for a line that parsed but is not a usable record.</summary>

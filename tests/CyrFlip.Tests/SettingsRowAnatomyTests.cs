@@ -553,7 +553,7 @@ namespace CyrFlip.Tests
         {
             string source = SettingsSource();
             var swallowed = new Regex(@"catch\s*(\([^)]*\))?\s*\{\s*(/\*.*?\*/\s*)?\}", RegexOptions.Singleline);
-            foreach (string signature in new[] { "private void SetShortcut(", "private void OpenAddress(", "private LinkLabel Link(" })
+            foreach (string signature in new[] { "private void SetShortcut(", "private void OpenAddress(" })
             {
                 string body = MethodBody(source, signature);
                 Assert.False(swallowed.IsMatch(body), signature + " swallows a failure with an empty catch (S0060 e)");
@@ -561,7 +561,10 @@ namespace CyrFlip.Tests
             // And what it does instead names the cause and offers the actions.
             Assert.Contains("Fail(", MethodBody(source, "private void SetShortcut("));
             Assert.Contains("Fail(", MethodBody(source, "private void OpenAddress("));
-            Assert.Contains("OpenAddress(url)", MethodBody(source, "private LinkLabel Link("));
+            // The links of the window (the About resources, the exchange server's portal) open through that same method:
+            // the former Link() wrapper is gone, each LinkClicked handler calls OpenAddress itself.
+            Assert.Contains("OpenAddress(AboutResources.UrlFor(resource,", source);
+            Assert.Contains("OpenAddress(ExchangePortalLinks.ForLanguage(", source);
         }
 
         // ---- S0060 U-L6: a field being typed in is not overwritten by a Reload ----

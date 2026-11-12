@@ -41,6 +41,22 @@ namespace CyrFlip.Tests
         private static bool IsTopmost(Form form) =>
             (WindowInterop.GetWindowLong(form.Handle, WindowInterop.GWL_EXSTYLE) & WindowInterop.WS_EX_TOPMOST) != 0;
 
+        /// <summary>
+        /// The pin switch: <c>Form.TopMost = true</c>. WinForms applies it with a SetWindowPos that does not pass
+        /// SWP_NOACTIVATE, and whether Windows lets a window of a process that may not take the foreground (a test host
+        /// after its first window, a runner without an active session) become topmost that way depends on the machine:
+        /// the property then reads true while the bit stays off. This is the staging, not what is judged - so when the
+        /// property did not raise the window, the window is raised the same way without activation, and the tests
+        /// judge what the registry does with it.
+        /// </summary>
+        private static void Pin(Form form)
+        {
+            form.TopMost = true;
+            if (!IsTopmost(form))
+                WindowInterop.SetWindowPos(form.Handle, WindowInterop.HWND_TOPMOST, 0, 0, 0, 0,
+                    WindowInterop.SWP_NOMOVE | WindowInterop.SWP_NOSIZE | WindowInterop.SWP_NOACTIVATE);
+        }
+
         /// <summary>Runs the thread's posted messages (the registry defers its rebuilt-handle reconcile by one turn).</summary>
         private static bool PumpUntil(Func<bool> done)
         {
@@ -60,7 +76,7 @@ namespace CyrFlip.Tests
                 using (var form = new Probe())
                 {
                     form.Show();
-                    form.TopMost = true;   // the pin switch: WinForms raises the window itself
+                    Pin(form);   // the pin switch: the window is raised (see Pin)
                     Assert.True(IsTopmost(form));
 
                     Assert.False(CompanionSurfaceRegistry.Reconcile(form, shouldBeTopmost: true));
@@ -95,7 +111,7 @@ namespace CyrFlip.Tests
                 using (var form = new Probe())
                 {
                     form.Show();
-                    form.TopMost = true;
+                    Pin(form);
                     CompanionSurfaceRegistry.RegisterCompanion(form, CompanionSurfaceKind.TrafficLight, () => false);
                     try
                     {
@@ -103,7 +119,7 @@ namespace CyrFlip.Tests
 
                         // TrafficLightWindow.ApplyPinned: Form.TopMost raises the real window whatever the registry
                         // has done to it, then the registry is asked to apply its policy.
-                        form.TopMost = true;
+                        Pin(form);
                         Assert.True(IsTopmost(form));
                         CompanionSurfaceRegistry.ApplyToForm(form);
 
@@ -122,7 +138,7 @@ namespace CyrFlip.Tests
                 using (var form = new Probe())
                 {
                     form.Show();
-                    form.TopMost = true;
+                    Pin(form);
                     CompanionSurfaceRegistry.RegisterCompanion(form, CompanionSurfaceKind.TrafficLight, () => false);
                     try
                     {

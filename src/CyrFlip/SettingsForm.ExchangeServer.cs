@@ -99,7 +99,7 @@ namespace CyrFlip
                 _exchangeAccountsList));
 
             panel.Controls.Add(Group("exchange/standard", "Standard settings",
-                Note("Save your settings on the server as the standard and read them on your other computers. Both buttons ask first; nothing is sent or read by itself."),
+                Note("Save your settings on the server as the standard and read them on your other computers. Both buttons ask first."),
                 Note("Whoever runs the server can read the saved settings."),
                 Note("Passwords, folders, addresses and window positions stay on this computer."),
                 Note("The buttons stand beside an account whose server keeps standard settings."),
@@ -164,7 +164,7 @@ namespace CyrFlip
             block.Controls.Add(boxes);
             block.Controls.Add(new Label
             {
-                Text = "Each group holds the settings of one page. A save keeps only the groups chosen here; a read changes only them.",
+                Text = "Each group holds the settings of one page. A save keeps only the chosen groups; a read changes only them.",
                 AutoSize = true, UseMnemonic = false, MaximumSize = new Size(890, 0), ForeColor = ThemePalette.Light.TextMuted, Margin = new Padding(3, 2, 3, 3),
             });
             return block;

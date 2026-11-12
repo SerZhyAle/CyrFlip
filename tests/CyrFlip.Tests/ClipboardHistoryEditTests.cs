@@ -65,7 +65,7 @@ namespace CyrFlip.Tests
             Assert.Equal(ClipboardHistoryService.Hash("trimmed"), replayed.Entries[0].Uuid);
 
             // "x" semantics: no line of the old entry is left, not even a tombstone that names it.
-            foreach (string line in File.ReadAllLines(path).Where(l => l.Trim().Length > 0))
+            foreach (string line in ReadLinesWhileOpen(path).Where(l => l.Trim().Length > 0))
             {
                 Match blob = Regex.Match(line, "\"blob\":\"([^\"]+)\"");
                 Assert.True(blob.Success, line);
@@ -207,6 +207,15 @@ namespace CyrFlip.Tests
                 });
             }
             finally { DeleteDir(dir); }
+        }
+
+        /// <summary>The journal's writer keeps the file open for appending while the service lives, and File.ReadAllLines
+        /// asks for a share mode that a handle with write access refuses - so the tests read it the way a second reader can.</summary>
+        private static string[] ReadLinesWhileOpen(string path)
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new StreamReader(stream, Encoding.UTF8, true);
+            return reader.ReadToEnd().Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
         }
 
         private static string NewDir() => Path.Combine(Path.GetTempPath(), "CyrFlipTests", Guid.NewGuid().ToString("N"));

@@ -70,7 +70,7 @@ namespace CyrFlip
         {
             string prompt = Localization.Format(T, "Read the standard from {0} and apply these groups of settings?", ExchangeClipboardService.LabelOf(entry))
                 + "\n\n" + GroupList(groupIds) + "\n\n"
-                + T("Their settings on this computer will be replaced by the saved ones; you will see every change before it is applied.") + "\n"
+                + T("Their settings on this computer will be replaced by the saved ones; you see every change first.") + "\n"
                 + T("Passwords, folders, addresses and window positions stay on this computer.");
             if (ConfirmDialog.Show(_settings, language, prompt, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
