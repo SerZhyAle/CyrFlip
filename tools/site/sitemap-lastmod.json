@@ -8,8 +8,8 @@
     "sha256": "a774d869edfa9ecee79e8ca18f93cebfe9dc6a4104003b7cadcfddecadda8e02"
   },
   "https://serzhyale.github.io/CyrFlip/ar/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "a21d290650d9922065d121b6cdb653c2230b3b5daf1cca9acc66056aa01a7a44"
+    "lastmod": "2026-11-12",
+    "sha256": "8c779a20cfd301385b5b0c6e3a50e9eae5942164099e97bf25f2df2464dfafb1"
   },
   "https://serzhyale.github.io/CyrFlip/ar/trust.html": {
     "lastmod": "2026-11-07",
@@ -20,8 +20,8 @@
     "sha256": "868c88e74dd5f620610a592c737cb4bb7034600e9fee20300b5cc798c4b21fd0"
   },
   "https://serzhyale.github.io/CyrFlip/bn/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "40ffb5276d07c7e2ab69491e824fe0dc19160b53d71c76778375f7a24ecb3ad0"
+    "lastmod": "2026-11-12",
+    "sha256": "52ab2749a3de4440359da232b152dcb8f364e83d478afe075cec4e655c6f48c8"
   },
   "https://serzhyale.github.io/CyrFlip/bn/trust.html": {
     "lastmod": "2026-11-07",
@@ -32,8 +32,8 @@
     "sha256": "e57ff4acaf4dbe216ccd4354b12cff25831400161850ae99bccc12a04c19efca"
   },
   "https://serzhyale.github.io/CyrFlip/de/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "206f81a524229cd9a88d3bb6e356a81cbe6dbde26dd521ae25c602b6f694630a"
+    "lastmod": "2026-11-12",
+    "sha256": "aa766490920409103950c9af434fb91c5f13d4a94216dc4a6c4030e2923b9df4"
   },
   "https://serzhyale.github.io/CyrFlip/de/trust.html": {
     "lastmod": "2026-11-07",
@@ -44,8 +44,8 @@
     "sha256": "7f4a4662573929665318651220a2f749e3f9f2869fe434ab64ce1cf7c9591c8a"
   },
   "https://serzhyale.github.io/CyrFlip/es/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "987d803983697178b6af7258259704bc5e860f5879d2df47f7fcbade106b4faa"
+    "lastmod": "2026-11-12",
+    "sha256": "55a704099763be32090bec7d87ace7e1aff3ce3fa6dac2c45f7328046c1c8960"
   },
   "https://serzhyale.github.io/CyrFlip/es/trust.html": {
     "lastmod": "2026-11-07",
@@ -60,24 +60,24 @@
     "sha256": "8b8d995dc2c879d2a553287042f94adb782b397c679b5ea58fb7d20c3da72c12"
   },
   "https://serzhyale.github.io/CyrFlip/fr/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "930202bbcb2992b108b4aad44034b4d012b72f1255354730f61e127aa34f7c72"
+    "lastmod": "2026-11-12",
+    "sha256": "b6f647ce2b0eab0016ebac48567c98194cc395a784f8186f228f4a4a4ef37ad1"
   },
   "https://serzhyale.github.io/CyrFlip/fr/trust.html": {
     "lastmod": "2026-11-07",
     "sha256": "1b67b1514b99abbd20577cb9c044430c7d367799339f1dc07b5e8b991cf69980"
   },
   "https://serzhyale.github.io/CyrFlip/guide.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "669e3d9af28cd424246a59fe299327bbf669e221786141c3774322903b628d2b"
+    "lastmod": "2026-11-12",
+    "sha256": "a0f78efbb31a05ccd7ebc6c3ce37245fafc1ac82be72004e7d1bd3c34fe5c049"
   },
   "https://serzhyale.github.io/CyrFlip/hi/": {
     "lastmod": "2026-11-10",
     "sha256": "11693698d28ee5c18a2616370cf4194dbad869930fd7e3e761a1a5b9b2cbc30d"
   },
   "https://serzhyale.github.io/CyrFlip/hi/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "cd91f411ea891411ec400382015f9412d5cf8b0116a86d7ea9fcfe1bef040c28"
+    "lastmod": "2026-11-12",
+    "sha256": "e325a1cca5f0557cf24c5cef980a54418939b2421df9d0f8a7a3c7258f454205"
   },
   "https://serzhyale.github.io/CyrFlip/hi/trust.html": {
     "lastmod": "2026-11-07",
@@ -88,24 +88,24 @@
     "sha256": "ec8574904dbb1fea339a6ff7ea95ab8c99f1d844b742344751f8367c45835a20"
   },
   "https://serzhyale.github.io/CyrFlip/it/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "bc9992e1dd722956205f20b56619557f142d246c310a21a1691594e6330c1cb4"
+    "lastmod": "2026-11-12",
+    "sha256": "09417ddace924a6e19ad5509517507cc4d90b1d6393d0c170b708978ca2372c6"
   },
   "https://serzhyale.github.io/CyrFlip/it/trust.html": {
     "lastmod": "2026-11-07",
     "sha256": "ab1b6e691554f39a9dc24a802aac8a02fd4c50ee2675910490e5a78d20747814"
   },
   "https://serzhyale.github.io/CyrFlip/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "3276aea6674d7b288019613c1acad20dfe6dac4618680e3d16ce0cd55d5de9ea"
+    "lastmod": "2026-11-12",
+    "sha256": "d16949bae0d793ec858163a10308c571f9aefe7e488e656dd6980689415bf9f4"
   },
   "https://serzhyale.github.io/CyrFlip/pt/": {
     "lastmod": "2026-11-10",
     "sha256": "492dfaabeaeb29507c4a2258d282e27c207fdfcf42dd377c2aff6729486510d2"
   },
   "https://serzhyale.github.io/CyrFlip/pt/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "0941605b68e07c3d8cc82b097f66bdbd646a3671298925249fdd63d439c82905"
+    "lastmod": "2026-11-12",
+    "sha256": "9728b3d30200a554652902e961af08f0bcee3fd8b042f1ec04ce4d3d48a03ef6"
   },
   "https://serzhyale.github.io/CyrFlip/pt/trust.html": {
     "lastmod": "2026-11-07",
@@ -120,12 +120,12 @@
     "sha256": "767f222663f5c1ec406f0047b8506775d8c09a653dfb44c263be49e1e036272a"
   },
   "https://serzhyale.github.io/CyrFlip/ru/guide.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "f9da7bf4bbeee99335553f9ca413d3dcaf2682f3b77a0f63eeb831b93286f621"
+    "lastmod": "2026-11-12",
+    "sha256": "bacc8d80246c6ae1b72ce06288db6666ee4df6513e8d87aada8c0a2a4e933f49"
   },
   "https://serzhyale.github.io/CyrFlip/ru/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "0774a792aea9b49dc82e85c9a4ff1423e0e3e9136b2ae29ca288d40ce6aec73d"
+    "lastmod": "2026-11-12",
+    "sha256": "af88703f39367dea440be63973f7cd8373c7b357fec34bc54f6e17803564a4b0"
   },
   "https://serzhyale.github.io/CyrFlip/ru/store.html": {
     "lastmod": "2026-11-08",
@@ -160,12 +160,12 @@
     "sha256": "d168bd35e887e3652eccb8a377c83d8511859cb3087091f8401a322eb5c92d02"
   },
   "https://serzhyale.github.io/CyrFlip/uk/guide.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "9537c9b00bc68ad0a72f7791d71e100ee5881c3361eff7987ae386355a5d84cb"
+    "lastmod": "2026-11-12",
+    "sha256": "8e672f8eee8ed1f780d7cba6b1165f954ce64e6d9ae4c568bd5a3ba705b00dae"
   },
   "https://serzhyale.github.io/CyrFlip/uk/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "5ffbfcdd8b52cba9c03467097f0b332ae87ef47d4644bf371fc900f5bca86a19"
+    "lastmod": "2026-11-12",
+    "sha256": "5d7e6348d1c315c247e792ddfe52ca258a7907772a4565c913d110860ccc9299"
   },
   "https://serzhyale.github.io/CyrFlip/uk/store.html": {
     "lastmod": "2026-11-08",
@@ -184,8 +184,8 @@
     "sha256": "4f52b7defebcff3de711c22a2349cd050ece22d4797a8163cea541352a0b0a88"
   },
   "https://serzhyale.github.io/CyrFlip/ur/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "905771b0300a72c2eee7cb2d980a4e73a92ff9181a2d1a6c577bce526ef0b06a"
+    "lastmod": "2026-11-12",
+    "sha256": "116e596d29051e18f2cb328f8d9c61b6cf0da86e6686dfaeed40d477a196e0ec"
   },
   "https://serzhyale.github.io/CyrFlip/ur/trust.html": {
     "lastmod": "2026-11-07",
@@ -196,8 +196,8 @@
     "sha256": "5da14c67307c0e5f574b062723ed0298d7a80491f1039d847ea3f06a6f3085bf"
   },
   "https://serzhyale.github.io/CyrFlip/zh/privacy.html": {
-    "lastmod": "2026-11-10",
-    "sha256": "dfcf256989ade2d91407e1e4ffe81518e57ba95769636bedbbe61b18e055ee10"
+    "lastmod": "2026-11-12",
+    "sha256": "25c7cc0708181484c369a4661bc5f44bd6dcaa01972b7244838d5e003e561f08"
   },
   "https://serzhyale.github.io/CyrFlip/zh/trust.html": {
     "lastmod": "2026-11-07",

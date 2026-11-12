@@ -35,7 +35,8 @@ Description: >-
   author button that packs CyrFlip's own logs into one archive for a report you send yourself. Ships
   as a single portable exe with no installer and no runtime dependencies.
 ReleaseNotes: |-
-  This release adds the traffic light, drawing on screenshots and settings that survive a reinstall.
+  This release sorts the settings by feature and adds the traffic light, drawing on screenshots and settings that survive a reinstall.
+  - Settings: each setting is on the page of the feature it belongs to, with a page list at the side. The General page has "Size and input": an interface scale from 75 to 200 per cent, a text scale and a touch profile, applied to every window at once.
   - Traffic light (off by default): list your own addresses, folders, drives and servers, and a small always-on-top board shows which of them answer right now - every state has a mark as well as a colour.
   - Screenshots: Ctrl+F11 takes the whole screen; Ctrl+Alt+F12 and Ctrl+Alt+F11 open a drawing step (ellipses, rectangles, lines, arrows, an eraser, eight colours) before the picture is copied. New installs save captures as PNG files in the Screenshots folder, and Ctrl+F10 opens it.
   - New default chords: Ctrl+F12 for the region capture and Ctrl+F10 for the capture folder (PrintScreen is no longer used). Installs that still had the old defaults are moved once; chords you set yourself stay as they are.
@@ -43,6 +44,10 @@ ReleaseNotes: |-
   - Clipboard on your own exchange server (off by default): send text, a picture or one file to your other devices, encrypted on your computer first and sent only when you press the button.
   - Help: F1 or the ? button on every window and Help in the tray menu, with pages and screenshots in 13 languages.
   - Quick notes can show line numbers (off by default).
+  - Clipboard history: edit an entry's text in place (right-click it or press F2).
+  - British English has its own blue on the layout marker, in the app and in the VS Code extension.
+  - The exchange server can keep your settings as a standard: "Save as STANDARD" and "Read STANDARD" act only when you press them.
+  - Small windows (clipboard, translation, symbols, shortcuts, traffic light) step aside when a dialog opens, and translucent ones keep their text readable.
 ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
 PrivacyUrl: https://serzhyale.github.io/CyrFlip/privacy.html
 InstallationNotes: "This build is not code-signed, so Windows SmartScreen or an antivirus may warn when CyrFlip first starts. What the warning means and what to click: https://serzhyale.github.io/CyrFlip/trust.html"

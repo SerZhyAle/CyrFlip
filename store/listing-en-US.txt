@@ -58,15 +58,17 @@ PRODUCT FEATURES (max 200 chars each)
 
 WHAT'S NEW IN THIS VERSION
 --------------------------
-New: the traffic light. Switch it on, list your own addresses, folders, drives and servers, and a small board shows at a glance which of them answer right now - every state has a mark as well as a colour. It is off by default and checks only what you list.
+Settings are easier to find. Each setting now sits on the page of the feature it belongs to, a page list at the side takes you there, and the General page has "Size and input": an interface scale from 75 to 200 per cent, a text scale and a touch profile, applied to every window at once.
 
-Screenshots grew: Ctrl+F11 takes the whole screen at once, and Ctrl+Alt+F12 and Ctrl+Alt+F11 open a drawing step first - ellipses, rectangles, lines, arrows, an eraser and eight colours. New installs save captures as PNG files in the Screenshots folder, and Ctrl+F10 opens it. The capture chords left PrintScreen: Ctrl+F12 takes a region. Installs that still had the old defaults are moved once; chords you set yourself stay as they are.
+New: the traffic light. List your own addresses, folders, drives and servers, and a small board shows at a glance which of them answer right now - every state has a mark as well as a colour. Off by default; it checks only what you list.
 
-Your settings survive an update or a reinstall. The settings file now carries everything - chords, tables, Quick launch scenarios, traffic-light targets - and CyrFlip keeps the last three backups in Documents\CyrFlip\Backups and offers to restore them on a fresh install.
+Screenshots grew: Ctrl+F11 takes the whole screen, and Ctrl+Alt+F12 and Ctrl+Alt+F11 open a drawing step first - shapes, arrows, an eraser and eight colours. New installs save captures as PNG files in the Screenshots folder, and Ctrl+F10 opens it. Capture chords left PrintScreen (Ctrl+F12 takes a region); chords you set yourself stay as they are.
 
-New, off by default: the clipboard on your own exchange server. Send what you copied - text, a picture or one file - to your other devices; it is encrypted on your computer first and sent only when you press the button.
+Settings survive an update or a reinstall: the settings file carries everything, and the last three backups are kept in Documents\CyrFlip\Backups.
 
-Help is one key away: F1 or the ? button on every window, and Help in the tray menu, with pages and screenshots in 13 languages. Quick notes can number its lines.
+New, off by default: the clipboard on your own exchange server - text, a picture or one file, encrypted on your computer first and sent only when you press the button. The same server can keep your settings as a standard.
+
+Also: edit a clipboard entry in place (right-click or F2), British English has its own blue, F1 and the ? button open Help in 13 languages, and Quick notes can number its lines.
 
 
 SEARCH TERMS

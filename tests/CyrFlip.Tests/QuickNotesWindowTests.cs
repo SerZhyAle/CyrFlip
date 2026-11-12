@@ -66,10 +66,13 @@ namespace CyrFlip.Tests
                 using QuickNotesService service = Service("layout");
                 using var window = new QuickNotesWindow(service, new AppConfig { UiLanguage = "ru" }, () => { });
                 window.Show();
-                // The window's minimum is capped by the working area, and a 1024 px runner then leaves the details
-                // label about one pixel wide (it cannot wrap in no width). Give the window room whatever the display
-                // is, so this measures the layout and not the monitor.
+                // A top-level window cannot be wider than the display unless its own WM_GETMINMAXINFO answer says
+                // so: on a 1024 px runner the shown window stayed about 1028 px wide while ClientSize kept the
+                // requested 1400 (no WM_SIZE arrives when the real size does not change), and the details label
+                // was left about one pixel wide. A large MaximumSize lifts that limit, so the layout is measured
+                // at the width asked for whatever the display is.
                 window.MinimumSize = System.Drawing.Size.Empty;
+                window.MaximumSize = new System.Drawing.Size(4000, 4000);
                 window.ClientSize = new System.Drawing.Size(Math.Max(window.ClientSize.Width, 1400), window.ClientSize.Height);
                 Application.DoEvents();
                 var split = All(window).OfType<SplitContainer>().Single();

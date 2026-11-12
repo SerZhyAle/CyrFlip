@@ -2,7 +2,7 @@
 
 All notable changes to the **CyrFlip - keyboard layout at the caret** extension are documented here.
 
-## Unreleased
+## [0.1.7] - 2026-11-12
 
 - **British English has a blue of its own.** The UK keyboard (`00000809`) gets the shade `#2F8CF0`, so
   US and British English are told apart at the editor caret too, even when both read `EN`. The US blue

@@ -77,15 +77,17 @@ Open source - no telemetry and no data collection; the only network use is your 
 
 **What's new in this version**
 ```
-New: the traffic light. Switch it on, list your own addresses, folders, drives and servers, and a small board shows at a glance which of them answer right now - every state has a mark as well as a colour. It is off by default and checks only what you list.
+Settings are easier to find. Each setting now sits on the page of the feature it belongs to, a page list at the side takes you there, and the General page has "Size and input": an interface scale from 75 to 200 per cent, a text scale and a touch profile, applied to every window at once.
 
-Screenshots grew: Ctrl+F11 takes the whole screen at once, and Ctrl+Alt+F12 and Ctrl+Alt+F11 open a drawing step first - ellipses, rectangles, lines, arrows, an eraser and eight colours. New installs save captures as PNG files in the Screenshots folder, and Ctrl+F10 opens it. The capture chords left PrintScreen: Ctrl+F12 takes a region. Installs that still had the old defaults are moved once; chords you set yourself stay as they are.
+New: the traffic light. List your own addresses, folders, drives and servers, and a small board shows at a glance which of them answer right now - every state has a mark as well as a colour. Off by default; it checks only what you list.
 
-Your settings survive an update or a reinstall. The settings file now carries everything - chords, tables, Quick launch scenarios, traffic-light targets - and CyrFlip keeps the last three backups in Documents\CyrFlip\Backups and offers to restore them on a fresh install.
+Screenshots grew: Ctrl+F11 takes the whole screen, and Ctrl+Alt+F12 and Ctrl+Alt+F11 open a drawing step first - shapes, arrows, an eraser and eight colours. New installs save captures as PNG files in the Screenshots folder, and Ctrl+F10 opens it. Capture chords left PrintScreen (Ctrl+F12 takes a region); chords you set yourself stay as they are.
 
-New, off by default: the clipboard on your own exchange server. Send what you copied - text, a picture or one file - to your other devices; it is encrypted on your computer first and sent only when you press the button.
+Settings survive an update or a reinstall: the settings file carries everything, and the last three backups are kept in Documents\CyrFlip\Backups.
 
-Help is one key away: F1 or the ? button on every window, and Help in the tray menu, with pages and screenshots in 13 languages. Quick notes can number its lines.
+New, off by default: the clipboard on your own exchange server - text, a picture or one file, encrypted on your computer first and sent only when you press the button. The same server can keep your settings as a standard.
+
+Also: edit a clipboard entry in place (right-click or F2), British English has its own blue, F1 and the ? button open Help in 13 languages, and Quick notes can number its lines.
 ```
 
 ---
@@ -146,15 +148,17 @@ CyrFlip - набор инструментов в трее для клавиат�
 
 **Что нового в этой версии**
 ```
-Новое: светофор доступности. Включите его, перечислите свои адреса, папки, диски и серверы - и небольшая панель покажет, какие из них отвечают прямо сейчас; у каждого состояния есть не только цвет, но и значок. По умолчанию он выключен и проверяет только то, что вы перечислили.
+Настройки легче найти. Каждая настройка теперь на странице своей функции, список страниц сбоку ведёт к ней, а на странице «Общие» появился блок «Размер и ввод»: масштаб интерфейса от 75 до 200 процентов, масштаб текста и сенсорный профиль - сразу для всех окон.
 
-Снимки экрана стали богаче: Ctrl+F11 снимает весь экран сразу, а Ctrl+Alt+F12 и Ctrl+Alt+F11 сначала открывают рисование - эллипсы, прямоугольники, линии, стрелки, ластик и восемь цветов. На новых установках снимки сохраняются в PNG в папку «Снимки экрана», а Ctrl+F10 открывает её. Комбинации ушли с PrintScreen: область снимает Ctrl+F12. Установки со старыми комбинациями по умолчанию один раз переносятся на новые; заданные вами вручную остаются как есть.
+Новое: светофор доступности. Перечислите свои адреса, папки, диски и серверы - и небольшая панель покажет, какие из них отвечают прямо сейчас; у каждого состояния есть не только цвет, но и значок. По умолчанию выключен, проверяет только то, что вы перечислили.
 
-Настройки переживают обновление и переустановку. Файл настроек теперь содержит всё - комбинации, таблицы, сценарии «Быстрого запуска», цели светофора, а CyrFlip хранит три последние копии в Documents\CyrFlip\Backups и предлагает восстановить их на чистой установке.
+Снимки экрана стали богаче: Ctrl+F11 снимает весь экран, а Ctrl+Alt+F12 и Ctrl+Alt+F11 сначала открывают рисование - фигуры, стрелки, ластик и восемь цветов. На новых установках снимки сохраняются в PNG в папку «Снимки экрана», а Ctrl+F10 открывает её. Комбинации ушли с PrintScreen (область снимает Ctrl+F12); заданные вами вручную остаются как есть.
 
-Новое, по умолчанию выключено: буфер обмена на вашем сервере обмена. Отправьте скопированное - текст, картинку или один файл - на другие свои устройства; оно шифруется на вашем компьютере и уходит только по нажатию кнопки.
+Настройки переживают обновление и переустановку: файл настроек содержит всё, а три последние копии лежат в Documents\CyrFlip\Backups.
 
-Справка - одной клавишей: F1 или кнопка «?» в каждом окне и пункт «Справка» в меню трея, страницы со снимками экрана на 13 языках. Быстрые заметки умеют нумеровать строки.
+Новое, по умолчанию выключено: буфер обмена на вашем сервере обмена - текст, картинка или один файл шифруются на вашем компьютере и уходят только по нажатию кнопки. Тот же сервер может хранить ваши настройки как стандарт.
+
+Ещё: запись буфера обмена можно править на месте (правый клик или F2), у британской английской раскладки свой синий, F1 и кнопка «?» открывают справку на 13 языках, а быстрые заметки умеют нумеровать строки.
 ```
 
 ---
@@ -213,15 +217,17 @@ CyrFlip - набір інструментів у треї для клавіат�
 
 **Що нового в цій версії**
 ```
-Нове: світлофор доступності. Увімкніть його, перелічіть власні адреси, теки, диски та сервери - і невелика панель покаже, які з них відповідають просто зараз; у кожного стану є не лише колір, а й значок. Типово він вимкнений і перевіряє лише те, що ви перелічили.
+Налаштування легше знайти. Кожне налаштування тепер на сторінці своєї функції, список сторінок збоку веде до неї, а на сторінці «Загальні» з'явився блок «Розмір і введення»: масштаб інтерфейсу від 75 до 200 відсотків, масштаб тексту й сенсорний профіль - одразу для всіх вікон.
 
-Знімки екрана стали багатшими: Ctrl+F11 знімає весь екран одразу, а Ctrl+Alt+F12 і Ctrl+Alt+F11 спершу відкривають малювання - еліпси, прямокутники, лінії, стрілки, гумку та вісім кольорів. На нових установках знімки зберігаються в PNG у теку «Знімки екрана», а Ctrl+F10 відкриває її. Сполучення пішли з PrintScreen: область знімає Ctrl+F12. Установки зі старими типовими сполученнями один раз переносяться на нові; задані вами вручну лишаються як є.
+Нове: світлофор доступності. Перелічіть свої адреси, теки, диски та сервери - і невелика панель покаже, які з них відповідають просто зараз; у кожного стану є не лише колір, а й значок. За замовчуванням вимкнений, перевіряє лише те, що ви перелічили.
 
-Налаштування переживають оновлення й перевстановлення. Файл налаштувань тепер містить усе - сполучення, таблиці, сценарії «Швидкого запуску», цілі світлофора, а CyrFlip зберігає три останні копії в Documents\CyrFlip\Backups і пропонує відновити їх на чистій установці.
+Знімки екрана стали багатшими: Ctrl+F11 знімає весь екран, а Ctrl+Alt+F12 і Ctrl+Alt+F11 спершу відкривають малювання - фігури, стрілки, гумку та вісім кольорів. На нових встановленнях знімки зберігаються у PNG у теці «Знімки екрана», а Ctrl+F10 відкриває її. Комбінації пішли з PrintScreen (область знімає Ctrl+F12); задані вами вручну лишаються як є.
 
-Нове, типово вимкнено: буфер обміну на вашому сервері обміну. Надішліть скопійоване - текст, зображення або один файл - на інші свої пристрої; воно шифрується на вашому комп'ютері й іде лише після натискання кнопки.
+Налаштування переживають оновлення й перевстановлення: файл налаштувань містить усе, а три останні копії лежать у Documents\CyrFlip\Backups.
 
-Довідка - однією клавішею: F1 або кнопка «?» у кожному вікні та пункт «Довідка» в меню трею, сторінки зі знімками екрана 13 мовами. Швидкі нотатки вміють нумерувати рядки.
+Нове, за замовчуванням вимкнено: буфер обміну на вашому сервері обміну - текст, картинка або один файл шифруються на вашому комп'ютері й вирушають лише після натискання кнопки. Той самий сервер може зберігати ваші налаштування як стандарт.
+
+Ще: запис буфера обміну можна правити на місці (правий клік або F2), у британської англійської розкладки свій синій, F1 і кнопка «?» відкривають довідку 13 мовами, а швидкі нотатки вміють нумерувати рядки.
 ```
 
 ---
