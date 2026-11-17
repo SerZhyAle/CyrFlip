@@ -64,6 +64,24 @@ if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
 
 function Step($t) { Write-Host "`n=== $t ===" -ForegroundColor Cyan }
 
+# RELEASE-LEDGER 0.1 (RELEASE_AND_DISTRIBUTION section 10): each channel step is recorded in
+# releases\history.jsonl through tools\release-ledger.ps1, at the moment it happens. The ledger never
+# fails a release: a non-zero exit or a throw is one yellow line, and the exit code the caller read
+# before is left as it was. The written events stay in the working tree until the next -Commit/сборка
+# carries them (this script creates its anchor from HEAD's tree, so a ledger write never rides into it).
+function Write-Ledger([string[]]$LedgerArgs) {
+    $savedExit = if (Test-Path variable:global:LASTEXITCODE) { $global:LASTEXITCODE } else { 0 }
+    try {
+        $ledgerOut = @(& pwsh -NoProfile -File (Join-Path $RepoRoot 'tools\release-ledger.ps1') @LedgerArgs 2>&1)
+        if ($LASTEXITCODE -eq 0) { Write-Host "  ledger  : $($ledgerOut | Select-Object -Last 1)" }
+        else { Write-Host "  ledger  : not recorded (exit $LASTEXITCODE): $($ledgerOut | Select-Object -Last 1)" -ForegroundColor Yellow }
+    } catch {
+        Write-Host "  ledger  : not recorded ($($_.Exception.Message))" -ForegroundColor Yellow
+    } finally {
+        $global:LASTEXITCODE = $savedExit
+    }
+}
+
 # --- Preflight: branch + clean tree ----------------------------------------
 Step 'Preflight'
 $branch = (git rev-parse --abbrev-ref HEAD).Trim()
@@ -277,6 +295,15 @@ try {
             }
         }
 
+        # docs/CLI.md is the render target of the command manifest (APP-COMMANDS rule 20, S0107).
+        Step 'Command line document'
+        & (Join-Path $preflightRoot 'tools\cli\Render-CliDoc.ps1') -Check
+        if ($LASTEXITCODE -eq 1) {
+            $preflightFails.Add('docs/CLI.md drifted from docs/cli-commands.json. Run tools\cli\Render-CliDoc.ps1, review the diff, commit.')
+        }
+        elseif ($LASTEXITCODE -ne 0) {
+            $preflightUnverified.Add('Could not read docs/cli-commands.json.')
+        }
         # xUnit cannot see this one: store-listings.md and store/listing-*.txt repeat the listing copy
         # for the paste-by-hand path, and a mirror a release behind is exactly what gets pasted live.
         Step 'Store listing mirrors'
@@ -363,6 +390,10 @@ if ($Push -and $preflightFails.Count -eq 0 -and $preflightUnverified.Count -eq 0
     git push origin $Tag
     if ($LASTEXITCODE -ne 0) { throw "git push (tag) failed (exit $LASTEXITCODE)." }
     Write-Host "Pushed $Tag - release.yml is now building the ZIP + GitHub Release." -ForegroundColor Green
+    # The release build is now under way on the tag's own commit (release.yml builds the ZIP, an
+    # Actions build cannot write this ledger): record it and the GitHub channel step that follows it.
+    Write-Ledger @('build', '-Package', 'cyrflip', '-Kind', 'release', '-Version', $Version, '-Note', "release.yml builds the ZIP from $Tag")
+    Write-Ledger @('publish', '-Key', 'github', '-Version', $Version, '-State', 'submitted', '-Ref', $Tag, '-Url', "https://github.com/SerZhyAle/CyrFlip/releases/tag/$Tag")
     if (Get-Command gh -ErrorAction SilentlyContinue) {
         Write-Host 'Watch:  gh run watch   (or: gh run list --workflow=Release)' -ForegroundColor DarkGray
     }
@@ -377,6 +408,10 @@ Step "РЕЛИЗ checklist for $Tag  (see RELEASE.md for detail)"
 @"
 [ ] 1. GitHub build green: release.yml produced CyrFlip-$Version-windows-x64.zip + .sha256
         and a GitHub Release. Copy the ZIP asset URL and the SHA256 from the run log.
+        Record it:  pwsh tools\release-ledger.ps1 confirm -Key github -Version $Version -State live `
+                    -Ref $Tag -Url https://github.com/SerZhyAle/CyrFlip/releases/tag/$Tag
+        (the -Push above already recorded the build and the 'submitted' event; this closes it. 'probe'
+        would write the same 'live' from the Release page by itself.)
 
 [ ] 2. Site/docs (auto-deploys from /docs on the push above) - verify GitHub Pages updated:
         bump any version/changelog text in docs/ if the release changes user-facing behaviour.
@@ -396,6 +431,9 @@ Step "РЕЛИЗ checklist for $Tag  (see RELEASE.md for detail)"
             --token (gh auth token) <dir>
         Then FILL IN THE PR BODY by hand (gh pr edit <n> --repo microsoft/winget-pkgs --body-file):
         wingetcreate submits Microsoft's template untouched - empty description, every box unticked.
+        Record it:  pwsh tools\release-ledger.ps1 publish -Key winget -Version $Version -State submitted `
+                    -Ref "PR#<n>"
+        After the PR merges:  pwsh tools\release-ledger.ps1 probe -Key winget   (writes 'live' by itself)
 
 [ ] 4. Microsoft Store (MSIX):  .\msix\build-msix.ps1 -ReleaseZip <downloaded-release-ZIP> -Version $Version
         (the Store identity SZA.CyrFlip / CN=F98ACEDB-... / SZA is read from msix\identity.json - the
@@ -407,12 +445,24 @@ Step "РЕЛИЗ checklist for $Tag  (see RELEASE.md for detail)"
         the preflight above already read the live state before the tag (shared canon script, one
         `submission get`, evidence line in artifacts\store-channel-evidence.jsonl); no write verb is
         ever run, and a submission made in the console is changed in the console only (msix/README.md).
+        (The MSIX build itself is already recorded in releases\builds.json - msix\build-msix.ps1 hooks it.)
+        Record the submission:  pwsh tools\release-ledger.ps1 publish -Key msstore -Version $Version `
+                                -State submitted -Note "Partner Center submission"
+        Once certification completes:  pwsh tools\release-ledger.ps1 confirm -Key msstore -Version $Version `
+                                -State live -Url https://apps.microsoft.com/detail/9NB4W41NGQJ4
 
 [ ] 5. VS Code extension (only if vscode-extension/ changed):
         bump version in vscode-extension/package.json, then in that folder:
         npm install ; npm run compile ; npx @vscode/vsce publish
+        Record it (<ext-ver> = the package.json version you bumped to, its own version clock):
+        pwsh tools\release-ledger.ps1 publish -Key vscode -Version <ext-ver> -State submitted
+        once the Marketplace lists it (or right away):  pwsh tools\release-ledger.ps1 probe -Key vscode
+        (then 'show': the ledger should read it live; 'confirm' -State live -Url <the Marketplace page>
+        is the hand alternative)
 
 [ ] 6. Smoke-test the published artefacts (winget install / Store install) once live.
+        Then:  pwsh tools\release-ledger.ps1 show   (the four channels; 'probe' re-checks them read-only)
+        and commit the releases\ writes with the next сборка if they are still uncommitted.
 "@ | Write-Host
 
 # --- Machine-readable verdict line (last stdout line) -----------------------

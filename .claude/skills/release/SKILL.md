@@ -24,6 +24,12 @@ failure mode this exists to prevent.
    release (read `git log <last-tag>..HEAD`, the `## Unreleased` notes in
    [vscode-extension/CHANGELOG.md](../../../vscode-extension/CHANGELOG.md), and anything `/build`
    captured). Draft 2-5 short bullets in **EN / RU / UK** (the project ships all three).
+5. **Contract catch-up - the first step of every release** (owner's order of 2026-11-15, ticket S0114). Before the
+   version is cut, generate the live spec with the `sza` plugin's `tools/contract-lag.ps1 -Product CyrFlip -EmitSpec -OutFile temp/contract-catchup-CyrFlip.md`,
+   read each log entry since the version each registry row says CyrFlip is synchronized with against the code, and move the
+   product's own rows (or record a dated exception) as the `contract-sync` skill's catch-up path says. A release is not
+   cut on a row that is stale or behind without a dated reason in the row; the `release` skill's contract gate reads the
+   result.
 
 ## Phase 1 - Write "What's new" to ALL surfaces (before tagging)
 
@@ -80,6 +86,10 @@ branch + tag. The tag fires `release.yml` → **signed** `CyrFlip-<ver>-windows-
 + GitHub Release. Watch it (`gh run watch`) and confirm it is **green**. Copy the **ZIP asset URL**
 and the **SHA256** from the run log - the next steps need them.
 
+The same `-Push` step records the release in the **ledger** (`releases/`, `RELEASE-LEDGER`), so it is
+the record-keeper of this phase: the release build row in `releases/builds.json` and the GitHub
+channel's `submitted` event go in automatically, one yellow line never stops the release.
+
 ## Phase 4 - Publish externally (manual; from the printed checklist)
 
 - [ ] **Site/docs** - GitHub Pages auto-deployed from `/docs` on the push. Verify it's live.
@@ -125,6 +135,20 @@ and the **SHA256** from the run log - the next steps need them.
 - [ ] **Smoke-test** once live: `winget install SerZhyAle.CyrFlip` and/or the Store install;
       confirm the tray app launches and the layout indicator works.
 
+## Phase 5 - Record every channel step in the ledger (releases/, RELEASE-LEDGER)
+
+The release is not done until the ledger (`tools\release-ledger.ps1`, one door to the canon writer)
+answers "which version is where". `-Push` already wrote the GitHub `submitted` event; the printed
+checklist carries the exact command per step. In short:
+
+- [ ] GitHub green: `pwsh tools\release-ledger.ps1 confirm -Key github -Version <ver> -State live -Ref v<ver> -Url https://github.com/SerZhyAle/CyrFlip/releases/tag/v<ver>` (or `probe`, which writes it from the Release page).
+- [ ] winget PR submitted / merged: `publish -Key winget -Version <ver> -State submitted -Ref "PR#<n>"`, then `probe -Key winget` after the merge.
+- [ ] Store submission / certification done: `publish -Key msstore -Version <ver> -State submitted`, then `confirm -Key msstore -Version <ver> -State live -Url https://apps.microsoft.com/detail/9NB4W41NGQJ4`.
+- [ ] Extension published: `publish -Key vscode -Version <ext-ver> -State submitted` (its own `package.json` version clock), then `probe -Key vscode`.
+- [ ] Finish with `pwsh tools\release-ledger.ps1 show`(every channel reads its live version) and let
+      the next `/build` commit any `releases/` writes still uncommitted (`probe`/`confirm` never
+      fail a release; a lost record is the only failure mode here).
+
 ## Guardrails
 
 - **Never** run `/release` to test something - that's `/build`. A release costs money and touches
@@ -137,6 +161,7 @@ and the **SHA256** from the run log - the next steps need them.
 
 The GitHub Release is green and signed; "What's new in vXXX" is consistent across GitHub /
 Store / winget / (extension); winget PR opened, Store submission created, extension published
-where applicable; and the published artefact smoke-tested.
+where applicable; the published artefact smoke-tested; and `tools\release-ledger.ps1 show`
+reads every channel step so far (see Phase 5).
 
 The first-run welcome tour is also a ship-together surface: `WelcomeDialog` page 4 reads the live optional-module list. Keep its strings, README EN/RU/UK, guide EN/RU/UK, trilingual landing and ten standalone locale first pages, and all 13 Store listing sources in sync when that list or first-launch behavior changes (S0055).

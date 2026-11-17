@@ -19,6 +19,7 @@
 {"file": "docs/bn/trust.html", "topic": "trust", "area": "public site", "triggers": ["page content, UI, locale or publishing changes"], "role": "source"}
 {"file": "docs/contracts/ANYWHERE-ACCESS.md", "topic": "ANYWHERE ACCESS", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/APP-ACTIVATION.md", "topic": "APP ACTIVATION", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/APP-COMMANDS.md", "topic": "APP COMMANDS", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/APP-BEHAVIOUR.md", "topic": "APP BEHAVIOUR", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/APP-SETTINGS.md", "topic": "APP SETTINGS", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/APP-STYLE.md", "topic": "APP STYLE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
@@ -47,6 +48,7 @@
 {"file": "docs/contracts/PAGE-CONTENT.md", "topic": "PAGE CONTENT", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/PAGE-STYLE.md", "topic": "PAGE STYLE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/README.md", "topic": "README", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
+{"file": "docs/contracts/RELEASE-LEDGER.md", "topic": "RELEASE LEDGER", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/REPO-STAMP.md", "topic": "REPO STAMP", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/SCENARIO-FILE.md", "topic": "SCENARIO FILE", "area": "contracts", "triggers": ["contract adoption or implementation changes"], "role": "source"}
 {"file": "docs/contracts/SETTINGS-NAVIGATION.md", "topic": "SETTINGS NAVIGATION", "area": "contracts", "triggers": ["UI contract migration changes"], "role": "source"}
@@ -676,3 +678,4 @@
 {"file": "vscode-extension/CHANGELOG.md", "topic": "CHANGELOG", "area": "VS Code extension", "triggers": ["extension behavior or release changes"], "role": "source"}
 {"file": "vscode-extension/README.md", "topic": "README", "area": "VS Code extension", "triggers": ["extension behavior or release changes"], "role": "source"}
 {"file": "winget/README.md", "topic": "README", "area": "winget publishing", "triggers": ["manifest or release changes"], "role": "source"}
+{"file": "docs/CLI.md", "topic": "command line", "area": "command line", "triggers": ["a command, an option or the manifest docs/cli-commands.json changes"], "role": "render"}

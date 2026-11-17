@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Ids** | `REPO-STAMP`, `REPO-LAYOUT`, `RULE-DELIVERY`, `HARNESS-PROFILE` |
-| **Version** | `REPO-STAMP` 0.12, `REPO-LAYOUT` 0.11, `RULE-DELIVERY` 0.12, `HARNESS-PROFILE` not bound (0.11 in the catalog) |
+| **Version** | `REPO-STAMP` 0.13, `REPO-LAYOUT` 0.11, `RULE-DELIVERY` 0.12, `HARNESS-PROFILE` partial 0.18 (read by the release-ledger writer since `S0122`, 2026-11-17) |
 | **Home** | `rule-adoption/README.md` in the shared contracts catalog |
 | **Owner** | sza-unified-rules |
 | **Role here** | producer of the stamp and of the names tools address; consumer of the rule delivery; not bound by the harness profile |
@@ -19,9 +19,11 @@
 - **Names tools address stay where they are** (`REPO-LAYOUT`): `CLAUDE.md`, `README.md` and `LICENSE` at
   the root, one pointer per contract in this folder with its index, `PLAN/done/` frozen. A spec-id scheme
   named in the rules file is allowed.
-- **No `.sza-profile.json`** while no harness tool runs here (`HARNESS-PROFILE` does not bind). If one is
-  ever adopted, the profile comes first - the harness defaults (`dev/CHANGELOG.md`, `PLAN/archive`) are
-  wrong for this repository.
+- **The profile is real and bounded** (was "no `.sza-profile.json` while no harness tool runs here"):
+  `.sza-profile.json` exists since 2026-10-29 (the task-flow ledger - `specsDir`, `specArchiveDir`) and grew
+  `paths.releasesDir` on 2026-11-17, when the release-ledger writer became the first canon harness tool that
+  reads it (ticket `S0122`, `RELEASE-LEDGER`). Only what it declares is owed to `HARNESS-PROFILE`; a harness
+  default this profile does not name is not adopted by silence.
 - **`.sza-canon.json` supports optional `canon.reconciledOn`** (`REPO-STAMP` 0.11); age counts from
   `reconciledOn` when present.
 - **An unknown age is read as past the 180-day window** (`REPO-STAMP` rule 4, `RULE-DELIVERY` rule 5, 0.12).

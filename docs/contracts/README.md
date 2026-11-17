@@ -15,6 +15,7 @@ not a local edit and not a local copy kept "in sync".
 | [`LAYOUT-SIGNAL.md`](LAYOUT-SIGNAL.md) | `LAYOUT-SIGNAL` | Owner & Producer of layout files (`layout.txt`, `layout-klid.txt`), consumer of caret claim |
 | [`LAYOUT-PALETTE.md`](LAYOUT-PALETTE.md) | `LAYOUT-PALETTE` | Owner & Producer (`LayoutStyle.cs`); VS Code extension ships copy |
 | [`APP-ACTIVATION.md`](APP-ACTIVATION.md) | `APP-ACTIVATION` | Owner, Producer and Consumer - single instance mutex, Jump List IPC pipe, foreground activation |
+| [`APP-COMMANDS.md`](APP-COMMANDS.md) | `APP-COMMANDS` | Adopter, 0.2 - the command line: request and answer on the existing pipe, the manifest `docs/cli-commands.json`, the five base commands and the verbs behind the shipped spellings (ticket `S0107`) |
 | [`CLIPBOARD-GUARD.md`](CLIPBOARD-GUARD.md) | `CLIPBOARD-GUARD` | Owner, Producer and Consumer - Win32 pump-free clipboard access, atomic multi-format backup/restore, DPAPI isolation, the exchange server clipboard participant (section 8, items L-R) |
 | [`INPUT-CHORD.md`](INPUT-CHORD.md) | `INPUT-CHORD` | Owner, Producer and Consumer - chord token, refusals, chord ownership, global hooks |
 | [`INPUT-PARITY.md`](INPUT-PARITY.md) | `INPUT-PARITY` | Producer; steward of the keyboard and mouse columns of a shared device table; rules 1-2 held in the code since S0045, live walk owed |
@@ -27,7 +28,7 @@ not a local edit and not a local copy kept "in sync".
 | [`APP-STYLE.md`](APP-STYLE.md) | `APP-STYLE` | Consumer - the app theme (sections 2-5, shipped since v26.10.1); the layout marker is out of theme |
 | [`APP-SETTINGS.md`](APP-SETTINGS.md) | `APP-SETTINGS` | Owner, Producer and reference implementation - the persistent settings surface; 0.3 read 2026-10-07 - sections 1-8 held (S0048 walk 2026-10-06), section 9 (an irreversible operation on a page) held by reading the handlers, rung 1 (file and line pins) owed |
 | [`WINDOWS-UI.md`](WINDOWS-UI.md) | `WINDOWS-UI` | Consumer - the shared Windows UI profile; sections 2-7 implemented 2026-10-06 (ticket `S0048`), section 8 not applicable; open items in the pointer |
-| [`CAPTURE-OUTPUT.md`](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | Producer of the `screenshot` kind - the region capture's file name, folder chain and PNG `tIME` chunk (rule 16, 0.5, held) |
+| [`CAPTURE-OUTPUT.md`](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | Producer of the `screenshot` kind - the region capture's file name, folder chain and PNG `tIME` chunk (rule 16, 0.5, held); a path a calling program names is conformant since 0.8 (S0114) |
 | [`ICON-SET.md`](ICON-SET.md) | `ICON-SET` | Consumer - glyphs and names map to the vocabulary (all fourteen tabs, the traffic light's tiles included); two product-text decisions open |
 | [`ICON-RENDER.md`](ICON-RENDER.md) | `ICON-RENDER` | Consumer - how glyphs are drawn and coloured; the layout badge is out |
 | [`ICON-EXTERNAL.md`](ICON-EXTERNAL.md) | `ICON-EXTERNAL` | Consumer - launcher scenario icons and their fallbacks |
@@ -43,6 +44,7 @@ not a local edit and not a local copy kept "in sync".
 | [`CHECK-BASELINE.md`](CHECK-BASELINE.md) | `CHECK-BASELINE` | None - no accepted-debt file, declared |
 | [`CHECK-PLACEMENT.md`](CHECK-PLACEMENT.md) | `CHECK-PLACEMENT` | Producer - where each check runs |
 | [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md) | `BUILD-EVIDENCE` | Producer - the release ZIP carries its build's version and commit |
+| [`RELEASE-LEDGER.md`](RELEASE-LEDGER.md) | `RELEASE-LEDGER` | Producer - the ledger in `releases/` (channels, builds, publication history), adopted 2026-11-17, ticket `S0122`; the build and release hooks prove at the next сборка / РЕЛИЗ |
 | [`TEST-LAB.md`](TEST-LAB.md) | `TEST-LAB` | Reporter - one inventory of equipment, test practice and contract proof filed 2026-10-23 (ticket `S0080`); no profile, no harness change |
 | [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-INTERNAL-QUALITY` | Consumer - internal docs; held (most rules gated), ticket `S0028` |
 | [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-EXTERNAL-QUALITY` | Consumer - the `docs/` site in 13 languages; held and gated, ticket `S0028` |
@@ -50,7 +52,7 @@ not a local edit and not a local copy kept "in sync".
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `REPO-STAMP` | Producer - `.sza-canon.json`, written only by the adoption run |
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `REPO-LAYOUT` | Producer - the names tools address |
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `RULE-DELIVERY` | Consumer - the `sza` plugin |
-| [`REPO-STAMP.md`](REPO-STAMP.md) | `HARNESS-PROFILE` | Not bound - no profile, no harness tool |
+| [`REPO-STAMP.md`](REPO-STAMP.md) | `HARNESS-PROFILE` | Consumer, partial - `.sza-profile.json` holds the task-flow paths (2026-10-29) and `paths.releasesDir`, read by the release-ledger writer (ticket `S0122`) |
 
 | [`CONTEXT-HELP.md`](CONTEXT-HELP.md) | `CONTEXT-HELP` | Consumer - F1, help buttons, shipped help map and offline localized pages; partial pending the release walk |
 | [`UI-SIZING.md`](UI-SIZING.md) | `UI-SIZING` | Consumer, partial 1.1 - stable pointer/touch profile and bounded interface and text scales; custom-painted tool windows owed (ticket `S0076`) |

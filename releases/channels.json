@@ -1,0 +1,39 @@
+{
+  "schema": "1",
+  "packages": [
+    {
+      "id": "cyrflip",
+      "title": "CyrFlip"
+    },
+    {
+      "id": "cyrflip-vscode",
+      "title": "CyrFlip for VS Code"
+    }
+  ],
+  "channels": [
+    {
+      "key": "github",
+      "channel": "github",
+      "package": "cyrflip",
+      "repo": "SerZhyAle/CyrFlip"
+    },
+    {
+      "key": "winget",
+      "channel": "winget",
+      "package": "cyrflip",
+      "id": "SerZhyAle.CyrFlip"
+    },
+    {
+      "key": "msstore",
+      "channel": "msstore",
+      "package": "cyrflip",
+      "storeId": "9NB4W41NGQJ4"
+    },
+    {
+      "key": "vscode",
+      "channel": "vscode",
+      "package": "cyrflip-vscode",
+      "id": "SerZhyAle.cyrflip-vscode"
+    }
+  ]
+}

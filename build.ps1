@@ -1,4 +1,4 @@
-﻿<#
+<#
     CyrFlip local build + deploy  ==  a "СБОРКА" (build) in this project's vocabulary.
 
     The default СБОРКА is fully LOCAL and costs no GitHub Actions minutes:
@@ -9,7 +9,7 @@
 
     Between releases only the checks of 5 seconds or less run (S0081, TESTING_AND_QA section 2):
       -Fast         the static gates only - no build, no test, the running app left alone; -Area narrows
-                    it to the touched area (placement, help, positioning, site, listing, store - the last only when asked for, to keep the default under 5 s). Each gate was
+                    it to the touched area (placement, help, positioning, site, listing, cli, store - the last only when asked for, to keep the default under 5 s). Each gate was
                     timed at 0.4-2.5 s on 2026-10-29.
     Everything slower runs only when the owner names that run, or at the release:
       (default)     the app-only build + stage + deploy - the owner's СБОРКА
@@ -41,7 +41,7 @@ param(
     [switch] $Tests,
     # The between-release tier: the static gates only, each 5 s or less (S0081).
     [switch] $Fast,
-    [ValidateSet('placement', 'help', 'positioning', 'site', 'listing', 'store')]
+    [ValidateSet('placement', 'help', 'positioning', 'site', 'listing', 'cli', 'store')]
     [string[]] $Area
 )
 $ErrorActionPreference = 'Stop'
@@ -58,6 +58,8 @@ if ($Fast) {
         site        = @('tools\site\Test-SiteFacts.ps1')
         # The two listing scripts rewrite their targets without -Check; here they only compare.
         listing     = @('msix\render-listing-mirrors.ps1 -Check', 'msix\build-store-listing-csv.ps1 -Check')
+        # docs/CLI.md against docs/cli-commands.json, the command manifest it is rendered from (S0107).
+        cli         = @('tools\cli\Render-CliDoc.ps1 -Check')
         # The release's read-only Store channel preflight, against a stub msstore: no network, no credential (S0100).
         store       = @('tools\checks\Test-StoreChannelPreflight.ps1')
     }
@@ -235,6 +237,26 @@ finally {
         }
     }
 }
+
+# RELEASE-LEDGER 0.1 (RELEASE_AND_DISTRIBUTION section 10): the last step of a successful сборка records it in
+# releases\builds.json through tools\release-ledger.ps1. Every local build is a test build: nothing a сборка
+# makes is published - release.ps1 and release.yml build what ships, msix\build-msix.ps1 builds the Store
+# package - so the ledger's 'release' rows stay the published versions. The ledger never fails a build: a
+# non-zero exit is one yellow line, and the exit code this script is carrying is left as it was. The record
+# runs before -Commit, so a -Commit carries the ledger write.
+function Write-BuildLedger {
+    $savedExit = if (Test-Path variable:global:LASTEXITCODE) { $global:LASTEXITCODE } else { 0 }
+    try {
+        $ledgerOut = @(& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'tools\release-ledger.ps1') build -Package cyrflip -Kind test -Version $version -Artifact 'bin/SingleFile/CyrFlip.exe' 2>&1)
+        if ($LASTEXITCODE -eq 0) { Write-Host "  release ledger: test build $version recorded (releases\)" }
+        else { Write-Host "  release ledger: not recorded (exit $LASTEXITCODE): $($ledgerOut | Select-Object -Last 1)" -ForegroundColor Yellow }
+    } catch {
+        Write-Host "  release ledger: not recorded ($($_.Exception.Message))" -ForegroundColor Yellow
+    } finally {
+        $global:LASTEXITCODE = $savedExit
+    }
+}
+Write-BuildLedger
 
 # Optional commit of the сборка. Always carries [skip ci] so the push to main does not
 # spend GitHub minutes re-building what we just built+tested locally.

@@ -29,6 +29,9 @@ executes steps 2 and 6; the rest is judgement you apply each time.
    the build the owner asked for, never an agent's routine check after an edit.
    `.\build.ps1 -Tests` (the whole solution, `dotnet test` and the static checks, minutes) is the
    **release tier**: run it only when the owner names it; otherwise the release preflight runs it.
+   Every successful сборка records itself as its last step in the **release ledger** `releases/`
+   (`RELEASE-LEDGER`: kind `test` build row; a ledger failure is one yellow line, never fatal) -
+   automatic, nothing for you to do about it.
    A code change is then reported as "not built, not tested until the release", with the skipped
    command named as a `RELEASE` item. The 13-language UI sweeps run nowhere automatically: nothing
    sets `CYRFLIP_SWEEP=full` but a human, for one window only. A clean build must be

@@ -287,3 +287,21 @@ try {
 finally { $archive.Dispose() }
 $signatureState = if ($SelfSign) { 'AppxSignature.p7x present (signed - local test only)' } else { 'no AppxSignature.p7x (unsigned, Store-ready)' }
 Write-Host "Read-back OK: Identity $wantName / $wantPublisher / $MsixVersion, PublisherDisplayName '$wantDisplayName', THIRD-PARTY-NOTICES.txt packed, $signatureState." -ForegroundColor Green
+
+# --- 8. Release ledger (RELEASE-LEDGER 0.1, RELEASE_AND_DISTRIBUTION section 10) -------------
+# The last step of a successful build records it in releases\builds.json through tools\release-ledger.ps1:
+# the Store package of release version $Version, flavor msix (the ZIP kept by build.ps1/release.ps1 is the
+# default flavor). A -SelfSign/-TestIdentity sideload is a local variant of the same release and is recorded
+# with a note, never left out. The ledger never fails a build: a non-zero exit is one yellow line, and the
+# exit code this script ends with is left as it was (this is the last statement that touches it).
+$savedExit = if (Test-Path variable:global:LASTEXITCODE) { $global:LASTEXITCODE } else { 0 }
+try {
+    $ledgerNote = if ($SelfSign) { 'self-signed local package, not for the Store' } else { 'unsigned, Store-ready' }
+    $ledgerOut = @(& pwsh -NoProfile -File (Join-Path $RepoRoot 'tools\release-ledger.ps1') build -Package cyrflip -Kind release -Version $Version -Flavor msix -Artifact "msix/dist/$MsixName" -Note $ledgerNote 2>&1)
+    if ($LASTEXITCODE -eq 0) { Write-Host "  release ledger: release build $Version (msix) recorded (releases\)" }
+    else { Write-Host "  release ledger: not recorded (exit $LASTEXITCODE): $($ledgerOut | Select-Object -Last 1)" -ForegroundColor Yellow }
+} catch {
+    Write-Host "  release ledger: not recorded ($($_.Exception.Message))" -ForegroundColor Yellow
+} finally {
+    $global:LASTEXITCODE = $savedExit
+}
