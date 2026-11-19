@@ -23,7 +23,7 @@ namespace CyrFlip
             None,
             /// <summary>Shift as the only modifier on anything but F1-F24: capitals, selection, Shift+Tab.</summary>
             ShiftOnly,
-            /// <summary>Ctrl+C/V/X/Z/Y/A/S, Ctrl+Insert, Shift+Insert, Shift+Delete.</summary>
+            /// <summary>Ctrl+C/V/X/Z/Y/A/S, Ctrl+Insert, Shift+Insert, Shift+Delete, Ctrl+arrows (caret movement).</summary>
             EditingChord,
             /// <summary>The chord types a character on an installed layout (AltGr+E = "€" on German).</summary>
             TypesCharacter,
@@ -45,13 +45,17 @@ namespace CyrFlip
         }
 
         private const int VK_BACK = 0x08, VK_SPACE = 0x20, VK_END = 0x23, VK_HOME = 0x24,
+            VK_LEFT = 0x25, VK_UP = 0x26, VK_RIGHT = 0x27, VK_DOWN = 0x28,
             VK_INSERT = 0x2D, VK_DELETE = 0x2E, VK_F1 = 0x70, VK_F4 = 0x73, VK_F24 = 0x87;
 
         // Ctrl + one of these is an editing or system command in practically every application (KC-5, KC2-7).
+        // The arrows joined with the admitted trigger families (S0116): Ctrl+Left/Right move by word and
+        // Ctrl+Up/Down by paragraph in every text field, as Ctrl+Home/End move to the ends of the text.
         private static readonly int[] EditingKeysCtrl =
         {
             'C', 'V', 'X', 'Z', 'Y', 'A', 'S',
-            VK_INSERT, VK_DELETE, VK_BACK, VK_SPACE, VK_HOME, VK_END
+            VK_INSERT, VK_DELETE, VK_BACK, VK_SPACE, VK_HOME, VK_END,
+            VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN
         };
 
         /// <summary>The rules against the live system: every installed layout, asked through <c>ToUnicodeEx</c>.</summary>

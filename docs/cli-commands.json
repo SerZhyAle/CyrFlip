@@ -1,0 +1,1405 @@
+{
+  "schemaVersion": 1,
+  "product": "CyrFlip",
+  "exe": "CyrFlip.exe",
+  "cliVersion": "1.0",
+  "commands": [
+    {
+      "name": "commands",
+      "aliases": [],
+      "summary": "Print the list of commands this copy of CyrFlip accepts.",
+      "synopsis": "CyrFlip.exe commands [--json]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print this manifest itself as JSON instead of a readable list." }
+      ],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "forward": "never",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "printed" },
+        { "code": 10, "meaning": "an unknown option" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "& .\\CyrFlip.exe commands --json | Out-File cli.json", "expect": "exit 0; the file holds this manifest; no tray icon appears" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "version",
+      "aliases": [],
+      "summary": "Print the product name, its version and the version of its command set.",
+      "synopsis": "CyrFlip.exe version [--json]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print one JSON object with product, version and cliVersion." }
+      ],
+      "returns": [
+        { "name": "product", "kind": "string", "description": "CyrFlip" },
+        { "name": "version", "kind": "string", "description": "the version of this executable, spelled as the release tag" },
+        { "name": "cliVersion", "kind": "string", "description": "MAJOR.MINOR of this command set" }
+      ],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "forward": "never",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "printed" },
+        { "code": 10, "meaning": "an unknown option" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "CyrFlip.exe version", "expect": "exit 0; one line with CyrFlip, its version and its cliVersion" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "status",
+      "aliases": [],
+      "summary": "Say whether CyrFlip is running and ready to take commands.",
+      "synopsis": "CyrFlip.exe status [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "version", "kind": "string", "description": "the running copy's version" },
+        { "name": "pid", "kind": "int", "description": "its process id" },
+        { "name": "acceptsRestrictedCommands", "kind": "bool", "description": "whether 'Let other programs ask CyrFlip to work with my files, screen, clipboard or the network' is on" },
+        { "name": "modules", "kind": "object", "description": "which opt-in modules are on, by name: quickNotes, translate, scenarioLauncher, exchangeClipboard, trafficLight, symbols, clipboardHistory, contextMenu" }
+      ],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 2000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "running and ready" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 11, "meaning": "not running, or busy" },
+        { "code": 12, "meaning": "the running copy runs as administrator and this caller does not" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'status' -Wait -PassThru).ExitCode", "expect": "0 while CyrFlip runs and is ready, 11 otherwise" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "show",
+      "aliases": [
+        { "spelling": "/launcher-settings", "legacy": true, "answers": false },
+        { "spelling": "", "legacy": true, "answers": false }
+      ],
+      "summary": "Bring the Settings window forward - CyrFlip's main window - optionally on one page.",
+      "synopsis": "CyrFlip.exe show [--page <page>] [--json] [--result <path>]",
+      "args": [
+        { "name": "page", "kind": "enum", "required": false, "values": ["general", "indicators", "hotkeys", "conversions", "windows-languages", "clipboard", "quick-notes", "screenshots", "translate", "launcher", "about", "symbols", "selection-menu", "traffic-light", "exchange-server"], "description": "The settings page to open; without it, the page the window was last left on." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "start",
+      "wait": "done",
+      "timeoutMs": 10000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the window is on the screen" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "an unknown page or option" },
+        { "code": 11, "meaning": "busy: a dialog or the first-run tour is open" },
+        { "code": 12, "meaning": "the running copy runs as administrator and this caller does not" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait CyrFlip.exe show --page quick-notes", "expect": "exit 0 (errorlevel 0); the Settings window is on the quick notes page" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "quit",
+      "aliases": [
+        { "spelling": "/exit", "legacy": true, "answers": false }
+      ],
+      "summary": "Close the running copy of CyrFlip cleanly; with none running there is nothing to do.",
+      "synopsis": "CyrFlip.exe quit [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 10000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "closing, or was not running" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 11, "meaning": "busy: a dialog or the first-run tour is open" },
+        { "code": 12, "meaning": "the running copy runs as administrator and this caller does not" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait CyrFlip.exe quit", "expect": "exit 0 (errorlevel 0); the tray icon goes away" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "clipboard send",
+      "aliases": [
+        { "spelling": "/clipboard-send", "legacy": true, "answers": false }
+      ],
+      "summary": "Start sending what the Windows clipboard holds to the server of every exchange account this PC is signed in to, or the one file in --file / the text in --text instead of the clipboard's content (exactly one of the two, never both).",
+      "synopsis": "CyrFlip.exe clipboard send [--file <path> | --text <text>] [--json] [--result <path>]",
+      "args": [
+        { "name": "file", "kind": "path", "required": false, "description": "One existing file to send instead of the clipboard's content: it travels to the other devices as a file value, exactly as one copied file on the clipboard would. A file over the transfer limit (5368709120 bytes) is exit 10; the path is never echoed back." },
+        { "name": "text", "kind": "string", "required": false, "description": "A given text to send instead of the clipboard's content. Bounded by the command line's 32 KiB argument limit." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "kind", "kind": "string", "description": "with --file or --text: what was handed to the transfer - file or text" },
+        { "name": "sizeBytes", "kind": "int", "description": "with --file or --text: the source's size in bytes, known at hand-off" }
+      ],
+      "risk": "leaves-machine",
+      "coldStart": "start",
+      "wait": "accepted",
+      "timeoutMs": 600000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "accepted: the transfer has started; CyrFlip shows how it ended in the notification area" },
+        { "code": 1, "meaning": "the file in --file could not be checked (a local path that does not answer)" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "both --file and --text, a value an option does not take, or a file over the transfer limit (5368709120 bytes) - the limit is named, the path is not" },
+        { "code": 11, "meaning": "the exchange clipboard module is off, the file in --file does not exist, or busy: another transfer or a dialog is open" },
+        { "code": 12, "meaning": "other programs may not ask for this - the setting is off - or the running copy runs as administrator" },
+        { "code": 15, "meaning": "a network share in --file did not answer in time" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\\\CyrFlip.exe -ArgumentList 'clipboard send' -Wait -PassThru).ExitCode", "expect": "0 once the transfer has started" },
+        { "shell": "cmd", "line": "start /wait CyrFlip.exe clipboard send --file C:\\\\temp\\\\report.pdf --result C:\\\\temp\\\\answer.json", "expect": "exit 0 once the transfer has started; the answer's data holds kind file and sizeBytes" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "clipboard get",
+      "aliases": [
+        { "spelling": "/clipboard-get", "legacy": true, "answers": false }
+      ],
+      "summary": "Start putting the newest value the exchange servers hold onto the Windows clipboard, or - with --out - receive it straight into the one file the caller names, and touch no clipboard.",
+      "synopsis": "CyrFlip.exe clipboard get [--out <path>] [--overwrite] [--json] [--result <path>]",
+      "args": [
+        { "name": "out", "kind": "path", "required": false, "description": "Receive into exactly this file instead of the clipboard: used as given (never a folder the caller did not name), an existing file refused without --overwrite, the folder must exist and is never created, the file appears whole or not at all. A text value is written as UTF-8." },
+        { "name": "overwrite", "kind": "bool", "required": false, "description": "Replace an existing file in --out; never true without --out." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "kind", "kind": "string", "description": "with --out: what was received - text, image or file" },
+        { "name": "sizeBytes", "kind": "int", "description": "with --out: the received value's size in bytes" },
+        { "name": "savedTo", "kind": "string", "description": "with --out: where it landed - the file's full path" }
+      ],
+      "risk": "leaves-machine",
+      "coldStart": "start",
+      "wait": "done",
+      "timeoutMs": 300000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "with --out: received and written to the file; without it: accepted, the transfer has started and CyrFlip shows how it ended in the notification area" },
+        { "code": 1, "meaning": "the value could not be received into the file, or the folder in --out could not be checked" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "--out is not a usable file name, or a value an option does not take" },
+        { "code": 11, "meaning": "the exchange clipboard module is off, there is nothing on the server to receive, the folder in --out does not exist (never created), the file exists and --overwrite was not given (reason exists), or busy" },
+        { "code": 12, "meaning": "other programs may not ask for this - the setting is off - or the running copy runs as administrator" },
+        { "code": 13, "meaning": "the disk is full; the receive was not written" },
+        { "code": 15, "meaning": "a network share in --out did not answer in time" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait CyrFlip.exe clipboard get", "expect": "exit 0 (errorlevel 0) once the transfer has started" },
+        { "shell": "powershell", "line": "Start-Process .\\\\CyrFlip.exe -ArgumentList 'clipboard get --out C:\\\\temp\\\\received.txt --result C:\\\\temp\\\\answer.json' -Wait", "expect": "exit 0 and the value is in the file; the answer's data holds kind, sizeBytes and savedTo" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "scenario run",
+      "aliases": [
+        { "spelling": "/launcher-run:{guid}", "maps": { "guid": "id" }, "legacy": true, "answers": false }
+      ],
+      "summary": "Start one scenario of the Quick launch list.",
+      "synopsis": "CyrFlip.exe scenario run (--id <guid> | --name <text>) [--link <url>] [--json] [--result <path>]",
+      "args": [
+        { "name": "id", "kind": "guid", "required": false, "description": "The scenario's id. Exactly one of id and name." },
+        { "name": "name", "kind": "string", "required": false, "description": "The scenario's name, compared without regard to case. Exactly one of id and name; refused when two scenarios share it." },
+        { "name": "link", "kind": "string", "required": false, "description": "For a yt-dlp scenario: the link to download. Without it such a scenario is refused - it would otherwise ask a person." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "oneOf": [["id", "name"]],
+      "returns": [
+        { "name": "name", "kind": "string", "description": "the scenario's name" }
+      ],
+      "risk": "writes-user-data",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 15000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "the program was started (not that it has finished)" },
+        { "code": 1, "meaning": "the program could not be started" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "neither or both of id and name, a bad id, or a yt-dlp scenario without a link" },
+        { "code": 11, "meaning": "no such scenario, the name is shared, the launcher module is off, or busy" },
+        { "code": 12, "meaning": "other programs may not ask for this - the setting is off - or the scenario runs as administrator and would need a person at the desktop" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'scenario run --name \"Backup\"' -Wait -PassThru).ExitCode", "expect": "0 once the program was started" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "scenario list",
+      "aliases": [],
+      "summary": "List the scenarios of the Quick launch list.",
+      "synopsis": "CyrFlip.exe scenario list [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "count", "kind": "int", "description": "number of scenarios" },
+        { "name": "scenarios", "kind": "array", "description": "objects with id (guid), name, kind (program, script or yt-dlp), runAsAdmin (bool), hasHotkey (bool); never the program path or its arguments, where tokens live" }
+      ],
+      "risk": "reads-user-data",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "listed (an empty list is still 0)" },
+        { "code": 11, "meaning": "the launcher module is off" },
+        { "code": 12, "meaning": "other programs may not ask for this yet - the setting is off" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\CyrFlip.exe -ArgumentList 'scenario list --result C:\\temp\\scenarios.json' -Wait", "expect": "C:\\temp\\scenarios.json holds {\"count\":n,\"scenarios\":[...]}" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "note add",
+      "aliases": [],
+      "summary": "Add a note to the Quick notes.",
+      "synopsis": "CyrFlip.exe note add --text <text> [--title <text>] [--json] [--result <path>]",
+      "args": [
+        { "name": "text", "kind": "string", "required": true, "description": "The note's text, kept exactly as given - no trimming, line endings and tabs as typed. At most 32 KiB as UTF-8 (the command line's argument bound), so fewer characters in a script that is not Latin; a longer text is refused." },
+        { "name": "title", "kind": "string", "required": false, "description": "The note's name; without it, or when it is blank, the note has none." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "noteId", "kind": "guid", "description": "the new note's id" }
+      ],
+      "risk": "safe",
+      "coldStart": "start",
+      "wait": "done",
+      "timeoutMs": 10000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "added" },
+        { "code": 1, "meaning": "the note could not be written, or the notes could not be read (reason store-failed); it is not saved and does not exist" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time; the note was not added" },
+        { "code": 10, "meaning": "no text, empty text, or text over the limit" },
+        { "code": 11, "meaning": "the Quick notes module is off (reason module-off), or busy" },
+        { "code": 12, "meaning": "the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\CyrFlip.exe -ArgumentList 'note add --text \"buy milk\" --result C:\\temp\\note.json' -Wait", "expect": "C:\\temp\\note.json holds {\"noteId\":\"<guid>\"}" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "note list",
+      "aliases": [],
+      "summary": "List notes, newest first, optionally only those that contain some words.",
+      "synopsis": "CyrFlip.exe note list [--query <text>] [--limit <n>] [--json] [--result <path>]",
+      "args": [
+        { "name": "query", "kind": "string", "required": false, "description": "Keep notes whose name, text or checklist items contain this, the way the notes window searches." },
+        { "name": "limit", "kind": "int", "required": false, "default": 50, "description": "At most this many notes, 1 to 500." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "count", "kind": "int", "description": "number of notes returned; below both limit and total only when the answer would pass 48 KiB" },
+        { "name": "total", "kind": "int", "description": "number of notes that matched before the limit" },
+        { "name": "notes", "kind": "array", "description": "objects with id (guid), title (absent for an unnamed note; at most 256 characters), preview (what the text says: its first non-empty line, or the first non-empty checklist item; at most 120 characters, one line), createdUtc, updatedUtc (UTC to the second, yyyy-MM-ddTHH:mm:ssZ)" }
+      ],
+      "risk": "reads-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 10000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "listed (an empty list is still 0)" },
+        { "code": 1, "meaning": "the notes could not be read (reason store-failed); never an empty list" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "limit out of range or not a whole number" },
+        { "code": 11, "meaning": "CyrFlip is not running, the Quick notes module is off (reason module-off), or busy" },
+        { "code": 12, "meaning": "other programs may not ask for this yet - the setting is off - or the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\CyrFlip.exe -ArgumentList 'note list --query milk --result C:\\temp\\notes.json' -Wait", "expect": "C:\\temp\\notes.json holds the matching notes" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "note get",
+      "aliases": [],
+      "summary": "Read one note back whole by its id, as it is stored: a text note as text verbatim (line endings, tabs and non-BMP characters byte for byte), a checklist note as kind and items with their done states. The notes are the private store; the answer never holds more than this one note.",
+      "synopsis": "CyrFlip.exe note get --id <guid> [--json] [--result <path>]",
+      "args": [
+        { "name": "id", "kind": "guid", "required": true, "description": "The note's id: the noteId note add answers, and the id every object of note list carries." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "id", "kind": "guid", "description": "the note's id" },
+        { "name": "title", "kind": "string", "description": "the note's name; absent for an unnamed note" },
+        { "name": "kind", "kind": "string", "description": "text or checklist" },
+        { "name": "text", "kind": "string", "description": "the note's text exactly as stored, verbatim; absent for a checklist. A note bigger than the answer bound (48 KiB) is cut there and the cut is told by truncated and length; nothing else in the answer is cut" },
+        { "name": "items", "kind": "array", "description": "for a checklist: its items in order, objects with text and done (the item's tick state); absent for a text note" },
+        { "name": "createdUtc", "kind": "string", "description": "UTC to the second, yyyy-MM-ddTHH:mm:ssZ" },
+        { "name": "updatedUtc", "kind": "string", "description": "UTC to the second, yyyy-MM-ddTHH:mm:ssZ" },
+        { "name": "truncated", "kind": "bool", "description": "true when the note's content was cut at the answer bound" },
+        { "name": "length", "kind": "int", "description": "the note's full character count as stored, also when the answer was cut" }
+      ],
+      "risk": "reads-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 10000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "read; the answer holds the note" },
+        { "code": 1, "meaning": "the notes could not be read (reason store-failed); never an empty note" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "--id is missing or not a guid" },
+        { "code": 11, "meaning": "CyrFlip is not running, the Quick notes module is off (reason module-off), no note has this id (reason target-missing; the message names no note), or busy" },
+        { "code": 12, "meaning": "other programs may not ask for this yet - the setting is off - or the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\CyrFlip.exe -ArgumentList 'note get --id 12345678-90ab-cdef-1234-567890abcdef --result C:\\temp\\note.json' -Wait", "expect": "C:\\temp\\note.json holds the note: id, kind, text or items, createdUtc, updatedUtc" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "note export",
+      "aliases": [],
+      "summary": "Write every note to one file as a \"CyrFlip Exchange Text v1\" transfer file - Quick notes section only, newest first by creation, the same writer the notes window's own export uses - so a scheduled task can back the notes up. The file holds every note the store holds: it is never trimmed to the importer's caps (25 MB, 10,000 objects), so a person with more notes than that gets a file the window's import refuses.",
+      "synopsis": "CyrFlip.exe note export --out <path> [--overwrite] [--json] [--result <path>]",
+      "args": [
+        { "name": "out", "kind": "path", "required": true, "description": "The file to write, used exactly as given - any name Windows accepts, with or without an extension, not a folder and not a path ending in a backslash; a folder is never created, and a relative path is taken from the caller's working directory. The file appears whole or not at all." },
+        { "name": "overwrite", "kind": "bool", "required": false, "default": false, "description": "Replace the file when it exists. Without it an existing file is left alone and the command exits 11." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "path", "kind": "path", "description": "the file written" },
+        { "name": "notes", "kind": "int", "description": "how many notes the file holds" }
+      ],
+      "risk": "reads-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 60000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "exported" },
+        { "code": 1, "meaning": "the notes could not be read (reason store-failed), or the file could not be written (reason write-failed); nothing was exported" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "no --out, a path Windows refuses, or a folder-shaped path (a trailing backslash)" },
+        { "code": 11, "meaning": "not running, the Quick notes module is off (reason module-off), the file exists and --overwrite was not given (reason exists), the folder does not exist (reason target-missing; it is never created), or busy" },
+        { "code": 12, "meaning": "other programs may not ask for this yet - the setting is off - or the running copy runs as administrator" },
+        { "code": 13, "meaning": "the disk is full (reason disk-full)" },
+        { "code": 15, "meaning": "a network share in --out did not answer" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait CyrFlip.exe note export --out C:\\temp\\notes-backup.txt", "expect": "exit 0 (errorlevel 0); C:\\temp\\notes-backup.txt starts with the line \"# CyrFlip Exchange Text v1\" and holds the Quick notes section" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "layout list",
+      "aliases": [],
+      "summary": "List the keyboard layouts installed in Windows, in Windows' own order.",
+      "synopsis": "CyrFlip.exe layout list [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "count", "kind": "int", "description": "number of layouts" },
+        { "name": "layouts", "kind": "array", "description": "objects with klid (eight hexadecimal digits), code (the two letters the marker shows, or the language's four hexadecimal digits when Windows cannot name it), label (Windows' own name of the layout) and current (bool; on every object only while CyrFlip is running: true for the layout of the window the person last typed in, false for all when there is no such window)" }
+      ],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "listed" },
+        { "code": 1, "meaning": "Windows reports no keyboard layouts" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 11, "meaning": "busy: a dialog or the first-run tour is open" },
+        { "code": 12, "meaning": "the running copy runs as administrator and this caller does not" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\CyrFlip.exe -ArgumentList 'layout list --result C:\\temp\\layouts.json' -Wait", "expect": "C:\\temp\\layouts.json lists the installed layouts" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "layout current",
+      "aliases": [],
+      "summary": "Say which keyboard layout the window the person last typed in uses, and whether CapsLock is on - the window a click on the tray icon picks; from a console that is the console.",
+      "synopsis": "CyrFlip.exe layout current [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "code", "kind": "string", "description": "the two letters the marker shows, for example EN or RU" },
+        { "name": "klid", "kind": "string", "description": "the layout's KLID, for example 00000409" },
+        { "name": "capsLock", "kind": "bool", "description": "whether CapsLock is on" }
+      ],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 2000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "answered" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 11, "meaning": "not running, no window to act on (reason target-missing), or busy" },
+        { "code": 12, "meaning": "the running copy runs as administrator and this caller does not" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\CyrFlip.exe -ArgumentList 'layout current --result C:\\temp\\layout.json' -Wait", "expect": "C:\\temp\\layout.json holds {\"code\":\"EN\",\"klid\":\"00000409\",\"capsLock\":false}" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "layout switch",
+      "aliases": [],
+      "summary": "Switch the keyboard layout of the window the person last typed in, as a click on the tray icon does - from a console that is the console.",
+      "synopsis": "CyrFlip.exe layout switch --to <code|klid|next> [--json] [--result <path>]",
+      "args": [
+        { "name": "to", "kind": "string", "required": true, "description": "A language code (en, ru), a KLID (00000409) or next. A code that matches several installed layouts takes the first in Windows' order; give a KLID to be exact. next is the rotation of a click on the tray icon. A layout that is not installed is never added to Windows." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "klid", "kind": "string", "description": "the layout now requested" },
+        { "name": "code", "kind": "string", "description": "its code, as layout current spells it" },
+        { "name": "switched", "kind": "bool", "description": "false when that layout was already active, or when next finds only one layout installed" }
+      ],
+      "risk": "writes-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "requested - not proof that the window took it, as with a click on the tray icon - or already active" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "no --to, or a value that names no layout" },
+        { "code": 11, "meaning": "not running, no window to act on (reason target-missing), that layout is not installed (reason target-missing), or busy" },
+        { "code": 12, "meaning": "other programs may not ask for this - the setting is off - or the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait CyrFlip.exe layout switch --to en", "expect": "exit 0 (errorlevel 0); the window the person typed in last now types Latin" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "text convert",
+      "aliases": [],
+      "summary": "Convert a text typed in one keyboard layout into what the same keys give in another layout.",
+      "synopsis": "CyrFlip.exe text convert --text <text> --from <code|klid> --to <code|klid> [--symbols true|false] [--json] [--result <path>]",
+      "args": [
+        { "name": "text", "kind": "string", "required": true, "description": "The text, at most 32768 characters (and 32 KiB as UTF-8, the command line's argument bound). A text whose converted form would not fit in one answer, about 64 KiB, is refused." },
+        { "name": "from", "kind": "string", "required": true, "description": "The layout the text was typed in: a language code or a KLID. A code that matches several installed layouts takes the first in Windows' order; give a KLID to be exact." },
+        { "name": "to", "kind": "string", "required": true, "description": "The layout it should read in; written like from." },
+        { "name": "symbols", "kind": "enum", "required": false, "values": ["true", "false"], "default": true, "description": "Also swap a key that is punctuation in both layouts. true when absent, whatever the setting in CyrFlip says; give the word after it (--symbols false) or after an equals sign (--symbols=false)." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "text", "kind": "string", "description": "the converted text" },
+        { "name": "changed", "kind": "bool", "description": "false when nothing in the text had a counterpart" }
+      ],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "converted" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "no text, an empty text or one over the limit, a converted text too long to answer, a value that names no layout, a layout that is not installed on this PC (US 00000409 with Russian 00000419 is converted even without the Russian keyboard), or the same layout on both sides" },
+        { "code": 11, "meaning": "busy: a dialog or the first-run tour is open" },
+        { "code": 12, "meaning": "the running copy runs as administrator and this caller does not" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\CyrFlip.exe -ArgumentList 'text convert --text ghbdtn --from en --to ru --result C:\\temp\\t.json' -Wait", "expect": "C:\\temp\\t.json holds {\"text\":\"привет\",\"changed\":true}" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "text flip-case",
+      "aliases": [],
+      "summary": "Invert the case of every letter of a text - the fix for CapsLock left on.",
+      "synopsis": "CyrFlip.exe text flip-case --text <text> [--json] [--result <path>]",
+      "args": [
+        { "name": "text", "kind": "string", "required": true, "description": "The text, at most 32768 characters (and 32 KiB as UTF-8, the command line's argument bound)." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "text", "kind": "string", "description": "the text with each letter's case inverted" },
+        { "name": "changed", "kind": "bool", "description": "false when the text has no cased letter" }
+      ],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "flipped" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "no text, an empty text or one over the limit, or a flipped text too long to answer" },
+        { "code": 11, "meaning": "busy: a dialog or the first-run tour is open" },
+        { "code": 12, "meaning": "the running copy runs as administrator and this caller does not" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\CyrFlip.exe -ArgumentList 'text flip-case --text \"hELLO\" --result C:\\temp\\t.json' -Wait", "expect": "C:\\temp\\t.json holds {\"text\":\"Hello\",\"changed\":true}" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "screenshot region",
+      "aliases": [],
+      "summary": "Let the person choose a part of the screen - the selection appears over whatever they are doing, and Escape cancels it - and save it as a PNG file. With --annotate the chosen part opens in the draw-on-capture editor first, and OK saves the drawn picture under the original capture moment.",
+      "synopsis": "CyrFlip.exe screenshot region --out <path> [--annotate] [--overwrite] [--clipboard <bool>] [--json] [--result <path>]",
+      "args": [
+        { "name": "out", "kind": "path", "required": true, "description": "A file name ending in .png, an existing folder, or a path ending in a backslash; used exactly as given, and a relative path is taken from the caller's working directory. A folder, or a path ending in a backslash, makes CyrFlip name the file screenshot_yyMMdd_HHmmss.png from the moment of the capture (with (2), (3).. when that name is taken). The folder is never created." },
+        { "name": "overwrite", "kind": "bool", "required": false, "default": false, "description": "Replace the file when it exists. Without it an existing file is left alone and the command exits 11. It has no effect when --out is a folder: an automatic name is never replaced." },
+        { "name": "annotate", "kind": "bool", "required": false, "default": false, "description": "Open the chosen part in the draw-on-capture editor first: the person draws on it, OK saves the drawn picture, Cancel or Escape saves nothing. The whole run - choosing and drawing - has the 10-minute bound, while the choosing alone still has its own 120 seconds. It needs the draw-on-capture module on, and answers module-off (11) when it is off." },
+        { "name": "clipboard", "kind": "bool", "required": false, "default": false, "description": "Also put the picture on the clipboard, as the chord does - after the file is saved. Without it the clipboard is not touched. With --annotate the drawn picture is the picture." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "path", "kind": "path", "description": "the file written - with --out a folder, the file named inside it" },
+        { "name": "width", "kind": "int", "description": "pixels of the picture written" },
+        { "name": "height", "kind": "int", "description": "pixels of the picture written" }
+      ],
+      "risk": "reads-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 600000,
+      "interactive": true,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "saved" },
+        { "code": 1, "meaning": "the screen could not be captured (reason capture-failed), or the file is saved but another program holds the clipboard (reason clipboard-failed; the answer still names the file)" },
+        { "code": 2, "meaning": "no area was chosen within 120 seconds - the overlay was closed and nothing was written - or, with --annotate, the run was not finished within 10 minutes (the selection and the editor were closed and nothing was written) - or the running copy is older and takes no commands" },
+        { "code": 10, "meaning": "no --out, or --out is not a usable .png file name or folder path" },
+        { "code": 11, "meaning": "not running, the folder does not exist, the file exists and --overwrite was not given (reason exists), a capture is already under way (reason busy), the draw-on-capture module is off with --annotate (reason module-off), or a dialog or the first-run tour is open" },
+        { "code": 12, "meaning": "other programs may not ask for this yet - the setting is off - or the running copy runs as administrator" },
+        { "code": 13, "meaning": "the disk is full" },
+        { "code": 14, "meaning": "the file could not be written, or the folder could not be checked" },
+        { "code": 15, "meaning": "a network share in --out did not answer" },
+        { "code": 16, "meaning": "the person cancelled the selection, or cancelled the editor with --annotate" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'screenshot region --out C:\\temp\\part.png' -Wait -PassThru).ExitCode", "expect": "0 and C:\\temp\\part.png exists; 16 when the person pressed Escape" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "screenshot full",
+      "aliases": [],
+      "summary": "Save all screens, as they are after an optional delay, as a PNG file. The console that ran the command is part of the picture unless --delay-ms lets it move away.",
+      "synopsis": "CyrFlip.exe screenshot full --out <path> [--overwrite] [--delay-ms <n>] [--clipboard <bool>] [--json] [--result <path>]",
+      "args": [
+        { "name": "out", "kind": "path", "required": true, "description": "A file name ending in .png, an existing folder, or a path ending in a backslash; used exactly as given, and a relative path is taken from the caller's working directory. A folder or a path ending in a backslash is named as for screenshot region." },
+        { "name": "overwrite", "kind": "bool", "required": false, "default": false, "description": "Replace the file when it exists. Without it an existing file is left alone and the command exits 11. It has no effect when --out is a folder." },
+        { "name": "delay-ms", "kind": "int", "required": false, "default": 0, "description": "Wait this long before the capture, 0 to 30000, so a window can be arranged first. The file's name and time stamp use the moment of the capture, not of the command." },
+        { "name": "clipboard", "kind": "bool", "required": false, "default": false, "description": "Also put the picture on the clipboard, as the chord does - after the file is saved. Without it the clipboard is not touched." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "path", "kind": "path", "description": "the file written - with --out a folder, the file named inside it" },
+        { "name": "width", "kind": "int", "description": "pixels of the whole virtual screen" },
+        { "name": "height", "kind": "int", "description": "pixels of the whole virtual screen" }
+      ],
+      "risk": "reads-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 60000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "saved" },
+        { "code": 1, "meaning": "the screen could not be captured (reason capture-failed), or the file is saved but another program holds the clipboard (reason clipboard-failed; the answer still names the file)" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "no --out, --out is not a usable .png file name or folder path, or a delay out of range" },
+        { "code": 11, "meaning": "not running, the folder does not exist, the file exists and --overwrite was not given (reason exists), a capture is already under way (reason busy), or a dialog or the first-run tour is open" },
+        { "code": 12, "meaning": "other programs may not ask for this yet - the setting is off - or the running copy runs as administrator" },
+        { "code": 13, "meaning": "the disk is full" },
+        { "code": 14, "meaning": "the file could not be written, or the folder could not be checked" },
+        { "code": 15, "meaning": "a network share in --out did not answer" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait CyrFlip.exe screenshot full --out C:\\temp\\screens\\ --delay-ms 3000", "expect": "exit 0 (errorlevel 0); a screenshot_<date>_<time>.png is in C:\\temp\\screens" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "screenshot window",
+      "aliases": [],
+      "summary": "Capture one named top-level window and save it as a PNG file. The picture is the window's rectangle of the screen as it is right now: a window covered by another shows what covers it, and a minimized window is refused.",
+      "synopsis": "CyrFlip.exe screenshot window (--window-pid <int> | --window-title <text>) --out <path> [--overwrite] [--json] [--result <path>]",
+      "args": [
+        { "name": "out", "kind": "path", "required": true, "description": "A file name ending in .png, an existing folder, or a path ending in a backslash; used exactly as given, and a relative path is taken from the caller's working directory. A folder, or a path ending in a backslash, makes CyrFlip name the file screenshot_yyMMdd_HHmmss.png from the moment of the capture (with (2), (3).. when that name is taken). The folder is never created." },
+        { "name": "overwrite", "kind": "bool", "required": false, "default": false, "description": "Replace the file when it exists. Without it an existing file is left alone and the command exits 11. It has no effect when --out is a folder: an automatic name is never replaced." },
+        { "name": "window-pid", "kind": "int", "required": false, "description": "The process id of the program whose window is captured; with --window-title the two narrow each other to one window. No open window matching is target-missing (11); more than one matching is bad-argument (10)." },
+        { "name": "window-title", "kind": "string", "required": false, "description": "A part of the window's title, matched without regard to case; with --window-pid the two narrow each other to one window. No open window matching is target-missing (11); more than one matching is bad-argument (10)." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "path", "kind": "path", "description": "the file written - with --out a folder, the file named inside it" },
+        { "name": "width", "kind": "int", "description": "pixels of the picture written - the window's on-screen rectangle" },
+        { "name": "height", "kind": "int", "description": "pixels of the picture written - the window's on-screen rectangle" }
+      ],
+      "risk": "reads-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 30000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "saved" },
+        { "code": 1, "meaning": "the screen could not be captured (reason capture-failed)" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "no --out, --out is not a usable .png file name or folder path, neither --window-pid nor --window-title was given, or more than one open window matches (reason bad-argument)" },
+        { "code": 11, "meaning": "not running, no open window matches, the named window is minimized or outside the screens (reason target-missing), the folder does not exist, the file exists and --overwrite was not given (reason exists), a capture is already under way (reason busy), or a dialog or the first-run tour is open" },
+        { "code": 12, "meaning": "other programs may not ask for this yet - the setting is off - or the running copy runs as administrator" },
+        { "code": 13, "meaning": "the disk is full" },
+        { "code": 14, "meaning": "the file could not be written, or the folder could not be checked" },
+        { "code": 15, "meaning": "a network share in --out did not answer" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'screenshot window --window-pid 4012 --out C:\\temp\\w.png' -Wait -PassThru).ExitCode", "expect": "0 and C:\\temp\\w.png exists; 11 when no window of that pid is open, or it is minimized" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "chords list",
+      "aliases": [],
+      "summary": "List every hotkey and mouse chord CyrFlip binds and whether it really fires.",
+      "synopsis": "CyrFlip.exe chords list [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "count", "kind": "int", "description": "number of chords" },
+        { "name": "chords", "kind": "array", "description": "objects with id (a key unique to the row, such as Case: or Conversion:<id>), kind (the chord kind), chord (as stored), enabled (bool - its own switch), live (bool - whether it really fires), reason (null when it fires; otherwise one of own-switch, module-off, master-off, no-chord, unparsable, incomplete; clash when it fires but another CyrFlip chord holds the same keys)" }
+      ],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "listed" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\CyrFlip.exe -ArgumentList 'chords list --result C:\\temp\\chords.json' -Wait", "expect": "C:\\temp\\chords.json lists the chords with their state" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "diagnostics paths",
+      "aliases": [],
+      "summary": "Say where CyrFlip keeps its data, its logs and its reports.",
+      "synopsis": "CyrFlip.exe diagnostics paths [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "dataFolder", "kind": "path", "description": "the per-user data folder, which holds the logs" },
+        { "name": "scenariosFolder", "kind": "path", "description": "the folder of the scenario files" },
+        { "name": "reportsFolder", "kind": "path", "description": "where log bundles are written" }
+      ],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "printed" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\CyrFlip.exe -ArgumentList 'diagnostics paths --result C:\\temp\\paths.json' -Wait", "expect": "C:\\temp\\paths.json names the three folders; none of them is created" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "diagnostics bundle",
+      "aliases": [],
+      "summary": "Pack CyrFlip's diagnostic logs into one ZIP file, without mailing it.",
+      "synopsis": "CyrFlip.exe diagnostics bundle --out <path> [--overwrite] [--json] [--result <path>]",
+      "args": [
+        { "name": "out", "kind": "path", "required": true, "description": "The ZIP file to write; a folder or a path ending in a backslash gets a name made from the moment of the command." },
+        { "name": "overwrite", "kind": "bool", "required": false, "default": false, "description": "Replace the file when it exists." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "path", "kind": "path", "description": "the ZIP written" },
+        { "name": "sizeBytes", "kind": "int", "description": "its size" },
+        { "name": "files", "kind": "int", "description": "number of files packed" }
+      ],
+      "risk": "reads-user-data",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 60000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "written" },
+        { "code": 1, "meaning": "the archive could not be built or written" },
+        { "code": 10, "meaning": "no --out, or a name Windows does not accept" },
+        { "code": 11, "meaning": "the folder does not exist, or the file exists and --overwrite was not given" },
+        { "code": 12, "meaning": "other programs may not ask for this yet - the setting is off" },
+        { "code": 13, "meaning": "the disk is full" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'diagnostics bundle --out C:\\temp\\logs.zip' -Wait -PassThru).ExitCode", "expect": "0 and C:\\temp\\logs.zip exists" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "trafficlight status",
+      "aliases": [],
+      "summary": "Say what the availability traffic light knows: each target's label, kind, light, whether the look is stale and when it was last checked - without starting a check.",
+      "synopsis": "CyrFlip.exe trafficlight status [--target <label>] [--json] [--result <path>]",
+      "args": [
+        { "name": "target", "kind": "string", "required": false, "description": "Keep only the targets with this label: the whole label, compared without regard to case. A label that matches nothing answers 0 with count 0. Without it every target is listed." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "count", "kind": "int", "description": "number of tiles returned" },
+        { "name": "tiles", "kind": "array", "description": "objects with label (at most 64 characters), kind (ping, tcp, http, folder, drive, sftp or exchange), state (ok, degraded, down, unknown for a target never checked, off for a target switched off, invalid for an address that does not validate), stale (bool: the look is older than three intervals, or the computer is offline), lastCheckedUtc (UTC to the second, yyyy-MM-ddTHH:mm:ssZ; absent when no check has completed). Never an address, a host, a path, a port, a URL or a fingerprint" }
+      ],
+      "risk": "reads-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "answered (no match and an empty board are still 0)" },
+        { "code": 1, "meaning": "the command failed unexpectedly (reason error; the log bundle on the About page has the type), or the answer would pass 64 KiB (reason response-too-large; ask for one target with --target)" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "--target given without a label" },
+        { "code": 11, "meaning": "CyrFlip is not running, the traffic light module is off (reason module-off), a target the request covers has a label that is also its address or a part of it (reason label-unsafe: nothing is listed and the label is not named - give that target a label of its own in the settings), or busy" },
+        { "code": 12, "meaning": "other programs may not ask for this yet - the setting is off - or the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\CyrFlip.exe -ArgumentList 'trafficlight status --target \"Backup server\" --result C:\\temp\\light.json' -Wait", "expect": "C:\\temp\\light.json holds the tile of that target with its label, kind, state, stale and lastCheckedUtc" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "trafficlight check",
+      "aliases": [],
+      "summary": "Check one target of the availability traffic light, or all of them, now, wait until the checks have finished and say what they found.",
+      "synopsis": "CyrFlip.exe trafficlight check (--target <label> | --all) [--json] [--result <path>]",
+      "args": [
+        { "name": "target", "kind": "string", "required": false, "description": "Check the targets with this label: the whole label, compared without regard to case. Exactly one of target and all." },
+        { "name": "all", "kind": "bool", "required": false, "default": false, "description": "Check every target. Exactly one of target and all." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "oneOf": [["target", "all"]],
+      "returns": [
+        { "name": "count", "kind": "int", "description": "number of tiles returned: the checks that finished" },
+        { "name": "tiles", "kind": "array", "description": "objects with label, kind, state, stale and lastCheckedUtc of the moment the check finished, as for trafficlight status; a light that settles only after the target's number of failures stays as it was" },
+        { "name": "notChecked", "kind": "int", "description": "number of targets that were not checked and are named in the message: switched off, an address that does not validate, a network target while the computer is offline, changed while the check ran, or busy because an earlier check of the target has reported but its call has not returned; absent when none" }
+      ],
+      "risk": "leaves-machine",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 60000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "every check that could be started has finished (a label that matches nothing, an empty board and targets that were not checked are still 0 - read count and notChecked)" },
+        { "code": 1, "meaning": "the command failed unexpectedly (reason error; the log bundle on the About page has the type), or the answer would pass 64 KiB (reason response-too-large; ask for one target with --target)" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or the checks did not finish in time; they go on, and the answer is not given" },
+        { "code": 10, "meaning": "neither or both of target and all, --all=false, or --target without a label" },
+        { "code": 11, "meaning": "CyrFlip is not running, the traffic light module is off (reason module-off), a target the request covers has a label that is also its address or a part of it (reason label-unsafe: no tile is answered and the label is not named - give that target a label of its own in the settings), or busy" },
+        { "code": 12, "meaning": "other programs may not ask for this yet - the setting is off - or the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'trafficlight check --target \"Backup server\" --result C:\\temp\\light.json' -Wait -PassThru).ExitCode", "expect": "0 once the check has finished; C:\\temp\\light.json holds the target's fresh tile" }
+      ],
+      "since": "1.0"
+        },
+    {
+      "name": "note show",
+      "aliases": [],
+      "summary": "Open the Quick notes window on the note it was last left on - with --new, on a new note with the caret in the body, exactly as the chord does. Show, never hide: run twice, the window is up both times.",
+      "synopsis": "CyrFlip.exe note show [--new] [--json] [--result <path>]",
+      "args": [
+        { "name": "new", "kind": "bool", "required": false, "default": false, "description": "Open the window on a new note with the caret in the body, exactly as the chord does; without it, the note the window was last left on." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "the Quick notes window is open" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "an unknown option" },
+        { "code": 11, "meaning": "the Quick notes module is off (reason module-off), CyrFlip is not running, or busy" },
+        { "code": 12, "meaning": "the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait CyrFlip.exe note show --new", "expect": "exit 0; the Quick notes window opens on a new note, and a second run leaves it open" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "clipboard-history show",
+      "aliases": [],
+      "summary": "Show the clipboard history strip - and only show it, never toggle it, so a shortcut that opens the history never closes it.",
+      "synopsis": "CyrFlip.exe clipboard-history show [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the history strip is visible" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "an unknown option" },
+        { "code": 11, "meaning": "the clipboard history is off (reason module-off), CyrFlip is not running, or busy" },
+        { "code": 12, "meaning": "the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'clipboard-history show' -Wait -PassThru).ExitCode", "expect": "0; the strip is visible, and a second run leaves it visible and brings it forward" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "clipboard-history list",
+      "aliases": [],
+      "summary": "List the clipboard history's previews, pinned first then newest first, optionally only entries that contain a query or only the pinned ones. The history is the most private store in the product, so the answer carries previews only - never a full text, never a source app, never a source window title.",
+      "synopsis": "CyrFlip.exe clipboard-history list [--query <text>] [--limit <n>] [--pinned] [--json] [--result <path>]",
+      "args": [
+        { "name": "query", "kind": "string", "required": false, "description": "Keep entries that contain this, the way the history search window searches: the raw text, at least 3 characters." },
+        { "name": "limit", "kind": "int", "required": false, "default": 10, "description": "At most this many entries, 1 to 50." },
+        { "name": "pinned", "kind": "bool", "required": false, "description": "Only pinned entries." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "count", "kind": "int", "description": "number of entries returned; below both limit and total only when the 48 KiB answer bound cut the list" },
+        { "name": "total", "kind": "int", "description": "number of entries that matched before the limit" },
+        { "name": "truncated", "kind": "bool", "description": "true when the answer bound cut the list short of the limit" },
+        { "name": "items", "kind": "array", "description": "objects with id (the entry's own id), preview (the strip's preview: the first 1024 characters on one line, line breaks collapsed, never the whole text), pinned, copiedUtc (UTC to the second, yyyy-MM-ddTHH:mm:ssZ)" }
+      ],
+      "risk": "reads-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 10000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "listed (an empty list is still 0)" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "a query under 3 characters, a limit out of range or not a whole number, an unknown option or a bad value" },
+        { "code": 11, "meaning": "the clipboard history is off (reason module-off), CyrFlip is not running, or busy" },
+        { "code": 12, "meaning": "other programs may not ask for this - the setting is off - or the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\\\CyrFlip.exe -ArgumentList 'clipboard-history list --query report --result C:\\\\temp\\\\history.json' -Wait", "expect": "C:\\\\temp\\\\history.json holds the matching entries' previews in the standard order" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "clipboard-history put",
+      "aliases": [],
+      "summary": "Put one history entry back on the clipboard exactly as the history strip's restore does: the entry becomes the current one, the write is marked as CyrFlip's own so it is not recorded as a new copy, and a pinned entry keeps its pin. The answer carries the outcome alone - the caller named the entry and can list it.",
+      "synopsis": "CyrFlip.exe clipboard-history put --id <id> [--json] [--result <path>]",
+      "args": [
+        { "name": "id", "kind": "string", "required": true, "description": "The entry's id: the id every object of clipboard-history list carries." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [],
+      "risk": "writes-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the entry is back on the clipboard as the current one" },
+        { "code": 1, "meaning": "the clipboard could not be written (reason clipboard-failed)" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "--id is missing, not an id clipboard-history list answers, or an unknown option" },
+        { "code": 11, "meaning": "the clipboard history is off (reason module-off), no entry has this id (reason target-missing; the message names nothing of the entry), CyrFlip is not running, or busy" },
+        { "code": 12, "meaning": "other programs may not ask for this - the setting is off - or the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\\\CyrFlip.exe -ArgumentList 'clipboard-history put --id <id-from-the-list>' -Wait -PassThru).ExitCode", "expect": "0; the entry is on the clipboard, the clipboard's own content unchanged besides it" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "clipboard-history pause",
+      "aliases": [],
+      "summary": "Pause or resume recording the clipboard history: the same one persisted state the tray's check item and the settings page own, applied live and kept across restarts. A safe command, so it depends only on the history module being on.",
+      "synopsis": "CyrFlip.exe clipboard-history pause --paused <true|false> [--json] [--result <path>]",
+      "args": [
+        { "name": "paused", "kind": "bool", "required": true, "description": "true pauses recording, false resumes it." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "paused", "kind": "bool", "description": "the new state, as the tray item and the settings page now show it" }
+      ],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 2000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the state is set; pausing a paused history is still 0" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "--paused is missing or not true/false, or an unknown option" },
+        { "code": 11, "meaning": "the clipboard history is off (reason module-off), CyrFlip is not running, or busy" },
+        { "code": 12, "meaning": "the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait CyrFlip.exe clipboard-history pause --paused true", "expect": "exit 0 (errorlevel 0); the tray item is checked and the answer's data holds paused true" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "symbols show",
+      "aliases": [],
+      "summary": "Show the symbols palette without taking the focus from the editor, as the palette itself opens - and never hide it.",
+      "synopsis": "CyrFlip.exe symbols show [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the symbols palette is up" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "an unknown option" },
+        { "code": 11, "meaning": "the symbols window is off (reason module-off), CyrFlip is not running, or busy" },
+        { "code": 12, "meaning": "the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'symbols show' -Wait -PassThru).ExitCode", "expect": "0; the palette is up and the editor keeps the focus" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "trafficlight show",
+      "aliases": [],
+      "summary": "Show the availability board and bring it forward without taking the focus - never hiding it; the chord's toggle is unchanged.",
+      "synopsis": "CyrFlip.exe trafficlight show [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the board is up" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "an unknown option" },
+        { "code": 11, "meaning": "the traffic light is off (reason module-off), CyrFlip is not running, or busy" },
+        { "code": 12, "meaning": "the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'trafficlight show' -Wait -PassThru).ExitCode", "expect": "0; the board is up without the focus, and a second run raises it where it is" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "keepawake set",
+      "aliases": [],
+      "summary": "Set either keep-awake switch - don't sleep, don't turn the screen off - exactly as the tray's two switches do, saved with them and shown as one value everywhere. With --minutes the request is session-only instead: the given switches are applied live for that time, nothing is written, and the state returns on its own when the time ends.",
+      "synopsis": "CyrFlip.exe keepawake set [--system <true|false>] [--screen <true|false>] [--minutes <1-480>] [--json] [--result <path>]",
+      "args": [
+        { "name": "system", "kind": "bool", "required": false, "description": "true keeps the computer from sleeping on idle, false lifts that part back - the same switch the tray item and the General page own." },
+        { "name": "screen", "kind": "bool", "required": false, "description": "true keeps the screen from turning off or locking on idle, false lifts that part back." },
+        { "name": "minutes", "kind": "int", "required": false, "description": "Makes the request session-only: the given switches are applied live for this many minutes (1 to 480) by the running copy, the saved switches are not touched, and the state returns by itself when the time ends or the process dies." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "system", "kind": "bool", "description": "the system keep-awake switch as it now runs" },
+        { "name": "screen", "kind": "bool", "description": "the screen keep-awake switch as it now runs" },
+        { "name": "expiresUtc", "kind": "string", "description": "only with --minutes: the moment the session request ends and the saved state returns" }
+      ],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 2000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the switches are set as asked; setting the state it already has is still 0" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "no switch was named, --minutes is outside 1 to 480 or not a number, or an unknown option" },
+        { "code": 11, "meaning": "CyrFlip is not running (the live request needs the tray's own thread), or busy" },
+        { "code": 12, "meaning": "the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'keepawake set --system true --screen true' -Wait -PassThru).ExitCode", "expect": "0; the tray's two keep-awake checks, the settings page and the answer's data hold one value" },
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'keepawake set --screen true --minutes 90' -Wait -PassThru).ExitCode", "expect": "0; data holds screen true and expiresUtc, and the saved switches are untouched" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "theme set",
+      "aliases": [],
+      "summary": "Choose the theme - system, light or dark - exactly as picking it on the General page does: applied to every window at once with no restart, saved as the same token. Windows contrast themes keep their precedence over every mode, as they already do.",
+      "synopsis": "CyrFlip.exe theme set --theme <system|light|dark> [--json] [--result <path>]",
+      "args": [
+        { "name": "theme", "kind": "enum", "required": true, "values": ["system", "light", "dark"], "description": "The theme token to store and apply. Only the three tokens are taken; anything else is refused, never quietly saved as system the way a hand-edited settings value is read." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "theme", "kind": "string", "description": "the stored token - system, light or dark" }
+      ],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 3000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the theme is applied at once and stored; applying the theme it already has is still 0" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "--theme is missing or none of system, light, dark, or an unknown option" },
+        { "code": 11, "meaning": "CyrFlip is not running (applying to the live windows is the point of the verb), or busy" },
+        { "code": 12, "meaning": "the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait CyrFlip.exe theme set --theme dark", "expect": "exit 0 (errorlevel 0); every open CyrFlip window is dark, the settings picker agrees, and the answer's data holds theme dark" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "autostart set",
+      "aliases": [],
+      "summary": "Turn start-with-Windows on or off through the same write the General page and its tray switch use: the per-user Run key and the machine-local setting that survives a missing Run entry, together, never one without the other. On the Store build Windows owns startup, and the command answers managed-by-windows and writes nothing.",
+      "synopsis": "CyrFlip.exe autostart set (--on | --off) [--json] [--result <path>]",
+      "args": [
+        { "name": "on", "kind": "bool", "required": false, "description": "Add CyrFlip to the current Windows user's startup." },
+        { "name": "off", "kind": "bool", "required": false, "description": "Remove CyrFlip from the current Windows user's startup." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "oneOf": [["on", "off"]],
+      "returns": [
+        { "name": "enabled", "kind": "bool", "description": "the new state, as the settings checkbox and the tray switch now show it" }
+      ],
+      "risk": "writes-user-data",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the switch is set; setting the state it already has is still 0" },
+        { "code": 1, "meaning": "the registry write failed" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "--on and --off given together, or neither, or an unknown option" },
+        { "code": 11, "meaning": "the Store build, where Windows owns startup (reason managed-by-windows), or the running copy is busy" },
+        { "code": 12, "meaning": "Commands from other programs is off, or the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'autostart set --on' -Wait -PassThru).ExitCode", "expect": "0; the Run value, the machine-local setting, the settings checkbox and the tray switch agree, with or without CyrFlip running" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "cursor restore",
+      "aliases": [],
+      "summary": "Reload Windows' default cursors, the whole scheme - the repair for a branded I-beam a killed CyrFlip left behind, and it undoes what any tool replaced. Idempotent, safe beside a running CyrFlip, and needs no running copy.",
+      "synopsis": "CyrFlip.exe cursor restore [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "restored", "kind": "bool", "description": "true - the default scheme was reloaded" }
+      ],
+      "risk": "writes-user-data",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the default scheme was reloaded; a second run does the same and answers the same" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 12, "meaning": "Commands from other programs is off, or the running copy runs as administrator" },
+        { "code": 14, "meaning": "the reload call itself failed" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "CyrFlip.exe cursor restore", "expect": "exit 0; the system's own I-beam is back, and a second run changes nothing" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "translate text",
+      "aliases": [],
+      "summary": "Translate a piece of text through the local model the person already set up - text in, text out: no selection is taken, no window opens, the clipboard is never touched. The model, its timeouts and its one retry are the translator module's own, and the verb needs the running copy.",
+      "synopsis": "CyrFlip.exe translate text --text <text> --to <language or ui> [--from <language or ui>] [--json] [--result <path>]",
+      "args": [
+        { "name": "text", "kind": "string", "required": true, "description": "The text to translate. Over the service's own cap (4000 characters) the surplus is not translated and the answer says so with truncated." },
+        { "name": "to", "kind": "string", "required": true, "description": "The target language: any language code the translation pickers offer, or ui for the running copy's interface language. The token active is refused - it names the layout of a window, and a command reads no window." },
+        { "name": "from", "kind": "string", "required": false, "description": "The source language: a language code or ui. Without it the model detects the source itself." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "text", "kind": "string", "description": "the translation" },
+        { "name": "model", "kind": "string", "description": "the model the service resolved and used, which may differ from the configured one" },
+        { "name": "partial", "kind": "bool", "description": "whether the model stopped early, so the translation covers part of the text" },
+        { "name": "truncated", "kind": "bool", "description": "whether the input was cut at the service's own 4000-character cap, so the translation covers only what was cut" }
+      ],
+      "risk": "leaves-machine",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 130000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the translation is in the answer's data: text, model, partial, truncated" },
+        { "code": 1, "meaning": "the server refused the request, or the model answered with nothing usable, or the answer was too large for one response line" },
+        { "code": 2, "meaning": "the model call did not finish in 130 s and was cancelled, or the running copy is older and takes no commands" },
+        { "code": 10, "meaning": "an empty --text or --to, the token active, or an unknown option" },
+        { "code": 11, "meaning": "CyrFlip is not running, the translator module is off (reason module-off), the server answered but has no model installed (reason no-model), or another command translation is running" },
+        { "code": 12, "meaning": "Commands from other programs is off, or the running copy runs as administrator" },
+        { "code": 15, "meaning": "the server does not answer, is not installed, is not running, or did not start (reason network; the message names which of the four)" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'translate text --text \"Hello, world\" --to ru' -Wait -PassThru).ExitCode", "expect": "0; data holds the Russian translation in text, the model it used, partial false and truncated false" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "selection convert",
+      "aliases": [],
+      "target": "focused-window",
+      "summary": "Convert what the named window has selected from one keyboard layout into another - the chord's own flip pipeline: take the selection, convert it, paste the answer back over it, restore the clipboard.",
+      "synopsis": "CyrFlip.exe selection convert --from <code|klid> --to <code|klid> (--window-pid <int> | --window-title <text> | both) [--json] [--result <path>]",
+      "args": [
+        { "name": "from", "kind": "string", "required": true, "description": "The layout the selected text was typed in: a language code or a KLID. A code that matches several installed layouts takes the first in Windows' order; give a KLID to be exact." },
+        { "name": "to", "kind": "string", "required": true, "description": "The layout it should read in; written like from." },
+        { "name": "window-pid", "kind": "int", "required": false, "description": "Names the window whose selection is taken: its process id. Give it alone when the program has one window, or together with --window-title when it has several." },
+        { "name": "window-title", "kind": "string", "required": false, "description": "Names the window by a part of its title, matched without regard to case. Give a longer part, or add --window-pid, until exactly one window matches." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "changed", "kind": "bool", "description": "true when the selection was converted and pasted back; false when nothing in it needed converting" }
+      ],
+      "risk": "writes-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 15000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "converted; data says changed" },
+        { "code": 1, "meaning": "the selection could not be read or written, or the window lost the focus while CyrFlip worked (the message says which)" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "an unknown option or value, no window named, an empty title part, more than one window matching, a value that names no layout, the same layout on both sides, or a selection over the limit" },
+        { "code": 11, "meaning": "busy (a dialog or another clipboard operation is open), the window named does not exist, the window would not come to the front (reason window-not-foreground), or nothing is selected (reason no-selection)" },
+        { "code": 12, "meaning": "Commands from other programs is off, or the running copy runs as administrator and this caller does not" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'selection convert --from en --to ru --window-pid 4012' -Wait -PassThru).ExitCode", "expect": "0: the wrong-layout text in that window's selection now reads in Russian; data holds changed true" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "selection flip-case",
+      "aliases": [],
+      "target": "focused-window",
+      "summary": "Invert the case of what the named window has selected - the chord's own CapsLock fix: take the selection, flip every letter's case, paste the answer back over it, restore the clipboard.",
+      "synopsis": "CyrFlip.exe selection flip-case (--window-pid <int> | --window-title <text> | both) [--json] [--result <path>]",
+      "args": [
+        { "name": "window-pid", "kind": "int", "required": false, "description": "Names the window whose selection is taken: its process id. Give it alone when the program has one window, or together with --window-title when it has several." },
+        { "name": "window-title", "kind": "string", "required": false, "description": "Names the window by a part of its title, matched without regard to case. Give a longer part, or add --window-pid, until exactly one window matches." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "changed", "kind": "bool", "description": "true when the selection was flipped and pasted back; false when nothing in it had a case to flip" }
+      ],
+      "risk": "writes-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 15000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "flipped; data says changed" },
+        { "code": 1, "meaning": "the selection could not be read or written, or the window lost the focus while CyrFlip worked (the message says which)" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "an unknown option or value, no window named, an empty title part, more than one window matching, or a selection over the limit" },
+        { "code": 11, "meaning": "busy (a dialog or another clipboard operation is open), the window named does not exist, the window would not come to the front (reason window-not-foreground), or nothing is selected (reason no-selection)" },
+        { "code": 12, "meaning": "Commands from other programs is off, or the running copy runs as administrator and this caller does not" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'selection flip-case --window-title \"REPORT\"' -Wait -PassThru).ExitCode", "expect": "0: the selection now reads the other way round; data holds changed true" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "selection note",
+      "aliases": [],
+      "target": "focused-window",
+      "summary": "Take what the named window has selected and save it as a quick note - the same capture the context menu uses, then the same write note add uses. The quick notes module must be on.",
+      "synopsis": "CyrFlip.exe selection note (--window-pid <int> | --window-title <text> | both) [--json] [--result <path>]",
+      "args": [
+        { "name": "window-pid", "kind": "int", "required": false, "description": "Names the window whose selection is taken: its process id. Give it alone when the program has one window, or together with --window-title when it has several." },
+        { "name": "window-title", "kind": "string", "required": false, "description": "Names the window by a part of its title, matched without regard to case. Give a longer part, or add --window-pid, until exactly one window matches." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "noteId", "kind": "guid", "description": "the id of the saved note, the same one note list and note get take" }
+      ],
+      "risk": "writes-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 15000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "saved; data holds noteId" },
+        { "code": 1, "meaning": "the selection could not be read, the note could not be written (reason store-failed), or the window lost the focus while CyrFlip worked (the message says which)" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "an unknown option or value, no window named, an empty title part, more than one window matching, or a selection over the notes' own limit" },
+        { "code": 11, "meaning": "busy (a dialog or another clipboard operation is open), the quick notes module is off (reason module-off), the window named does not exist, the window would not come to the front (reason window-not-foreground), or nothing is selected (reason no-selection)" },
+        { "code": 12, "meaning": "Commands from other programs is off, or the running copy runs as administrator and this caller does not" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'selection note --window-pid 4012' -Wait -PassThru).ExitCode", "expect": "0; data holds noteId, and the note is in the quick notes window" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "selection translate",
+      "aliases": [],
+      "target": "focused-window",
+      "summary": "Take what the named window has selected and translate it through the translator's own model - the chord's capture, then the model call of translate text. Nothing is pasted; the answer carries the translation. The translator module must be on.",
+      "synopsis": "CyrFlip.exe selection translate --to <language|ui|active> (--window-pid <int> | --window-title <text> | both) [--json] [--result <path>]",
+      "args": [
+        { "name": "to", "kind": "string", "required": true, "description": "The target language: any language code the translation pickers offer, ui for the running copy's interface language, or active for the keyboard layout live in the named window." },
+        { "name": "window-pid", "kind": "int", "required": false, "description": "Names the window whose selection is taken: its process id. Give it alone when the program has one window, or together with --window-title when it has several." },
+        { "name": "window-title", "kind": "string", "required": false, "description": "Names the window by a part of its title, matched without regard to case. Give a longer part, or add --window-pid, until exactly one window matches." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "text", "kind": "string", "description": "the translation of what was selected" },
+        { "name": "model", "kind": "string", "description": "the model the service resolved and used, which may differ from the configured one" },
+        { "name": "partial", "kind": "bool", "description": "whether the model stopped early, so the translation covers part of the selection" },
+        { "name": "truncated", "kind": "bool", "description": "whether the selection was cut at the service's own 4000-character cap, so the translation covers only what was cut" }
+      ],
+      "risk": "leaves-machine",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 130000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        { "code": 0, "meaning": "the translation is in the answer's data: text, model, partial, truncated" },
+        { "code": 1, "meaning": "the selection could not be read, the server refused or the model answered with nothing usable, or the answer was too large for one response line" },
+        { "code": 2, "meaning": "the model call did not finish in 130 s and was cancelled, or the running copy is older and takes no commands" },
+        { "code": 10, "meaning": "an unknown option or value, an empty --to, no window named, an empty title part, more than one window matching, or a selection over the flip pipeline's limit" },
+        { "code": 11, "meaning": "busy (a dialog, another clipboard operation, or a model call of either translate spelling is in flight), the translator module is off (reason module-off), the server answered but has no model installed (reason no-model), the window named does not exist, the window would not come to the front (reason window-not-foreground), or nothing is selected (reason no-selection)" },
+        { "code": 12, "meaning": "Commands from other programs is off, or the running copy runs as administrator and this caller does not" },
+        { "code": 15, "meaning": "the server does not answer, is not installed, is not running, or did not start (reason network; the message names which of the four)" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(Start-Process .\\CyrFlip.exe -ArgumentList 'selection translate --to active --window-pid 4012' -Wait -PassThru).ExitCode", "expect": "0; data holds the translation into the layout live in that window, the model it used, partial false and truncated false" }
+      ],
+      "since": "1.0"
+    }  ]
+}

@@ -1586,6 +1586,20 @@ namespace CyrFlip
                 ur: "جو بھیجا جاتا ہے وہ بالکل وہی ہے جو بٹن دبانے کے لمحے کلپ بورڈ میں ہوتا ہے۔",
                 zh: "发送的正是按下按钮时剪贴板里的内容。");
 
+            Add("A picture on the clipboard goes before the text beside it: a spreadsheet range or a web selection is sent as the picture.",
+                ru: "Картинка в буфере обмена уходит раньше текста рядом с ней: диапазон из таблицы или выделение на веб-странице отправляется как картинка.",
+                uk: "Зображення в буфері обміну йде раніше за текст поруч із ним: діапазон із таблиці або виділення на вебсторінці надсилається як зображення.",
+                de: "Ein Bild in der Zwischenablage wird vor dem Text daneben gesendet: Ein Tabellenbereich oder eine Auswahl auf einer Webseite wird als Bild gesendet.",
+                it: "Un'immagine negli appunti viene inviata prima del testo accanto: un intervallo di un foglio di calcolo o una selezione di una pagina web viene inviato come immagine.",
+                es: "Una imagen en el portapapeles se envía antes que el texto que la acompaña: un rango de una hoja de cálculo o una selección de una página web se envía como imagen.",
+                fr: "Une image présente dans le presse-papiers est envoyée avant le texte qui l'accompagne : une plage de tableur ou une sélection sur une page web est envoyée sous forme d'image.",
+                pt: "Uma imagem na área de transferência é enviada antes do texto que está junto dela: um intervalo de uma planilha ou uma seleção de uma página da web é enviado como imagem.",
+                ar: "تُرسَل الصورة الموجودة في الحافظة قبل النص المرافق لها: فنطاق من جدول بيانات أو تحديد من صفحة ويب يُرسَل كصورة.",
+                hi: "क्लिपबोर्ड पर मौजूद चित्र उसके साथ वाले टेक्स्ट से पहले भेजा जाता है: स्प्रेडशीट की कोई रेंज या वेब पेज का चयन चित्र के रूप में भेजा जाता है।",
+                bn: "ক্লিপবোর্ডে থাকা ছবি তার পাশের টেক্সটের আগে পাঠানো হয়: স্প্রেডশিটের কোনো রেঞ্জ বা ওয়েব পেজের নির্বাচন ছবি হিসেবে যায়।",
+                ur: "کلپ بورڈ پر موجود تصویر اپنے ساتھ والے متن سے پہلے بھیجی جاتی ہے: اسپریڈشیٹ کی کوئی رینج یا ویب صفحے کا انتخاب تصویر کے طور پر جاتا ہے۔",
+                zh: "剪贴板上的图片会先于它旁边的文字发送：电子表格中的一个区域或网页上的一段选区，都会作为图片发送。");
+
             Add("A password you copied a minute ago goes too. There is no preview and no confirmation.",
                 ru: "Пароль, скопированный минуту назад, тоже уйдёт. Предпросмотра и подтверждения нет.",
                 uk: "Пароль, скопійований хвилину тому, теж піде. Попереднього перегляду й підтвердження немає.",

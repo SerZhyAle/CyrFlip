@@ -17,15 +17,21 @@ namespace CyrFlip.Tests
         /// <param name="scenarioRoot">Folder for the launcher store; null = a fresh per-call temp folder
         /// (created only if something writes, which nothing here does).</param>
         /// <param name="withExchange">Build the exchange-file rows (ticket S0023), so a walk sees their captions.</param>
-        public static SettingsForm NewSettings(AppConfig config, string? scenarioRoot = null, bool withExchange = true)
+        /// <param name="allPagesLaidOut">The window lays a page out when it is first shown (ticket S0135, L3), so the
+        /// geometry of a page nobody showed is not there yet. A test that reads it - most of them walk every page - gets
+        /// the window as it was before that, with every page laid out. The tests that time the real open or the first
+        /// visit of a page pass false: they measure the window as a person meets it.</param>
+        public static SettingsForm NewSettings(AppConfig config, string? scenarioRoot = null, bool withExchange = true, bool allPagesLaidOut = true)
         {
             Action<bool> b = _ => { };
             Action noop = () => { };
             var store = new LauncherScenarioStore(scenarioRoot
                 ?? Path.Combine(Path.GetTempPath(), "CyrFlipTests", Guid.NewGuid().ToString("N")));
             Action<IWin32Window, bool>? exchange = withExchange ? (_, _) => { } : null;
-            return new SettingsForm(config, b, b, b, b, b, b, b, b, b, _ => { }, _ => { }, noop, noop, noop, noop, noop,
+            var form = new SettingsForm(config, b, b, b, b, b, b, b, b, b, _ => { }, _ => { }, noop, noop, noop, noop, noop,
                 b, b, b, b, b, b, store, b, noop, noop, noop, (_, _) => "", exchange);
+            if (allPagesLaidOut) form.EnsureAllPagesLaidOut();
+            return form;
         }
     }
 }

@@ -46,6 +46,8 @@ namespace CyrFlip.Tests
             new object[] { ExchangeCodes.InvalidPayload, "The server did not accept these settings: they are damaged or too large.", "Сервер не принял эти настройки: они повреждены или слишком велики.", "Сервер не прийняв ці налаштування: вони пошкоджені або завеликі." },
             new object[] { ExchangeCodes.AppIdMismatch, "This server does not keep settings of this program for this account.", "Этот сервер не хранит настройки этой программы для этого аккаунта.", "Цей сервер не зберігає налаштування цієї програми для цього акаунта." },
             new object[] { ExchangeCodes.VersionIncompatible, "The server does not support this version of the settings format.", "Сервер не поддерживает эту версию формата настроек.", "Сервер не підтримує цю версію формату налаштувань." },
+            // the notes of an account (DEVICE-EXCHANGE 1.13, item FL)
+            new object[] { ExchangeCodes.NoteConflict, "This note was changed on another device at the same time. Both versions are kept.", "Эту заметку одновременно изменили на другом устройстве. Сохранены обе версии.", "Цю нотатку одночасно змінили на іншому пристрої. Збережено обидві версії." },
             new object[] { ExchangeCodes.SealedFailed,"This could not be opened on this device. Try again from the other device.", "Это не удалось открыть на этом устройстве. Повторите с другого устройства.", "Це не вдалося відкрити на цьому пристрої. Повторіть з іншого пристрою." },
         };
 
@@ -70,6 +72,19 @@ namespace CyrFlip.Tests
                 ExchangeMessages.Describe(ExchangeCodes.LimitReached, ExchangeContext.Send, Uk).What);
             // on a get, or when enrolling, the general row applies
             Assert.Equal("A limit set on the server has been reached.", ExchangeMessages.Describe(ExchangeCodes.LimitReached, ExchangeContext.Get, s => s).What);
+        }
+
+        [Fact]
+        public void LimitReachedOnANotesSyncHasTheNotesRowAndNoStep()
+        {
+            ExchangeMessage notes = ExchangeMessages.Describe(ExchangeCodes.LimitReached, ExchangeContext.Notes, s => s);
+            Assert.Equal("This server keeps no more notes for this account. Delete some notes, or ask whoever runs the server.", notes.What);
+            Assert.False(notes.HasStep);
+            Assert.Equal("Этот сервер больше не принимает заметки для этого аккаунта. Удалите часть заметок или обратитесь к тому, кто управляет сервером.",
+                ExchangeMessages.Describe(ExchangeCodes.LimitReached, ExchangeContext.Notes, Ru).What);
+            Assert.Equal("Цей сервер більше не приймає нотатки для цього акаунта. Видаліть частину нотаток або зверніться до того, хто керує сервером.",
+                ExchangeMessages.Describe(ExchangeCodes.LimitReached, ExchangeContext.Notes, Uk).What);
+            Assert.False(ExchangeMessages.Describe(ExchangeCodes.NoteConflict, ExchangeContext.Notes, s => s).HasStep);
         }
 
         [Fact]

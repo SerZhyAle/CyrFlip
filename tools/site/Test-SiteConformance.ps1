@@ -101,11 +101,14 @@ try {
     $expectedSiblings = @(
         "https://serzhyale.github.io/FastMediaSorter_mob_v2/",
         "https://serzhyale.github.io/FastMediaSorter_Lite/",
+        "https://serzhyale.github.io/FastMediaSorter_WEB/",
         "https://serzhyale.github.io/doc-html-translate/",
         "https://serzhyale.github.io/FileDO/",
         "https://serzhyale.github.io/universal-agent-kit/",
         "https://serzhyale.github.io/OneClickRunner/",
         "https://serzhyale.github.io/StreamsPlayer/",
+        "https://serzhyale.github.io/DeviceInfo_Android/",
+        "https://serzhyale.github.io/Tourist_Android/",
         "https://sza.od.ua"
     )
     foreach ($lp in $landingPages) {
@@ -115,7 +118,7 @@ try {
             $expectedSiblings -contains $_
         }
         $count = ($gridLinks | Select-Object -Unique).Count
-        Assert-Check "$lp has tools-grid with 8 family links" ($hasGrid -and $count -eq 8) "Found $count family links in $lp"
+        Assert-Check "$lp has tools-grid with 11 family links" ($hasGrid -and $count -eq 11) "Found $count family links in $lp"
     }
 
     # A5. Pre-paint Script Resolver Order (52 Rendered HTML Pages)
@@ -155,13 +158,17 @@ try {
         Assert-Check "docs/en/index.html exists" $false "File not found"
     }
 
-    # A8. No Unversioned Releases Href in docs
-    Write-Host "`n=== A8. Release Links Point to /latest ===" -ForegroundColor Yellow
+    # A8. No Unversioned Releases Href in docs. Since S0124 the rule matches the release-facts model
+    # (S0024 F16, owner decision 2026-11-10; SITE-CHECKLIST section G, EX 0.6 item E): the landings
+    # state the release with the versioned /releases/tag/v<version> and /releases/download/v<version>/...
+    # points beside the durable /releases/latest point, and only the bare, unversioned listing page
+    # is refused.
+    Write-Host "`n=== A8. Release Links Point to a Versioned Release or /latest ===" -ForegroundColor Yellow
     $allDocsHtml = Get-ChildItem -Path "docs" -Filter "*.html" -Recurse
     $badReleases = @()
     foreach ($h in $allDocsHtml) {
         $c = Get-Content -Raw $h.FullName
-        $matches = [regex]::Matches($c, 'href="https://github\.com/SerZhyAle/CyrFlip/releases(?![/a-zA-Z0-9_\-\.]*latest)[^"]*"')
+        $matches = [regex]::Matches($c, 'href="https://github\.com/SerZhyAle/CyrFlip/releases(?!/latest"|/tag/v[0-9][a-zA-Z0-9_\-\.]*"|/download/v[0-9][a-zA-Z0-9_\-\.]*/[^"]*")[^"]*"')
         if ($matches.Count -gt 0) {
             $badReleases += $h.FullName
         }

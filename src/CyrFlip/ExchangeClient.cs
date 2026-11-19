@@ -67,6 +67,10 @@ namespace CyrFlip
         public string Kem = "";
         /// <summary><c>updatedAt</c> as UTC ticks; 0 when absent or unreadable.</summary>
         public long UpdatedAtUtcTicks;
+        /// <summary>The roles the record declares (6.1, item EE); a note's box addresses only devices holding <c>notes</c> (item FI).</summary>
+        public List<string> Roles = new List<string>();
+
+        public bool HasRole(string role) => Roles.Contains(role);
     }
 
     /// <summary>The members of <c>clipboard-state.value</c> and <c>clipboard-value</c> (items BU and DN).</summary>
@@ -136,6 +140,12 @@ namespace CyrFlip
             Connection = connection;
             Welcome = welcome;
         }
+
+        /// <summary>
+        /// The highest <c>notesRevision</c> an unsolicited <c>notes_changed</c> announced on this stream, -1 when none
+        /// came (DEVICE-EXCHANGE 1.13, item FI). A hint to sync sooner, never the only reason to sync.
+        /// </summary>
+        public long NotesChangedRevision { get; internal set; } = -1;
 
         public void Dispose() => Connection.Dispose();
     }
@@ -287,6 +297,7 @@ namespace CyrFlip
                         Capable = d.Strings("capabilities").Contains(ExchangeWire.CapabilityE2e),
                         Kem = key != null && key.Long("v") == 1 ? key.Str("kem") : "",
                         UpdatedAtUtcTicks = TicksOf(d.Str("updatedAt")),
+                        Roles = d.Strings("roles").ToList(),
                     });
                 }
                 return ExchangeOutcome.Success(peers);
@@ -362,6 +373,62 @@ namespace CyrFlip
             catch (Exception ex) when (IsNetworkFailure(ex) || ex is ExchangeFailure)
             {
                 return ExchangeOutcome.Fail<ExchangeStandardPayload>(CodeOf(ex, session.Connection, ct, true));
+            }
+        }
+
+        // ---- the notes store on the control stream (DEVICE-EXCHANGE 1.13, items FG to FM) ----
+
+        /// <summary>
+        /// <c>notes_list</c>: answered by <c>notes_changes</c> or <c>refused</c>. One page - the caller asks again
+        /// from the last revision it received while <see cref="ExchangeNotesChanges.More"/> is set.
+        /// </summary>
+        public async Task<ExchangeOutcome<ExchangeNotesChanges>> NotesListAsync(ExchangeSession session, long since, CancellationToken ct)
+        {
+            try
+            {
+                await session.Connection.SendAsync(ExchangeMembers.NotesList(since), ct).ConfigureAwait(false);
+                ExchangeFrame? answer = await ReceiveAnswerAsync(session, ct, "notes_changes").ConfigureAwait(false);
+                if (answer == null) return ExchangeOutcome.Fail<ExchangeNotesChanges>(ExchangeCodes.Unanswered);
+                if (answer.Type == "refused") return ExchangeOutcome.Fail<ExchangeNotesChanges>(ReasonOf(answer));
+                return ExchangeOutcome.Success(ExchangeNotesChanges.From(answer));
+            }
+            catch (Exception ex) when (IsNetworkFailure(ex) || ex is ExchangeFailure)
+            {
+                return ExchangeOutcome.Fail<ExchangeNotesChanges>(CodeOf(ex, session.Connection, ct, true));
+            }
+        }
+
+        /// <summary>
+        /// <c>notes_put</c>: answered by <c>notes_stored</c>, or <c>refused</c>. A <c>note-conflict</c> is a success
+        /// carrying the stored record (item FJ: resolved by the sync, never shown as a failure); every other refusal
+        /// is its code. A stream that closes after the put was written is <see cref="ExchangeCodes.Unanswered"/>: the
+        /// next <c>notes_list</c> tells whether it was stored.
+        /// </summary>
+        public async Task<ExchangeOutcome<ExchangeNotePutResult>> NotesPutAsync(ExchangeSession session, string noteId,
+            long baseRevision, bool deleted, string? boxJson, CancellationToken ct)
+        {
+            try
+            {
+                await session.Connection.SendAsync(ExchangeMembers.NotesPut(noteId, baseRevision, deleted, boxJson), ct).ConfigureAwait(false);
+                ExchangeFrame? answer = await ReceiveAnswerAsync(session, ct, "notes_stored").ConfigureAwait(false);
+                if (answer == null) return ExchangeOutcome.Fail<ExchangeNotePutResult>(ExchangeCodes.Unanswered);
+                if (answer.Type == "refused")
+                {
+                    ExchangeFrame? current = answer.Obj("current");
+                    if (answer.Str("reason") == ExchangeNotes.ReasonNoteConflict && current != null)
+                        return ExchangeOutcome.Success(new ExchangeNotePutResult { NoteId = noteId, Conflict = ExchangeNoteRecord.From(current) });
+                    return ExchangeOutcome.Fail<ExchangeNotePutResult>(ReasonOf(answer));
+                }
+                return ExchangeOutcome.Success(new ExchangeNotePutResult
+                {
+                    NoteId = answer.Str("noteId"),
+                    Revision = answer.Long("revision"),
+                    StoredAt = answer.Str("storedAt"),
+                });
+            }
+            catch (Exception ex) when (IsNetworkFailure(ex) || ex is ExchangeFailure)
+            {
+                return ExchangeOutcome.Fail<ExchangeNotePutResult>(CodeOf(ex, session.Connection, ct, true));
             }
         }
 
@@ -478,6 +545,11 @@ namespace CyrFlip
             {
                 ExchangeFrame? frame = await session.Connection.ReceiveAsync(true, ct).ConfigureAwait(false);
                 if (frame == null || frame.Type == expectedType || frame.Type == "refused") return frame;
+                if (frame.Type == "notes_changed")
+                {
+                    long announced = frame.Long("notesRevision");
+                    if (announced > session.NotesChangedRevision) session.NotesChangedRevision = announced;
+                }
             }
             return null;
         }

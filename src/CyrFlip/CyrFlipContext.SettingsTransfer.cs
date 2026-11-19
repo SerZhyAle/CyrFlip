@@ -103,6 +103,7 @@ namespace CyrFlip
                 DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "import ok changes=" + plan.Changes.Count + " skipped=" + plan.Issues.Count);
                 foreach (var issue in plan.Issues) DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), issue.Key + " " + issue.Reason);
                 _backup?.NotifyChanged();
+                // The full pass: an imported file may carry the interface language, the theme or the size profile (S0135, L1).
                 _settings?.Reload();
                 return true;
             }
@@ -259,6 +260,7 @@ namespace CyrFlip
             ThemeManager.SetMode(ThemeModes.Parse(_config.Theme));
             // The language: the strip, the search window and the popup here, the rest through the tray texts.
             FollowUiLanguageInWindows(); UpdateTrayTexts(); RefreshLauncherSurfaces();
+            // The full pass: the language just followed above is a language cause (S0135, L1).
             _settings?.Reload();
             ApplyImportedPlacement(placement);
             _settings?.ApplyImportedNavigation();

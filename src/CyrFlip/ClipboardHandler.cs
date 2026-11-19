@@ -252,6 +252,16 @@ namespace CyrFlip
             => Run(CaseFlipEngine.Flip, syncCapsAfter: syncCapsAfter); // same language: keep the selection's own locale
 
         /// <summary>
+        /// Convert the selection by an explicit layout pair (ticket S0129, the command side): the same pipeline a
+        /// table row's chord runs, but with the direction the caller named - never <see cref="ConvertLayout"/>'s
+        /// active-layout auto-reverse - and no layout switch afterwards. The locale of the converted text is the
+        /// target layout's, exactly as the chord's conversion sets it.
+        /// </summary>
+        public FlipResult ConvertSelection(string fromKlid, string toKlid, bool convertSymbols = true)
+            => Run(text => KeyboardLayoutConverter.Convert(text, fromKlid, toKlid, convertSymbols),
+                syncCapsAfter: false, locale: InputLayouts.LangIdOf(toKlid));
+
+        /// <summary>
         /// Cut / Copy / Paste from the text context menu, <b>through the very pipeline the flips
         /// use</b> - not a second implementation of it.
         ///

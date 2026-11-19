@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `INPUT-CHORD` |
-| **Version** | 0.3, draft |
+| **Version** | 0.5, draft (re-read 2026-11-15, S0114; the admitted trigger families of 0.4 are a dated exception with ticket S0116) |
 | **Home** | `input-controls/README.md` in the shared contracts catalog |
 | **Role here** | Owner, Producer and Consumer - the stored chord token, the refusals, chord ownership, the global hooks |
 

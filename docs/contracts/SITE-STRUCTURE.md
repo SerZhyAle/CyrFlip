@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `SITE-STRUCTURE` |
-| **Version** | 0.1, draft |
+| **Version** | 0.4, draft (re-read 2026-11-15, S0114) |
 | **Home** | `product-site/SITE-STRUCTURE.md` in the shared contracts catalog, with `SITE-CHECKLIST.md` beside it |
 | **Role here** | consumer, opted in on 2026-10-07 (ticket `S0049`), **guide tier** - rules 4 to 7, 12 and 14 (portal pages, the showcase) are not bound |
 

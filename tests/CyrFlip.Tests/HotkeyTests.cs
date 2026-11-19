@@ -67,6 +67,17 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
+        public void AnAdmittedTriggerIsTheSameChordInEverySpellingAndNotTheDefault()
+        {
+            // INPUT-CHORD 0.5 item A: an admitted trigger is read without regard to case (S0116).
+            var upper = Hotkey.Parse("Ctrl+Shift+NumPad5");
+            Assert.True(upper.SameChord(Hotkey.Parse("shift+ctrl+numpad5")));
+            Assert.Equal("Ctrl+Shift+Numpad5", upper.Display);
+            Assert.Equal(0x65, upper.Vk);
+            Assert.False(upper.SameChord(Hotkey.Default));
+        }
+
+        [Fact]
         public void SameChordDistinguishesTheDefaultHotkeys()
         {
             Assert.False(Hotkey.Default.SameChord(Hotkey.CaseDefault));

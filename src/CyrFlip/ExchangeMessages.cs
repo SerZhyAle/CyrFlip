@@ -11,6 +11,8 @@ namespace CyrFlip
         Enroll,
         Send,
         Get,
+        /// <summary>A sync pass of the quick notes (DEVICE-EXCHANGE 1.13, ticket S0105).</summary>
+        Notes,
     }
 
     /// <summary>
@@ -98,6 +100,8 @@ namespace CyrFlip
             [ExchangeCodes.E2eMissing] = Row("This device cannot receive protected content yet, so nothing is sent to it through the server.", ""),
             [ExchangeCodes.KeyChanged] = Row("The protection key of this device has changed, so nothing is sent to it. Remove the device from the account and add it again.", ""),
             [ExchangeCodes.ServerNoE2e] = Row("This server cannot carry protected content, so folders, broadcasts and the clipboard do not go through it.", "operator"),
+            // the notes of an account (DEVICE-EXCHANGE 1.13, item FL)
+            [ExchangeCodes.NoteConflict] = Row("This note was changed on another device at the same time. Both versions are kept.", ""),
             [ExchangeCodes.SealedFailed] = Row("This could not be opened on this device. Try again from the other device.", ""),
             // the settings standard (DEVICE-EXCHANGE 1.12, item EP)
             [ExchangeCodes.NotFound] = Row("No standard settings are saved on the server for this program yet. Save them first.", ""),
@@ -121,6 +125,8 @@ namespace CyrFlip
             [ExchangeCodes.KeyLost] = Row("The protection key of this account is gone from this computer. Remove the account and add it again.", ""),
             [ExchangeCodes.TooLarge] = Row("This clipboard value is too large for this program to receive.", ""),
             [ExchangeCodes.ServerNoSettings] = Row("This server does not keep standard settings.", "operator"),
+            [ExchangeCodes.ServerNoNotes] = Row("This server does not keep notes.", "operator"),
+            [ExchangeCodes.NotesRoleMissing] = Row("This computer was added to the account before notes could be synced. Sign in to the account again on the \"Exchange server\" page.", ""),
             [ExchangeCodes.SaveUnconfirmed] = Row("The server did not answer, so it is not known whether the settings were saved. Saving again is safe.", ""),
         };
 
@@ -138,9 +144,14 @@ namespace CyrFlip
         public const string HonestText =
             "The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices.";
 
+        /// <summary>The notes sync's own row for <c>limit-reached</c> (item FL).</summary>
+        private const string LimitReachedOnNotes =
+            "This server keeps no more notes for this account. Delete some notes, or ask whoever runs the server.";
+
         private const string Generic = "The server refused this.";
         private const string SendCancelled = "Sending cancelled. The clipboard on the server stayed as it was.";
         private const string GetCancelled = "Cancelled. Nothing was placed in the clipboard of this computer.";
+        private const string NotesCancelled = "The sync stopped. It goes on from where it stopped next time.";
 
         /// <summary>The message of <paramref name="code"/> in the language <paramref name="t"/> translates to.</summary>
         public static ExchangeMessage Describe(string code, ExchangeContext context, Func<string, string> t)
@@ -148,12 +159,17 @@ namespace CyrFlip
             var message = new ExchangeMessage { Code = code };
             if (code == ExchangeCodes.Cancelled)
             {
-                message.What = t(context == ExchangeContext.Get ? GetCancelled : SendCancelled);
+                message.What = t(context == ExchangeContext.Get ? GetCancelled : context == ExchangeContext.Notes ? NotesCancelled : SendCancelled);
                 return message;
             }
             if (code == ExchangeCodes.LimitReached && context == ExchangeContext.Send)
             {
                 message.What = t(LimitReachedOnSend);
+                return message;
+            }
+            if (code == ExchangeCodes.LimitReached && context == ExchangeContext.Notes)
+            {
+                message.What = t(LimitReachedOnNotes);
                 return message;
             }
             if (!Rows.TryGetValue(code, out KeyValuePair<string, string> row))
@@ -225,6 +241,8 @@ namespace CyrFlip
             foreach (Step s in Steps) yield return s.Text;
             foreach (KeyValuePair<string, KeyValuePair<string, string>> r in Rows) yield return r.Value.Key;
             yield return LimitReachedOnSend;
+            yield return LimitReachedOnNotes;
+            yield return NotesCancelled;
             yield return Generic;
             yield return SendCancelled;
             yield return GetCancelled;

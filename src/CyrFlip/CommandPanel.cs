@@ -12,6 +12,9 @@ namespace CyrFlip
         private sealed class State { internal bool Busy; internal int Width; }
         private static readonly ConditionalWeakTable<FlowLayoutPanel, State> States = new ConditionalWeakTable<FlowLayoutPanel, State>();
 
+        /// <summary>A mixed strip's button by the minimum height it was built with, so a row floor never ratchets.</summary>
+        private static readonly ConditionalWeakTable<Button, StrongBox<int>> BaseHeights = new ConditionalWeakTable<Button, StrongBox<int>>();
+
         internal static void Fit(FlowLayoutPanel panel, int availableWidth)
         {
             if (!States.TryGetValue(panel, out State? state))
@@ -29,8 +32,8 @@ namespace CyrFlip
         {
             if (state.Busy || panel.IsDisposed) return;
             Button[] buttons = panel.Controls.OfType<Button>().ToArray();
-            // Other editor strips keep their caption/column reflow policy.
-            if (buttons.Length == 0 || buttons.Length != panel.Controls.Count) return;
+            if (buttons.Length == 0) return;
+            if (buttons.Length != panel.Controls.Count) { NormalizeMixed(panel, state, buttons); return; }
             state.Busy = true;
             panel.SuspendLayout();
             try
@@ -63,6 +66,45 @@ namespace CyrFlip
                 {
                     int height = row.Max(b => b.GetPreferredSize(new Size(b.MaximumSize.Width, 0)).Height);
                     foreach (Button button in row) button.MinimumSize = new Size(button.MinimumSize.Width, height);
+                }
+            }
+            finally { state.Busy = false; }
+        }
+
+        /// <summary>
+        /// An editor strip that holds buttons beside other controls (a caption, a combo box, a box). A strip
+        /// built to stay on one line (<c>WrapContents</c> off) keeps its own policy. A wrapping one is capped to
+        /// the column, so its items wrap whole instead of running past the page, and the buttons of each visual
+        /// row take the height of the row's tallest button (BUTTONS section 4). Widths and the other controls
+        /// stay as they were built.
+        /// </summary>
+        private static void NormalizeMixed(FlowLayoutPanel panel, State state, Button[] buttons)
+        {
+            if (!panel.WrapContents) return;
+            state.Busy = true;
+            try
+            {
+                panel.SuspendLayout();
+                try
+                {
+                    if (panel.MaximumSize.Width != state.Width) panel.MaximumSize = new Size(state.Width, panel.MaximumSize.Height);
+                    foreach (Button button in buttons)
+                    {
+                        int baseHeight = BaseHeights.GetValue(button, b => new StrongBox<int>(b.MinimumSize.Height)).Value;
+                        if (button.MinimumSize.Height != baseHeight) button.MinimumSize = new Size(button.MinimumSize.Width, baseHeight);
+                    }
+                }
+                finally { panel.ResumeLayout(true); }
+                // Row membership is taken after wrapping and after the previous floors were cleared.
+                foreach (var row in buttons.Where(b => b.Visible).GroupBy(b => b.Top))
+                {
+                    Button[] members = row.ToArray();
+                    if (members.Length < 2) continue;
+                    // A fixed-size button counts at its own height and is never raised: growing it through its
+                    // floor would keep it grown after the floor is cleared.
+                    int height = members.Max(b => b.AutoSize ? b.GetPreferredSize(Size.Empty).Height : b.Height);
+                    foreach (Button button in members)
+                        if (button.AutoSize && button.MinimumSize.Height < height) button.MinimumSize = new Size(button.MinimumSize.Width, height);
                 }
             }
             finally { state.Busy = false; }

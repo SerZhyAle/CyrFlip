@@ -55,6 +55,7 @@ namespace CyrFlip
         private readonly Dictionary<AnnotationTool, ToolButton> _tools = new Dictionary<AnnotationTool, ToolButton>();
         private readonly List<SwatchButton> _swatches = new List<SwatchButton>();
         private readonly List<SeparatorBar> _separators = new List<SeparatorBar>();
+        private readonly List<Control> _navItems = new List<Control>();
         private readonly Func<string, string> _translate;
         private AnnotationTool _tool;
         private Color _ink = AnnotationPalette.Default;
@@ -160,8 +161,86 @@ namespace CyrFlip
             _tips.SetToolTip(cancel, translate("Discard the capture; nothing is put on the clipboard."));
             _tips.SetToolTip(clear, translate("Remove everything drawn; the frozen picture stays."));
             _tips.SetToolTip(ok, translate("Put the picture with the drawings on the clipboard."));
+
+            foreach (Control child in row.Controls)
+            {
+                if (child is SeparatorBar) continue;
+                child.GotFocus += (_, _) => SetActiveNav(child);
+                _navItems.Add(child);
+            }
+            SetActiveNav(_tools.TryGetValue(_tool, out ToolButton toolButton) ? toolButton : _navItems[0]);
+
             PickTool(_tool, raise: false);
             PickColor(AnnotationPalette.IndexOf(_ink), raise: false);
+        }
+
+        private void SetActiveNav(Control target)
+        {
+            foreach (Control item in _navItems)
+                item.TabStop = ReferenceEquals(item, target);
+        }
+
+        /// <summary>BUTTONS section 4 rule 6: one tab stop on the toolbar and arrow navigation across its items (and wrapped rows).</summary>
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (base.ProcessCmdKey(ref msg, keyData)) return true;
+            if (keyData != Keys.Left && keyData != Keys.Right && keyData != Keys.Up
+                && keyData != Keys.Down && keyData != Keys.Home && keyData != Keys.End)
+                return false;
+
+            var items = new List<Control>();
+            foreach (Control item in _navItems)
+                if (item.Visible && item.Enabled) items.Add(item);
+            if (items.Count == 0) return false;
+
+            int current = items.FindIndex(item => item.Focused);
+            if (current < 0) current = items.FindIndex(item => item.TabStop);
+            if (current < 0) current = 0;
+
+            bool rtl = RightToLeft == RightToLeft.Yes;
+            int next = current;
+            if (keyData == Keys.Home) next = 0;
+            else if (keyData == Keys.End) next = items.Count - 1;
+            else if (keyData == Keys.Left || keyData == Keys.Right)
+            {
+                int step = (keyData == Keys.Right) ^ rtl ? 1 : -1;
+                next = (current + step + items.Count) % items.Count;
+            }
+            else
+            {
+                int direction = keyData == Keys.Down ? 1 : -1;
+                next = VerticalNavNeighbor(items, current, direction);
+            }
+
+            Control destination = items[next];
+            SetActiveNav(destination);
+            destination.Focus();
+            return true;
+        }
+
+        private static int VerticalNavNeighbor(List<Control> items, int current, int direction)
+        {
+            Control origin = items[current];
+            int originX = origin.Left + origin.Width / 2;
+            int bestIndex = -1;
+            int bestRowDist = int.MaxValue;
+            int bestXDist = int.MaxValue;
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (i == current) continue;
+                int dy = (items[i].Top - origin.Top) * direction;
+                if (dy <= 4) continue;
+                int dx = Math.Abs(items[i].Left + items[i].Width / 2 - originX);
+                if (dy < bestRowDist - 4 || (Math.Abs(dy - bestRowDist) <= 4 && dx < bestXDist))
+                {
+                    bestIndex = i;
+                    bestRowDist = dy;
+                    bestXDist = dx;
+                }
+            }
+            if (bestIndex >= 0) return bestIndex;
+            return (current + direction + items.Count) % items.Count;
         }
 
         private readonly ToolTip _tips = new ToolTip();

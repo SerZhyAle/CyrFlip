@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using static CyrFlip.WindowInterop;
 
@@ -30,6 +31,27 @@ namespace CyrFlip
                 return "0x" + hwnd.ToInt64().ToString("X") + " '" + cls + "' pid=" + pid;
             }
             catch { return "0x" + hwnd.ToInt64().ToString("X") + " <unreadable>"; }
+        }
+
+        /// <summary>
+        /// Each selection source's own verdict for one menu opening (S0133), in asking order:
+        /// "edit@pointer=Unknown, ia2@pointer=Present(42), uia@focus=Absent". Counts only - a number
+        /// in parentheses when a source read text, never the text itself, so the log's "no text"
+        /// promise to the support bundle stays true. "n/a" marks an opening whose probe did not
+        /// finish collecting: there is nothing honest to say about why a command was greyed.
+        /// </summary>
+        public static string DescribeSources(SelectionSnapshot selection)
+        {
+            IReadOnlyList<SelectionSourceAnswer>? answers = selection.SourceAnswers;
+            if (answers == null || answers.Count == 0) return "n/a";
+            var sb = new StringBuilder();
+            foreach (SelectionSourceAnswer answer in answers)
+            {
+                if (sb.Length > 0) sb.Append(", ");
+                sb.Append(answer.Source).Append('=').Append(answer.State.ToString());
+                if (answer.TextChars.HasValue) sb.Append('(').Append(answer.TextChars.Value).Append(')');
+            }
+            return sb.ToString();
         }
     }
 }

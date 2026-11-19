@@ -15,7 +15,9 @@ What each package was built as last, what each channel carries, and every public
 
 ## Last builds
 
-No build is recorded yet.
+| Package | Flavor | Kind | Version | Built | Artifact |
+| --- | --- | --- | --- | --- | --- |
+| cyrflip | default | test | 26.11.19.314 | 2026-11-19 03:14:58+01:00 | bin/SingleFile/CyrFlip.exe |
 
 ## History
 

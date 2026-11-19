@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **Cross-project contracts live outside this repository.** The shared contract store is `P:\Contracts`, and **this line is the only place in this repository that names its location** - everywhere else cites a contract by its **id** and a rule or section number (`LAYOUT-SIGNAL rule 2`, `LAYOUT-PALETTE rule 5`, `SCENARIO-FILE rule 7`), never by path and never by drive letter, because whoever clones this repository has no `P:`. Its `README.md` is the index; `_meta/RULES.md` is the law, `_meta/VERSIONING.md` the compatibility rules, `_meta/REGISTRY.md` the live map of who implements what at which version. Nothing here ever keeps a **copy** of a contract: [docs/contracts/](docs/contracts/README.md) holds one short pointer per contract this product touches, and a disagreement between this repository and a contract is an amendment to write in the catalog or a dated exception to record in its registry - never a local edit. Aligned 2026-09-22; open conformance debts are [PLAN/Contract_Conformance_Backlog_v0.1.md](PLAN/Contract_Conformance_Backlog_v0.1.md).
 
+> **What CyrFlip can be asked to do from a script or an agent** is listed in [docs/CLI.md](docs/CLI.md) and printed by `CyrFlip.exe commands --json`; read them before driving the product through its window (feature 18 below). The fast gate `tools/cli/Render-CliDoc.ps1 -Check` holds the list, its manifest and this line.
+
 ## Project status
 
 **Implemented, builds + tests pass, launches as a tray app.** The full pipeline is coded (hook → flip → paste) and the app runs in the system tray under the 50 MB budget. The copy→paste flip still needs interactive manual verification with a real selection (per the spec's manual-test plan); unit tests cover the pure logic. What exists:
@@ -14,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/` - GitHub Pages site (served from `/docs`). `index.html` is the English landing and `ru/index.html` / `uk/index.html` the Russian and Ukrainian ones (ticket `S0024` P3.6: three standalone pages with their own `lang`, hreflang alternates and the 13-language row, no CSS `data-lang` switch and no script that rewrites the share-card tags; `docs/en/index.html` stays a `noindex` forwarder; `?lang=ru|uk|ua` on the root is forwarded by its pre-paint script); the **full guide stays EN/RU/UK** (`guide.html`, `docs/ru/`, `docs/uk/`) - as does `store.html`, the Microsoft Store channel page (`SITE-REPRESENTATION` rule 4, ticket `S0054` D2), and the Support and FAQ pages (`support.html`, `faq.html`, ticket `S0024` Q13; every page's footer links them, the other 10 locales to the English pages), while each of the other 10 UI languages gets a **standalone first page** at `docs/<lang>/index.html` with its own `lang`/`dir`, hreflang alternates and the same 13-language row. The **privacy policy exists in all 13** (`docs/<lang>/privacy.html`; `privacy.html` at
   the root is the English original and every translation links back to it as the authoritative text, saying outright
   that it prevails on any discrepancy) - it is the one page with an outside obligation, since the Store listing points
-  at it in every language. All twelve translations are structurally identical (18 list items - the last of the first list is the Store package's `runFullTrust` - and the "Usage counts" paragraph after the second list, 8 sections - the eighth, "This website", names the one third-party origin the site contacts, `api.github.com`), which is the
+  at it in every language. All twelve translations are structurally identical (19 list items - the "Commands from other programs" item (S0112) names the four risk classes of the command line, and the last of the first list is the Store package's `runFullTrust` - and the "Usage counts" paragraph after the second list, 8 sections - the eighth, "This website", names the one third-party origin the site contacts, `api.github.com`), which is the
   cheap way to catch a section dropped in translation. Those pages are generated copy - edit them directly, there is no
   build step. The site serves its own typefaces (`docs/assets/fonts/`, OFL, notice in `THIRD-PARTY-NOTICES.txt`), so no font host is contacted; every content page carries the language row (endonym plus code) and writes `sza-lang` for RU/EN/UA on a click (ticket S0053). The 13 landings state the release (version, date, the versioned ZIP and its `.sha256`, the landing JSON-LD `softwareVersion`) only from `tools/site/release-facts.json`, which `tools/site/Render-ReleaseFacts.ps1 -Version <ver>` writes and `tools/site/sync-doc-quality.py` renders; the release preflight checks HEAD states the version it releases (S0024 F16, owner decision 3 of 2026-11-10), and the block is outside the content fingerprint, so a release moves no translation stamp. The site is declared at the **guide tier** of `SITE-STRUCTURE` / `SITE-EXPERIENCE` / `SITE-REPRESENTATION`
   (ticket S0049: pointers in `docs/contracts/`, the measured gaps in S0051-S0054); `tools/site/Measure-SiteContracts.ps1`
@@ -250,7 +252,7 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    on the next save, and the window shows the failure until a write succeeds (`SaveFailing`/`SaveRecovered`,
    QN2-1); it used to be cleared as saved and overwritten on screen at once. "Delete every note" also
    removes the crash-left `.tmp` and the migration's kept journals (QN2-3). The
-   count goes to `quick-notes-diagnostics.log` and the note text goes nowhere. `SupportBundle.ExcludedFiles` now holds **two** names: the journal is as
+   count goes to `quick-notes-diagnostics.log` and the note text goes nowhere. `SupportBundle.ExcludedFiles` holds the journal too (four names in all, with `quick-notes-sync.json`): it is as
    off-limits as `clipboard-history.log`. Google Keep is a **manual clipboard transfer** and says so - the
    Keep REST API is a Workspace-administrator interface, unusable from a personal account, so CyrFlip does
    not pretend to sync. Spec: [PLAN/done/QuickNotes_Spec_Idea_v0.1.md](PLAN/done/QuickNotes_Spec_Idea_v0.1.md).
@@ -264,6 +266,28 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    visible row repeats the number once with a "↳". The numbers are never in the text, the clipboard, an
    export or the journal, and showing, scrolling or toggling them writes nothing. Spec:
    [PLAN/done/S0078_quick-notes-line-numbers.md](PLAN/done/S0078_quick-notes-line-numbers.md).
+   **Sync with the account's other devices (S0105, `DEVICE-EXCHANGE` 1.13 items FG-FM, `QuickNotesSync`, off by
+   default):** the quick notes travel through the exchange server (feature 16) as one sealed record per note
+   (`ExchangeNotes` / `ExchangeNotePayload` - the item FH payload, 131072 bytes, LF, dates in ms; `ExchangeClient.NotesListAsync`
+   / `NotesPutAsync` on the control stream; boxes sealed with context `note:<noteId>` to every device of the entry holding the
+   role `notes` and a trusted key, **this one included** so a lost state file can adopt its own records back). The
+   engine (`ExchangeNotesSync`) pulls with `more` / `full` (a `full` answer is re-read from `since: 0`), pushes each
+   changed note with the revision it last saw, and settles every item FJ branch without a field merge: an older
+   copy never resurrects a delete, two edits keep both (the local one survives as a new note titled with this PC's
+   name), and the sync **never writes over a note with an unsaved edit** (`IExchangeNotesLocal.ApplyRemote` returns
+   false, the note stays marked). The per-note state (`ExchangeNotesSyncState`: entry id, `notesRevision`, per note
+   id / revision / changed) lives in **`quick-notes-sync.json`** - ids and numbers only, no title, no text - owned by
+   `ExchangeNotesSyncLedger`, which queues marks made during a pass and saves on the pool. `QuickNotesService` raises
+   `LocalChanged` / `LocalDeleted` for the user's own changes only; the sync's own writes (`ApplyRemote`, `AddLocal`,
+   `DeleteRemote`) raise nothing and never rewrite `CreatedAtUtc`. Triggers (`CyrFlipContext.NotesSync`, item FM read
+   without a resident stream): start and enabling, 3 s after the last local save or delete, the notes window
+   shown, and "Sync now" - one pass at a time plus one queued; no timer. Live only when the quick notes, the
+   exchange module and the option are on and one `member` entry is picked (`NotesSyncGate`); a guest, a server
+   without `sealed` (`server-no-e2e`) or without `notes` (`server-no-notes`), or an entry enrolled before the role
+   (`notes-role-missing`, sign in again) gets no notes frame. `enroll` declares `clipboard` and `notes` from this
+   build on. "Delete every note" deletes each note on the account too. A note above the payload limit stays local
+   and its window says so. `QuickNotesSync` / `QuickNotesSyncEntry` are consent on this device and never in the
+   settings file. Spec: [PLAN/S0105_quick-notes-exchange-sync-fms.md](PLAN/done/S0105_quick-notes-exchange-sync-fms.md).
 
 9. **The app theme - "Как в Windows" / "Светлая" / "Тёмная" (ticket S0020, `APP-STYLE` sections 2-5).**
    One theme for every window, dialog and menu, chosen on the General tab (a drop-down like every other picker, stored as
@@ -442,12 +466,16 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    and a legacy numeric row (and a bare `SettingsTab` index) is read once through `SettingsPageKeys.FromLegacyIndex`, the
    pre-S0062 order table. The auto "Параметры" group is keyed by the page key and only "Индикаторы" has loose rows. Settings
    file inventory group ids moved with the settings (preview captions only; the file format is untouched). Spec:
-   [PLAN/S0062_settings-tab-regrouping.md](PLAN/S0062_settings-tab-regrouping.md).
+   [PLAN/S0062_settings-tab-regrouping.md](PLAN/done/S0062_settings-tab-regrouping.md).
 
 15. **The traffic light - "Светофор доступности", a board of last known reachability (ticket S0069), opt-in and off
    by default.** `EnableTrafficLight=0` means **no engine, no scheduler (so no timer and no network or power event
    subscription), no journal, no window object, no tray item and no chord** - a user who never switches it on pays
-   nothing. Enabled, the user lists **their own** targets - seven kinds: `ping` (one ICMP echo), `tcp` (one connect),
+   nothing. A brand-new profile (no registry key yet, `AppConfig.LoadFrom`) starts the table with **one working example**,
+   `TrafficLightTargetList.StarterTarget` - an `http` target `https://www.google.com`, labelled `Google` (not `google.com`:
+   a label that reads as an address makes `trafficlight status` refuse the whole board, `TrafficLightLabels.IsSafe`); an
+   existing profile never gets it, since the list is written on every save and an empty one there may be the user's own
+   emptying. Enabled, the user lists **their own** targets - seven kinds: `ping` (one ICMP echo), `tcp` (one connect),
    `http` (HEAD, then GET headers-only on a 4xx/5xx **that is not already accepted**, sent to where HEAD's redirects
    ended; redirects up to 5; system proxy; no cookies, no credentials; the **final** status is judged against
    `acceptedStatusCodes`, default `200-399`), `folder` (one enumeration - exists and enumerable, **at most one entry
@@ -526,7 +554,7 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    - **The change journal** (`TrafficLightJournal`, per-target `recordHistory`, default off) is **plain unencrypted
      text** in `traffic-light-history.txt` of the data folder, written by one background writer in order, split at
      5 MB, never deleted automatically and **never in a support bundle, a settings export or a diagnostic log**
-     (`SupportBundle.ExcludedFiles` holds three names now). Keys are invariant codes, so the file reads the same in
+     (`SupportBundle.ExcludedFiles` holds four names now, the notes sync state being the fourth). Keys are invariant codes, so the file reads the same in
      every UI language. A swallowed fault anywhere in the feature goes to `traffic-light.log` by site and exception
      type only (`TrafficLightLog`, one line a minute per site).
    The list of targets is **opt-in on both ends of the settings file** (D10): an export asks before it includes it,
@@ -572,8 +600,11 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
    - **Three phases, each on the guard it needs** (the translator's discipline). The clipboard is read **once, in one
      open, under `_busy`, on its own thread** and closed before any file or network I/O; a program that owns it and
      does not render in 5 s is abandoned (`owner-timeout`). Order: one file by path (streamed from disk, hashed once,
-     checked unchanged), else a text (LF ends on the wire), else a picture (`PNG`, `CF_DIBV5`, `CF_DIB`). The network
-     holds no guard. A received value is verified (the server's size and SHA-256 over the sealed bytes, then the box's
+     checked unchanged), else a picture (`PNG`, `CF_DIBV5`, `CF_DIB`), else a text (LF ends on the wire) - `CLIPBOARD-GUARD`
+     item S (0.12, ticket S0115): **the first format present decides the kind and is final**, so a picture that is on
+     the clipboard but cannot be read (`owner-timeout`) or converted to PNG (`nothing-to-send`) fails the send and the
+     text beside it is not sent in its place; a spreadsheet range or a web selection travels as the picture, and the
+     settings page, the guide and the privacy page say so. The network holds no guard. A received value is verified (the server's size and SHA-256 over the sealed bytes, then the box's
      over the clear bytes), written to the clipboard in **one open with no marker and no backup**, and a file lands
      first in the received-files folder (`Downloads\CyrFlip`, never overwriting, `.cyrflip-part` while it arrives;
      a name that cleans to nothing becomes `clipboard-<yyyyMMdd-HHmmss><ext>` from `storedAt` in UTC - `DEVICE-EXCHANGE`
@@ -635,8 +666,182 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
      (interface-scaled) beside the rail, the same rail moves into a drawer opened by a "Pages" button in the header band
      (`SettingsRailLayout.Decide`). **Page changes are timed** from the rail\'s mouse release to a forced paint of the whole window
      (`PageNavigationTrace`, `CYRFLIP_NAV_TRACE=<file>`), a newer navigation supersedes an older one, and `tools/uitest/Measure-PageNavigation.ps1`
-     repeats the measurement in fresh processes. The measured budgets are **not** all met - see `PLAN/S0076_unified-ui-contracts/unified-ui.md` before
+     repeats the measurement in fresh processes. **Opening a window and changing a setting are timed too** (ticket S0135, `OpenTrace`,
+     `CYRFLIP_OPEN_TRACE=<file>`, off by default and free while off; `tools/uitest/Measure-WindowOpen.ps1` and `Measure-SettingsControls.ps1`; the
+     first measured numbers - 1030 controls, a 2.3 s constructor, a 0.1-0.7 s change - are in `PLAN/S0135_ui-window-speed-optimization.md` section 3.4). **A page that is not the opening one keeps its layout back until it is first shown** (`SettingsPagePanel.DeferLayout`, released by the page's own `OnVisibleChanged`; every value and caption is still applied to every page - only the geometry of an unshown page waits), which is why a test that reads the geometry of every page builds the window through `TestForms.NewSettings` (it calls `SettingsForm.EnsureAllPagesLaidOut()`) and a timing test passes `allPagesLaidOut: false`; the hotkeys overview rebuilds its rows only when they differ from the ones on screen (`SameOverview`, and the live switches are checked too, since a refused switch relies on the rebuild to put its box back; S0135 section 3.9). **A changed value is `SettingsForm.RefreshState()`,
+     not `Reload()`** (S0135 L1): `Reload()` is the full pass (`RefreshValues` + `ApplyLanguage`, the language, scale, font and theme work) and runs only when one of those changed, when the window is built and when
+     it is shown again - a new caller that only changed a value must not bring the language pass back (`SettingsRefreshEquivalenceTests` holds the two to the same result). The measured budgets are **not** all met - see `PLAN/S0076_unified-ui-contracts/unified-ui.md` before
      claiming conformance.
+
+18. **The command line - commands from scripts, shortcuts and agents (ticket S0107, `APP-COMMANDS` 0.2, `APP-ACTIVATION` 0.15 section 11).**
+   `CyrFlip.exe <verb> [options]` is handled by the copy that is already running: the started process decides its role
+   before it loads anything (`Program.Main` parses first), carries the command over the existing pipe and exits with the
+   answer's code. The verbs are the manifest `docs/cli-commands.json` (embedded byte for byte, `AppCommandManifest`;
+   `docs/CLI.md` is rendered from it by `tools/cli/Render-CliDoc.ps1`, never by hand): `commands`, `version` (both answered
+   by the process itself, `forward: never`), `status`, `show [--page]`, `quit`, `clipboard send`, `clipboard get`
+   (`wait: accepted`), `scenario run (--id | --name) [--link]`, and the two quick-notes verbs of ticket S0108
+   (`AppCommandsNotes`, handlers over `QuickNotesService` that never touch the window): `note add --text [--title]`
+   (risk `safe`, `coldStart: start`; the text byte for byte; `QuickNotesService.TryAdd` lists the note, writes it and
+   takes it out again when the write fails - never retried, so exit 1 `store-failed` leaves no note and no queued
+   retry (the list-first order is the store's own contract with a background compaction); `module-off` 11 reads and
+   creates no journal) and `note list [--query] [--limit 1..500]` (`reads-user-data`, `coldStart: refuse`; the window's own
+   `Search`, `preview` = `QuickNote.BodyPreview(120)`, an unreadable journal is 1, never an empty list; the answer is
+   cut at 48 KiB because the caller reads a response line of at most 64 KiB; the log line adds `count=n` and no text),
+   and the two read verbs of ticket S0120: `note get --id <guid>` (`reads-user-data`, `refuse`; the whole note as stored -
+   a text as `text` verbatim, a checklist as `kind` and `items[]` with each item's `done` state; over the 48 KiB answer bound
+   the content alone is cut, surrogate-safe, and the cut is told (`truncated`, `length` the full character count); an id no
+   note carries is 11 `target-missing`) and `note export --out <path> [--overwrite]` (`reads-user-data`, `refuse`, 60 s; the
+   S0023 writer, Quick notes section only, newest first by creation, every note the store holds - never trimmed to the
+   importer's caps (25 MB, 10,000 objects), which the manifest says; `--out` used exactly as given with S0110's exists /
+   target-missing / 10 / 13 / 15 answers, the path checked before the journal is read, and the file whole or not at all
+   (a temporary file in the target's folder, then a rename); its log line adds `count=n`),
+   the three clipboard-history verbs and the two exchange option sets of ticket S0121
+   (`AppCommandsClipboardHistory` and `AppCommandsClipboardExchange`, pure handlers over the strip's own
+   `ClipboardHistoryService` and the module's own exchange seams; `clipboard-history list [--query] [--limit 1..50]
+   [--pinned]` (`reads-user-data`, `refuse`, 10 s): previews only - the strip's 1024-char one-line preview, the store's
+   SHA-256 id, the pin, the copy date; never the whole text, never a source app or source window title, the 48 KiB
+   answer bound and `truncated` of S0108's list discipline; `clipboard-history put --id` (`writes-user-data`, `refuse`,
+   5 s) puts the entry back exactly as the strip's restore does (the own-write mark, the pin kept) through the
+   service's own path; `clipboard-history pause --paused <bool>` (`safe`, `refuse`, 2 s) sets the one persisted paused
+   state through the tray item's own `CheckedChanged` path; and on the wave-1 exchange verbs `clipboard send
+   --file <path> | --text <text>` (one of the two, 600 s bound; a missing file 11, over the payload cap 10 naming the
+   cap, a share 15) and `clipboard get --out <path> [--overwrite]` (300 s, wait done: the value straight into the
+   caller's file through the S0110/S0120 `--out` discipline, the clipboard untouched, nothing written on failure),
+   and the five layout and text verbs of ticket S0109 (`AppCommandsLayoutText`, pure handlers over an `ILayoutCommandHost`
+   seam - `IndicatorLayoutHost` in the app, a fake in the tests - and `LayoutCatalog`, the pure "which layout does this
+   value mean" resolver): `layout list` (`safe`, `coldStart: oneshot`; `GetKeyboardLayoutList` in Windows' order, `current`
+   on every object only in the running copy), `layout current` and `layout switch --to en|ru|<klid>|next` (`refuse`; they
+   act on `CursorIndicator.CommandTargetWindow`, the tray's last-active window minus our own and the taskbar - from a
+   console that is the console - and **activate nothing**; `switch` is `writes-user-data`, resolves over the installed
+   list only and never calls `LoadKeyboardLayout`, a code takes the first layout of that code in Windows' order, a KLID is
+   exact, a named-but-absent layout is 11 `target-missing`, a value that names nothing is 10, `next` is
+   `LayoutSwitcher.NextAfter`, the tray click's own arithmetic; exit 0 means *requested*) and `text convert --text --from
+   --to [--symbols true|false]` / `text flip-case --text` (`safe`, `oneshot`, run on the pool, no window and no clipboard;
+   `--symbols` is true when absent and the stored setting is never read; a code no installed layout carries falls back to
+   its curated primary KLID so the seeded US and Russian pair converts by table without the Russian keyboard; the same
+   layout twice is 10; an answer that would pass one 64 KiB response line is refused `too-large`, since Latin letters
+   come back as two-byte Cyrillic ones), and the two screenshot verbs of ticket S0110 (`AppCommandsScreenshots`,
+   handlers over an `IScreenshotCommandHost` seam - the production host is a thin object in
+   `CyrFlipContext.AppCommandsScreenshots.cs` over the chord's own capture core): `screenshot region --out` (the
+   selection overlay over what the person is doing; `interactive`, 120 s; Escape is 16 `cancelled`; at the bound the
+   instance closes the overlay itself and writes nothing) and `screenshot full --out [--delay-ms 0..30000]` (the delay
+   holds no thread and the freeze instant is the capture, not the command). Both are `reads-user-data`,
+   `coldStart: refuse`, take `--overwrite` and `--clipboard` (default **off**: a script that did not ask for the
+   clipboard does not change it; on, it is written **after** the file is on disk, and a held clipboard after a
+   saved file is 1 `clipboard-failed` with the file still named in `data`). **`--out` is used exactly as given**
+   (`OutputPlan.Resolve`, pure over `IScreenshotFileSystem`; `APP-COMMANDS` 0.2 item P): a `.png` file name, an existing
+   folder or a path ending in a separator - a folder gets the `CAPTURE-OUTPUT` rule 3 name, with rule 5's ordinal and
+   `--overwrite` without effect; an existing file is 11 `exists` without `--overwrite`, a missing folder 11
+   `target-missing` and is never created, a name Windows refuses 10, a full disk 13 `no-space`, any other write failure
+   14 `io-error`, a share that does not answer 15 `network`. The target is checked before a person is bothered and again
+   when the file is written (`ScreenshotSaver.SaveTo`: the temporary file renamed in, `MoveReplace` for an overwrite),
+   always on the pool under the saver's 10 s budget; the PNG carries the `tIME` chunk of the freeze instant in both
+   forms; the verbs write only the named target (no capture-folder save, no fallback, no balloon) and read neither
+   `ScreenshotSaveEnabled` nor a chord switch. Since `CAPTURE-OUTPUT` 0.8 (2026-11-15, accepted from this
+   product's own proposal) a caller-named path is outside rules 5 and 7, so the verbs conform and the dated exception is closed (S0114).
+   The capture extras of ticket S0130 (`AppCommandsScreenshotExtras`, handlers over `IScreenshotExtrasCommandHost` - the
+   same host object in `CyrFlipContext.AppCommandsScreenshots.cs`, now also over the window walk the selection family shares, a
+   window-capture core and the command-side editor hand-off): `screenshot window (--window-pid <int>, --window-title <text>, or
+   both narrowing) --out [--overwrite]` (`reads-user-data`, `refuse`, 30 s, not interactive; the window's visible on-screen
+   rectangle - DWM extended frame bounds, `GetWindowRect` fallback - cropped out of the ONE frozen virtual screen: a covered
+   window shows what covers it, a minimized or off-screen window is 11 `target-missing` naming the restore cure; the naming
+   rides `AppCommandsSelection.Named` so the two families that name windows cannot drift; no `--clipboard` - the row lists
+   none, the clipboard is never touched and `ScreenshotCount` rises never) and the `--annotate` option of `screenshot region`
+   (the region entry's `timeoutMs` becomes the row's 600000; the module switch `EnableScreenshotAnnotate` gates the option -
+   off is 11 `module-off`; the selection ends into the chord's own `AnnotationEditor` instead of delivering, OK saving the
+   composed picture under the ORIGINAL freeze instant; Escape and the editor's Cancel are 16 and write nothing; `--clipboard`
+   works on the composed picture as without; the selection keeps the wave-1's own 120-second budget - the dispatch arms it
+   for the plain spelling, the annotate handler's `AwaitAnnotateRun` rations its selection phase the same way - and at either
+   budget the instance closes the overlay or the editor on the UI thread so `CaptureBusy` clears and nothing is written after
+   the answer).
+   The two traffic light verbs of ticket S0117 (`AppCommandsTrafficLight`, handlers over an `ITrafficLightCommandHost` seam -
+   `TrafficLightCommandHost` in the app over the live engine and scheduler, a fake in the tests - null while the module is off,
+   11 `module-off`): `trafficlight status [--target]` (`reads-user-data`, `coldStart: refuse`, 5 s) reads the engine's last
+   known states without starting a check, and `trafficlight check (--target | --all)` (`leaves-machine`, `refuse`, 60 s) asks
+   for fresh looks and waits for them. **A label selects a target, and an answer carries labels, never addresses**: `--target`
+   is the whole label, trimmed, case-insensitive; a target whose label is also its address, host, port, a segment of its path,
+   its drive, a fingerprint or anything written like an IP, a URL or a path (`TrafficLightLabels.IsSafe`, strict and blunt by
+   the owner's decision of 2026-11-17) refuses the **whole request that covers it** - an unfiltered `status`, `check --all` or a
+   `--target` naming it alike: the product's own reason `label-unsafe`, exit 11, nothing listed and no word of the label in the
+   message - until the person gives that target a label of its own; an answer that would pass the 64 KiB response line is
+   `response-too-large` (exit 1), never a partial board. The answer's `state` is `ok`, `degraded`, `down`,
+   `unknown`, `off` (switched off) or `invalid` (an address that does not validate); no reason, note or address is in it. The
+   check is the engine's own single-check path with correlation added to it (`TrafficLightEngine.RequestCommandCheck` returns a
+   `TrafficCheckTicket` that completes with that very check, `Complete` settles the waiters after the result is in; a check
+   already running is joined, never started twice; a target that is switched off, invalid or - while offline - a network target is
+   refused and named in the message, and so is one whose flight has already reported while its call is still out after a hard
+   timeout (`TrafficCheckStart.Busy`, `Entry.FlightReported`: nothing is coming that a command could wait for); an edit, a
+   removal, going offline or `Stop` lets a wait go as `Abandoned`), and **a check no
+   one but the command asked for settles a `TrafficLightChange.Silent` change**: journalled and drawn like any other, but
+   `TrafficLightNotifier.Counts` raises no balloon for it (so that transition is not announced later either). Past the
+   bound the answer is 2 `timeout` and the waits are dropped; the checks themselves run on.
+   The four state-switch verbs of ticket S0125 (`AppCommandsStateSwitches`, pure handlers over three host seams -
+   `StateSwitchCommandsHost` in the context over the surfaces' own paths, `OneShotAutostartHost` in the runner, fakes in the
+   tests): `keepawake set` (`safe`, `refuse`, 2000 ms; without `--minutes` each given switch goes through the tray items' own
+   `CheckedChanged` paths - the live call, the config value, the save - so the items, the page and the answer hold one value;
+   with `--minutes <1..480>` the request is session-only: the given switches applied live on the tray's thread, nothing
+   written, one `Forms.Timer` on that thread returning the saved state, a request naming no switch 10, `expiresUtc` in the
+   answer), `theme set` (`safe`, `refuse`, 3000 ms; the page's own choose path - token, save, live `SetMode` - and an
+   unknown token is the parser's enum refusal, never folded to `system` the way a hand-edited config value is), `autostart
+   set` (`writes-user-data`, `oneshot`, 5000 ms; the page's own call - Run key plus machine-local intent together, never one
+   without the other; a packaged build is 11 with the product's own reason `managed-by-windows` and writes nothing) and
+   `cursor restore` (`writes-user-data`, `oneshot`, 5000 ms; `LayoutCursor.ReloadScheme` - the exit path's own
+   `SPI_SETCURSORS` seam unconditionally, without the replaced-guard, idempotent beside a live instance; the repair for a
+   branded I-beam a killed run left behind). The `app-commands.log` line gains the closed state tokens (`system`, `screen`,
+   `theme`, `enabled`, `restored`) beside the list counts; `expiresUtc` and no argument text reach it.
+   The translator verb of ticket S0128 (`AppCommandsTranslate`, a pure handler over an `ITranslateCommandsHost` seam - the
+   context's own adapter over the `_translation` service the chord already uses): `translate text --text <text> --to
+   <language or ui> [--from <language or ui>]` (`leaves-machine`, `coldStart: refuse`, 130 s - the configured endpoint may be
+   another machine; text in, text out: no selection is taken, no window opens, the clipboard is never touched and no balloon
+   is raised, so the rule-13 setting answers 12 before the `module-off` check of `EnableTranslate` answers 11). The `active`
+   token is refused 10 (it names the window a selection comes from, and a command reads no window); the input is cut at the
+   service's own 4000-character cap and the answer says so (`truncated`); one command translation runs at a time and a second
+   answers `busy` with no queue; the four server states answer 15 `network` each by name, a server that answers with no
+   models installed answers the product's own reason `no-model` (11, rule 12's last sentence, beside `label-unsafe` and
+   `managed-by-windows`), a model that answered nothing usable answers 1, and the bound's overrun answers 2 `timeout` with the
+   model call cancelled through the family's `timeoutMs - 1000` token. The service gained a named-source overload
+   (a null keeps the chord's prompt byte-identical), and `translate.log` gains the command line - the target code, the source
+   mode and the outcome, never a character of the text.
+   The selection family of ticket S0129 (`AppCommandsSelection`, pure handlers over an `ISelectionCommandsHost` seam - the
+   context's `SelectionCommandsHost` adapter over the window list, the raise and the engines): `selection convert --from
+   <code|klid> --to <code|klid>`, `selection flip-case`, `selection note` and `selection translate --to
+   <language|ui|active>` (rows C34-C37, APP-COMMANDS item Q's `target: "focused-window"` manifest member), all
+   `coldStart: refuse`, 15 s (13 s for the model call), `wait: done`. A verb acts on the selection of the window the caller
+   names by `--window-pid` and/or `--window-title` (a substring, case-insensitive; no match 11 `target-missing`, more than
+   one 10 `bad-argument`), brings it to the foreground through `ForegroundActivator` and refuses - 11, the product's own
+   reason `window-not-foreground` - a window that will not take it; the two edit verbs ride the flip pipeline's own
+   `ClipboardHandler.ConvertSelection` (explicit direction, never the chord's auto-reverse) and `FlipCase` with the stored
+   `ConvertSymbols` / `FlipCapsLockAfter` preferences, `selection note` captures through `TakeSelection` and writes through
+   the `note add` path (`TryAdd`), and `selection translate` captures, then rides the same no-sink service call as
+   `translate text` with the shared model claim - the `active` token is honest on this verb and resolved from the named
+   window's live layout. The clipboard claim is the flips' own `_busy` guard, taken before a window is touched and
+   bracketing the history suppression; an empty selection answers the product's own reason `no-selection` (11, beside
+   `window-not-foreground` in `AppCommandProtocol`); the capture caps are `MaxFlipChars` and the notes' own `QuickNote.MaxBytes`;
+   and `translate.log` gains the `selection command:` line beside the chord's and the text verb's.
+   Four rules carry it:
+   - **One parser, strict** (`AppCommandLine`): an unknown verb, option or value, a request over 64 KiB or an argument
+     over 32 KiB is exit 10 and nothing runs; the running copy reparses a request's `args` with the same parser.
+   - **One request, one answer on one connection** (`LauncherIpc.SendRequest` / `Answer`, `AppCommandProtocol`): the
+     pipe is read-write since S0107; a line that opens with `{` is a request, anything else is the old token and is
+     answered with nothing. The UI thread has 800 ms to take a command or the answer is `busy` and the command is never
+     run later (`CyrFlipContext.AppCommands`); a modal window or the first-run tour is `busy`.
+   - **One setting, off** (`EnableExternalCommands`, General page, group `general/commands`): a verb of any class but
+     `safe` is refused 12 `switch-off` while it is off; only the person turns it on - it is excluded from the settings
+     file and the settings standard. The shipped spellings (`/clipboard-send`, `/launcher-run:{guid}`, ..) keep their
+     token path and are gated by their module only (item F).
+   - **The older copy is told apart, not guessed** (item K): a one-way pipe refuses the read-write open, the second
+     process sends the legacy token where the verb has one and exits 2 with a sentence. No first instance: `coldStart`
+     decides (`AppCommandRunner.ColdStart` - `start` starts the tray copy and forwards, `oneshot` works in the process
+     after releasing the mutex, `refuse` is 11). An elevated first instance is `elevation` 12. Output goes to the
+     parent's console (`AttachConsole`); the exit code and `--result <path>` (written whole) are the reliable channels.
+   Every command taken is one line of `app-commands.log` (verb, origin, caller pid, outcome - no argument; in the log
+   bundle). The cases that need a real tray copy are `tools/uitest/Test-AppCommands.ps1`.
+   **The words that make it findable (ticket S0112, `Render-CliDoc.ps1 -Check` holds them):** the guides' `commands` chapter
+   (EN, RU, UK; the manifest's four risk classes in plain words, the setting, the exit codes), one bullet or paragraph with a
+   link to it on each of the 13 first pages, the privacy item "Commands from other programs" in all 13 languages (every risk
+   class of the manifest as a `<code>` token, and the sentence that the shortcut spellings of before depend only on their own
+   feature - canon invariant 14), the one line near the top of this file for development agents, and the in-app help, which is
+   generated from the live General page (`help-map.json` has page rows only; the setting is a control of `settings.General`).
 
 It runs in the **system tray** (the icon also shows the layout; right-click menu = the history controls, the three indicator toggles, the two keep-awake switches, the **Launcher** submenu and **"Перевести буфер обмена"** - each visible only while its module is enabled - then Settings and Exit). **Tray mouse:** a **single left click switches the input language to the next one in Windows' rotation** (`LayoutSwitcher.SwitchToNext`), a **double click opens Settings**. Since the shell also delivers the first click of a double click as an ordinary click, the switch is deferred by `SystemInformation.DoubleClickTime` and cancelled when the double click arrives - and it targets `CursorIndicator.LastActiveWindow`, not the foreground window, because clicking the notification area moves the focus to the taskbar. See [PLAN/done/Spec_v1.1_Cursor_and_Caret.md](PLAN/done/Spec_v1.1_Cursor_and_Caret.md) for the indicator design.
 
@@ -665,7 +870,7 @@ It runs in the **system tray** (the icon also shows the layout; right-click menu
 S0076/S0077 current UI authority, component inventory and permanent profile decisions are
 recorded in [PLAN/S0076_unified-ui-contracts/unified-ui.md](PLAN/S0076_unified-ui-contracts/unified-ui.md); the clause-by-clause
 accepted-proposal read and explicit remaining exceptions are in
-[PLAN/S0077_contract-sync-20261017/contract-sync-20261017.md](PLAN/S0077_contract-sync-20261017/contract-sync-20261017.md).
+[PLAN/S0077_contract-sync-20261017/contract-sync-20261017.md](PLAN/done/S0077_contract-sync-20261017/contract-sync-20261017.md).
 BUTTONS 2.0 supersedes older red-dismissal/tinted-answer descriptions below.
 COLLAPSIBLE-GROUP 1.1 owns the native current-state triangle. `AboutResources` is
 the resource inventory; About's local diagnostic export uses `SupportBundle` without
@@ -961,7 +1166,7 @@ Each class owns one concern (keep it this way - the spec prioritizes a minimal s
   (`DropDown` / `DropDownClosed`, and the destroyed handle of a combo closed with its list open). No hook or filter is
   installed, so nothing costs the hooks' thread a thing per message. `CompanionSurfaceSignalTests` sends the real messages.
 - **RemoteDesktop.cs** - `IsClientForeground()`: true when the focused window belongs to a remote-desktop client (`mstsc`/`msrdc`/`msrdcw`), resolved via `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)` → `QueryFullProcessImageName`. Used only by the hook's RDP-deferral path, and only on a real chord match, so the process lookup never runs on ordinary keystrokes. Beside it, **`IsSlowClipboardTarget(hwnd)`** - a wider, separate list (the RDP clients plus Citrix `wfica32`/`CDViewer`, Hyper-V `vmconnect`, VMware, VirtualBox, and the `VMware*`/`VirtualBox*` window classes): targets whose far side reads the clipboard late, which the flip pipeline gives its long waits (ticket S0009, FP-1). The deferral list stays RDP-only.
-- **Hotkey.cs** - parses `"Ctrl+Shift+F12"` → modifiers + VK (+ named keys: Space/Enter/F1-F24/..); `Display` round-trips it. `Hotkey.Default` is **Ctrl+Shift+F12** - the `Parse` fallback, and the chord the seeded EN⇄RU conversion row carries (Ctrl+Shift+T was dropped - it conflicts with browser "reopen tab" and Windows text-extraction tools). `Hotkey.CaseDefault` is **Ctrl+Shift+F11** (case flip). `SameChord` compares trigger key + modifiers (used to reject duplicate hotkeys). **The stored token is `INPUT-CHORD` rules 1-4**: an unknown token or a second trigger makes `TryParse` fail - the chord is inert, never the rest of it bound (`Ctrl+Shift+Hyper+F12` must not become `Ctrl+Shift+F12`) - and stored chords are re-written in the canonical spelling on load (`AppConfig.ReadHotkey`, `AppConfig.CanonicalizeChord`). `InputChordContractTests` generates the contract's vectors (`tests/CyrFlip.Tests/Fixtures/InputChord/chord-tokens.jsonl`, rewritten with `CYRFLIP_WRITE_CHORD_VECTORS=1`) and fails when file and parser disagree; the catalog holds a byte-exact copy.
+- **Hotkey.cs** - parses `"Ctrl+Shift+F12"` → modifiers + VK (+ named keys: Space/Enter/F1-F24/..); `Display` round-trips it. **The admitted trigger families of INPUT-CHORD 0.4 (S0116)** - the arrows, `Numpad0`-`Numpad9` and the keypad operators, `BracketLeft`/`BracketRight`/`Period`/`Comma`/`Equal`/`Minus`/`Backslash` and the six media and volume keys - are one table (`AdmittedTriggers`) read case-insensitively (0.5 item A) and named back by `NameForVk`; `HotkeyDialog.TryGetKeyName` captures them, `HotkeyRules` refuses `Ctrl` alone with an arrow (caret movement), and `HotkeyDialog.LongestAdmittedChord` sizes the capture preview (`LongestChord` still aligns the settings columns). A keypad digit with Shift never arrives as itself while NumLock is on (Windows reports the navigation key), so such a stored chord never fires. `Hotkey.Default` is **Ctrl+Shift+F12** - the `Parse` fallback, and the chord the seeded EN⇄RU conversion row carries (Ctrl+Shift+T was dropped - it conflicts with browser "reopen tab" and Windows text-extraction tools). `Hotkey.CaseDefault` is **Ctrl+Shift+F11** (case flip). `SameChord` compares trigger key + modifiers (used to reject duplicate hotkeys). **The stored token is `INPUT-CHORD` rules 1-4**: an unknown token or a second trigger makes `TryParse` fail - the chord is inert, never the rest of it bound (`Ctrl+Shift+Hyper+F12` must not become `Ctrl+Shift+F12`) - and stored chords are re-written in the canonical spelling on load (`AppConfig.ReadHotkey`, `AppConfig.CanonicalizeChord`). `InputChordContractTests` generates the contract's vectors (`tests/CyrFlip.Tests/Fixtures/InputChord/chord-tokens.jsonl`, rewritten with `CYRFLIP_WRITE_CHORD_VECTORS=1`) and fails when file and parser disagree; the catalog holds a byte-exact copy.
 - **CursorIndicator.cs** - polls the foreground window's layout (`GetKeyboardLayout` → `LayoutIdentity.KlidForHkl` → `LayoutIdentity.CodeFor`: the **curated** code when the resolved KLID is one of ours, else the HKL's language id through `WorldLayouts.CodeForLangId`, **the one place that decode lives**, so the marker and the settings tables can never call the same layout two different things - Canadian French, `00001009`, whose low word is en-CA, used to read "EN" on the marker and "FR" in the tables (S0036 UI-3); a language Windows cannot name comes back as its four hex digits, not as `"??"`) **and the CapsLock state** (`IsCapsLockOn`, `GetKeyState(VK_CAPITAL)` low bit) on a 150 ms `Timer` and raises `LayoutChanged(code, klid, capsOn)` when any of them changes; the KLID beside the code comes from `LayoutIdentity` and is what picks the layout's own shade (`DetectLayout(out klid)`). Also renders the tray icon (`RenderIcon(code, klid, capsOn)`, GDI → managed `Icon` via a PNG-payload .ico, no leaked HICON). `LayoutChanged` drives all three surfaces (tray icon, `LayoutCursor`, `CaretOverlay`). The same poll remembers **`LastActiveWindow`** - the last foreground window that is neither ours nor a taskbar surface (`Shell_TrayWnd` & co, filtered by class name + process id) - because a tray click focuses the shell, so the tray's layout switch has to act on the window the user came from.
 - **LayoutCursor.cs** *(headline)* - renders the caret + EN/RU/UK marker to a `Bitmap`, turns it into a color cursor with a hotspot (`GetHicon` → `GetIconInfo` → `CreateIconIndirect` with `fIcon=false`), installs it via `SetSystemCursor(OCR_IBEAM)`, and nudges a repaint (`ForceCursorRefresh`). `Apply(code, klid, capsOn)` rebuilds when the code, the layout *or* the CapsLock state changes (CapsLock adds the 1px frame). There is **no dark plate** behind the letters - their own black outline carries them - and the letters are composed on **their own bitmap** and blended in at `LayoutStyle.MarkerOpacity`, so the badge is translucent while the I-beam over it stays fully opaque; `RenderCaret` is `internal` because "is the badge see-through" is a pixel fact no build can check (`LayoutMarkerTests`). `Restore`/`ForceRestore` reload default cursors. Scaled by `config.cursorSize`, the primary monitor's DPI and the Windows pointer size (`MarkerSize.CursorHeight`). **A system cursor reload by anyone else** (pointer size/colour, a theme) puts the stock I-beam back, so `SessionEndWatcher`'s `WM_SETTINGCHANGE(SPI_SETCURSORS)` re-applies it (`OnSystemCursorsChanged`) - ignoring the broadcast of CyrFlip's own `ForceRestore` (S0011 LI-6).
 - **CaretOverlay.cs** *(headline)* - a borderless, topmost, click-through (`WS_EX_TRANSPARENT`), no-activate (`WS_EX_NOACTIVATE` + `ShowWithoutActivation`) `Form` with a rounded window region, showing the EN/RU/UK marker **diagonally below-right of the text caret** (so it never covers the current line). Supports two rendering modes: **text label** (EN/RU/UK letters, default) and **dot mode** (a small solid circle in the layout's colour - set via `SetDotMode(bool)`; **this is the mode the 25-layout palette exists for**, since there are no letters there to name the language). The dot is placed by `CaretPlacement.PlaceDot` - centred right under the caret's line - **not** through the lettered badge's slot, which is dropped by half a badge and left the dot a line or more below the caret. `SetLayout(code, klid, capsOn)` carries the layout and the CapsLock state; when caps is on, the badge gets the 1px frame (text mode) or a dark ring (dot mode). The window is drawn at `LayoutStyle.MarkerOpacity` (`Form.Opacity`, i.e. a layered window - which the click-through/no-activate styles are happy to live with). A background MTA thread finds the caret via `GetGUIThreadInfo` (every ~90 ms) then a **throttled (~120 ms) cross-process fallback** that tries, in order, COM `GetCaretRange` (`UiaCaretCom`, WinUI/UWP/WPF), IAccessible2 (`Ia2Caret`, Chromium/Electron - VS Code chat & browsers), then managed `TextPattern.GetSelection`; it positions the form via `BeginInvoke`. **The cross-process sources run only while there is input to follow** (`CaretQueryGate`, ticket S0011 LI-1): 3 s after a physical key-down (stamped by `KeyboardHook`) or 1.5 s after a foreground/focus change (an out-of-context `SetWinEventHook`) - a query every 120 ms kept Chromium's whole accessibility tree switched on in every tab. Outside that window the last position stands. Every source returns a `CaretRect` (x, line top, line bottom; a whole-line rect refused, the RTL side read from the neighbouring character - `CaretGeometry`), `CaretPlacement.Place` keeps the badge on the caret's monitor (above the line at the bottom edge, left of the caret at the right edge), the badge is sized per monitor DPI (`MarkerSize`) and re-reads it on `WM_DISPLAYCHANGE`/`WM_DPICHANGED` (`OnDisplayChanged`, S0036 UI-4 - a monitor whose scaling changed keeps its handle), a `GetGUIThreadInfo` caret of a DPI-unaware window is converted from logical coordinates (`ClientToPhysicalScreen`), and a foreground change or a tracker silent for 1 s hides the badge until the tracker reports for the new window. Shows/hides with WinForms `Show()`/`Hide()` (relies on `ShowWithoutActivation` so it never steals focus). Passes an empty string to `SetLayout` to hide. The Monaco/VS Code *editor* caret is best handled by the companion extension; the *chat* box and browsers are handled by the IAccessible2 path - and since IAccessible2 finds the *editor* caret too, the overlay stands down there via `EditorCaretSignal` (below), which is what stopped two markers appearing at one caret.
@@ -1420,7 +1625,7 @@ guards it.
   - **LauncherExecution.cs** - the single launch path (port of `ScenarioLauncher`): `TryResolveTarget` (file / http(s) / workdir-relative / PATH+PATHEXT, relative PATH entries skipped) returns the **absolute** path it validated, and that path is what is started or elevated (S0008 LS-6); `runas` iff `RunAsAdmin`; UAC decline (Win32 error 1223) = cancel, not failure; interpreters (`cmd.exe`, Windows PowerShell) are started by their System32 path, never a bare name (S0034 LS2-7); yt-dlp = `cmd /s /k` console (cmd by its System32 path, started in the user profile) starting yt-dlp by its resolved full path (`NoDefaultCurrentDirectoryInExePath=1`), with `--` before the link and the link **only in `CYRFLIP_YTDLP_LINK`** (an absolute http(s) URL, quote/control chars rejected); **no config is read from the download folder** (S0034 LS2-2): yt-dlp loads a "home" `yt-dlp.conf` from its `-P` folder or, without `-P`, its current directory - Downloads by default, where a web page can drop one saying `--exec` - so the command says `--ignore-config` and names the user's own configs (the portable one beside the exe, the first user config in yt-dlp's own search order, never one inside the download folder) with `--config-locations`; the folder is `-P` through `CYRFLIP_YTDLP_FOLDER` (a UNC folder cannot be cmd's current directory), so a user config's own `-P` no longer overrides the scenario's folder; `YtDlpFormat` is passed only when every space-separated token matches `[A-Za-z0-9+/\[\]<>=*._,-]` (≤ 200 chars), each token quoted - otherwise kept but not passed, and the scenario dialog says why (S0008 LS-4). Error strings are Russian-source keys passed through a `translate` seam.
   - **LauncherScriptInterpreter.cs** - `.ps1` → pwsh (probed) else Windows PowerShell, `-NoProfile -ExecutionPolicy Bypass -File` last; `.bat`/`.cmd` → `cmd /s /c ""script" args"` (the one quoting that survives spaced paths AND quoted args). Do not "simplify" the quoting.
   - **LauncherIconResolver.cs** - exe/own icon, scripts borrow the interpreter's, fallback = CyrFlip's own icon (never a blank Jump List task, never OneClickRunner branding); + `LauncherIconCache` (display-only, extraction failure never blocks a launch). **Never on the UI thread** (ticket S0030 HT-1): a scenario on `\\nas\..` or a PATH entry on a dead server stalled the hooks' thread for the SMB timeout at startup and on every settings click. A remote path (`LaunchTargets.IsRemotePath`, the selection launch's own classifier) is not probed at all and takes the fallback icon; the Jump List's tasks are built on the pool and applied back on the UI thread (a generation counter drops a stale build); the settings table gets its icons from `LauncherIconCache.Get`, which resolves on the pool and hands the icon back through the caller's sync context; the probes are a `LauncherPathProbes` argument so the tests count them. The table is rebuilt from `ApplyLanguage` only when the language, the store's `Version` or the launcher switch changed. Launching goes through `LauncherExecution.LaunchAsync` (the yt-dlp prompt on the caller's thread, everything else on the pool); the synchronous `Launch` is left to the one-shot process, which has no hook.
-  - **LauncherIpc.cs** - named pipe `CyrFlip_Launcher_{userSid}_{sessionId}` (ticket S0008 LS-2: a pipe name is machine-global while the mutex is per session, so with fast user switching the second user used to fail forever). Strict `ParseCommand` - on the command line **and** on every line read from the pipe: only `/launcher-run:{guid}` (guid validated + normalized), `/launcher-settings`, `/exit`, at most 256 characters. One server instance for the process lifetime (`Disconnect` between clients), a DACL admitting the current user only and never the network, a 2 s read timeout, exponential backoff to 30 s logged once per hundred failures. `TrySend` connects at Identification level and refuses a server outside its own session/user (`GetNamedPipeServerProcessId`). The listener always runs, but while `EnableScenarioLauncher=0` it passes on **only `/exit`** - the build scripts stop the tray with it (`SetLauncherCommandsEnabled`, driven by `RefreshLauncherSurfaces`). Marshalling to the UI thread is the subscriber's job (`CyrFlipContext` posts via `_ui`).
+  - **LauncherIpc.cs** - named pipe `CyrFlip_Launcher_{userSid}_{sessionId}` (ticket S0008 LS-2: a pipe name is machine-global while the mutex is per session, so with fast user switching the second user used to fail forever). Strict `ParseCommand` - on the command line **and** on every line read from the pipe: only `/launcher-run:{guid}` (guid validated + normalized), `/launcher-settings`, `/exit`, `/clipboard-send`, `/clipboard-get`, at most 256 characters; since S0107 a line that opens with `{` is an `APP-COMMANDS` request answered on the same, now read-write, connection (feature 18). One server instance for the process lifetime (`Disconnect` between clients), a DACL admitting the current user only and never the network, a 2 s read timeout, exponential backoff to 30 s logged once per hundred failures. `TrySend` connects at Identification level and refuses a server outside its own session/user (`GetNamedPipeServerProcessId`). The listener always runs, but while `EnableScenarioLauncher=0` it passes on **only `/exit`** - the build scripts stop the tray with it (`SetLauncherCommandsEnabled`, driven by `RefreshLauncherSurfaces`). Marshalling to the UI thread is the subscriber's job (`CyrFlipContext` posts via `_ui`).
   - **LauncherJumpList.cs** - hand-rolled COM `ICustomDestinationList` + `IObjectCollection` + `IShellLinkW` + `IPropertyStore` (PKEY_Title via a minimal PROPVARIANT). Vtable order is load-bearing (same gotcha class as `UiaCaretCom`). `BuildTasks` is pure (unit-tested); `Apply`/`Clear` guarded → shell refusal degrades to "no jump list".
   - **LauncherTrayMenu.cs** - builds the tray submenu **and** the taskbar button's left-click menu (scenarios → separator → Manage → optional Import) from one `Fill`, so the two lists can never drift apart. It is its own file for one load-bearing reason: `ToolStripItem.Dispose` **removes the item from its owner's collection**, so disposing while enumerating `DropDownItems` throws *"Collection was modified"* - verified on net48, and invisible until the *second* rebuild (the first starts from an empty menu). Copy out → clear → dispose, exactly as the settings window does in every `Reload*Rows`. Being a static seam it is covered directly by `LauncherTrayMenuTests`.
   - **LauncherScenarioDialog.cs / YtDlpLinkDialog.cs** - content-sized modal dialogs (no pixel geometry). The scenario dialog swaps the type-specific section **out of the control tree** (not `Visible=false`) so `DialogLayoutTests` measures only what is laid out.
@@ -1534,6 +1739,9 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `EnableQuickNotesHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound (only while `EnableQuickNotes`=1) |
 | `QuickNotesWordWrap` | `REG_DWORD` | `0` | 1 = the editor wraps long lines. Off by default: the body is more often code than prose |
 | `QuickNotesLineNumbers` | `REG_DWORD` | `0` | 1 = show line numbers gutter along the left edge of the editor (S0078). Off by default |
+| `QuickNotesSync` | `REG_DWORD` | `0` | 1 = the quick notes sync with the other devices of one exchange account (S0105, `DEVICE-EXCHANGE` 1.13). Consent on this device: never in the settings file |
+| `EnableExternalCommands` | `REG_DWORD` | `0` | 1 = "Let other programs ask CyrFlip to work with my files, screen, clipboard or the network" (APP-COMMANDS rule 13, S0107): a command of any risk class but `safe` is taken. Only the person turns it on, on the General page; no command, settings file or settings standard carries it. A pre-adoption spelling (`/clipboard-send`, `/launcher-run:{guid}`, ..) is gated by its module only (item F) |
+| `QuickNotesSyncEntry` | `REG_SZ` | *(empty)* | Local id of the exchange account entry the notes sync with; empty = the only `member` entry when there is exactly one. Never in the settings file |
 | `ExchangeNotesWarningOff` | `REG_DWORD` | `0` | 1 = a **notes-only** export to the exchange file no longer shows the "plain unencrypted text" warning. An export that carries clipboard history always shows it (S0023) |
 | `SettingsBackupEnabled` | `REG_DWORD` | `1` | 1 = the rolling settings backup in `%USERPROFILE%\Documents\CyrFlip\Backups` is written (S0072): debounced after settings changes, keep-last-3, the writer silent while the restore question is open. Exported in the settings file v2 |
 | `BackupOfferOpen` | `REG_DWORD` | `0` | Marker: the "restore the backup found in Documents?" question is unanswered - it re-asks next start, and the backup writer stays silent while it is set (S0072). Machine history: never in the settings file |
@@ -1570,7 +1778,7 @@ Settings are stored in the Windows Registry under `HKCU\Software\CyrFlip`. All v
 | `EnableTrafficLight` | `REG_DWORD` | `0` | 1 = the traffic light module is on; 0 = no timer, no chord, no tray item, no window, no network or power event subscription (S0069). The block is written only once the module has been on |
 | `TrafficLightHotkey` | `REG_SZ` | `Ctrl+Shift+Alt+T` | Shows and focuses the board, and hides it from itself; checked against every other chord owner |
 | `EnableTrafficLightHotkey` | `REG_DWORD` | `1` | 1 = that chord is bound (only while `EnableTrafficLight`=1) |
-| `TrafficLightTargets` | `REG_SZ` | *(empty)* | JSON array of the targets (label, kind, address, optional fingerprint, group, ordinal, switch, interval, timeout, thresholds, failures before down, accepted HTTP codes, untrusted-certificate option, balloon, journal). `[]` after the user emptied it; an unreadable value is never saved over until the user edits it |
+| `TrafficLightTargets` | `REG_SZ` | *(empty; a brand-new profile is seeded with one `Google` example, `https://www.google.com`)* | JSON array of the targets (label, kind, address, optional fingerprint, group, ordinal, switch, interval, timeout, thresholds, failures before down, accepted HTTP codes, untrusted-certificate option, balloon, journal). `[]` after the user emptied it; an unreadable value is never saved over until the user edits it |
 | `TrafficLightShowAtStart` | `REG_DWORD` | `1` | 1 = the board opens by itself (without taking the focus) at every start while `EnableTrafficLight`=1; 0 = it reopens only if it was left visible (`TrafficLightVisible`). The rule is `TrafficLightLaunch.ShowBoard` |
 | `TrafficLightVisible` | `REG_DWORD` | `0` | The board was left visible. With `TrafficLightShowAtStart`=1 it opens at every start anyway; with 0 this value alone decides whether it reopens (without taking the focus) |
 | `TrafficLightPinned` | `REG_DWORD` | `1` | 1 = the board stays on top of other windows |
@@ -1600,7 +1808,7 @@ report says "not built, not tested until the release".
 
 ```powershell
 .\build.ps1 -Fast                             # FAST tier, after every edit: the static gates, no build, no test (~4 s)
-.\build.ps1 -Fast -Area help                  # one area: placement | help | positioning | site | listing
+.\build.ps1 -Fast -Area help                  # one area: placement | help | positioning | site | listing | cli
 .\build.ps1                                   # the owner's СБОРКА: app-only build + stage single exe + deploy to C:\GD\..
 .\build.ps1 -Tests                            # RELEASE tier, owner-named only: whole solution + dotnet test + static gates
 .\release.ps1                                 # the release preflight: full build, every tier, IconGen, listing and help gates
@@ -1618,7 +1826,8 @@ The measured list (S0081; "direct" = one timed call on the dev machine, 2026-10-
 | `tools/help/Test-ContextHelp.ps1` | fast | 2.57 | direct, 2026-10-29 (with the S0075 capture digests) |
 | `msix/render-listing-mirrors.ps1 -Check` | fast | 0.71 | direct, 2026-10-29 |
 | `msix/build-store-listing-csv.ps1 -Check` | fast | 0.75 | direct, 2026-10-29 |
-| `build.ps1 -Fast` (all six) | fast | 4.04 | direct, 2026-10-29 (one area: 0.4-1.1) |
+| `tools/cli/Render-CliDoc.ps1 -Check` | fast | 0.2 | direct, 2026-11-15 (with the placement gate) |
+| `build.ps1 -Fast` (all six, and `cli` since S0107) | fast | 4.04 | direct, 2026-10-29 (one area: 0.4-1.1) |
 | `build.ps1 -Fast -Area store` (`tools/checks/Test-StoreChannelPreflight.ps1`, stub `msstore`, 44 cases) | fast, outside the default set | 1.0-1.3 | direct, 2026-11-12 |
 | `dotnet test CyrFlip.sln` (sweeps gated) | release | ~45 | dev machine, 2026-10-24 (UiSweepGate decision) |
 | `dotnet build CyrFlip.sln` / app-only `build.ps1` / IconGen build | release | not recorded | measured at the next release run |

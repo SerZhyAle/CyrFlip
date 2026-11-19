@@ -85,20 +85,107 @@ namespace CyrFlip.Tests
                 Assert.Equal(5, s.Length);
         }
 
+        /// <summary>CLIPBOARD-GUARD item S: the order of kinds is a file, a picture, a text.</summary>
         [Fact]
-        public void AFileWinsOverTheTextAndTheTextOverThePicture()
+        public void AFileWinsOverThePictureAndThePictureOverTheText()
         {
             string path = File1("f.bin");
+            byte[] dib = ClipboardImage.EncodeDib(new Bitmap(2, 2));
             var all = new FakeClipboard()
                 .With(WindowInterop.CF_HDROP, ExchangeClipboardSource.BuildDropFiles(path))
                 .With(WindowInterop.CF_UNICODETEXT, Utf16("a text"))
-                .With(WindowInterop.CF_DIB, new byte[100]);
+                .With(WindowInterop.CF_DIB, dib);
             Assert.Equal("file", Read(all).Value!.Kind);
 
             var textAndPicture = new FakeClipboard()
                 .With(WindowInterop.CF_UNICODETEXT, Utf16("a text"))
+                .With(WindowInterop.CF_DIB, dib);
+            Assert.Equal("image", Read(textAndPicture).Value!.Kind);
+        }
+
+        [Fact]
+        public void ASpreadsheetRangeOrAWebSelectionTravelsAsThePictureBesideItsText()
+        {
+            // a range copied from a spreadsheet puts a PNG, a DIB and its cells as text on the clipboard together
+            byte[] png = TinyPng();
+            var range = new FakeClipboard()
+                .With(WindowInterop.CF_UNICODETEXT, Utf16("A1\tB1\r\nA2\tB2"))
+                .With(WindowInterop.CF_DIB, ClipboardImage.EncodeDib(new Bitmap(2, 2)))
+                .With(ClipboardFormats.Png, png);
+            ExchangeClipboardPayload p = Read(range).Value!;
+            Assert.Equal("image", p.Kind);
+            Assert.Equal(png, p.Bytes);
+        }
+
+        [Fact]
+        public void WithNoPictureOnTheClipboardTheTextBesideNothingIsSent()
+        {
+            // item S evidence, second step: the picture is absent, so the text is what is sent
+            var c = new FakeClipboard().With(WindowInterop.CF_UNICODETEXT, Utf16("only a text"));
+            ExchangeClipboardPayload p = Read(c).Value!;
+            Assert.Equal("text", p.Kind);
+            Assert.Equal("only a text", Encoding.UTF8.GetString(p.Bytes!));
+        }
+
+        [Fact]
+        public void APictureThatCannotBeConvertedFailsTheSendAndTheTextBesideItIsNotSentInItsPlace()
+        {
+            // item S evidence, third step: the first format present decides, and it is final
+            var c = new FakeClipboard()
+                .With(WindowInterop.CF_UNICODETEXT, Utf16("a caption that would have fitted"))
                 .With(WindowInterop.CF_DIB, new byte[100]);
-            Assert.Equal("text", Read(textAndPicture).Value!.Kind);
+            ExchangeOutcome<ExchangeClipboardPayload> r = Read(c);
+            Assert.False(r.Ok);
+            Assert.Equal(ExchangeCodes.NothingToSend, r.Code);
+            Assert.Null(r.Value);
+        }
+
+        [Fact]
+        public void APictureTheOwnerDoesNotRenderFailsTheSendWithTheOwnersReason()
+        {
+            var c = new FakeClipboard()
+                .With(WindowInterop.CF_UNICODETEXT, Utf16("a caption"))
+                .Failing(WindowInterop.CF_DIB);
+            ExchangeOutcome<ExchangeClipboardPayload> r = Read(c);
+            Assert.False(r.Ok);
+            Assert.Equal(ExchangeCodes.OwnerTimeout, r.Code);
+
+            var png = new FakeClipboard()
+                .With(WindowInterop.CF_UNICODETEXT, Utf16("a caption"))
+                .Failing(ClipboardFormats.Png);
+            Assert.Equal(ExchangeCodes.OwnerTimeout, Read(png).Code);
+        }
+
+        [Fact]
+        public void APictureBlockWithNothingInItIsAPictureThatCannotBeSentNotAFallThroughToTheText()
+        {
+            var c = new FakeClipboard()
+                .With(WindowInterop.CF_UNICODETEXT, Utf16("a caption"))
+                .With(WindowInterop.CF_DIB, null);
+            Assert.Equal(ExchangeCodes.NothingToSend, Read(c).Code);
+        }
+
+        [Fact]
+        public void APictureOverTheCapNamesTheLimitAndTheTextThatWouldHaveFittedIsNotSent()
+        {
+            var c = new FakeClipboard()
+                .With(WindowInterop.CF_UNICODETEXT, Utf16("short"))
+                .With(WindowInterop.CF_DIB, ClipboardImage.EncodeDib(new Bitmap(8, 8)));
+            Assert.Equal(ExchangeCodes.LimitReached, Read(c, cap: 10).Code);
+        }
+
+        [Fact]
+        public void OnePictureInSeveralFormatsStillFallsThroughToTheFormatThatCanBeRead()
+        {
+            // the same picture in another format is not a second guess at what the person pointed at
+            byte[] dib = ClipboardImage.EncodeDib(new Bitmap(3, 2));
+            var c = new FakeClipboard()
+                .With(WindowInterop.CF_UNICODETEXT, Utf16("a caption"))
+                .Failing(ClipboardFormats.Png)
+                .With(WindowInterop.CF_DIB, dib);
+            ExchangeClipboardPayload p = Read(c).Value!;
+            Assert.Equal("image", p.Kind);
+            Assert.Equal(new byte[] { 0x89, 0x50, 0x4E, 0x47 }, p.Bytes!.Take(4).ToArray());
         }
 
         [Fact]

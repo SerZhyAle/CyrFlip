@@ -51,7 +51,7 @@ namespace CyrFlip.Tests
             SupportBundle.Result result = Create();
 
             Assert.Contains("launcher.log", Names(result));
-            Assert.Equal(3, SupportBundle.ExcludedFiles.Length);
+            Assert.Equal(4, SupportBundle.ExcludedFiles.Length);
             foreach (string excluded in SupportBundle.ExcludedFiles)
             {
                 Assert.DoesNotContain(excluded, Names(result));

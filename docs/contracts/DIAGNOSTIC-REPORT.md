@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `DIAGNOSTIC-REPORT` |
-| **Version** | 0.12, draft (CyrFlip's proposal of 2026-09-26 was folded into section 8 on 2026-10-02) |
+| **Version** | 0.15, draft (re-read 2026-11-15, S0114; CyrFlip's proposal of 2026-09-26 was folded into section 8 on 2026-10-02) |
 | **Home** | `diagnostic-report/README.md` in the shared contracts catalog |
 | **Role here** | Producer - the "send logs to the author" archive and the logs it collects |
 

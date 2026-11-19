@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `SCENARIO-FILE` |
-| **Version** | 0.11, draft |
+| **Version** | 0.13, draft (re-read 2026-11-15, S0114) |
 | **Home** | `launch-scenarios/README.md` in the shared contracts catalog, with nine byte-exact legacy vectors and six authored negative vectors beside it, and the two proposals it folds (`PROPOSAL-2026-09-23-owner-side-read.md`, `PROPOSAL-2026-09-26-absorbing-side-read.md`) |
 | **Role here** | producer and consumer - the launcher store, the export (`LauncherScenarioStore.Export`, the settings table's context menu), the single-file import and the one-way OneClickRunner migration |
 

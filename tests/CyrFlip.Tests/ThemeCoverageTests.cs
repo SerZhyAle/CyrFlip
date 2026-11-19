@@ -294,8 +294,14 @@ namespace CyrFlip.Tests
 
         private T Own<T>(T disposable) where T : IDisposable { _owned.Add(disposable); return disposable; }
 
+        /// <summary>
+        /// The walks read every page, so the settings window is built with every page laid out (ticket S0135, L3). The
+        /// open-timing test turns this off to time the window as a person meets it.
+        /// </summary>
+        internal bool LayOutAllSettingsPages = true;
+
         private SettingsForm NewSettings(AppConfig config)
-            => TestForms.NewSettings(config, Path.Combine(_root, "scenarios"));
+            => TestForms.NewSettings(config, Path.Combine(_root, "scenarios"), allPagesLaidOut: LayOutAllSettingsPages);
 
         // ---- The checks ----
 

@@ -1,5 +1,5 @@
 {
-  "$comment": "Project profile for the canon-shipped harness (tools/harness in the sza plugin), written 2026-10-29 when the project joined the task-flow ledger (owner order: every project in the ledger, worked by the portfolio runner). Only what differs from the canon defaults is here. Ticket files are PLAN/<id>_<slug>.md; a file written there without a ledger row is registered by the portfolio queue sync (TASK-FLOW rule 65). paths.releasesDir added 2026-11-17 when the project joined the release ledger (RELEASE-LEDGER 0.1, ticket S0122): docs/ is the published product site (Pages serves the whole folder), so the ledger lives in releases/ at the root, not at the docs/releases default.",
+  "$comment": "Project profile for the canon-shipped harness (tools/harness in the sza plugin), written 2026-10-29 when the project joined the task-flow ledger (owner order: every project in the ledger, worked by the portfolio runner). Only what differs from the canon defaults is here. Ticket files are PLAN/<id>_<slug>.md; a file written there without a ledger row is registered by the portfolio queue sync (TASK-FLOW rule 65). paths.releasesDir added 2026-11-17 when the project joined the release ledger (RELEASE-LEDGER 0.1, ticket S0122): docs/ is the published product site (Pages serves the whole folder), so the ledger lives in releases/ at the root, not at the docs/releases default. commands.compileCheck added 2026-11-18 by owner decision (S0076 quiz v2, HARNESS-PROFILE rule 11): the one compile-only run an unattended pass may make after editing compiled source.",
   "version": "1",
   "projectName": "CyrFlip",
   "envPrefix": "SZA",
@@ -10,6 +10,9 @@
   },
   "grammar": {
     "specFilePattern": "^PLAN/(done/)?S\\d{4}_(?!spec_)"
+  },
+  "commands": {
+    "compileCheck": "dotnet build src/CyrFlip/CyrFlip.csproj -c Release -o temp/compile"
   },
   "probes": {
     "enabled": false

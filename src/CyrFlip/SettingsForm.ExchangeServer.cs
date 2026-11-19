@@ -45,7 +45,7 @@ namespace CyrFlip
             if (_loading) return;
             apply();
             ExchangeClipboardChanged?.Invoke(this, EventArgs.Empty);
-            if (reload) Reload();
+            if (reload) RefreshState();
         }
 
         private Control TrackExchange(Control control)
@@ -84,6 +84,7 @@ namespace CyrFlip
                 Note("The server keeps only the last value, in its memory, for your account alone; a restart loses it."),
                 Note("One object at a time: put several files or a folder into one archive first."),
                 Note("What is sent is exactly what is on the clipboard when you press the button."),
+                Note("A picture on the clipboard goes before the text beside it: a spreadsheet range or a web selection is sent as the picture."),
                 Note("A password you copied a minute ago goes too. There is no preview and no confirmation."),
                 Note(ExchangeMessages.HonestText),
                 PortalLink("About the clipboard on the server", ExchangePortalPage.Clipboard),
@@ -365,7 +366,7 @@ namespace CyrFlip
                 if (same == null) _config.ExchangeClipboardAccounts.Add(dlg.ResultEntry);
                 _config.SaveExchangeAccounts();
             }
-            Reload();
+            RefreshState();   // an account was added: a value, not the language (S0135, L1)
             ExchangeClipboardChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -377,7 +378,7 @@ namespace CyrFlip
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
                 _config.SaveExchangeAccounts();
             }
-            Reload();
+            RefreshState();   // an account signed in again: a value, not the language (S0135, L1)
             ExchangeClipboardChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -409,7 +410,7 @@ namespace CyrFlip
             entry.DeleteSecret();
             _config.ExchangeClipboardAccounts.Remove(entry);
             _config.SaveExchangeAccounts();
-            Reload();
+            RefreshState();   // an account was removed: a value, not the language (S0135, L1)
             ExchangeClipboardChanged?.Invoke(this, EventArgs.Empty);
 
             if (!revoked)

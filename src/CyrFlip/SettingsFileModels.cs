@@ -139,6 +139,11 @@ namespace CyrFlip
             // laptop's choice must not follow a settings file onto a desktop with a mouse.
             Add("this PC's display", "UiInputProfile UiInterfaceScale UiTextScale");
             Add("credentials", "ExchangeClipboardAccounts");
+            // Item FK of DEVICE-EXCHANGE 1.13: turning the notes sync on is the person's act on each device, and the
+            // entry it names exists only on this PC (S0105).
+            Add("consent on this device", "QuickNotesSync QuickNotesSyncEntry");
+            // APP-COMMANDS rule 13 (S0107): only the person turns it on, on this PC - no settings file or standard carries it.
+            Add("consent on this device", "EnableExternalCommands");
             return result;
         }
         internal static void Copy(AppConfig source, AppConfig target)

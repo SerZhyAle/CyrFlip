@@ -33,6 +33,10 @@ namespace CyrFlip
         public const string FeatureSealed = "sealed";
         /// <summary>The server keeps application settings standards (<c>DEVICE-EXCHANGE</c> 1.12, item EO).</summary>
         public const string FeatureSettings = "settings";
+        /// <summary>The notes store of an account (DEVICE-EXCHANGE 1.13, item FI): listed only together with <see cref="FeatureSealed"/>.</summary>
+        public const string FeatureNotes = "notes";
+        /// <summary>The role a device declares at <c>enroll</c> to receive the account's notes (item FI).</summary>
+        public const string RoleNotes = "notes";
 
         public const string KindSealed = "sealed";
 
@@ -176,7 +180,7 @@ namespace CyrFlip
                 .Add("product", ExchangeWire.Product)
                 .Add("productVersion", productVersion)
                 .Add("platform", "windows")
-                .Add("roles", new object[] { ExchangeWire.RoleClipboard })
+                .Add("roles", new object[] { ExchangeWire.RoleClipboard, ExchangeWire.RoleNotes })
                 .Add("capabilities", new object[] { ExchangeWire.CapabilityE2e })
                 .Add("e2eKey", new ExchangeMembers.Plain().Add("v", 1).Add("kem", e2eKemBase64Url));
 
@@ -212,6 +216,28 @@ namespace CyrFlip
 
         public static ExchangeMembers SettingsGetStandard(string appId)
             => new ExchangeMembers("settings_get_standard").Add("appId", appId);
+
+        /// <summary><c>notes_list</c> (DEVICE-EXCHANGE 1.13, item FI): every record above <paramref name="since"/>.</summary>
+        public static ExchangeMembers NotesList(long since)
+            => new ExchangeMembers("notes_list").Add("since", since < 0 ? 0 : since);
+
+        /// <summary>
+        /// <c>notes_put</c> (item FI): <c>baseRevision</c> is the revision last seen for this note, 0 for a note the
+        /// server never stored; a delete carries no box, every other put carries one (item FG - nothing in clear).
+        /// </summary>
+        public static ExchangeMembers NotesPut(string noteId, long baseRevision, bool deleted, string? boxJson)
+        {
+            var m = new ExchangeMembers("notes_put")
+                .Add("noteId", noteId)
+                .Add("baseRevision", baseRevision < 0 ? 0 : baseRevision)
+                .Add("deleted", deleted);
+            if (!deleted)
+            {
+                if (string.IsNullOrEmpty(boxJson)) throw new ArgumentException("A note is never put without its box.", nameof(boxJson));
+                m.Add("sealed", new ExchangeRawJson(boxJson!));
+            }
+            return m;
+        }
 
         /// <summary>An object member without a <c>type</c> (the nested <c>e2eKey</c>).</summary>
         internal sealed class Plain
@@ -328,6 +354,10 @@ namespace CyrFlip
                 default: return -1;
             }
         }
+
+        /// <summary>A boolean member; absent or not a boolean reads as false.</summary>
+        public bool Bool(string name)
+            => _members.TryGetValue(name, out object? v) && v is bool b && b;
 
         public ExchangeFrame? Obj(string name)
             => _members.TryGetValue(name, out object? v) && v is Dictionary<string, object> d ? new ExchangeFrame(d) : null;

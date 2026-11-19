@@ -250,7 +250,9 @@ namespace CyrFlip
         private void OnServiceImported(object? sender, EventArgs e) => OnUi(() =>
         {
             QuickNote? open = _current;
-            if (open != null && !_service.IsDraft(open)) LoadNote(open);
+            // the exchange sync deleted the open note on the account's word (S0105): let it go, never write it back
+            if (open != null && _service.IsDeleted(open.Id)) ClearEditor();
+            else if (open != null && !_service.IsDraft(open)) LoadNote(open);
             RefreshList();
             RefreshDates();
             UpdateButtons();
@@ -894,6 +896,9 @@ namespace CyrFlip
                 FormatNoteTime(_current.UpdatedAtUtc),
                 _current.LineCount,
                 _current.CharacterCount);
+            // ticket S0105, assumption A4: a note above the exchange's limit stays here and says so
+            if (_config.QuickNotesSync && ExchangeNotePayload.TooLargeToSync(_current))
+                _dates.Text += " | " + T("Too large to sync: this note stays on this computer.");
         }
 
         private void UpdateButtons()

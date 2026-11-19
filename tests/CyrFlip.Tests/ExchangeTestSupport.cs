@@ -103,6 +103,7 @@ namespace CyrFlip.Tests
         public bool Capable = true;
         public DateTime UpdatedAtUtc = new DateTime(2026, 10, 7, 12, 0, 0, DateTimeKind.Utc);
         public ExchangeDeviceKey? Key; // a test device that can open boxes
+        public List<string> Roles = new List<string> { "clipboard" };
     }
 
     internal sealed class FakeAccount
@@ -128,6 +129,23 @@ namespace CyrFlip.Tests
         public string? StandardPayload;
         public long StandardVersion;
         public string StandardUpdatedAt = "";
+
+        // the notes store (DEVICE-EXCHANGE 1.13, item FG): one record per noteId, the latest; sealed, never opened
+        public readonly List<ExchangeNoteRecord> Notes = new List<ExchangeNoteRecord>();
+        public long NotesRevision;
+        public long NotesHorizon;
+        public int NotesCount = 5000;
+        public int NotesPageSize = 100;
+
+        /// <summary>Purges every tombstone and raises the horizon to the highest revision purged (item FG).</summary>
+        public void PurgeTombstones()
+        {
+            foreach (ExchangeNoteRecord r in Notes.Where(r => r.Deleted).ToList())
+            {
+                if (r.Revision > NotesHorizon) NotesHorizon = r.Revision;
+                Notes.Remove(r);
+            }
+        }
     }
 
     /// <summary>
@@ -150,6 +168,8 @@ namespace CyrFlip.Tests
         public bool DropSettingsAnswer;
         /// <summary>Runs once, right after clipboard-info was answered (a value replaced meanwhile).</summary>
         public Action? OnInfoAnswered;
+        /// <summary>When 0 or more, an unsolicited notes_changed with this revision precedes the next notes answer.</summary>
+        public long PushNotesChangedBeforeAnswer = -1;
         private int _tokenCounter;
         private int _clipCounter;
         private readonly object _gate = new object();
@@ -218,6 +238,7 @@ namespace CyrFlip.Tests
                     device.Name = hello.Str("deviceName");
                     device.Kem = kem;
                     device.Capable = hello.Strings("capabilities").Contains("e2e-v1");
+                    device.Roles = hello.Strings("roles").ToList();
                     device.Token = "fake-token-" + (++_tokenCounter);
                     await Write(s, WelcomeFrame("enrolled", account).Add("deviceToken", device.Token)); // order: type first
                 }
@@ -256,6 +277,12 @@ namespace CyrFlip.Tests
                             FakeDevice? gone = account!.Devices.FirstOrDefault(d => d.DeviceId == next.Str("deviceId"));
                             if (gone != null) { gone.Token = ""; account.Devices.Remove(gone); }
                             break;
+                        case "notes_list":
+                        case "notes_put":
+                            long push = Interlocked.Exchange(ref PushNotesChangedBeforeAnswer, -1);
+                            if (push >= 0) await Write(s, new ExchangeMembers("notes_changed").Add("notesRevision", push));
+                            await Write(s, next.Type == "notes_list" ? NotesChanges(account!, next) : NotesPut(account!, device!, next));
+                            break;
                         case "keepalive":
                             await Write(s, new ExchangeMembers("keepalive")); break;
                         case "settings_save_standard":
@@ -291,6 +318,7 @@ namespace CyrFlip.Tests
             foreach (FakeDevice d in account.Devices)
             {
                 var rec = new ExchangeMembers.Plain().Add("deviceId", d.DeviceId).Add("deviceName", d.Name);
+                rec.Add("roles", d.Roles.Cast<object>().ToArray());
                 if (d.Capable) rec.Add("capabilities", new object[] { "e2e-v1" });
                 if (d.Kem.Length > 0) rec.Add("e2eKey", new ExchangeMembers.Plain().Add("v", 1).Add("kem", d.Kem));
                 rec.Add("updatedAt", d.UpdatedAtUtc.ToString("yyyy-MM-ddTHH:mm:ssZ"));
@@ -326,6 +354,64 @@ namespace CyrFlip.Tests
             account.StandardVersion++;
             account.StandardUpdatedAt = "2026-11-12T10:00:0" + (account.StandardVersion % 10) + "Z";
             return new ExchangeMembers("settings_saved").Add("appId", "cyrflip").Add("version", account.StandardVersion).Add("updatedAt", account.StandardUpdatedAt);
+        }
+
+        private static ExchangeMembers.Plain RecordMembers(ExchangeNoteRecord r)
+        {
+            var m = new ExchangeMembers.Plain().Add("noteId", r.NoteId).Add("revision", r.Revision).Add("storedAt", r.StoredAt)
+                .Add("sourceDeviceId", r.SourceDeviceId);
+            if (r.Deleted) m.Add("deleted", true);
+            if (r.BoxJson.Length > 0) m.Add("sealed", new ExchangeRawJson(r.BoxJson));
+            return m;
+        }
+
+        /// <summary>
+        /// notes_list (item FI): the records above since, ascending, paged; <c>full</c> when since is below the horizon.
+        /// A full listing is the pages of <c>since: 0</c> - the paging stays "above the last revision received", so a
+        /// client that restarts at 0 on <c>full</c> receives every record of the store exactly once (ticket S0105, A8).
+        /// </summary>
+        private static ExchangeMembers NotesChanges(FakeAccount account, ExchangeFrame request)
+        {
+            if (account.Kind == "guest") return new ExchangeMembers("refused").Add("reason", "not-permitted");
+            long since = request.Long("since");
+            if (since < 0) return new ExchangeMembers("refused").Add("reason", "invalid-payload");
+            bool full = since < account.NotesHorizon;
+            List<ExchangeNoteRecord> above = account.Notes.Where(r => r.Revision > since).OrderBy(r => r.Revision).ToList();
+            bool more = above.Count > account.NotesPageSize;
+            var records = above.Take(account.NotesPageSize).Select(r => (object)RecordMembers(r)).ToList();
+            return new ExchangeMembers("notes_changes").Add("notesRevision", account.NotesRevision).Add("notesHorizon", account.NotesHorizon)
+                .Add("records", records).Add("more", more).Add("full", full);
+        }
+
+        /// <summary>notes_put (items FI, FJ, FL), the checks in the contract's order: guest, members, conflict, limits.</summary>
+        private ExchangeMembers NotesPut(FakeAccount account, FakeDevice device, ExchangeFrame put)
+        {
+            ExchangeMembers Refused(string reason) => new ExchangeMembers("refused").Add("reason", reason);
+            if (account.Kind == "guest") return Refused("not-permitted");
+            string noteId = put.Str("noteId");
+            long baseRevision = put.Long("baseRevision");
+            bool deleted = put.Bool("deleted");
+            string box = put.JsonOf("sealed");
+            if (!ExchangeNotes.TryParseNoteId(noteId, out _) || baseRevision < 0 || (!deleted && box.Length == 0) || (deleted && box.Length > 0))
+                return Refused("invalid-payload");
+            ExchangeNoteRecord? stored = account.Notes.FirstOrDefault(r => r.NoteId == noteId);
+            bool accepted = stored == null ? baseRevision == 0 : stored.Revision == baseRevision;
+            if (!accepted)
+            {
+                ExchangeMembers conflict = Refused("note-conflict");
+                if (stored != null) conflict.Add("current", RecordMembers(stored));
+                return conflict;
+            }
+            if (stored == null && account.Notes.Count >= account.NotesCount) return Refused("limit-reached");
+            if (stored != null) account.Notes.Remove(stored);
+            long revision = ++account.NotesRevision;
+            var record = new ExchangeNoteRecord
+            {
+                NoteId = noteId, Revision = revision, SourceDeviceId = device.DeviceId, Deleted = deleted, BoxJson = deleted ? "" : box,
+                StoredAt = new DateTime(2026, 11, 15, 10, 0, 0, DateTimeKind.Utc).AddSeconds(revision).ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            };
+            account.Notes.Add(record);
+            return new ExchangeMembers("notes_stored").Add("noteId", noteId).Add("revision", revision).Add("storedAt", record.StoredAt);
         }
 
         private ExchangeMembers Info(FakeAccount account)

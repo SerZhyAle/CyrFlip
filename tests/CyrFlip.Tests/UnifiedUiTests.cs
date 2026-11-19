@@ -132,6 +132,41 @@ namespace CyrFlip.Tests
         }
 
         [Fact]
+        public void MixedEditorStripEqualizesButtonsPerRowWithoutRatchetingAndKeepsOneLineStrips()
+        {
+            Sta(() =>
+            {
+                using var big = new Font(Control.DefaultFont.FontFamily, 20f);
+                using var form = new Form { ClientSize = new Size(500, 350) };
+                var row = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = true };
+                var label = new Label { Text = "Name", AutoSize = true };
+                var small = new Button { Text = "OK", AutoSize = true };
+                var tall = new Button { Text = "Go", AutoSize = true, Font = big };
+                row.Controls.AddRange(new Control[] { label, small, tall });
+                var line = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Top = 200 };
+                line.Controls.AddRange(new Control[] { new Label { Text = "Key", AutoSize = true }, new Button { Text = "Set", AutoSize = true } });
+                form.Controls.Add(row); form.Controls.Add(line);
+                form.Show();
+
+                CommandPanel.Fit(row, 480); row.PerformLayout();
+                Assert.Equal(small.Top, tall.Top);
+                Assert.Equal(tall.Height, small.Height);
+                Assert.Equal(480, row.MaximumSize.Width);
+
+                // Wrapped one item per row: each button is alone, so the earlier floor must be cleared.
+                CommandPanel.Fit(row, 90); row.PerformLayout();
+                Assert.True(tall.Top > small.Top, "items should wrap whole: " + small.Bounds + ";" + tall.Bounds);
+                Assert.True(small.Height < tall.Height, "the row floor ratcheted: " + small.Bounds + ";" + tall.Bounds);
+
+                Size before = line.MaximumSize;
+                CommandPanel.Fit(line, 40); line.PerformLayout();
+                Assert.Equal(before, line.MaximumSize);
+                Assert.False(line.WrapContents);
+                form.Close();
+            });
+        }
+
+        [Fact]
         public void AboutInventoryIsUniqueLocalizedAndHasAllResourceKinds()
         {
             AboutResources.Resource[] resources = AboutResources.Product.Concat(AboutResources.Dependencies).Concat(AboutResources.Related).ToArray();

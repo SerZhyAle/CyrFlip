@@ -109,6 +109,27 @@ namespace CyrFlip
             return source.Substring(0, Math.Max(1, maxLength - 1)).TrimEnd() + "…";
         }
 
+        /// <summary>
+        /// What the body says, for a machine reader (ticket S0108): the first non-empty line of a text note or the first
+        /// non-empty item of a checklist - never the name, which has its own member in an answer. Tabs become spaces,
+        /// the result is trimmed and at most <paramref name="maxLength"/> characters, cut with a closing "…" and never
+        /// inside a surrogate pair (a lone surrogate is not valid in the JSON this goes into).
+        /// </summary>
+        public string BodyPreview(int maxLength)
+        {
+            return Clip(FirstNonEmptyLine().Replace('\t', ' ').Trim(), maxLength);
+        }
+
+        /// <summary>The text itself when it fits, else its start with a closing "…" - at most <paramref name="maxLength"/> characters, never cut inside a surrogate pair.</summary>
+        internal static string Clip(string source, int maxLength)
+        {
+            if (maxLength <= 0) return "";
+            if (source.Length <= maxLength) return source;
+            int cut = maxLength - 1;
+            if (cut > 0 && char.IsHighSurrogate(source[cut - 1])) cut--;
+            return source.Substring(0, cut).TrimEnd() + "…";
+        }
+
         private string FirstNonEmptyLine()
         {
             if (Kind == QuickNoteKind.Checklist)

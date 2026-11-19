@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-SETTINGS` |
-| **Version** | 0.4, draft |
+| **Version** | 0.8, draft (re-read 2026-11-15, S0114) |
 | **Home** | `desktop-app-ux/APP-SETTINGS.md` in the shared contracts catalog |
 | **Role here** | Owner, Producer and reference implementation - the persistent settings surface |
 | **Adopted** | 2026-10-02, rung 1 (file and line pins) owed, rungs 3-4 to be scheduled by owner |

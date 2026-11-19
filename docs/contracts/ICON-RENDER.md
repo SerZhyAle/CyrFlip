@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-RENDER` |
-| **Version** | 0.18, draft (read 2026-10-07; 0.16 identity inks, 0.17 the pointer-first declaration, 0.18 the web floor and paging direction) |
+| **Version** | 0.25, draft (re-read 2026-11-15, S0114; first read 2026-10-07; 0.16 identity inks, 0.17 the pointer-first declaration, 0.18 the web floor and paging direction) |
 | **Home** | `iconography/README.md` in the shared contracts catalog, sections 3 and 10 to 13 |
 | **Role here** | consumer - conformant with one dated exception for the touch half of the target floor, **and one open deviation: the Jump List task icons (rule 9, see below)** |
 

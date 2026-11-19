@@ -26,7 +26,7 @@ namespace CyrFlip.Tests
         {
             OnUiThread(() =>
             {
-                using SettingsForm form = TestForms.NewSettings(SettingsRowAnatomyTests.Config("English"));
+                using SettingsForm form = TestForms.NewSettings(SettingsRowAnatomyTests.Config("English"), allPagesLaidOut: false);
                 int pages = form.Tabs!.TabCount;
                 Assert.True(pages >= 10, "the page list changed shape - the bound below no longer means anything");
                 int built = form.PageClampCount;
@@ -53,7 +53,7 @@ namespace CyrFlip.Tests
         {
             OnUiThread(() =>
             {
-                using SettingsForm form = TestForms.NewSettings(SettingsRowAnatomyTests.Config("English"));
+                using SettingsForm form = TestForms.NewSettings(SettingsRowAnatomyTests.Config("English"), allPagesLaidOut: false);
                 form.Show();
                 Application.DoEvents();
                 // The narrowest window: the authored 890/930 px text caps are wider than any page.

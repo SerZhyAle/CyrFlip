@@ -29,8 +29,19 @@ namespace CyrFlip
         // The script font for hi/bn/zh, assigned to the form - equally ours to release (ST-5).
         private readonly Font? _ownFont;
 
-        /// <summary>The widest chord the capture can produce (three modifiers and the longest key name).</summary>
+        /// <summary>
+        /// The widest chord of the everyday vocabulary (three modifiers and the longest classic key
+        /// name): what the chord columns of the settings tables and the row dialogs are aligned to. A
+        /// chord label autosizes, so one of the admitted triggers shown in a row only grows that row.
+        /// </summary>
         internal const string LongestChord = "Ctrl+Shift+Alt+Backspace";
+
+        /// <summary>
+        /// The widest chord the capture can produce since the admitted trigger families (S0116, INPUT-CHORD
+        /// 0.4): three modifiers and the longest canonical name. The capture preview is measured for it,
+        /// since its label does not autosize (DL-5).
+        /// </summary>
+        internal const string LongestAdmittedChord = "Ctrl+Shift+Alt+MediaTrackPrevious";
 
         private bool _ctrl, _shift, _alt;
         private string _keyName = "";
@@ -79,7 +90,7 @@ namespace CyrFlip
                 Height = previewFont.Height + 12,
                 // Measured with the font it is drawn in (1.4x bold), and for the longest chord the
                 // capture can produce - a regular-font measure clipped it (ticket S0007, DL-5).
-                MinimumSize = new Size(TextRenderer.MeasureText(LongestChord, previewFont).Width + 16, 0),
+                MinimumSize = new Size(TextRenderer.MeasureText(LongestAdmittedChord, previewFont).Width + 16, 0),
                 Font = previewFont,
                 TextAlign = ContentAlignment.MiddleCenter,
                 BorderStyle = BorderStyle.FixedSingle,
@@ -286,8 +297,38 @@ namespace CyrFlip
                 name = ((char)('0' + (key - Keys.D0))).ToString();
                 return true;
             }
+            if (key >= Keys.NumPad0 && key <= Keys.NumPad9)
+            {
+                name = "Numpad" + ((int)key - (int)Keys.NumPad0).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                return true;
+            }
             switch (key)
             {
+                // The trigger families INPUT-CHORD 0.4 admitted (S0116): arrows, keypad operators,
+                // bracket and punctuation keys, media keys. Names are the contract's canonical tokens.
+                case Keys.Left: name = "Left"; return true;
+                case Keys.Up: name = "Up"; return true;
+                case Keys.Right: name = "Right"; return true;
+                case Keys.Down: name = "Down"; return true;
+                case Keys.Multiply: name = "NumpadMultiply"; return true;
+                case Keys.Add: name = "NumpadAdd"; return true;
+                case Keys.Subtract: name = "NumpadSubtract"; return true;
+                case Keys.Decimal: name = "NumpadDecimal"; return true;
+                case Keys.Divide: name = "NumpadDivide"; return true;
+                case Keys.OemOpenBrackets: name = "BracketLeft"; return true;
+                case Keys.OemCloseBrackets: name = "BracketRight"; return true;
+                case Keys.OemPeriod: name = "Period"; return true;
+                case Keys.Oemcomma: name = "Comma"; return true;
+                case Keys.Oemplus: name = "Equal"; return true;
+                case Keys.OemMinus: name = "Minus"; return true;
+                case Keys.OemPipe: name = "Backslash"; return true;
+                case Keys.MediaPlayPause: name = "MediaPlayPause"; return true;
+                case Keys.MediaNextTrack: name = "MediaTrackNext"; return true;
+                case Keys.MediaPreviousTrack: name = "MediaTrackPrevious"; return true;
+                case Keys.VolumeUp: name = "AudioVolumeUp"; return true;
+                case Keys.VolumeDown: name = "AudioVolumeDown"; return true;
+                case Keys.VolumeMute: name = "AudioVolumeMute"; return true;
+
                 case Keys.Space: name = "Space"; return true;
                 case Keys.Return: name = "Enter"; return true;
                 case Keys.Tab: name = "Tab"; return true;

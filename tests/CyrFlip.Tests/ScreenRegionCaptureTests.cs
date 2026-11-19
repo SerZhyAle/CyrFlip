@@ -199,6 +199,13 @@ namespace CyrFlip.Tests
                 Files.Remove(from);
                 return true;
             }
+            public bool MoveReplace(string from, string to)
+            {
+                Reach(to);
+                Files[to] = Files[from];
+                Files.Remove(from);
+                return true;
+            }
             public void DeleteFile(string path) => Files.Remove(path);
         }
 

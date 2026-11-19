@@ -361,6 +361,16 @@ namespace CyrFlip
             set { _helpLanguage = value; ContextHelpUi.RefreshLanguage(this); }
         }
 
+        // The start of this window's construction for the open trace (ticket S0135): a field initializer runs before the derived
+        // constructor's body, so the stamp covers it. 0 while the trace is off.
+        private readonly long _openStart = OpenTrace.Begin();
+
+        public ThemedForm()
+        {
+            // From construction to the first painted frame after the window is shown - the number every window of the product is held to.
+            if (OpenTrace.Enabled) Shown += (_, _) => OpenTrace.FrameAfter(this, GetType().Name, "open", _openStart);
+        }
+
         protected override void OnLoad(EventArgs e)
         {
             ContextHelpUi.Attach(this);
@@ -382,9 +392,13 @@ namespace CyrFlip
 
         protected override void OnHandleCreated(EventArgs e)
         {
+            long themeStart = OpenTrace.Begin();
             ThemeManager.Attach(this);
+            OpenTrace.End(GetType().Name, "theme-attach", themeStart);
             // The size profile is chosen once per opening (UI-SIZING section 2 rule 1), before the first paint.
+            long profileStart = OpenTrace.Begin();
             UiProfileManager.Attach(this);
+            OpenTrace.End(GetType().Name, "profile-attach", profileStart);
             base.OnHandleCreated(e);
         }
 

@@ -126,6 +126,11 @@ namespace CyrFlip.Tests
         [InlineData(0x7B, "F12")]
         [InlineData(0x87, "F24")]
         [InlineData(0x20, "Space")]
+        [InlineData(0x25, "Left")]          // the admitted trigger families (S0116, INPUT-CHORD 0.4)
+        [InlineData(0x65, "Numpad5")]
+        [InlineData(0xBE, "Period")]
+        [InlineData(0xDB, "BracketLeft")]
+        [InlineData(0xB3, "MediaPlayPause")]
         public void NamesKnownVirtualKeys(int vk, string expected)
         {
             Assert.Equal(expected, Hotkey.NameForVk(vk));
@@ -134,8 +139,8 @@ namespace CyrFlip.Tests
         [Fact]
         public void ShowsUnknownVirtualKeysRatherThanDroppingThem()
         {
-            // 0xBE is the '.' key: a chord Windows can store but our key table doesn't name.
-            Assert.Equal("0xBE", Hotkey.NameForVk(0xBE));
+            // 0xBA is the ';' key: a chord Windows can store but the contract's key table does not name.
+            Assert.Equal("0xBA", Hotkey.NameForVk(0xBA));
         }
 
         // ---- WL-4: a stored alternate-layout HKL matches its live layout on x64 ----

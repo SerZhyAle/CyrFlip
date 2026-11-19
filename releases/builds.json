@@ -1,0 +1,14 @@
+{
+  "schema": "1",
+  "builds": [
+    {
+      "package": "cyrflip",
+      "flavor": "default",
+      "kind": "test",
+      "version": "26.11.19.314",
+      "builtAt": "2026-11-19T03:14:58+01:00",
+      "artifact": "bin/SingleFile/CyrFlip.exe",
+      "sha256": "d48d129f3c930a68f82d6ccbd1c4f0eca61e1def8c0bc6811d0165bbeecdf402"
+    }
+  ]
+}

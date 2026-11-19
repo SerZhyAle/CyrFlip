@@ -185,6 +185,17 @@ namespace CyrFlip
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
 
+        // ---- The top-level window list the selection commands name a window by (AppCommandsSelection.cs) ----
+        // EnumWindows enumerates only top-level windows, in Z order; GetWindowText never sends messages into
+        // another process's windows (it reads the cached title), so the walk cannot hang on a busy program.
+        public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
+
         [DllImport("user32.dll")]
         public static extern IntPtr GetKeyboardLayout(uint idThread);
 
@@ -639,6 +650,22 @@ namespace CyrFlip
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetNamedPipeServerProcessId(Microsoft.Win32.SafeHandles.SafePipeHandle pipe, out uint serverProcessId);
 
+        /// <summary>The process at the other end of a command connection - logged per accepted command (APP-COMMANDS rule 16).</summary>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetNamedPipeClientProcessId(Microsoft.Win32.SafeHandles.SafePipeHandle pipe, out uint clientProcessId);
+
+        public const int ATTACH_PARENT_PROCESS = -1;
+        public const int STD_OUTPUT_HANDLE = -11;
+
+        /// <summary>A window-subsystem process prints a command's answer into the console that started it (APP-COMMANDS rule 9).</summary>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AttachConsole(int processId);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr GetStdHandle(int stdHandle);
+
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool ProcessIdToSessionId(uint dwProcessId, out uint pSessionId);
@@ -716,6 +743,12 @@ namespace CyrFlip
 
         [DllImport("dwmapi.dll")]
         public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+
+        /// <summary>The visible window frame - the GetWindowRect rectangle without the invisible resize borders, which a capture of a window wants (ticket S0130).</summary>
+        public const int DWMWA_EXTENDED_FRAME_BOUNDS = 9;
+
+        [DllImport("dwmapi.dll")]
+        public static extern int DwmGetWindowAttribute(IntPtr hwnd, int attribute, out RECT rect, int size);
 
         /// <summary>
         /// A null sub-app name puts the control back on its default theme; <c>"DarkMode_Explorer"</c>,
@@ -868,6 +901,7 @@ namespace CyrFlip
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool MoveFileEx(string existing, string target, uint flags);
 
+        public const uint MOVEFILE_REPLACE_EXISTING = 0x1;
         public const uint MOVEFILE_WRITE_THROUGH = 0x8;
 
         // ---- Symbols palette and glyph probing (SymbolsWindow.cs / SymbolGrid.cs, S0056) ----

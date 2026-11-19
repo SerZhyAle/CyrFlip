@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ANYWHERE-ACCESS` |
-| **Version** | 0.13, draft (read 2026-10-13; the part read is section 4.1, which no amendment since the rung-1 vectors of 2026-10-06 has changed) |
+| **Version** | 1.0, active (re-read 2026-11-15, S0114; first read 2026-10-13; the part read is section 4.1, which no amendment since the rung-1 vectors of 2026-10-06 has changed) |
 | **Home** | `anywhere-access/README.md` in the shared contracts catalog, section 4.1, with `vectors/descriptor-v2.json` beside it |
 | **Role here** | consumer of one text format - the traffic light's one-field add reads the `FMSSFTP1` and `FMSSFTP2` share code. CyrFlip holds no share, opens no tunnel, speaks no frame of the exchange wire and writes no code |
 

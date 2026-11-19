@@ -37,6 +37,8 @@ namespace CyrFlip
         private readonly CheckBox _keepAwake = Check("Keep the computer awake");
         private readonly CheckBox _keepScreen = Check("Keep the screen on (like video)");
         private readonly CheckBox _settingsBackup = Check("Keep a settings backup in Documents");
+        /// <summary>The one setting of APP-COMMANDS rule 13 (S0107): off until the person turns it on.</summary>
+        private readonly CheckBox _externalCommands = Check("Let other programs ask CyrFlip to work with my files, screen, clipboard or the network");
         private readonly Label _backupState = new Label { AutoSize = true, Margin = new Padding(3, 3, 3, 0) };
         private readonly ComboBox _uiLanguage = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 190 };
         // The theme (ticket S0020, the owner's rework of 2026-10-08): a drop-down in the shape of the
@@ -287,6 +289,7 @@ namespace CyrFlip
             Func<string, bool, string> exportQuickNotes, Action<IWin32Window, bool>? exchange,
             Func<int>? getHistoryCount = null, Func<int>? getQuickNotesCount = null)
         {
+            long constructStart = OpenTrace.Begin();   // the whole constructor, for the open trace (ticket S0135)
             _config = config;
             // The window opens at the profile the user chose (UI-SIZING section 2 rule 1): metrics first, so the
             // first language pass already derives its fonts and geometry at the right size.
@@ -349,7 +352,17 @@ namespace CyrFlip
             _desktopShortcut.Name = "setting.shortcut-desktop";
             _keepAwake.Name = "setting.keep-system-awake";
             _keepScreen.Name = "setting.keep-screen-on";
+            _externalCommands.Name = "setting.external-commands";
             var pages = new Dictionary<SettingsPageKey, TabPage>();
+            // One page's build, timed for the open trace (ticket S0135); the expression is evaluated exactly as before.
+            TabPage Timed(string span, Func<TabPage> build)
+            {
+                long started = OpenTrace.Begin();
+                TabPage built = build();
+                OpenTrace.End("SettingsForm", span, started);
+                return built;
+            }
+            long generalStart = OpenTrace.Begin();
             pages[SettingsPageKey.General] = WithIcon(Page("General", "Core app settings; changes take effect immediately.",
                 Group("general/language", "Language and theme",
                     Setting(LanguageRow(), "Choose the CyrFlip interface language. The choice is saved and also applies to the tray menu."),
@@ -366,40 +379,45 @@ namespace CyrFlip
                 Group("general/power", "Power and screen",
                 Setting(_keepAwake, "While on, Windows will not sleep or hibernate on idle — handy for long downloads, copies or renders. The state is saved: a switch left on keeps the computer awake after a restart too - CyrFlip will not watch your battery for you."),
                 Setting(_keepScreen, "The screen does not turn off or lock on idle, just like while watching a video. It does not override a password lock (Win+L or a security policy). The state is saved: a switch left on keeps the screen alive after a restart too.")),
+                Group("general/commands", "Commands from other programs",
+                    Setting(_externalCommands, "Off by default. When on, scripts may ask CyrFlip to use your files, screen, clipboard or the network.")),
                 Group("general/transfer", "Settings transfer",
                     Button("Export settings...", AppGlyphs.Export, () => SettingsTransferRequested?.Invoke("export")),
                     Button("Import settings...", AppGlyphs.Import, () => SettingsTransferRequested?.Invoke("import")),
                     _restoreSettings = Button("Restore settings before import...", AppGlyphs.Undo, () => SettingsTransferRequested?.Invoke("restore")),
                     Setting(_settingsBackup, "While on, CyrFlip keeps a rolling backup of every setting in Documents\\CyrFlip\\Backups - the three newest are kept. The backup survives a Microsoft Store reinstall: a fresh install finds it and offers to restore. The file carries your hosts, sites and scenarios - keep it private."),
                     Setting(BackupFolderRow(), "The backups are plain settings files named by date. Open the folder to copy one or to take it to another computer."))), 0);
+            OpenTrace.End("SettingsForm", "page:General", generalStart);
             _restoreSettings.Name = "group.transfer";
             _cursor.Name = "setting.cursor-marker";
             _caret.Name = "setting.caret-marker";
             _dot.Name = "setting.dot-mode";
             _markerSize.Name = "setting.marker-size";
+            long indicatorsStart = OpenTrace.Begin();
             pages[SettingsPageKey.Indicators] = WithIcon(Page("Indicators", "Options that help you see the active layout before typing.",
                 Setting(_cursor, "Replaces the standard I-beam with a cursor carrying a small language marker. The normal mouse arrow is unchanged."),
                 Setting(_caret, "Draws a small marker beside the blinking caret. It works in apps that expose the caret position to Windows."),
                 Setting(_dot, "Shows a compact colour dot beside the caret instead of the language letters — handy if the letters distract you."),
                 Setting(MarkerSizeRow(), "Size of the marker beside the caret and on the text mouse pointer. It also follows the display scaling, and the mouse pointer follows the pointer size from Windows accessibility settings too. Applied immediately.")), 1);
+            OpenTrace.End("SettingsForm", "page:Indicators", indicatorsStart);
             // The two settings that used to close this page change what happens to typed text, not what is
             // seen before typing: they live with the conversion table and the case fix (S0062 L13, L14).
             _language.Name = "setting.layout-after-convert";
             _caps.Name = "setting.caps-sync";
-            pages[SettingsPageKey.WindowsLanguages] = WithIcon(LanguagesPage(), 6);
-            pages[SettingsPageKey.Conversions] = WithIcon(ConversionsPage(), 7);
-            pages[SettingsPageKey.SelectionMenu] = WithIcon(SelectionMenuPage(), 14);
-            pages[SettingsPageKey.Symbols] = WithIcon(SymbolsPage(), 12);
-            pages[SettingsPageKey.TrafficLight] = WithIcon(TrafficLightPage(), 15);
-            TabPage translatePage = pages[SettingsPageKey.Translate] = WithIcon(TranslatePage(), 9);
-            pages[SettingsPageKey.Clipboard] = WithIcon(ClipboardPage(), 3);
-            pages[SettingsPageKey.QuickNotes] = WithIcon(QuickNotesPage(), 10);
-            pages[SettingsPageKey.Graphics] = WithIcon(GraphicsPage(), 11);
-            pages[SettingsPageKey.Launcher] = WithIcon(LauncherPage(), 8);
+            pages[SettingsPageKey.WindowsLanguages] = Timed("page:WindowsLanguages", () => WithIcon(LanguagesPage(), 6));
+            pages[SettingsPageKey.Conversions] = Timed("page:Conversions", () => WithIcon(ConversionsPage(), 7));
+            pages[SettingsPageKey.SelectionMenu] = Timed("page:SelectionMenu", () => WithIcon(SelectionMenuPage(), 14));
+            pages[SettingsPageKey.Symbols] = Timed("page:Symbols", () => WithIcon(SymbolsPage(), 12));
+            pages[SettingsPageKey.TrafficLight] = Timed("page:TrafficLight", () => WithIcon(TrafficLightPage(), 15));
+            TabPage translatePage = pages[SettingsPageKey.Translate] = Timed("page:Translate", () => WithIcon(TranslatePage(), 9));
+            pages[SettingsPageKey.Clipboard] = Timed("page:Clipboard", () => WithIcon(ClipboardPage(), 3));
+            pages[SettingsPageKey.QuickNotes] = Timed("page:QuickNotes", () => WithIcon(QuickNotesPage(), 10));
+            pages[SettingsPageKey.Graphics] = Timed("page:Graphics", () => WithIcon(GraphicsPage(), 11));
+            pages[SettingsPageKey.Launcher] = Timed("page:Launcher", () => WithIcon(LauncherPage(), 8));
             // The merged page: the master switch, the RDP option and the overview of every chord (D8, D9).
-            pages[SettingsPageKey.Hotkeys] = WithIcon(HotkeysOverviewPage(), 2);
-            pages[SettingsPageKey.About] = WithIcon(AboutPage(), 5);
-            pages[SettingsPageKey.ExchangeServer] = WithIcon(ExchangeServerPage(), 16);
+            pages[SettingsPageKey.Hotkeys] = Timed("page:Hotkeys", () => WithIcon(HotkeysOverviewPage(), 2));
+            pages[SettingsPageKey.About] = Timed("page:About", () => WithIcon(AboutPage(), 5));
+            pages[SettingsPageKey.ExchangeServer] = Timed("page:ExchangeServer", () => WithIcon(ExchangeServerPage(), 16));
             foreach (SettingsPageKey key in SettingsPageKeys.DisplayOrder) tabs.TabPages.Add(pages[key]);
             // The build version at the foot of the page list, beside the product name in the header band: it is
             // where the eye goes to ask "which build is this" (the About page keeps the full line).
@@ -438,10 +456,21 @@ namespace CyrFlip
             // S0062: the stored key is read through SettingsPageKeys (the retired overview key opens the
             // merged page), and a bare SettingsTab index is an index into the list as it was before the
             // regrouping - turned into a key once, so nobody lands on another page because of the reorder.
+            // The page that opens is the one kept laid out; the others are laid out when they are first shown
+            // (ticket S0135, L3). A TabControl names no selected page before its handle exists, so the page is
+            // taken from the key; a wrong guess only loses the saving, since a page that is shown releases itself.
+            SettingsPageKey? openingPage = null;
             if (SettingsPageKeys.TryParse(_config.SettingsPageId, out SettingsPageKey savedPage))
+            {
                 SelectPage(savedPage);
+                openingPage = savedPage;
+            }
             else if (_config.SettingsTab > 0 && SettingsPageKeys.FromLegacyIndex(_config.SettingsTab) is SettingsPageKey legacyPage)
+            {
                 SelectPage(legacyPage);
+                openingPage = legacyPage;
+            }
+            DeferHiddenPageLayout(tabs, openingPage ?? SettingsPageKeys.DisplayOrder[0]);
             _lastPageIndex = tabs.SelectedIndex;
             SyncRailSelection();
             UpdateHeaderCommands();
@@ -497,6 +526,7 @@ namespace CyrFlip
             }
             _keepAwake.CheckedChanged += (_, _) => Changed(_setKeepAwake, _keepAwake.Checked);
             _settingsBackup.CheckedChanged += (_, _) => Changed(v => _config.SettingsBackupEnabled = v, _settingsBackup.Checked);
+            _externalCommands.CheckedChanged += (_, _) => Changed(v => { _config.EnableExternalCommands = v; SaveConfig(); }, _externalCommands.Checked);
             _keepScreen.CheckedChanged += (_, _) => Changed(_setKeepScreen, _keepScreen.Checked);
             _caret.CheckedChanged += (_, _) => Changed(_setCaret, _caret.Checked);
             _dot.CheckedChanged += (_, _) => Changed(_setDot, _dot.Checked);
@@ -517,7 +547,7 @@ namespace CyrFlip
             _historyEnabled.CheckedChanged += (_, _) => Changed(_setHistoryEnabled, _historyEnabled.Checked);
             _deferRdp.CheckedChanged += (_, _) => Changed(_setDeferRdp, _deferRdp.Checked);
             // The UIA AutomationId tools/uitest/Test-LongRun.ps1 -SettingsToggles finds it by: a toggle
-            // runs the whole Reload(), and an even count leaves the setting as it was (S0007 ST-5).
+            // runs the whole state refresh, and an even count leaves the setting as it was (S0007 ST-5, S0135).
             _deferRdp.Name = "deferRdp";
             // Nothing to rebind or reinstall - the conversion reads the value when a chord fires, so
             // writing it and saving is the whole of it.
@@ -545,7 +575,14 @@ namespace CyrFlip
             ButtonGlyphs.UseCommandMetric(_restoreLanguageHotkeys);
             ButtonGlyphs.UseCommandMetric(_restoreLayouts);
             _toggleCombo.SelectedIndexChanged += (_, _) => OnToggleChanged();
-            _uiLanguage.SelectedIndexChanged += (_, _) => { if (!_loading && _uiLanguage.SelectedItem is string language) { _setUiLanguage(language); ApplyLanguage(); } };
+            _uiLanguage.SelectedIndexChanged += (_, _) =>
+            {
+                if (_loading || _uiLanguage.SelectedItem is not string language) return;
+                long start = OpenTrace.Begin();
+                _setUiLanguage(language);
+                ApplyLanguage();
+                OpenTrace.FrameAfter(this, "SettingsForm", "language-change", start);
+            };
             _themeCombo.SelectedIndexChanged += (_, _) => ThemeChosen();
             _inputProfileCombo.SelectedIndexChanged += (_, _) => UiProfileChosen();
             _interfaceScaleCombo.SelectedIndexChanged += (_, _) => UiProfileChosen();
@@ -615,7 +652,9 @@ namespace CyrFlip
             // After the pages are final (a single group is flattened above): a note is placed by the row its
             // control ended up in. The notes have no text yet, so the walk below does not register them.
             BuildDependencyNotes();
+            long sourceTextsStart = OpenTrace.Begin();
             RememberSourceTexts(this);
+            OpenTrace.End("SettingsForm", "source-texts", sourceTextsStart);
             // Saved context before the first Reload so the restores never count as user edits
             // (WINDOWS-UI section 3 rule 4): the groups come back as they were left, every page's
             // scroll anchor is applied after its layout, and the numeric editors take their logical
@@ -627,7 +666,11 @@ namespace CyrFlip
             SuspendLayoutDeep(this);
             try { foreach (NumericUpDown editor in NumericEditors(this)) SettingsNumeric.Apply(editor); }
             finally { ResumeLayoutDeep(this); }
-            Reload();
+            long firstReloadStart = OpenTrace.Begin();
+            _tracingFirstReload = true;   // the sub-spans of this one refresh are named "first:" (ticket S0135, step 1.10)
+            try { Reload(); }
+            finally { _tracingFirstReload = false; }
+            OpenTrace.End("SettingsForm", "first-reload", firstReloadStart);
             // Reload() ends with ApplyLanguage() - the window is already in the new language here.
             // The opening page's scroll anchor waits for the first showing: until then the page has
             // no real layout (and the window may have no handle to post the restore to).
@@ -643,6 +686,7 @@ namespace CyrFlip
             // (APP-BEHAVIOUR rule 10).
             FormClosing += (_, _) => SaveUiContext();
             VisibleChanged += (_, _) => { if (!Visible) SaveUiContext(); };
+            OpenTrace.End("SettingsForm", "construct", constructStart);
         }
 
         /// <summary>
@@ -1281,11 +1325,42 @@ namespace CyrFlip
             }
         }
 
+        /// <summary>
+        /// The full refresh: every value is read again and the window is brought into the language, the scale, the
+        /// font and the theme it is in. Run when one of those changed, when the window is built and when it is shown
+        /// again; a changed value alone goes through <see cref="RefreshState"/> (ticket S0135, L1).
+        /// </summary>
         public void Reload()
+        {
+            long reloadStart = OpenTrace.Begin();
+            RefreshValues();
+            ApplyLanguage();
+            OpenTrace.End("SettingsForm", "reload", reloadStart);
+        }
+
+        /// <summary>
+        /// A value changed - a switch, a chord, a table's content, the state of a module - and nothing about the
+        /// language, the scale, the font or the theme did: every control is read from the configuration again and the
+        /// state-dependent parts (the tables, the dependency notes, the accessible names and descriptions) are
+        /// refreshed, without translating, measuring and clamping the whole window the way
+        /// <see cref="Reload"/> does (ticket S0135, L1). What a person sees afterwards is what <see cref="Reload"/>
+        /// shows for the same configuration; <c>SettingsRefreshEquivalenceTests</c> holds the two to it.
+        /// </summary>
+        public void RefreshState()
+        {
+            long start = OpenTrace.Begin();
+            RefreshValues();
+            RefreshStateWork(afterLanguageWork: false);
+            OpenTrace.End("SettingsForm", "refresh-state", start);
+        }
+
+        /// <summary>Reads every control from the configuration (and from the live state the tray items share). The first half of both refreshes.</summary>
+        private void RefreshValues()
         {
             _loading = true;
             _restoreSettings.Enabled = SettingsSnapshot.Newest(SettingsSnapshot.Folder) != null;
             _settingsBackup.Checked = _config.SettingsBackupEnabled;
+            _externalCommands.Checked = _config.EnableExternalCommands;
             RefreshBackupState();
             _startMenuShortcut.Checked = AppShortcuts.Exists(ShortcutPlace.StartMenu);
             _desktopShortcut.Checked = AppShortcuts.Exists(ShortcutPlace.Desktop);
@@ -1330,7 +1405,6 @@ namespace CyrFlip
             ReloadTrafficLightState();
             ReloadExchangeServerState();
             _loading = false;
-            ApplyLanguage();
         }
 
         /// <summary>
@@ -1391,6 +1465,8 @@ namespace CyrFlip
             if (ReferenceEquals(root, _languageRows) || ReferenceEquals(root, _layoutRows)
                 || ReferenceEquals(root, _conversionRows) || ReferenceEquals(root, _translationRows)
                 || ReferenceEquals(root, _tlRows) || ReferenceEquals(root, _exchangeAccountsList)) return;
+            // The notes sync status is written by the context in the current language (S0105), never a source caption.
+            if (ReferenceEquals(root, _quickNotesSyncStatus)) return;
             // A value label, not a caption: its "100%" registered here was put back on top of the
             // slider's real value by every re-translation (ticket S0007, ST-4).
             if (ReferenceEquals(root, _opacityValue)) return;
@@ -1408,8 +1484,35 @@ namespace CyrFlip
             foreach (Control child in root.Controls) RememberSourceTexts(child);
         }
 
+        /// <summary>
+        /// The window in the language, the scale and the font it is in now: the whole language pass
+        /// (<see cref="ApplyLanguageWork"/>) and then the state-dependent part (<see cref="RefreshStateWork"/>),
+        /// in the order the one method it was split from ran them (ticket S0135, step 1.1). Run only for a real
+        /// cause - the language picker, a size-profile change, the window being built or shown again;
+        /// a changed value alone goes through <see cref="RefreshState"/>.
+        /// </summary>
         private void ApplyLanguage()
         {
+            long applyLanguageStart = OpenTrace.Begin();
+            ApplyLanguageWork();
+            RefreshStateWork(afterLanguageWork: true);
+            if (_firstSize && IsHandleCreated)
+            {
+                _firstSize = false;
+                ResizeToContent();
+            }
+            OpenTrace.End("SettingsForm", "apply-language", applyLanguageStart);
+        }
+
+        /// <summary>
+        /// What only a new language, scale or font needs (L1, half one): the script (right-to-left, the font family),
+        /// the translation of every remembered caption, the drop-down entries in this language and their widths,
+        /// the chord column, the tab strip, the command metrics, the font-derived column widths, the numeric editors'
+        /// metrics and the clamp of every page's text. A change of a value does not need any of it.
+        /// </summary>
+        private void ApplyLanguageWork()
+        {
+            long span = OpenTrace.Begin();
             HelpLanguage = _config.UiLanguage;
             // The bulk pass touches every caption of the window. Without layout suspension each
             // assignment re-lays-out the whole parent chain - and every relayout re-measures its
@@ -1419,76 +1522,141 @@ namespace CyrFlip
             SuspendLayoutDeep(this);
             try
             {
-                ApplyScript();
-                foreach (KeyValuePair<Control, string> pair in _sourceTexts)
+                ApplyScript();                                                           // language: right-to-left and the font family
+                TraceEnd("lang:script", ref span);
+                foreach (KeyValuePair<Control, string> pair in _sourceTexts)             // language: every remembered caption
                     pair.Key.Text = Translate(pair.Value);
-                _caseHotkeyValue.Text = _config.CaseHotkey; _historyHotkeyValue.Text = _config.ClipboardHistoryHotkey;
-                _quickNotesHotkeyValue.Text = _config.QuickNotesHotkey;
-                _textMenuHotkeyValue.Text = _config.TextMenuHotkey;
-                _screenshotHotkeyValue.Text = _config.ScreenshotHotkey;
-                _screenshotFullHotkeyValue.Text = _config.ScreenshotFullHotkey;
-                _screenshotAnnotateAreaHotkeyValue.Text = _config.ScreenshotAnnotateAreaHotkey;
-                _screenshotFullAnnotateHotkeyValue.Text = _config.ScreenshotFullAnnotateHotkey;
-                _screenshotFolderHotkeyValue.Text = _config.ScreenshotFolderHotkey;
-                _screenshotFolderBox.Text = ScreenshotFolderShown();
-                _opacityValue.Text = _opacity.Value + "%";
-                _tlTransparencyValue.Text = _tlTransparency.Value + "%";
-                _markerSizeValue.Text = MarkerSizeName(_markerSize.Value);
-                _version.Text = VersionLine();
+                ApplyValueTexts();                                                       // both: the translation above put the build-time text back over them
+                TraceEnd("lang:translate", ref span);
             }
             finally { ResumeLayoutDeep(this); }
+            TraceEnd("lang:resume-captions", ref span);
             // Every pass below re-lays out part of the tree (M1): under one suspension, so each of
             // them writes geometry raw and the tree lays out once, at the resume.
             SuspendLayoutDeep(this);
             try
             {
                 // The drop-downs are filled in this language first: their width is part of the page's editor column.
-                ReloadToggleCombo();
-                ReloadContextMenuChords();
-                ReloadThemeCombo();
-                ReloadUiProfileCombos();
-                FitDropDowns();
-                AlignChordColumn();
-                AdjustTabStrip();
-                ReassertCommandMetrics();
+                ReloadDropDowns();                                                       // both: the entries are words, the selection is a value
+                TraceEnd("lang:dropdowns", ref span);
+                FitDropDowns();                                                          // language: widths of the language picker and the tile sizes
+                TraceEnd("lang:fit-dropdowns", ref span);
+                AlignChordColumn();                                                      // language and font: the chord column's width
+                TraceEnd("lang:chord-column", ref span);
+                AdjustTabStrip();                                                        // language and font: the page strip
+                TraceEnd("lang:tab-strip", ref span);
+                ReassertCommandMetrics();                                                // font and scale: every glyph button's metric
+                TraceEnd("lang:command-metrics", ref span);
                 // Font-derived geometry is re-measured, not remembered: the boolean hints under their
                 // captions, the per-page caption column, and the numeric editors' logical metrics all
                 // follow the font (and family) the language just installed (WINDOWS-UI sections 4-5).
-                AlignHintAndCaptionColumns();
-                foreach (NumericUpDown editor in NumericEditors(this)) SettingsNumeric.Apply(editor);
-                ClampPageTextWidths();
+                AlignHintAndCaptionColumns();                                            // font: hint and caption columns
+                TraceEnd("lang:hint-columns", ref span);
+                foreach (NumericUpDown editor in NumericEditors(this)) SettingsNumeric.Apply(editor);   // font: numeric metrics
+                TraceEnd("lang:numeric", ref span);
+                ClampPageTextWidths();                                                   // language and width: every page's text caps
+                TraceEnd("clamp-all", ref span);
             }
             finally { ResumeLayoutDeep(this); }
+            TraceEnd("lang:resume-geometry", ref span);
+        }
+
+        /// <summary>
+        /// What depends on a value and not on the language (L1, half two): the value texts and the drop-down
+        /// selections (skipped when <see cref="ApplyLanguageWork"/> has just done both), the tables built from the
+        /// registry and the configuration, the scenario table, the accessible names and descriptions, and the dependency
+        /// notes. Both <see cref="RefreshState"/> and <see cref="ApplyLanguage"/> end here.
+        /// </summary>
+        private void RefreshStateWork(bool afterLanguageWork)
+        {
+            long span = OpenTrace.Begin();
+            if (!afterLanguageWork)
+            {
+                ApplyValueTexts();                                                       // state: the chord and value labels follow the configuration
+                ReloadDropDowns();                                                       // state: the selection follows the configuration and Windows
+                TraceEnd("state:values", ref span);
+            }
             // Built in the current language, so these must run after the translation pass above.
-            ReloadLayoutRows();
-            ReloadLanguageRows();
-            ReloadConversionRows();
-            ReloadTranslationRows();
-            ReloadTrafficLightRows();
-            ReloadHotkeysOverview();
-            // Every Reload() ends here - i.e. every checkbox on every page - so the scenario table is
+            ReloadLayoutRows();                                                          // state: the installed layouts
+            TraceEnd("state:layout-rows", ref span);
+            ReloadLanguageRows();                                                        // state: Windows' own language hotkeys
+            TraceEnd("state:language-rows", ref span);
+            ReloadConversionRows();                                                      // state: the conversion table
+            TraceEnd("state:conversion-rows", ref span);
+            ReloadTranslationRows();                                                     // state: the translation table
+            TraceEnd("state:translation-rows", ref span);
+            ReloadTrafficLightRows();                                                    // state: the traffic-light targets
+            TraceEnd("state:traffic-light-rows", ref span);
+            ReloadHotkeysOverview();                                                     // state: every chord and its switch
+            TraceEnd("state:hotkeys-overview", ref span);
+            // Every refresh ends here - i.e. every checkbox on every page - so the scenario table is
             // rebuilt only when something it shows changed (S0030 HT-1).
             string launcherStamp = LauncherRowsStamp();
             if (launcherStamp != _launcherRowsStamp)
                 ReloadLauncherRows();
             else
                 ApplyLauncherEnabledState();
-            NameEditors(this);
-            NameFixedControls();
-            ApplyGlyphTooltips();
+            TraceEnd("state:launcher", ref span);
+            NameEditors(this);                                                           // state: a rebuilt row has editors with no name yet
+            NameFixedControls();                                                         // both: cheap, and the exchange marks and tables are rebuilt by a refresh
+            ApplyGlyphTooltips();                                                        // state: a rebuilt row has move buttons with no tip yet
+            TraceEnd("state:names", ref span);
             // Last of the state passes: the tables and the buttons above have just been rebuilt and re-gated,
             // and the notes read what is greyed now (S0060 M5). Before the first size is derived from content.
-            ApplyDependencyNotes();
+            ApplyDependencyNotes();                                                      // state
+            TraceEnd("state:dependency-notes", ref span);
             // One checkbox name/state; the authored visible explanation is its accessible description too.
             // The reason a switch is greyed (ApplyDependencyNotes, just above) outranks the hint: it is what the
             // reader needs to hear while the control cannot be used.
             foreach (KeyValuePair<Control, Label> pair in _rowHints)
                 if (pair.Key is CheckBox box && !IsExplainedByDependencyNote(box)) box.AccessibleDescription = pair.Value.Text;
-            if (_firstSize && IsHandleCreated)
-            {
-                _firstSize = false;
-                ResizeToContent();
-            }
+            TraceEnd("state:descriptions", ref span);
+        }
+
+        // True only while the constructor's own Reload() runs: its sub-spans are written as "first:<name>", so the
+        // trace tells the first refresh (63 per cent of the constructor, baseline 2026-11-19) from the later ones.
+        private bool _tracingFirstReload;
+
+        /// <summary>
+        /// Ends one sub-span of a refresh half and starts the next at the same instant (ticket S0135, step 1.10). Off, the
+        /// stamp is 0 and this returns before it builds a name, so a refresh with the trace off allocates nothing for it.
+        /// </summary>
+        private void TraceEnd(string name, ref long span)
+        {
+            if (span == 0) return;
+            OpenTrace.End("SettingsForm", _tracingFirstReload ? "first:" + name : name, span);
+            span = OpenTrace.Begin();
+        }
+
+        /// <summary>
+        /// The labels that show a configured value in a place a translated caption would otherwise overwrite: the
+        /// chords, the folder, the percentages, the marker size and the version line. Set by both halves, because the
+        /// translation pass puts their build-time text back and a refresh must show the live one.
+        /// </summary>
+        private void ApplyValueTexts()
+        {
+            _caseHotkeyValue.Text = _config.CaseHotkey; _historyHotkeyValue.Text = _config.ClipboardHistoryHotkey;
+            _quickNotesHotkeyValue.Text = _config.QuickNotesHotkey;
+            _textMenuHotkeyValue.Text = _config.TextMenuHotkey;
+            _screenshotHotkeyValue.Text = _config.ScreenshotHotkey;
+            _screenshotFullHotkeyValue.Text = _config.ScreenshotFullHotkey;
+            _screenshotAnnotateAreaHotkeyValue.Text = _config.ScreenshotAnnotateAreaHotkey;
+            _screenshotFullAnnotateHotkeyValue.Text = _config.ScreenshotFullAnnotateHotkey;
+            _screenshotFolderHotkeyValue.Text = _config.ScreenshotFolderHotkey;
+            _screenshotFolderBox.Text = ScreenshotFolderShown();
+            _opacityValue.Text = _opacity.Value + "%";
+            _tlTransparencyValue.Text = _tlTransparency.Value + "%";
+            _markerSizeValue.Text = MarkerSizeName(_markerSize.Value);
+            _version.Text = VersionLine();
+        }
+
+        /// <summary>The four drop-downs whose entries are words of the language and whose selection is a value: the cycle-switch chord, the mouse chord, the theme and the three size profiles.</summary>
+        private void ReloadDropDowns()
+        {
+            ReloadToggleCombo();
+            ReloadContextMenuChords();
+            ReloadThemeCombo();
+            ReloadUiProfileCombos();
         }
 
         // Editors whose accessible name this class derived from the caption beside them, so a later
@@ -1684,7 +1852,7 @@ namespace CyrFlip
             if (_loading) return;
             apply();
             TextMenuChanged?.Invoke(this, EventArgs.Empty);
-            if (reload) Reload();
+            if (reload) RefreshState();
         }
 
         /// <summary>
@@ -2677,7 +2845,7 @@ namespace CyrFlip
             if (!EnsureSystemBackups()) return;
             if (!ReportLayoutEdit(InputLayouts.Add(klid), () => AddLayout(klid))) return;
             LanguageHotkeys.ApplyToWindows();
-            Reload();
+            RefreshState();   // the installed layouts changed - a value, not the language (S0135, L1)
             NotifyLayoutChangeOnce();
         }
 
@@ -2720,7 +2888,7 @@ namespace CyrFlip
             });
 
             LanguageHotkeys.ApplyToWindows();
-            Reload();
+            RefreshState();   // the installed layouts changed - a value, not the language (S0135, L1)
             if (outcome.Stopped != InputLayouts.EditResult.Ok)
             {
                 // What was added stays added; the retry plans again and goes on with the rest.
@@ -2752,7 +2920,7 @@ namespace CyrFlip
             if (!EnsureSystemBackups()) return;
             if (!ReportLayoutEdit(InputLayouts.Remove(klid), () => RemoveLayout(klid))) return;
             LanguageHotkeys.ApplyToWindows();
-            Reload();
+            RefreshState();   // the installed layouts changed - a value, not the language (S0135, L1)
             NotifyLayoutChangeOnce();
         }
 
@@ -2905,7 +3073,7 @@ namespace CyrFlip
             _config.InputMethodOverrideWritten = "";
             SaveConfig();
             LanguageHotkeys.ApplyToWindows();
-            Reload();
+            RefreshState();   // the installed layouts changed - a value, not the language (S0135, L1)
             NotifyLayoutChangeOnce();
         }
 
@@ -3243,6 +3411,7 @@ namespace CyrFlip
                     "One file with every note in order. The exported file is no longer protected by DPAPI - anyone with access to the folder can read it.")),
                 Track(Setting(Button("Delete every quick note", AppGlyphs.ClearAll, ClearQuickNotes),
                     "Deletes every note, the journal and its backup. There is no undo."))));
+            panel.Controls.Add(QuickNotesSyncGroup());
             Control? transfer = ExchangeRow();
             if (transfer != null)
                 panel.Controls.Add(Group("notes/transfer", "Moving to another computer", transfer));
@@ -3296,7 +3465,7 @@ namespace CyrFlip
             if (_loading) return;
             apply();
             QuickNotesChanged?.Invoke(this, EventArgs.Empty);
-            if (reload) Reload();
+            if (reload) RefreshState();
         }
 
         /// <summary>Mirror the quick-notes settings into the tab and gate the group behind its switch.</summary>
@@ -3308,6 +3477,7 @@ namespace CyrFlip
             _quickNotesLineNumbers.Checked = _config.QuickNotesLineNumbers;
             _quickNotesHotkeyValue.Text = _config.QuickNotesHotkey;
             foreach (Control control in _quickNotesControls) control.Enabled = _config.EnableQuickNotes;
+            ReloadQuickNotesSyncState();
         }
 
         // ---- Translator tab (local Ollama) ----
@@ -3460,7 +3630,7 @@ namespace CyrFlip
             if (_loading) return;
             apply();
             NotifyTranslationChanged();
-            if (reload) Reload();
+            if (reload) RefreshState();
         }
 
         /// <summary>Commit the two free-text translator fields; called on Leave and when the window hides.</summary>
@@ -4330,6 +4500,30 @@ namespace CyrFlip
             page.Controls.Add(panel); return page;
         }
         private static FlowLayoutPanel ContentPanel(TabPage page) => (FlowLayoutPanel)page.Controls[0];
+
+        /// <summary>
+        /// Every page but the one that opens keeps its layout back until it is first shown (ticket S0135, L3): the
+        /// first layout of the whole tree was about two thirds of the first refresh, and fourteen of fifteen pages
+        /// are never looked at in a typical session. Nothing else changes - every caption, font and value is applied
+        /// to every page as before; only the geometry of a page that has not been shown waits.
+        /// </summary>
+        private static void DeferHiddenPageLayout(TabControl tabs, SettingsPageKey openingPage)
+        {
+            foreach (TabPage page in tabs.TabPages)
+                if (!Equals(page.Tag, openingPage) && ContentPanel(page) is SettingsPagePanel panel)
+                    panel.DeferLayout();
+        }
+
+        /// <summary>
+        /// Lays out every page that has been waiting for its first show. For whoever reads the geometry of a page
+        /// nobody has shown: the tests, the capture tools. A person never needs it - choosing a page does it.
+        /// </summary>
+        internal void EnsureAllPagesLaidOut()
+        {
+            if (_tabs == null) return;
+            foreach (TabPage page in _tabs.TabPages)
+                if (ContentPanel(page) is SettingsPagePanel panel) panel.ReleaseDeferredLayout();
+        }
         private void BuildTransferPreferenceGroups()
         {
             if (_tabs == null) return;
@@ -4656,7 +4850,7 @@ namespace CyrFlip
             if (_loading) return;
             apply();
             SymbolsChanged?.Invoke(this, EventArgs.Empty);
-            if (reload) Reload();
+            if (reload) RefreshState();
         }
 
         private void ReloadSymbolsState()
@@ -5266,7 +5460,15 @@ namespace CyrFlip
             foreach (Label value in _chordValueLabels)
                 if (value.MinimumSize.Width != width) value.MinimumSize = new Size(width, 0);
         }
-        private void Changed(Action<bool> action, bool value) { if (_loading) return; action(value); Reload(); }
+        private void Changed(Action<bool> action, bool value)
+        {
+            if (_loading) return;
+            long start = OpenTrace.Begin();   // click to the painted frame, for the open trace (ticket S0135)
+            action(value);
+            // A value changed, not the language, the scale, the font or the theme: no language pass (S0135, L1).
+            RefreshState();
+            OpenTrace.FrameAfter(this, "SettingsForm", "change", start);
+        }
 
         /// <summary>The wheel arriving over this window's editors: turned into page scrolling and
         /// swallowed, so the pointer passing an editor cannot turn it (WINDOWS-UI section 4).</summary>

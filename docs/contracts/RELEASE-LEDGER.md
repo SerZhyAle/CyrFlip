@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `RELEASE-LEDGER` |
-| **Version** | 0.1 draft, read and adopted 2026-11-17 (`S0122`); the ledger stands with its history imported, the build and release hooks are written but not yet run by a real release - the next сборка and the next РЕЛИЗ prove them |
+| **Version** | 0.1 draft, read and adopted 2026-11-17 (`S0122`); the ledger stands with its history imported, `build.ps1` hook proven (`26.11.18.44` in `releases/builds.json`), `msix/build-msix.ps1` and `release.ps1` hooks prove at the next РЕЛИЗ |
 | **Role** | producer of the ledger files in `releases/`, written only through the canon's one writer |
 | **Home** | shared contracts catalog, folder `release-ledger/`, document `README.md` |
 | **Owner** | sza-unified-rules |

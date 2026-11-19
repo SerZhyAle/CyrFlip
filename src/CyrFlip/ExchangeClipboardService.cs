@@ -456,7 +456,7 @@ namespace CyrFlip
             return changed;
         }
 
-        private static ExchangeDeviceKey? LoadDeviceKey(ExchangeAccountEntry entry)
+        internal static ExchangeDeviceKey? LoadDeviceKey(ExchangeAccountEntry entry)
         {
             ExchangeSecret? secret = entry.LoadSecret();
             if (secret == null || secret.DevicePrivate.Length == 0) return null;

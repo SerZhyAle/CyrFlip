@@ -59,10 +59,10 @@ namespace CyrFlip
             ExchangeOutcome<ExchangeStandardSaved> saved = BusyDialog.Wait(_settings, language,
                 Task.Run(() => service.SaveAsync(entry, payload, CancellationToken.None)));
             ExchangeClipboardLog.Log("standard-save", "settings", payload.Length, groupIds.Count, saved.Ok ? "" : saved.Code);
-            if (!saved.Ok) { ShowStandardFailure(saved.Code, save: true, language); _settings?.Reload(); return; }
+            if (!saved.Ok) { ShowStandardFailure(saved.Code, save: true, language); _settings?.RefreshState(); return; }
 
             SettingsStandard.RememberSeen(entry.Id, saved: true, saved.Value!.UpdatedAt);
-            _settings?.Reload();
+            _settings?.RefreshState();
             ConfirmDialog.Show(_settings, language, T("The settings are saved on the server as the standard."), MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -81,7 +81,7 @@ namespace CyrFlip
             {
                 ExchangeClipboardLog.Log("standard-read", "settings", 0, groupIds.Count, got.Code);
                 ShowStandardFailure(got.Code, save: false, language);
-                _settings?.Reload();
+                _settings?.RefreshState();
                 return;
             }
 
@@ -99,6 +99,7 @@ namespace CyrFlip
             string source = Localization.Format(T, "Standard settings from {0}, saved {1}", ExchangeClipboardService.LabelOf(entry), ShownTime(got.Value.UpdatedAt));
             if (ImportDocument(() => read.Document, source))
                 SettingsStandard.RememberSeen(entry.Id, saved: false, got.Value.UpdatedAt);
+            // The full pass: the standard read may carry the interface language, the theme or the size profile (S0135, L1).
             _settings?.Reload();
         }
 

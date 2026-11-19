@@ -28,8 +28,62 @@ namespace CyrFlip
         /// <summary>How many shows took the skip - the test seam that proves the comparison compared something.</summary>
         internal static int SkippedShows;
 
+        private bool _layoutDeferred;
+
+        /// <summary>True while this page's layout is held back until the page is first shown (ticket S0135, L3).</summary>
+        internal bool LayoutDeferred => _layoutDeferred;
+
+        /// <summary>
+        /// Holds the layout of this page's whole subtree back until the page is first shown. The window builds all
+        /// fifteen pages before it appears, and the first layout of the whole tree was about two thirds of the first
+        /// refresh (S0135 after-phase1 trace: <c>first:lang:resume-captions</c>, <c>resume-geometry</c> and
+        /// <c>notes:resume</c>) - spent on fourteen pages nobody has looked at. One extra suspension on every
+        /// control of the page makes every later suspend/resume pair inside it (the language pass, the notes, a
+        /// table rebuild) balanced and silent: nothing is laid out until <see cref="ReleaseDeferredLayout"/>, which
+        /// the page's first show calls. The properties are all applied meanwhile; only the layout waits.
+        /// </summary>
+        internal void DeferLayout()
+        {
+            if (_layoutDeferred) return;
+            _layoutDeferred = true;
+            SuspendDeep(this);
+        }
+
+        /// <summary>
+        /// Lays the page out now. Called when the page is first shown (before its first paint), and by whoever needs
+        /// the geometry of a page nobody has shown - the tests and the capture tools. Controls created while the
+        /// layout was held back carry no suspension of their own, and resuming one is a no-op, so the walk is balanced.
+        /// </summary>
+        internal void ReleaseDeferredLayout()
+        {
+            if (!_layoutDeferred) return;
+            _layoutDeferred = false;
+            ResumeDeep(this);
+        }
+
+        private static void SuspendDeep(Control control)
+        {
+            control.SuspendLayout();
+            foreach (Control child in control.Controls) SuspendDeep(child);
+        }
+
+        private static void ResumeDeep(Control control)
+        {
+            // Inner first, so no container lays itself out while a child of it is still suspended.
+            foreach (Control child in control.Controls) ResumeDeep(child);
+            control.ResumeLayout(performLayout: true);
+        }
+
         protected override void OnVisibleChanged(EventArgs e)
         {
+            if (Visible && _layoutDeferred)
+            {
+                // The first show of a page that was built hidden: lay it out once, before its first paint. The
+                // handles are not created yet, so the ordinary path below would run anyway.
+                ReleaseDeferredLayout();
+                base.OnVisibleChanged(e);
+                return;
+            }
             if (!SkipRelayoutOnShow || !Visible || !IsHandleCreated || !AllHandlesCreated(this))
             {
                 base.OnVisibleChanged(e);

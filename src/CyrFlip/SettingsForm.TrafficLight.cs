@@ -69,7 +69,7 @@ namespace CyrFlip
             if (_loading) return;
             apply();
             TrafficLightChanged?.Invoke(this, EventArgs.Empty);
-            if (reload) Reload();
+            if (reload) RefreshState();
             RequestTrafficLightResult(setting);
         }
 

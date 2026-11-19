@@ -124,25 +124,35 @@ namespace CyrFlip
 
         // ---------------------------------------------------------------- send
 
-        private void SendExchangeClipboard()
+        /// <summary>
+        /// The tray, chord and command path. With <paramref name="source"/> the clipboard is read, under the busy
+        /// guard and off the UI thread as always; with a built payload (ticket S0121, <c>clipboard send --file</c> /
+        /// <c>--text</c>) the read is skipped and the module's own send and report run unchanged.
+        /// </summary>
+        private bool SendExchangeClipboard(ExchangeClipboardPayload? source = null)
         {
-            if (_disposed || !ExchangeModuleOn()) return;
-            if (!TryBeginExchangeOperation()) return;
+            if (_disposed || !ExchangeModuleOn()) return false;
+            if (!TryBeginExchangeOperation()) return false;
             CancellationToken ct = _exchangeCts!.Token;
 
             Task.Run(async () =>
             {
                 try
                 {
-                    ExchangeOutcome<ExchangeClipboardPayload> read = ReadClipboardForExchange();
-                    if (!read.Ok)
+                    ExchangeClipboardPayload payload;
+                    if (source != null)
+                        payload = source;
+                    else
                     {
-                        PostExchangeFailure(read.Code, ExchangeContext.Send);
-                        ExchangeClipboardLog.Log("send", "none", 0, 0, read.Code);
-                        return;
+                        ExchangeOutcome<ExchangeClipboardPayload> read = ReadClipboardForExchange();
+                        if (!read.Ok)
+                        {
+                            PostExchangeFailure(read.Code, ExchangeContext.Send);
+                            ExchangeClipboardLog.Log("send", "none", 0, 0, read.Code);
+                            return;
+                        }
+                        payload = read.Value!;
                     }
-
-                    ExchangeClipboardPayload payload = read.Value!;
                     if (payload.ClearSize > 8L * 1024 * 1024)
                         _ui?.Post(_ => ShowInfoBalloon(3000, T("Sending the clipboard to the server..")), null);
 
@@ -156,6 +166,7 @@ namespace CyrFlip
                 }
                 finally { EndExchangeOperation(); }
             });
+            return true;
         }
 
         /// <summary>
@@ -244,10 +255,10 @@ namespace CyrFlip
 
         // ---------------------------------------------------------------- get
 
-        private void GetExchangeClipboard()
+        private bool GetExchangeClipboard()
         {
-            if (_disposed || !ExchangeModuleOn()) return;
-            if (!TryBeginExchangeOperation()) return;
+            if (_disposed || !ExchangeModuleOn()) return false;
+            if (!TryBeginExchangeOperation()) return false;
             CancellationToken ct = _exchangeCts!.Token;
 
             Task.Run(async () =>
@@ -278,6 +289,61 @@ namespace CyrFlip
                 }
                 finally { EndExchangeOperation(); }
             });
+            return true;
+        }
+
+        /// <summary>
+        /// <c>clipboard get --out</c> (ticket S0121, row C33): the module's own fetch, and the received value goes
+        /// straight into the caller's file instead of the clipboard - which is not touched, so a scheduled receive
+        /// never hijacks what a person is working on. The plan is made before the fetch starts; the write is the
+        /// whole-or-not-at-all discipline S0110 shipped; the file kind is copied from the received-files folder the
+        /// module's own download already filled. There is no success balloon - its sentence says "ready to paste",
+        /// which this path would make false - while a failure keeps the module's balloon, the one channel that names
+        /// the accounts; the command's own answer carries the outcome. Runs to one answer because the verb's wait is
+        /// <c>done</c>.
+        /// </summary>
+        private async Task<AppCommandResponse> GetExchangeClipboardIntoFile(AppCommandInvocation invocation, string workingDir,
+            IScreenshotFileSystem fs, TimeSpan budget, CancellationToken token)
+        {
+            try
+            {
+                (OutputPlan? plan, AppCommandResponse? refusal) = await AppCommandsClipboardExchange.ResolveOut(
+                    invocation.Option("out") ?? "", workingDir, invocation.Flag("overwrite"), fs, budget,
+                    p => LaunchTargets.IsRemotePath(p), T, token);
+                if (plan == null)
+                    return refusal!;
+                if (!TryBeginExchangeOperation())
+                    return AppCommandResponse.BusyNow(T("CyrFlip is already sending or receiving the clipboard."));
+                CancellationToken ct = _exchangeCts!.Token;
+                try
+                {
+                    ExchangeFetchReport report = await NewExchangeService().FetchAsync(ct).ConfigureAwait(false);
+                    if (!report.Ok)
+                    {
+                        _ui?.Post(_ => ShowFetchFailure(report), null);
+                        return AppCommandsClipboardExchange.FetchFailureAnswer(report.Code, T);
+                    }
+                    ExchangeReceivedValue value = report.Value!;
+                    ReceivedWriteOutcome outcome = AppCommandsClipboardExchange.WriteReceivedValue(value, plan, fs,
+                        AppCommandsClipboardExchange.CopyFile, ct);
+                    return AppCommandsClipboardExchange.OutcomeAnswer(outcome, plan, value, T);
+                }
+                catch (Exception ex) when (!(ex is OutOfMemoryException))
+                {
+                    ExchangeClipboardLog.Fault("get-failed", ex);
+                    PostExchangeFailure(ExchangeCodes.TransferFailed, ExchangeContext.Get);
+                    return AppCommandResponse.Failed(AppCommandReasons.Error, AppCommandExit.Failed,
+                        T("The command failed. The log bundle on the About page has the details."));
+                }
+                finally { EndExchangeOperation(); }
+            }
+            catch (Exception ex) when (!(ex is OutOfMemoryException))
+            {
+                // The family's own rule: the caller always gets an answer, and only the fault's type is logged.
+                LauncherLog.Log("Command: clipboard get failed: " + ex.GetType().Name);
+                return AppCommandResponse.Failed(AppCommandReasons.Error, AppCommandExit.Failed,
+                    T("The command failed. The log bundle on the About page has the details."));
+            }
         }
 
         /// <summary>Phase C: one open, one empty, every format - a copy the person asked for (item Q), under the guard.</summary>
@@ -383,7 +449,7 @@ namespace CyrFlip
             _hook.UpdateExchangeSendHotkey(next);
             RefreshExchangeHotkeys();
             UpdateTrayTexts();
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         private void OnSetExchangeGetHotkey()
@@ -398,7 +464,7 @@ namespace CyrFlip
             _hook.UpdateExchangeGetHotkey(next);
             RefreshExchangeHotkeys();
             UpdateTrayTexts();
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         private static void OpenFileInExplorer(string filePath)

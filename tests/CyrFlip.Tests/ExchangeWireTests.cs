@@ -164,7 +164,7 @@ namespace CyrFlip.Tests
             ExchangeFrame f = ExchangeWire.Decode(frame.Skip(4).ToArray());
             Assert.Equal("enroll", f.Type);
             Assert.Equal("cyrflip-windows", f.Str("product"));
-            Assert.Equal(new[] { "clipboard" }, f.Strings("roles"));
+            Assert.Equal(new[] { "clipboard", "notes" }, f.Strings("roles")); // notes always, ticket S0105 A1
             Assert.Equal(new[] { "e2e-v1" }, f.Strings("capabilities"));
             Assert.Equal(1, f.Obj("e2eKey")!.Long("v"));
             Assert.Equal("BAAA", f.Obj("e2eKey")!.Str("kem"));

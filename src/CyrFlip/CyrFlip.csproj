@@ -39,6 +39,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="..\..\help-map.json" LogicalName="CyrFlip.help-map.json" />
+    <!-- The command manifest (APP-COMMANDS rule 18, S0107): the `commands` verb prints these exact bytes. -->
+    <EmbeddedResource Include="..\..\docs\cli-commands.json" LogicalName="CyrFlip.cli-commands.json" />
     <EmbeddedResource Include="..\..\docs\help\**\*" LogicalName="CyrFlip.help/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)" />
   </ItemGroup>
 

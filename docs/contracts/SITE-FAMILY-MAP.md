@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `SITE-FAMILY-MAP` |
-| **Version** | 1.3, active |
+| **Version** | 1.16, active (re-read 2026-11-17; the dated read paragraph below names the ticket) |
 | **Home** | `product-web-pages/SITE-FAMILY-MAP.md` in the shared contracts catalog |
 | **Role here** | consumer, and a row of the map - `https://serzhyale.github.io/CyrFlip/` must keep answering |
 
@@ -27,6 +27,16 @@ locale pages lists every row of section 2 except CyrFlip, each linking the produ
 (the link target is right and unchanged). That is a footer text edit in 11 generated pages and waits for the
 owner of this repository to order it. The 29 secondary pages carry the contact and hub link without the grid,
 as before - which footer a page that is not a landing carries is still open in the catalog.
+
+**Read at 1.15 on 2026-11-17 (ticket S0101).** **Held:** the DeviceInfo row (1.14) - the footer grid of the 13
+landings lists it, each linking `https://serzhyale.github.io/DeviceInfo_Android/`, and each grid holds nine family
+links (the eight earlier ones, DeviceInfo included, the hub among them). **Open:** the Tourist row (1.15, the same
+day) is not yet in the grid. A footer that has not caught up is not wrong under section 4, but rule 1 asks for it,
+and the entry is ticket S0118, waiting on the owner's decision.
+
+**Read at 1.15 on 2026-11-17 (ticket S0103).** **Held:** the Tourist row (1.15) - the footer grid of the 13 landings lists it, each linking `https://serzhyale.github.io/Tourist_Android/`, and each grid holds ten family links, the nine earlier ones and Tourist. **Open on the grid:** none at 1.15. Ticket S0118 holds the same Tourist entry as a parked duplicate. The Google Play channel of the row waits for the listing to answer (the row's own note in section 2 of 1.15).
+
+**Read at 1.16 on 2026-11-17 (ticket S0123).** **Held:** the FastMediaSorter for Web row (1.16, *Browser media sorter*) - the footer grid of the 13 landings lists it, each linking `https://serzhyale.github.io/FastMediaSorter_WEB/` directly after the Lite entry (the order of map section 2), and each grid holds eleven family links, the ten earlier ones and this row. Rule 4 (1.16) gives this repository the footer row only, so no body copy, README entry or help change accompanies it; the row's help cell is a dash and the footer links landings only. **Open on the grid:** none.
 
 ## Synchronization read - 2026-10-18
 

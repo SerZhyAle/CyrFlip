@@ -5,6 +5,17 @@ using System.Threading.Tasks;
 
 namespace CyrFlip
 {
+    /// <summary>How <see cref="QuickNotesService.TryAdd"/> ended.</summary>
+    internal enum QuickNoteAddResult
+    {
+        /// <summary>Written and listed.</summary>
+        Added,
+        /// <summary>The journal could not be written; nothing was listed or queued.</summary>
+        Failed,
+        /// <summary>The service is not loaded yet or has been retired (the module was switched off).</summary>
+        Unavailable,
+    }
+
     /// <summary>
     /// The live set of quick notes: the in-memory list in its standard order, the CRUD the window
     /// drives, and the debounced save that keeps <c>Ctrl+S</c> from being something the user has to
@@ -50,6 +61,9 @@ namespace CyrFlip
         // often the window repaints its dates.
         private readonly HashSet<Guid> _failed = new HashSet<Guid>();
         private readonly HashSet<Guid> _failedDeletes = new HashSet<Guid>();
+        // Notes whose pending write carries a change the exchange sync applied (S0105), not the user's:
+        // its retry must not be reported as a local edit and sent back to the server.
+        private readonly HashSet<Guid> _quiet = new HashSet<Guid>();
         private readonly object _gate = new object();
         private readonly Timer _debounce;
         private readonly SynchronizationContext? _owner;
@@ -82,6 +96,15 @@ namespace CyrFlip
 
         /// <summary>A note reached disk, including an update after the debounce.</summary>
         public event EventHandler? Saved;
+
+        /// <summary>
+        /// The user changed this note - a commit, an exchange-file import - as against a change the exchange sync applied
+        /// (S0105). What the sync marks as "to be put"; raised on the owner thread, after the lock.
+        /// </summary>
+        public event Action<Guid>? LocalChanged;
+
+        /// <summary>The user deleted this note (one, or every note at once). What the sync marks as "tombstone to put" (S0105).</summary>
+        public event Action<Guid>? LocalDeleted;
 
         /// <summary>
         /// True while a write that failed has not yet been retried successfully (S0035 QN2-1). A
@@ -240,11 +263,12 @@ namespace CyrFlip
 
         private bool Commit(QuickNote note, bool onlyIfDirty)
         {
-            bool created;
+            bool created, quiet;
             lock (_gate)
             {
                 bool dirty = _dirty.Remove(note.Id);
                 _pending.Remove(note.Id);
+                quiet = _quiet.Remove(note.Id);
                 if (_deletedIds.Contains(note.Id))
                 {
                     _refusedCommits++;
@@ -277,6 +301,7 @@ namespace CyrFlip
             bool written = created ? _store.Create(note) : _store.Update(note);
             if (written) NoteWritten(note.Id);
             else RetryLater(note);
+            if (!quiet) LocalChanged?.Invoke(note.Id);
             if (created)
             {
                 Created?.Invoke(this, EventArgs.Empty);
@@ -284,6 +309,53 @@ namespace CyrFlip
             }
             ScheduleCompactionIfDue();
             return true;
+        }
+
+        /// <summary>
+        /// Add one text note made by a command (ticket S0108): the text exactly as given, the dates from one clock
+        /// read, the name <see cref="QuickNote.NormalizeTitle"/>'d. Unlike <see cref="Commit"/> a failed write is
+        /// <b>not</b> retried and the note is not kept: <c>note add</c> is not idempotent, so a caller that is told
+        /// "not saved" and tries again must not end with two notes, nor with one that appears five seconds later.
+        /// The note goes into the list first and out of it again when the write fails, because the store's contract is
+        /// that every change reaches the list <i>before</i> its record is appended - a background compaction's
+        /// snapshot then never misses a record that lands in the journal it replaces. Owner thread only, like every
+        /// other change; <see cref="LocalChanged"/> is raised (the notes sync must put the note).
+        /// </summary>
+        public QuickNoteAddResult TryAdd(string? title, string text, out Guid id)
+        {
+            id = Guid.Empty;
+            DateTime now = DateTime.UtcNow;
+            var note = new QuickNote
+            {
+                Kind = QuickNoteKind.Text,
+                Title = QuickNote.NormalizeTitle(title),
+                RawText = text,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
+            };
+            lock (_gate)
+            {
+                if (_disposed || !IsLoaded) return QuickNoteAddResult.Unavailable;
+                _persisted.Add(note.Id);
+                QuickNotesOrder.Insert(_notes, note);
+            }
+            if (!_store.Create(note))
+            {
+                lock (_gate)
+                {
+                    _notes.Remove(note);
+                    _persisted.Remove(note.Id);
+                }
+                QuickNotesLog.Log("note add: the journal could not be written; the note was not kept");
+                return QuickNoteAddResult.Failed;
+            }
+            NoteWritten(note.Id);
+            LocalChanged?.Invoke(note.Id);
+            Created?.Invoke(this, EventArgs.Empty);
+            Changed?.Invoke(this, EventArgs.Empty);
+            ScheduleCompactionIfDue();
+            id = note.Id;
+            return QuickNoteAddResult.Added;
         }
 
         /// <summary>
@@ -296,6 +368,7 @@ namespace CyrFlip
             lock (_gate)
             {
                 if (_disposed || _deletedIds.Contains(note.Id)) return;
+                _quiet.Remove(note.Id); // the user typed: the next write is theirs
                 _dirty.Add(note.Id);
                 _pending[note.Id] = note;
                 _debounce.Change(DebounceMs, Timeout.Infinite);
@@ -381,11 +454,13 @@ namespace CyrFlip
                 _pending.Remove(note.Id);
                 _notes.Remove(note);
                 _deletedIds.Add(note.Id);
+                _quiet.Remove(note.Id);
                 // Its own pending write, if one failed, is moot now - the delete is what counts.
                 recovered = _failed.Remove(note.Id) && _failed.Count == 0 && _failedDeletes.Count == 0;
                 persisted = _persisted.Remove(note.Id);
             }
             if (recovered && !persisted) SaveRecovered?.Invoke(this, EventArgs.Empty);
+            if (persisted) LocalDeleted?.Invoke(note.Id);
             // A draft was never written, so there is nothing to record its removal of.
             if (persisted)
             {
@@ -404,8 +479,11 @@ namespace CyrFlip
         public void DeleteAll()
         {
             EnsureLoaded();
+            List<Guid> removed;
             lock (_gate)
             {
+                removed = new List<Guid>(_persisted);
+                _quiet.Clear();
                 foreach (QuickNote note in _notes) _deletedIds.Add(note.Id);
                 foreach (Guid id in _pending.Keys) _deletedIds.Add(id);
                 _notes.Clear();
@@ -417,6 +495,8 @@ namespace CyrFlip
                 _failedDeletes.Clear();
             }
             _store.DeleteEverything();
+            // "Delete every note" is the user's delete of each of them, on every device of a synced account (S0105, A10).
+            foreach (Guid id in removed) LocalDeleted?.Invoke(id);
             Cleared?.Invoke(this, EventArgs.Empty);
             Changed?.Invoke(this, EventArgs.Empty);
         }
@@ -514,6 +594,8 @@ namespace CyrFlip
                     report.NotesUnwritten = records.Count;
                     RetryLater(records.ConvertAll(record => record.Value));
                 }
+                // An import is the user's edit: every note it added or replaced waits to be put (S0105).
+                foreach (KeyValuePair<bool, QuickNote> record in records) LocalChanged?.Invoke(record.Value.Id);
             }
             if (actions.Count > 0)
             {
@@ -534,6 +616,119 @@ namespace CyrFlip
             foreach (QuickNote note in _notes)
                 if (note.Id == id) return note;
             return null;
+        }
+
+        /// <summary>True when this note was deleted this session - by the user or by the exchange sync.</summary>
+        public bool IsDeleted(Guid id)
+        {
+            lock (_gate) return _deletedIds.Contains(id);
+        }
+
+        // ============ the exchange sync's side (S0105) - owner thread only, never raises LocalChanged/LocalDeleted ============
+
+        /// <summary>Copies of every note, for the exchange sync: the window keeps editing the live objects.</summary>
+        internal List<QuickNote> CloneNotes()
+        {
+            lock (_gate) return _notes.ConvertAll(note => note.Clone());
+        }
+
+        internal QuickNote? CloneOf(Guid id)
+        {
+            lock (_gate) return Find(id)?.Clone();
+        }
+
+        /// <summary>
+        /// The account's version of a note, written over the local one (or added, with the dates it carries). The local
+        /// <c>CreatedAtUtc</c> is never rewritten, so the order does not move. Refused - false, nothing changed - while
+        /// the note has an edit the debounce has not written yet, or was deleted here this session: the sync then keeps
+        /// both versions instead (item FJ).
+        /// </summary>
+        internal bool ApplyRemote(QuickNote incoming)
+        {
+            QuickNote target;
+            bool created;
+            lock (_gate)
+            {
+                if (_disposed || !IsLoaded || _dirty.Contains(incoming.Id) || _deletedIds.Contains(incoming.Id)) return false;
+                QuickNote? existing = Find(incoming.Id);
+                created = existing == null;
+                if (created)
+                {
+                    target = incoming.Clone();
+                    target.Title = QuickNote.NormalizeTitle(target.Title);
+                    _persisted.Add(target.Id);
+                    QuickNotesOrder.Insert(_notes, target);
+                }
+                else
+                {
+                    // Changed in place: the object in the list is the one any window holds.
+                    target = existing!;
+                    QuickNote copy = incoming.Clone();
+                    target.Title = QuickNote.NormalizeTitle(copy.Title);
+                    target.Kind = copy.Kind;
+                    target.RawText = copy.RawText;
+                    target.Items = copy.Items;
+                    target.UpdatedAtUtc = copy.UpdatedAtUtc;
+                }
+            }
+            WriteQuietly(target, created);
+            Imported?.Invoke(this, EventArgs.Empty);
+            Changed?.Invoke(this, EventArgs.Empty);
+            ScheduleCompactionIfDue();
+            return true;
+        }
+
+        /// <summary>A note this device made for the sync (a conflict's surviving version): created with the dates it carries.</summary>
+        internal void AddLocal(QuickNote note)
+        {
+            QuickNote target = note.Clone();
+            lock (_gate)
+            {
+                if (_disposed || _persisted.Contains(target.Id)) return;
+                target.Title = QuickNote.NormalizeTitle(target.Title);
+                _deletedIds.Remove(target.Id);
+                _persisted.Add(target.Id);
+                QuickNotesOrder.Insert(_notes, target);
+            }
+            WriteQuietly(target, created: true);
+            Changed?.Invoke(this, EventArgs.Empty);
+            ScheduleCompactionIfDue();
+        }
+
+        /// <summary>
+        /// The account deleted this note. Refused while it has an unwritten edit, unless <paramref name="evenIfEdited"/>
+        /// (a re-key: the sync has already copied the latest text into a new note).
+        /// </summary>
+        internal bool DeleteRemote(Guid id, bool evenIfEdited)
+        {
+            bool persisted;
+            lock (_gate)
+            {
+                if (_disposed || !IsLoaded) return false;
+                if (!evenIfEdited && _dirty.Contains(id)) return false;
+                QuickNote? note = Find(id);
+                if (note == null) return true;
+                _notes.Remove(note);
+                _dirty.Remove(id);
+                _pending.Remove(id);
+                _quiet.Remove(id);
+                _failed.Remove(id);
+                _deletedIds.Add(id);
+                persisted = _persisted.Remove(id);
+            }
+            if (persisted && !_store.Delete(id)) RetryDeleteLater(id);
+            Imported?.Invoke(this, EventArgs.Empty);
+            Changed?.Invoke(this, EventArgs.Empty);
+            ScheduleCompactionIfDue();
+            return true;
+        }
+
+        private void WriteQuietly(QuickNote note, bool created)
+        {
+            bool written = created ? _store.Create(note) : _store.Update(note);
+            if (written) { NoteWritten(note.Id); return; }
+            lock (_gate) _quiet.Add(note.Id);
+            RetryLater(note);
         }
 
         /// <summary>

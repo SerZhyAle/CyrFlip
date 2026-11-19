@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `PAGE-CONTENT` |
-| **Version** | 1.4, active |
+| **Version** | 1.5, active (re-read 2026-11-15, S0114) |
 | **Home** | `product-web-pages/PAGE-CONTENT.md` in the shared contracts catalog |
 | **Role here** | consumer - the landing page (`docs/index.html` and the 10 standalone locale pages) |
 

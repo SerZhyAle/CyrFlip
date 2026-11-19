@@ -231,21 +231,34 @@ namespace CyrFlip
             {
                 // One layout for all of it (WINDOWS-UI section 5): a note's visibility and text change the
                 // size of every auto-sized container above it.
+                long span = OpenTrace.Begin();   // the first refresh's largest share, split (ticket S0135, step 1.10)
+                var changedPages = new HashSet<FlowLayoutPanel>();
                 SuspendLayoutDeep(this);
                 try
                 {
                     foreach (KeyValuePair<DependencyRule, string> pair in wanted)
                     {
                         Label note = pair.Key.Note;
+                        int inset = InsetOf(pair.Key);
+                        if (pair.Key.Applied != pair.Value || note.Margin.Left != inset)
+                        {
+                            FlowLayoutPanel? page = PagePanelOf(note);
+                            if (page != null) changedPages.Add(page);
+                        }
                         note.Text = pair.Value;
                         note.Visible = pair.Value.Length > 0;
                         pair.Key.Applied = pair.Value;
-                        int inset = InsetOf(pair.Key);
                         if (note.Margin.Left != inset) note.Margin = new Padding(inset, 0, 3, 6);
                     }
+                    TraceEnd("notes:assign", ref span);
+                    // The caps are set under the same suspension, as the language pass sets them (clamp-all): clamped
+                    // after the resume, every page laid itself out again and the first refresh spent about 590 ms of
+                    // its 680 here (S0135 notes-split trace, en). The resume below lays the capped tree out once.
+                    ClampChangedPages(changedPages);
+                    TraceEnd("notes:clamp", ref span);
                 }
                 finally { ResumeLayoutDeep(this); }
-                ClampPageTextWidths();
+                TraceEnd("notes:resume", ref span);
             }
 
             // The accessible description is not layout: a reader finds the reason on the control itself.
@@ -256,6 +269,31 @@ namespace CyrFlip
                         string? description = pair.Value.Length > 0 ? pair.Value : null;
                         if (editor.AccessibleDescription != description) editor.AccessibleDescription = description;
                     }
+        }
+
+        /// <summary>The content panel of the page a control is built into; null for a control outside the pages.</summary>
+        private static FlowLayoutPanel? PagePanelOf(Control control)
+        {
+            for (Control? current = control; current != null; current = current.Parent)
+                if (current.Parent is TabPage && current is FlowLayoutPanel panel) return panel;
+            return null;
+        }
+
+        /// <summary>
+        /// The clamp after a note changed, for the pages whose notes changed only (ticket S0135): the page in view now,
+        /// every other one when it is chosen (the <c>_staleClampPanels</c> rule a hidden page's resize already follows).
+        /// Clamping all fifteen pages here was about half of the window's first refresh (S0135 after-phase1 trace,
+        /// <c>first:state:dependency-notes</c>). Before the tab control can name its selected page (no handle yet), every
+        /// changed page is clamped as before, so nothing shown first is left unclamped.
+        /// </summary>
+        private void ClampChangedPages(HashSet<FlowLayoutPanel> pages)
+        {
+            TabPage? selected = _tabs?.SelectedTab;
+            foreach (FlowLayoutPanel page in pages)
+            {
+                if (selected != null && !ReferenceEquals(page.Parent, selected)) _staleClampPanels.Add(page);
+                else ClampPage(page);
+            }
         }
 
         /// <summary>

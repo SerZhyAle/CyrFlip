@@ -133,7 +133,57 @@ namespace CyrFlip
                 case 0x22: return "PageDown";
                 case 0x2C: return "PrintScreen";
             }
+
+            foreach (KeyValuePair<int, string> trigger in AdmittedTriggers)
+                if (trigger.Key == vk) return trigger.Value;
+
             return "0x" + vk.ToString("X2", CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        /// The trigger families INPUT-CHORD 0.4 admitted as canonical tokens (amendment 2026-10-17) and
+        /// 0.5 item A reads without regard to case: the arrows, the keypad, the seven bracket and
+        /// punctuation keys and the six media keys, each by its Windows virtual key - the key's name on
+        /// the US layout, never the character it types (rule 1). One table serves both directions,
+        /// <see cref="TryParseKey"/> and <see cref="NameForVk"/>, so a name that reads can always be
+        /// written back. The contract defines no alias for any of them.
+        /// </summary>
+        private static readonly KeyValuePair<int, string>[] AdmittedTriggers = BuildAdmittedTriggers();
+
+        private static KeyValuePair<int, string>[] BuildAdmittedTriggers()
+        {
+            var triggers = new List<KeyValuePair<int, string>>(40);
+            void Add(int vk, string name) => triggers.Add(new KeyValuePair<int, string>(vk, name));
+
+            Add(0x25, "Left");
+            Add(0x26, "Up");
+            Add(0x27, "Right");
+            Add(0x28, "Down");
+
+            for (int digit = 0; digit <= 9; digit++)
+                Add(0x60 + digit, "Numpad" + digit.ToString(CultureInfo.InvariantCulture));
+            Add(0x6A, "NumpadMultiply");
+            Add(0x6B, "NumpadAdd");
+            Add(0x6D, "NumpadSubtract");
+            Add(0x6E, "NumpadDecimal");
+            Add(0x6F, "NumpadDivide");
+
+            Add(0xDB, "BracketLeft");
+            Add(0xDD, "BracketRight");
+            Add(0xBE, "Period");
+            Add(0xBC, "Comma");
+            Add(0xBB, "Equal");
+            Add(0xBD, "Minus");
+            Add(0xDC, "Backslash");
+
+            Add(0xB3, "MediaPlayPause");
+            Add(0xB0, "MediaTrackNext");
+            Add(0xB1, "MediaTrackPrevious");
+            Add(0xAF, "AudioVolumeUp");
+            Add(0xAE, "AudioVolumeDown");
+            Add(0xAD, "AudioVolumeMute");
+
+            return triggers.ToArray();
         }
 
         private static bool TryParseKey(string tok, out int vk, out string canonical)
@@ -183,6 +233,15 @@ namespace CyrFlip
                 // VK_SNAPSHOT - the key people associate with screenshots (S0026 region capture).
                 case "PRINTSCREEN": case "PRTSC": case "PRTSCN": vk = 0x2C; canonical = "PrintScreen"; return true;
             }
+
+            // The admitted families (INPUT-CHORD 0.4), read case-insensitively (0.5 item A).
+            foreach (KeyValuePair<int, string> trigger in AdmittedTriggers)
+                if (string.Equals(trigger.Value, tok, StringComparison.OrdinalIgnoreCase))
+                {
+                    vk = trigger.Key;
+                    canonical = trigger.Value;
+                    return true;
+                }
 
             vk = 0;
             canonical = "";

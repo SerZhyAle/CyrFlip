@@ -345,6 +345,19 @@ namespace CyrFlip
         /// </summary>
         public bool QuickNotesLineNumbers { get; set; } = false;
         /// <summary>
+        /// Off by default: sync the quick notes with the account's other devices through the exchange server (ticket
+        /// S0105, DEVICE-EXCHANGE 1.13 item FK). The person's act on each device, so never in the settings file.
+        /// </summary>
+        public bool QuickNotesSync { get; set; } = false;
+        /// <summary>
+        /// Off by default (APP-COMMANDS rule 13, ticket S0107): "Let other programs ask CyrFlip to work with my files, screen,
+        /// clipboard or the network". While off, a command of any risk class but <c>safe</c> is refused; only the person turns
+        /// it on - no command, settings file or settings standard can - so it is consent on this PC and never exported.
+        /// </summary>
+        public bool EnableExternalCommands { get; set; } = false;
+        /// <summary>The local id of the account entry the notes sync with; empty = the only member entry (item FK: one entry only).</summary>
+        public string QuickNotesSyncEntry { get; set; } = "";
+        /// <summary>
         /// "Do not warn again for notes" of the exchange-file export (ticket S0023, spec section 2).
         /// Only a notes-only export honours it: an export that carries clipboard history warns every time.
         /// </summary>
@@ -565,6 +578,10 @@ namespace CyrFlip
                 if (key == null)
                 {
                     cfg.LayoutConversionProfiles.Add(FlipRow(cfg.MigrateFromJson(out bool legacyFound, legacyJsonPath), true));
+                    // A working example for the (off by default) traffic light, so its table is not blank the first
+                    // time the module is switched on. Only here - no registry key yet: the list is written on every
+                    // save, so on an existing profile an empty one cannot be told from one the user emptied.
+                    cfg.TrafficLightTargets.Add(TrafficLightTargetList.StarterTarget());
                     cfg.IsFirstRun = !legacyFound;
                     cfg.WelcomeShown = legacyFound;
                     seeded = true;
@@ -668,6 +685,9 @@ namespace CyrFlip
                     cfg.EnableQuickNotesHotkey = cfg.ReadBool(key, "EnableQuickNotesHotkey", cfg.EnableQuickNotesHotkey);
                     cfg.QuickNotesWordWrap = cfg.ReadBool(key, "QuickNotesWordWrap", cfg.QuickNotesWordWrap);
                     cfg.QuickNotesLineNumbers = cfg.ReadBool(key, "QuickNotesLineNumbers", cfg.QuickNotesLineNumbers);
+                    cfg.QuickNotesSync = cfg.ReadBool(key, "QuickNotesSync", cfg.QuickNotesSync);
+                    cfg.EnableExternalCommands = cfg.ReadBool(key, "EnableExternalCommands", cfg.EnableExternalCommands);
+                    cfg.QuickNotesSyncEntry = cfg.ReadString(key, "QuickNotesSyncEntry", cfg.QuickNotesSyncEntry);
                     cfg.ExchangeNotesWarningOff = cfg.ReadBool(key, "ExchangeNotesWarningOff", cfg.ExchangeNotesWarningOff);
                     cfg.SettingsBackupEnabled = cfg.ReadBool(key, "SettingsBackupEnabled", cfg.SettingsBackupEnabled);
                     cfg.BackupOfferOpen = cfg.ReadBool(key, "BackupOfferOpen", cfg.BackupOfferOpen);
@@ -842,6 +862,9 @@ namespace CyrFlip
                 key.SetValue("EnableQuickNotesHotkey", EnableQuickNotesHotkey ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesWordWrap", QuickNotesWordWrap ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesLineNumbers", QuickNotesLineNumbers ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesSync", QuickNotesSync ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("EnableExternalCommands", EnableExternalCommands ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("QuickNotesSyncEntry", QuickNotesSyncEntry, RegistryValueKind.String);
                 key.SetValue("ExchangeNotesWarningOff", ExchangeNotesWarningOff ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("SettingsBackupEnabled", SettingsBackupEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("BackupOfferOpen", BackupOfferOpen ? 1 : 0, RegistryValueKind.DWord);

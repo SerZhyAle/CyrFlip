@@ -69,14 +69,56 @@ namespace CyrFlip
             return Page("Hotkeys", "The full list of CyrFlip hotkeys: what each one does, whether it works right now and why.", controls.ToArray());
         }
 
-        /// <summary>Rebuilds every row from the live state, in the current language.</summary>
+        // What the rows on screen were built for beyond the rows themselves: the language, the font and the
+        // measured columns. Empty until the first build.
+        private string _overviewBuiltFor = "";
+
+        /// <summary>
+        /// Rebuilds every row from the live state, in the current language - unless nothing the page shows changed
+        /// (ticket S0135, step 1.6). The rebuild was 87 of the 143 ms median of every change in the window (S0135
+        /// after-phase1 trace, <c>state:hotkeys-overview</c>), and a change on any page, a ticked box or a chosen value, ran
+        /// it although it changes no chord. The model is built every time (cheap, pure) and compared with the one the
+        /// rows on screen came from: every displayed field, the identity of the profile or scenario a row edits (a
+        /// handler holds its row), the language, the font and the measured columns. A row set that differs in any of them
+        /// is rebuilt as before; one that does not keeps its controls - and the keyboard focus on them.
+        /// </summary>
         private void ReloadHotkeysOverview()
         {
             if (_overviewGroups.Count == 0) return;
-            _overviewRows = ChordOverviewModel.Build(_config, _launcherStore.All, LanguageHotkeys.ReadAll(),
+            List<ChordOverviewRow> rows = ChordOverviewModel.Build(_config, _launcherStore.All, LanguageHotkeys.ReadAll(),
                 LanguageHotkeys.ToggleCode(), _config.UiLanguage, LayoutName);
-            MeasureOverviewColumns(_overviewRows);
+            MeasureOverviewColumns(rows);
+            string builtFor = _config.UiLanguage + "|" + Font.FontFamily.Name + "|" + Font.SizeInPoints.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                + "|" + DeviceDpi + "|" + RowHeight + "|" + _ovCaptionColumn + "|" + _ovChordColumn + "|" + _ovStateColumn;
+            // The switches are checked too: a refused switch (a chord another action holds) asks for a refresh to put
+            // the box back, and the model alone - which never changed - cannot tell that the box did.
+            bool rebuild = builtFor != _overviewBuiltFor || !SameOverview(_overviewRows, rows) || !OverviewSwitchesMatch();
+            if (rebuild)
+            {
+                _overviewRows = rows;
+                _overviewBuiltFor = builtFor;
+                RebuildOverviewRows();
+            }
+            // Else the controls on screen were built from rows equal to these in everything they show or hold,
+            // and _overviewRows stays the list they were built from.
 
+            // The master switch is read back by Reload() itself (_enableHotkeys): a reset or an import that
+            // changed it under the page reaches it there, and there is no second control to keep in step.
+            string note = "";
+            if (!_config.EnableHotkeys) note = Translate("Hotkeys are off: no CyrFlip hotkey works right now.");
+            else if (_config.DeferToRemoteDesktop)
+                note = Translate("While a remote desktop client (mstsc/msrdc) has the focus, hotkeys go to the remote session.");
+            _overviewNote.Text = note;
+            _overviewNote.Visible = note.Length > 0;
+
+            _overviewStatus.Text = _overviewLastResult == null ? "" : ResetResultText(_overviewLastResult);
+            _overviewStatus.Visible = _overviewStatus.Text.Length > 0;
+            // Never disabled: with nothing to reset the click answers so (APP-BEHAVIOUR rule 5), a greyed button would not say why.
+        }
+
+        /// <summary>Every group's body is cleared and filled again from <see cref="_overviewRows"/>, keeping the keyboard focus on its row.</summary>
+        private void RebuildOverviewRows()
+        {
             foreach (KeyValuePair<ChordGroup, CollapsibleGroup> pair in _overviewGroups)
             {
                 FlowLayoutPanel body = pair.Value.Body;
@@ -103,19 +145,53 @@ namespace CyrFlip
                 body.ResumeLayout();
                 focus.Restore(body, TakeRowFocusDelta());
             }
+        }
 
-            // The master switch is read back by Reload() itself (_enableHotkeys): a reset or an import that
-            // changed it under the page reaches it there, and there is no second control to keep in step.
-            string note = "";
-            if (!_config.EnableHotkeys) note = Translate("Hotkeys are off: no CyrFlip hotkey works right now.");
-            else if (_config.DeferToRemoteDesktop)
-                note = Translate("While a remote desktop client (mstsc/msrdc) has the focus, hotkeys go to the remote session.");
-            _overviewNote.Text = note;
-            _overviewNote.Visible = note.Length > 0;
+        /// <summary>
+        /// Whether two row sets would build the same controls and the same handlers: every field a row shows or a
+        /// handler reads, and - for a row that can be edited - the very profile or scenario it stands for (a handler
+        /// holds its row, so a replaced profile with equal content must still rebuild). Windows' own rows are read-only
+        /// and carry fresh records on every read, so their source is not compared.
+        /// </summary>
+        internal static bool SameOverview(IReadOnlyList<ChordOverviewRow> a, IReadOnlyList<ChordOverviewRow> b)
+        {
+            if (a.Count != b.Count) return false;
+            for (int i = 0; i < a.Count; i++)
+            {
+                ChordOverviewRow x = a[i], y = b[i];
+                if (x.Group != y.Group || x.Kind != y.Kind || x.Id != y.Id || x.Caption != y.Caption
+                    || x.StoredChord != y.StoredChord || x.ChordText != y.ChordText || x.State != y.State
+                    || x.ClashWith != y.ClashWith || x.HasSwitch != y.HasSwitch || x.SwitchOn != y.SwitchOn
+                    || x.ModulePage != y.ModulePage || x.DefaultChord != y.DefaultChord
+                    || x.DefaultSwitchOn != y.DefaultSwitchOn || x.Differs != y.Differs
+                    || x.ReadOnly != y.ReadOnly || x.IsMouse != y.IsMouse)
+                    return false;
+                if (!x.ReadOnly && !ReferenceEquals(x.Source, y.Source)) return false;
+            }
+            return true;
+        }
 
-            _overviewStatus.Text = _overviewLastResult == null ? "" : ResetResultText(_overviewLastResult);
-            _overviewStatus.Visible = _overviewStatus.Text.Length > 0;
-            // Never disabled: with nothing to reset the click answers so (APP-BEHAVIOUR rule 5), a greyed button would not say why.
+        /// <summary>
+        /// Whether every switch on the page shows what its row says. A refused switch leaves the model as it was and
+        /// the box the way the click left it; only a rebuild puts it back.
+        /// </summary>
+        private bool OverviewSwitchesMatch()
+        {
+            foreach (KeyValuePair<ChordGroup, CollapsibleGroup> pair in _overviewGroups)
+            {
+                var actual = new List<bool>();
+                foreach (Control row in pair.Value.Body.Controls)
+                    if (row.Controls.Count > 0 && row.Controls[0] is RowCheckBox box) actual.Add(box.Checked);
+                int index = 0;
+                foreach (ChordOverviewRow row in _overviewRows)
+                {
+                    if (row.Group != pair.Key || !row.HasSwitch) continue;
+                    if (index >= actual.Count || actual[index] != row.SwitchOn) return false;
+                    index++;
+                }
+                if (index != actual.Count) return false;
+            }
+            return true;
         }
 
         private void MeasureOverviewColumns(List<ChordOverviewRow> rows)
@@ -273,7 +349,7 @@ namespace CyrFlip
                     LauncherNotifyChanged();
                     break;
             }
-            Reload();
+            RefreshState();   // a chord changed - a value, not the language (S0135, L1)
         }
 
         /// <summary>The mouse chord is a fixed list of six (a bare right click would eat every menu in Windows): a menu, not a capture.</summary>
@@ -313,18 +389,18 @@ namespace CyrFlip
                     // Switching a row back on is checked like assigning it (KC-6), as on the table's own page.
                     if (on && Hotkey.TryParse(conversion.Hotkey, out Hotkey conversionChord)
                         && !ChordIsFree(conversionChord, ChordKind.Conversion, conversion.Id, askAboutWindows: false))
-                    { Reload(); break; }
+                    { RefreshState(); break; }
                     conversion.Enabled = on;
                     ConversionProfilesChanged?.Invoke(this, EventArgs.Empty);
-                    Reload();
+                    RefreshState();
                     break;
                 case ChordKind.Translation when row.Source is TranslationProfile translation:
                     if (on && Hotkey.TryParse(translation.Hotkey, out Hotkey translationChord)
                         && !ChordIsFree(translationChord, ChordKind.Translation, translation.Id, askAboutWindows: false))
-                    { Reload(); break; }
+                    { RefreshState(); break; }
                     translation.Enabled = on;
                     NotifyTranslationChanged();
-                    Reload();
+                    RefreshState();
                     break;
             }
         }
@@ -381,7 +457,7 @@ namespace CyrFlip
                 ChordsEdited?.Invoke(this, EventArgs.Empty);
                 if (result.ScenariosChanged) LauncherNotifyChanged();
             }
-            Reload();
+            RefreshState();   // a reset changes chords and switches - values, not the language (S0135, L1)
             if (!showResult)
                 foreach (ChordResetSkip skip in result.Skipped) Warn(SkipText(skip));
         }

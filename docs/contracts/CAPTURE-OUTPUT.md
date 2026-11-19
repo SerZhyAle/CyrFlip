@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CAPTURE-OUTPUT` |
-| **Version** | 0.5, draft |
+| **Version** | 0.8, draft (re-read 2026-11-15, S0114) |
 | **Home** | `capture-output/README.md` in the shared contracts catalog |
 | **Role here** | Producer of the `screenshot` kind (ticket S0026's screen region capture, and ticket S0071's full and annotated captures; CyrFlip composes annotations before saving; the contract sees the final pixels); no other kind is produced or consumed |
 
@@ -28,6 +28,19 @@ format without a time carrier and **no exception is owed** under rule 16's last 
 ZIP and `screenshot.log` are a report about the tool's own run (section 5, 0.3); the exchange file and the
 quick-notes export are exports whose format CyrFlip owns itself - all outside this contract. Saver failures
 are named in `screenshot.log` - failure kinds only, never a path.
+
+## A path a calling program names - conformant since 0.8 (ticket S0110; the dated exception closed 2026-11-15, S0114)
+
+`screenshot region` and `screenshot full` (`APP-COMMANDS`) take `--out`. `APP-COMMANDS` 0.2 item P says a path given
+on a command line by a program is not a name a person typed, so CyrFlip uses it **exactly as given** - no character
+replaced (rule 7), no ordinal added to a name the caller chose (rule 5), an existing file replaced only with
+`--overwrite` - and a folder (an existing one, or a path ending in a separator) gets the rule 3 name inside it, with
+rule 5's ordinal when that name is taken. Rule 16 holds in both forms: the PNG `tIME` chunk carries the freeze instant
+(`ScreenshotSaver.SaveTo`, `ScreenshotOutput`, pinned by `ScreenshotSaverCommandTests` and `ScreenshotOutputTests`).
+Since 0.8 (2026-11-15, accepted from CyrFlip's own proposal `capture-output/PROPOSAL-2026-11-15-cyrflip-caller-named-path.md`)
+section 5 says a path a calling program names is outside rules 5 and 7, so this is conformance and no exception remains;
+the registry's exception row is closed. The verbs' code is unbuilt (ticket S0110): the tests above are release items.
+The chord, the tray item and the settings buttons are unchanged.
 
 ## Synchronization read - 2026-10-18
 

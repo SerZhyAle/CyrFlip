@@ -18,9 +18,12 @@ namespace CyrFlip
     /// the subscriber's job. Runs on a plain dedicated thread because .NET Framework cannot cancel
     /// a pipe's async wait reliably; <see cref="Dispose"/> unblocks the wait with a dummy client.
     ///
-    /// Only the three commands of <see cref="ParseCommand(string[])"/> ever travel here; nothing else
-    /// on the command line, and nothing else read from the pipe, is treated as a command (tech plan
-    /// Фаза 3.1).
+    /// Two kinds of line travel here. The one-line tokens of <see cref="ParseCommand(string[])"/> - the
+    /// spellings shipped before APP-COMMANDS, kept for good (rule 2) - are passed on and answered with
+    /// nothing, as they always were. A line that opens with <c>{</c> is a request of the request-response
+    /// profile (APP-COMMANDS rule 7, ticket S0107): it is answered with one response line on the same
+    /// connection, which is why the pipe has been read-write since then. Nothing else read from the pipe
+    /// is treated as a command (tech plan Фаза 3.1).
     ///
     /// <b>Whose pipe it is</b> (ticket S0008, LS-2). A pipe name is machine-global, while the
     /// single-instance mutex is per session, so the name carries the user's SID and the session id:
@@ -55,10 +58,14 @@ namespace CyrFlip
         /// <summary>How long a connected client has to deliver its line.</summary>
         public const int ReadTimeoutMs = 2000;
 
+        /// <summary>How long an answered caller has to read its line before the connection is closed anyway.</summary>
+        public const int DrainTimeoutMs = 2000;
+
         private const int FirstBackoffMs = 200;
         private const int MaxBackoffMs = 30000;
 
         private readonly Action<string> _onCommand;
+        private readonly Func<AppCommandRequest, uint, AppCommandResponse>? _onRequest;
         private readonly string _pipeName;
         private readonly int _readTimeoutMs;
         private NamedPipeServerStream? _server;
@@ -70,9 +77,11 @@ namespace CyrFlip
         /// <paramref name="pipeName"/> and <paramref name="readTimeoutMs"/> are overridable only so
         /// tests never talk to a live CyrFlip and never wait two seconds.
         /// </summary>
-        public LauncherIpc(Action<string> onCommand, string? pipeName = null, int readTimeoutMs = ReadTimeoutMs)
+        public LauncherIpc(Action<string> onCommand, string? pipeName = null, int readTimeoutMs = ReadTimeoutMs,
+            Func<AppCommandRequest, uint, AppCommandResponse>? onRequest = null)
         {
             _onCommand = onCommand;
+            _onRequest = onRequest;
             _pipeName = pipeName ?? PipeName;
             _readTimeoutMs = readTimeoutMs;
         }
@@ -176,6 +185,75 @@ namespace CyrFlip
             }
         }
 
+        /// <summary>
+        /// Send one command request of APP-COMMANDS rule 7 and wait for its answer on the same connection. The
+        /// delivery bound is the connect (<paramref name="deliveryMs"/>, rule 8); the completion bound is the verb's
+        /// own <paramref name="completionMs"/>. What came of it is the return value; <paramref name="response"/> is
+        /// set only for <see cref="AppCommandDelivery.Answered"/>. Never throws.
+        /// </summary>
+        public static AppCommandDelivery SendRequest(AppCommandRequest request, int completionMs, out AppCommandResponse? response,
+            int deliveryMs = 1000, string? pipeName = null)
+        {
+            response = null;
+            NamedPipeClientStream? client = null;
+            try
+            {
+                client = new NamedPipeClientStream(".", pipeName ?? PipeName, PipeDirection.InOut,
+                    PipeOptions.Asynchronous, TokenImpersonationLevel.Identification);
+                try { client.Connect(deliveryMs); }
+                // A one-way pipe of a copy older than the profile refuses a read-write open (APP-COMMANDS 0.2 item K).
+                catch (UnauthorizedAccessException) { return AppCommandDelivery.OlderCopy; }
+                // Nobody listening in time: none running, or a copy that holds its pipe or pumps nothing (item J).
+                catch (TimeoutException) { return AppCommandDelivery.NoListener; }
+                if (!ServerIsOurs(client, out string why))
+                {
+                    LauncherLog.Log("IPC: request refused - " + why);
+                    return AppCommandDelivery.NotOurs;
+                }
+
+                byte[] bytes = Encoding.UTF8.GetBytes(AppCommandProtocol.Serialize(request) + "\n");
+                client.Write(bytes, 0, bytes.Length);
+                client.Flush();
+
+                var buffer = new byte[AppCommandLine.MaxRequestBytes + 2];
+                int total = 0;
+                int started = Environment.TickCount;
+                while (true)
+                {
+                    int left = completionMs - unchecked(Environment.TickCount - started);
+                    if (left <= 0) return AppCommandDelivery.TimedOut;
+                    if (total == buffer.Length) return AppCommandDelivery.Unreadable;
+                    Task<int> read = client.ReadAsync(buffer, total, buffer.Length - total);
+                    bool done;
+                    try { done = read.Wait(left); }
+                    catch (AggregateException) { return total == 0 ? AppCommandDelivery.OlderCopy : AppCommandDelivery.Unreadable; }
+                    if (!done) return AppCommandDelivery.TimedOut; // the dispose below abandons the read
+                    int n = read.Result;
+                    if (n == 0) break;
+                    int newline = Array.IndexOf(buffer, (byte)'\n', total, n);
+                    total += n;
+                    if (newline >= 0) { total = newline; break; }
+                }
+                // Closed with no line: positive evidence of a copy that does not answer (item K paragraph 1).
+                if (total == 0) return AppCommandDelivery.OlderCopy;
+                AppCommandResponse? answer = AppCommandProtocol.TryParseResponse(Encoding.UTF8.GetString(buffer, 0, total).TrimEnd('\r'));
+                if (answer == null) return AppCommandDelivery.OlderCopy;
+                // An empty or another request's id is an unreadable answer: not proven (item I paragraph 3).
+                if (answer.RequestId.Length == 0 || answer.RequestId != request.RequestId) return AppCommandDelivery.Unreadable;
+                response = answer;
+                return AppCommandDelivery.Answered;
+            }
+            catch (Exception ex)
+            {
+                LauncherLog.Log("IPC: request failed: " + ex.GetType().Name);
+                return AppCommandDelivery.NoListener;
+            }
+            finally
+            {
+                try { client?.Dispose(); } catch (Exception ex) { LauncherLog.Log("IPC: request close: " + ex.GetType().Name); }
+            }
+        }
+
         /// <summary>The process serving the pipe runs in our session as our user.</summary>
         private static bool ServerIsOurs(NamedPipeClientStream client, out string why)
         {
@@ -239,8 +317,10 @@ namespace CyrFlip
                 security.AddAccessRule(new PipeAccessRule(identity.User!, PipeAccessRights.ReadWrite, AccessControlType.Allow));
             security.AddAccessRule(new PipeAccessRule(
                 new SecurityIdentifier(WellKnownSidType.NetworkSid, null), PipeAccessRights.FullControl, AccessControlType.Deny));
-            return new NamedPipeServerStream(_pipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte,
-                PipeOptions.Asynchronous, MaxCommandChars * 4, 0, security);
+            // Read-write since S0107: a command of APP-COMMANDS gets its answer on the same connection. An older
+            // second process still opens it write-only and sends its one-line token, which stays accepted.
+            return new NamedPipeServerStream(_pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte,
+                PipeOptions.Asynchronous, AppCommandLine.MaxRequestBytes + 2, AppCommandLine.MaxRequestBytes + 2, security);
         }
 
         private void Listen()
@@ -264,7 +344,12 @@ namespace CyrFlip
                         failures = 0;
                         backoffMs = FirstBackoffMs;
 
-                        string? line = ReadLine(server);
+                        string? line = ReadLine(server, out bool overlong);
+                        if (line != null && AppCommandProtocol.LooksLikeRequest(line) || overlong)
+                        {
+                            Answer(server, line, overlong);
+                            continue;
+                        }
                         try { server.Disconnect(); } catch { /* already disconnected */ }
                         Dispatch(line);
                     }
@@ -305,21 +390,25 @@ namespace CyrFlip
         }
 
         /// <summary>
-        /// One line from the connected client: at most <see cref="MaxCommandChars"/> characters and
-        /// <see cref="ReadTimeoutMs"/>. Null when the client is silent, too long or broken - the
-        /// caller disconnects it either way. A read abandoned on the timeout is settled by the
-        /// disconnect before the instance is reused; one that will not settle fails the instance,
-        /// which the loop above replaces.
+        /// One line from the connected client within <see cref="ReadTimeoutMs"/>: a token line of at most
+        /// <see cref="MaxCommandChars"/> characters, or a command request of at most
+        /// <see cref="AppCommandLine.MaxRequestBytes"/> bytes (APP-COMMANDS rule 3). Null when the client is silent or
+        /// broken - the caller disconnects it either way; <paramref name="overlong"/> when it sent more than a request
+        /// may hold without ending the line, which is answered <c>too-large</c>, never truncated. A read abandoned on
+        /// the timeout is settled by the disconnect before the instance is reused; one that will not settle fails the
+        /// instance, which the loop above replaces.
         /// </summary>
-        private string? ReadLine(NamedPipeServerStream server)
+        private string? ReadLine(NamedPipeServerStream server, out bool overlong)
         {
-            var buffer = new byte[MaxCommandChars * 4 + 2]; // UTF-8 worst case, plus CRLF
+            overlong = false;
+            var buffer = new byte[AppCommandLine.MaxRequestBytes + 2]; // the request bound, plus CRLF
             int total = 0;
             int started = Environment.TickCount;
             while (true)
             {
                 int left = _readTimeoutMs - unchecked(Environment.TickCount - started);
-                if (left <= 0 || total == buffer.Length) return null;
+                if (left <= 0) return null;
+                if (total == buffer.Length) { overlong = true; return null; }
 
                 Task<int> read = server.ReadAsync(buffer, total, buffer.Length - total);
                 bool done;
@@ -344,8 +433,75 @@ namespace CyrFlip
                 if (newline >= 0) { total = newline; break; }
             }
 
-            string text = Encoding.UTF8.GetString(buffer, 0, total).TrimEnd('\r');
-            return text.Length <= MaxCommandChars ? text : null;
+            return Encoding.UTF8.GetString(buffer, 0, total).TrimEnd('\r');
+        }
+
+        /// <summary>
+        /// Answer one request of the request-response profile (APP-COMMANDS rule 7) on the connection it came on, then
+        /// close it. An unreadable or oversized line is answered <c>refused</c> with an empty <c>requestId</c> (item I
+        /// paragraph 3); a listener without a request handler - a test pipe - answers <c>unknown-verb</c>. The line is
+        /// drained to the client before the disconnect, which would otherwise throw away what it has not read yet.
+        /// </summary>
+        private void Answer(NamedPipeServerStream server, string? line, bool overlong)
+        {
+            AppCommandResponse response;
+            uint callerPid = 0;
+            try
+            {
+                if (!WindowInterop.GetNamedPipeClientProcessId(server.SafePipeHandle, out callerPid)) callerPid = 0;
+                response = Respond(line, overlong, callerPid);
+            }
+            catch (Exception ex)
+            {
+                // The handler's own boundary failed: still an answer, never a dropped connection (rule 3).
+                LauncherLog.Log("IPC: a command failed: " + ex.GetType().Name);
+                response = AppCommandResponse.Failed(AppCommandReasons.Error, AppCommandExit.Failed, "");
+            }
+
+            try
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(AppCommandProtocol.Serialize(response) + "\n");
+                server.Write(bytes, 0, bytes.Length);
+                server.Flush();
+                // FlushFileBuffers on a pipe waits until the client has read everything; a client that never reads
+                // must not hold the listener, so the wait is bounded and the disconnect below ends it.
+                Task drain = Task.Run(() => server.WaitForPipeDrain());
+                // The disconnect below ends a drain that is still waiting; its fault is expected and observed here.
+                drain.ContinueWith(t => LauncherLog.Log("IPC: drain ended: " + t.Exception?.GetBaseException().GetType().Name),
+                    TaskContinuationOptions.OnlyOnFaulted);
+                if (!drain.Wait(DrainTimeoutMs)) LauncherLog.Log("IPC: a caller did not read its answer in time");
+            }
+            catch (Exception ex)
+            {
+                LauncherLog.Log("IPC: an answer could not be written: " + ex.GetType().Name);
+            }
+            finally
+            {
+                try { server.Disconnect(); } catch (Exception ex) { LauncherLog.Log("IPC: disconnect after an answer: " + ex.GetType().Name); }
+            }
+
+            try { response.AfterSent?.Invoke(); }
+            catch (Exception ex) { LauncherLog.Log("IPC: after-answer step failed: " + ex.GetType().Name); }
+        }
+
+        private AppCommandResponse Respond(string? line, bool overlong, uint callerPid)
+        {
+            if (overlong)
+                return AppCommandResponse.Refused(AppCommandReasons.TooLarge, AppCommandExit.Usage, "");
+            AppCommandRequest? request = AppCommandProtocol.TryParseRequest(line ?? "", out string reason, out string requestId);
+            if (request == null)
+            {
+                AppCommandResponse refusal = reason == AppCommandReasons.Schema
+                    ? AppCommandResponse.Refused(AppCommandReasons.Schema, AppCommandExit.NotProven, "")
+                    : AppCommandResponse.Refused(AppCommandReasons.BadArgument, AppCommandExit.Usage, "");
+                refusal.RequestId = reason == AppCommandReasons.Schema ? requestId : "";
+                return refusal;
+            }
+            AppCommandResponse response = _onRequest != null
+                ? _onRequest(request, callerPid)
+                : AppCommandResponse.Refused(AppCommandReasons.UnknownVerb, AppCommandExit.Usage, "");
+            response.RequestId = request.RequestId;
+            return response;
         }
 
         public void Dispose()

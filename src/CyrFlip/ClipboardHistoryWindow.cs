@@ -122,6 +122,18 @@ namespace CyrFlip
             RestorePlacement(); Show(); ForegroundActivator.Activate(this); Invalidate();
         }
 
+        /// <summary>
+        /// The command line's <c>clipboard-history show</c> (ticket S0119): the tray item's show half alone - a strip
+        /// already up is brought forward and stays where it is, never hidden, because a shortcut that "opens the
+        /// history" must not close it. The chord's and the tray item's toggle are unchanged.
+        /// </summary>
+        public void ShowStrip()
+        {
+            if (Visible) { ForegroundActivator.Activate(this); return; }
+            _service.StartReplay();
+            RestorePlacement(); Show(); ForegroundActivator.Activate(this); Invalidate();
+        }
+
         public void ApplyOpacity() => Opacity = ThemePalette.ClampWindowOpacity(_config.ClipboardHistoryOpacity) / 100.0;
         public void RefreshHeader() => Invalidate(new Rectangle(0, 0, ClientSize.Width, HeaderHeight));
 

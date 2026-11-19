@@ -26,6 +26,8 @@ namespace CyrFlip
         public const string InvalidPayload = "invalid-payload";
         public const string AppIdMismatch = "app-id-mismatch";
         public const string VersionIncompatible = "version-incompatible";
+        // the notes of an account (DEVICE-EXCHANGE 1.13, item FL): resolved by item FJ, never shown as a failure
+        public const string NoteConflict = "note-conflict";
 
         // ---- local classes (item CZ, kind "local") ----
         public const string Unreachable = "unreachable";
@@ -76,13 +78,17 @@ namespace CyrFlip
         public const string ServerNoSettings = "server-no-settings";
         /// <summary>A save was sent and the stream closed before its answer (item ER): whether it was stored is not known.</summary>
         public const string SaveUnconfirmed = "save-unconfirmed";
+        /// <summary>The server's <c>welcome</c> lists <c>sealed</c> but no <c>notes</c> (item FI): no notes frame is sent.</summary>
+        public const string ServerNoNotes = "server-no-notes";
+        /// <summary>This device's own directory record lacks the role <c>notes</c>: it was signed in before the notes sync (S0105 A1).</summary>
+        public const string NotesRoleMissing = "notes-role-missing";
 
         /// <summary>The wire reasons of 7.10 this program tells apart; anything else is a generic refusal.</summary>
         private static readonly HashSet<string> WireReasons = new HashSet<string>
         {
             BadCredentials, DeviceRevoked, SignedOut, VersionUnsupported, TlsRequired, IdCollision, Capacity,
             Unavailable, RateLimited, LimitReached, NotPermitted,
-            NotFound, InvalidPayload, AppIdMismatch, VersionIncompatible,
+            NotFound, InvalidPayload, AppIdMismatch, VersionIncompatible, NoteConflict,
         };
 
         public static bool IsKnownWireReason(string reason) => WireReasons.Contains(reason);

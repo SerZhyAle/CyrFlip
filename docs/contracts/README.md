@@ -44,7 +44,7 @@ not a local edit and not a local copy kept "in sync".
 | [`CHECK-BASELINE.md`](CHECK-BASELINE.md) | `CHECK-BASELINE` | None - no accepted-debt file, declared |
 | [`CHECK-PLACEMENT.md`](CHECK-PLACEMENT.md) | `CHECK-PLACEMENT` | Producer - where each check runs |
 | [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md) | `BUILD-EVIDENCE` | Producer - the release ZIP carries its build's version and commit |
-| [`RELEASE-LEDGER.md`](RELEASE-LEDGER.md) | `RELEASE-LEDGER` | Producer - the ledger in `releases/` (channels, builds, publication history), adopted 2026-11-17, ticket `S0122`; the build and release hooks prove at the next сборка / РЕЛИЗ |
+| [`RELEASE-LEDGER.md`](RELEASE-LEDGER.md) | `RELEASE-LEDGER` | Producer - the ledger in `releases/` (channels, builds, publication history), adopted 2026-11-17, ticket `S0122`; `build.ps1` hook proven (`26.11.18.44`), `msix/build-msix.ps1` and `release.ps1` hooks prove at the next РЕЛИЗ |
 | [`TEST-LAB.md`](TEST-LAB.md) | `TEST-LAB` | Reporter - one inventory of equipment, test practice and contract proof filed 2026-10-23 (ticket `S0080`); no profile, no harness change |
 | [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-INTERNAL-QUALITY` | Consumer - internal docs; held (most rules gated), ticket `S0028` |
 | [`DOC-QUALITY.md`](DOC-QUALITY.md) | `DOC-EXTERNAL-QUALITY` | Consumer - the `docs/` site in 13 languages; held and gated, ticket `S0028` |

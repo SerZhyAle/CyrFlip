@@ -279,6 +279,19 @@ namespace CyrFlip
             return true;
         }
 
+        /// <summary>
+        /// The one example row a brand-new profile starts with, so the table is never an empty page the first time
+        /// the module is switched on: a website target exactly as typing <c>www.google.com</c> into the add field
+        /// produces it (<c>http</c>, <c>https://</c> in front, the kind's defaults). Only the label differs from
+        /// the recognizer's suggestion, on purpose: <c>google.com</c> reads as an address, and a label that does
+        /// (<c>TrafficLightLabels.IsSafe</c>) makes <c>trafficlight status</c> and <c>check --all</c> refuse the
+        /// whole board with <c>label-unsafe</c> until it is renamed - a default must not break the command line
+        /// for everyone who keeps it. Seeded by <c>AppConfig.LoadFrom</c> on a first run only; an upgrade never
+        /// gets it, and a list the user emptied stays empty.
+        /// </summary>
+        public static TrafficLightTarget StarterTarget()
+            => TrafficLightTarget.Create(TrafficLightKinds.Http, "https://www.google.com", "Google", 0);
+
         public static string Serialize(IEnumerable<TrafficLightTarget> targets)
             => new JavaScriptSerializer().Serialize(new List<TrafficLightTarget>(targets));
 

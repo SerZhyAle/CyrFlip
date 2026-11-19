@@ -121,6 +121,8 @@ namespace CyrFlip
             tick?.Dispose();
             settle?.Dispose();
             try { queue?.CompleteAdding(); } catch (Exception ex) { TrafficLightLog.Fault("queue-complete", ex); }
+            // A command still waiting for a check will never hear of it: it is told now, not at its bound (S0117).
+            try { _engine.AbandonCommandChecks(); } catch (Exception ex) { TrafficLightLog.Fault("abandon-commands", ex); }
         }
 
         public void Dispose()
@@ -147,6 +149,27 @@ namespace CyrFlip
             KickTick();
         }
 
+        /// <summary>
+        /// One check asked for by a command (ticket S0117): the engine's own single-check path - the one a click on a
+        /// tile takes - with a ticket that completes when that very check has been applied. The caps and the pacing are
+        /// the board's: a check already running is not started a second time (the command waits for it), a target over
+        /// the in-flight cap waits for a later tick, and a target that is never probed comes back refused with the reason.
+        /// Nothing here raises a balloon: a change settled by a check only the command asked for is marked silent.
+        /// </summary>
+        public TrafficCheckTicket RequestCommandCheck(string id)
+        {
+            TrafficCheckTicket ticket = _engine.RequestCommandCheck(id);
+            if (ticket.Start == TrafficCheckStart.Started) KickTick();
+            return ticket;
+        }
+
+        public TrafficCheckTicket RequestCommandCheck(TrafficLightTarget target)
+        {
+            TrafficCheckTicket ticket = _engine.RequestCommandCheck(target);
+            if (ticket.Start == TrafficCheckStart.Started) KickTick();
+            return ticket;
+        }
+
         private void KickTick()
         {
             if (_started) ThreadPool.QueueUserWorkItem(_ => Tick());
@@ -171,7 +194,7 @@ namespace CyrFlip
                     // Over the cap: leave it due. The next tick tries again, which is the stagger.
                     if (!blocking && Volatile.Read(ref _asyncInFlight) >= MaxAsyncInFlight) continue;
 
-                    int generation = _engine.MarkDispatched(target.Id);
+                    int generation = _engine.MarkDispatched(target);
                     if (generation < 0) continue;
                     if (blocking) EnqueueBlocking(target, generation);
                     else StartAsync(target, generation);

@@ -194,7 +194,7 @@ namespace CyrFlip
             if (_loading) return;
             apply();
             GraphicsChanged?.Invoke(this, EventArgs.Empty);
-            if (reload) Reload();
+            if (reload) RefreshState();
         }
 
         /// <summary>Mirror the Graphics settings into the page and gate the rows behind their switches.</summary>

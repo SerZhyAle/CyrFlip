@@ -159,6 +159,22 @@ namespace CyrFlip
         /// <summary>1 while the system I-beam is ours; set by a successful <c>SetSystemCursor</c>.</summary>
         private static int s_replaced;
 
+        /// <summary>
+        /// The repair a command names (<c>cursor restore</c>, ticket S0125): the whole default scheme reloaded
+        /// unconditionally - the same <c>SPI_SETCURSORS</c> the exit paths own, without their replaced-guard, because
+        /// the kill scenario the verb exists for is a fresh process that replaced nothing. The <c>s_replaced</c> counter
+        /// is cleared the way <see cref="ForceRestore"/> clears it: a whole-scheme reload undoes this process's own
+        /// replacement too, and a fresh process has none. Idempotent and safe from any thread, beside a live instance
+        /// (its broadcast is not a reload to answer, the same guard <see cref="ForceRestore"/> holds).
+        /// </summary>
+        public static void ReloadScheme()
+        {
+            Interlocked.Exchange(ref s_replaced, 0);
+            Interlocked.Exchange(ref s_reloading, 1);
+            try { ReloadCursors(); }
+            finally { Interlocked.Exchange(ref s_reloading, 0); }
+        }
+
         /// <summary>1 while CyrFlip's own <c>SPI_SETCURSORS</c> is in flight - its broadcast is not a
         /// reload to answer (<see cref="OnSystemCursorsChanged"/>).</summary>
         private static int s_reloading;

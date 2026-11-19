@@ -41,14 +41,36 @@ namespace CyrFlip
         public static SelectionAnswer Present(string? text = null) => new SelectionAnswer(SelectionState.Present, text);
     }
 
+    /// <summary>
+    /// One source's answer as the menu's diagnostics line reports it (S0133): the source's fixed
+    /// name, the state it answered, and - when it handed text over - the character count. The count
+    /// only, never the text: <c>context-menu.log</c> records the shape of a selection, not its content.
+    /// </summary>
+    internal readonly struct SelectionSourceAnswer
+    {
+        public readonly string Source;
+        public readonly SelectionState State;
+        /// <summary>Characters the source could read, or null when it read none.</summary>
+        public readonly int? TextChars;
+
+        internal SelectionSourceAnswer(string source, SelectionState state, int? textChars)
+        {
+            Source = source;
+            State = state;
+            TextChars = textChars;
+        }
+    }
+
     /// <summary>What one probe found: the verdict and, when a source gave it, the selected text.</summary>
     internal sealed class SelectionSnapshot
     {
-        public SelectionSnapshot(SelectionState state, string? text = null, LaunchTarget? launch = null)
+        public SelectionSnapshot(SelectionState state, string? text = null, LaunchTarget? launch = null,
+            IReadOnlyList<SelectionSourceAnswer>? sourceAnswers = null)
         {
             State = state;
             Text = string.IsNullOrEmpty(text) ? null : text;
             Launch = launch;
+            SourceAnswers = sourceAnswers;
         }
 
         public SelectionState State { get; }
@@ -60,8 +82,6 @@ namespace CyrFlip
         /// </summary>
         public LaunchTarget? Launch { get; }
 
-        /// <summary>The same snapshot with the text's launch target attached.</summary>
-        public SelectionSnapshot WithLaunch(LaunchTarget? launch) => new SelectionSnapshot(State, Text, launch);
         /// <summary>
         /// The selection itself when it could be read through the accessibility stack - null
         /// otherwise, which is an ordinary outcome, not a failure. It is what "Launch" parses; every
@@ -70,12 +90,22 @@ namespace CyrFlip
         public string? Text { get; }
 
         /// <summary>
+        /// Each source's own answer, in asking order, when the probe finished collecting (S0133) -
+        /// verdicts and counts, never text. Null on a snapshot the probe did not answer (the pre-probe
+        /// Unknown), which is how the diagnostics line avoids guessing about a greyed menu.
+        /// </summary>
+        public IReadOnlyList<SelectionSourceAnswer>? SourceAnswers { get; }
+
+        /// <summary>
         /// The read stopped at the cap, so <see cref="Text"/> is a prefix of the selection rather
         /// than the selection. The menu says so with a "+" instead of printing the ceiling as a fact.
         /// </summary>
         public bool Truncated => Text != null && Text.Length >= SelectionProbe.MaxTextChars;
 
         public static readonly SelectionSnapshot Unknown = new SelectionSnapshot(SelectionState.Unknown);
+
+        /// <summary>The same snapshot with the text's launch target attached - the trace travels with it.</summary>
+        public SelectionSnapshot WithLaunch(LaunchTarget? launch) => new SelectionSnapshot(State, Text, launch, SourceAnswers);
     }
 
     /// <summary>
@@ -176,25 +206,53 @@ namespace CyrFlip
         /// <summary>
         /// Ask the real sources about the focused element and about the element under
         /// (<paramref name="x"/>, <paramref name="y"/>). Must run on an MTA thread - see <see cref="Worker"/>.
+        /// Each source records its answer into the trace, so the menu's log line can name every
+        /// source's own verdict for this opening (S0133) instead of only the aggregate one.
         /// </summary>
-        public static SelectionSnapshot Probe(int x, int y) => Decide(Sources(x, y));
+        public static SelectionSnapshot Probe(int x, int y)
+        {
+            var trace = new List<SelectionSourceAnswer>();
+            SelectionSnapshot answered = Decide(Sources(x, y, trace));
+            return new SelectionSnapshot(answered.State, answered.Text, null, trace);
+        }
 
         /// <summary>
         /// The source list, cheapest and most likely first. The pointer comes before the focus in
         /// each pair: the menu opens over the text the user means, and that is the element whose
-        /// answer describes it.
+        /// answer describes it. The names are what the diagnostics line prints: one label per
+        /// source, stable across releases so two recordings of the same window stay comparable.
         /// </summary>
-        private static IEnumerable<Func<SelectionAnswer>> Sources(int x, int y)
+        private static IEnumerable<Func<SelectionAnswer>> Sources(int x, int y, List<SelectionSourceAnswer> trace)
         {
             IntPtr pointerWindow = WindowFromPoint(new POINT { X = x, Y = y });
             IntPtr focusWindow = FocusedWindow();
 
-            yield return () => FromEditControl(pointerWindow);
-            if (focusWindow != pointerWindow) yield return () => FromEditControl(focusWindow);
-            yield return () => FromAnswer(Ia2Caret.ReadSelectionAt(x, y));
-            yield return () => FromAnswer(Ia2Caret.ReadFocusedSelection());
-            yield return () => FromUia(AutomationElementAt(x, y));
-            yield return () => FromUia(AutomationElement.FocusedElement);
+            yield return Traced(trace, "edit@pointer", () => FromEditControl(pointerWindow));
+            if (focusWindow != pointerWindow)
+                yield return Traced(trace, "edit@focus", () => FromEditControl(focusWindow));
+            yield return Traced(trace, "ia2@pointer", () => FromAnswer(Ia2Caret.ReadSelectionAt(x, y)));
+            yield return Traced(trace, "ia2@focus", () => FromAnswer(Ia2Caret.ReadFocusedSelection()));
+            yield return Traced(trace, "uia@pointer", () => FromUia(AutomationElementAt(x, y)));
+            yield return Traced(trace, "uia@focus", () => FromUia(AutomationElement.FocusedElement));
+        }
+
+        /// <summary>
+        /// Record one source's answer for the diagnostics line. A source that throws is recorded as
+        /// <see cref="SelectionState.Unknown"/> and answered as such - the same verdict
+        /// <see cref="Decide"/> gives a throwing source anyway - so the trace documents the decision
+        /// and never changes it. The character count is the shape of what the source read; the text
+        /// itself never leaves the probe.
+        /// </summary>
+        private static Func<SelectionAnswer> Traced(List<SelectionSourceAnswer> trace, string source, Func<SelectionAnswer> ask)
+        {
+            return () =>
+            {
+                SelectionAnswer answer;
+                try { answer = ask(); }
+                catch { answer = SelectionAnswer.Unknown; }
+                trace.Add(new SelectionSourceAnswer(source, answer.State, answer.Text?.Length));
+                return answer;
+            };
         }
 
         private static LaunchTarget? ParseLaunchTarget(string text)

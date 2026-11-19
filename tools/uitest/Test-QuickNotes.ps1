@@ -167,6 +167,27 @@ The rest needs you at the keyboard. In order:
      repeat at 100 / 150 / 200 % display scaling, in the Arabic interface (the strip stays on the
      left) and in the dark and high-contrast themes.
 
+  8. (S0108) the notes from a command line - with CyrFlip running, the notes on, and the notes window open
+     on a note you have just edited and not yet closed. Each line is run from this folder, and the exit
+     code is what is read:
+       (Start-Process .\CyrFlip.exe -ArgumentList 'note add --text "buy milk" --title Shopping --result C:\temp\note.json' -Wait -PassThru).ExitCode
+     -> 0; the file holds {"noteId":"<guid>"}; the new note is at the top of the open window's list; the
+        edit in the open note, its caret and its selected row are untouched;
+       (Start-Process .\CyrFlip.exe -ArgumentList 'note list --query milk --result C:\temp\notes.json' -Wait -PassThru).ExitCode
+     -> 12 while "Commands from other programs" (General page) is off; after turning it on, 0 and the file
+        holds {"count":n,"total":n,"notes":[..]} with the note above (its title, a preview of its text, its
+        dates in UTC); "--limit 0" -> 10;
+     switch the quick notes off and run both again
+     -> 11 for both (the module is off) and quick-notes.log is neither read nor created (its date is
+        unchanged, or the file is still absent on a profile that never had notes);
+     exit CyrFlip, switch the notes on in the settings file or the registry beforehand, then run the
+     `note add` line with nothing running
+     -> CyrFlip starts in the tray, the note is added, the exit code is 0; the same with `note list` and
+        nothing running -> 11, and no tray icon appears;
+     open app-commands.log (About > send logs, or the data folder)
+     -> one line per command with the verb, status, exit and, for the list, "count=n" - and not one
+        character of any note.
+
 Step 3 is the one worth being fussy about: the copy behind it is scaffolding, and the whole point
 of the feature is that the history stays the record of what YOU copied.
 '@

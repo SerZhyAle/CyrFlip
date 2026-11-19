@@ -34,11 +34,20 @@ namespace CyrFlip
         /// the memo exact. False only for the test that proves exactly that.
         /// </param>
         internal static string Convert(string input, string sourceKlid, string targetKlid, bool convertSymbols, bool memoize)
+            => Convert(input, sourceKlid, targetKlid, convertSymbols, memoize, ResolveInstalled);
+
+        /// <param name="resolveInstalled">
+        /// The layout-list seam (ticket S0109): how a KLID becomes a handle. The product passes
+        /// <see cref="ResolveInstalled"/>; a test passes <c>_ =&gt; IntPtr.Zero</c> and so proves the table fallback on
+        /// any machine - which used to hold only where the Russian keyboard happened to be missing.
+        /// </param>
+        internal static string Convert(string input, string sourceKlid, string targetKlid, bool convertSymbols, bool memoize,
+            Func<string?, IntPtr> resolveInstalled)
         {
             if (string.IsNullOrEmpty(input)) return input ?? "";
 
-            IntPtr source = ResolveInstalled(sourceKlid);
-            IntPtr target = ResolveInstalled(targetKlid);
+            IntPtr source = resolveInstalled(sourceKlid);
+            IntPtr target = resolveInstalled(targetKlid);
             if (source == IntPtr.Zero || target == IntPtr.Zero || source == target)
                 return IsBuiltInPair(sourceKlid, targetKlid)
                     ? TransliterationEngine.TransliterateFrom(input, fromLatin: IsUs(sourceKlid), convertSymbols)
@@ -81,7 +90,7 @@ namespace CyrFlip
         /// that never installed the Russian keyboard. Every other pair honestly does nothing there:
         /// only these two layouts have a table of our own to fall back to.
         /// </summary>
-        private static bool IsBuiltInPair(string? a, string? b)
+        internal static bool IsBuiltInPair(string? a, string? b)
             => (string.Equals(a, UsKlid, StringComparison.OrdinalIgnoreCase) && string.Equals(b, RussianKlid, StringComparison.OrdinalIgnoreCase))
             || (string.Equals(a, RussianKlid, StringComparison.OrdinalIgnoreCase) && string.Equals(b, UsKlid, StringComparison.OrdinalIgnoreCase));
 

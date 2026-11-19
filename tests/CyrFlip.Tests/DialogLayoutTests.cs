@@ -116,8 +116,9 @@ namespace CyrFlip.Tests
                 {
                     using (var dialog = new HotkeyDialog("Ctrl+Shift+F12", "T", language))
                         inspected += Check(dialog, language, "HotkeyDialog", problems);
-                    // The widest chord the capture can produce, drawn 1.4x bold (ticket S0007, DL-5).
-                    using (var dialog = new HotkeyDialog(HotkeyDialog.LongestChord, "T", language))
+                    // The widest chord the capture can produce, drawn 1.4x bold (ticket S0007, DL-5); since
+                    // S0116 that is the longest admitted trigger name, not Backspace.
+                    using (var dialog = new HotkeyDialog(HotkeyDialog.LongestAdmittedChord, "T", language))
                         inspected += Check(dialog, language, "HotkeyDialog(longest)", problems);
                     // The add-layout picker, off pixel geometry since S0007 DL-3.
                     using (var dialog = new LayoutPickerDialog(new string[0], language, Available))

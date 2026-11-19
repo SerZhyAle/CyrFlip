@@ -35,8 +35,8 @@ namespace CyrFlip
 
     /// <summary>
     /// Reads what the clipboard holds, for the send (<c>CLIPBOARD-GUARD</c> items M to P): one open, one object, in
-    /// the order a file, a text, a picture; the clipboard is closed before any disk or network I/O. No marker is
-    /// read and none is honoured - the person's press is the decision (item M).
+    /// the order a file, a picture, a text (item S); the first present decides the kind and is final. The clipboard is
+    /// closed before any disk or network I/O. No marker is read and none is honoured - the person's press is the decision (item M).
     /// </summary>
     internal static class ExchangeClipboardSource
     {
@@ -78,7 +78,47 @@ namespace CyrFlip
                 }
             }
 
-            // 2. a text (item O.2): the block is checked against the cap before one character is marshalled into a string
+            // 2. a picture (item O.3, second since item S): the registered PNG keeps transparency, then CF_DIBV5, then CF_DIB.
+            // The first picture format present decides the kind and is final: a picture that is there but cannot be read or
+            // converted fails the send with its own reason, and the text beside it is not sent in its place. The formats
+            // of one picture are still tried in turn - that is the same picture, not a second guess at what was meant.
+            uint cappedBytes = (uint)Math.Min(int.MaxValue, cap);
+            string? pictureFailure = null;
+            if (ClipboardFormats.Png != 0 && reader.IsAvailable(ClipboardFormats.Png))
+            {
+                ClipboardRead status = reader.Read(ClipboardFormats.Png, (int)cappedBytes, out byte[]? png);
+                if (status == ClipboardRead.TooLarge) return ExchangeCodes.LimitReached;
+                if (status == ClipboardRead.Ok && png != null)
+                {
+                    payload = Picture(png);
+                    return null;
+                }
+                pictureFailure = PictureFailure(status);
+            }
+            foreach (uint format in new[] { WindowInterop.CF_DIBV5, WindowInterop.CF_DIB })
+            {
+                if (!reader.IsAvailable(format)) continue;
+                ClipboardRead status = reader.Read(format, (int)cappedBytes, out byte[]? dib);
+                if (status == ClipboardRead.TooLarge) return ExchangeCodes.LimitReached;
+                if (status != ClipboardRead.Ok || dib == null)
+                {
+                    pictureFailure ??= PictureFailure(status);
+                    continue;
+                }
+                // converted after the clipboard is closed would need the bytes anyway; the conversion is CPU, not I/O
+                byte[]? converted = ClipboardImage.DibToPng(dib);
+                if (converted == null)
+                {
+                    pictureFailure ??= ExchangeCodes.NothingToSend;
+                    continue;
+                }
+                if (converted.LongLength > cap) return ExchangeCodes.LimitReached;
+                payload = Picture(converted);
+                return null;
+            }
+            if (pictureFailure != null) return pictureFailure;
+
+            // 3. a text (item O.2, third since item S): the block is checked against the cap before one character is marshalled into a string
             if (reader.IsAvailable(WindowInterop.CF_UNICODETEXT))
             {
                 long utf16Limit = Math.Min(int.MaxValue - 2L, cap * 2 + 2);
@@ -99,34 +139,15 @@ namespace CyrFlip
                 }
             }
 
-            // 3. a picture (item O.3): the registered PNG keeps transparency, then CF_DIBV5, then CF_DIB
-            uint cappedBytes = (uint)Math.Min(int.MaxValue, cap);
-            if (ClipboardFormats.Png != 0 && reader.IsAvailable(ClipboardFormats.Png))
-            {
-                ClipboardRead status = reader.Read(ClipboardFormats.Png, (int)cappedBytes, out byte[]? png);
-                if (status == ClipboardRead.TooLarge) return ExchangeCodes.LimitReached;
-                if (status == ClipboardRead.Ok && png != null)
-                {
-                    payload = Picture(png);
-                    return null;
-                }
-            }
-            foreach (uint format in new[] { WindowInterop.CF_DIBV5, WindowInterop.CF_DIB })
-            {
-                if (!reader.IsAvailable(format)) continue;
-                ClipboardRead status = reader.Read(format, (int)cappedBytes, out byte[]? dib);
-                if (status == ClipboardRead.TooLarge) return ExchangeCodes.LimitReached;
-                if (status != ClipboardRead.Ok || dib == null) continue;
-                // converted after the clipboard is closed would need the bytes anyway; the conversion is CPU, not I/O
-                byte[]? converted = ClipboardImage.DibToPng(dib);
-                if (converted == null) continue;
-                if (converted.LongLength > cap) return ExchangeCodes.LimitReached;
-                payload = Picture(converted);
-                return null;
-            }
-
             return null; // nothing that can be sent
         }
+
+        /// <summary>
+        /// Why a picture that is on the clipboard could not be taken (item S): the owner that announced it did not render it
+        /// (<c>owner-timeout</c>, item N), or the block holds nothing a picture can be made of (<c>nothing-to-send</c>).
+        /// </summary>
+        private static string PictureFailure(ClipboardRead status)
+            => status == ClipboardRead.Failed ? ExchangeCodes.OwnerTimeout : ExchangeCodes.NothingToSend;
 
         private static ExchangeClipboardPayload Picture(byte[] png)
             => new ExchangeClipboardPayload { Kind = ExchangeClipboardPayload.Image, Bytes = png, ClearSize = png.LongLength, MimeType = "image/png" };

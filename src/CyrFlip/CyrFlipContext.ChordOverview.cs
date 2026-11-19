@@ -57,7 +57,7 @@ namespace CyrFlip
             ApplyTrafficLightModule();
             UpdateTrayTexts();
             UpdateTrayTooltip();
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
     }
 }

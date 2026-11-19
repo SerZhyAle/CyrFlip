@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -63,6 +63,19 @@ namespace CyrFlip
             AddWelcomeStrings();
             AddSettingsTransferStrings();
             AddSettingsStandardStrings();
+            AddNotesSyncStrings();
+            AddAppCommandStrings();
+            AddAppCommandsNotesStrings();
+            AddAppCommandsClipboardStrings();
+            AddAppCommandsLayoutTextStrings();
+            AddAppCommandsScreenshotsStrings();
+            AddAppCommandsScreenshotExtrasStrings();
+            AddAppCommandsInspectionStrings();
+            AddAppCommandsTrafficLightStrings();
+            AddAppCommandsWindowsStrings();
+            AddAppCommandsStateSwitchesStrings();
+            AddAppCommandsTranslateStrings();
+            AddAppCommandsSelectionStrings();
             AddSymbolsStrings();
             AddHotkeysOverviewStrings();
             AddTrayPopupStrings();

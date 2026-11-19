@@ -17,7 +17,7 @@ namespace CyrFlip
     ///
     /// Two rules are load-bearing:
     ///
-    /// 1. <b><see cref="ExcludedFiles"/> (clipboard-history.log, quick-notes.log, traffic-light-history.txt) never go in.</b> They are literally
+    /// 1. <b><see cref="ExcludedFiles"/> (clipboard-history.log, quick-notes.log, traffic-light-history.txt, quick-notes-sync.json) never go in.</b> They are literally
     ///    everything the user ever copied - passwords, messages, card numbers. It is DPAPI-protected
     ///    and unreadable off this account anyway, but that is not the reason: it is not our data.
     ///    The file list is therefore an explicit whitelist (<see cref="LogFiles"/>), never a
@@ -83,7 +83,7 @@ namespace CyrFlip
         {
             "launcher.log", "context-menu.log", "translate.log", "quick-notes-diagnostics.log",
             "clipboard-history-diagnostics.log", "clipboard-flip.log", "screenshot.log",
-            "settings-file.log", "exchange-clipboard.log", "caret-diagnostics.txt", "crash.log", "layout.txt",
+            "settings-file.log", "exchange-clipboard.log", AppCommandsLog.FileName, "caret-diagnostics.txt", "crash.log", "layout.txt",
         };
 
         /// <summary>
@@ -97,6 +97,8 @@ namespace CyrFlip
         public static readonly string[] ExcludedFiles =
         {
             "clipboard-history.log", "quick-notes.log", "traffic-light-history.txt",
+            // the notes sync state (ticket S0105): no text, but it lists which notes exist
+            ExchangeNotesSyncStore.FileName,
         };
 
         private const string LauncherLogName = "launcher.log";
@@ -121,6 +123,7 @@ namespace CyrFlip
             ["caret-diagnostics.txt"] = "caret diagnostics: window classes and processes - titles only as a length",
             ["settings-file.log"] = "settings transfer: counts, key names and reason codes - no values",
             ["exchange-clipboard.log"] = "exchange server clipboard: kind, size and outcome codes - no text, names or addresses",
+            [AppCommandsLog.FileName] = "commands from other programs: command, caller and outcome - no arguments",
             // S0065 E-11: the bundle a user mails after a crash used to hold no crash - Fatal writes
             // the exception to crash.log, which was never in the whitelist. It passes the redactor
             // like every file (the profile becomes <USER>), so the stack can keep its paths.
@@ -317,10 +320,12 @@ namespace CyrFlip
         /// <param name="environmentText">
         /// <see cref="EnvironmentName"/>'s content (<see cref="BuildEnvironment"/>); null leaves the entry out.
         /// </param>
+        /// <param name="archiveName">The file name of the archive inside <paramref name="reportsDir"/>; null is the About page's name for the stamp. A caller that needs no partial archive under its own name writes a temporary name and moves it.
+        /// </param>
         public static Result Create(string logDir, string reportsDir, string reportText, string version,
             DateTime stamp, int maxFileBytes = MaxFileBytes, long maxTotalBytes = MaxTotalBytes,
             int keepArchives = KeepArchives, DiagnosticRedactor? redactor = null, string? environmentText = null,
-            long maxRedactableBytes = MaxRedactableBytes)
+            long maxRedactableBytes = MaxRedactableBytes, string? archiveName = null)
         {
             redactor ??= DiagnosticRedactor.Generic;
             reportText = redactor.Redact(reportText);
@@ -328,7 +333,7 @@ namespace CyrFlip
             Directory.CreateDirectory(reportsDir);
             var result = new Result
             {
-                ArchivePath = Path.Combine(reportsDir, ArchiveName(version, stamp)),
+                ArchivePath = Path.Combine(reportsDir, archiveName ?? ArchiveName(version, stamp)),
             };
 
             byte[] report = Encoding.UTF8.GetBytes(reportText);

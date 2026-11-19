@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-STYLE` |
-| **Version** | 0.12, draft (read 2026-10-07; 0.12 adds section 10 - complete live theme coverage and the Windows profile; the sections 2-5 below were re-verified against it by S0048 on 2026-10-06) |
+| **Version** | 0.15, draft (re-read 2026-11-15, S0114; first read 2026-10-07; 0.12 adds section 10 - complete live theme coverage and the Windows profile; the sections 2-5 below were re-verified against it by S0048 on 2026-10-06) |
 | **Home** | `desktop-app-ux/APP-STYLE.md` in the shared contracts catalog |
 | **Role here** | consumer - sections 2-5 implemented and shipped (the app theme, since v26.10.1) |
 

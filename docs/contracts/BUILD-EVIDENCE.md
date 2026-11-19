@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `BUILD-EVIDENCE` |
-| **Version** | 0.10, draft (read 2026-10-07; 0.10 names edition as an axis, prefers the embedded source revision, adds the manual-dispatch class and rule 8) |
+| **Version** | 0.11, draft (re-read 2026-11-15, S0114; first read 2026-10-07; 0.10 names edition as an axis, prefers the embedded source revision, adds the manual-dispatch class and rule 8) |
 | **Home** | `automated-checks/README.md` in the shared contracts catalog, section 5 |
 | **Role here** | producer - the release ZIP (and the MSIX) carry the version of the build that produced them |
 

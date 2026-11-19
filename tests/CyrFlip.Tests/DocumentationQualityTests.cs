@@ -34,6 +34,8 @@ namespace CyrFlip.Tests
             yield return Path.Combine(Docs, "sitemap.xml");
             yield return Path.Combine(Docs, "search-index.json");
             yield return Path.Combine(Docs, "termbase.json");
+            // The command line document, rendered from docs/cli-commands.json (APP-COMMANDS rule 20, S0107).
+            yield return Path.Combine(Docs, "CLI.md");
         }
 
         [Fact]

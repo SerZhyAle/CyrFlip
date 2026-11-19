@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Ids** | `DOC-INTERNAL-QUALITY`, `DOC-EXTERNAL-QUALITY` |
-| **Version** | `DOC-INTERNAL-QUALITY` 0.9, `DOC-EXTERNAL-QUALITY` 0.10, draft |
+| **Version** | `DOC-INTERNAL-QUALITY` 0.13, `DOC-EXTERNAL-QUALITY` 0.14, draft (re-read 2026-11-15, S0114) |
 | **Home** | `documentation-quality/README.md` in the shared contracts catalog |
 | **Role here** | consumer of both - adopted 2026-09-26; held as of 2026-10-01 (ticket `S0028`), most rules gated by tests - internal 5 (house style) and 6-7 (asset orphans, embedded third-party assets) are held by the cleanup and by reading, not gated. `DOC-INTERNAL-QUALITY` is still 0.9 in the catalog; `DOC-EXTERNAL-QUALITY` 0.10 was read on 2026-10-07 and widens only what conforms (section 8 of the contract), see the last section |
 

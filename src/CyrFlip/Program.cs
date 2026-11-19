@@ -8,18 +8,51 @@ namespace CyrFlip
     internal static class Program
     {
         [STAThread]
-        private static void Main(string[] args)
+        private static int Main(string[] args)
         {
-            // The only arguments CyrFlip ever treats as commands are the launcher protocol's
-            // (/launcher-run:{guid}, /launcher-settings, /exit) - anything else is ignored.
-            string? command = LauncherIpc.ParseCommand(args);
+            // The role is decided before anything else is loaded (APP-COMMANDS rule 6, ticket S0107): a command of
+            // the manifest, one of the spellings shipped before it (/launcher-run:{guid}, /launcher-settings, /exit,
+            // /clipboard-send, /clipboard-get), or a plain start. Anything else is refused with exit 10 and nothing
+            // runs - reading it costs no configuration, window or worker.
+            AppCommandLineResult parsed = AppCommandLine.Parse(args);
+            if (parsed.Kind == AppCommandLineKind.Refused)
+                return AppCommandRunner.Refuse(parsed);
+            AppCommandInvocation? invocation = parsed.Invocation;
+            // `commands` and `version` print what this executable knows and touch no running copy (item C).
+            if (invocation != null && invocation.Spec.Forward == "never")
+                return AppCommandRunner.RunLocal(invocation);
+            string? command = parsed.LegacyToken;
 
             // Single instance per user session - a second copy (e.g. autostart + manual launch)
             // would install a second hook and fight over the system cursor. Hold the mutex for
             // the app's lifetime; the OS releases it if we die.
-            using var single = new Mutex(initiallyOwned: true, @"Local\CyrFlipSingleInstance", out bool isFirst);
+            Mutex single;
+            bool isFirst;
+            try
+            {
+                single = new Mutex(initiallyOwned: true, @"Local\CyrFlipSingleInstance", out isFirst);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // The running copy was started as administrator and this process was not: its mutex (and its
+                // pipe) cannot be opened from here. A command says so in words (rule 11, `elevation`); a plain or a
+                // legacy start tells the person, as when the copy does not answer.
+                if (invocation != null) return AppCommandRunner.Elevated(invocation);
+                if (command != LauncherIpc.ExitCommand) TellAlreadyRunning();
+                return 0;
+            }
+            using (single)
+                return RunWithMutex(single, isFirst, invocation, command);
+        }
+
+        private static int RunWithMutex(Mutex single, bool isFirst, AppCommandInvocation? invocation, string? command)
+        {
             if (!isFirst)
             {
+                // A command of APP-COMMANDS waits for the running copy's answer and exits with its code
+                // (APP-ACTIVATION 0.15 section 11).
+                if (invocation != null) return AppCommandRunner.Forward(invocation);
+
                 // A second launch while CyrFlip is alive hands its request to the live instance over
                 // the named pipe and leaves; a second hook or tray icon is never created (spec §8.2).
                 // A Jump List task forwards its own command. A plain launch - the exe double-clicked,
@@ -31,11 +64,20 @@ namespace CyrFlip
                 bool delivered = LauncherIpc.TrySend(forwarded);
                 if (SecondLaunchOwesAnAnswer(forwarded, delivered))
                     TellAlreadyRunning();
-                return;
+                return 0;
+            }
+
+            if (invocation != null)
+            {
+                // Nothing is running: the verb's coldStart decides (rule 10). The mutex goes first - a `start` verb
+                // starts the tray copy, which has to win it, and a one-shot run must never block a real launch.
+                single.ReleaseMutex();
+                single.Dispose();
+                return AppCommandRunner.ColdStart(invocation);
             }
 
             if (command == LauncherIpc.ExitCommand)
-                return; // nothing is running - "Exit CyrFlip" from a stale Jump List is a no-op
+                return 0; // nothing is running - "Exit CyrFlip" from a stale Jump List is a no-op
 
             Guid? oneShotRun = command != null ? LauncherIpc.RunId(command) : null;
             if (oneShotRun != null)
@@ -48,7 +90,7 @@ namespace CyrFlip
                 single.ReleaseMutex();
                 single.Dispose();
                 RunScenarioOneShot(oneShotRun.Value);
-                return;
+                return 0;
             }
 
             Application.EnableVisualStyles();
@@ -97,6 +139,7 @@ namespace CyrFlip
                 // e.g. the keyboard hook failed to install in the context constructor.
                 Fatal(ex);
             }
+            return 0;
         }
 
         /// <summary>

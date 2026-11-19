@@ -126,14 +126,37 @@ namespace CyrFlip
         public static string DetectLayout() => DetectLayout(out _);
 
         /// <summary>As <see cref="DetectLayout()"/>, also reporting the active layout's KLID ("" if unknown).</summary>
-        public static string DetectLayout(out string klid)
+        public static string DetectLayout(out string klid) => LayoutOf(GetForegroundWindow(), out klid);
+
+        /// <summary>
+        /// The code and KLID of the layout <paramref name="window"/>'s input thread has (S0109: the command line asks
+        /// about the window the person last typed in, not the foreground one, which from a console is the console).
+        /// </summary>
+        internal static string LayoutOf(IntPtr window, out string klid)
         {
-            IntPtr hwnd = InputWindow(GetForegroundWindow());
-            uint threadId = GetWindowThreadProcessId(hwnd, out _);
-            IntPtr hkl = GetKeyboardLayout(threadId);
+            IntPtr hkl = HklOf(window);
             klid = LayoutIdentity.KlidForHkl(hkl);
             // One decode for letters and colour: a curated layout reads as its table code (S0036 UI-3).
             return LayoutIdentity.CodeFor(unchecked((uint)(long)hkl), klid);
+        }
+
+        /// <summary>The layout handle of the thread that owns <paramref name="window"/>'s input window (zero: this thread's).</summary>
+        internal static IntPtr HklOf(IntPtr window)
+        {
+            IntPtr hwnd = InputWindow(window);
+            uint threadId = GetWindowThreadProcessId(hwnd, out _);
+            return GetKeyboardLayout(threadId);
+        }
+
+        /// <summary>
+        /// The window a command that acts on "where the person types" means: <see cref="LastActiveWindow"/>, unless there
+        /// is none or it is one of ours or a taskbar surface (the live-foreground fallback can be the settings window or
+        /// the shell) - none of those is ever a target (S0109). Zero then.
+        /// </summary>
+        internal IntPtr CommandTargetWindow()
+        {
+            IntPtr window = LastActiveWindow;
+            return IsUserWindow(window) ? window : IntPtr.Zero;
         }
 
         /// <summary>

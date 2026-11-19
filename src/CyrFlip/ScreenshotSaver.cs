@@ -194,7 +194,16 @@ namespace CyrFlip
         private string? TryFolder(string folder, string stem, byte[] png, CancellationToken abandon)
         {
             if (!_fs.DirectoryExists(folder)) _fs.CreateDirectory(folder);
+            return WriteUnique(folder, stem, png, abandon);
+        }
 
+        /// <summary>
+        /// The temporary-file-then-rename core shared by the automatic save and a command's folder mode: the folder is
+        /// there already (created by <see cref="TryFolder"/>, or checked by <see cref="OutputPlan"/>), the first free
+        /// ordinal wins and the temporary file never survives.
+        /// </summary>
+        private string? WriteUnique(string folder, string stem, byte[] png, CancellationToken abandon)
+        {
             string temp = Path.Combine(folder, "~" + stem + "." + Guid.NewGuid().ToString("N").Substring(0, 8) + ".tmp");
             try
             {
@@ -220,6 +229,123 @@ namespace CyrFlip
                     try { _fs.DeleteFile(temp); } catch { /* best effort */ }
                 }
             }
+        }
+
+        /// <summary>What became of one caller-named save (<see cref="SaveTo"/>).</summary>
+        internal enum SaveToOutcome
+        {
+            Saved,
+            /// <summary>A file is in the way and the plan did not say to replace it - found again at write time.</summary>
+            Exists,
+            /// <summary>The volume is full (Win32 39 or 112).</summary>
+            DiskFull,
+            /// <summary>The folder is not there - it is never created for a command.</summary>
+            FolderMissing,
+            Failed,
+            /// <summary>The budget ran out (a share that does not answer); the attempt was told to stand down.</summary>
+            Timeout,
+        }
+
+        internal sealed class SaveToResult
+        {
+            public SaveToOutcome Outcome { get; set; }
+            /// <summary>The file actually written - in folder mode the automatic name with its ordinal.</summary>
+            public string? FilePath { get; set; }
+            /// <summary>The exception type of a failure, never a file name.</summary>
+            public string Reason { get; set; } = "";
+        }
+
+        /// <summary>The file system this saver writes through - what a command's <see cref="OutputPlan"/> is resolved against.</summary>
+        internal IScreenshotFileSystem FileSystem => _fs;
+
+        /// <summary>How long one write may take before it counts as unreachable.</summary>
+        internal TimeSpan Budget => _budget;
+
+        /// <summary>
+        /// Write <paramref name="png"/> where a command's <paramref name="plan"/> says, and nowhere else (ticket S0110,
+        /// <c>APP-COMMANDS</c> rule 9): no fallback chain, no folder created, nothing about the capture folder or its
+        /// settings. The <c>tIME</c> chunk of the freeze instant goes in for both modes. A named file is the temporary
+        /// file renamed over (<paramref name="plan"/>'s <c>Overwrite</c>) or without replacing - whole or not at all; a folder
+        /// gets the rule 3 name and rule 5's ordinal. Runs on a pool thread under <see cref="Budget"/>; never throws.
+        /// </summary>
+        internal SaveToResult SaveTo(byte[] png, DateTime started, OutputPlan plan)
+        {
+            byte[] payload = PngTime.Inject(png, started);
+            var abandon = new CancellationTokenSource();
+            Task<SaveToResult> attempt = Task.Run(() => WriteCallerNamed(payload, started, plan, abandon.Token));
+            bool finished;
+            try { finished = attempt.Wait(_budget); }
+            catch (Exception) { finished = true; } // a fault is read from the task below
+            if (!finished)
+            {
+                abandon.Cancel();
+                return new SaveToResult { Outcome = SaveToOutcome.Timeout, Reason = "Timeout" };
+            }
+            if (attempt.Status == TaskStatus.RanToCompletion) return attempt.Result;
+            Exception? fault = attempt.Exception?.GetBaseException();
+            return new SaveToResult { Outcome = SaveToOutcome.Failed, Reason = fault != null ? fault.GetType().Name : "Failed" };
+        }
+
+        private SaveToResult WriteCallerNamed(byte[] payload, DateTime started, OutputPlan plan, CancellationToken abandon)
+        {
+            try
+            {
+                if (plan.Mode == OutputMode.Folder)
+                {
+                    string? written = WriteUnique(plan.Path, Stem(started), payload, abandon);
+                    if (written != null) return Saved(written);
+                    return abandon.IsCancellationRequested
+                        ? new SaveToResult { Outcome = SaveToOutcome.Timeout, Reason = "Timeout" }
+                        : new SaveToResult { Outcome = SaveToOutcome.Failed, Reason = "NoName" };
+                }
+
+                string folder = Path.GetDirectoryName(plan.Path) ?? "";
+                string temp = Path.Combine(folder, "~" + Stem(started) + "." + Guid.NewGuid().ToString("N").Substring(0, 8) + ".tmp");
+                try
+                {
+                    _fs.WriteAllBytes(temp, payload);
+                    if (abandon.IsCancellationRequested) return new SaveToResult { Outcome = SaveToOutcome.Timeout, Reason = "Timeout" };
+                    if (plan.Overwrite)
+                    {
+                        _fs.MoveReplace(temp, plan.Path);
+                    }
+                    else
+                    {
+                        // The name was free when the plan was made; a file that appeared meanwhile survives untouched.
+                        if (_fs.FileExists(plan.Path) || !_fs.MoveNoReplace(temp, plan.Path))
+                            return new SaveToResult { Outcome = SaveToOutcome.Exists };
+                    }
+                    temp = "";
+                    return Saved(plan.Path);
+                }
+                finally
+                {
+                    if (temp.Length > 0)
+                    {
+                        try { _fs.DeleteFile(temp); } catch (Exception) { /* best effort: the next listing shows a stray ~ file at worst */ }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Describe(ex);
+            }
+        }
+
+        private static SaveToResult Saved(string path) => new SaveToResult { Outcome = SaveToOutcome.Saved, FilePath = path };
+
+        /// <summary>An exception to a save outcome: a missing folder, a full volume (Win32 39 or 112), anything else.</summary>
+        private static SaveToResult Describe(Exception ex)
+        {
+            SaveToOutcome outcome = SaveToOutcome.Failed;
+            if (ex is DirectoryNotFoundException) outcome = SaveToOutcome.FolderMissing;
+            else if (ex is IOException)
+            {
+                int win32 = ex.HResult & 0xFFFF;
+                if (win32 == 39 || win32 == 112) outcome = SaveToOutcome.DiskFull;
+                else if (win32 == 3) outcome = SaveToOutcome.FolderMissing;
+            }
+            return new SaveToResult { Outcome = outcome, Reason = ex.GetType().Name };
         }
 
         /// <summary>A known folder's path, not created and not verified (the first save creates it).</summary>
@@ -263,6 +389,13 @@ namespace CyrFlip
                 if (error == ERROR_FILE_EXISTS || error == ERROR_ALREADY_EXISTS) return false;
                 throw new IOException("MoveFileEx failed", error);
             }
+            public bool MoveReplace(string from, string to)
+            {
+                // One rename over the target, written through: the old file stays whole until the new one has replaced it.
+                if (WindowInterop.MoveFileEx(from, to, WindowInterop.MOVEFILE_REPLACE_EXISTING | WindowInterop.MOVEFILE_WRITE_THROUGH))
+                    return true;
+                throw new IOException("MoveFileEx failed", Marshal.GetLastWin32Error());
+            }
             public void DeleteFile(string path) => File.Delete(path);
         }
     }
@@ -278,6 +411,8 @@ namespace CyrFlip
         void WriteAllBytes(string path, byte[] bytes);
         /// <summary>Renames; false when the target exists (a lost race), throws on any other failure.</summary>
         bool MoveNoReplace(string from, string to);
+        /// <summary>Renames over an existing target in one step (ticket S0110, <c>--overwrite</c>); true when done, throws on any failure.</summary>
+        bool MoveReplace(string from, string to);
         void DeleteFile(string path);
     }
 }

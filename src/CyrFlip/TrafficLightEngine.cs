@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CyrFlip
 {
@@ -126,6 +127,65 @@ namespace CyrFlip
         public DateTime? FirstFailureUtc;
         /// <summary>The target needs the network and Windows reports none: no balloon (D23).</summary>
         public bool WhileOffline;
+        /// <summary>
+        /// The check that settled this change was asked for by a command alone (ticket S0117): the journal records it
+        /// like any change, the board draws it, but no balloon is raised for it.
+        /// </summary>
+        public bool Silent;
+    }
+
+    /// <summary>How a check a command asked for ended (ticket S0117).</summary>
+    internal enum TrafficCheckOutcome
+    {
+        /// <summary>The check finished and its result is in the engine.</summary>
+        Completed,
+        /// <summary>The check will never report: the target was edited, removed or switched off, or the module was stopped.</summary>
+        Abandoned,
+    }
+
+    /// <summary>Whether a command's request for one check was taken, and if not why (ticket S0117).</summary>
+    internal enum TrafficCheckStart
+    {
+        /// <summary>A check is waiting for its turn or already running; the ticket completes with it.</summary>
+        Started,
+        /// <summary>No target has this id.</summary>
+        NotFound,
+        /// <summary>The target is switched off: it is never probed.</summary>
+        Disabled,
+        /// <summary>The address does not validate: it is shown as invalid and never probed.</summary>
+        InvalidAddress,
+        /// <summary>A network target while Windows reports no network: paused, not red.</summary>
+        Offline,
+        /// <summary>
+        /// The check in flight has already reported (a hard timeout abandoned its call) and only the slot is still held: nothing
+        /// is coming for a command to wait for, and a new look cannot start until the call returns.
+        /// </summary>
+        Busy,
+    }
+
+    /// <summary>
+    /// What a command holds for one check it asked for (ticket S0117): whether the engine took the request and, when it
+    /// did, a task that completes when that very check has been applied - not when some later one has. <see cref="Cancel"/>
+    /// lets go of the wait; the check itself, once asked for, still runs.
+    /// </summary>
+    internal sealed class TrafficCheckTicket
+    {
+        private readonly Action? _cancel;
+
+        private TrafficCheckTicket(TrafficCheckStart start, Task<TrafficCheckOutcome>? completion, Action? cancel)
+        {
+            Start = start;
+            Completion = completion ?? Task.FromResult(TrafficCheckOutcome.Abandoned);
+            _cancel = cancel;
+        }
+
+        public TrafficCheckStart Start { get; }
+        public Task<TrafficCheckOutcome> Completion { get; }
+        public void Cancel() => _cancel?.Invoke();
+
+        public static TrafficCheckTicket NotTaken(TrafficCheckStart reason) => new TrafficCheckTicket(reason, null, null);
+        public static TrafficCheckTicket Taken(Task<TrafficCheckOutcome> completion, Action cancel)
+            => new TrafficCheckTicket(TrafficCheckStart.Started, completion, cancel);
     }
 
     /// <summary>What the tray summary line says, as numbers.</summary>
@@ -167,7 +227,24 @@ namespace CyrFlip
             public DateTime? FirstFailureUtc;
             public int FailureStreak;
             public bool InFlight;
+            /// <summary>The flight in progress has already been applied (S0117): the slot is held by a call that will not report again.</summary>
+            public bool FlightReported;
             public bool ForceDue;
+            /// <summary>The only cause of the next check is a command (S0117): not an interval, a click, a start or a network change.</summary>
+            public bool CommandOnlyDue;
+            /// <summary>The check in flight was asked for by a command alone: its settled change raises no balloon (S0117).</summary>
+            public bool FlightSilent;
+            /// <summary>Commands waiting for the next completed check of this target (S0117).</summary>
+            public List<Waiter>? Waiters;
+        }
+
+        /// <summary>One command's wait for one check of one target (ticket S0117).</summary>
+        private sealed class Waiter
+        {
+            public readonly TaskCompletionSource<TrafficCheckOutcome> Source =
+                new TaskCompletionSource<TrafficCheckOutcome>(TaskCreationOptions.RunContinuationsAsynchronously);
+            /// <summary>The flight this wait belongs to; -1 until the next dispatch binds it.</summary>
+            public int Generation = -1;
         }
 
         private readonly object _gate = new object();
@@ -194,13 +271,28 @@ namespace CyrFlip
         /// </summary>
         public bool SetOffline(bool offline)
         {
+            var abandoned = new List<Waiter>();
             lock (_gate)
             {
                 if (_offline == offline) return false;
                 _offline = offline;
-                if (!offline) foreach (Entry e in _entries) e.ForceDue = true;
-                return true;
+                foreach (Entry e in _entries)
+                {
+                    if (!offline)
+                    {
+                        e.ForceDue = true;
+                        e.CommandOnlyDue = false;
+                    }
+                    // A network target is not dispatched while offline: a command still waiting for its turn would
+                    // otherwise wait out its whole bound for a check that cannot start (S0117).
+                    else if (e.Target.NeedsNetwork(_isRemotePath))
+                    {
+                        abandoned.AddRange(TakeWaiters(e, w => w.Generation < 0));
+                    }
+                }
             }
+            Settle(abandoned, TrafficCheckOutcome.Abandoned);
+            return true;
         }
 
         /// <summary>
@@ -210,6 +302,8 @@ namespace CyrFlip
         /// </summary>
         public void SetTargets(IEnumerable<TrafficLightTarget> targets)
         {
+            // Commands waiting for a check that this edit makes void are let go once the lock is released (S0117).
+            var abandoned = new List<Waiter>();
             lock (_gate)
             {
                 var previous = new Dictionary<string, Entry>(StringComparer.Ordinal);
@@ -236,15 +330,22 @@ namespace CyrFlip
                             old.StateSinceUtc = null; old.FirstFailureUtc = null;
                             old.FailureStreak = 0;
                             old.ForceDue = true;
+                            old.CommandOnlyDue = false;
+                            old.FlightSilent = false;
+                            abandoned.AddRange(TakeWaiters(old, _ => true));
                             // The call still out there is about the old identity: its answer is dropped by the
                             // generation, and its release no longer matches either - so the slot is freed here,
                             // or a target edited while it was being checked would never be checked again.
                             old.InFlight = false;
+                            old.FlightReported = false;
                         }
                         else if (switchedOn)
                         {
                             old.ForceDue = true;
+                            old.CommandOnlyDue = false;
                         }
+                        // A target switched off is never dispatched: a command still waiting for its turn is let go.
+                        if (!copy.Enabled) abandoned.AddRange(TakeWaiters(old, w => w.Generation < 0));
                         old.Target = copy;
                         next.Add(old);
                     }
@@ -253,9 +354,14 @@ namespace CyrFlip
                         next.Add(new Entry { Target = copy, ForceDue = true });
                     }
                 }
+                var kept = new HashSet<string>(StringComparer.Ordinal);
+                foreach (Entry e in next) kept.Add(e.Target.Id);
+                foreach (Entry gone in previous.Values)
+                    if (!kept.Contains(gone.Target.Id)) abandoned.AddRange(TakeWaiters(gone, _ => true));
                 _entries.Clear();
                 _entries.AddRange(next);
             }
+            Settle(abandoned, TrafficCheckOutcome.Abandoned);
         }
 
         /// <summary>
@@ -268,7 +374,11 @@ namespace CyrFlip
         {
             lock (_gate)
                 foreach (Entry e in _entries)
-                    if (includeRunning || !e.InFlight) e.ForceDue = true;
+                    if (includeRunning || !e.InFlight)
+                    {
+                        e.ForceDue = true;
+                        e.CommandOnlyDue = false;
+                    }
         }
 
         /// <summary>"Check now" on one target. Ignored while a check of it is running.</summary>
@@ -279,8 +389,106 @@ namespace CyrFlip
                 Entry? e = Find(id);
                 if (e == null || e.InFlight) return false;
                 e.ForceDue = true;
+                e.CommandOnlyDue = false;
                 return true;
             }
+        }
+
+        /// <summary>
+        /// One check asked for by a command (ticket S0117) - the same path a click on a tile takes, with two additions:
+        /// the ticket completes when that check has been applied, and a check that no one but the command asked for is
+        /// <see cref="TrafficLightChange.Silent"/>. A check already out there is not started a second time: the command
+        /// waits for it, since it is as fresh as the one asked for (the rule of <see cref="RequestAll"/>). A target that
+        /// is never probed - switched off, an address that does not validate, a network target while offline - is
+        /// refused with the reason, and nothing is marked due.
+        /// </summary>
+        public TrafficCheckTicket RequestCommandCheck(string id) => RequestCommandCheck(id, null);
+
+        public TrafficCheckTicket RequestCommandCheck(TrafficLightTarget target) => RequestCommandCheck(target.Id, target);
+
+        private TrafficCheckTicket RequestCommandCheck(string id, TrafficLightTarget? selected)
+        {
+            DateTime now = _utcNow();
+            lock (_gate)
+            {
+                Entry? e = Find(id);
+                if (e == null || (selected != null && !ReferenceEquals(e.Target, selected)))
+                    return TrafficCheckTicket.NotTaken(TrafficCheckStart.NotFound);
+                if (!e.Target.Enabled) return TrafficCheckTicket.NotTaken(TrafficCheckStart.Disabled);
+                if (TrafficLightAddress.Validate(e.Target) != AddressIssue.None) return TrafficCheckTicket.NotTaken(TrafficCheckStart.InvalidAddress);
+                if (_offline && e.Target.NeedsNetwork(_isRemotePath)) return TrafficCheckTicket.NotTaken(TrafficCheckStart.Offline);
+                // The flight has reported and only its call is still out (a hard timeout abandoned it): joining it would wait
+                // for a report that has been made, until the call returns - possibly past the command's whole bound.
+                if (e.InFlight && e.FlightReported) return TrafficCheckTicket.NotTaken(TrafficCheckStart.Busy);
+
+                var waiter = new Waiter();
+                if (e.InFlight)
+                {
+                    waiter.Generation = e.Generation;
+                }
+                else
+                {
+                    // Only when nothing else already made the target due is the command the whole reason for the check.
+                    bool alreadyDue = e.ForceDue || IsDue(e, now);
+                    e.ForceDue = true;
+                    if (!alreadyDue) e.CommandOnlyDue = true;
+                }
+                if (e.Waiters == null) e.Waiters = new List<Waiter>();
+                e.Waiters.Add(waiter);
+                return TrafficCheckTicket.Taken(waiter.Source.Task, () => Forget(id, waiter));
+            }
+        }
+
+        /// <summary>A command stopped waiting (its bound passed): the wait is dropped, the check itself is not.</summary>
+        private void Forget(string id, Waiter waiter)
+        {
+            lock (_gate)
+            {
+                Entry? e = Find(id);
+                if (e == null || e.Waiters == null) return;
+                e.Waiters.Remove(waiter);
+                if (e.Waiters.Count == 0) e.Waiters = null;
+            }
+        }
+
+        /// <summary>
+        /// Lets every waiting command go: the module is being stopped and no check will report (ticket S0117). Without it a
+        /// command asked a moment before the switch was turned off would wait out its whole bound.
+        /// </summary>
+        public void AbandonCommandChecks()
+        {
+            var all = new List<Waiter>();
+            lock (_gate)
+            {
+                foreach (Entry e in _entries)
+                {
+                    all.AddRange(TakeWaiters(e, _ => true));
+                    e.CommandOnlyDue = false;
+                    e.FlightSilent = false;
+                }
+            }
+            Settle(all, TrafficCheckOutcome.Abandoned);
+        }
+
+        /// <summary>Removes and returns the waiters of an entry that match. The caller settles them outside the lock.</summary>
+        private static List<Waiter> TakeWaiters(Entry e, Func<Waiter, bool> match)
+        {
+            var taken = new List<Waiter>();
+            if (e.Waiters == null) return taken;
+            for (int i = e.Waiters.Count - 1; i >= 0; i--)
+            {
+                if (!match(e.Waiters[i])) continue;
+                taken.Add(e.Waiters[i]);
+                e.Waiters.RemoveAt(i);
+            }
+            if (e.Waiters.Count == 0) e.Waiters = null;
+            return taken;
+        }
+
+        private static void Settle(List<Waiter>? waiters, TrafficCheckOutcome outcome)
+        {
+            if (waiters == null) return;
+            foreach (Waiter w in waiters) w.Source.TrySetResult(outcome);
         }
 
         // ---- scheduling ----
@@ -320,29 +528,50 @@ namespace CyrFlip
         }
 
         /// <summary>The run was handed to a worker. Returns the generation the result must come back with, or -1.</summary>
-        public int MarkDispatched(string id)
+        public int MarkDispatched(string id) => MarkDispatched(id, null);
+
+        public int MarkDispatched(TrafficLightTarget target) => MarkDispatched(target.Id, target);
+
+        private int MarkDispatched(string id, TrafficLightTarget? selected)
         {
             lock (_gate)
             {
                 Entry? e = Find(id);
-                if (e == null || e.InFlight) return -1;
+                if (e == null || e.InFlight || (selected != null && !ReferenceEquals(e.Target, selected))) return -1;
                 e.InFlight = true;
+                e.FlightReported = false;
                 e.ForceDue = false;
+                // The flight is silent when a command alone asked for it; every command waiting for the next check
+                // becomes the waiter of this very flight (S0117).
+                e.FlightSilent = e.CommandOnlyDue;
+                e.CommandOnlyDue = false;
+                if (e.Waiters != null)
+                    foreach (Waiter w in e.Waiters)
+                        if (w.Generation < 0) w.Generation = e.Generation;
                 return e.Generation;
             }
         }
 
         /// <summary>
         /// The call really returned (or was never started): the target may be dispatched again. A hard timeout
-        /// completes the check long before this, which is the whole point of keeping the two apart (D22).
+        /// completes the check long before this, which is the whole point of keeping the two apart (D22). A command
+        /// still waiting for this flight at this point will not hear of it any more: it is let go (S0117).
         /// </summary>
         public void Release(string id, int generation)
         {
+            List<Waiter>? left = null;
             lock (_gate)
             {
                 Entry? e = Find(id);
-                if (e != null && e.Generation == generation) e.InFlight = false;
+                if (e != null && e.Generation == generation)
+                {
+                    e.InFlight = false;
+                    e.FlightReported = false;
+                    e.FlightSilent = false;
+                    left = TakeWaiters(e, w => w.Generation == generation);
+                }
             }
+            Settle(left, TrafficCheckOutcome.Abandoned);
         }
 
         /// <summary>
@@ -352,56 +581,69 @@ namespace CyrFlip
         /// </summary>
         public TrafficLightChange? Complete(string id, int generation, ProbeOutcome outcome)
         {
+            TrafficLightChange? change;
+            List<Waiter> done;
+            lock (_gate) change = CompleteLocked(id, generation, outcome, out done);
+            // The commands that waited for this very check hear of it only now, with the result already in place (S0117).
+            Settle(done, TrafficCheckOutcome.Completed);
+            return change;
+        }
+
+        private TrafficLightChange? CompleteLocked(string id, int generation, ProbeOutcome outcome, out List<Waiter> done)
+        {
+            done = new List<Waiter>();
             DateTime now = _utcNow();
-            lock (_gate)
+            Entry? e = Find(id);
+            if (e == null || e.Generation != generation) return null;
+            e.FlightReported = true;
+
+            Judge(e.Target, outcome, out TrafficState verdict, out string reason);
+            e.CheckedAtUtc = now;
+            e.LatencyMs = outcome.Reached ? outcome.LatencyMs : (int?)null;
+            e.Reason = reason;
+            e.Note = outcome.Note ?? "";
+            done = TakeWaiters(e, w => w.Generation == generation);
+            bool silent = e.FlightSilent;
+            e.FlightSilent = false;
+
+            TrafficState before = e.State;
+            TrafficState settled = before;
+            if (verdict == TrafficState.Down)
             {
-                Entry? e = Find(id);
-                if (e == null || e.Generation != generation) return null;
-
-                Judge(e.Target, outcome, out TrafficState verdict, out string reason);
-                e.CheckedAtUtc = now;
-                e.LatencyMs = outcome.Reached ? outcome.LatencyMs : (int?)null;
-                e.Reason = reason;
-                e.Note = outcome.Note ?? "";
-
-                TrafficState before = e.State;
-                TrafficState settled = before;
-                if (verdict == TrafficState.Down)
-                {
-                    if (e.FailureStreak == 0) e.FirstFailureUtc = now;
-                    e.FailureStreak++;
-                    if (e.FailureStreak >= Math.Max(1, e.Target.FailuresBeforeDown)) settled = TrafficState.Down;
-                }
-                else
-                {
-                    e.FailureStreak = 0;
-                    settled = verdict;
-                    if (verdict == TrafficState.Ok || verdict == TrafficState.Degraded) e.LastOkAtUtc = now;
-                }
-
-                if (settled == before)
-                {
-                    return null;
-                }
-
-                var change = new TrafficLightChange
-                {
-                    Target = e.Target,
-                    From = before,
-                    To = settled,
-                    Reason = reason,
-                    LatencyMs = e.LatencyMs,
-                    AtUtc = now,
-                    IsBaseline = before == TrafficState.Unknown,
-                    WasFor = e.StateSinceUtc.HasValue ? now - e.StateSinceUtc.Value : (TimeSpan?)null,
-                    FirstFailureUtc = settled == TrafficState.Down ? e.FirstFailureUtc : (DateTime?)null,
-                    WhileOffline = _offline && e.Target.NeedsNetwork(_isRemotePath),
-                };
-                e.State = settled;
-                e.StateSinceUtc = now;
-                if (settled != TrafficState.Down) e.FirstFailureUtc = null;
-                return change;
+                if (e.FailureStreak == 0) e.FirstFailureUtc = now;
+                e.FailureStreak++;
+                if (e.FailureStreak >= Math.Max(1, e.Target.FailuresBeforeDown)) settled = TrafficState.Down;
             }
+            else
+            {
+                e.FailureStreak = 0;
+                settled = verdict;
+                if (verdict == TrafficState.Ok || verdict == TrafficState.Degraded) e.LastOkAtUtc = now;
+            }
+
+            if (settled == before)
+            {
+                return null;
+            }
+
+            var change = new TrafficLightChange
+            {
+                Target = e.Target,
+                From = before,
+                To = settled,
+                Reason = reason,
+                LatencyMs = e.LatencyMs,
+                AtUtc = now,
+                IsBaseline = before == TrafficState.Unknown,
+                WasFor = e.StateSinceUtc.HasValue ? now - e.StateSinceUtc.Value : (TimeSpan?)null,
+                FirstFailureUtc = settled == TrafficState.Down ? e.FirstFailureUtc : (DateTime?)null,
+                WhileOffline = _offline && e.Target.NeedsNetwork(_isRemotePath),
+                Silent = silent,
+            };
+            e.State = settled;
+            e.StateSinceUtc = now;
+            if (settled != TrafficState.Down) e.FirstFailureUtc = null;
+            return change;
         }
 
         private static void Judge(TrafficLightTarget target, ProbeOutcome outcome, out TrafficState state, out string reason)
@@ -527,10 +769,14 @@ namespace CyrFlip
             _labelOf = labelOf ?? (t => string.IsNullOrWhiteSpace(t.Label) ? "?" : t.Label.Trim());
         }
 
-        /// <summary>True when this change should be remembered for a balloon.</summary>
+        /// <summary>
+        /// True when this change should be remembered for a balloon. A change settled by a check that only a command asked
+        /// for (<see cref="TrafficLightChange.Silent"/>, ticket S0117) never is: the journal and the board record it, nobody
+        /// is told by a balloon.
+        /// </summary>
         public static bool Counts(TrafficLightChange change)
         {
-            if (!change.Target.Notify || change.IsBaseline || change.WhileOffline) return false;
+            if (change.Silent || !change.Target.Notify || change.IsBaseline || change.WhileOffline) return false;
             bool intoDown = change.To == TrafficState.Down && change.From != TrafficState.Down;
             bool outOfDown = change.From == TrafficState.Down && change.To != TrafficState.Down && change.To != TrafficState.Unknown;
             return intoDown || outOfDown;

@@ -82,7 +82,7 @@ namespace CyrFlip.Tests
         {
             Sta(() =>
             {
-                using var form = TestForms.NewSettings(Config());
+                using var form = TestForms.NewSettings(Config(), allPagesLaidOut: false);
                 form.Show();
                 Application.DoEvents();
                 form.NavigationTrace.Record();
@@ -110,7 +110,7 @@ namespace CyrFlip.Tests
         {
             Sta(() =>
             {
-                using var form = TestForms.NewSettings(Config());
+                using var form = TestForms.NewSettings(Config(), allPagesLaidOut: false);
                 form.Show();
                 Application.DoEvents();
                 form.NavigationTrace.Record();
@@ -139,7 +139,7 @@ namespace CyrFlip.Tests
             Sta(() =>
             {
                 var config = Config();
-                using var form = TestForms.NewSettings(config);
+                using var form = TestForms.NewSettings(config, allPagesLaidOut: false);
                 form.Show();
                 Application.DoEvents();
                 Rectangle bounds = form.Bounds;
@@ -173,7 +173,7 @@ namespace CyrFlip.Tests
                 AppConfig config = Config();
                 SettingsPageKey[] pages = SettingsPageKeys.DisplayOrder.ToArray();
                 config.SettingsPageId = pages[run % pages.Length].ToString();
-                using var form = TestForms.NewSettings(config);
+                using var form = TestForms.NewSettings(config, allPagesLaidOut: false);
                 form.Show();
                 for (int i = 0; i < 5; i++) { Application.DoEvents(); Thread.Sleep(20); }
                 form.NavigationTrace.Record();

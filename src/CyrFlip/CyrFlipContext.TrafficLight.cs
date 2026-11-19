@@ -140,6 +140,15 @@ namespace CyrFlip
             _trafficWindow?.RefreshBoard();
         }
 
+        /// <summary>
+        /// What the two traffic light commands (ticket S0117) read and ask: the live engine and scheduler, or null while
+        /// the module is off - then nothing of the module has been created, read or started on the command's behalf.
+        /// </summary>
+        private ITrafficLightCommandHost? TrafficLightCommandHostOrNull()
+            => _config.EnableTrafficLight && _trafficEngine != null && _trafficScheduler != null
+                ? new TrafficLightCommandHost(_trafficEngine, _trafficScheduler)
+                : null;
+
         // ---- the scheduler's events (not on the UI thread) ----
 
         private void OnTrafficLightStateChanged(TrafficLightChange change)
@@ -147,6 +156,8 @@ namespace CyrFlip
             try
             {
                 _trafficJournal?.Record(change);
+                // A change settled by a check only a command asked for (S0117) is recorded and drawn like any other;
+                // the notifier itself refuses it a balloon (TrafficLightNotifier.Counts).
                 _trafficNotifier?.Add(change);
             }
             catch (Exception ex) { TrafficLightLog.Fault("state-changed", ex); }
@@ -242,7 +253,7 @@ namespace CyrFlip
                 // The pencil: the settings window, on this module's own page.
                 AddTarget = () => Defer(AddTrafficLightTargetFromBoard),
                 EditTargets = () => Defer(() => ShowSettings(SettingsPageKey.TrafficLight)),
-                PinnedChanged = _ => { _config.Save(); _settings?.Reload(); },
+                PinnedChanged = _ => { _config.Save(); _settings?.RefreshState(); },
                 Hidden = () =>
                 {
                     if (!_config.TrafficLightVisible) return;
@@ -316,7 +327,7 @@ namespace CyrFlip
             _hook.UpdateTrafficLightHotkey(next);
             UpdateTrayTooltip();
             UpdateTrafficLightTray();
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         /// <summary>The switch, the chord, the pin or the tile size changed on the settings page.</summary>
@@ -327,7 +338,7 @@ namespace CyrFlip
                 && !ChordIsFree(chord, ChordKind.TrafficLight, askAboutWindows: false))
             {
                 _config.EnableTrafficLightHotkey = false;
-                _ui?.Post(_ => _settings?.Reload(), null);
+                _ui?.Post(_ => _settings?.RefreshState(), null);
             }
             _trafficLightChordWasLive = TrafficLightChordLive;
 
@@ -376,7 +387,7 @@ namespace CyrFlip
             foreach (TrafficLightTarget target in dialog.Result) _config.TrafficLightTargets.Add(target);
             OnTrafficLightTargetsChanged();
             // The settings table, if that window is open, gains the row.
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         private void WireTrafficLightSettings(SettingsForm settings)

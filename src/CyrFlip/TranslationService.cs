@@ -140,13 +140,23 @@ namespace CyrFlip
         /// Translate one selection into <paramref name="targetCode"/>, streaming into
         /// <paramref name="sink"/> as the model writes.
         /// </summary>
-        public async Task<TranslationResult> TranslateAsync(string text, string targetCode,
+        public Task<TranslationResult> TranslateAsync(string text, string targetCode,
             TranslationSink? sink, CancellationToken ct)
+            => TranslateAsync(text, targetCode, null, sink, ct);
+
+        /// <summary>
+        /// The same translation with a named source language (ticket S0128, <c>translate text --from</c>): the name becomes one
+        /// sentence in both prompts, steadier for the model than auto-detect, while a null keeps each prompt byte-identical -
+        /// the chord path and the auto-detect default are untouched. The echo and retry judgements stay script-based: a named
+        /// source changes what a good answer is, not what an echo is.
+        /// </summary>
+        public async Task<TranslationResult> TranslateAsync(string text, string targetCode,
+            string? sourceLanguageName, TranslationSink? sink, CancellationToken ct)
         {
             var result = new TranslationResult { SourceLength = (text ?? "").Length };
             try
             {
-                return await TranslateCoreAsync(text ?? "", targetCode, sink, result, ct).ConfigureAwait(false);
+                return await TranslateCoreAsync(text ?? "", targetCode, sourceLanguageName, sink, result, ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -159,7 +169,7 @@ namespace CyrFlip
         }
 
         private async Task<TranslationResult> TranslateCoreAsync(string text, string targetCode,
-            TranslationSink? sink, TranslationResult result, CancellationToken ct)
+            string? sourceLanguageName, TranslationSink? sink, TranslationResult result, CancellationToken ct)
         {
             string source = Truncate(text, MaxChars, out bool truncated).Trim();
             result.Truncated = truncated;
@@ -192,7 +202,7 @@ namespace CyrFlip
             string? answer;
             try
             {
-                answer = await client.GenerateAsync(model, SystemPrompt, BuildPrompt(language, source),
+                answer = await client.GenerateAsync(model, SystemPrompt, BuildPrompt(language, source, sourceLanguageName),
                     _config.TranslateKeepAliveMinutes, chunk => sink?.Chunk(chunk),
                     TimeoutMs, IdleTimeoutMs, MaxAnswerMs, ct).ConfigureAwait(false);
             }
@@ -219,7 +229,7 @@ namespace CyrFlip
                 string? second;
                 try
                 {
-                    second = await client.GenerateAsync(model, SystemPrompt, BuildRetryPrompt(language, source),
+                    second = await client.GenerateAsync(model, SystemPrompt, BuildRetryPrompt(language, source, sourceLanguageName),
                         _config.TranslateKeepAliveMinutes, chunk => sink?.Chunk(chunk),
                         TimeoutMs, IdleTimeoutMs, MaxAnswerMs, ct).ConfigureAwait(false);
                 }
@@ -326,15 +336,22 @@ namespace CyrFlip
             return truncated ? text.Substring(0, max) : text;
         }
 
-        internal static string BuildPrompt(string languageName, string text)
-            => "Translate the FULL following text into " + languageName + "." + "\n" +
+        /// <summary>
+        /// The prompt of the first attempt. A <paramref name="sourceLanguageName"/> is the one sentence of a named source
+        /// (ticket S0128); a null keeps the prompt byte-identical to what the chord has always sent.
+        /// </summary>
+        internal static string BuildPrompt(string languageName, string text, string? sourceLanguageName = null)
+            => (string.IsNullOrEmpty(sourceLanguageName) ? "" : "The source text is written in " + sourceLanguageName + "." + "\n")
+               + "Translate the FULL following text into " + languageName + "." + "\n" +
                "Translate every sentence and detail faithfully; do not summarize, shorten, or omit anything." + "\n" +
                "Write the translation ENTIRELY in " + languageName + " using its native alphabet; do NOT use " +
                "Chinese characters or any other language. Output only the translation, no notes and no quotes." + "\n" +
                "Text: " + text;
 
-        internal static string BuildRetryPrompt(string languageName, string text)
-            => "Translate this ENTIRE text into " + languageName + " ONLY. Translate every sentence and detail; " +
+        /// <summary>The retry prompt carries the same one sentence of a named source; a null keeps it byte-identical.</summary>
+        internal static string BuildRetryPrompt(string languageName, string text, string? sourceLanguageName = null)
+            => (string.IsNullOrEmpty(sourceLanguageName) ? "" : "The source text is written in " + sourceLanguageName + "." + "\n")
+               + "Translate this ENTIRE text into " + languageName + " ONLY. Translate every sentence and detail; " +
                "do not summarize, shorten, or omit anything. The output must be written entirely in " +
                languageName + "'s native alphabet. Produce a genuine translation, not a copy. " +
                "Output only the translation." + "\n" +

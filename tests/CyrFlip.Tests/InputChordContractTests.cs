@@ -23,7 +23,10 @@ namespace CyrFlip.Tests
 
         [Theory]
         [InlineData("Ctrl+Shift+Hyper+F12")]   // an unknown modifier name
-        [InlineData("Ctrl+Shift+NumPad5")]     // a key name a later version may add
+        [InlineData("Ctrl+Shift+MediaStop")]   // a key name 0.5 has not admitted (a later version may add it)
+        [InlineData("Ctrl+Shift+Semicolon")]
+        [InlineData("Ctrl+Numpad10")]
+        [InlineData("Ctrl+Left+Right")]        // two admitted triggers are still two triggers
         [InlineData("Ctrl+A+B")]               // two triggers
         [InlineData("Ctrl+F12+F11")]
         [InlineData("Ctrl+F25")]
@@ -50,6 +53,36 @@ namespace CyrFlip.Tests
         {
             Assert.True(Hotkey.Parse("Ctrl+Shift+Hyper+F12").SameChord(Hotkey.Default));
             Assert.Equal(MouseChord.Default.Token, MouseChord.Parse("Ctrl+Win+RightClick").Token);
+        }
+
+        // ---- rule 1 and 0.5 item A: the admitted trigger vocabulary (ticket S0116) ---------------
+
+        [Theory]
+        [InlineData("Ctrl+Shift+Left", 0x25, "Ctrl+Shift+Left")]
+        [InlineData("ctrl+shift+RIGHT", 0x27, "Ctrl+Shift+Right")]
+        [InlineData("Ctrl+Shift+NumPad5", 0x65, "Ctrl+Shift+Numpad5")] // row 28 of the 0.2 vector file
+        [InlineData("Alt+bracketleft", 0xDB, "Alt+BracketLeft")]
+        [InlineData("Ctrl+Alt+Period", 0xBE, "Ctrl+Alt+Period")]
+        [InlineData("Ctrl+Alt+MEDIAPLAYPAUSE", 0xB3, "Ctrl+Alt+MediaPlayPause")]
+        [InlineData("Ctrl+Shift+audiovolumemute", 0xAD, "Ctrl+Shift+AudioVolumeMute")]
+        public void AnAdmittedTriggerIsACanonicalTokenReadWithoutRegardToCase(string text, int vk, string canonical)
+        {
+            Assert.True(Hotkey.TryParse(text, out Hotkey parsed), text);
+            Assert.Equal(vk, parsed.Vk);
+            Assert.Equal(canonical, parsed.Display);
+        }
+
+        [Fact]
+        public void EveryAdmittedTriggerNamesItsOwnVirtualKeyBothWays()
+        {
+            var seen = new HashSet<int>();
+            foreach (string trigger in AdmittedTriggers)
+            {
+                Assert.True(Hotkey.TryParse("Ctrl+" + trigger, out Hotkey parsed), trigger);
+                Assert.Equal(trigger, parsed.KeyName);
+                Assert.Equal(trigger, Hotkey.NameForVk(parsed.Vk));
+                Assert.True(seen.Add(parsed.Vk), "two tokens share the virtual key of " + trigger);
+            }
         }
 
         // ---- rule 2: read leniently, written back canonically -----------------------------------
@@ -107,7 +140,9 @@ namespace CyrFlip.Tests
 
         // ---- section 6 rung 1: the vectors ------------------------------------------------------
 
-        private static readonly string[] KeyboardInputs =
+        // The 0.2 vocabulary's rows. Row 28 of the 0.2 file (Ctrl+Shift+NumPad5, inert) moved to the
+        // admitted rows below: INPUT-CHORD 0.5 item A reads it as Ctrl+Shift+Numpad5.
+        private static readonly string[] ClassicKeyboardInputs =
         {
             // canonical
             "Ctrl+Shift+F12", "ctrl+shift+f12", "Shift+Ctrl+F12", "control + 9", "Win+Space", "meta+space",
@@ -116,9 +151,44 @@ namespace CyrFlip.Tests
             "Ctrl+Shift+Alt+N", "Win+Alt+Shift+Ctrl+Backspace", "F24", "A", "Ctrl+Ctrl+A", "Ctrl++F12",
             "Ctrl+Shift+F12+",
             // inert
-            "", "   ", "Ctrl+Shift", "Ctrl+Shift+Hyper+F12", "Ctrl+Shift+NumPad5", "Ctrl+A+B", "Ctrl+F25",
+            "", "   ", "Ctrl+Shift", "Ctrl+Shift+Hyper+F12", "Ctrl+A+B", "Ctrl+F25",
             "Ctrl+F0", "Ctrl+Shift+0x41", "Ctrl+Й", "Ctrl+RightClick",
         };
+
+        /// <summary>The triggers INPUT-CHORD 0.4 admitted, in the contract's own spelling (ticket S0116).</summary>
+        private static readonly string[] AdmittedTriggers =
+        {
+            "Left", "Up", "Right", "Down",
+            "Numpad0", "Numpad1", "Numpad2", "Numpad3", "Numpad4", "Numpad5", "Numpad6", "Numpad7", "Numpad8", "Numpad9",
+            "NumpadMultiply", "NumpadAdd", "NumpadSubtract", "NumpadDecimal", "NumpadDivide",
+            "BracketLeft", "BracketRight", "Period", "Comma", "Equal", "Minus", "Backslash",
+            "MediaPlayPause", "MediaTrackNext", "MediaTrackPrevious", "AudioVolumeUp", "AudioVolumeDown", "AudioVolumeMute",
+        };
+
+        /// <summary>
+        /// The 0.2 rows plus what 0.5 item B asks the regenerated file to carry: one canonical row per
+        /// admitted trigger, one case-insensitive spelling per family, the modifier combinations with an
+        /// arrow and a keypad key, and the inert neighbours the contract has not admitted.
+        /// </summary>
+        private static readonly string[] KeyboardInputs = BuildKeyboardInputs();
+
+        private static string[] BuildKeyboardInputs()
+        {
+            var inputs = new List<string>(ClassicKeyboardInputs);
+            foreach (string trigger in AdmittedTriggers)
+                inputs.Add("Ctrl+Shift+" + trigger);
+            inputs.AddRange(new[]
+            {
+                // one case-insensitive spelling per family (item A)
+                "ctrl+shift+left", "Ctrl+Shift+NumPad5", "ctrl+alt+numpadadd", "Alt+bracketleft", "Ctrl+Alt+MEDIAPLAYPAUSE",
+                // the modifier combinations with an arrow and a keypad key, in every written order
+                "Win+Alt+Shift+Ctrl+Up", "Shift+Alt+Down", "Alt+Shift+Numpad0", "Win+Alt+Shift+Ctrl+NumpadDecimal",
+                // inert: two admitted triggers, and the neighbours of the families that 0.5 has not admitted
+                "Ctrl+Left+Right", "Ctrl+Numpad5+Numpad6", "Ctrl+Numpad10", "Ctrl+Shift+Numpad", "Ctrl+Shift+MediaStop",
+                "Ctrl+Semicolon", "Ctrl+Plus", "Ctrl+Shift+NumLock",
+            });
+            return inputs.ToArray();
+        }
 
         private static readonly string[] MouseInputs =
         {

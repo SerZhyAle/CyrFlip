@@ -77,6 +77,7 @@
         <li><a href="#settings">Change settings and shortcuts</a></li>
         <li><a href="#notes">Keep quick notes</a></li>
         <li><a href="#exchange">Pass the clipboard to your other devices</a></li>
+        <li><a href="#commands">Run CyrFlip from a script or an AI agent</a></li>
         <li><a href="#glossary">Understand the terms</a></li>
       </ul>
     </nav>
@@ -90,6 +91,7 @@
         <dt>CapsLock</dt><dd>The keyboard state that makes letters uppercase; CyrFlip can show and synchronize it.</dd>
         <dt>Quick notes</dt><dd>The optional local notepad in CyrFlip.</dd>
         <dt>Exchange server</dt><dd>A server that you or someone you trust runs to connect your devices; CyrFlip can send it the clipboard and get the clipboard back.</dd>
+        <dt>Command</dt><dd>A request that a script, a shortcut or an AI agent sends to the running CyrFlip by starting <code>CyrFlip.exe</code> with a verb such as <code>status</code>; the answer comes back as an exit code.</dd>
       </dl>
     </section>
 
@@ -355,9 +357,19 @@
         <li><strong>Getting text out:</strong> copy, export one note as <code>.txt</code> or <code>.md</code>,
         export every note into a single Markdown file, or <strong>Copy for Google Keep</strong> - the text goes to
         the clipboard and CyrFlip offers to open Keep, where you paste it.</li>
+        <li><strong>Sync with your other devices</strong> is off by default and lives on the quick-notes
+        settings page: <strong>Sync the notes with my other devices</strong> sends the notes through the exchange
+        server to the other devices of one account you signed in to on the <strong>Exchange server</strong> page -
+        the FastMediaSorter phone Notes included - and brings their changes back. Each note is encrypted on this
+        computer for your own devices; whoever runs the server sees only how many notes there are, their sizes
+        and when they changed. It runs a few seconds after you change a note, when the notes window opens and on
+        <strong>Sync now</strong>. A note changed on two devices at the same time is kept twice, the copy from this
+        computer carrying its name in the title; a note deleted on one device stays deleted everywhere. A note too
+        large to sync stays on this computer, and its window says so. Turning the sync off deletes nothing, here
+        or on the server.</li>
       </ul>
       <p class="note">The notes are stored only on your computer, in an append-only file where every record is
-      encrypted with Windows DPAPI for your account - the title as well as the body. Nothing goes to the network,
+      encrypted with Windows DPAPI for your account - the title as well as the body. Nothing goes to the network unless you turn on the sync above,
       nothing is indexed by Windows Search, the clipboard history is never turned into notes by itself, and the
       file is never collected by <strong>Send logs to the author..</strong>. It is still not a secret store: don't
       keep passwords, production tokens or private keys there. An exported file is no longer encrypted, which the
@@ -378,6 +390,7 @@
       </ol>
       <ul>
         <li><strong>One object at a time.</strong> Several files or a folder do not go together - put them into one archive first.</li>
+        <li><strong>A picture goes before the text beside it.</strong> One file wins over everything; otherwise a picture on the clipboard is sent first and the text next to it is not sent in its place. A spreadsheet range or a web selection puts both a picture and its text on the clipboard, so it travels as the picture; to send the text, copy it from a source that carries no picture. If the picture cannot be read, the send fails and says why.</li>
         <li><strong>The server cannot read it.</strong> The value is encrypted on your computer for your other devices before it leaves, and the server keeps only the last value, in its memory, for your account alone; a restart of the server loses it. The server does see that you are online, which devices you have, and how much is sent and when.</li>
         <li><strong>Get takes the newest.</strong> With several accounts, Get places the value that is newest by the server's own time. A received text is an ordinary copy, so the clipboard history records it like any other. A received file is saved in <code>Downloads\CyrFlip</code> (change it under <em>Received files</em>), put on the clipboard as a file, and never overwrites a file that exists.</li>
         <li><strong>Standard settings.</strong> Beside an account whose server keeps standard settings, <strong>Save as STANDARD</strong> saves the groups of settings you tick under <em>Standard settings</em> to the server - it replaces the standard saved there - and <strong>Read STANDARD</strong> on your other computer applies them after showing every change. Both ask first; nothing is sent or read by itself, and a later change on one computer stays there. Passwords, folders, addresses, window positions and the display size never leave the computer, and whoever runs the server can read the saved settings.</li>
@@ -386,6 +399,24 @@
       </ul>
       <p class="note">The page tells you the same in the program: <em>The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices.</em></p>
       <p class="note">CyrFlip never sends anything by itself: there is no monitoring, no timer and no send at start. The sign-in password is used once and is never stored; the device token and the key are protected with Windows DPAPI. Its log (<code>exchange-clipboard.log</code>) holds kinds, sizes and result codes only, never a clipboard value, a file name or an address. <a href="privacy.html">Privacy policy</a>. <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-clipboard.html">About the clipboard on the server</a> on the exchange portal.</p>
+    </section>
+    <section id="commands">
+      <h2>Commands from scripts and other programs</h2>
+      <p>Run <code>CyrFlip.exe</code> with a command and CyrFlip does one named thing and tells the caller how it went - from cmd, PowerShell, a desktop shortcut, a scheduled task or an AI agent. The copy of CyrFlip that is already running does the work: the process you start only carries the command to it, waits for the answer and exits with a code. It opens no second tray icon and no second keyboard hook. A command that needs CyrFlip and finds it closed starts it, works on its own for that one call, or says that CyrFlip is not running - the <em>With CyrFlip not running</em> column of <a href="https://github.com/SerZhyAle/CyrFlip/blob/main/docs/CLI.md">docs/CLI.md</a> says which.</p>
+      <ol class="steps">
+        <li>See what CyrFlip can be asked to do. <code>CyrFlip.exe commands</code> prints the list, <code>CyrFlip.exe commands --json</code> prints the manifest itself, and <a href="https://github.com/SerZhyAle/CyrFlip/blob/main/docs/CLI.md">docs/CLI.md</a> describes every command with its options, exit codes and examples for cmd and PowerShell.</li>
+        <li>Run a command and wait for it. CyrFlip.exe is a window program, so a script that needs the exit code waits for the process: <code>start /wait CyrFlip.exe status</code> in cmd, <code>(Start-Process .\CyrFlip.exe -ArgumentList 'status' -Wait -PassThru).ExitCode</code> in PowerShell. <code>--json</code> prints the answer and <code>--result &lt;path&gt;</code> writes its data to one JSON file.</li>
+        <li>Read the exit code: <code>0</code> done; <code>1</code> the command ran and the operation failed; <code>2</code> not proven - no answer in time, or the running copy is older and takes no commands; <code>10</code> the command was wrong and nothing ran; <code>11</code> not ready - CyrFlip is not running or busy, the feature is off, or the thing named does not exist; <code>12</code> not allowed - the setting below is off, or CyrFlip runs as administrator and the caller does not; <code>13</code> to <code>16</code> the disk, write, network-share or cancelled result of a command that writes a file.</li>
+      </ol>
+      <aside class="note callout-warning"><span class="tag">Warning</span><p>Commands that touch your files, screen, clipboard or the network run only while <strong>Let other programs ask CyrFlip to work with my files, screen, clipboard or the network</strong> is on, under Settings → <strong>General</strong> → <em>Commands from other programs</em>. It is <strong>off until you turn it on</strong>, and only you can turn it on: no command, settings file or server does. With it off, such a command exits <code>12</code> and the message names the setting.</p></aside>
+      <ul>
+        <li><strong>Safe</strong> (<code>safe</code>) - changes only CyrFlip's own state or window and reads nothing of yours, for example <code>status</code>, <code>show</code>, <code>layout list</code>, <code>text convert</code>, <code>note add</code> or <code>clipboard-history pause</code> (pauses or resumes recording without touching a single copy), or <code>keepawake set</code> and <code>theme set</code> - the very state switches the General page and the tray already own, written through the same one path; <code>keepawake set --minutes &lt;n&gt;</code> holds the state for that many minutes and returns it by itself, writing nothing. Four commands open a window and only open it - <code>note show</code>, <code>clipboard-history show</code>, <code>symbols show</code> and <code>trafficlight show</code> - so a shortcut that opens the notes never closes them. Always accepted.</li>
+        <li><strong>Reads your data</strong> (<code>reads-user-data</code>) - puts something of yours into the answer or into a file the caller names, for example <code>screenshot full</code>, <code>screenshot window</code> - one window of the screen, named by its process id or its title, instead of the whole screen - <code>note list</code>, <code>note get</code>, <code>note export</code>, <code>clipboard-history list</code> or <code>diagnostics bundle</code>. The clipboard history is the most private store in CyrFlip, so its list answers previews only - the first 1024 characters of an entry on one line - and never the app or window the copy came from.</li>
+        <li><strong>Writes your data</strong> (<code>writes-user-data</code>) - changes something outside CyrFlip's own folder or acts inside another program: <code>scenario run</code> starts one of your Quick launch programs, <code>layout switch</code> changes the layout of the window you typed in, <code>clipboard-history put</code> puts one history entry back on the clipboard exactly as the history strip's restore does, <code>autostart set</code> turns start-with-Windows on or off (except on the Store build, where Windows owns startup and the answer says so), and <code>cursor restore</code> reloads Windows' own cursors, the whole scheme - the repair when a killed CyrFlip left its branded I-beam behind. The <code>selection convert</code>, <code>selection flip-case</code> and <code>selection note</code> verbs take what a window you name has selected and change it right there: convert it between two layouts you name, flip the case of every letter, or save it as a quick note - the window is brought to the front first, and one that stays in the background is refused.</li>
+        <li><strong>Leaves this PC</strong> (<code>leaves-machine</code>) - sends something off the machine: <code>clipboard send</code> and <code>clipboard get</code> talk to your exchange server, <code>clipboard send --file</code> or <code>--text</code> sends one named file or a given text instead of the clipboard's content, <code>clipboard get --out</code> receives straight into a file you name without touching the clipboard, <code>translate text</code> hands a given text to the translator's configured model - which may sit on another machine, so the text can leave this PC - and <code>selection translate</code> hands the selection of a window you name to the same model.</li>
+        <li><strong>Earlier shortcuts.</strong> The spellings CyrFlip had before commands - <code>/clipboard-send</code>, <code>/clipboard-get</code>, <code>/launcher-run:{guid}</code>, <code>/launcher-settings</code> and <code>/exit</code> - keep working in your shortcuts and Jump List tasks, and depend only on their own feature being on.</li>
+      </ul>
+      <p class="note">Nothing here opens a network port: a command reaches the running copy through a local pipe that only your Windows user can open. CyrFlip keeps <code>app-commands.log</code> with each command's name, how it arrived, the process that asked and the outcome - never its text or arguments - and it is part of the log archive for the author. <a href="privacy.html">Privacy policy</a>.</p>
     </section>
     <section>
       <h2>Interface languages</h2>

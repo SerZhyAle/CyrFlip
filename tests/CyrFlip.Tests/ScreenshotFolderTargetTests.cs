@@ -22,6 +22,7 @@ namespace CyrFlip.Tests
             public bool FileExists(string path) => throw new NotSupportedException();
             public void WriteAllBytes(string path, byte[] bytes) => throw new NotSupportedException();
             public bool MoveNoReplace(string from, string to) => throw new NotSupportedException();
+            public bool MoveReplace(string from, string to) => throw new NotSupportedException();
             public void DeleteFile(string path) => throw new NotSupportedException();
         }
 

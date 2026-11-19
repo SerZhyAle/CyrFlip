@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `WINDOWS-UI` |
-| **Version** | 0.3, draft - implemented in part: sections 2-7 of the 0.1 text (S0048, 2026-10-06); the 0.2 timing and 0.3 item 6 are read, not run (2026-10-07) |
+| **Version** | 0.12, draft (re-read 2026-11-15, S0114) - implemented in part: sections 2-7 of the 0.1 text (S0048, 2026-10-06); the 0.2 timing and 0.3 item 6 are read, not run (2026-10-07) |
 | **Home** | `desktop-app-ux/WINDOWS-UI.md` in the shared contracts catalog |
 | **Role here** | consumer - sections 2-7 implemented 2026-10-06 (ticket `S0048`); section 8 does not apply (no content viewer) |
 

@@ -303,6 +303,34 @@ namespace CyrFlip.Tests
             wedge.Set();
         }
 
+        // ---- The per-source diagnostics line (S0133) ---------------------------------------
+
+        /// <summary>
+        /// One line per opening names every source's own verdict, in asking order, and a character
+        /// count - never the text - wherever a source could read it. This is the instrument that
+        /// makes a greyed-menu report explainable from the log: the aggregate verdict cannot say
+        /// which source answered what.
+        /// </summary>
+        [Fact]
+        public void TheDiagnosticsLineNamesEverySourceVerdictAndCountsOnly()
+        {
+            var answers = new List<SelectionSourceAnswer>
+            {
+                new SelectionSourceAnswer("edit@pointer", SelectionState.Unknown, null),
+                new SelectionSourceAnswer("ia2@pointer", SelectionState.Present, 42),
+                new SelectionSourceAnswer("uia@focus", SelectionState.Absent, null),
+            };
+            var snapshot = new SelectionSnapshot(SelectionState.Present, "read", null, answers);
+
+            Assert.Equal("edit@pointer=Unknown, ia2@pointer=Present(42), uia@focus=Absent",
+                TextMenuLog.DescribeSources(snapshot));
+        }
+
+        /// <summary>An opening whose probe did not finish has nothing honest to report about greying.</summary>
+        [Fact]
+        public void AnUnansweredProbeReportsNoSourcesRatherThanGuessing()
+            => Assert.Equal("n/a", TextMenuLog.DescribeSources(SelectionSnapshot.Unknown));
+
         private static bool SpinUntil(Func<bool> condition, int timeoutMs)
         {
             int waited = 0;

@@ -3,6 +3,17 @@ using static CyrFlip.WindowInterop;
 
 namespace CyrFlip
 {
+    /// <summary>What a request for a layout came to (ticket S0109): the command line needs to tell "asked" from "was already there".</summary>
+    internal enum SwitchOutcome
+    {
+        /// <summary>The request was posted (it is a request, not proof that the window took it).</summary>
+        Requested,
+        /// <summary>The window's thread already has that layout; nothing was posted.</summary>
+        AlreadyActive,
+        /// <summary>There is no window to ask.</summary>
+        NoWindow,
+    }
+
     /// <summary>
     /// Switches the foreground window's input layout after a conversion (feature:
     /// "Change the layout after converting text").
@@ -26,14 +37,7 @@ namespace CyrFlip
             if (hwnd == IntPtr.Zero) return;
             IntPtr target = KeyboardLayoutConverter.ResolveInstalled(targetKlid);
             if (target != IntPtr.Zero)
-            {
-                IntPtr inputWnd = CursorIndicator.InputWindow(hwnd);
-                PostMessage(inputWnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, target);
-                if (inputWnd != hwnd)
-                    PostMessage(hwnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, target);
-                PostMessage(HWND_BROADCAST, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, target);
-                ActivateKeyboardLayout(target, 0);
-            }
+                Request(hwnd, target);
         }
 
         /// <summary>
@@ -51,28 +55,54 @@ namespace CyrFlip
             IntPtr[] installed = KeyboardLayoutConverter.InstalledLayouts();
             if (installed.Length < 2) return false;
 
-            IntPtr inputWnd = hwnd != IntPtr.Zero ? CursorIndicator.InputWindow(hwnd) : IntPtr.Zero;
-            IntPtr target = inputWnd != IntPtr.Zero ? inputWnd : hwnd;
+            IntPtr current = hwnd != IntPtr.Zero ? HklOfWindow(hwnd) : GetKeyboardLayout(0);
+            Request(hwnd, NextAfter(installed, current));
+            return true;
+        }
 
-            IntPtr current = target != IntPtr.Zero
-                ? GetKeyboardLayout(GetWindowThreadProcessId(target, out _))
-                : GetKeyboardLayout(0);
+        /// <summary>
+        /// The layout the window's input thread has right now, for the command line (S0109): the window itself
+        /// is resolved to its input window first, the way the marker does, and a request for that layout posts nothing.
+        /// </summary>
+        internal static SwitchOutcome SwitchToHkl(IntPtr hwnd, IntPtr hkl)
+        {
+            if (hwnd == IntPtr.Zero || hkl == IntPtr.Zero) return SwitchOutcome.NoWindow;
+            if (HklOfWindow(hwnd) == hkl) return SwitchOutcome.AlreadyActive;
+            Request(hwnd, hkl);
+            return SwitchOutcome.Requested;
+        }
 
+        /// <summary>
+        /// The layout after <paramref name="current"/> in <paramref name="installed"/>, wrapping at the end: the
+        /// rotation of the tray click, moved here unchanged so a command and the click cannot disagree. An unlisted
+        /// <paramref name="current"/> (shouldn't happen) still gives a sensible destination.
+        /// </summary>
+        internal static IntPtr NextAfter(IntPtr[] installed, IntPtr current)
+        {
             int index = Array.IndexOf(installed, current);
-            // An unlisted current layout (shouldn't happen) still gives a sensible destination.
             IntPtr next = index >= 0 ? installed[(index + 1) % installed.Length] : installed[0];
             if (next == current)
                 next = installed[(index + 1 + installed.Length) % installed.Length == 0 ? 1 : 0];
+            return next;
+        }
 
-            if (target != IntPtr.Zero)
-            {
-                PostMessage(target, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, next);
-                if (hwnd != IntPtr.Zero && hwnd != target)
-                    PostMessage(hwnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, next);
-            }
-            PostMessage(HWND_BROADCAST, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, next);
-            ActivateKeyboardLayout(next, 0);
-            return true;
+        /// <summary>The layout of the thread that owns the window's input window.</summary>
+        private static IntPtr HklOfWindow(IntPtr hwnd) => CursorIndicator.HklOf(hwnd);
+
+        /// <summary>
+        /// The one posting tail of both public switches: the window's input window (and the window itself when it
+        /// is another), every top-level window by broadcast, and this thread. A zero window posts to nobody but the
+        /// broadcast, as the tray click always did.
+        /// </summary>
+        internal static void Request(IntPtr hwnd, IntPtr hkl)
+        {
+            IntPtr inputWnd = hwnd != IntPtr.Zero ? CursorIndicator.InputWindow(hwnd) : IntPtr.Zero;
+            if (inputWnd != IntPtr.Zero)
+                PostMessage(inputWnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, hkl);
+            if (hwnd != IntPtr.Zero && hwnd != inputWnd)
+                PostMessage(hwnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, hkl);
+            PostMessage(HWND_BROADCAST, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, hkl);
+            ActivateKeyboardLayout(hkl, 0);
         }
     }
 }

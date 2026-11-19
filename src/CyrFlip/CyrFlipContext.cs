@@ -574,6 +574,7 @@ namespace CyrFlip
             _hook.UpdateSymbolsHotkey(_symbolsHotkey);
             // The traffic light's chord and - only when switched on - its module (S0069 D6).
             StartTrafficLightAtLaunch();
+            OnNotesSyncConditionsChanged();
             _hook.UpdateScreenshotHotkey(_screenshotHotkey);
             _hook.UpdateScreenshotFullHotkey(_screenshotFullHotkey);
             _hook.UpdateScreenshotAnnotateAreaHotkey(_screenshotAnnotateAreaHotkey);
@@ -653,7 +654,9 @@ namespace CyrFlip
             // Started after _ui is captured: the IPC thread posts every command to the UI thread.
             // The listener always runs, for /exit and /launcher-settings alone while the launcher is
             // off (S0008 LS-2, S0060 P7-n) - RefreshLauncherSurfaces tells it which commands it may pass on.
-            _launcherIpc = new LauncherIpc(cmd => _ui?.Post(_ => OnLauncherIpcCommand(cmd), null));
+            // The same pipe answers the commands of APP-COMMANDS (S0107): OnAppCommandRequest runs on the listener's
+            // thread and hands each command to the UI thread itself.
+            _launcherIpc = new LauncherIpc(cmd => _ui?.Post(_ => OnLauncherIpcCommand(cmd), null), onRequest: OnAppCommandRequest);
             RefreshLauncherSurfaces();
             // The mouse hook, likewise, only after _ui exists - its callback posts to the UI thread.
             RefreshContextMenuBinding();
@@ -946,7 +949,7 @@ namespace CyrFlip
                 && !ChordIsFree(chord, ChordKind.TextMenu, askAboutWindows: false))
             {
                 _config.EnableTextMenuHotkey = false;
-                _ui?.Post(_ => _settings?.Reload(), null);
+                _ui?.Post(_ => _settings?.RefreshState(), null);
             }
             _textMenuChordWasLive = TextMenuChordLive;
             _hook.UpdateTextMenuHotkey(ParsedTextMenuHotkey());
@@ -971,7 +974,10 @@ namespace CyrFlip
 
             // Actions that synthesize input go through DeferOnTarget: they must land in the window the
             // menu was opened over. The two that merely open a window of ours use plain Defer.
-            TextContextMenu.Rebuild(_textMenu, BuildTextMenuState(selection), T,
+            // The menu state is read once here, before the build, because the log line below reports
+            // its clipboard flag - the same single read, not a second probe of the clipboard.
+            TextContextMenuState menuState = BuildTextMenuState(selection);
+            TextContextMenu.Rebuild(_textMenu, menuState, T,
                 command => { TextMenuLog.Log("click: " + command); DeferOnTarget(() => RunEditCommand(command)); },
                 target => { TextMenuLog.Log("click: launch " + target.Kind); Defer(() => LaunchSelection(target)); },
                 id => { TextMenuLog.Log("click: conversion"); DeferOnTarget(() => OnLayoutConversionHotkeyPressed(id)); },
@@ -984,10 +990,14 @@ namespace CyrFlip
                 () => { TextMenuLog.Log("click: symbols"); Defer(ToggleSymbols); });
 
             if (_textMenu.Items.Count == 0) return;
-            // The selected text itself is deliberately absent from the log - only its shape.
+            // The selected text itself is deliberately absent from the log - only its shape: counts,
+            // the per-source verdicts and the clipboard flag, never content (S0133; S0087 section 4
+            // named this line as the instrument a greyed-menu report needs).
             TextMenuLog.Log("menu shown at " + x + "," + y + " with " + _textMenu.Items.Count
                 + " items, selection=" + selection.State
                 + (selection.Text == null ? ", text unavailable" : ", text " + selection.Text.Length + " chars")
+                + (menuState.ClipboardHasText ? ", clipboard text" : ", clipboard no text")
+                + ", sources " + TextMenuLog.DescribeSources(selection)
                 + ", target " + TextMenuLog.Describe(_textMenuTarget));
 
             // A drop-down whose owner is not the foreground window never sees the click that should
@@ -1298,57 +1308,106 @@ namespace CyrFlip
             if (annotate && !_config.EnableScreenshotAnnotate) return;
             _captureAnnotate = annotate;
 
+            CaptureStart start = BeginRegionCapture(FinishRegionCapture);
+            if (start == CaptureStart.GrabFailed || start == CaptureStart.OverlayFailed)
+                ShowWarningBalloon(3000, T("Could not capture the screen."));
+        }
+
+        /// <summary>
+        /// What a finished selection hands to whoever started the capture: the chord's wrapper, the tray item and
+        /// the settings buttons (<see cref="FinishRegionCapture"/>), or a screenshot command (ticket S0110).
+        /// </summary>
+        private sealed class RegionFinish
+        {
+            public RegionFinish(Bitmap frame, Rectangle screen, Rectangle? region, DateTime started, IntPtr returnTo,
+                RegionSelectionOverlay overlay)
+            {
+                Frame = frame; Screen = screen; Region = region; Started = started; ReturnTo = returnTo; Overlay = overlay;
+            }
+
+            /// <summary>The frozen virtual screen; the receiver owns it and disposes it.</summary>
+            public Bitmap Frame { get; }
+            public Rectangle Screen { get; }
+            /// <summary>The selection in virtual-screen pixels, or null for a cancel.</summary>
+            public Rectangle? Region { get; }
+            /// <summary>The freeze instant (CAPTURE-OUTPUT rule 3).</summary>
+            public DateTime Started { get; }
+            /// <summary>Where Ctrl+V goes next: the window the user came from, not the tray's taskbar.</summary>
+            public IntPtr ReturnTo { get; }
+            public RegionSelectionOverlay Overlay { get; }
+        }
+
+        /// <summary>
+        /// The capture core of the region capture, shared by the chord and by <c>screenshot region</c>: the busy check,
+        /// the freeze and the selection overlay are one turn of the UI thread, so a chord and a command never run
+        /// together. <paramref name="finished"/> runs once, on the UI thread, when the selection ends - and owns the
+        /// frame from then on.
+        /// </summary>
+        private CaptureStart BeginRegionCapture(Action<RegionFinish> finished)
+        {
+            if (_disposed || CaptureBusy) return CaptureStart.Busy;
+
             // Where Ctrl+V goes next: the window the user came from, not the tray's taskbar.
             IntPtr returnTo = _indicator.LastActiveWindow;
             // CAPTURE-OUTPUT rule 3: the name carries the moment the capture started - the freeze.
             DateTime started = DateTime.Now;
             Rectangle screen = ScreenCapture.VirtualScreen;
             Bitmap? frame = ScreenCapture.Grab(screen);
-            if (frame == null)
-            {
-                ShowWarningBalloon(3000, T("Could not capture the screen."));
-                return;
-            }
+            if (frame == null) return CaptureStart.GrabFailed;
 
             RegionSelectionOverlay overlay;
             try { overlay = new RegionSelectionOverlay(frame, screen, ScreenCapture.MonitorBounds()); }
             catch
             {
                 frame.Dispose();
-                ShowWarningBalloon(3000, T("Could not capture the screen."));
-                return;
+                return CaptureStart.OverlayFailed;
             }
             _regionOverlay = overlay;
-            overlay.Finished += region =>
-            {
-                // The annotate hand-off (S0071 6.2): the editor takes ownership of the frame and of
-                // the freeze instant - the minutes spent drawing never move the file name. A cancel
-                // of the selection (no region) is a cancel of the whole capture, exactly as without
-                // the editor.
-                if (_captureAnnotate && region.HasValue)
-                {
-                    _regionOverlay = null;
-                    _ui?.Post(_ => overlay.Dispose(), null);
-                    OpenAnnotationEditor(frame, screen, region, started, returnTo);
-                    return;
-                }
-
-                // The crop is a copy, so the frame - the one large allocation - goes at once (section 7).
-                Bitmap? cropped = null;
-                if (region.HasValue)
-                {
-                    try { cropped = ScreenCapture.Crop(frame, screen, region.Value); }
-                    catch { /* a region outside the frame: treated as a cancel */ }
-                }
-                frame.Dispose();
-                _regionOverlay = null;
-                // Not from inside the overlay's own event: its windows are still on the call stack.
-                _ui?.Post(_ => overlay.Dispose(), null);
-                if (returnTo != IntPtr.Zero) ForegroundActivator.Activate(returnTo);
-                if (cropped != null) DeliverScreenshot(cropped, started);
-            };
+            overlay.Finished += region => finished(new RegionFinish(frame, screen, region, started, returnTo, overlay));
             try { overlay.Show(); }
             catch { overlay.Cancel(); }
+            return CaptureStart.Started;
+        }
+
+        /// <summary>The chord's, the tray item's and the settings buttons' end of a region capture.</summary>
+        private void FinishRegionCapture(RegionFinish done)
+        {
+            // The annotate hand-off (S0071 6.2): the editor takes ownership of the frame and of
+            // the freeze instant - the minutes spent drawing never move the file name. A cancel
+            // of the selection (no region) is a cancel of the whole capture, exactly as without
+            // the editor.
+            if (_captureAnnotate && done.Region.HasValue)
+            {
+                _regionOverlay = null;
+                _ui?.Post(_ => done.Overlay.Dispose(), null);
+                OpenAnnotationEditor(done.Frame, done.Screen, done.Region, done.Started, done.ReturnTo);
+                return;
+            }
+
+            Bitmap? cropped = CropAndRelease(done);
+            if (cropped != null) DeliverScreenshot(cropped, done.Started);
+        }
+
+        /// <summary>
+        /// The end of a selection that is not handed to the editor: the crop (null for a cancel or a region outside
+        /// the frame), the frame gone at once - it is the one large allocation (section 7) - the overlay released, and the
+        /// window the person came from given the focus back.
+        /// </summary>
+        private Bitmap? CropAndRelease(RegionFinish done)
+        {
+            // The crop is a copy, so the frame goes at once.
+            Bitmap? cropped = null;
+            if (done.Region.HasValue)
+            {
+                try { cropped = ScreenCapture.Crop(done.Frame, done.Screen, done.Region.Value); }
+                catch { /* a region outside the frame: treated as a cancel */ }
+            }
+            done.Frame.Dispose();
+            _regionOverlay = null;
+            // Not from inside the overlay's own event: its windows are still on the call stack.
+            _ui?.Post(_ => done.Overlay.Dispose(), null);
+            if (done.ReturnTo != IntPtr.Zero) ForegroundActivator.Activate(done.ReturnTo);
+            return cropped;
         }
 
         /// <summary>
@@ -1363,25 +1422,42 @@ namespace CyrFlip
             if (annotate && !_config.EnableScreenshotAnnotate) return;
             _captureAnnotate = annotate;
 
-            IntPtr returnTo = _indicator.LastActiveWindow;
-            // The same freeze instant discipline as the region capture: the name carries the freeze.
-            DateTime started = DateTime.Now;
-            Rectangle screen = ScreenCapture.VirtualScreen;
-            Bitmap? frame = ScreenCapture.Grab(screen);
-            if (frame == null)
+            CaptureStart start = BeginFullCapture(out Bitmap? frame, out Rectangle screen, out DateTime started, out IntPtr returnTo);
+            if (start != CaptureStart.Started)
             {
-                ShowWarningBalloon(3000, T("Could not capture the screen."));
+                if (start == CaptureStart.GrabFailed) ShowWarningBalloon(3000, T("Could not capture the screen."));
                 return;
             }
 
             if (annotate)
             {
-                OpenAnnotationEditor(frame, screen, null, started, returnTo);
+                OpenAnnotationEditor(frame!, screen, null, started, returnTo);
                 return;
             }
             // DeliverScreenshot's worker disposes the bitmap (the finally after the encode), so
             // ownership passes unchanged.
-            DeliverScreenshot(frame, started);
+            DeliverScreenshot(frame!, started);
+        }
+
+        /// <summary>
+        /// The capture core of the full capture, shared by the chord and by <c>screenshot full</c>: the busy check and
+        /// one freeze of the virtual screen, in one turn of the UI thread. On <see cref="CaptureStart.Started"/> the
+        /// caller owns <paramref name="frame"/>.
+        /// </summary>
+        private CaptureStart BeginFullCapture(out Bitmap? frame, out Rectangle screen, out DateTime started, out IntPtr returnTo)
+        {
+            frame = null;
+            screen = Rectangle.Empty;
+            started = DateTime.Now;
+            returnTo = IntPtr.Zero;
+            if (_disposed || CaptureBusy) return CaptureStart.Busy;
+
+            returnTo = _indicator.LastActiveWindow;
+            // The same freeze instant discipline as the region capture: the name carries the freeze.
+            started = DateTime.Now;
+            screen = ScreenCapture.VirtualScreen;
+            frame = ScreenCapture.Grab(screen);
+            return frame == null ? CaptureStart.GrabFailed : CaptureStart.Started;
         }
 
         /// <summary>
@@ -1394,15 +1470,13 @@ namespace CyrFlip
         /// </summary>
         private void OpenAnnotationEditor(Bitmap frame, Rectangle screen, Rectangle? region, DateTime started, IntPtr returnTo)
         {
-            AnnotationEditor editor;
-            try { editor = new AnnotationEditor(frame, screen, region, ScreenCapture.MonitorBounds(), returnTo, T); }
-            catch
+            AnnotationEditor? created = NewAnnotationEditor(frame, screen, region, returnTo);
+            if (created == null)
             {
-                frame.Dispose();
                 ShowWarningBalloon(3000, T("Could not capture the screen."));
                 return;
             }
-            _annotationEditor = editor;
+            AnnotationEditor editor = created;
             editor.Delivered += composed =>
             {
                 _annotationEditor = null;
@@ -1418,6 +1492,31 @@ namespace CyrFlip
                 _ui?.Post(_ => editor.Dispose(), null);
                 if (returnTo != IntPtr.Zero) ForegroundActivator.Activate(returnTo);
             };
+            ShowAnnotationEditor(editor);
+        }
+
+        /// <summary>
+        /// The editor's creation, shared by the chord's delivery path and the <c>screenshot region --annotate</c>
+        /// command (ticket S0130): the frame is disposed here on a creation fault and the caller learns it from the
+        /// null, and the <see cref="_annotationEditor"/> field is taken on this thread - before anything is wired
+        /// or posted - exactly as the chord's own path does.
+        /// </summary>
+        private AnnotationEditor? NewAnnotationEditor(Bitmap frame, Rectangle screen, Rectangle? region, IntPtr returnTo)
+        {
+            AnnotationEditor editor;
+            try { editor = new AnnotationEditor(frame, screen, region, ScreenCapture.MonitorBounds(), returnTo, T); }
+            catch
+            {
+                frame.Dispose();
+                return null;
+            }
+            _annotationEditor = editor;
+            return editor;
+        }
+
+        /// <summary>The editor on the screen - both callers wire their events first, so no event can fire unwired.</summary>
+        private void ShowAnnotationEditor(AnnotationEditor editor)
+        {
             try { editor.Show(); }
             catch { editor.Cancel(); }
         }
@@ -1448,13 +1547,7 @@ namespace CyrFlip
                     }
                     finally { cropped.Dispose(); }
 
-                    bool onClipboard = false;
-                    if (AcquireClipboardGuard(ScreenshotClipboardWaitMs))
-                    {
-                        try { onClipboard = Win32Clipboard.TrySetImage(png, dib); }
-                        catch { /* never let a clipboard op take the app down */ }
-                        finally { Interlocked.Exchange(ref _busy, 0); }
-                    }
+                    bool onClipboard = TryPutScreenshotOnClipboard(png, dib);
                     if (onClipboard)
                         _config.IncrementScreenshotCount();
                     else
@@ -1484,14 +1577,7 @@ namespace CyrFlip
                 }
                 finally
                 {
-                    // The frame, the crop, the DIB and the PNG arrays of a multi-4K capture are
-                    // large-object-heap garbage the moment this worker ends; left alone they sit
-                    // in the LOH until some later gen-2 - minutes to hours in an idle tray app,
-                    // against the 50 MB idle budget (LK-3b-08 / S0066 L-10). CompactOnce asks the
-                    // next blocking collection to compact the LOH as well; the collection is
-                    // induced here because a user-paced capture is exactly when one is affordable.
-                    GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-                    GC.Collect();
+                    CompactAfterCapture();
                 }
             })
             { IsBackground = true, Name = "CyrFlip screenshot" };
@@ -1501,6 +1587,33 @@ namespace CyrFlip
                 cropped.Dispose();
                 ShowWarningBalloon(3000, T("Could not capture the screen."));
             }
+        }
+
+        /// <summary>
+        /// PNG + DIB onto the clipboard under the <see cref="_busy"/> guard, waiting a little for a flip that is still
+        /// running; false when another program holds the clipboard. The chord's delivery and <c>screenshot</c>'s
+        /// <c>--clipboard</c> write it the same way.
+        /// </summary>
+        private bool TryPutScreenshotOnClipboard(byte[] png, byte[] dib)
+        {
+            if (!AcquireClipboardGuard(ScreenshotClipboardWaitMs)) return false;
+            try { return Win32Clipboard.TrySetImage(png, dib); }
+            catch { return false; /* never let a clipboard op take the app down */ }
+            finally { Interlocked.Exchange(ref _busy, 0); }
+        }
+
+        /// <summary>
+        /// The frame, the crop, the DIB and the PNG arrays of a multi-4K capture are
+        /// large-object-heap garbage the moment a capture ends; left alone they sit
+        /// in the LOH until some later gen-2 - minutes to hours in an idle tray app,
+        /// against the 50 MB idle budget (LK-3b-08 / S0066 L-10). CompactOnce asks the
+        /// next blocking collection to compact the LOH as well; the collection is
+        /// induced here because a user-paced capture is exactly when one is affordable.
+        /// </summary>
+        private static void CompactAfterCapture()
+        {
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+            GC.Collect();
         }
 
         /// <summary>
@@ -1535,7 +1648,7 @@ namespace CyrFlip
                 && !ChordIsFree(chord, ChordKind.Screenshot, askAboutWindows: false))
             {
                 _config.EnableScreenshotHotkey = false;
-                _ui?.Post(_ => _settings?.Reload(), null);
+                _ui?.Post(_ => _settings?.RefreshState(), null);
             }
             _screenshotChordWasLive = ScreenshotChordLive;
 
@@ -1546,7 +1659,7 @@ namespace CyrFlip
                 && !ChordIsFree(fullChord, ChordKind.ScreenshotFull, askAboutWindows: false))
             {
                 _config.EnableScreenshotFullHotkey = false;
-                _ui?.Post(_ => _settings?.Reload(), null);
+                _ui?.Post(_ => _settings?.RefreshState(), null);
             }
             _screenshotFullChordWasLive = ScreenshotFullChordLive;
 
@@ -1555,7 +1668,7 @@ namespace CyrFlip
                 && !ChordIsFree(annChord, ChordKind.ScreenshotAnnotateArea, askAboutWindows: false))
             {
                 _config.EnableScreenshotAnnotateAreaHotkey = false;
-                _ui?.Post(_ => _settings?.Reload(), null);
+                _ui?.Post(_ => _settings?.RefreshState(), null);
             }
             _screenshotAnnotateAreaChordWasLive = ScreenshotAnnotateAreaChordLive;
 
@@ -1564,7 +1677,7 @@ namespace CyrFlip
                 && !ChordIsFree(fullAnnChord, ChordKind.ScreenshotFullAnnotate, askAboutWindows: false))
             {
                 _config.EnableScreenshotFullAnnotateHotkey = false;
-                _ui?.Post(_ => _settings?.Reload(), null);
+                _ui?.Post(_ => _settings?.RefreshState(), null);
             }
             _screenshotFullAnnotateChordWasLive = ScreenshotFullAnnotateChordLive;
 
@@ -1574,7 +1687,7 @@ namespace CyrFlip
                 && !ChordIsFree(folderChord, ChordKind.ScreenshotFolder, askAboutWindows: false))
             {
                 _config.EnableScreenshotFolderHotkey = false;
-                _ui?.Post(_ => _settings?.Reload(), null);
+                _ui?.Post(_ => _settings?.RefreshState(), null);
             }
             _screenshotFolderChordWasLive = ScreenshotFolderChordLive;
 
@@ -1610,7 +1723,7 @@ namespace CyrFlip
             _config.TextMenuHotkey = next.Display;
             _config.Save();
             _hook.UpdateTextMenuHotkey(next);
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         /// <summary>The capture chord, set from the settings tab and checked against every other owner.</summary>
@@ -1625,7 +1738,7 @@ namespace CyrFlip
             _config.Save();
             _hook.UpdateScreenshotHotkey(next);
             UpdateTrayTexts();
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         /// <summary>The full-capture chord, set from the settings tab and checked against every other owner (S0071).</summary>
@@ -1640,7 +1753,7 @@ namespace CyrFlip
             _config.Save();
             _hook.UpdateScreenshotFullHotkey(next);
             UpdateTrayTexts();
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         /// <summary>The area-capture-with-drawing chord (S0071), same discipline.</summary>
@@ -1654,7 +1767,7 @@ namespace CyrFlip
             _config.ScreenshotAnnotateAreaHotkey = next.Display;
             _config.Save();
             _hook.UpdateScreenshotAnnotateAreaHotkey(next);
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         /// <summary>The full-capture-with-drawing chord (S0071), same discipline.</summary>
@@ -1668,7 +1781,7 @@ namespace CyrFlip
             _config.ScreenshotFullAnnotateHotkey = next.Display;
             _config.Save();
             _hook.UpdateScreenshotFullAnnotateHotkey(next);
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         /// <summary>The folder-opening chord, set from the settings tab and checked against every other owner (S0057).</summary>
@@ -1682,7 +1795,7 @@ namespace CyrFlip
             _config.ScreenshotFolderHotkey = next.Display;
             _config.Save();
             _hook.UpdateScreenshotFolderHotkey(next);
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         /// <summary>
@@ -1711,6 +1824,15 @@ namespace CyrFlip
         /// </summary>
         private QuickNotesWindow? EnsureQuickNotes()
         {
+            if (EnsureQuickNotesService() == null) return null;
+            if (_quickNotesWindow == null || _quickNotesWindow.IsDisposed)
+                _quickNotesWindow = new QuickNotesWindow(_quickNotes!, _config, () => ShowSettings(SettingsPageKey.QuickNotes), exchange: RunExchange);
+            return _quickNotesWindow;
+        }
+
+        /// <summary>The service alone, without its window: what the notes sync needs at start (ticket S0105).</summary>
+        private QuickNotesService? EnsureQuickNotesService()
+        {
             if (!_config.EnableQuickNotes) return null;
             if (_quickNotes == null)
             {
@@ -1730,19 +1852,19 @@ namespace CyrFlip
                     if (lines.Count > 0 && ReferenceEquals(service, _quickNotes))
                         _tray.ShowBalloonTip(4000, "CyrFlip", string.Join("\n", lines), ToolTipIcon.Warning);
                 };
+                AttachNotesSync(service);
                 // After a previous service's background retirement, which may still be compacting
                 // this very journal (S0030 HT-6).
                 service.LoadAsync(_quickNotesRetired);
             }
-            if (_quickNotesWindow == null || _quickNotesWindow.IsDisposed)
-                _quickNotesWindow = new QuickNotesWindow(_quickNotes, _config, () => ShowSettings(SettingsPageKey.QuickNotes), exchange: RunExchange);
-            return _quickNotesWindow;
+            return _quickNotes;
         }
 
         private void ShowQuickNotes(bool startNew)
         {
             QuickNotesWindow? window = EnsureQuickNotes();
             window?.ShowNotes(startNew);
+            if (window != null) StartNotesSync();
         }
 
         /// <summary>
@@ -1813,7 +1935,7 @@ namespace CyrFlip
                 && !ChordIsFree(notesChord, ChordKind.QuickNotes, askAboutWindows: false))
             {
                 _config.EnableQuickNotesHotkey = false;
-                _ui?.Post(_ => _settings?.Reload(), null);
+                _ui?.Post(_ => _settings?.RefreshState(), null);
             }
             _quickNotesChordWasLive = QuickNotesChordLive;
 
@@ -1845,9 +1967,11 @@ namespace CyrFlip
             {
                 // The last edit is written here; the wait for a running compaction and the final one
                 // go to the pool (S0030 HT-6) - this is a settings click on the hooks' thread.
+                DetachNotesSync();
                 _quickNotesRetired = _quickNotes.RetireAsync();
                 _quickNotes = null;
             }
+            OnNotesSyncConditionsChanged();
             UpdateTrayTooltip();
         }
 
@@ -2399,7 +2523,7 @@ namespace CyrFlip
             _config.Save();
             _hook.UpdateCaseHotkey(_caseHotkey);
             UpdateTrayTooltip();
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         private void OnSetHistoryHotkey(object? sender, EventArgs e)
@@ -2414,7 +2538,7 @@ namespace CyrFlip
             _hook.UpdateClipboardHistoryHotkey(next);
             _clipboardHistoryWindow.RefreshHeader();
             UpdateTrayTooltip();
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         /// <summary>
@@ -2433,7 +2557,7 @@ namespace CyrFlip
             _config.Save();
             _hook.UpdateQuickNotesHotkey(next);
             UpdateTrayTooltip();
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         private void OnSetSymbolsHotkey()
@@ -2447,7 +2571,7 @@ namespace CyrFlip
             _config.Save();
             _hook.UpdateSymbolsHotkey(next);
             UpdateTrayTooltip();
-            _settings?.Reload();
+            _settings?.RefreshState();
         }
 
         private SymbolsWindow? EnsureSymbolsWindow()
@@ -2550,7 +2674,7 @@ namespace CyrFlip
                 && !ChordIsFree(symChord, ChordKind.Symbols, askAboutWindows: false))
             {
                 _config.EnableSymbolsHotkey = false;
-                _ui?.Post(_ => _settings?.Reload(), null);
+                _ui?.Post(_ => _settings?.RefreshState(), null);
             }
             _symbolsChordWasLive = SymbolsChordLive;
 
@@ -2904,8 +3028,11 @@ namespace CyrFlip
                 RefreshExchangeHotkeys();
                 UpdateTrayTexts();
                 RefreshJumpList();
+                OnNotesSyncConditionsChanged();
             };
             settings.SettingsStandardRequested += RunSettingsStandard;
+            settings.QuickNotesSyncNowRequested += (_, _) => StartNotesSync();
+            settings.QuickNotesSyncStatusText = NotesSyncStatusText;
             settings.ExchangeClipboardSendHotkeyChangeRequested += (_, _) => OnSetExchangeSendHotkey();
             settings.ExchangeClipboardGetHotkeyChangeRequested += (_, _) => OnSetExchangeGetHotkey();
             settings.GraphicsChanged += (_, _) => OnGraphicsChanged();
@@ -3019,6 +3146,7 @@ namespace CyrFlip
             // The first open builds the whole window on this thread, and nothing of ours answers while it
             // does: say so before it starts, or a double click on the tray icon reads as "nothing
             // happened" and is repeated (every repeat queues behind the build).
+            long commandStart = OpenTrace.Begin();   // the command to the first painted frame, for the open trace (ticket S0135)
             bool firstBuild = _settings == null || _settings.IsDisposed;
             SettingsLoadingNotice? notice = null;
             if (firstBuild)
@@ -3035,6 +3163,7 @@ namespace CyrFlip
             {
                 SettingsForm settings = EnsureSettings();
                 // A window built a moment ago has just run its Reload in the constructor.
+                // The full pass on a window shown again: the language, the scale or the theme may have moved while it was hidden (S0135, L1).
                 if (!firstBuild) settings.Reload();
                 if (page.HasValue) settings.SelectPage(page.Value);
                 // The surface comes to the monitor the user is working on (APP-SETTINGS rule 1): opened
@@ -3057,6 +3186,7 @@ namespace CyrFlip
                 // up behind the user's editor, which reads as "the menu item did nothing".
                 ForegroundActivator.Activate(settings);
                 opened = true;
+                OpenTrace.FrameAfter(settings, "SettingsForm", "command-open", commandStart);
             }
             finally
             {
@@ -3352,7 +3482,7 @@ namespace CyrFlip
             {
                 ShowMigrationSummary(LauncherMigration.Import(_launcherStore, chords: Chords));
                 RefreshLauncherSurfaces();
-                _settings?.Reload();
+                _settings?.RefreshState();
             }, null);
 
         private void ShowMigrationSummary(LauncherMigration.Result result)
@@ -3677,6 +3807,7 @@ namespace CyrFlip
                 if (_quickNotesWindow != null && !_quickNotesWindow.IsDisposed)
                     _quickNotesWindow.CommitCurrent();
                 _quickNotesWindow?.Dispose();
+                DetachNotesSync();
                 _quickNotes?.Dispose();
                 _symbolsWindow?.Dispose();
                 _symbolsWindow = null;

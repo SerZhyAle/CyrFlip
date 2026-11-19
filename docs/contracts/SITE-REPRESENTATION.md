@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `SITE-REPRESENTATION` |
-| **Version** | 0.1, draft |
+| **Version** | 0.2, draft (re-read 2026-11-15, S0114) |
 | **Home** | `product-site/SITE-REPRESENTATION.md` in the shared contracts catalog, with `SITE-CHECKLIST.md` beside it |
 | **Role here** | consumer, opted in on 2026-10-07 (ticket `S0049`), **guide tier** - rules 9 and 11 (availability marks, the showcase) are not applicable |
 
