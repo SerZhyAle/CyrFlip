@@ -48,9 +48,9 @@ namespace CyrFlip.Tests
         }
 
         /// <summary>Built with no synchronization context, so the service's owner-thread posts run inline.</summary>
-        private QuickNotesService Service(bool loadNow = true)
+        private QuickNotesService Service(bool loadNow = true, string? journalPath = null)
         {
-            var store = new QuickNotesStore(_path, new FakeCipher());
+            var store = new QuickNotesStore(journalPath ?? _path, new FakeCipher());
             SynchronizationContext? previous = SynchronizationContext.Current;
             SynchronizationContext.SetSynchronizationContext(null);
             try { return new QuickNotesService(store, loadNow); }
@@ -227,7 +227,19 @@ namespace CyrFlip.Tests
             Assert.Equal(AppCommandExit.Done, fits.ExitCode);
             Assert.Equal(AppCommandsNotes.MaxTextChars, Assert.Single(service.Notes).RawText.Length);
 
-            AppCommandResponse over = await Add(service, "--text", new string('a', AppCommandsNotes.MaxTextChars + 1));
+            // On a command line the parser's own 32 KiB argument bound is the same number in bytes, so one character
+            // more is refused before the verb is reached - exit 10, nothing run.
+            string tooLong = new string('a', AppCommandsNotes.MaxTextChars + 1);
+            AppCommandLineResult refused = AppCommandLine.Parse(new[] { "note", "add", "--text", tooLong });
+            Assert.Equal(AppCommandLineKind.Refused, refused.Kind);
+            Assert.Equal(AppCommandReasons.TooLarge, refused.Reason);
+
+            // The running copy reparses a request's args without that size check (a client that is not our command
+            // line), so the verb carries its own bound and answers the same way.
+            AppCommandSpec spec = AppCommandManifest.Shipped.Find("note add")!;
+            AppCommandLineResult reparsed = AppCommandLine.ParseOptions(spec, new[] { "--text", tooLong });
+            Assert.Equal(AppCommandLineKind.Command, reparsed.Kind);
+            AppCommandResponse over = await AppCommandsNotes.NoteAdd(reparsed.Invocation!, () => service, T, CancellationToken.None);
             Assert.Equal(AppCommandExit.Usage, over.ExitCode);
             Assert.Equal(AppCommandReasons.TooLarge, over.Reason);
             Assert.Single(service.Notes);
@@ -609,7 +621,8 @@ namespace CyrFlip.Tests
             AppCommandResponse named = await Get(service, "--id", service.Notes[0].Id.ToString("D"));
             AppCommandResponse unnamed = await Get(service, "--id", service.Notes[1].Id.ToString("D"));
 
-            foreach (AppCommandResponse response in new[] { named, unnamed })
+            // The two notes were made at minutes 5 and 3 (newest first), so each answer carries its own moment.
+            foreach ((AppCommandResponse response, string moment) in new[] { (named, "2026-11-14T10:05:30Z"), (unnamed, "2026-11-14T10:03:30Z") })
             {
                 Assert.Equal(AppCommandExit.Done, response.ExitCode);
                 Assert.Equal("done", response.Status);
@@ -618,8 +631,8 @@ namespace CyrFlip.Tests
                 Assert.Equal(body, data["text"]);
                 Assert.Equal(body.Length, data["length"]);
                 Assert.Equal(false, data["truncated"]);
-                Assert.Equal("2026-11-14T10:05:30Z", data["createdUtc"]);
-                Assert.Equal("2026-11-14T10:05:30Z", data["updatedUtc"]);
+                Assert.Equal(moment, data["createdUtc"]);
+                Assert.Equal(moment, data["updatedUtc"]);
             }
             Assert.Equal(service.Notes[0].Id.ToString("D"), named.Data!["id"]);
             Assert.Equal("The Name", named.Data!["title"]);
@@ -810,6 +823,9 @@ namespace CyrFlip.Tests
             using QuickNotesService service = Service();
             service.AddLocal(Text("one", 1));
             var fs = new ScreenshotSaverCommandTests.CommandFs();
+            // C:\work is a folder whose parent is the drive root; the fake lists only the folders the screenshot tests
+            // use, and a real drive root always exists, so the fixture says so for the one test that names a folder at C:\.
+            fs.Folders.Add(@"C:\");
 
             AppCommandResponse trailing = await Export(service, fs, "--out", @"C:\work\");
             Assert.Equal(AppCommandExit.Usage, trailing.ExitCode);
@@ -930,7 +946,11 @@ namespace CyrFlip.Tests
             Assert.Empty(read.Problems);
             Assert.Equal(3, read.Notes.Count);
 
-            using var restored = Service();
+            // The seeding service writes each note into its journal at once, so the importing one is a different
+            // profile with a journal of its own: on the same file it would already hold all three and add none.
+            string otherFolder = Path.Combine(_root, "other-profile");
+            Directory.CreateDirectory(otherFolder);
+            using var restored = Service(journalPath: Path.Combine(otherFolder, QuickNotesStore.FileName));
             Assert.Equal(3, restored.PlanImport(read.Notes, includeNew: true).NotesAdded);
             Assert.Equal(3, restored.Import(read.Notes, includeNew: true).NotesAdded);
             Assert.Equal(3, restored.Notes.Count);

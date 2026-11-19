@@ -3,9 +3,9 @@
 | | |
 | --- | --- |
 | **Id** | `EXCHANGE-MARK` |
-| **Version** | 0.4, draft (read 2026-10-29; first read at 0.3 on 2026-10-21; the picture and the names, ticket S0079). 0.4 changed no artwork file: `artwork/VERSION` and the manifest still read 0.3, and the vendored copies match it |
+| **Version** | 0.5, draft (read 2026-11-19: 0.5 rule 13 binds the server's own page and not this product; read 2026-10-29; first read at 0.3 on 2026-10-21; the picture and the names, ticket S0079). 0.4 changed no artwork file: `artwork/VERSION` and the manifest still read 0.3, and the vendored copies match it |
 | **Home** | `exchange-mark/README.md` in the shared contracts catalog, sections 2 and 3 |
-| **Role here** | Consumer, `partial 0.4` - CyrFlip only signs in to an exchange account (ticket S0074), so the server program's own rules (9, 13) do not apply and the launcher icon is never touched (rule 12, section 6) |
+| **Role here** | Consumer, `partial 0.5` - CyrFlip only signs in to an exchange account (ticket S0074), so the server program's own rules (9, 13) do not apply and the launcher icon is never touched (rule 12, section 6) |
 
 ## What this repository must do to stay conformant
 

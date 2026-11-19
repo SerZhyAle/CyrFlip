@@ -39,6 +39,11 @@ namespace CyrFlip.Tests
             // +2 (S0069): SaveTrafficLightWindow and SaveTrafficLightVisible - the same "a registry that cannot be
             // written costs this one cheap value" shape as every incremental save above.
             { "AppConfig.cs", 21 },
+            // +1 each (S0120 / S0121, reviewed 2026-11-19): the command's own write path deletes its dot-temp file
+            // after a failed write - a best effort, the write's own failure is the answer the caller gets, and the
+            // only thing a log line could add is the caller's folder, which app-commands.log never carries.
+            { "AppCommandsClipboardExchange.cs", 1 },
+            { "AppCommandsNotes.cs", 1 },
             { "AppShortcuts.cs", 2 },
             { "BackupRestoreDialog.cs", 1 },
             { "BusyDialog.cs", 3 },
@@ -55,7 +60,7 @@ namespace CyrFlip.Tests
             { "ClipboardOwner.cs", 2 },
             { "CollapsibleGroup.cs", 1 },
             { "ConfirmDialog.cs", 3 },
-            { "CyrFlipContext.cs", 20 },
+            { "CyrFlipContext.cs", 19 },   // -1 (2026-11-19): a silent catch was removed since the last review; the headroom is not reused
             { "CyrFlipContext.ExchangeClipboard.cs", 3 },
             { "CyrFlipExchangeWriter.cs", 1 },
             { "DataFolderMigration.cs", 1 },
@@ -102,7 +107,9 @@ namespace CyrFlip.Tests
             { "ScreenCapture.cs", 1 },
             { "ScreenshotFolderOpener.cs", 1 },
             { "ScreenshotLog.cs", 1 },
-            { "ScreenshotSaver.cs", 2 },
+            // +1 (S0110, reviewed 2026-11-19): SaveTo's temp-file cleanup, the same best effort as Save's own; the
+            // save's outcome is what the caller is told, and a stray ~ file is all a failed cleanup leaves.
+            { "ScreenshotSaver.cs", 3 },
             { "SelectionProbe.cs", 4 },
             { "SessionEndWatcher.cs", 7 },
             { "SettingsBackup.cs", 1 },

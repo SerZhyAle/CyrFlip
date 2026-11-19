@@ -55,7 +55,18 @@ namespace CyrFlip.Tests
             string program = File.ReadAllText(Path.Combine(Source, "Program.cs"));
             int start = program.IndexOf("if (!isFirst)", StringComparison.Ordinal);
             Assert.True(start > 0, "the single-instance branch is not where the gate looks for it");
-            int end = program.IndexOf("return;", start, StringComparison.Ordinal);
+            // The branch ends at the brace that closes it. (It used to end at the first "return;" - back when Main
+            // returned void; since S0107 every exit is "return <code>;", and the scan ran on into the first-instance
+            // path, which of course builds the context, the hook and the tray.)
+            int open = program.IndexOf('{', start);
+            Assert.True(open > start, "the single-instance branch has no body");
+            int depth = 0, end = -1;
+            for (int i = open; i < program.Length; i++)
+            {
+                if (program[i] == '{') depth++;
+                else if (program[i] == '}' && --depth == 0) { end = i + 1; break; }
+            }
+            Assert.True(end > open, "the single-instance branch is never closed");
             string branch = program.Substring(start, end - start);
 
             Assert.Contains("LauncherIpc.TrySend(", branch);

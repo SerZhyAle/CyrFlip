@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `SITE-FAMILY-MAP` |
-| **Version** | 1.16, active (re-read 2026-11-17; the dated read paragraph below names the ticket) |
+| **Version** | 1.17, active (re-read 2026-11-19: all 13 landings link the ten sibling rows, 1.17 is the portal's addresses and owes nothing; earlier re-read 2026-11-17; the dated read paragraph below names the ticket) |
 | **Home** | `product-web-pages/SITE-FAMILY-MAP.md` in the shared contracts catalog |
 | **Role here** | consumer, and a row of the map - `https://serzhyale.github.io/CyrFlip/` must keep answering |
 

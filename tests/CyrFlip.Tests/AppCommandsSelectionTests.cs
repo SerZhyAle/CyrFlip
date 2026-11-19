@@ -380,21 +380,22 @@ namespace CyrFlip.Tests
         public async Task TheCaptureTableIsAnsweredPerOutcome()
         {
             FakeSelectionHost host = Desktop();
-            host.FlipAnswer = ClipboardHandler.FlipResult.NoSelection;
+            // The verb under test is convert, whose pipeline answer the fake keeps in ConvertAnswer (FlipAnswer is flip-case's).
+            host.ConvertAnswer = ClipboardHandler.FlipResult.NoSelection;
             AppCommandResponse nothing = await AppCommandsSelection.SelectionConvert(
                 Inv("selection convert", "--from", "en", "--to", "ru", "--window-pid", "100"),
                 host, T, CancellationToken.None);
             Assert.Equal("no-selection", nothing.Reason);
             Assert.Equal(11, nothing.ExitCode);
 
-            host.FlipAnswer = ClipboardHandler.FlipResult.TooLarge;
+            host.ConvertAnswer = ClipboardHandler.FlipResult.TooLarge;
             AppCommandResponse tooLarge = await AppCommandsSelection.SelectionConvert(
                 Inv("selection convert", "--from", "en", "--to", "ru", "--window-pid", "100"),
                 host, T, CancellationToken.None);
             Assert.Equal("too-large", tooLarge.Reason);
             Assert.Equal(10, tooLarge.ExitCode);
 
-            host.FlipAnswer = ClipboardHandler.FlipResult.Cancelled;
+            host.ConvertAnswer = ClipboardHandler.FlipResult.Cancelled;
             AppCommandResponse cancelled = await AppCommandsSelection.SelectionConvert(
                 Inv("selection convert", "--from", "en", "--to", "ru", "--window-pid", "100"),
                 host, T, CancellationToken.None);
@@ -402,7 +403,7 @@ namespace CyrFlip.Tests
             Assert.Equal(1, cancelled.ExitCode);
             Assert.Contains("lost the focus", cancelled.Message);
 
-            host.FlipAnswer = ClipboardHandler.FlipResult.Failed;
+            host.ConvertAnswer = ClipboardHandler.FlipResult.Failed;
             AppCommandResponse failed = await AppCommandsSelection.SelectionConvert(
                 Inv("selection convert", "--from", "en", "--to", "ru", "--window-pid", "100"),
                 host, T, CancellationToken.None);
@@ -429,7 +430,8 @@ namespace CyrFlip.Tests
             Assert.Equal("ru", host.ModelCalls[1].code);
 
             AppCommandsSelection.SelectionTranslate(
-                Inv("selection translate", "--to", "de", "--window-title", "notepad"), host, T, CancellationToken.None).Wait();
+                // "notepad" names all three windows of the desktop (the matcher refuses that as ambiguous); "report" names one.
+                Inv("selection translate", "--to", "de", "--window-title", "report"), host, T, CancellationToken.None).Wait();
             Assert.Equal("de", host.ModelCalls[2].code);
             Assert.Equal(3, host.Claims);
             Assert.Equal(3, host.Releases);

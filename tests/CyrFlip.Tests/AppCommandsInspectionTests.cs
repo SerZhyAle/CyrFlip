@@ -268,7 +268,10 @@ namespace CyrFlip.Tests
         [Fact]
         public void AWindowsRefusedNameIsExitTen()
         {
-            AppCommandResponse answer = AppCommandsInspection.DiagnosticsBundle(Path.Combine(_root, "bad<name>.zip"), false,
+            // Joined by hand: on .NET Framework Path.Combine itself throws on a '<' in a segment, and the command
+            // must answer what the caller typed, not what the test's helper allows.
+            string refused = _root + Path.DirectorySeparatorChar + "bad<name>.zip";
+            AppCommandResponse answer = AppCommandsInspection.DiagnosticsBundle(refused, false,
                 new AppConfig(), _root, DateTime.Now, _root, T);
 
             Assert.Equal(AppCommandExit.Usage, answer.ExitCode);

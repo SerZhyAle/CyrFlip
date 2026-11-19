@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `WINDOWS-STORE` |
-| **Version** | 0.5, draft (re-read 2026-11-15, S0114; section D is partial until the owner's live read-only run, S0100) |
+| **Version** | 0.7, draft (re-read 2026-11-19: items C and E owe nothing; earlier re-read 2026-11-15, S0114; section D is partial until the owner's live read-only run, S0100) |
 | **Home** | `windows-store/README.md` in the shared contracts catalog |
 | **Role here** | Producer - the packed MSIX (`msix/build-msix.ps1`) and the Partner Center listing import (`msix/build-store-listing-csv.ps1`, copy decks in `msix/listing/`, source of truth `msix/store-listing-export.csv`) |
 

@@ -223,9 +223,17 @@ namespace CyrFlip
                 {
                     Task winner = await Task.WhenAny(finished, editing, selectionOver.Task);
                     if (winner == finished)
+                    {
                         // The run reported during the selection phase: a cancel (the person's Escape), or a picture a fast
                         // selection and a fast OK already composed. The verb closed nothing, so the report is the truth.
-                        return new AnnotateOutcome(await finished, timedOut: false);
+                        CaptureResult reported = await finished;
+                        // One exception: an editor that could not open says so (editing false) and then reports an empty
+                        // cancel, back to back. Which of the two the wait sees first is only a race (WhenAny takes the
+                        // first completed task in argument order, and a continuation queued earlier may run later), so
+                        // an editor that has said "not up" makes this a failed capture here too - never a person's cancel.
+                        bool editorFailed = editing.IsCompleted && !await editing;
+                        return new AnnotateOutcome(reported, timedOut: false, editorFailed: editorFailed);
+                    }
                     if (winner == editing)
                     {
                         if (await editing)

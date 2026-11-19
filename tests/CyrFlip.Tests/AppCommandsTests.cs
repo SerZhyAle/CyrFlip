@@ -105,6 +105,10 @@ namespace CyrFlip.Tests
         [InlineData("show|--page=Quick-Notes")]
         [InlineData("status|--json|--result|out.json")]
         [InlineData("status|--json=false")]
+        // A bool's value may be the next argument, as docs/CLI.md spells it ("--system <true|false>"); a bare bool is true.
+        [InlineData("status|--json|true")]
+        [InlineData("status|--json|FALSE|--result|out.json")]
+        [InlineData("keepawake|set|--system|true|--screen|false")]
         public void AKnownVerbWithGoodOptionsIsACommand(string line)
         {
             Assert.Equal(AppCommandLineKind.Command, AppCommandLine.Parse(Args(line)).Kind);
@@ -117,6 +121,8 @@ namespace CyrFlip.Tests
         [InlineData(AppCommandReasons.BadArgument, "status|--result")]
         [InlineData(AppCommandReasons.BadArgument, "status|extra")]
         [InlineData(AppCommandReasons.BadArgument, "status|--json=maybe")]
+        [InlineData(AppCommandReasons.BadArgument, "status|--json|yes")]          // the word after a bool is its value, and it is neither true nor false
+        [InlineData(AppCommandReasons.BadArgument, "status|--json|true|extra")]   // one value only; the next word is a stray argument
         [InlineData(AppCommandReasons.BadArgument, "status|--json|--json")]
         [InlineData(AppCommandReasons.BadArgument, "show|--page|nowhere")]
         [InlineData(AppCommandReasons.BadArgument, "scenario|run")]

@@ -30,7 +30,7 @@ namespace CyrFlip.Tests
         {
             public List<LayoutEntry> Installed = new List<LayoutEntry>();
             public LayoutEntry? ActiveEntry;
-            public bool Caps;
+            public bool Caps = false;   // the knob a test turns; read through CapsLockOn
             public SwitchOutcome? Forced;
             public readonly List<IntPtr> Requests = new List<IntPtr>();
             public int AfterSwitchCalls;

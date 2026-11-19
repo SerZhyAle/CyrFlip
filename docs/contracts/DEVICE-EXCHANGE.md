@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `DEVICE-EXCHANGE` |
-| **Version** | 1.15, active (re-read 2026-11-15, S0114; the implemented level stays partial 1.1 until the notes sync is built; first read 2026-10-16; sections 5.2, 5.5, 6.1, 7.1-7.4, 7.10, 9 items BR, CY, CZ, DA, 22 and 27 items DE-DR) |
+| **Version** | 1.17, active (re-read 2026-11-19: 1.16 and 1.17 read, the client half of item FW is not met - see the end of this page; earlier re-read 2026-11-15, S0114; the implemented level stays partial until the notes sync is built and the item FM vectors exist; first read 2026-10-16; sections 5.2, 5.5, 6.1, 7.1-7.4, 7.10, 9 items BR, CY, CZ, DA, 22 and 27 items DE-DR) |
 | **Home** | `device-exchange/README.md` in the shared contracts catalog, with `vectors/e2e-v1.json` and the FMS_Win server corpus beside it |
 | **Role here** | A device of an exchange account for two roles: `clipboard` (product `cyrflip-windows`, capability `e2e-v1`, ticket S0074) and, from 1.13, `notes` (items FG-FM, ticket S0105, the quick notes); and a reader of the connection string of section 5.5 for the traffic light (ticket S0069). CyrFlip registers no account, publishes no resource, broadcasts nothing and keeps no directory |
 
@@ -92,3 +92,7 @@ Earlier version/evidence statements above are historical and do not certify the
 new target. The shared UI profile (ticket S0076) governs precedence
 for covered components. Previous verified implementation levels stay unchanged
 until their remaining evidence is recorded.
+
+## Open against 1.17 - 2026-11-19
+
+Item FW (the cursor of a paged `full` listing) is not met by the client: `notes_list` carries only `since` and never `full: true`, and the pull ends a listing on its own `last <= since` guard and then applies the deletion rule of item FI. A dated exception stands in the registry; the client rules of FW, FX and FZ are owed under CyrFlip's own ticket (item GB), not fixed in a catch-up pass.

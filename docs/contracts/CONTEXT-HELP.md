@@ -1,10 +1,10 @@
 # CONTEXT-HELP
 
-- **Version:** 0.4 (draft; re-read 2026-11-15, S0114).
+- **Version:** 0.5 (draft; re-read 2026-11-19, item P is a permission and owes nothing; earlier re-read 2026-11-15, S0114).
 - **Home:** shared contracts catalog, `in-app-help/`.
 - **Role:** consumer; in-app F1, help buttons, help map and offline pages.
 - **Implementation:** `help-map.json`, `ContextHelp`, `ContextHelpUi`, `HelpElements`, and `tools/help/`.
-- **Conformance:** partial. Static coverage and locale/link gates are implemented. The complete interactive walk, package/browser hand-off checks and editorial review remain release evidence; see the S0075 implementation record.
+- **Conformance:** partial. Static coverage and locale/link gates are implemented. The complete interactive walk, package/browser hand-off checks and editorial review remain release evidence; see the S0075 implementation record. The captures are not regenerated for release v26.11.19.1230: 93 capture inputs changed since the last generator run (the finding `capture-stale`), waived for that release by the owner's order of 2026-11-19; the regeneration is deferred.
 - **Verified:** 2026-11-15, S0114 (read against the tree, nothing run); 2026-10-16 (source and local build; no release certification).
 
 ## Synchronization read - 2026-10-18

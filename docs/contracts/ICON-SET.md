@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.41, draft (re-read 2026-11-15, S0114: all 62 vendored glyph paths equal the catalog's glyph files; generated at 0.30, the version `tools/IconGen` read when `Glyphs.g.cs` was generated) |
+| **Version** | 0.42, draft (re-read 2026-11-19: none of the twelve new `proposed` records is used and all 62 vendored paths still equal the catalog's glyph files; earlier re-read 2026-11-15, S0114: all 62 vendored glyph paths equal the catalog's glyph files; generated at 0.30, the version `tools/IconGen` read when `Glyphs.g.cs` was generated) |
 | **Home** | `iconography/README.md` in the shared contracts catalog, section 2 |
 | **Role here** | consumer, contributor by proposal - **partial; current glyphs regenerated, tour mapping and full surface verification pending** |
 

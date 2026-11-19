@@ -382,7 +382,7 @@ namespace CyrFlip.Tests
             AppCommandResponse resumed = AppCommandsClipboardHistory.PauseHistory(
                 Inv("clipboard-history", "pause", "--paused", "false"), host, T);
             Assert.Equal(new[] { true, false }, host.Set);
-            Assert.Equal(false, resumed.Data["paused"]);
+            Assert.Equal(false, resumed.Data!["paused"]);
         }
 
         // ------------------------------------------------------------------ the send options
@@ -437,12 +437,24 @@ namespace CyrFlip.Tests
         [Fact]
         public void ASilentShareInFileIsNetworkAndASilentLocalPathIsWriteFailed()
         {
-            // A budget of zero: the probe never answers in time, exactly a share that does not respond.
-            AppCommandResponse share = SourceOf(new[] { "--file", @"\\dead\share\a.txt" }, TimeSpan.Zero).Result.Refusal!;
+            // The probe is held shut, so it never answers within the budget - exactly a share that does not respond.
+            // (A budget of zero is not that: a probe that finished before the zero-length wait was looked at won
+            // the race, and the answer was "does not exist" - the test failed one run in three.)
+            var gate = new ManualResetEvent(false);
+            AppCommandResponse share;
+            try
+            {
+                share = AppCommandsClipboardExchange.ResolveSendSource(
+                    Inv("clipboard", "send", "--file", @"\\dead\share\a.txt"), @"C:\work", TimeSpan.FromMilliseconds(200),
+                    stat => { gate.WaitOne(); return _stat; },
+                    path => path.StartsWith(@"\\", StringComparison.Ordinal), T, CancellationToken.None).Result.Refusal!;
+            }
+            finally { gate.Set(); }
             Assert.Equal(AppCommandReasons.Network, share.Reason);
             Assert.Equal(AppCommandExit.Network, share.ExitCode);
             Assert.DoesNotContain(@"dead", share.Message);
 
+            // A probe that answers nothing at all (null) is the same for a local path whatever the clock does.
             AppCommandResponse local = AppCommandsClipboardExchange.ResolveSendSource(
                 Inv("clipboard", "send", "--file", @"C:\frozen\a.txt"), @"C:\work", TimeSpan.Zero,
                 stat => null, path => false, T, CancellationToken.None).Result.Refusal!;
@@ -508,8 +520,12 @@ namespace CyrFlip.Tests
             return AppCommandsClipboardExchange.OutcomeAnswer(outcome, plan, value, T);
         }
 
+        /// <summary>A received text as the service builds it: the exchange client always sets <c>ClearSize</c> beside the bytes.</summary>
         private static ExchangeReceivedValue TextValue(string text)
-            => new ExchangeReceivedValue { Kind = ExchangeClipboardPayload.Text, Bytes = Encoding.UTF8.GetBytes(text) };
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(text);
+            return new ExchangeReceivedValue { Kind = ExchangeClipboardPayload.Text, Bytes = bytes, ClearSize = bytes.LongLength };
+        }
 
         [Fact]
         public void OutIsResolvedExactlyAsGivenAndTheAnswerNamesWhereItLanded()
@@ -613,15 +629,24 @@ namespace CyrFlip.Tests
         [Fact]
         public void ASilentShareInOutIsNetworkAndASilentLocalFolderIsWriteFailed()
         {
-            // A budget of zero: the folder probe never answers in time, exactly a share that does not respond.
-            ScreenshotSaverCommandTests.CommandFs fs = Fs();
-            AppCommandResponse share = PlanOf(fs, @"\\dead\share\out.txt", budget: TimeSpan.Zero).refusal!;
+            // The folder probe is held shut, so it never answers within the budget - exactly a share that does not
+            // respond. (A budget of zero is not that: a probe that finished before the zero-length wait was looked at
+            // won the race and the plan came back instead of the refusal - the test failed now and then.)
+            var gate = new ManualResetEvent(false);
+            AppCommandResponse share, local;
+            try
+            {
+                ScreenshotSaverCommandTests.CommandFs fs = Fs();
+                fs.ProbeGate = gate;
+                TimeSpan budget = TimeSpan.FromMilliseconds(200);
+                share = PlanOf(fs, @"\\dead\share\out.txt", budget: budget).refusal!;
+                local = PlanOf(fs, @"C:\work\out.txt", budget: budget, isRemote: path => false).refusal!;
+            }
+            finally { gate.Set(); }
             Assert.Equal(AppCommandReasons.Network, share.Reason);
             Assert.Equal(AppCommandExit.Network, share.ExitCode);
             Assert.DoesNotContain(@"dead", share.Message);
 
-            AppCommandResponse local = PlanOf(fs, @"C:\work\out.txt", budget: TimeSpan.Zero,
-                isRemote: path => false).refusal!;
             Assert.Equal(AppCommandReasons.WriteFailed, local.Reason);
             Assert.Equal(AppCommandExit.Failed, local.ExitCode);
         }

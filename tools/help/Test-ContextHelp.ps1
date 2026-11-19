@@ -3,7 +3,10 @@
 # between releases that count is only reported, because regenerating the captures is a release-tier run.
 # The same holds for help pages without noindex or listed in the sitemap (CONTEXT-HELP 0.2 item G).
 [CmdletBinding()]
-param([switch]$Release)
+# -AcceptStaleCaptures (with -Release) is the owner's narrow, explicit waiver of ONE finding, capture-stale: the captures
+# are older than their inputs and the owner has ordered the release without the 27-minute regeneration (2026-11-19).
+# Every other finding - an edited, missing or unrecorded capture, unindexed pages, remote CSS, the inventory - still fails.
+param([switch]$Release, [switch]$AcceptStaleCaptures)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 Import-Module (Join-Path $repo 'tools/checks/CheckVerdict.psm1') -Force
@@ -122,7 +125,8 @@ try {
         @($recordedInputs.Keys | Where-Object { $_ -notin $inputs })
     if ($stale.Count -gt 0) {
         $reason = "$($stale.Count) capture input(s) changed since the last generator run (first: $(@($stale | Sort-Object)[0])); run tools/help/Generate-Help.ps1, then python tools/help/finalize.py"
-        if ($Release) { Add-CheckFinding -Severity fail -Name 'capture-stale' -Reason $reason }
+        if ($Release -and $AcceptStaleCaptures) { Write-Host "Capture freshness ACCEPTED BY THE OWNER (-AcceptStaleCaptures), not fixed: $reason" -ForegroundColor Yellow }
+        elseif ($Release) { Add-CheckFinding -Severity fail -Name 'capture-stale' -Reason $reason }
         else { Write-Host "Capture freshness, judged at the release only: $reason" -ForegroundColor DarkGray }
     }
     # CONTEXT-HELP 0.2 item G (S0077): every help page carries noindex and none is in the sitemap. Both are written by the

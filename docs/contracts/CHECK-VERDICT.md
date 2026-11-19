@@ -1,6 +1,6 @@
 # Pointer - CHECK-VERDICT
 
-- **Id/version read:** CHECK-VERDICT 0.14, draft, 2026-11-15 (S0114; first read 2026-10-18).
+- **Id/version read:** CHECK-VERDICT 0.15, draft, 2026-11-19 (item E read, nothing owed; S0114 2026-11-15; first read 2026-10-18).
 - **Home:** shared catalog, `automated-checks/README.md`, sections 2, 10 and consolidation.
 - **Role:** producer (checks, TRX wrapper), consumer (build/release orchestration).
 - **Implementation:** partial; audit (ticket S0077), E3.

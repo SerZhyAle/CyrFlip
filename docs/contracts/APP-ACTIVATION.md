@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-ACTIVATION` |
-| **Version** | 0.15, draft (read 2026-11-15; section 11, the request-response profile of `APP-COMMANDS`, is held since ticket S0107; the 0.12 amendment, section 9, is CyrFlip's own: the two clipboard commands) |
+| **Version** | 0.16, draft (read 2026-11-19: section 12 items A and B need no code, `docs/cli-commands.json` gives every spelling its `coldStart`; earlier read 2026-11-15; section 11, the request-response profile of `APP-COMMANDS`, is held since ticket S0107; the 0.12 amendment, section 9, is CyrFlip's own: the two clipboard commands) |
 | **Home** | `app-activation/README.md` in the shared contracts catalog |
 | **Role here** | Owner, Producer and Consumer - single-instance mutex, Jump List named pipe IPC, and foreground window activation |
 

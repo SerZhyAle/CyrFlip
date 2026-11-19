@@ -137,6 +137,10 @@ An optional module that passes **one thing you copied** - a text, a picture or o
 - **Trust before the password.** The sign-in dialog shows the server and its certificate before you type the password and says where the password will go; a self-signed certificate is pinned once you accept its fingerprint, and a different one is then refused. The password is used once and never stored; the device token and the key are protected with Windows DPAPI.
 - **Three ways to run it:** the tray menu, a chord (both ship **without** a combination - you choose, and CyrFlip refuses one that another feature holds) and a desktop shortcut or a Jump List task. **Cancel the clipboard transfer** in the tray menu stops one in progress.
 - **Explained in the program and on the portal:** the settings page says what the server can and cannot see, in the contract's own words, and links to [About the clipboard on the server](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-clipboard.html) and [About the exchange server](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-server.html) on the exchange portal.
+## Command line
+
+CyrFlip takes commands from scripts, shortcuts and other programs. `CyrFlip.exe <command>` is carried to the copy that is already running, which does the work and answers with an exit code. `CyrFlip.exe commands` lists everything that copy accepts (add `--json` for the machine-readable form), `CyrFlip.exe status` says whether it is ready, and the full list - quick notes, clipboard history, the keyboard layout, text conversion, screenshots, the traffic light, the translator, the selection - is in [docs/CLI.md](docs/CLI.md). Commands that touch your files, screen, clipboard or the network run only while **Let other programs ask CyrFlip to work with my files, screen, clipboard or the network** is on, on the General page of the settings; it is off by default and only you can turn it on.
+
 ## VS Code extension
 
 Inside VS Code the external marker can't track the caret precisely (Monaco draws its own caret).
@@ -187,6 +191,7 @@ All settings are stored in the Windows Registry (`HKCU\Software\CyrFlip`) and ar
 | Clipboard hotkey | `Ctrl+Shift+F10` | Shows or hides the clipboard manager strip |
 | Hotkey switches | on | A master switch in Settings → Hotkeys, plus a toggle beside each chord on the page of its feature (fix-CapsLock on Text correction, clipboard on Clipboard); each conversion row carries its own switch |
 | Yield hotkeys to remote desktop | off | While a remote-desktop client (mstsc/msrdc) is focused, CyrFlip lets the chord pass to the remote session, so a CyrFlip running there handles it - avoids the double-instance clash on both ends of an RDP connection |
+| Commands from other programs | off | Lets scripts, shortcuts and other programs ask CyrFlip to work with your files, screen, clipboard or the network (General page); commands that touch none of those always work - see [Command line](#command-line) |
 | Cursor indicator | off | Replaces the system I-beam with a layout-branded cursor |
 | Caret overlay | on | Shows the layout marker next to the blinking text caret |
 | Caret dot style | off | Coloured dot instead of the layout letters in the overlay |

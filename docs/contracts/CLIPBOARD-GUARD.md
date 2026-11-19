@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CLIPBOARD-GUARD` |
-| **Version** | 0.12, draft (re-read 2026-11-15, S0114; item S, the read order, is implemented by ticket S0115 and its dated exception in the registry closes at the release that carries it; first read 2026-10-29; section 8 of the contract, the owner amendment of 2026-10-14, binds for the exchange clipboard participant and is implemented, ticket S0074; item O.2 corrected 2026-10-29, ticket S0073) |
+| **Version** | 0.12, draft (re-read 2026-11-19: item S, the read order, is in the source since ticket S0115 - read in `ExchangeClipboardIo.cs`, not built or tested - and its dated exception in the registry closes at the release that carries it; earlier re-read 2026-11-15, S0114; first read 2026-10-29; section 8 of the contract, the owner amendment of 2026-10-14, binds for the exchange clipboard participant and is implemented, ticket S0074; item O.2 corrected 2026-10-29, ticket S0073) |
 | **Home** | `clipboard-guard/README.md` in the shared contracts catalog |
 | **Role here** | Owner, Producer and Consumer - Win32 clipboard access, backup and restore, the in-place pipeline, the privacy markers, and the exchange server clipboard participant |
 

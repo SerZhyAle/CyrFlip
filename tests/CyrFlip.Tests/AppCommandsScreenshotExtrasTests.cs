@@ -74,7 +74,7 @@ namespace CyrFlip.Tests
             public AnnotateMode Annotate = AnnotateMode.SelectEditOk;
             public bool AnnotateOn = true;
             public bool ClipboardResult = true;
-            public bool Remote;
+            public bool Remote = false;   // the knob a test turns; read through IsRemote
             /// <summary>Run once from inside the annotate start, after the callbacks are recorded - the test's door into the run.</summary>
             public Action? OnAnnotateStarted;
             public int WindowStarts, AnnotateStarts, RegionCancels, AnnotateCancels, Counted, Compacts;

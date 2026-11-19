@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-COMMANDS` |
-| **Version** | 0.2, draft (read 2026-11-15; adopted by ticket S0107) |
+| **Version** | 0.3, draft (read 2026-11-19, items V-Z, two divergences open - see the end of this page; adopted by ticket S0107, first read 2026-11-15) |
 | **Home** | `app-commands/README.md` in the shared contracts catalog |
 | **Role here** | Adopter - the command line of CyrFlip: the request-response profile on the existing pipe, the manifest, the five base commands and the verbs behind CyrFlip's shipped spellings |
 
@@ -153,3 +153,4 @@
 - **No verb of this command set takes a secret**, so case C12 holds vacuously.
 - **Not yet driven on a real build**: C3, C5, C6, C9 and the `start` half of C10 - `tools/uitest/Test-AppCommands.ps1`,
   a person at the desk.
+- **Open against 0.3 (2026-11-19)**: item V.3 gives the reason `exists` the status `failed` and six answers still say `refused` (the exit code 11 is right); item X wants a line that is neither a legacy token nor a request answered `refused` / `bad-argument`, and `LauncherIpc` ignores an unknown line that does not start with `{`. A dated exception stands in the registry; the code follows the contract in a ticket, not in a catch-up pass.

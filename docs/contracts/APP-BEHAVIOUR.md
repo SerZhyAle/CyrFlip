@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-BEHAVIOUR` |
-| **Version** | 0.14, draft (re-read 2026-11-15, S0114) |
+| **Version** | 0.15, draft (re-read 2026-11-19: the rule 3 helper allowance is a permission, nothing owed; earlier re-read 2026-11-15, S0114) |
 | **Home** | `desktop-app-ux/APP-BEHAVIOUR.md` in the shared contracts catalog |
 | **Role here** | consumer - CyrFlip and its launcher module; **conformant** (rules 1-12 held in the tree) |
 

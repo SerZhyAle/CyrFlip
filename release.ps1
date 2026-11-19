@@ -51,7 +51,11 @@ param(
     [switch] $SkipStoreChannel,
     # No-op since 2026-10-24: the 13-language UI sweeps no longer run in any release path (they passed once and that
     # is enough), so there is nothing left to skip. Kept so an older invocation still parses.
-    [switch] $SkipSweeps
+    [switch] $SkipSweeps,
+    # The owner's explicit, per-run waiver of ONE finding of the context-help gate, capture-stale (the help captures are
+    # older than the source they show; regenerating them is a 27-minute run the owner declined on 2026-11-19). Nothing
+    # else is waived, and every use is recorded in artifacts\help-stale-accepted.jsonl and printed in the verdict.
+    [switch] $AcceptStaleHelp
 )
 $ErrorActionPreference = 'Stop'
 $RepoRoot = $PSScriptRoot
@@ -198,7 +202,20 @@ try {
         Step 'Context help'
         # -Release: captures older than their inputs fail here (CONTEXT-HELP rung 2); regenerate with
         # tools\help\Generate-Help.ps1 and tools\help\finalize.py, then commit the help set.
-        & (Join-Path $preflightRoot 'tools\help\Test-ContextHelp.ps1') -Release
+        $helpGateArgs = @{ Release = $true }
+        if ($AcceptStaleHelp) { $helpGateArgs.AcceptStaleCaptures = $true }
+        & (Join-Path $preflightRoot 'tools\help\Test-ContextHelp.ps1') @helpGateArgs
+        $helpGateExit = $LASTEXITCODE
+        if ($AcceptStaleHelp -and $helpGateExit -eq 0) {
+            try {
+                $evidenceDir = Join-Path $RepoRoot 'artifacts'
+                New-Item -ItemType Directory -Force -Path $evidenceDir | Out-Null
+                $record = [ordered]@{ utc = [DateTime]::UtcNow.ToString('o'); version = $Version; waived = 'capture-stale'; decision = 'owner, 2026-11-19: release without regenerating the help captures' } | ConvertTo-Json -Compress
+                Add-Content -LiteralPath (Join-Path $evidenceDir 'help-stale-accepted.jsonl') -Value $record -Encoding utf8
+            } catch { Write-Host "help-stale evidence line could not be written: $($_.Exception.Message)" -ForegroundColor Yellow }
+            Write-Host 'NOTE: the help captures are stale and this run waives that one finding (-AcceptStaleHelp).' -ForegroundColor Yellow
+        }
+        $LASTEXITCODE = $helpGateExit
         if ($LASTEXITCODE -eq 1) { $preflightFails.Add('Context help inventory, pages, links or capture freshness failed. Run tools\help\Test-ContextHelp.ps1 -Release.') }
         elseif ($LASTEXITCODE -ne 0) { $preflightUnverified.Add("Context help could not be verified (exit $LASTEXITCODE).") }
 

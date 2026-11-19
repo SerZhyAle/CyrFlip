@@ -1,6 +1,6 @@
 # Pointer - PAGE-STYLE
 
-- **Id/version read:** PAGE-STYLE 3.10, active, 2026-11-15 (S0114; first read 2026-10-18).
+- **Id/version read:** PAGE-STYLE 3.13, active, 2026-11-19 (3.11 held; the 3.12 and 3.13 artifact revisions are not re-vendored - a dated exception in the registry; S0114 2026-11-15; first read 2026-10-18).
 - **Home:** shared catalog, `product-web-pages/PAGE-STYLE.md`, consolidation in its domain README.
 - **Role:** consumer, App - medium; public site and offline context-help corpus.
 - **Implementation:** partial; scoped audit (ticket S0077), exception E4, and UI migration (ticket S0076).
@@ -8,7 +8,7 @@
 Both `docs/assets/sza-kit.css` and `docs/help/sza-kit.css` are generated reference
 copies, byte-identical to the catalog artifact of 3.1, SHA-256
 `e438fef279fea8165ba6db46289c3ab35ac2fbcfaa5b2ea50bb009716eddfac9` - **not the current one:** the catalog's kit is
-3.8's `d490abf3bf55455f2cff..` and the re-vendor travels with the browser walk (S0077 E4).
+3.13's `8d49a8f0a36369da62fa..` (31950 bytes; 3.12 and 3.13 are artifact revisions) and the re-vendor travels with the browser walk (S0077 E4).
 The served kit retains `-text`; it is never edited locally. The identified
 BUTTONS 2.0 / COLLAPSIBLE-GROUP 1.1 adapter is at the end of `docs/style.css`.
 Kit provenance alone does not establish rendered conformance.

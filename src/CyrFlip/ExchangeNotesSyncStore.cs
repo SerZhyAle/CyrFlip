@@ -54,7 +54,12 @@ namespace CyrFlip
             }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
             {
-                try { File.Delete(temp); } catch (Exception cleanup) when (cleanup is IOException || cleanup is UnauthorizedAccessException) { }
+                try { File.Delete(temp); }
+                catch (Exception cleanup) when (cleanup is IOException || cleanup is UnauthorizedAccessException)
+                {
+                    // The save itself is reported by the false below; this is only the leftover half-file (ids, no text).
+                    QuickNotesLog.Log("sync state temp file not removed: " + cleanup.GetType().Name);
+                }
                 return false;
             }
         }
@@ -64,7 +69,10 @@ namespace CyrFlip
             foreach (string p in new[] { path, path + ".tmp" })
             {
                 try { File.Delete(p); }
-                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException) { }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                {
+                    QuickNotesLog.Log("sync state file not removed: " + ex.GetType().Name);
+                }
             }
         }
 

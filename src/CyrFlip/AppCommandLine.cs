@@ -132,6 +132,12 @@ namespace CyrFlip
 
                 if (arg.Kind == "bool")
                 {
+                    // The manifest and docs/CLI.md spell a bool as "--system <true|false>", so a word that follows
+                    // the option is its value (rule 1: "its value after = or as the next argument"); only a bare
+                    // option, or one followed by another option or "--", means true. A word that is neither true
+                    // nor false is then refused by name instead of being an unexplained stray argument.
+                    if (value == null && i + 1 < rest.Count && !(rest[i + 1] ?? "").StartsWith("--", StringComparison.Ordinal))
+                        value = rest[++i] ?? "";
                     value ??= "true";
                     if (!value.Equals("true", StringComparison.OrdinalIgnoreCase) && !value.Equals("false", StringComparison.OrdinalIgnoreCase))
                         return AppCommandLineResult.Refuse(AppCommandReasons.BadArgument, "The option \"{0}\" takes true or false.", "--" + arg.Name);

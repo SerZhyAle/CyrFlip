@@ -666,7 +666,7 @@ namespace CyrFlip.Tests
         [InlineData("screenshot|region")]                                        // no --out
         [InlineData("screenshot|region|--out|a.png|--delay-ms|5")]               // the delay belongs to full
         [InlineData("screenshot|region|--out|a.png|--clipboard=maybe")]
-        [InlineData("screenshot|region|--out|a.png|--annotate")]                 // another ticket's option
+        [InlineData("screenshot|full|--out|a.png|--annotate")]                   // the region verb's option (S0130), not the full one's
         [InlineData("screenshot|full|--out|a.png|--delay-ms|soon")]
         [InlineData("screenshot|full|--out|a.png|--out|b.png")]
         public void TheParserRefusesWhatTheVerbsDoNotTake(string line)
@@ -696,7 +696,9 @@ namespace CyrFlip.Tests
                 Assert.Equal("bool", spec.Arg("overwrite")!.Kind);
                 Assert.Equal("bool", spec.Arg("clipboard")!.Kind);
             }
-            Assert.Equal(120000, region.TimeoutMs);
+            // S0130 made the region entry carry the 10-minute run of --annotate; the plain selection's own
+            // 120 seconds is AppCommandsScreenshotExtras.SelectionBoundMs, held by AppCommandsScreenshotExtrasTests.
+            Assert.Equal(600000, region.TimeoutMs);
             Assert.Equal(60000, full.TimeoutMs);
             Assert.Null(region.Arg("delay-ms"));
             Assert.Equal("int", full.Arg("delay-ms")!.Kind);

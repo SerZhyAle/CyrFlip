@@ -670,7 +670,7 @@ CyrFlip is **a tray toolkit for your keyboard and desktop** (decided 2026-10-07,
      `CYRFLIP_OPEN_TRACE=<file>`, off by default and free while off; `tools/uitest/Measure-WindowOpen.ps1` and `Measure-SettingsControls.ps1`; the
      first measured numbers - 1030 controls, a 2.3 s constructor, a 0.1-0.7 s change - are in `PLAN/S0135_ui-window-speed-optimization.md` section 3.4). **A page that is not the opening one keeps its layout back until it is first shown** (`SettingsPagePanel.DeferLayout`, released by the page's own `OnVisibleChanged`; every value and caption is still applied to every page - only the geometry of an unshown page waits), which is why a test that reads the geometry of every page builds the window through `TestForms.NewSettings` (it calls `SettingsForm.EnsureAllPagesLaidOut()`) and a timing test passes `allPagesLaidOut: false`; the hotkeys overview rebuilds its rows only when they differ from the ones on screen (`SameOverview`, and the live switches are checked too, since a refused switch relies on the rebuild to put its box back; S0135 section 3.9). **A changed value is `SettingsForm.RefreshState()`,
      not `Reload()`** (S0135 L1): `Reload()` is the full pass (`RefreshValues` + `ApplyLanguage`, the language, scale, font and theme work) and runs only when one of those changed, when the window is built and when
-     it is shown again - a new caller that only changed a value must not bring the language pass back (`SettingsRefreshEquivalenceTests` holds the two to the same result). The measured budgets are **not** all met - see `PLAN/S0076_unified-ui-contracts/unified-ui.md` before
+     it is shown again - a new caller that only changed a value must not bring the language pass back (`SettingsRefreshEquivalenceTests` holds the two to the same result). The measured budgets are **not** all met - see `PLAN/done/S0076_unified-ui-contracts/unified-ui.md` before
      claiming conformance.
 
 18. **The command line - commands from scripts, shortcuts and agents (ticket S0107, `APP-COMMANDS` 0.2, `APP-ACTIVATION` 0.15 section 11).**
@@ -868,7 +868,7 @@ It runs in the **system tray** (the icon also shows the layout; right-click menu
 ## In-app help (S0075)
 
 S0076/S0077 current UI authority, component inventory and permanent profile decisions are
-recorded in [PLAN/S0076_unified-ui-contracts/unified-ui.md](PLAN/S0076_unified-ui-contracts/unified-ui.md); the clause-by-clause
+recorded in [PLAN/done/S0076_unified-ui-contracts/unified-ui.md](PLAN/done/S0076_unified-ui-contracts/unified-ui.md); the clause-by-clause
 accepted-proposal read and explicit remaining exceptions are in
 [PLAN/S0077_contract-sync-20261017/contract-sync-20261017.md](PLAN/done/S0077_contract-sync-20261017/contract-sync-20261017.md).
 BUTTONS 2.0 supersedes older red-dismissal/tinted-answer descriptions below.

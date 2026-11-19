@@ -38,7 +38,7 @@ spec-id scheme, 0.10). One file stays an ordinary rule 3 case that no exception 
 `PLAN/Contract_Conformance_Backlog_v0.1.md` (free-form name; dated exception in the registry).
 
 Open: the stamp declares canon `2026.10.02.1` and its digest; the canon has moved since, so a reconciliation
-by the adoption run is owed (`RULE-DELIVERY` rule 5, warning rung). Never advance the version by hand.
+by the adoption run is owed (`RULE-DELIVERY` rule 5, warning rung). Never advance the version by hand. **2026-11-19:** the entries `REPO-STAMP` 0.14, `RULE-DELIVERY` 0.13 and `HARNESS-PROFILE` 0.19 (breaking, none needs a key changed here) are read; the stamp now declares `2026.10.17.1` and the installed plugin is `2026.1119.3`, so a re-adoption pass of the canon is owed as its own ticket and the versions above stay as they are until it runs (dated exception in the registry).
 
 ## Synchronization read - 2026-10-18
 

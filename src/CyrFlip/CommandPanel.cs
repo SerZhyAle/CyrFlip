@@ -12,8 +12,15 @@ namespace CyrFlip
         private sealed class State { internal bool Busy; internal int Width; }
         private static readonly ConditionalWeakTable<FlowLayoutPanel, State> States = new ConditionalWeakTable<FlowLayoutPanel, State>();
 
-        /// <summary>A mixed strip's button by the minimum height it was built with, so a row floor never ratchets.</summary>
-        private static readonly ConditionalWeakTable<Button, StrongBox<int>> BaseHeights = new ConditionalWeakTable<Button, StrongBox<int>>();
+        /// <summary>What a mixed strip's button was built with: its minimum height and its own height.</summary>
+        private sealed class BuiltHeights
+        {
+            internal int MinimumHeight;
+            internal int Height;
+        }
+
+        /// <summary>A mixed strip's button by what it was built with, so a row floor never ratchets.</summary>
+        private static readonly ConditionalWeakTable<Button, BuiltHeights> BaseHeights = new ConditionalWeakTable<Button, BuiltHeights>();
 
         internal static void Fit(FlowLayoutPanel panel, int availableWidth)
         {
@@ -90,8 +97,16 @@ namespace CyrFlip
                     if (panel.MaximumSize.Width != state.Width) panel.MaximumSize = new Size(state.Width, panel.MaximumSize.Height);
                     foreach (Button button in buttons)
                     {
-                        int baseHeight = BaseHeights.GetValue(button, b => new StrongBox<int>(b.MinimumSize.Height)).Value;
-                        if (button.MinimumSize.Height != baseHeight) button.MinimumSize = new Size(button.MinimumSize.Width, baseHeight);
+                        BuiltHeights built = BaseHeights.GetValue(button,
+                            b => new BuiltHeights { MinimumHeight = b.MinimumSize.Height, Height = b.Height });
+                        if (button.MinimumSize.Height == built.MinimumHeight) continue;
+                        button.MinimumSize = new Size(button.MinimumSize.Width, built.MinimumHeight);
+                        // A Button is AutoSize in the default GrowOnly mode, where its own Size is a floor as well: the
+                        // height a row floor gave it would stay after the floor is gone, and the strip would ratchet
+                        // the other way. Give back the height it was built with; the layout grows it again to whatever
+                        // its content needs.
+                        if (button.AutoSize && button.AutoSizeMode == AutoSizeMode.GrowOnly && button.Height > built.Height)
+                            button.Height = built.Height;
                     }
                 }
                 finally { panel.ResumeLayout(true); }
