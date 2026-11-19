@@ -77,17 +77,15 @@ Open source - no telemetry and no data collection; the only network use is your 
 
 **What's new in this version**
 ```
-Settings are easier to find. Each setting now sits on the page of the feature it belongs to, a page list at the side takes you there, and the General page has "Size and input": an interface scale from 75 to 200 per cent, a text scale and a touch profile, applied to every window at once.
+CyrFlip can now be driven from scripts, shortcuts and other programs. Run CyrFlip.exe commands to see the list: status, quick notes, clipboard history, switching the layout, converting text, screenshots, traffic-light checks, the translator and more. The copy that is already running does the work and answers with an exit code. Commands that touch your files, screen, clipboard or the network stay off until you allow them on the General page.
 
-New: the traffic light. List your own addresses, folders, drives and servers, and a small board shows at a glance which of them answer right now - every state has a mark as well as a colour. Off by default; it checks only what you list.
+Quick notes can sync with your other devices through your own exchange server - every note is encrypted on your computer first. Off by default.
 
-Screenshots grew: Ctrl+F11 takes the whole screen, and Ctrl+Alt+F12 and Ctrl+Alt+F11 open a drawing step first - shapes, arrows, an eraser and eight colours. New installs save captures as PNG files in the Screenshots folder, and Ctrl+F10 opens it. Capture chords left PrintScreen (Ctrl+F12 takes a region); chords you set yourself stay as they are.
+The settings window opens and reacts to changes faster.
 
-Settings survive an update or a reinstall: the settings file carries everything, and the last three backups are kept in Documents\CyrFlip\Backups.
+A hotkey can use an arrow key, a keypad key, a bracket or a media key as its trigger.
 
-New, off by default: the clipboard on your own exchange server - text, a picture or one file, encrypted on your computer first and sent only when you press the button. The same server can keep your settings as a standard.
-
-Also: edit a clipboard entry in place (right-click or F2), British English has its own blue, F1 and the ? button open Help in 13 languages, and Quick notes can number its lines.
+Also: the traffic light list starts with one working example on a new profile; clearing the clipboard history while it is still loading no longer brings the entries back; history cards show the date and the time with a space between them; and when you send the clipboard to your exchange server, a picture it cannot read is reported instead of sending the text beside it.
 ```
 
 ---
@@ -148,17 +146,15 @@ CyrFlip - набор инструментов в трее для клавиат�
 
 **Что нового в этой версии**
 ```
-Настройки легче найти. Каждая настройка теперь на странице своей функции, список страниц сбоку ведёт к ней, а на странице «Общие» появился блок «Размер и ввод»: масштаб интерфейса от 75 до 200 процентов, масштаб текста и сенсорный профиль - сразу для всех окон.
+CyrFlip теперь можно управлять из скриптов, ярлыков и других программ. Команда CyrFlip.exe commands покажет список: состояние, быстрые заметки, история буфера обмена, переключение раскладки, преобразование текста, снимки экрана, проверки светофора, переводчик и другое. Работу делает уже запущенная копия и отвечает кодом выхода. Команды, которые затрагивают ваши файлы, экран, буфер обмена или сеть, остаются выключенными, пока вы не разрешите их на странице «Общие».
 
-Новое: светофор доступности. Перечислите свои адреса, папки, диски и серверы - и небольшая панель покажет, какие из них отвечают прямо сейчас; у каждого состояния есть не только цвет, но и значок. По умолчанию выключен, проверяет только то, что вы перечислили.
+Быстрые заметки могут синхронизироваться с другими вашими устройствами через ваш собственный сервер обмена - каждая заметка сначала шифруется на вашем компьютере. По умолчанию выключено.
 
-Снимки экрана стали богаче: Ctrl+F11 снимает весь экран, а Ctrl+Alt+F12 и Ctrl+Alt+F11 сначала открывают рисование - фигуры, стрелки, ластик и восемь цветов. На новых установках снимки сохраняются в PNG в папку «Снимки экрана», а Ctrl+F10 открывает её. Комбинации ушли с PrintScreen (область снимает Ctrl+F12); заданные вами вручную остаются как есть.
+Окно настроек открывается и реагирует на изменения быстрее.
 
-Настройки переживают обновление и переустановку: файл настроек содержит всё, а три последние копии лежат в Documents\CyrFlip\Backups.
+В качестве клавиши комбинации можно выбрать стрелку, клавишу цифровой клавиатуры, скобку или медиаклавишу.
 
-Новое, по умолчанию выключено: буфер обмена на вашем сервере обмена - текст, картинка или один файл шифруются на вашем компьютере и уходят только по нажатию кнопки. Тот же сервер может хранить ваши настройки как стандарт.
-
-Ещё: запись буфера обмена можно править на месте (правый клик или F2), у британской английской раскладки свой синий, F1 и кнопка «?» открывают справку на 13 языках, а быстрые заметки умеют нумеровать строки.
+Ещё: в списке светофора на новом профиле есть один рабочий пример; очистка истории буфера обмена, пока она ещё загружается, больше не возвращает записи; на карточках истории дата и время разделены пробелом; а при отправке буфера на сервер обмена картинку, которую не удалось прочитать, программа сообщает об ошибке, а не отправляет вместо неё текст рядом.
 ```
 
 ---
@@ -217,17 +213,15 @@ CyrFlip - набір інструментів у треї для клавіат�
 
 **Що нового в цій версії**
 ```
-Налаштування легше знайти. Кожне налаштування тепер на сторінці своєї функції, список сторінок збоку веде до неї, а на сторінці «Загальні» з'явився блок «Розмір і введення»: масштаб інтерфейсу від 75 до 200 відсотків, масштаб тексту й сенсорний профіль - одразу для всіх вікон.
+CyrFlip тепер можна керувати зі скриптів, ярликів та інших програм. Команда CyrFlip.exe commands покаже перелік: стан, швидкі нотатки, історія буфера обміну, перемикання розкладки, перетворення тексту, знімки екрана, перевірки світлофора, перекладач та інше. Роботу виконує вже запущена копія й відповідає кодом виходу. Команди, що зачіпають ваші файли, екран, буфер обміну чи мережу, лишаються вимкненими, доки ви не дозволите їх на сторінці «Загальні».
 
-Нове: світлофор доступності. Перелічіть свої адреси, теки, диски та сервери - і невелика панель покаже, які з них відповідають просто зараз; у кожного стану є не лише колір, а й значок. За замовчуванням вимкнений, перевіряє лише те, що ви перелічили.
+Швидкі нотатки можуть синхронізуватися з іншими вашими пристроями через ваш власний сервер обміну - кожна нотатка спершу шифрується на вашому комп'ютері. Типово вимкнено.
 
-Знімки екрана стали багатшими: Ctrl+F11 знімає весь екран, а Ctrl+Alt+F12 і Ctrl+Alt+F11 спершу відкривають малювання - фігури, стрілки, гумку та вісім кольорів. На нових встановленнях знімки зберігаються у PNG у теці «Знімки екрана», а Ctrl+F10 відкриває її. Комбінації пішли з PrintScreen (область знімає Ctrl+F12); задані вами вручну лишаються як є.
+Вікно налаштувань відкривається та реагує на зміни швидше.
 
-Налаштування переживають оновлення й перевстановлення: файл налаштувань містить усе, а три останні копії лежать у Documents\CyrFlip\Backups.
+Клавішею сполучення можна обрати стрілку, клавішу цифрової клавіатури, дужку або медіаклавішу.
 
-Нове, за замовчуванням вимкнено: буфер обміну на вашому сервері обміну - текст, картинка або один файл шифруються на вашому комп'ютері й вирушають лише після натискання кнопки. Той самий сервер може зберігати ваші налаштування як стандарт.
-
-Ще: запис буфера обміну можна правити на місці (правий клік або F2), у британської англійської розкладки свій синій, F1 і кнопка «?» відкривають довідку 13 мовами, а швидкі нотатки вміють нумерувати рядки.
+Ще: у списку світлофора на новому профілі є один робочий приклад; очищення історії буфера обміну, поки вона ще завантажується, більше не повертає записи; на картках історії дату й час розділено пробілом; а під час надсилання буфера на сервер обміну зображення, яке не вдалося прочитати, програма повідомляє як помилку, а не надсилає замість нього текст поруч.
 ```
 
 ---

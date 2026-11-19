@@ -121,17 +121,22 @@ namespace CyrFlip.Tests
         }
 
         private static void OnStaThread(Action body)
+            => OnStaThread<object?>(() => { body(); return null; });
+
+        private static T OnStaThread<T>(Func<T> body)
         {
             Exception? failure = null;
+            T result = default!;
             var thread = new Thread(() =>
             {
-                try { body(); }
+                try { result = body(); }
                 catch (Exception ex) { failure = ex; }
             });
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
             thread.Join();
             if (failure != null) throw new Exception("owner-thread failure", failure);
+            return result;
         }
 
         private static Dictionary<string, object> Item(object entry) => Assert.IsType<Dictionary<string, object>>(entry);
@@ -210,7 +215,7 @@ namespace CyrFlip.Tests
         public void ATextOverTheArgumentCapIsRefusedByTheParserItself()
         {
             string tooLong = new string('x', 33 * 1024);
-            AppCommandLineResult parsed = AppCommandLine.Parse("clipboard", "send", "--text", tooLong);
+            AppCommandLineResult parsed = AppCommandLine.Parse(new[] { "clipboard", "send", "--text", tooLong });
             Assert.Equal(AppCommandLineKind.Refused, parsed.Kind);
             Assert.Equal(AppCommandReasons.TooLarge, parsed.Reason);
         }

@@ -524,7 +524,7 @@ namespace CyrFlip.Tests
             Assert.Equal(0, answer.ExitCode);
             string id = (string)answer.Data!["noteId"];
             Assert.True(Guid.TryParse(id, out Guid parsed) && parsed != Guid.Empty);
-            Assert.Equal("the captured selection", service.Search(null!).Single().Text);
+            Assert.Equal("the captured selection", service.Search(null!).Single().Body());
             // The capture claim is released before the write, and the capture cap is the notes' own body cap.
             Assert.Equal(1, host.Claims);
             Assert.Equal(1, host.Releases);
