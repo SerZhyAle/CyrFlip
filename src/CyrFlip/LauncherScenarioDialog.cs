@@ -196,6 +196,7 @@ namespace CyrFlip
 
         private void BrowsePath()
         {
+            // APP-STYLE rule 5: a Windows common dialog, drawn by Windows outside the app theme (declared exception).
             using var dialog = new OpenFileDialog
             {
                 Filter = "*.exe;*.bat;*.cmd;*.ps1;*.py;*.vbs|*.exe;*.bat;*.cmd;*.ps1;*.py;*.vbs|*.*|*.*",
@@ -206,12 +207,14 @@ namespace CyrFlip
 
         private void BrowseWorkingDir()
         {
+            // APP-STYLE rule 5: a Windows common dialog, drawn by Windows outside the app theme (declared exception).
             using var dialog = new FolderBrowserDialog { Description = T("Select the working folder") };
             if (dialog.ShowDialog(this) == DialogResult.OK) _workingDir.Text = dialog.SelectedPath;
         }
 
         private void BrowseOutput()
         {
+            // APP-STYLE rule 5: a Windows common dialog, drawn by Windows outside the app theme (declared exception).
             using var dialog = new FolderBrowserDialog { Description = T("Select the download folder") };
             if (dialog.ShowDialog(this) == DialogResult.OK) _ytOutput.Text = dialog.SelectedPath;
         }

@@ -99,6 +99,8 @@ namespace CyrFlip
                 TrackExchange(Button("Add account..", AppGlyphs.Add, AddExchangeAccount)),
                 _exchangeAccountsList));
 
+            panel.Controls.Add(RemoteCommandsGroup());
+
             panel.Controls.Add(Group("exchange/standard", "Standard settings",
                 Note("Save your settings on the server as the standard and read them on your other computers. Both buttons ask first."),
                 Note("Whoever runs the server can read the saved settings."),
@@ -228,6 +230,7 @@ namespace CyrFlip
 
             foreach (Control control in _exchangeControls) control.Enabled = _config.EnableExchangeClipboard;
             RebuildExchangeAccountsList();
+            RefreshRemoteCommandsState();
         }
 
         /// <summary>Every exchange mark of the window: the band's, the About credit's and each account entry's.</summary>
@@ -431,6 +434,7 @@ namespace CyrFlip
 
         private void ChooseExchangeClipboardFolder()
         {
+            // APP-STYLE rule 5: a Windows common dialog, drawn by Windows outside the app theme (declared exception).
             using (var dlg = new FolderBrowserDialog
             {
                 Description = Translate("Choose the folder for received files"),

@@ -9,7 +9,7 @@ Every scene runs against a STAGED profile (CyrFlip.AuditRig.psm1): a copy of the
 running instance saved first and put back in finally (Restore-AuditProfile is the rescue for a run that
 died). The user's data folder, journals and history are never opened.
 
-Scenes (ids are the catalogue's, PLAN/S0061_runtime-quality-audit/scenes.json):
+Scenes (ids are the catalogue's, PLAN/CYRFLP-0061_runtime-quality-audit/scenes.json):
   SC01  cold start to hooks-ready: how long the process is unreachable, when the tray icon and the layout
         signal appear, and how long the machine's keyboard waited on CyrFlip (the key probe).
   SC02  exit and restart x N: graceful exit time, files left behind, a restart that does not come up.

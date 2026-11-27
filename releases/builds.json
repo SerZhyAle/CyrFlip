@@ -4,11 +4,29 @@
     {
       "package": "cyrflip",
       "flavor": "default",
+      "kind": "release",
+      "version": "26.11.19.1230",
+      "builtAt": "2026-11-19T11:23:00+01:00",
+      "note": "release.yml builds the ZIP from v26.11.19.1230"
+    },
+    {
+      "package": "cyrflip",
+      "flavor": "default",
       "kind": "test",
-      "version": "26.11.19.314",
-      "builtAt": "2026-11-19T03:14:58+01:00",
+      "version": "26.11.20.2359",
+      "builtAt": "2026-11-20T23:59:55+01:00",
       "artifact": "bin/SingleFile/CyrFlip.exe",
-      "sha256": "d48d129f3c930a68f82d6ccbd1c4f0eca61e1def8c0bc6811d0165bbeecdf402"
+      "sha256": "8558607ffa7805a212f44ebb1007ceaea172d909a7f644542cc2a1b6714baed6"
+    },
+    {
+      "package": "cyrflip",
+      "flavor": "msix",
+      "kind": "release",
+      "version": "26.11.19.1230",
+      "builtAt": "2026-11-19T11:26:03+01:00",
+      "artifact": "msix/dist/CyrFlip-26.1119.1230.0-x64.msix",
+      "sha256": "51161c01c7b43a62c4ef12207eb6c8413509e7743cc1586bbfb84d4f101ced8b",
+      "note": "unsigned, Store-ready"
     }
   ]
 }

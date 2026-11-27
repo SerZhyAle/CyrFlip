@@ -178,6 +178,62 @@ namespace CyrFlip.Tests
                 Assert.Empty(TranslatedLiterals(CsLexer.Lex(notACall, new List<string>(), "shape")));
         }
 
+        /// <summary>
+        /// CYRFLP-0060 T-M3. The house text style is a plain hyphen in user-visible text of every language, so
+        /// no string literal of the application carries a long dash as a separator - " — " between words or
+        /// the Chinese "——". The bare symbol is not prose and stays allowed: the "off" item of the
+        /// cycle-chord drop-down is "—", and the hint that names it quotes it as «—».
+        /// </summary>
+        [Fact]
+        public void NoStringLiteralCarriesALongDashSeparator()
+        {
+            var offenders = new List<string>();
+            int scanned = 0;
+            foreach (string file in SourceFiles(SourceRoot))
+            {
+                string name = Path.GetFileName(file);
+                if (DeclaredDataFiles.Contains(name)) continue;
+                foreach (Tok t in Lex(file))
+                {
+                    if (t.Kind != TokKind.Str) continue;
+                    scanned++;
+                    if (t.Value.Contains(" — ") || t.Value.Contains("——"))
+                        offenders.Add($"{name}:{t.Line}: {Shorten(t.Value)}");
+                }
+            }
+            Assert.True(offenders.Count == 0,
+                "A long dash used as a separator in a string literal (write a plain hyphen, \" - \"):\n" + string.Join("\n", offenders));
+            Assert.True(scanned > 5000, "only " + scanned + " string literals were found - the scan is looking at the wrong thing");
+        }
+
+        /// <summary>
+        /// S0060 T-M3, the ellipsis half. The house style writes prose with "..", and a Win32 "..." is
+        /// kept only where it is the platform's "this opens a dialog" mark: a command caption whose English
+        /// text ends in "...". Everywhere else - a progress line, a status, a sentence - neither "..." nor
+        /// "…" appears in any language, except inside a quoted UI caption («Add layout...»).
+        /// </summary>
+        [Fact]
+        public void OnlyACommandCaptionCarriesAnEllipsis()
+        {
+            var offenders = new List<string>();
+            int english = Array.IndexOf(Localization.Codes, "en");
+            int commands = 0;
+            foreach (KeyValuePair<string, string[]> entry in Localization.All)
+            {
+                if (entry.Value[english].EndsWith("...", StringComparison.Ordinal)) { commands++; continue; }
+                for (int i = 0; i < entry.Value.Length; i++)
+                {
+                    string text = i == english ? entry.Key : entry.Value[i];
+                    string bare = Regex.Replace(text, "«[^»]*»|《[^》]*》|“[^”]*”|„[^“”]*[“”]|「[^」]*」|\"[^\"]*\"", "");
+                    if (bare.Contains("...") || bare.Contains("…"))
+                        offenders.Add($"[{Localization.Names[i]}] \"{Shorten(entry.Key)}\": {Shorten(text)}");
+                }
+            }
+            Assert.True(offenders.Count == 0,
+                "An ellipsis outside a dialog-opening command caption (write \"..\" in prose):\n" + string.Join("\n", offenders));
+            Assert.True(commands > 10, "only " + commands + " command captions with \"...\" were found - the scan is looking at the wrong thing");
+        }
+
         // ---------------------------------------------------------------- the table
 
         [Fact]

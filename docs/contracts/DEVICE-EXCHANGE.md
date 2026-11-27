@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `DEVICE-EXCHANGE` |
-| **Version** | 1.17, active (re-read 2026-11-19: 1.16 and 1.17 read, the client half of item FW is not met - see the end of this page; earlier re-read 2026-11-15, S0114; the implemented level stays partial until the notes sync is built and the item FM vectors exist; first read 2026-10-16; sections 5.2, 5.5, 6.1, 7.1-7.4, 7.10, 9 items BR, CY, CZ, DA, 22 and 27 items DE-DR) |
+| **Version** | 1.18, active (read 2026-11-20 for items GC to GF, the command frames of `REMOTE-CONTROL`, ticket CYRFLP-0140; re-read 2026-11-19: 1.16 and 1.17 read, the client half of item FW is not met - see the end of this page; earlier re-read 2026-11-15, S0114; the implemented level stays partial until the notes sync is built and the item FM vectors exist; first read 2026-10-16; sections 5.2, 5.5, 6.1, 7.1-7.4, 7.10, 9 items BR, CY, CZ, DA, 22 and 27 items DE-DR) |
 | **Home** | `device-exchange/README.md` in the shared contracts catalog, with `vectors/e2e-v1.json` and the FMS_Win server corpus beside it |
 | **Role here** | A device of an exchange account for two roles: `clipboard` (product `cyrflip-windows`, capability `e2e-v1`, ticket S0074) and, from 1.13, `notes` (items FG-FM, ticket S0105, the quick notes); and a reader of the connection string of section 5.5 for the traffic light (ticket S0069). CyrFlip registers no account, publishes no resource, broadcasts nothing and keeps no directory |
 
@@ -96,3 +96,7 @@ until their remaining evidence is recorded.
 ## Open against 1.17 - 2026-11-19
 
 Item FW (the cursor of a paged `full` listing) is not met by the client: `notes_list` carries only `since` and never `full: true`, and the pull ends a listing on its own `last <= since` guard and then applies the deletion rule of item FI. A dated exception stands in the registry; the client rules of FW, FX and FZ are owed under CyrFlip's own ticket (item GB), not fixed in a catch-up pass.
+
+## Read 1.18 - 2026-11-20
+
+Items GC to GF (the frames `command-request` and `command-result`, the feature `command`, the capability `command-v1`, the contexts `command:<requestId>` and `command-result:<requestId>`, the 65536-byte bound) are built for the target role by ticket CYRFLP-0140; the payload, the verbs, the consent and the log are `REMOTE-CONTROL`'s - see [`REMOTE-CONTROL.md`](REMOTE-CONTROL.md). `enroll` declares `command-v1` beside `e2e-v1`. The resident control stream that carries the requests holds keepalive (7.3) and yields to every on-demand control stream of the same entry. Item GE's six rows are a controller's words; this product shows none of them. Item GG (the FMS_Win corpus) is server evidence and asks nothing of a device. No vector of the new contexts exists yet (item GF).

@@ -4,7 +4,7 @@
     What it does:
       1. Takes CyrFlip.exe from the released ZIP, or from an explicitly pre-built output (-NoBuild).
       2. Derives a Store-legal 4-part version (revision forced to 0) from the exe's YY.M.D.HHmm stamp.
-      3. Stages the exe + THIRD-PARTY-NOTICES.txt, generates the required logo PNGs from assets/icon-256.png.
+      3. Stages the exe + THIRD-PARTY-NOTICES.txt, copies the logo PNGs the identity generator cut (assets/identity/msix/, PRODUCT-IDENTITY).
       4. Fills the AppxManifest.xml placeholders (Identity Name / Publisher / version). The identity
          comes from msix/identity.json, read first - a run that finds no file stops before it builds.
       5. Packs it into msix/dist/CyrFlip-<version>-x64.msix with makeappx (-SelfSign: ...-selfsigned.msix).
@@ -87,7 +87,7 @@ $MsixDir   = $PSScriptRoot
 $RepoRoot  = Split-Path $MsixDir -Parent
 $Csproj    = Join-Path $RepoRoot 'src\CyrFlip\CyrFlip.csproj'
 $OutDir    = Join-Path $RepoRoot "src\CyrFlip\bin\$Configuration\net48"
-$IconPng   = Join-Path $RepoRoot 'assets\icon-256.png'
+$LogoDir   = Join-Path $RepoRoot 'assets\identity\msix'
 $Stage     = Join-Path $MsixDir 'stage'
 $Dist      = Join-Path $MsixDir 'dist'
 $Manifest  = Join-Path $MsixDir 'AppxManifest.xml'
@@ -165,31 +165,15 @@ if ($ExtractedRelease) {
     $ExtractedRelease = $null
 }
 
-# Generate the logo PNGs from the 256px master.
-if (-not (Test-Path $IconPng)) { throw "Icon master not found: $IconPng" }
-Add-Type -AssemblyName System.Drawing
-$src = [System.Drawing.Image]::FromFile($IconPng)
-try {
-    $logos = @{
-        'Square44x44Logo.png'   = 44
-        'StoreLogo.png'         = 50
-        'Square71x71Logo.png'   = 71
-        'Square150x150Logo.png' = 150
-    }
-    foreach ($kv in $logos.GetEnumerator()) {
-        $size = $kv.Value
-        $bmp = New-Object System.Drawing.Bitmap($size, $size)
-        $g = [System.Drawing.Graphics]::FromImage($bmp)
-        $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-        $g.SmoothingMode     = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
-        $g.PixelOffsetMode   = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-        $g.DrawImage($src, 0, 0, $size, $size)
-        $bmp.Save((Join-Path $Stage "Assets\$($kv.Key)"), [System.Drawing.Imaging.ImageFormat]::Png)
-        $g.Dispose(); $bmp.Dispose()
-    }
+# Copy the logo PNGs: renditions of the product mark, cut at their native sizes by the identity generator
+# (dotnet run --project tools/IconGen; PRODUCT-IDENTITY 0.3, CYRFLP-0139) and listed with their SHA-256 in
+# assets/identity/identity-manifest.json. They are never resampled here.
+foreach ($logo in @('Square44x44Logo.png', 'StoreLogo.png', 'Square71x71Logo.png', 'Square150x150Logo.png')) {
+    $from = Join-Path $LogoDir $logo
+    if (-not (Test-Path -LiteralPath $from)) { throw "MSIX logo not found: $from - run the identity generator: dotnet run --project tools/IconGen" }
+    Copy-Item -LiteralPath $from -Destination (Join-Path $Stage "Assets\$logo") -Force
 }
-finally { $src.Dispose() }
-Write-Host 'Generated logo assets.'
+Write-Host 'Copied logo assets.'
 
 # --- 4. Fill the manifest placeholders --------------------------------------
 $xml = Get-Content $Manifest -Raw

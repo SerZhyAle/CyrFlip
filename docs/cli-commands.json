@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "product": "CyrFlip",
   "exe": "CyrFlip.exe",
-  "cliVersion": "1.0",
+  "cliVersion": "1.1",
   "commands": [
     {
       "name": "commands",
@@ -13,6 +13,7 @@
         { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print this manifest itself as JSON instead of a readable list." }
       ],
       "returns": [],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "risk": "safe",
       "coldStart": "oneshot",
       "forward": "never",
@@ -42,6 +43,7 @@
         { "name": "version", "kind": "string", "description": "the version of this executable, spelled as the release tag" },
         { "name": "cliVersion", "kind": "string", "description": "MAJOR.MINOR of this command set" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "risk": "safe",
       "coldStart": "oneshot",
       "forward": "never",
@@ -71,8 +73,10 @@
         { "name": "version", "kind": "string", "description": "the running copy's version" },
         { "name": "pid", "kind": "int", "description": "its process id" },
         { "name": "acceptsRestrictedCommands", "kind": "bool", "description": "whether 'Let other programs ask CyrFlip to work with my files, screen, clipboard or the network' is on" },
-        { "name": "modules", "kind": "object", "description": "which opt-in modules are on, by name: quickNotes, translate, scenarioLauncher, exchangeClipboard, trafficLight, symbols, clipboardHistory, contextMenu" }
+        { "name": "modules", "kind": "object", "description": "which opt-in modules are on, by name: quickNotes, translate, scenarioLauncher, exchangeClipboard, trafficLight, symbols, clipboardHistory, contextMenu" },
+        { "name": "remoteCommands", "kind": "bool", "description": "whether 'Listen to commands from my other devices' is on, on the Exchange server page (REMOTE-CONTROL rule 8)" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "risk": "safe",
       "coldStart": "refuse",
       "wait": "done",
@@ -104,6 +108,7 @@
         { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
       ],
       "returns": [],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "risk": "safe",
       "coldStart": "start",
       "wait": "done",
@@ -134,6 +139,7 @@
         { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
       ],
       "returns": [],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "risk": "safe",
       "coldStart": "oneshot",
       "wait": "done",
@@ -452,6 +458,7 @@
         { "name": "count", "kind": "int", "description": "number of layouts" },
         { "name": "layouts", "kind": "array", "description": "objects with klid (eight hexadecimal digits), code (the two letters the marker shows, or the language's four hexadecimal digits when Windows cannot name it), label (Windows' own name of the layout) and current (bool; on every object only while CyrFlip is running: true for the layout of the window the person last typed in, false for all when there is no such window)" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "risk": "safe",
       "coldStart": "oneshot",
       "wait": "done",
@@ -484,6 +491,7 @@
         { "name": "klid", "kind": "string", "description": "the layout's KLID, for example 00000409" },
         { "name": "capsLock", "kind": "bool", "description": "whether CapsLock is on" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "risk": "safe",
       "coldStart": "refuse",
       "wait": "done",
@@ -1036,6 +1044,38 @@
       "since": "1.0"
     },
     {
+      "name": "hotkeys pause",
+      "aliases": [],
+      "summary": "Pause or resume every CyrFlip key combination at once: the same master switch as on the Hotkeys page of the settings, applied live and kept across restarts. While paused, CyrFlip lets every key through; the layout marker keeps working.",
+      "synopsis": "CyrFlip.exe hotkeys pause --paused <true|false> [--json] [--result <path>]",
+      "args": [
+        { "name": "paused", "kind": "bool", "required": true, "description": "true pauses every combination, false turns them back on." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "paused", "kind": "bool", "description": "the new state, as the settings page now shows it" }
+      ],
+      "remote": { "confirm": "grant", "since": "1.1" },
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 2000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the state is set; pausing paused combinations is still 0" },
+        { "code": 2, "meaning": "the running copy is older and takes no commands, or it did not answer in time" },
+        { "code": 10, "meaning": "--paused is missing or not true/false, or an unknown option" },
+        { "code": 11, "meaning": "CyrFlip is not running, or busy" },
+        { "code": 12, "meaning": "the running copy runs as administrator" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait CyrFlip.exe hotkeys pause --paused true", "expect": "exit 0 (errorlevel 0); no CyrFlip combination acts until it is run with --paused false" }
+      ],
+      "since": "1.1"
+    },
+    {
       "name": "symbols show",
       "aliases": [],
       "summary": "Show the symbols palette without taking the focus from the editor, as the palette itself opens - and never hide it.",
@@ -1108,6 +1148,7 @@
         { "name": "screen", "kind": "bool", "description": "the screen keep-awake switch as it now runs" },
         { "name": "expiresUtc", "kind": "string", "description": "only with --minutes: the moment the session request ends and the saved state returns" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "risk": "safe",
       "coldStart": "refuse",
       "wait": "done",

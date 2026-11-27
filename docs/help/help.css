@@ -137,3 +137,9 @@ footer { margin-block-start: 2rem; color: var(--muted); }
 .title-row { display: flex; align-items: center; gap: .6rem; }
 .title-row h1 { margin-block: 0; }
 .mark-inline { flex: none; width: 24px; height: 24px; }
+/* PRODUCT-IDENTITY rule 8, CONTEXT-HELP 0.6 items Q and R (CYRFLP-0139): the product's picture before the title,
+   between its cap height and twice it, and an element's ICON-SET glyph before its name in the text colour. Neither
+   is part of the reading: both carry an empty alt. A glyph the vocabulary marks "mirror" turns in a right-to-left page. */
+.product-head { flex: none; width: 2rem; height: 2rem; }
+.glyph { display: inline-block; width: 1.1em; height: 1.1em; vertical-align: -.2em; margin-inline-end: .35em; fill: currentColor; }
+[dir="rtl"] .glyph.mirror { transform: scaleX(-1); }

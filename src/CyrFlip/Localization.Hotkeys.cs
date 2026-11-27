@@ -20,19 +20,19 @@ namespace CyrFlip
             // The hook watchdog's only voice: Windows drops a low-level hook that overran its
             // timeout and tells nobody, so a re-arm that keeps failing is the one thing the user has
             // to hear about - the chords are dead until CyrFlip restarts.
-            Add("Windows will not grant the keyboard hook — the hotkeys may not work. Restarting CyrFlip usually helps.",
-                ru: "Windows не отдаёт перехват клавиатуры — горячие клавиши могут не работать. Помогает перезапуск CyrFlip.",
-                uk: "Windows не віддає перехоплення клавіатури — гарячі клавіші можуть не працювати. Допомагає перезапуск CyrFlip.",
-                de: "Windows gibt den Tastatur-Hook nicht frei — die Tastenkürzel funktionieren möglicherweise nicht. Ein Neustart von CyrFlip hilft meist.",
+            Add("Windows will not grant the keyboard hook - the hotkeys may not work. Restarting CyrFlip usually helps.",
+                ru: "Windows не отдаёт перехват клавиатуры - горячие клавиши могут не работать. Помогает перезапуск CyrFlip.",
+                uk: "Windows не віддає перехоплення клавіатури - гарячі клавіші можуть не працювати. Допомагає перезапуск CyrFlip.",
+                de: "Windows gibt den Tastatur-Hook nicht frei - die Tastenkürzel funktionieren möglicherweise nicht. Ein Neustart von CyrFlip hilft meist.",
                 it: "Windows non concede l'aggancio della tastiera: le scorciatoie potrebbero non funzionare. Di solito basta riavviare CyrFlip.",
                 es: "Windows no concede el enganche del teclado: los atajos pueden no funcionar. Reiniciar CyrFlip suele ayudar.",
                 fr: "Windows refuse le hook clavier : les raccourcis risquent de ne pas fonctionner. Redémarrer CyrFlip résout généralement le problème.",
                 pt: "O Windows não concede o hook do teclado: os atalhos podem não funcionar. Reiniciar o CyrFlip costuma resolver.",
-                ar: "لا يمنح Windows اعتراض لوحة المفاتيح — قد لا تعمل الاختصارات. عادةً ما تفيد إعادة تشغيل CyrFlip.",
-                hi: "Windows कीबोर्ड हुक नहीं दे रहा — शॉर्टकट शायद काम न करें। आमतौर पर CyrFlip को दोबारा शुरू करने से मदद मिलती है।",
-                bn: "Windows কীবোর্ড হুক দিচ্ছে না — শর্টকাট কাজ না-ও করতে পারে। সাধারণত CyrFlip পুনরায় চালু করলে কাজ হয়।",
-                ur: "Windows کی بورڈ ہک نہیں دے رہا — شارٹ کٹس شاید کام نہ کریں۔ عام طور پر CyrFlip دوبارہ شروع کرنے سے مدد ملتی ہے۔",
-                zh: "Windows 未授予键盘挂钩 — 快捷键可能失效。重启 CyrFlip 通常可以解决。");
+                ar: "لا يمنح Windows اعتراض لوحة المفاتيح - قد لا تعمل الاختصارات. عادةً ما تفيد إعادة تشغيل CyrFlip.",
+                hi: "Windows कीबोर्ड हुक नहीं दे रहा - शॉर्टकट शायद काम न करें। आमतौर पर CyrFlip को दोबारा शुरू करने से मदद मिलती है।",
+                bn: "Windows কীবোর্ড হুক দিচ্ছে না - শর্টকাট কাজ না-ও করতে পারে। সাধারণত CyrFlip পুনরায় চালু করলে কাজ হয়।",
+                ur: "Windows کی بورڈ ہک نہیں دے رہا - شارٹ کٹس شاید کام نہ کریں۔ عام طور پر CyrFlip دوبارہ شروع کرنے سے مدد ملتی ہے۔",
+                zh: "Windows 未授予键盘挂钩 - 快捷键可能失效。重启 CyrFlip 通常可以解决。");
 
             Add("Listen for global hotkeys",
                 ru: "Слушать глобальные горячие клавиши", uk: "Слухати глобальні гарячі клавіші",
@@ -42,19 +42,19 @@ namespace CyrFlip
                 hi: "वैश्विक शॉर्टकट सुनें", bn: "গ্লোবাল শর্টকাট শুনুন",
                 ur: "عالمی شارٹ کٹس سنیں", zh: "监听全局快捷键");
 
-            Add("Master switch for all hotkeys. When off, CyrFlip intercepts none of the chords — keys reach the app as usual.",
-                ru: "Общий выключатель всех горячих клавиш. Когда снят, CyrFlip не перехватывает ни одной комбинации — клавиши проходят в приложение как обычно.",
-                uk: "Загальний вимикач усіх гарячих клавіш. Коли знято, CyrFlip не перехоплює жодної комбінації — клавіші потрапляють у застосунок як звичайно.",
-                de: "Hauptschalter für alle Tastenkürzel. Ist er aus, fängt CyrFlip keine Kombination ab — die Tasten erreichen die Anwendung wie gewohnt.",
+            Add("Master switch for all hotkeys. When off, CyrFlip intercepts none of the chords - keys reach the app as usual.",
+                ru: "Общий выключатель всех горячих клавиш. Когда снят, CyrFlip не перехватывает ни одной комбинации - клавиши проходят в приложение как обычно.",
+                uk: "Загальний вимикач усіх гарячих клавіш. Коли знято, CyrFlip не перехоплює жодної комбінації - клавіші потрапляють у застосунок як звичайно.",
+                de: "Hauptschalter für alle Tastenkürzel. Ist er aus, fängt CyrFlip keine Kombination ab - die Tasten erreichen die Anwendung wie gewohnt.",
                 it: "Interruttore generale di tutte le scorciatoie. Se disattivato, CyrFlip non intercetta nessuna combinazione: i tasti arrivano all'applicazione come sempre.",
                 es: "Interruptor general de todos los atajos. Si está desactivado, CyrFlip no intercepta ninguna combinación: las teclas llegan a la aplicación como siempre.",
                 fr: "Interrupteur général de tous les raccourcis. Désactivé, CyrFlip n'intercepte aucune combinaison : les touches parviennent normalement à l'application.",
                 pt: "Interruptor geral de todos os atalhos. Quando desligado, o CyrFlip não intercepta nenhuma combinação: as teclas chegam ao aplicativo normalmente.",
                 ar: "مفتاح رئيسي لجميع الاختصارات. عند إيقافه لا يعترض CyrFlip أي تركيبة، وتصل المفاتيح إلى التطبيق كالمعتاد.",
-                hi: "सभी शॉर्टकट का मुख्य स्विच। बंद होने पर CyrFlip किसी भी संयोजन को नहीं रोकता — कुंजियाँ हमेशा की तरह ऐप तक पहुँचती हैं।",
-                bn: "সব শর্টকাটের প্রধান সুইচ। বন্ধ থাকলে CyrFlip কোনো সংমিশ্রণ আটকায় না — কী-গুলি স্বাভাবিকভাবেই অ্যাপে পৌঁছায়।",
-                ur: "تمام شارٹ کٹس کا مرکزی سوئچ۔ بند ہونے پر CyrFlip کوئی مجموعہ نہیں روکتا — کیز حسبِ معمول ایپ تک پہنچتی ہیں۔",
-                zh: "所有快捷键的总开关。关闭后，CyrFlip 不会拦截任何组合键——按键将照常传递给应用。");
+                hi: "सभी शॉर्टकट का मुख्य स्विच। बंद होने पर CyrFlip किसी भी संयोजन को नहीं रोकता - कुंजियाँ हमेशा की तरह ऐप तक पहुँचती हैं।",
+                bn: "সব শর্টকাটের প্রধান সুইচ। বন্ধ থাকলে CyrFlip কোনো সংমিশ্রণ আটকায় না - কী-গুলি স্বাভাবিকভাবেই অ্যাপে পৌঁছায়।",
+                ur: "تمام شارٹ کٹس کا مرکزی سوئچ۔ بند ہونے پر CyrFlip کوئی مجموعہ نہیں روکتا - کیز حسبِ معمول ایپ تک پہنچتی ہیں۔",
+                zh: "所有快捷键的总开关。关闭后，CyrFlip 不会拦截任何组合键 - 按键将照常传递给应用。");
 
             Add("Case flip",
                 ru: "Исправить CapsLock", uk: "Виправити CapsLock", de: "CapsLock korrigieren",
@@ -105,19 +105,19 @@ namespace CyrFlip
                 ur: "ریموٹ ڈیسک ٹاپ (mstsc/msrdc) کو شارٹ کٹس دے دیں",
                 zh: "把快捷键让给远程桌面（mstsc/msrdc）");
 
-            Add("When a remote-desktop client window (mstsc/msrdc) is focused, CyrFlip does not intercept the hotkeys — the key travels to the remote session where that machine's CyrFlip handles it. Enable this if the app runs on both ends of the RDP connection.",
-                ru: "Когда в фокусе окно клиента удалённого рабочего стола (mstsc/msrdc), CyrFlip не перехватывает хоткеи — клавиша уходит в удалённый сеанс, где её обработает CyrFlip на той машине. Включите, если утилита запущена на обеих сторонах RDP.",
-                uk: "Коли у фокусі вікно клієнта віддаленого робочого столу (mstsc/msrdc), CyrFlip не перехоплює хоткеї — клавіша йде у віддалений сеанс, де її обробить CyrFlip на тій машині. Увімкніть, якщо застосунок запущено на обох боках RDP.",
-                de: "Wenn ein Remotedesktop-Fenster (mstsc/msrdc) den Fokus hat, fängt CyrFlip die Kürzel nicht ab — die Taste gelangt in die Remotesitzung, wo das dortige CyrFlip sie verarbeitet. Aktivieren Sie das, wenn die App auf beiden Seiten der RDP-Verbindung läuft.",
+            Add("When a remote-desktop client window (mstsc/msrdc) is focused, CyrFlip does not intercept the hotkeys - the key travels to the remote session where that machine's CyrFlip handles it. Enable this if the app runs on both ends of the RDP connection.",
+                ru: "Когда в фокусе окно клиента удалённого рабочего стола (mstsc/msrdc), CyrFlip не перехватывает хоткеи - клавиша уходит в удалённый сеанс, где её обработает CyrFlip на той машине. Включите, если утилита запущена на обеих сторонах RDP.",
+                uk: "Коли у фокусі вікно клієнта віддаленого робочого столу (mstsc/msrdc), CyrFlip не перехоплює хоткеї - клавіша йде у віддалений сеанс, де її обробить CyrFlip на тій машині. Увімкніть, якщо застосунок запущено на обох боках RDP.",
+                de: "Wenn ein Remotedesktop-Fenster (mstsc/msrdc) den Fokus hat, fängt CyrFlip die Kürzel nicht ab - die Taste gelangt in die Remotesitzung, wo das dortige CyrFlip sie verarbeitet. Aktivieren Sie das, wenn die App auf beiden Seiten der RDP-Verbindung läuft.",
                 it: "Quando è attiva una finestra del client desktop remoto (mstsc/msrdc), CyrFlip non intercetta le scorciatoie: il tasto raggiunge la sessione remota, dove lo gestisce il CyrFlip di quella macchina. Attiva l'opzione se l'app è in esecuzione su entrambi i lati della connessione RDP.",
                 es: "Cuando la ventana de un cliente de escritorio remoto (mstsc/msrdc) tiene el foco, CyrFlip no intercepta los atajos: la tecla llega a la sesión remota, donde la gestiona el CyrFlip de esa máquina. Actívalo si la aplicación se ejecuta en ambos extremos de la conexión RDP.",
                 fr: "Lorsqu'une fenêtre de client Bureau à distance (mstsc/msrdc) a le focus, CyrFlip n'intercepte pas les raccourcis : la touche atteint la session distante, où le CyrFlip de cette machine la traite. Activez cette option si l'application tourne des deux côtés de la connexion RDP.",
                 pt: "Quando a janela de um cliente de área de trabalho remota (mstsc/msrdc) está em foco, o CyrFlip não intercepta os atalhos: a tecla chega à sessão remota, onde o CyrFlip daquela máquina a processa. Ative isso se o aplicativo estiver em execução nas duas pontas da conexão RDP.",
                 ar: "عندما تكون نافذة عميل سطح المكتب البعيد (mstsc/msrdc) في المقدمة، لا يعترض CyrFlip الاختصارات، بل ينتقل المفتاح إلى الجلسة البعيدة حيث يعالجه CyrFlip الموجود هناك. فعّل هذا الخيار إذا كان التطبيق يعمل على طرفَي اتصال RDP.",
-                hi: "जब रिमोट डेस्कटॉप क्लाइंट (mstsc/msrdc) की विंडो सक्रिय हो, तो CyrFlip शॉर्टकट नहीं रोकता — कुंजी रिमोट सत्र तक जाती है, जहाँ उस मशीन का CyrFlip उसे संभालता है। यदि ऐप RDP कनेक्शन के दोनों सिरों पर चल रहा है तो इसे चालू करें।",
-                bn: "রিমোট ডেস্কটপ ক্লায়েন্টের (mstsc/msrdc) উইন্ডো সক্রিয় থাকলে CyrFlip শর্টকাট আটকায় না — কী রিমোট সেশনে চলে যায়, যেখানে সেই মেশিনের CyrFlip তা সামলায়। RDP সংযোগের দুই প্রান্তেই অ্যাপ চললে এটি চালু করুন।",
-                ur: "جب ریموٹ ڈیسک ٹاپ کلائنٹ (mstsc/msrdc) کی ونڈو فوکس میں ہو تو CyrFlip شارٹ کٹس نہیں روکتا — کی ریموٹ سیشن تک جاتی ہے جہاں وہاں کا CyrFlip اسے سنبھالتا ہے۔ اگر ایپ RDP کنکشن کے دونوں سروں پر چل رہی ہو تو یہ آن کریں۔",
-                zh: "当远程桌面客户端窗口（mstsc/msrdc）处于前台时，CyrFlip 不拦截快捷键——按键会传到远程会话，由那台机器上的 CyrFlip 处理。如果两端都运行本程序，请启用此项。");
+                hi: "जब रिमोट डेस्कटॉप क्लाइंट (mstsc/msrdc) की विंडो सक्रिय हो, तो CyrFlip शॉर्टकट नहीं रोकता - कुंजी रिमोट सत्र तक जाती है, जहाँ उस मशीन का CyrFlip उसे संभालता है। यदि ऐप RDP कनेक्शन के दोनों सिरों पर चल रहा है तो इसे चालू करें।",
+                bn: "রিমোট ডেস্কটপ ক্লায়েন্টের (mstsc/msrdc) উইন্ডো সক্রিয় থাকলে CyrFlip শর্টকাট আটকায় না - কী রিমোট সেশনে চলে যায়, যেখানে সেই মেশিনের CyrFlip তা সামলায়। RDP সংযোগের দুই প্রান্তেই অ্যাপ চললে এটি চালু করুন।",
+                ur: "جب ریموٹ ڈیسک ٹاپ کلائنٹ (mstsc/msrdc) کی ونڈو فوکس میں ہو تو CyrFlip شارٹ کٹس نہیں روکتا - کی ریموٹ سیشن تک جاتی ہے جہاں وہاں کا CyrFlip اسے سنبھالتا ہے۔ اگر ایپ RDP کنکشن کے دونوں سروں پر چل رہی ہو تو یہ آن کریں۔",
+                zh: "当远程桌面客户端窗口（mstsc/msrdc）处于前台时，CyrFlip 不拦截快捷键 - 按键会传到远程会话，由那台机器上的 CyrFlip 处理。如果两端都运行本程序，请启用此项。");
 
             // The vocabulary's name of action.edit, the glyph the button carries (ICON-SET rule 3, S0060 I-M11).
             Add("Edit...",
@@ -156,19 +156,19 @@ namespace CyrFlip
                 zh: "设置剪贴板历史快捷键");
 
             // ---- Chord clash ----
-            Add("That combination is already taken by {0}. They can't share — pick another one.",
-                ru: "Эта комбинация уже занята {0}. Их нельзя объединять — выберите другую.",
-                uk: "Цю комбінацію вже зайнято {0}. Їх не можна поєднувати — оберіть іншу.",
-                de: "Diese Kombination ist bereits durch {0} belegt. Sie lässt sich nicht teilen — wählen Sie eine andere.",
+            Add("That combination is already taken by {0}. They can't share - pick another one.",
+                ru: "Эта комбинация уже занята {0}. Их нельзя объединять - выберите другую.",
+                uk: "Цю комбінацію вже зайнято {0}. Їх не можна поєднувати - оберіть іншу.",
+                de: "Diese Kombination ist bereits durch {0} belegt. Sie lässt sich nicht teilen - wählen Sie eine andere.",
                 it: "Questa combinazione è già usata da {0}. Non può essere condivisa: scegline un'altra.",
                 es: "Esa combinación ya la usa {0}. No se puede compartir: elige otra.",
-                fr: "Cette combinaison est déjà utilisée par {0}. Elle ne peut pas être partagée — choisissez-en une autre.",
-                pt: "Essa combinação já é usada por {0}. Não dá para compartilhar — escolha outra.",
-                ar: "هذه التركيبة مستخدَمة بالفعل بواسطة {0}. لا يمكن مشاركتها — اختر تركيبة أخرى.",
-                hi: "यह संयोजन पहले से {0} के पास है। इसे साझा नहीं किया जा सकता — कोई दूसरा चुनें।",
-                bn: "এই সংমিশ্রণটি ইতিমধ্যে {0} ব্যবহার করছে। এটি ভাগ করা যায় না — অন্যটি বেছে নিন।",
-                ur: "یہ مجموعہ پہلے ہی {0} کے پاس ہے۔ اسے بانٹا نہیں جا سکتا — کوئی دوسرا منتخب کریں۔",
-                zh: "该组合键已被{0}占用。两者不能共用——请另选一个。");
+                fr: "Cette combinaison est déjà utilisée par {0}. Elle ne peut pas être partagée - choisissez-en une autre.",
+                pt: "Essa combinação já é usada por {0}. Não dá para compartilhar - escolha outra.",
+                ar: "هذه التركيبة مستخدَمة بالفعل بواسطة {0}. لا يمكن مشاركتها - اختر تركيبة أخرى.",
+                hi: "यह संयोजन पहले से {0} के पास है। इसे साझा नहीं किया जा सकता - कोई दूसरा चुनें।",
+                bn: "এই সংমিশ্রণটি ইতিমধ্যে {0} ব্যবহার করছে। এটি ভাগ করা যায় না - অন্যটি বেছে নিন।",
+                ur: "یہ مجموعہ پہلے ہی {0} کے پاس ہے۔ اسے بانٹا نہیں جا سکتا - کوئی دوسرا منتخب کریں۔",
+                zh: "该组合键已被{0}占用。两者不能共用 - 请另选一个。");
 
             Add("the case-flip shortcut",
                 ru: "хоткеем регистра", uk: "хоткеєм регістру", de: "das Kürzel für Groß-/Kleinschreibung",

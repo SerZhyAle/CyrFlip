@@ -51,7 +51,7 @@
   </div>
   <header class="site-header">
     <div class="container">
-      <span class="brand">CyrFlip<span class="dot">.</span></span>
+      <span class="brand"><img class="brand-mark" src="assets/icon-256.png" width="20" height="20" alt="">CyrFlip<span class="dot">.</span></span>
       <button class="theme-btn" id="themeBtn" aria-label="Switch theme">◐</button>
       <div class="cta">
         <a class="btn btn-ghost btn-sm" href="./">← Overview</a>
@@ -223,6 +223,88 @@
       <p class="note">A Windows-language change usually takes effect immediately, but Windows occasionally only
       settles it after signing out and back in. The Microsoft Store build runs in a container, so Windows may
       redirect those registry writes into the package - the tab says so and links to the Windows settings.</p>
+      <!-- settings-reference: begin (CYRFLP-0060 R11; captions held by SettingsFileInventoryTests) -->
+      <h3 id="settings-reference">Every setting</h3>
+      <p>Every setting the window holds, named as the window names it, with its page and its value on a new installation. A <em>Set .. shortcut</em> line is the window that changes that shortcut. The windows' sizes and positions, the page you left open and the sections you unfolded are remembered rather than set, so they are not listed.</p>
+      <table>
+        <tr><th>Setting</th><th>Page</th><th>Default</th></tr>
+        <tr><td>Interface language</td><td>General</td><td>the Windows display language, else English</td></tr>
+        <tr><td>Theme</td><td>General</td><td>same as Windows</td></tr>
+        <tr><td>Keep the computer awake</td><td>General</td><td>off</td></tr>
+        <tr><td>Keep the screen on (like video)</td><td>General</td><td>off</td></tr>
+        <tr><td>Keep a settings backup in Documents</td><td>General</td><td>on</td></tr>
+        <tr><td>Show layout on the text mouse cursor</td><td>Indicators</td><td>off</td></tr>
+        <tr><td>Show layout label near the caret</td><td>Indicators</td><td>on</td></tr>
+        <tr><td>Compact dot instead of language letters</td><td>Indicators</td><td>off</td></tr>
+        <tr><td>Marker size</td><td>Indicators</td><td>24</td></tr>
+        <tr><td>Change layout after converting text</td><td>Text correction</td><td>off</td></tr>
+        <tr><td>Synchronize CapsLock after case correction</td><td>Text correction</td><td>off</td></tr>
+        <tr><td>Listen for global hotkeys</td><td>Hotkeys</td><td>on</td></tr>
+        <tr><td>Case flip</td><td>Text correction</td><td>on</td></tr>
+        <tr><td>Set case shortcut</td><td>Text correction</td><td>Ctrl+Shift+F11</td></tr>
+        <tr><td>Clipboard history</td><td>Clipboard</td><td>on</td></tr>
+        <tr><td>Set clipboard history shortcut</td><td>Clipboard</td><td>Ctrl+Shift+F10</td></tr>
+        <tr><td>Yield hotkeys to the remote desktop (mstsc/msrdc)</td><td>Hotkeys</td><td>off</td></tr>
+        <tr><td>Convert punctuation along with the text</td><td>Text correction</td><td>on</td></tr>
+        <tr><td>Layout conversions</td><td>Text correction</td><td>one row: US ⇄ Russian on Ctrl+Shift+F12</td></tr>
+        <tr><td>Enable clipboard history</td><td>Clipboard</td><td>off</td></tr>
+        <tr><td>Pause history capture</td><td>Clipboard</td><td>off</td></tr>
+        <tr><td>Show clipboard history on startup</td><td>Clipboard</td><td>on</td></tr>
+        <tr><td>Opacity</td><td>Clipboard</td><td>100 %</td></tr>
+        <tr><td>CyrFlip's own context menu over the selected text</td><td>Selection menu</td><td>off</td></tr>
+        <tr><td>Mouse chord</td><td>Selection menu</td><td>Ctrl + right click</td></tr>
+        <tr><td>Open the menu from the keyboard</td><td>Selection menu</td><td>on</td></tr>
+        <tr><td>Set the context-menu shortcut</td><td>Selection menu</td><td>Ctrl+Shift+Alt+M</td></tr>
+        <tr><td>Enable translation of the selected text</td><td>Translation</td><td>off</td></tr>
+        <tr><td>Server address</td><td>Translation</td><td>empty - http://localhost:11434</td></tr>
+        <tr><td>Model</td><td>Translation</td><td>aya-expanse:8b</td></tr>
+        <tr><td>Wait for the model to load no longer than (s)</td><td>Translation</td><td>120</td></tr>
+        <tr><td>Keep the model in memory (min)</td><td>Translation</td><td>-1 (keep it loaded)</td></tr>
+        <tr><td>Start Ollama automatically when translating</td><td>Translation</td><td>on</td></tr>
+        <tr><td>Translation directions</td><td>Translation</td><td>empty; a starter row is offered when the translator is first enabled</td></tr>
+        <tr><td>Put the translation on the clipboard</td><td>Translation</td><td>off</td></tr>
+        <tr><td>Paste the translation over the selection right away</td><td>Translation</td><td>off</td></tr>
+        <tr><td>Show the source text next to the translation</td><td>Translation</td><td>off</td></tr>
+        <tr><td>Close the window after (s)</td><td>Translation</td><td>0 (never)</td></tr>
+        <tr><td>Opacity</td><td>Translation</td><td>100 %</td></tr>
+        <tr><td>Enable the quick notes</td><td>Quick notes</td><td>off</td></tr>
+        <tr><td>Quick notes</td><td>Quick notes</td><td>on</td></tr>
+        <tr><td>Set the quick-notes shortcut</td><td>Quick notes</td><td>Ctrl+Shift+Alt+N</td></tr>
+        <tr><td>Wrap long lines in the editor</td><td>Quick notes</td><td>off</td></tr>
+        <tr><td>Line numbers in the editor</td><td>Quick notes</td><td>off</td></tr>
+        <tr><td>Don't warn again for notes</td><td>Quick notes</td><td>off</td></tr>
+        <tr><td>Quick launch module</td><td>Quick launch</td><td>off</td></tr>
+        <tr><td>Screen region capture</td><td>Screenshots</td><td>on, Ctrl+F12</td></tr>
+        <tr><td>Full screen capture</td><td>Screenshots</td><td>on, Ctrl+F11</td></tr>
+        <tr><td>Draw on screen captures</td><td>Screenshots</td><td>on</td></tr>
+        <tr><td>Area capture with drawing</td><td>Screenshots</td><td>on, Ctrl+Alt+F12</td></tr>
+        <tr><td>Full screen capture with drawing</td><td>Screenshots</td><td>on, Ctrl+Alt+F11</td></tr>
+        <tr><td>Open the screenshots folder</td><td>Screenshots</td><td>on, Ctrl+F10</td></tr>
+        <tr><td>Also save captures to a folder</td><td>Screenshots</td><td>on</td></tr>
+        <tr><td>Folder for screen region captures</td><td>Screenshots</td><td>empty - Windows' Screenshots folder</td></tr>
+        <tr><td>Symbols window</td><td>Symbols</td><td>off</td></tr>
+        <tr><td>Open from the keyboard</td><td>Symbols</td><td>on</td></tr>
+        <tr><td>Set the symbols shortcut</td><td>Symbols</td><td>Ctrl+Shift+F9</td></tr>
+        <tr><td>Hide symbols a layout can type</td><td>Symbols</td><td>off</td></tr>
+        <tr><td>Close on pick</td><td>Symbols</td><td>off</td></tr>
+        <tr><td>Availability traffic light</td><td>Availability traffic light</td><td>off</td></tr>
+        <tr><td>Open from the keyboard</td><td>Availability traffic light</td><td>on</td></tr>
+        <tr><td>Set the traffic light shortcut</td><td>Availability traffic light</td><td>Ctrl+Shift+Alt+T</td></tr>
+        <tr><td>Board opens at startup</td><td>Availability traffic light</td><td>on</td></tr>
+        <tr><td>Pinned on top</td><td>Availability traffic light</td><td>on</td></tr>
+        <tr><td>Tile size</td><td>Availability traffic light</td><td>medium</td></tr>
+        <tr><td>Tiles in a row</td><td>Availability traffic light</td><td>3</td></tr>
+        <tr><td>Board window transparency</td><td>Availability traffic light</td><td>0 %</td></tr>
+        <tr><td>Availability traffic light targets</td><td>Availability traffic light</td><td>one example: Google (https://www.google.com)</td></tr>
+        <tr><td>Enable the clipboard on the server</td><td>Exchange server</td><td>off</td></tr>
+        <tr><td>Send clipboard to server</td><td>Exchange server</td><td>on</td></tr>
+        <tr><td>Set send clipboard shortcut</td><td>Exchange server</td><td>not assigned</td></tr>
+        <tr><td>Get clipboard from server</td><td>Exchange server</td><td>on</td></tr>
+        <tr><td>Set get clipboard shortcut</td><td>Exchange server</td><td>not assigned</td></tr>
+        <tr><td>Folder for files received from the server</td><td>Exchange server</td><td>empty - Downloads\CyrFlip</td></tr>
+        <tr><td>Quick launch scenarios</td><td>Quick launch</td><td>empty; a Calculator sample is offered when the launcher is first enabled</td></tr>
+      </table>
+      <!-- settings-reference: end -->
     </section>
 
     <section>
@@ -396,6 +478,7 @@
         <li><strong>Standard settings.</strong> Beside an account whose server keeps standard settings, <strong>Save as STANDARD</strong> saves the groups of settings you tick under <em>Standard settings</em> to the server - it replaces the standard saved there - and <strong>Read STANDARD</strong> on your other computer applies them after showing every change. Both ask first; nothing is sent or read by itself, and a later change on one computer stays there. Passwords, folders, addresses, window positions and the display size never leave the computer, and whoever runs the server can read the saved settings.</li>
         <li><strong>Shortcuts.</strong> Both chords are shipped <em>without</em> a combination - choose your own on the page, and CyrFlip refuses one another feature already holds. The portable build can also put a <strong>Send</strong> or <strong>Get</strong> shortcut on the desktop that runs the action by itself.</li>
         <li><strong>Stop and remove.</strong> <strong>Cancel the clipboard transfer</strong> in the tray menu stops a transfer in progress and leaves both clipboards as they were. <strong>Remove account</strong> signs this device out of the server and forgets the account here; <strong>Sign in again..</strong> repairs an account whose password was changed.</li>
+        <li><strong>External control.</strong> Your other devices of the same account - FastMediaSorter for Web, or an agent through its own client - can ask this CyrFlip for its state (<code>status</code>, <code>layout current</code>), pause and resume its key combinations (<code>hotkeys pause</code>), keep the PC awake (<code>keepawake set</code>), open its settings or close it (<code>quit</code>). The group <em>External control</em> on this page holds the switch <strong>Listen to commands from my other devices</strong> (off until you turn it on, and no command, settings file or other device can turn it on) and the button <strong>Open External control</strong>. Everything else is in the External control window: <em>This device</em> says whether this PC can be asked now and what is missing; <em>Waiting for your answer</em> lists a request that asks you first; <em>Who can control this device</em> lists the other devices of the account - tick <strong>Allow this device</strong>, then choose <strong>No access</strong>, <strong>Ask each time</strong> or <strong>Always allow</strong> for each kind of command; <em>Commands this program accepts</em> lists what can be asked; <em>Recent requests</em> shows the last 20 and <strong>Open the full log</strong> opens <code>remote-commands.log</code>. Turning the switch on here opens the window at the device list. A request set to <strong>Ask each time</strong> comes up in a small window on top of the others, without taking the focus from what you type in; <strong>Decline</strong> is the answer to Enter and Escape, and a request nobody answers within 60 seconds is not run. A request is encrypted on the other device for this PC alone; while the clipboard on the server is on, CyrFlip keeps one connection to each server that carries commands, so that a request can reach it. An account added before this version signs in again once to take commands.</li>
       </ul>
       <p class="note">The page tells you the same in the program: <em>The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices.</em></p>
       <p class="note">CyrFlip never sends anything by itself: there is no monitoring, no timer and no send at start. The sign-in password is used once and is never stored; the device token and the key are protected with Windows DPAPI. Its log (<code>exchange-clipboard.log</code>) holds kinds, sizes and result codes only, never a clipboard value, a file name or an address. <a href="privacy.html">Privacy policy</a>. <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/exchange-clipboard.html">About the clipboard on the server</a> on the exchange portal.</p>

@@ -9,7 +9,11 @@
     "releasesDir": "releases"
   },
   "grammar": {
-    "specFilePattern": "^PLAN/(done/)?S\\d{4}_(?!spec_)"
+    "specFilePattern": "^PLAN/(done/)?(?:CYRFLP-\\d{4}|S\\d{4})_(?!spec_)",
+    "ticketIdPattern": "^CYRFLP-\\d{4}$",
+    "legacyTicketIdPatterns": [
+      "^S\\d{4}$"
+    ]
   },
   "commands": {
     "compileCheck": "dotnet build src/CyrFlip/CyrFlip.csproj -c Release -o temp/compile"

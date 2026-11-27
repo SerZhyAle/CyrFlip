@@ -1,6 +1,6 @@
 # CONTEXT-HELP
 
-- **Version:** 0.5 (draft; re-read 2026-11-19, item P is a permission and owes nothing; earlier re-read 2026-11-15, S0114).
+- **Version:** 0.5, with 0.6 section 11 items Q and R adopted 2026-11-20 (CYRFLP-0139: the `help.head` picture before every title and the favicon, written by `tools/site/apply-identity.py` once `tools/IconGen` has run; the button's `ICON-SET` glyph before an element entry's name, written by the help generator at its next run). Earlier: re-read 2026-11-19, item P is a permission and owes nothing; re-read 2026-11-15, S0114.
 - **Home:** shared contracts catalog, `in-app-help/`.
 - **Role:** consumer; in-app F1, help buttons, help map and offline pages.
 - **Implementation:** `help-map.json`, `ContextHelp`, `ContextHelpUi`, `HelpElements`, and `tools/help/`.

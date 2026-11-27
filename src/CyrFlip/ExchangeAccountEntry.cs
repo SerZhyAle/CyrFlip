@@ -55,6 +55,12 @@ namespace CyrFlip
         /// <c>deviceId</c> to base64url <c>kem</c>. Public values; never replaced, only forgotten with the device.
         /// </summary>
         public Dictionary<string, string> TrustedKeys { get; set; } = new Dictionary<string, string>(StringComparer.Ordinal);
+        /// <summary>
+        /// This entry was enrolled by a build that declares <c>command-v1</c> (REMOTE-CONTROL rule 1, ticket CYRFLP-0140), so its
+        /// device record says it takes commands. An entry enrolled before signs in again to gain it (<c>hello</c> carries no
+        /// capabilities).
+        /// </summary>
+        public bool CommandCapable { get; set; }
 
         public const string KindMember = "member";
         public const string KindGuest = "guest";
@@ -103,7 +109,7 @@ namespace CyrFlip
             {
                 var trusted = new Dictionary<string, object>(StringComparer.Ordinal);
                 foreach (KeyValuePair<string, string> pair in e.TrustedKeys) trusted[pair.Key] = pair.Value;
-                list.Add(new Dictionary<string, object>
+                var row = new Dictionary<string, object>
                 {
                     ["id"] = e.Id,
                     ["host"] = e.Host,
@@ -119,7 +125,11 @@ namespace CyrFlip
                     ["features"] = e.Features.ToArray(),
                     ["kem"] = e.DeviceKem,
                     ["trusted"] = trusted,
-                });
+                };
+                // Written only when set, so an entry enrolled before the capability existed saves back unchanged
+                // (S0072: an update rewrites no stored value).
+                if (e.CommandCapable) row["command"] = true;
+                list.Add(row);
             }
             return new JavaScriptSerializer().Serialize(list);
         }
@@ -172,6 +182,7 @@ namespace CyrFlip
                         foreach (KeyValuePair<string, object> t in tmap)
                             if (t.Value is string kem && kem.Length > 0 && entry.TrustedKeys.Count < MaxTrustedKeys)
                                 entry.TrustedKeys[t.Key] = kem;
+                    entry.CommandCapable = map.TryGetValue("command", out object? cmd) && cmd is bool capable && capable;
                     if (entry.Host.Length > 0) result.Add(entry);
                 }
             }

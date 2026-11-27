@@ -31,12 +31,12 @@ namespace CyrFlip
                 pt: "Geral", ar: "عام", hi: "सामान्य", bn: "সাধারণ", ur: "عام", zh: "常规");
 
             Add("Move up",
-                ru: "Переместить вверх", uk: "Перемістити вгору", de: "Nach oben verschieben", it: "Sposta su", es: "Mover arriba", fr: "Monter",
-                pt: "Mover para cima", ar: "نقل لأعلى", hi: "ऊपर ले जाएँ", bn: "উপরে সরান", ur: "اوپر منتقل کریں", zh: "上移");
+                ru: "Переместить вверх", uk: "Перемістити вгору", de: "Nach oben verschieben", it: "Sposta su", es: "Subir", fr: "Remonter",
+                pt: "Mover para cima", ar: "نقل لأعلى", hi: "ऊपर ले जाएं", bn: "উপরে সরান", ur: "اوپر منتقل کریں", zh: "上移");
 
             Add("Move down",
-                ru: "Переместить вниз", uk: "Перемістити вниз", de: "Nach unten verschieben", it: "Sposta giù", es: "Mover abajo", fr: "Descendre",
-                pt: "Mover para baixo", ar: "نقل لأسفل", hi: "नीचे ले जाएँ", bn: "নিচে সরান", ur: "نیچے منتقل کریں", zh: "下移");
+                ru: "Переместить вниз", uk: "Перемістити вниз", de: "Nach unten verschieben", it: "Sposta giù", es: "Bajar", fr: "Descendre",
+                pt: "Mover para baixo", ar: "نقل لأسفل", hi: "नीचे ले जाएं", bn: "নিচে সরান", ur: "نیچے منتقل کریں", zh: "下移");
 
             // S0060 M7: a page description is one sentence; the two-sentence form below is no longer shown.
             Add("Core app settings; changes take effect immediately.",
@@ -155,19 +155,19 @@ namespace CyrFlip
                 hi: "कंप्यूटर को स्लीप में न जाने दें", bn: "কম্পিউটারকে ঘুমাতে দেবেন না",
                 ur: "کمپیوٹر کو سلیپ میں نہ جانے دیں", zh: "阻止计算机进入睡眠");
 
-            Add("While on, Windows will not sleep or hibernate on idle — handy for long downloads, copies or renders. The state is saved: a switch left on keeps the computer awake after a restart too - CyrFlip will not watch your battery for you.",
-                ru: "Пока включено, Windows не уходит в сон или гибернацию по простою — удобно для долгих загрузок, копирования или рендера. Состояние сохраняется: забытый включённым переключатель не даст компьютеру уснуть и после перезапуска - следить за вашей батареей CyrFlip не станет.",
-                uk: "Поки ввімкнено, Windows не переходить у сон чи гібернацію під час простою — зручно для довгих завантажень, копіювання чи рендеру. Стан зберігається: забутий увімкненим перемикач не дасть комп'ютеру заснути й після перезапуску - стежити за вашою батареєю CyrFlip не буде.",
-                de: "Solange aktiv, wechselt Windows im Leerlauf nicht in den Energiespar- oder Ruhezustand — praktisch bei langen Downloads, Kopiervorgängen oder Renderings. Der Zustand wird gespeichert: ein eingeschaltet vergessener Schalter hält den Computer auch nach einem Neustart wach - CyrFlip überwacht Ihren Akku nicht für Sie.",
-                it: "Finché è attiva, Windows non va in sospensione o ibernazione durante l'inattività — comodo per download, copie o rendering lunghi. Lo stato viene salvato: un interruttore lasciato attivo tiene sveglio il computer anche dopo un riavvio - CyrFlip non sorveglia la batteria al posto tuo.",
+            Add("While on, Windows will not sleep or hibernate on idle - handy for long downloads, copies or renders. The state is saved: a switch left on keeps the computer awake after a restart too - CyrFlip will not watch your battery for you.",
+                ru: "Пока включено, Windows не уходит в сон или гибернацию по простою - удобно для долгих загрузок, копирования или рендера. Состояние сохраняется: забытый включённым переключатель не даст компьютеру уснуть и после перезапуска - следить за вашей батареей CyrFlip не станет.",
+                uk: "Поки ввімкнено, Windows не переходить у сон чи гібернацію під час простою - зручно для довгих завантажень, копіювання чи рендеру. Стан зберігається: забутий увімкненим перемикач не дасть комп'ютеру заснути й після перезапуску - стежити за вашою батареєю CyrFlip не буде.",
+                de: "Solange aktiv, wechselt Windows im Leerlauf nicht in den Energiespar- oder Ruhezustand - praktisch bei langen Downloads, Kopiervorgängen oder Renderings. Der Zustand wird gespeichert: ein eingeschaltet vergessener Schalter hält den Computer auch nach einem Neustart wach - CyrFlip überwacht Ihren Akku nicht für Sie.",
+                it: "Finché è attiva, Windows non va in sospensione o ibernazione durante l'inattività - comodo per download, copie o rendering lunghi. Lo stato viene salvato: un interruttore lasciato attivo tiene sveglio il computer anche dopo un riavvio - CyrFlip non sorveglia la batteria al posto tuo.",
                 es: "Mientras está activo, Windows no se suspende ni hiberna por inactividad: útil para descargas, copias o renderizados largos. El estado se guarda: un interruptor que dejes activado mantiene el equipo despierto también tras reiniciar - CyrFlip no vigilará la batería por ti.",
-                fr: "Tant que l'option est active, Windows ne se met pas en veille ni en veille prolongée en cas d'inactivité — pratique pour les longs téléchargements, copies ou rendus. L'état est enregistré : un interrupteur laissé actif garde l'ordinateur éveillé même après un redémarrage - CyrFlip ne surveillera pas votre batterie à votre place.",
-                pt: "Enquanto ativado, o Windows não entra em suspensão ou hibernação por inatividade — útil para downloads, cópias ou renderizações longas. O estado é salvo: um botão deixado ligado mantém o computador acordado também depois de reiniciar - o CyrFlip não vai cuidar da sua bateria por você.",
-                ar: "أثناء التفعيل لن ينتقل Windows إلى وضع السكون أو الإسبات عند الخمول — مفيد لعمليات التنزيل أو النسخ أو المعالجة الطويلة. تُحفظ الحالة: المفتاح الذي تتركه مفعَّلًا يُبقي الكمبيوتر مستيقظًا حتى بعد إعادة التشغيل - ولن يراقب CyrFlip بطاريتك نيابةً عنك.",
-                hi: "चालू रहने तक Windows निष्क्रियता पर स्लीप या हाइबरनेट नहीं होगा — लंबे डाउनलोड, कॉपी या रेंडर के लिए उपयोगी। स्थिति सहेजी जाती है: चालू छोड़ा गया स्विच पुनः आरंभ के बाद भी कंप्यूटर को जगाए रखेगा - CyrFlip आपकी बैटरी पर नज़र नहीं रखेगा।",
-                bn: "চালু থাকা অবস্থায় নিষ্ক্রিয়তায় Windows ঘুমাবে বা হাইবারনেট করবে না — দীর্ঘ ডাউনলোড, কপি বা রেন্ডারের জন্য সুবিধাজনক। অবস্থা সংরক্ষিত হয়: চালু রেখে দেওয়া সুইচ পুনরায় চালুর পরেও কম্পিউটারকে জাগিয়ে রাখবে - CyrFlip আপনার ব্যাটারির দেখাশোনা করবে না।",
-                ur: "جب تک آن ہے، بے عملی پر Windows سلیپ یا ہائبرنیٹ نہیں ہوگا — لمبے ڈاؤن لوڈ، کاپی یا رینڈر کے لیے مفید۔ حالت محفوظ ہوتی ہے: آن چھوڑا گیا سوئچ دوبارہ چلانے کے بعد بھی کمپیوٹر کو جاگتا رکھے گا - CyrFlip آپ کی بیٹری کی نگرانی نہیں کرے گا۔",
-                zh: "启用后，Windows 在空闲时不会睡眠或休眠——适合长时间下载、复制或渲染。状态会被保存：忘记关闭的开关在重启后仍会让计算机保持唤醒——CyrFlip 不会替你盯着电池。");
+                fr: "Tant que l'option est active, Windows ne se met pas en veille ni en veille prolongée en cas d'inactivité - pratique pour les longs téléchargements, copies ou rendus. L'état est enregistré : un interrupteur laissé actif garde l'ordinateur éveillé même après un redémarrage - CyrFlip ne surveillera pas votre batterie à votre place.",
+                pt: "Enquanto ativado, o Windows não entra em suspensão ou hibernação por inatividade - útil para downloads, cópias ou renderizações longas. O estado é salvo: um botão deixado ligado mantém o computador acordado também depois de reiniciar - o CyrFlip não vai cuidar da sua bateria por você.",
+                ar: "أثناء التفعيل لن ينتقل Windows إلى وضع السكون أو الإسبات عند الخمول - مفيد لعمليات التنزيل أو النسخ أو المعالجة الطويلة. تُحفظ الحالة: المفتاح الذي تتركه مفعَّلًا يُبقي الكمبيوتر مستيقظًا حتى بعد إعادة التشغيل - ولن يراقب CyrFlip بطاريتك نيابةً عنك.",
+                hi: "चालू रहने तक Windows निष्क्रियता पर स्लीप या हाइबरनेट नहीं होगा - लंबे डाउनलोड, कॉपी या रेंडर के लिए उपयोगी। स्थिति सहेजी जाती है: चालू छोड़ा गया स्विच पुनः आरंभ के बाद भी कंप्यूटर को जगाए रखेगा - CyrFlip आपकी बैटरी पर नज़र नहीं रखेगा।",
+                bn: "চালু থাকা অবস্থায় নিষ্ক্রিয়তায় Windows ঘুমাবে বা হাইবারনেট করবে না - দীর্ঘ ডাউনলোড, কপি বা রেন্ডারের জন্য সুবিধাজনক। অবস্থা সংরক্ষিত হয়: চালু রেখে দেওয়া সুইচ পুনরায় চালুর পরেও কম্পিউটারকে জাগিয়ে রাখবে - CyrFlip আপনার ব্যাটারির দেখাশোনা করবে না।",
+                ur: "جب تک آن ہے، بے عملی پر Windows سلیپ یا ہائبرنیٹ نہیں ہوگا - لمبے ڈاؤن لوڈ، کاپی یا رینڈر کے لیے مفید۔ حالت محفوظ ہوتی ہے: آن چھوڑا گیا سوئچ دوبارہ چلانے کے بعد بھی کمپیوٹر کو جاگتا رکھے گا - CyrFlip آپ کی بیٹری کی نگرانی نہیں کرے گا۔",
+                zh: "启用后，Windows 在空闲时不会睡眠或休眠 - 适合长时间下载、复制或渲染。状态会被保存：忘记关闭的开关在重启后仍会让计算机保持唤醒 - CyrFlip 不会替你盯着电池。");
 
             Add("Keep the screen on (like video)",
                 ru: "Не блокировать экран (как при видео)", uk: "Не блокувати екран (як під час відео)",
@@ -338,19 +338,19 @@ namespace CyrFlip
                 bn: "ভাষার অক্ষরের বদলে ছোট বিন্দু", ur: "زبان کے حروف کی جگہ چھوٹا نقطہ",
                 zh: "用小圆点代替语言字母");
 
-            Add("Shows a compact colour dot beside the caret instead of the language letters — handy if the letters distract you.",
-                ru: "Вместо букв раскладки рядом с кареткой показывает компактную цветную точку — удобно, если буквы отвлекают.",
-                uk: "Показує компактну кольорову крапку біля каретки замість літер мови — зручно, якщо літери відволікають.",
-                de: "Zeigt neben der Schreibmarke einen kompakten farbigen Punkt statt der Sprachkürzel — praktisch, wenn die Buchstaben ablenken.",
-                it: "Mostra un punto colorato compatto accanto al cursore invece delle lettere della lingua — utile se le lettere distraggono.",
+            Add("Shows a compact colour dot beside the caret instead of the language letters - handy if the letters distract you.",
+                ru: "Вместо букв раскладки рядом с кареткой показывает компактную цветную точку - удобно, если буквы отвлекают.",
+                uk: "Показує компактну кольорову крапку біля каретки замість літер мови - зручно, якщо літери відволікають.",
+                de: "Zeigt neben der Schreibmarke einen kompakten farbigen Punkt statt der Sprachkürzel - praktisch, wenn die Buchstaben ablenken.",
+                it: "Mostra un punto colorato compatto accanto al cursore invece delle lettere della lingua - utile se le lettere distraggono.",
                 es: "Muestra un punto de color compacto junto al cursor en lugar de las letras del idioma: útil si las letras distraen.",
-                fr: "Affiche un point coloré compact à côté du point d'insertion au lieu des lettres de langue — pratique si les lettres distraient.",
-                pt: "Mostra um ponto colorido compacto ao lado do cursor em vez das letras do idioma — útil se as letras distraem.",
-                ar: "يعرض نقطة ملوّنة صغيرة بجوار مؤشر الكتابة بدلاً من حروف اللغة — مفيد إذا كانت الحروف تشتت الانتباه.",
-                hi: "कैरेट के पास भाषा के अक्षरों के बजाय एक छोटा रंगीन बिंदु दिखाता है — अगर अक्षर ध्यान भटकाते हों तो उपयोगी।",
-                bn: "ক্যারেটের পাশে ভাষার অক্ষরের বদলে ছোট রঙিন বিন্দু দেখায় — অক্ষর মনোযোগ নষ্ট করলে সুবিধাজনক।",
-                ur: "کیریٹ کے پاس زبان کے حروف کی جگہ ایک چھوٹا رنگین نقطہ دکھاتا ہے — اگر حروف توجہ بھٹکاتے ہوں تو مفید۔",
-                zh: "在插入点旁显示一个紧凑的彩色圆点，而不是语言字母——如果字母让你分心，这很方便。");
+                fr: "Affiche un point coloré compact à côté du point d'insertion au lieu des lettres de langue - pratique si les lettres distraient.",
+                pt: "Mostra um ponto colorido compacto ao lado do cursor em vez das letras do idioma - útil se as letras distraem.",
+                ar: "يعرض نقطة ملوّنة صغيرة بجوار مؤشر الكتابة بدلاً من حروف اللغة - مفيد إذا كانت الحروف تشتت الانتباه.",
+                hi: "कैरेट के पास भाषा के अक्षरों के बजाय एक छोटा रंगीन बिंदु दिखाता है - अगर अक्षर ध्यान भटकाते हों तो उपयोगी।",
+                bn: "ক্যারেটের পাশে ভাষার অক্ষরের বদলে ছোট রঙিন বিন্দু দেখায় - অক্ষর মনোযোগ নষ্ট করলে সুবিধাজনক।",
+                ur: "کیریٹ کے پاس زبان کے حروف کی جگہ ایک چھوٹا رنگین نقطہ دکھاتا ہے - اگر حروف توجہ بھٹکاتے ہوں تو مفید۔",
+                zh: "在插入点旁显示一个紧凑的彩色圆点，而不是语言字母 - 如果字母让你分心，这很方便。");
 
             Add("Change layout after converting text",
                 ru: "Менять раскладку после конвертации текста", uk: "Змінювати розкладку після перетворення тексту",
@@ -489,9 +489,9 @@ namespace CyrFlip
                 fr: "CyrFlip fonctionne localement, sans télémétrie ni synchronisation réseau de l'historique du presse-papiers.",
                 pt: "O CyrFlip funciona localmente, sem telemetria e sem sincronização em rede do histórico da área de transferência.",
                 ar: "يعمل CyrFlip محليًا، دون قياس عن بُعد ودون مزامنة سجل الحافظة عبر الشبكة.",
-                hi: "CyrFlip स्थानीय रूप से चलता है — कोई टेलीमेट्री नहीं और क्लिपबोर्ड इतिहास का कोई नेटवर्क सिंक नहीं।",
-                bn: "CyrFlip স্থানীয়ভাবে চলে — কোনো টেলিমেট্রি নেই এবং ক্লিপবোর্ড ইতিহাসের নেটওয়ার্ক সিঙ্ক নেই।",
-                ur: "CyrFlip مقامی طور پر چلتا ہے — نہ کوئی ٹیلی میٹری اور نہ کلپ بورڈ تاریخ کی نیٹ ورک ہم آہنگی۔",
+                hi: "CyrFlip स्थानीय रूप से चलता है - कोई टेलीमेट्री नहीं और क्लिपबोर्ड इतिहास का कोई नेटवर्क सिंक नहीं।",
+                bn: "CyrFlip স্থানীয়ভাবে চলে - কোনো টেলিমেট্রি নেই এবং ক্লিপবোর্ড ইতিহাসের নেটওয়ার্ক সিঙ্ক নেই।",
+                ur: "CyrFlip مقامی طور پر چلتا ہے - نہ کوئی ٹیلی میٹری اور نہ کلپ بورڈ تاریخ کی نیٹ ورک ہم آہنگی۔",
                 zh: "CyrFlip 完全在本地运行，没有遥测，也不会通过网络同步剪贴板历史。");
 
             Add("Occasional actions and technical diagnostics.",
@@ -531,33 +531,33 @@ namespace CyrFlip
                 zh: "生成一份本地报告，说明 Windows 和 UI Automation 如何识别插入点。仅当标记在某个应用中不显示或位置错误时才需要。");
 
             // ---- Caret-diagnostics balloons ----
-            Add("Capturing for ~7s. Click into that uncooperative input box and type or wiggle the caret — show me where it's hiding.",
-                ru: "Идёт запись ~7 секунд. Щёлкните в непокорное поле ввода и наберите что-нибудь или подвигайте каретку — покажите, где она прячется.",
-                uk: "Триває запис ~7 секунд. Клацніть у непокірне поле введення та наберіть щось або порухайте кареткою — покажіть, де вона ховається.",
-                de: "Aufzeichnung läuft ~7 s. Klicken Sie in das störrische Eingabefeld und tippen Sie etwas oder bewegen Sie die Schreibmarke — zeigen Sie, wo sie sich versteckt.",
+            Add("Capturing for ~7s. Click into that uncooperative input box and type or wiggle the caret - show me where it's hiding.",
+                ru: "Идёт запись ~7 секунд. Щёлкните в непокорное поле ввода и наберите что-нибудь или подвигайте каретку - покажите, где она прячется.",
+                uk: "Триває запис ~7 секунд. Клацніть у непокірне поле введення та наберіть щось або порухайте кареткою - покажіть, де вона ховається.",
+                de: "Aufzeichnung läuft ~7 s. Klicken Sie in das störrische Eingabefeld und tippen Sie etwas oder bewegen Sie die Schreibmarke - zeigen Sie, wo sie sich versteckt.",
                 it: "Registrazione per ~7 s. Fai clic nel campo di input ostinato e digita qualcosa o muovi il cursore: mostrami dove si nasconde.",
                 es: "Capturando durante ~7 s. Haz clic en ese campo rebelde y escribe algo o mueve el cursor: enséñame dónde se esconde.",
-                fr: "Capture pendant ~7 s. Cliquez dans ce champ récalcitrant et tapez quelque chose ou déplacez le curseur — montrez-moi où il se cache.",
-                pt: "Capturando por ~7 s. Clique naquele campo teimoso e digite algo ou mova o cursor — mostre onde ele se esconde.",
-                ar: "جارٍ التسجيل نحو 7 ثوانٍ. انقر داخل حقل الإدخال العنيد واكتب شيئًا أو حرّك مؤشر الكتابة — أرِني أين يختبئ.",
-                hi: "लगभग 7 सेकंड तक रिकॉर्डिंग हो रही है। उस ज़िद्दी इनपुट फ़ील्ड में क्लिक करें और कुछ टाइप करें या कैरेट हिलाएँ — दिखाइए वह कहाँ छिपा है।",
-                bn: "প্রায় ৭ সেকেন্ড ধরে রেকর্ড হচ্ছে। ওই একগুঁয়ে ইনপুট ঘরে ক্লিক করে কিছু টাইপ করুন বা ক্যারেট নাড়ান — দেখান সেটি কোথায় লুকিয়ে আছে।",
-                ur: "تقریباً 7 سیکنڈ ریکارڈنگ جاری ہے۔ اُس ضدی ان پٹ فیلڈ میں کلک کر کے کچھ لکھیں یا کیریٹ ہلائیں — دکھائیں وہ کہاں چھپا ہے۔",
-                zh: "正在采集约 7 秒。请点进那个不听话的输入框，随便输入或移动一下插入点——让我看看它藏在哪里。");
+                fr: "Capture pendant ~7 s. Cliquez dans ce champ récalcitrant et tapez quelque chose ou déplacez le curseur - montrez-moi où il se cache.",
+                pt: "Capturando por ~7 s. Clique naquele campo teimoso e digite algo ou mova o cursor - mostre onde ele se esconde.",
+                ar: "جارٍ التسجيل نحو 7 ثوانٍ. انقر داخل حقل الإدخال العنيد واكتب شيئًا أو حرّك مؤشر الكتابة - أرِني أين يختبئ.",
+                hi: "लगभग 7 सेकंड तक रिकॉर्डिंग हो रही है। उस ज़िद्दी इनपुट फ़ील्ड में क्लिक करें और कुछ टाइप करें या कैरेट हिलाएँ - दिखाइए वह कहाँ छिपा है।",
+                bn: "প্রায় ৭ সেকেন্ড ধরে রেকর্ড হচ্ছে। ওই একগুঁয়ে ইনপুট ঘরে ক্লিক করে কিছু টাইপ করুন বা ক্যারেট নাড়ান - দেখান সেটি কোথায় লুকিয়ে আছে।",
+                ur: "تقریباً 7 سیکنڈ ریکارڈنگ جاری ہے۔ اُس ضدی ان پٹ فیلڈ میں کلک کر کے کچھ لکھیں یا کیریٹ ہلائیں - دکھائیں وہ کہاں چھپا ہے۔",
+                zh: "正在采集约 7 秒。请点进那个不听话的输入框，随便输入或移动一下插入点 - 让我看看它藏在哪里。");
 
-            Add("Caret diagnostics saved — the caret's hiding spot is exposed. Opening:",
-                ru: "Диагностика каретки сохранена — укрытие каретки раскрыто. Открываю:",
-                uk: "Діагностику каретки збережено — сховок каретки розкрито. Відкриваю:",
-                de: "Schreibmarken-Diagnose gespeichert — das Versteck ist aufgedeckt. Wird geöffnet:",
+            Add("Caret diagnostics saved - the caret's hiding spot is exposed. Opening:",
+                ru: "Диагностика каретки сохранена - укрытие каретки раскрыто. Открываю:",
+                uk: "Діагностику каретки збережено - сховок каретки розкрито. Відкриваю:",
+                de: "Schreibmarken-Diagnose gespeichert - das Versteck ist aufgedeckt. Wird geöffnet:",
                 it: "Diagnostica del cursore salvata: il nascondiglio è scoperto. Apro:",
                 es: "Diagnóstico del cursor guardado: su escondite queda al descubierto. Abriendo:",
-                fr: "Diagnostic du curseur enregistré — sa cachette est découverte. Ouverture :",
-                pt: "Diagnóstico do cursor salvo — o esconderijo dele foi revelado. Abrindo:",
-                ar: "حُفظ تشخيص مؤشر الكتابة — وانكشف مخبؤه. جارٍ الفتح:",
-                hi: "कैरेट की जाँच सहेज ली गई — उसका छिपने का ठिकाना उजागर हो गया। खोल रहे हैं:",
-                bn: "ক্যারেট নির্ণয় সংরক্ষিত হয়েছে — তার লুকানোর জায়গা ফাঁস। খোলা হচ্ছে:",
-                ur: "کیریٹ کی تشخیص محفوظ ہو گئی — اس کی چھپنے کی جگہ کھل گئی۔ کھولا جا رہا ہے:",
-                zh: "插入点诊断已保存——它的藏身之处已经暴露。正在打开：");
+                fr: "Diagnostic du curseur enregistré - sa cachette est découverte. Ouverture :",
+                pt: "Diagnóstico do cursor salvo - o esconderijo dele foi revelado. Abrindo:",
+                ar: "حُفظ تشخيص مؤشر الكتابة - وانكشف مخبؤه. جارٍ الفتح:",
+                hi: "कैरेट की जाँच सहेज ली गई - उसका छिपने का ठिकाना उजागर हो गया। खोल रहे हैं:",
+                bn: "ক্যারেট নির্ণয় সংরক্ষিত হয়েছে - তার লুকানোর জায়গা ফাঁস। খোলা হচ্ছে:",
+                ur: "کیریٹ کی تشخیص محفوظ ہو گئی - اس کی چھپنے کی جگہ کھل گئی۔ کھولا جا رہا ہے:",
+                zh: "插入点诊断已保存 - 它的藏身之处已经暴露。正在打开：");
 
             Add("Caret diagnostics failed (the caret won this round):",
                 ru: "Диагностика каретки не удалась (каретка выиграла этот раунд):",
@@ -573,19 +573,19 @@ namespace CyrFlip
                 ur: "کیریٹ کی تشخیص ناکام رہی (یہ راؤنڈ کیریٹ جیت گیا):",
                 zh: "插入点诊断失败（这一回合插入点赢了）：");
 
-            Add("Easy — one diagnostics capture is already snooping around.",
-                ru: "Спокойно — одна диагностика уже идёт.",
-                uk: "Спокійно — одна діагностика вже триває.",
-                de: "Ruhig — eine Diagnose schnüffelt bereits herum.",
+            Add("Easy - one diagnostics capture is already snooping around.",
+                ru: "Спокойно - одна диагностика уже идёт.",
+                uk: "Спокійно - одна діагностика вже триває.",
+                de: "Ruhig - eine Diagnose schnüffelt bereits herum.",
                 it: "Calma: una diagnostica è già in corso.",
                 es: "Tranquilo: ya hay un diagnóstico en marcha.",
-                fr: "Du calme — un diagnostic est déjà en cours.",
-                pt: "Calma — já há um diagnóstico em andamento.",
-                ar: "على مهلك — هناك تشخيص جارٍ بالفعل.",
-                hi: "आराम से — एक जाँच पहले से चल रही है।",
-                bn: "শান্ত হোন — একটি নির্ণয় ইতিমধ্যেই চলছে।",
-                ur: "آرام سے — ایک تشخیص پہلے ہی جاری ہے۔",
-                zh: "别急——已经有一次诊断在进行了。");
+                fr: "Du calme - un diagnostic est déjà en cours.",
+                pt: "Calma - já há um diagnóstico em andamento.",
+                ar: "على مهلك - هناك تشخيص جارٍ بالفعل.",
+                hi: "आराम से - एक जाँच पहले से चल रही है।",
+                bn: "শান্ত হোন - একটি নির্ণয় ইতিমধ্যেই চলছে।",
+                ur: "آرام سے - ایک تشخیص پہلے ہی جاری ہے۔",
+                zh: "别急 - 已经有一次诊断在进行了。");
 
             Add("Access to file or folder is denied.",
                 ru: "Нет доступа к файлу или папке.",
@@ -675,8 +675,8 @@ namespace CyrFlip
                 zh: "文件正被另一个程序使用。");
 
             Add("The disk is full - free some space.",
-                ru: "Диск заполнен — освободите место.",
-                uk: "Диск заповнено — звільніть місце.",
+                ru: "Диск заполнен - освободите место.",
+                uk: "Диск заповнено - звільніть місце.",
                 de: "Der Datenträger ist voll - schaffen Sie Platz.",
                 it: "Il disco è pieno - liberi dello spazio.",
                 es: "El disco está lleno - libere espacio.",
@@ -705,8 +705,8 @@ namespace CyrFlip
             // What the flip chord answers when nothing changed (S0065 E-4): the chord was consumed,
             // so the user hears that instead of wondering whether the hotkey died.
             Add("The text is already in this layout - nothing to convert.",
-                ru: "Текст уже в этой раскладке — конвертировать нечего.",
-                uk: "Текст уже в цій розкладці — конвертувати нічого.",
+                ru: "Текст уже в этой раскладке - конвертировать нечего.",
+                uk: "Текст уже в цій розкладці - конвертувати нічого.",
                 de: "Der Text ist bereits in diesem Layout - nichts zu konvertieren.",
                 it: "Il testo è già in questo layout - niente da convertire.",
                 es: "El texto ya está en esta distribución - no hay nada que convertir.",
@@ -719,8 +719,8 @@ namespace CyrFlip
                 zh: "文本已是这种布局 - 无需转换。");
 
             Add("The window changed - the conversion was cancelled.",
-                ru: "Окно сменилось — конвертация отменена.",
-                uk: "Вікно змінилося — конвертацію скасовано.",
+                ru: "Окно сменилось - конвертация отменена.",
+                uk: "Вікно змінилося - конвертацію скасовано.",
                 de: "Das Fenster hat gewechselt - die Konvertierung wurde abgebrochen.",
                 it: "La finestra è cambiata - la conversione è stata annullata.",
                 es: "La ventana cambió - la conversión fue cancelada.",
@@ -735,8 +735,8 @@ namespace CyrFlip
             // The contained-fault balloon (S0065 E-2): one fault in one handler costs that handler,
             // not the process - the tray, the indicator and both hooks live on.
             Add("A command failed on an internal error. CyrFlip keeps running - if the hotkeys go quiet, restart it.",
-                ru: "Команда не выполнена из-за внутренней ошибки. CyrFlip продолжает работу — если горячие клавиши молчат, перезапустите его.",
-                uk: "Команда не виконана через внутрішню помилку. CyrFlip продовжує роботу — якщо гарячі клавіші мовчать, перезапустіть його.",
+                ru: "Команда не выполнена из-за внутренней ошибки. CyrFlip продолжает работу - если горячие клавиши молчат, перезапустите его.",
+                uk: "Команда не виконана через внутрішню помилку. CyrFlip продовжує роботу - якщо гарячі клавіші мовчать, перезапустіть його.",
                 de: "Ein Befehl ist an einem internen Fehler gescheitert. CyrFlip läuft weiter - werden die Hotkeys still, starten Sie es neu.",
                 it: "Un comando non è riuscito per un errore interno. CyrFlip continua a funzionare - se le scorciatoie smettono di rispondere, lo riavvii.",
                 es: "Un comando falló por un error interno. CyrFlip sigue funcionando - si los atajos dejan de responder, reinícielo.",
@@ -752,8 +752,8 @@ namespace CyrFlip
             // and the one thing the old English text never said - that every hotkey went with the
             // process, so CyrFlip has to be started again.
             Add("CyrFlip hit an unexpected error and is closing. Every hotkey is now off - start CyrFlip again.",
-                ru: "CyrFlip столкнулся с непредвиденной ошибкой и закрывается. Все горячие клавиши отключены — запустите CyrFlip снова.",
-                uk: "CyrFlip зіткнувся з непередбаченою помилкою і закривається. Усі гарячі клавіші вимкнені — запустіть CyrFlip знову.",
+                ru: "CyrFlip столкнулся с непредвиденной ошибкой и закрывается. Все горячие клавиши отключены - запустите CyrFlip снова.",
+                uk: "CyrFlip зіткнувся з непередбаченою помилкою і закривається. Усі гарячі клавіші вимкнені - запустіть CyrFlip знову.",
                 de: "CyrFlip ist auf einen unerwarteten Fehler gestoßen und wird beendet. Alle Hotkeys sind jetzt aus - starten Sie CyrFlip erneut.",
                 it: "CyrFlip ha riscontrato un errore imprevisto e si chiude. Tutte le scorciatoie sono disattivate - avvii di nuovo CyrFlip.",
                 es: "CyrFlip encontró un error inesperado y se cerrará. Todos los atajos quedan desactivados - inicie CyrFlip de nuevo.",
@@ -768,8 +768,8 @@ namespace CyrFlip
             // A setting change that did not reach the registry (S0065 E-9): said once, not on every
             // toggle of a machine whose registry is denied.
             Add("The setting could not be saved - it will work until CyrFlip is restarted.",
-                ru: "Настройку не удалось сохранить — она будет работать до перезапуска CyrFlip.",
-                uk: "Налаштування не вдалося зберегти — воно працюватиме до перезапуску CyrFlip.",
+                ru: "Настройку не удалось сохранить - она будет работать до перезапуска CyrFlip.",
+                uk: "Налаштування не вдалося зберегти - воно працюватиме до перезапуску CyrFlip.",
                 de: "Die Einstellung ließ sich nicht speichern - sie gilt bis zum Neustart von CyrFlip.",
                 it: "L'impostazione non è stata salvata - funzionerà fino al riavvio di CyrFlip.",
                 es: "El ajuste no se pudo guardar - funcionará hasta que reinicie CyrFlip.",

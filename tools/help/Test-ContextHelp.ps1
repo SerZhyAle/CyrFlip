@@ -68,6 +68,14 @@ try {
                 if (-not (Test-Path -LiteralPath $resolved)) { Add-CheckFinding -Severity fail -Name 'broken-link' -Reason "$path -> $target" }
                 elseif ($parts.Count -gt 1 -and [IO.File]::ReadAllText($resolved) -notmatch ('id="' + [regex]::Escape($parts[1]) + '"')) { Add-CheckFinding -Severity fail -Name 'broken-anchor' -Reason "$path -> $target" }
             }
+            # CONTEXT-HELP 0.6 item Q, PRODUCT-IDENTITY rule 8 (CYRFLP-0139): once tools/IconGen has written the help.head
+            # rendition, every title is preceded by it on its line and the page names the product's favicon.
+            if (Test-Path -LiteralPath (Join-Path $root 'product-mark.svg')) {
+                $headed = $html.Contains('<div class="title-row"><img class="product-head" src="../product-mark.svg" width="32" height="32" alt="">')
+                if (-not $headed -or $html -notmatch '<link rel="icon" href="\.\./favicon\.ico">') {
+                    Add-CheckFinding -Severity fail -Name 'product-head' -Reason "$path : the product's picture before the title and the favicon link (run tools/site/apply-identity.py)"
+                }
+            }
             # EXCHANGE-MARK rules 10 and 11 (S0079). A page about the exchange server opens with the full form: the first image
             # of <main>, the vendored file, 128 CSS px or more, once, with the full name as its alt (rule 14). The page of a
             # surface that merely shows the mark carries the flat drawing inline beside its title, 24 to 32 px, its alt the

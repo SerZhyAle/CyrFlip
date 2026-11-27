@@ -40,7 +40,7 @@ namespace CyrFlip
 
             foreach (InputLayouts.Installed layout in layouts)
             {
-                string label = layout.LanguageName + (layout.DisplayName.Length > 0 ? " — " + layout.DisplayName : "") + "  (" + layout.Klid + ")";
+                string label = layout.LanguageName + (layout.DisplayName.Length > 0 ? " - " + layout.DisplayName : "") + "  (" + layout.Klid + ")";
                 _source.Items.Add(new LayoutItem(layout.Klid, label)); _target.Items.Add(new LayoutItem(layout.Klid, label));
             }
             // A row whose layout has since been uninstalled keeps it, marked, instead of silently
@@ -124,7 +124,7 @@ namespace CyrFlip
         /// </summary>
         private int ComboWidth()
         {
-            int width = TextWidth("English (United States) — US  (00000409)");
+            int width = TextWidth("English (United States) - US  (00000409)");
             foreach (object item in _source.Items)
                 width = Math.Max(width, TextWidth(item.ToString() ?? "") + SystemInformation.VerticalScrollBarWidth);
             return Math.Min(width, TextWidth(new string('W', 46)));

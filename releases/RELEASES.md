@@ -8,8 +8,8 @@ What each package was built as last, what each channel carries, and every public
 
 | Package | Channel | Kind | Live | Since | In flight | Ref |
 | --- | --- | --- | --- | --- | --- | --- |
-| cyrflip | github | github | 26.11.12.1652 | 2026-11-12 | - | [v26.11.12.1652](https://github.com/SerZhyAle/CyrFlip/releases/tag/v26.11.12.1652) |
-| cyrflip | winget | winget | 26.10.11.2139 | 2026-11-17 | - | [link](https://github.com/microsoft/winget-pkgs/tree/master/manifests/s/SerZhyAle/CyrFlip/26.10.11.2139) |
+| cyrflip | github | github | 26.11.19.1230 | 2026-11-19 | - | [v26.11.19.1230](https://github.com/SerZhyAle/CyrFlip/releases/tag/v26.11.19.1230) |
+| cyrflip | winget | winget | 26.10.11.2139 | 2026-11-17 | 26.11.19.1230 submitted (2026-11-19) | [PR#484028](https://github.com/microsoft/winget-pkgs/pull/484028) |
 | cyrflip | msstore | msstore | 26.11.12.1652 | 2026-11-17 | - | [link](https://apps.microsoft.com/detail/9NB4W41NGQJ4) |
 | cyrflip-vscode | vscode | vscode | 0.1.7 | 2026-11-12 | - | [link](https://marketplace.visualstudio.com/items?itemName=SerZhyAle.cyrflip-vscode) |
 
@@ -17,12 +17,17 @@ What each package was built as last, what each channel carries, and every public
 
 | Package | Flavor | Kind | Version | Built | Artifact |
 | --- | --- | --- | --- | --- | --- |
-| cyrflip | default | test | 26.11.19.314 | 2026-11-19 03:14:58+01:00 | bin/SingleFile/CyrFlip.exe |
+| cyrflip | default | release | 26.11.19.1230 | 2026-11-19 11:23:00+01:00 | - |
+| cyrflip | default | test | 26.11.20.2359 | 2026-11-20 23:59:55+01:00 | bin/SingleFile/CyrFlip.exe |
+| cyrflip | msix | release | 26.11.19.1230 | 2026-11-19 11:26:03+01:00 | msix/dist/CyrFlip-26.1119.1230.0-x64.msix |
 
 ## History
 
 | When | Package | Channel | Version | State | Source | Ref | Note |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-19 11:39:17+01:00 | cyrflip | winget | 26.11.19.1230 | submitted | release | [PR#484028](https://github.com/microsoft/winget-pkgs/pull/484028) | - |
+| 2026-11-19 11:26:00+01:00 | cyrflip | github | 26.11.19.1230 | live | manual | [v26.11.19.1230](https://github.com/SerZhyAle/CyrFlip/releases/tag/v26.11.19.1230) | - |
+| 2026-11-19 11:23:01+01:00 | cyrflip | github | 26.11.19.1230 | submitted | release | [v26.11.19.1230](https://github.com/SerZhyAle/CyrFlip/releases/tag/v26.11.19.1230) | - |
 | 2026-11-17 22:59:40+01:00 | cyrflip | msstore | 26.11.12.1652 | live | manual | [link](https://apps.microsoft.com/detail/9NB4W41NGQJ4) | Store submission 16, status Published, package 26.1112.1652.0 (the probe's msstore read mis-splits the CLI's ANSI-coloured 'found the Last Published Submission' line and reports nothing published - confirmed by hand from the same read-only msstore submission get) |
 | 2026-11-17 22:57:27+01:00 | cyrflip | winget | 26.10.11.2139 | live | import | [link](https://github.com/microsoft/winget-pkgs/tree/master/manifests/s/SerZhyAle/CyrFlip/26.10.11.2139) | - |
 | 2026-11-17 22:57:27+01:00 | cyrflip | winget | 26.10.10.0325 | live | import | [link](https://github.com/microsoft/winget-pkgs/tree/master/manifests/s/SerZhyAle/CyrFlip/26.10.10.0325) | - |

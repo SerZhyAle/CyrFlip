@@ -575,6 +575,7 @@ namespace CyrFlip
             // The traffic light's chord and - only when switched on - its module (S0069 D6).
             StartTrafficLightAtLaunch();
             OnNotesSyncConditionsChanged();
+            RefreshRemoteCommands();
             _hook.UpdateScreenshotHotkey(_screenshotHotkey);
             _hook.UpdateScreenshotFullHotkey(_screenshotFullHotkey);
             _hook.UpdateScreenshotAnnotateAreaHotkey(_screenshotAnnotateAreaHotkey);
@@ -853,7 +854,7 @@ namespace CyrFlip
             _hookReinstallFailures++;
             if (_hookReinstallFailures != HookFailuresBeforeWarning) return;
             _tray.ShowBalloonTip(4000, "CyrFlip",
-                T("Windows will not grant the keyboard hook — the hotkeys may not work. Restarting CyrFlip usually helps."),
+                T("Windows will not grant the keyboard hook - the hotkeys may not work. Restarting CyrFlip usually helps."),
                 ToolTipIcon.Warning);
         }
 
@@ -878,7 +879,7 @@ namespace CyrFlip
             switch (result)
             {
                 case ClipboardHandler.FlipResult.NoSelection:
-                    return (translate("Nothing selected. I flip text, not thin air — highlight something first."), ToolTipIcon.Info, 1500);
+                    return (translate("Nothing selected. I flip text, not thin air - highlight something first."), ToolTipIcon.Info, 1500);
                 case ClipboardHandler.FlipResult.Failed:
                     return (translate("Couldn't read or replace the selection. The clipboard had other plans."), ToolTipIcon.Warning, 2000);
                 case ClipboardHandler.FlipResult.TooLarge:
@@ -2152,7 +2153,7 @@ namespace CyrFlip
 
             TranslationResultWindow window = EnsureTranslateWindow();
             window.ShowSourcePanel(_config.TranslateShowSource);
-            window.ShowTranslating(code, text, T("Translating... (Esc to cancel)"), target);
+            window.ShowTranslating(code, text, T("Translating.. (Esc to cancel)"), target);
             // The popup never takes focus, so its own Esc never fires; the hook watches for it while
             // the model is writing, and only then.
             _hook.UpdateCancelKeyWatch(true);
@@ -2393,13 +2394,13 @@ namespace CyrFlip
         {
             string note = TranslationLanguages.Label(_translateCode, _config.UiLanguage);
             if (result.Partial)
-                note += " — " + T("the model stopped answering - the translation may be incomplete");
+                note += " - " + T("the model stopped answering - the translation may be incomplete");
             if (result.Truncated)
-                note += " — " + Localization.Format(T, "the first {0} of {1} characters were translated",
+                note += " - " + Localization.Format(T, "the first {0} of {1} characters were translated",
                     TranslationService.MaxChars, result.SourceLength);
             // Only worth saying when it isn't the model the settings promise.
             if (result.Model.Length > 0 && !TranslationService.ModelMatches(result.Model, (_config.TranslateModel ?? "").Trim()))
-                note += " — " + result.Model;
+                note += " - " + result.Model;
             return note;
         }
 
@@ -3029,7 +3030,10 @@ namespace CyrFlip
                 UpdateTrayTexts();
                 RefreshJumpList();
                 OnNotesSyncConditionsChanged();
+                RefreshRemoteCommands();
             };
+            settings.RemoteCommandsListenChanged += on => SetRemoteListening(on, fromSettings: true);
+            settings.ExternalControlRequested += (_, _) => ShowExternalControl();
             settings.SettingsStandardRequested += RunSettingsStandard;
             settings.QuickNotesSyncNowRequested += (_, _) => StartNotesSync();
             settings.QuickNotesSyncStatusText = NotesSyncStatusText;
@@ -3331,6 +3335,12 @@ namespace CyrFlip
         private void SetHotkeysEnabled(bool value)
         {
             if (value && !_config.EnableHotkeys) WarnDuplicateChords();
+            ApplyHotkeysEnabled(value);
+        }
+
+        /// <summary>The master switch's apply: the value, the hook, the save, the tray (also <c>hotkeys pause</c>'s path).</summary>
+        private void ApplyHotkeysEnabled(bool value)
+        {
             _config.EnableHotkeys = value;
             _hook.UpdateEnabled(value);
             _config.Save();
@@ -3370,13 +3380,13 @@ namespace CyrFlip
                 return;
 
             _tray.ShowBalloonTip(3000, "CyrFlip",
-                T("Capturing for ~7s. Click into that uncooperative input box and type or wiggle the caret — show me where it's hiding."),
+                T("Capturing for ~7s. Click into that uncooperative input box and type or wiggle the caret - show me where it's hiding."),
                 ToolTipIcon.Info);
 
             bool started = CaretDiagnostics.Run(
                 onDone: path => _ui?.Post(_ =>
                 {
-                    _tray.ShowBalloonTip(5000, "CyrFlip", T("Caret diagnostics saved — the caret's hiding spot is exposed. Opening:") + "\n" + path, ToolTipIcon.Info);
+                    _tray.ShowBalloonTip(5000, "CyrFlip", T("Caret diagnostics saved - the caret's hiding spot is exposed. Opening:") + "\n" + path, ToolTipIcon.Info);
                     try
                     {
                         System.Diagnostics.Process.Start(
@@ -3388,7 +3398,7 @@ namespace CyrFlip
                     _tray.ShowBalloonTip(5000, "CyrFlip", T("Caret diagnostics failed (the caret won this round):") + " " + FailureCause.Describe(ex, _config.UiLanguage), ToolTipIcon.Warning), null));
 
             if (!started)
-                _tray.ShowBalloonTip(2000, "CyrFlip", T("Easy — one diagnostics capture is already snooping around."), ToolTipIcon.Info);
+                _tray.ShowBalloonTip(2000, "CyrFlip", T("Easy - one diagnostics capture is already snooping around."), ToolTipIcon.Info);
         }
 
         /// <summary>
@@ -3763,6 +3773,7 @@ namespace CyrFlip
 
                 _sessionEnd.Dispose();
                 _launcherIpc.Dispose(); // stop the pipe listener before the UI it posts to goes away
+                DisposeRemoteCommands(); // and the exchange's resident streams, which post to it too
                 _launcherTaskbar?.Dispose();
                 // Stop an in-flight translation before the window it streams into is torn down.
                 _translateCts?.Cancel();

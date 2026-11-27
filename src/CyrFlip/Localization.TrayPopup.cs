@@ -80,7 +80,7 @@ namespace CyrFlip
                 bn: "হটকীসমূহ", ur: "شارٹ کٹ کیز", zh: "快捷键");
 
             Add("{0} more in Settings",
-                ru: "ещё {0} — в настройках", uk: "ще {0} — у налаштуваннях", de: "{0} weitere in den Einstellungen",
+                ru: "ещё {0} - в настройках", uk: "ще {0} - у налаштуваннях", de: "{0} weitere in den Einstellungen",
                 it: "altri {0} nelle Impostazioni", es: "{0} más en Configuración", fr: "{0} de plus dans les Paramètres",
                 pt: "mais {0} nas Configurações", ar: "{0} إضافية في الإعدادات", hi: "सेटिंग्स में {0} और",
                 bn: "সেটিংস-এ আরও {0}টি", ur: "ترتیبات میں مزید {0}", zh: "设置中还有 {0} 项");

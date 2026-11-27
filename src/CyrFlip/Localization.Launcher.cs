@@ -41,19 +41,19 @@ namespace CyrFlip
                 ur: "جب تک سوئچ بند ہے، CyrFlip پہلے جیسا ہی رہتا ہے - نہ ٹرے میں کوئی اندراج، نہ Jump List میں کام۔",
                 zh: "开关关闭时，CyrFlip 的行为与以前完全相同 - 托盘中没有该项，Jump List 中也没有任务。");
 
-            Add("Your programs, scripts and yt-dlp downloads: run them from the tray menu, from this table, with a global shortcut, or from the Jump List of the CyrFlip taskbar icon. While the switch is off, CyrFlip behaves exactly as before — no tray entry and no Jump List tasks.",
-                ru: "Ваши программы, скрипты и загрузки yt-dlp: запуск из меню в трее, из этой таблицы, по глобальной комбинации и из Jump List значка CyrFlip на панели задач. Пока выключатель снят, CyrFlip ведёт себя как раньше — ни пункта в трее, ни задач в Jump List.",
-                uk: "Ваші програми, скрипти та завантаження yt-dlp: запуск із меню в треї, з цієї таблиці, за глобальною комбінацією та з Jump List значка CyrFlip на панелі завдань. Поки перемикач вимкнено, CyrFlip поводиться як раніше — ні пункту в треї, ні завдань у Jump List.",
-                de: "Ihre Programme, Skripte und yt-dlp-Downloads: Start über das Tray-Menü, diese Tabelle, ein globales Tastenkürzel oder die Jump List des CyrFlip-Taskleistensymbols. Solange der Schalter aus ist, verhält sich CyrFlip wie zuvor — kein Tray-Eintrag, keine Jump-List-Aufgaben.",
+            Add("Your programs, scripts and yt-dlp downloads: run them from the tray menu, from this table, with a global shortcut, or from the Jump List of the CyrFlip taskbar icon. While the switch is off, CyrFlip behaves exactly as before - no tray entry and no Jump List tasks.",
+                ru: "Ваши программы, скрипты и загрузки yt-dlp: запуск из меню в трее, из этой таблицы, по глобальной комбинации и из Jump List значка CyrFlip на панели задач. Пока выключатель снят, CyrFlip ведёт себя как раньше - ни пункта в трее, ни задач в Jump List.",
+                uk: "Ваші програми, скрипти та завантаження yt-dlp: запуск із меню в треї, з цієї таблиці, за глобальною комбінацією та з Jump List значка CyrFlip на панелі завдань. Поки перемикач вимкнено, CyrFlip поводиться як раніше - ні пункту в треї, ні завдань у Jump List.",
+                de: "Ihre Programme, Skripte und yt-dlp-Downloads: Start über das Tray-Menü, diese Tabelle, ein globales Tastenkürzel oder die Jump List des CyrFlip-Taskleistensymbols. Solange der Schalter aus ist, verhält sich CyrFlip wie zuvor - kein Tray-Eintrag, keine Jump-List-Aufgaben.",
                 it: "I tuoi programmi, script e download yt-dlp: avvio dal menu nella tray, da questa tabella, con una scorciatoia globale o dalla Jump List dell'icona CyrFlip sulla barra delle applicazioni. Finché l'interruttore è disattivato, CyrFlip si comporta come prima: nessuna voce nella tray e nessuna attività nella Jump List.",
                 es: "Sus programas, scripts y descargas de yt-dlp: ejecútelos desde el menú de la bandeja, desde esta tabla, con un atajo global o desde la Jump List del icono de CyrFlip en la barra de tareas. Mientras el interruptor esté apagado, CyrFlip se comporta como antes: sin entrada en la bandeja ni tareas en la Jump List.",
-                fr: "Vos programmes, scripts et téléchargements yt-dlp : lancez-les depuis le menu de la zone de notification, depuis ce tableau, avec un raccourci global ou depuis la Jump List de l'icône CyrFlip dans la barre des tâches. Tant que l'interrupteur est désactivé, CyrFlip se comporte comme avant — aucune entrée dans la zone de notification, aucune tâche dans la Jump List.",
-                pt: "Seus programas, scripts e downloads do yt-dlp: execute-os pelo menu da bandeja, por esta tabela, com um atalho global ou pela Jump List do ícone do CyrFlip na barra de tarefas. Enquanto o interruptor estiver desligado, o CyrFlip se comporta como antes — sem item na bandeja e sem tarefas na Jump List.",
-                ar: "برامجك وسكربتاتك وتنزيلات yt-dlp: شغّلها من قائمة صينية النظام، أو من هذا الجدول، أو باختصار عام، أو من Jump List لأيقونة CyrFlip في شريط المهام. ما دام المفتاح مطفأً يتصرف CyrFlip كما كان — لا عنصر في الصينية ولا مهام في Jump List.",
-                hi: "आपके प्रोग्राम, स्क्रिप्ट और yt-dlp डाउनलोड: इन्हें ट्रे मेनू से, इस तालिका से, ग्लोबल शॉर्टकट से या टास्कबार पर CyrFlip आइकन की Jump List से चलाएँ। जब तक स्विच बंद है, CyrFlip पहले जैसा ही व्यवहार करता है — न ट्रे में कोई पंक्ति, न Jump List में कार्य।",
-                bn: "আপনার প্রোগ্রাম, স্ক্রিপ্ট ও yt-dlp ডাউনলোড: ট্রে মেনু থেকে, এই টেবিল থেকে, গ্লোবাল শর্টকাট দিয়ে বা টাস্কবারে CyrFlip আইকনের Jump List থেকে চালান। সুইচ বন্ধ থাকা পর্যন্ত CyrFlip আগের মতোই আচরণ করে — ট্রেতে কোনো আইটেম নেই, Jump List-এ কোনো কাজ নেই।",
-                ur: "آپ کے پروگرام، اسکرپٹس اور yt-dlp ڈاؤن لوڈز: انہیں ٹرے مینو سے، اس جدول سے، عالمی شارٹ کٹ سے یا ٹاسک بار پر CyrFlip آئیکن کی Jump List سے چلائیں۔ جب تک سوئچ بند ہے، CyrFlip پہلے جیسا ہی رہتا ہے — نہ ٹرے میں کوئی اندراج، نہ Jump List میں کام۔",
-                zh: "您的程序、脚本和 yt-dlp 下载：可从托盘菜单、此表格、全局快捷键或任务栏 CyrFlip 图标的 Jump List 启动。开关关闭时，CyrFlip 的行为与以前完全相同——托盘中没有该项，Jump List 中也没有任务。");
+                fr: "Vos programmes, scripts et téléchargements yt-dlp : lancez-les depuis le menu de la zone de notification, depuis ce tableau, avec un raccourci global ou depuis la Jump List de l'icône CyrFlip dans la barre des tâches. Tant que l'interrupteur est désactivé, CyrFlip se comporte comme avant - aucune entrée dans la zone de notification, aucune tâche dans la Jump List.",
+                pt: "Seus programas, scripts e downloads do yt-dlp: execute-os pelo menu da bandeja, por esta tabela, com um atalho global ou pela Jump List do ícone do CyrFlip na barra de tarefas. Enquanto o interruptor estiver desligado, o CyrFlip se comporta como antes - sem item na bandeja e sem tarefas na Jump List.",
+                ar: "برامجك وسكربتاتك وتنزيلات yt-dlp: شغّلها من قائمة صينية النظام، أو من هذا الجدول، أو باختصار عام، أو من Jump List لأيقونة CyrFlip في شريط المهام. ما دام المفتاح مطفأً يتصرف CyrFlip كما كان - لا عنصر في الصينية ولا مهام في Jump List.",
+                hi: "आपके प्रोग्राम, स्क्रिप्ट और yt-dlp डाउनलोड: इन्हें ट्रे मेनू से, इस तालिका से, ग्लोबल शॉर्टकट से या टास्कबार पर CyrFlip आइकन की Jump List से चलाएँ। जब तक स्विच बंद है, CyrFlip पहले जैसा ही व्यवहार करता है - न ट्रे में कोई पंक्ति, न Jump List में कार्य।",
+                bn: "আপনার প্রোগ্রাম, স্ক্রিপ্ট ও yt-dlp ডাউনলোড: ট্রে মেনু থেকে, এই টেবিল থেকে, গ্লোবাল শর্টকাট দিয়ে বা টাস্কবারে CyrFlip আইকনের Jump List থেকে চালান। সুইচ বন্ধ থাকা পর্যন্ত CyrFlip আগের মতোই আচরণ করে - ট্রেতে কোনো আইটেম নেই, Jump List-এ কোনো কাজ নেই।",
+                ur: "آپ کے پروگرام، اسکرپٹس اور yt-dlp ڈاؤن لوڈز: انہیں ٹرے مینو سے، اس جدول سے، عالمی شارٹ کٹ سے یا ٹاسک بار پر CyrFlip آئیکن کی Jump List سے چلائیں۔ جب تک سوئچ بند ہے، CyrFlip پہلے جیسا ہی رہتا ہے - نہ ٹرے میں کوئی اندراج، نہ Jump List میں کام۔",
+                zh: "您的程序、脚本和 yt-dlp 下载：可从托盘菜单、此表格、全局快捷键或任务栏 CyrFlip 图标的 Jump List 启动。开关关闭时，CyrFlip 的行为与以前完全相同 - 托盘中没有该项，Jump List 中也没有任务。");
 
             Add("Enable quick launch",
                 ru: "Включить быстрый запуск", uk: "Увімкнути швидкий запуск", de: "Schnellstart aktivieren",
@@ -76,8 +76,8 @@ namespace CyrFlip
                 zh: "在托盘菜单中添加场景子菜单，并在任务栏 Jump List 中添加任务（右键点击任务栏上的 CyrFlip 图标）。每个场景保存为一个 XML 文件，关闭该功能时不会被删除。");
 
             Add("Taskbar button: left-click for the scenario list, right-click for the Windows Jump List.",
-                ru: "Значок на панели задач: левый клик — список сценариев, правый — Jump List Windows.",
-                uk: "Значок на панелі завдань: лівий клік — список сценаріїв, правий — Jump List Windows.",
+                ru: "Значок на панели задач: левый клик - список сценариев, правый - Jump List Windows.",
+                uk: "Значок на панелі завдань: лівий клік - список сценаріїв, правий - Jump List Windows.",
                 de: "Taskleistensymbol: Linksklick zeigt die Szenarioliste, Rechtsklick die Windows-Jump-List.",
                 it: "Icona nella barra delle applicazioni: clic sinistro per l'elenco degli scenari, clic destro per la Jump List di Windows.",
                 es: "Icono en la barra de tareas: clic izquierdo para la lista de escenarios, clic derecho para la Jump List de Windows.",
@@ -154,8 +154,8 @@ namespace CyrFlip
                 ur: "OneClickRunner سے امپورٹ...", zh: "从 OneClickRunner 导入...");
 
             Add("Double-click or Enter runs, F2 edits, Delete removes. Importing from OneClickRunner copies the scenarios and never changes the source files.",
-                ru: "Двойной клик или Enter — запуск, F2 — изменение, Delete — удаление. Импорт из OneClickRunner копирует сценарии и никогда не изменяет исходные файлы.",
-                uk: "Подвійний клік або Enter — запуск, F2 — змінення, Delete — видалення. Імпорт з OneClickRunner копіює сценарії і ніколи не змінює вихідні файли.",
+                ru: "Двойной клик или Enter - запуск, F2 - изменение, Delete - удаление. Импорт из OneClickRunner копирует сценарии и никогда не изменяет исходные файлы.",
+                uk: "Подвійний клік або Enter - запуск, F2 - змінення, Delete - видалення. Імпорт з OneClickRunner копіює сценарії і ніколи не змінює вихідні файли.",
                 de: "Doppelklick oder Enter startet, F2 bearbeitet, Entf löscht. Der Import aus OneClickRunner kopiert die Szenarien und verändert die Quelldateien nie.",
                 it: "Doppio clic o Invio esegue, F2 modifica, Canc elimina. L'importazione da OneClickRunner copia gli scenari e non modifica mai i file di origine.",
                 es: "Doble clic o Enter ejecuta, F2 edita, Supr elimina. La importación desde OneClickRunner copia los escenarios y nunca cambia los archivos de origen.",
@@ -460,19 +460,19 @@ namespace CyrFlip
                 hi: "डाउनलोड फ़ोल्डर \"{0}\" उपयोग नहीं हो सका: {1}", bn: "ডাউনলোড ফোল্ডার \"{0}\" ব্যবহার করা যায়নি: {1}",
                 ur: "ڈاؤن لوڈ فولڈر «{0}» استعمال نہیں ہو سکا: {1}", zh: "无法使用下载文件夹“{0}”：{1}");
 
-            Add("The scenario was not found — open CyrFlip to refresh the Jump List.",
-                ru: "Сценарий не найден — обновите Jump List, открыв CyrFlip.",
-                uk: "Сценарій не знайдено — оновіть Jump List, відкривши CyrFlip.",
-                de: "Das Szenario wurde nicht gefunden — öffnen Sie CyrFlip, um die Jump List zu aktualisieren.",
-                it: "Scenario non trovato — apri CyrFlip per aggiornare la Jump List.",
+            Add("The scenario was not found - open CyrFlip to refresh the Jump List.",
+                ru: "Сценарий не найден - обновите Jump List, открыв CyrFlip.",
+                uk: "Сценарій не знайдено - оновіть Jump List, відкривши CyrFlip.",
+                de: "Das Szenario wurde nicht gefunden - öffnen Sie CyrFlip, um die Jump List zu aktualisieren.",
+                it: "Scenario non trovato - apri CyrFlip per aggiornare la Jump List.",
                 es: "No se encontró el escenario; abra CyrFlip para actualizar la Jump List.",
-                fr: "Scénario introuvable — ouvrez CyrFlip pour actualiser la Jump List.",
-                pt: "O cenário não foi encontrado — abra o CyrFlip para atualizar a Jump List.",
-                ar: "لم يُعثر على السيناريو — افتح CyrFlip لتحديث Jump List.",
-                hi: "परिदृश्य नहीं मिला — Jump List ताज़ा करने के लिए CyrFlip खोलें।",
-                bn: "দৃশ্যপট পাওয়া যায়নি — Jump List হালনাগাদ করতে CyrFlip খুলুন।",
-                ur: "منظرنامہ نہیں ملا — Jump List تازہ کرنے کے لیے CyrFlip کھولیں۔",
-                zh: "未找到该场景——请打开 CyrFlip 以刷新 Jump List。");
+                fr: "Scénario introuvable - ouvrez CyrFlip pour actualiser la Jump List.",
+                pt: "O cenário não foi encontrado - abra o CyrFlip para atualizar a Jump List.",
+                ar: "لم يُعثر على السيناريو - افتح CyrFlip لتحديث Jump List.",
+                hi: "परिदृश्य नहीं मिला - Jump List ताज़ा करने के लिए CyrFlip खोलें।",
+                bn: "দৃশ্যপট পাওয়া যায়নি - Jump List হালনাগাদ করতে CyrFlip খুলুন।",
+                ur: "منظرنامہ نہیں ملا - Jump List تازہ کرنے کے لیے CyrFlip کھولیں۔",
+                zh: "未找到该场景 - 请打开 CyrFlip 以刷新 Jump List。");
 
             // ---- yt-dlp link dialog ----
             Add("yt-dlp download",

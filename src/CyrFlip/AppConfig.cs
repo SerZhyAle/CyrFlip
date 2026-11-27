@@ -355,6 +355,26 @@ namespace CyrFlip
         /// it on - no command, settings file or settings standard can - so it is consent on this PC and never exported.
         /// </summary>
         public bool EnableExternalCommands { get; set; } = false;
+        /// <summary>
+        /// Off by default (REMOTE-CONTROL rule 8, ticket CYRFLP-0140): "Listen to commands from my other devices". While off,
+        /// every request from another device of the exchange account is answered not-permitted. Changed only by the person - in
+        /// the External control group of the Exchange server page or in the External control window - never by a command, a request, a settings file or the settings standard.
+        /// </summary>
+        public bool RemoteCommandsListen { get; set; } = false;
+        /// <summary>
+        /// The controllers this PC accepts and what each may ask (REMOTE-CONTROL rules 9 and 10), as the JSON array of
+        /// <see cref="RemoteControlGrants"/>. Kept on this PC only; a server never holds it, so a server cannot widen it.
+        /// </summary>
+        public string RemoteCommandGrants { get; set; } = "";
+        /// <summary>
+        /// The External control window's last bounds (REMOTE-CONTROL rule 18, `WINDOW.md` section 3, ticket CYRFLP-0142),
+        /// physical pixels; <c>int.MinValue</c> / 0 = never placed. Written only by <see cref="SaveExternalControlWindow"/>:
+        /// navigation state of this PC, never in the settings file or the standard (`DEVICE-EXCHANGE` item EQ).
+        /// </summary>
+        public int ExternalControlX { get; set; } = int.MinValue;
+        public int ExternalControlY { get; set; } = int.MinValue;
+        public int ExternalControlWidth { get; set; } = 0;
+        public int ExternalControlHeight { get; set; } = 0;
         /// <summary>The local id of the account entry the notes sync with; empty = the only member entry (item FK: one entry only).</summary>
         public string QuickNotesSyncEntry { get; set; } = "";
         /// <summary>
@@ -688,6 +708,12 @@ namespace CyrFlip
                     cfg.QuickNotesSync = cfg.ReadBool(key, "QuickNotesSync", cfg.QuickNotesSync);
                     cfg.EnableExternalCommands = cfg.ReadBool(key, "EnableExternalCommands", cfg.EnableExternalCommands);
                     cfg.QuickNotesSyncEntry = cfg.ReadString(key, "QuickNotesSyncEntry", cfg.QuickNotesSyncEntry);
+                    cfg.RemoteCommandsListen = cfg.ReadBool(key, "RemoteCommandsListen", cfg.RemoteCommandsListen);
+                    cfg.RemoteCommandGrants = cfg.ReadString(key, "RemoteCommandGrants", cfg.RemoteCommandGrants);
+                    cfg.ExternalControlX = cfg.ReadInt(key, "ExternalControlX", cfg.ExternalControlX);
+                    cfg.ExternalControlY = cfg.ReadInt(key, "ExternalControlY", cfg.ExternalControlY);
+                    cfg.ExternalControlWidth = cfg.ReadInt(key, "ExternalControlWidth", cfg.ExternalControlWidth);
+                    cfg.ExternalControlHeight = cfg.ReadInt(key, "ExternalControlHeight", cfg.ExternalControlHeight);
                     cfg.ExchangeNotesWarningOff = cfg.ReadBool(key, "ExchangeNotesWarningOff", cfg.ExchangeNotesWarningOff);
                     cfg.SettingsBackupEnabled = cfg.ReadBool(key, "SettingsBackupEnabled", cfg.SettingsBackupEnabled);
                     cfg.BackupOfferOpen = cfg.ReadBool(key, "BackupOfferOpen", cfg.BackupOfferOpen);
@@ -865,6 +891,8 @@ namespace CyrFlip
                 key.SetValue("QuickNotesSync", QuickNotesSync ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("EnableExternalCommands", EnableExternalCommands ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("QuickNotesSyncEntry", QuickNotesSyncEntry, RegistryValueKind.String);
+                key.SetValue("RemoteCommandsListen", RemoteCommandsListen ? 1 : 0, RegistryValueKind.DWord);
+                key.SetValue("RemoteCommandGrants", RemoteCommandGrants, RegistryValueKind.String);
                 key.SetValue("ExchangeNotesWarningOff", ExchangeNotesWarningOff ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("SettingsBackupEnabled", SettingsBackupEnabled ? 1 : 0, RegistryValueKind.DWord);
                 key.SetValue("BackupOfferOpen", BackupOfferOpen ? 1 : 0, RegistryValueKind.DWord);
@@ -1204,6 +1232,25 @@ namespace CyrFlip
                 try { Saved?.Invoke(); } catch (Exception ex) { DiagnosticLog.Append(DiagnosticLog.Path("settings-file.log"), "backup notification failed " + ex.GetType().Name); }
             }
             catch { }
+        }
+
+        /// <summary>The External control window's bounds, written on a move or resize and on close (one value group, not <see cref="Save"/>).</summary>
+        public void SaveExternalControlWindow()
+        {
+            if (_unreadable.Contains("*")) return;
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.CreateSubKey(RegPath);
+                if (key == null) return;
+                key.SetValue("ExternalControlX", ExternalControlX, RegistryValueKind.DWord);
+                key.SetValue("ExternalControlY", ExternalControlY, RegistryValueKind.DWord);
+                key.SetValue("ExternalControlWidth", ExternalControlWidth, RegistryValueKind.DWord);
+                key.SetValue("ExternalControlHeight", ExternalControlHeight, RegistryValueKind.DWord);
+            }
+            catch (Exception ex) when (ex is System.Security.SecurityException || ex is UnauthorizedAccessException || ex is System.IO.IOException)
+            {
+                // the window opens at its default place next time
+            }
         }
 
         public void SaveSymbolsWindow()

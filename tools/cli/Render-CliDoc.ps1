@@ -39,10 +39,13 @@ $out.Add('CyrFlip.exe is a window program: a script that needs the exit code wai
 $out.Add('')
 $out.Add('Commands other than the safe ones run only while "Let other programs ask CyrFlip to work with my files, screen, clipboard or the network" is on, on the General page of the settings. The spellings CyrFlip shipped before (`/clipboard-send`, `/clipboard-get`, `/launcher-run:{guid}`, `/launcher-settings`, `/exit`) keep working as before and depend only on their own feature being on.')
 $out.Add('')
-$out.Add('| Command | What it does | Risk | With CyrFlip not running |')
-$out.Add('| --- | --- | --- | --- |')
+$out.Add('A command marked for other devices can also be asked by another device of your exchange account, through the exchange server, once you turn on "Listen to commands from my other devices" on the Exchange server page and allow that device in the External control window. Nothing else is taken from another device, and no command changes that setting.')
+$out.Add('')
+$out.Add('| Command | What it does | Risk | With CyrFlip not running | From other devices |')
+$out.Add('| --- | --- | --- | --- | --- |')
 foreach ($c in $m.commands) {
-    $out.Add("| ``$($c.name)`` | $(Cell $c.summary) | $($c.risk) | $($c.coldStart) |")
+    $remoteCell = if ($c.remote) { 'yes' } else { '-' }
+    $out.Add("| ``$($c.name)`` | $(Cell $c.summary) | $($c.risk) | $($c.coldStart) | $remoteCell |")
 }
 $out.Add('')
 $out.Add('## Exit codes')
@@ -67,6 +70,11 @@ foreach ($c in $m.commands) {
     $out.Add('')
     $wait = if ($c.wait -eq 'accepted') { 'answers once the work has started' } else { 'answers when the work is done' }
     $out.Add("Risk: ``$($c.risk)``. With CyrFlip not running: ``$($c.coldStart)``. Waits at most $($c.timeoutMs) ms; $wait.")
+    if ($c.remote) {
+        $how = if ($c.remote.confirm -eq 'device') { 'and you confirm each request on this PC' } else { 'within what you allowed that device' }
+        $out.Add('')
+        $out.Add("Another device of your exchange account may ask for it ($how); ``--json``, ``--result`` and paths are never taken from another device.")
+    }
     $aliases = @($c.aliases | ForEach-Object { if ($_ -is [string]) { $_ } else { $_.spelling } } | Where-Object { $_ -ne '' })
     if ($aliases.Count -gt 0) {
         $out.Add('')
@@ -130,6 +138,13 @@ if ($Check) {
             if ($a.kind -eq 'enum' -and @($a.values).Count -eq 0) { $defects.Add("manifest: $($c.name) --$($a.name) is an enum with no values.") }
         }
         foreach ($x in $c.examples) { if ($x.shell -notin @('cmd', 'powershell')) { $defects.Add("manifest: $($c.name) has an example for shell '$($x.shell)'.") } }
+        # REMOTE-CONTROL rule 7 (ticket CYRFLP-0140): confirm is grant or device; the first slice is safe verbs only (the
+        # owner's order: reading and writing verbs only after cases R1 to R10 pass on a real build).
+        if ($null -ne $c.remote) {
+            if ($c.remote.confirm -notin @('grant', 'device')) { $defects.Add("manifest: $($c.name) has remote.confirm '$($c.remote.confirm)'.") }
+            if ($c.risk -ne 'safe') { $defects.Add("manifest: $($c.name) is remote but not safe; the first slice of REMOTE-CONTROL takes safe verbs only.") }
+            if ($c.interactive) { $defects.Add("manifest: $($c.name) is remote and interactive (REMOTE-CONTROL rule 7).") }
+        }
     }
 
     # The static form of "the embedded resource equals the file" (the byte test, AppCommandsTests, is release tier):

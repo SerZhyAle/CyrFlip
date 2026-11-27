@@ -17,7 +17,7 @@ namespace CyrFlip
                 ur: "لاگز مصنف کو بھیجیں..", zh: "将日志发送给作者..");
 
             Add("Collects CyrFlip's logs into one archive and opens a message to the author with it attached. You send the message yourself - CyrFlip transmits nothing over the network. Clipboard history never goes into the archive.",
-                ru: "Собирает логи CyrFlip в один архив и открывает письмо автору с этим вложением. Письмо отправляете вы сами — CyrFlip ничего не передаёт в сеть. История буфера обмена в архив не попадает.",
+                ru: "Собирает логи CyrFlip в один архив и открывает письмо автору с этим вложением. Письмо отправляете вы сами - CyrFlip ничего не передаёт в сеть. История буфера обмена в архив не попадает.",
                 uk: "Збирає логи CyrFlip в один архів і відкриває лист до автора з цим вкладенням. Лист надсилаєте ви самі - CyrFlip нічого не передає в мережу. Історія буфера обміну до архіву не потрапляє.",
                 de: "Fasst die Protokolle von CyrFlip in einem Archiv zusammen und öffnet eine Nachricht an den Autor mit diesem Anhang. Gesendet wird sie von Ihnen - CyrFlip überträgt nichts ins Netz. Der Zwischenablage-Verlauf kommt nie ins Archiv.",
                 it: "Raccoglie i log di CyrFlip in un unico archivio e apre un messaggio all'autore con quell'allegato. Il messaggio lo invia lei - CyrFlip non trasmette nulla in rete. La cronologia degli appunti non finisce mai nell'archivio.",
@@ -210,7 +210,7 @@ namespace CyrFlip
                 ur: "موجودہ لے آؤٹ کا کوڈ", zh: "当前布局的代码");
 
             Add("truncated - only the tail was kept",
-                ru: "обрезан — сохранён только конец файла", uk: "обрізаний - збережено лише кінець файлу",
+                ru: "обрезан - сохранён только конец файла", uk: "обрізаний - збережено лише кінець файлу",
                 de: "gekürzt - nur das Ende der Datei", it: "troncato - conservata solo la parte finale",
                 es: "recortado - solo se conservó el final", fr: "tronqué - seule la fin a été conservée",
                 pt: "truncado - só o final foi mantido", ar: "مقتطع - تم الاحتفاظ بنهاية الملف فقط",
@@ -219,7 +219,7 @@ namespace CyrFlip
                 ur: "کاٹا گیا - صرف فائل کا آخری حصہ رکھا گیا", zh: "已截断 - 仅保留文件末尾");
 
             Add("left out - the total size limit was reached",
-                ru: "не вошёл — превышен общий размер", uk: "не увійшов - перевищено загальний розмір",
+                ru: "не вошёл - превышен общий размер", uk: "не увійшов - перевищено загальний розмір",
                 de: "nicht enthalten - Gesamtgröße überschritten", it: "escluso - superata la dimensione totale",
                 es: "excluido - se superó el tamaño total", fr: "exclu - taille totale dépassée",
                 pt: "não incluído - tamanho total excedido", ar: "غير مُضمَّن - تم تجاوز الحجم الإجمالي",
@@ -266,7 +266,7 @@ namespace CyrFlip
                 zh: "无法生成日志压缩包：");
 
             Add("Your mail program does not accept an attachment from a link. The message is open and the archive is selected in Explorer - drag it into the message before sending.",
-                ru: "Ваша почтовая программа не принимает вложение из ссылки. Письмо открыто, а архив выделен в проводнике — перетащите его в письмо перед отправкой.",
+                ru: "Ваша почтовая программа не принимает вложение из ссылки. Письмо открыто, а архив выделен в проводнике - перетащите его в письмо перед отправкой.",
                 uk: "Ваша поштова програма не приймає вкладення з посилання. Лист відкрито, а архів виділено в проводнику - перетягніть його в лист перед надсиланням.",
                 de: "Ihr Mailprogramm nimmt keinen Anhang aus einem Link an. Die Nachricht ist offen und das Archiv im Explorer markiert - ziehen Sie es vor dem Senden in die Nachricht.",
                 it: "Il suo programma di posta non accetta un allegato da un link. Il messaggio è aperto e l'archivio è selezionato in Esplora file: lo trascini nel messaggio prima di inviarlo.",

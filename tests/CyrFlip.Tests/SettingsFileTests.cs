@@ -13,7 +13,7 @@ namespace CyrFlip.Tests
     {
         // S0072 classifies the current tree: the original spec counted 89/17 before the
         // backup markers and the S0071/S0074 preferences arrived. Credentials remain excluded.
-        private const int ExportedV2 = 106, ExcludedV2 = 27;   // 21 + the three per-PC display values of S0076 + the two notes-sync values of S0105 + the commands consent of S0107
+        private const int ExportedV2 = 106, ExcludedV2 = 29;   // 21 + the three per-PC display values of S0076 + the two notes-sync values of S0105 + the commands consent of S0107 + the two remote-command values of CYRFLP-0140
         [Fact]
         public void EveryAppOwnedOverviewChordIsInTheTransferFile()
         {
@@ -56,6 +56,45 @@ namespace CyrFlip.Tests
             Assert.Equal(written.OrderBy(k => k), classified.OrderBy(k => k));
             Assert.All(SettingsFileInventory.Excluded.Values, reason => Assert.NotEmpty(reason));
         }
+        [Fact]
+        public void EveryInventoriedSettingStatesItsDefault()
+        {
+            // APP-SETTINGS rule 11: the one list names the caption, where it lives and its default (CYRFLP-0060 R11).
+            foreach (SettingsFileEntry entry in SettingsFileInventory.Exported.Concat(new[] { SettingsFileInventory.Scenarios }))
+                Assert.False(string.IsNullOrWhiteSpace(entry.Default), entry.Key + " has no default");
+            SettingsFileEntry Of(string key) => SettingsFileInventory.Exported.Single(e => e.Key == key);
+            Assert.Equal("on", Of("EnableCaretOverlay").Default);
+            Assert.Equal("off", Of("EnableCursorChange").Default);
+            Assert.Equal("24", Of("CursorSize").Default);
+            Assert.Equal("Ctrl+Shift+F11", Of("CaseHotkey").Default);
+            Assert.Equal("not placed", Of("SettingsWindowX").Default);
+            Assert.Equal("(empty)", Of("ExchangeClipboardSendHotkey").Default);
+            Assert.Contains(AppConfig.DefaultFlipHotkey, Of("LayoutConversionProfiles").Default);
+        }
+
+        [Theory]
+        [InlineData("en", "guide.html")]
+        [InlineData("ru", "ru/guide.html")]
+        [InlineData("uk", "uk/guide.html")]
+        public void EveryInventoriedSettingIsInTheGuideUnderItsCaption(string code, string page)
+        {
+            // APP-SETTINGS rule 11: pick any setting and find it in the manual with the same caption (CYRFLP-0060 R11).
+            // Remembered window geometry and navigation are not settings a person sets, so they are not owed a line.
+            string repo = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", ".."));
+            string Normalize(string text) => System.Text.RegularExpressions.Regex.Replace(
+                System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(text, "<[^>]+>", " ")).Replace(' ', ' '),
+                @"\s+", " ").ToLowerInvariant();
+            string guide = Normalize(File.ReadAllText(Path.Combine(repo, "docs", page), Encoding.UTF8));
+            string language = Localization.Names[Array.IndexOf(Localization.Codes, code)];
+            var missing = SettingsFileInventory.Exported.Concat(new[] { SettingsFileInventory.Scenarios })
+                .Where(e => !e.Group.StartsWith("navigation/", StringComparison.Ordinal))
+                .Select(e => Localization.Translate(language, e.Caption).TrimEnd(':').Trim())
+                .Where(caption => !guide.Contains(Normalize(caption)))
+                .Distinct().ToList();
+            Assert.True(missing.Count == 0, page + " lacks: " + string.Join(" | ", missing)
+                + " - add the line to the guide's \"Every setting\" table in this language");
+        }
+
         [Fact]
         public void TheV2ArithmeticHolds()
         {

@@ -6,7 +6,7 @@ with no scene must each give the exit code the script promises, and a fully deci
 Same shape as Test-AuditCoverage.ps1.
 #>
 [CmdletBinding()]
-param([string]$Manifest = (Join-Path $PSScriptRoot '..\..\PLAN\S0061_runtime-quality-audit\scenes.json'))
+param([string]$Manifest = (Join-Path $PSScriptRoot '..\..\PLAN\CYRFLP-0061_runtime-quality-audit\scenes.json'))
 
 $ErrorActionPreference = 'Stop'
 $coverage = Join-Path $PSScriptRoot 'Get-SceneCoverage.ps1'

@@ -284,6 +284,9 @@ namespace CyrFlip.Tests
                 new ScreenshotToolbar(AnnotationTool.Rectangle, AnnotationPalette.Default, s => s));
             yield return ("BackupRestoreDialog", () => new BackupRestoreDialog(language, "2026-10-15"));
             yield return ("ExchangeAccountDialog", () => new ExchangeAccountDialog(language, new List<ExchangeAccountEntry>()));
+            yield return ("ExternalControlWindow", () => new ExternalControlWindow(config, language, () => new RemoteCommandsView()));
+            yield return ("RemoteConsentPrompt", () => new RemoteConsentPrompt(language,
+                new RemoteConsentPending { DeviceName = "Phone", Verb = "status", DeadlineUtc = DateTime.UtcNow.AddSeconds(60) }, "Phone asks CyrFlip", "status"));
         }
 
         private ClipboardHistoryService History()

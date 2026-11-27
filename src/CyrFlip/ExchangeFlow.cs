@@ -73,6 +73,7 @@ namespace CyrFlip
             }
 
             string path;
+            // APP-STYLE rule 5: a Windows common dialog, drawn by Windows outside the app theme (declared exception).
             using (var save = new SaveFileDialog
             {
                 Title = T("Export to exchange file"),
@@ -156,6 +157,7 @@ namespace CyrFlip
         public void Import(IWin32Window? owner)
         {
             string path;
+            // APP-STYLE rule 5: a Windows common dialog, drawn by Windows outside the app theme (declared exception).
             using (var open = new OpenFileDialog
             {
                 Title = T("Import from exchange file"),

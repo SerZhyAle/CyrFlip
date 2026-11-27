@@ -51,6 +51,11 @@ namespace CyrFlip
         /// <summary>Rule 18: the verb opens or needs a person-facing interaction while it runs.</summary>
         public bool Interactive { get; }
         public bool IsSafe => Risk == "safe";
+        /// <summary>
+        /// <c>remote.confirm</c> of REMOTE-CONTROL rule 7 - <c>grant</c> or <c>device</c> - when another device of the
+        /// account may ask for this verb; null when it may not (ticket CYRFLP-0140).
+        /// </summary>
+        public string? RemoteConfirm { get; internal set; }
         public AppCommandArg? Arg(string name)
             => Args.FirstOrDefault(a => string.Equals(a.Name, name, StringComparison.OrdinalIgnoreCase));
     }
@@ -122,9 +127,16 @@ namespace CyrFlip
                 bool legacy = Arr(c, "aliases").OfType<Dictionary<string, object>>().Any(alias => Bool(alias, "legacy"));
                 string forward = Str(c, "forward");
                 int timeout = c.TryGetValue("timeoutMs", out object? t) && t is int ms ? ms : 10000;
-                commands.Add(new AppCommandSpec(name, Str(c, "risk"), coldStart, forward.Length == 0 ? "always" : forward,
+                var spec = new AppCommandSpec(name, Str(c, "risk"), coldStart, forward.Length == 0 ? "always" : forward,
                     Str(c, "wait").Length == 0 ? "done" : Str(c, "wait"), Math.Max(0, Math.Min(timeout, 600000)),
-                    args, oneOf, legacy, Str(c, "summary"), Bool(c, "idempotent"), Bool(c, "interactive")));
+                    args, oneOf, legacy, Str(c, "summary"), Bool(c, "idempotent"), Bool(c, "interactive"));
+                // REMOTE-CONTROL rule 7: a confirm this reader does not know makes the verb not remote rather than guessed.
+                if (c.TryGetValue("remote", out object? remote) && remote is Dictionary<string, object> r)
+                {
+                    string confirm = Str(r, "confirm");
+                    if (confirm == RemoteControl.ConfirmGrant || confirm == RemoteControl.ConfirmDevice) spec.RemoteConfirm = confirm;
+                }
+                commands.Add(spec);
             }
             return new AppCommandManifest(raw, cliVersion, commands);
         }
@@ -137,6 +149,37 @@ namespace CyrFlip
 
         private static object[] Arr(Dictionary<string, object> map, string key)
             => map.TryGetValue(key, out object? v) && v is object[] a ? a : new object[0];
+
+        /// <summary>
+        /// What <c>commands</c> answers to another device (REMOTE-CONTROL rule 7): the manifest with only the entries that
+        /// carry <c>remote</c>, and in each only the options another device may send. Built from the shipped bytes, so the
+        /// members a controller reads are the manifest's own.
+        /// </summary>
+        public Dictionary<string, object> RemoteView()
+        {
+            string text = Encoding.UTF8.GetString(Raw);
+            if (text.Length > 0 && text[0] == '﻿') text = text.Substring(1);
+            var root = (Dictionary<string, object>)new JavaScriptSerializer().DeserializeObject(text);
+            var kept = new List<object>();
+            foreach (object item in Arr(root, "commands"))
+            {
+                if (!(item is Dictionary<string, object> c) || !(c.TryGetValue("remote", out object? r) && r is Dictionary<string, object>)) continue;
+                AppCommandSpec? spec = Find(Str(c, "name"));
+                if (spec == null || spec.RemoteConfirm == null) continue;
+                c["args"] = Arr(c, "args").OfType<Dictionary<string, object>>()
+                    .Where(a => spec.Arg(Str(a, "name")) is AppCommandArg arg && RemoteControl.IsRemoteOption(arg))
+                    .Cast<object>().ToArray();
+                c.Remove("examples");
+                c.Remove("synopsis");
+                kept.Add(c);
+            }
+            return new Dictionary<string, object>
+            {
+                ["product"] = Str(root, "product"),
+                ["cliVersion"] = CliVersion,
+                ["commands"] = kept.ToArray(),
+            };
+        }
 
         /// <summary>The readable list <c>commands</c> prints without <c>--json</c>: one verb and its summary a line.</summary>
         public string ReadableList()

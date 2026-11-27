@@ -135,6 +135,8 @@ for locale in ('en', 'ru', 'uk'):
 def refresh_source_digest(source, translations):
     body = re.search(r'<body\b[^>]*>(.*)</body>', source.read_text(encoding='utf-8-sig'), re.S | re.I).group(1)
     body = re.split(r'<footer\b', body, flags=re.I)[0].replace('\r\n', '\n')
+    body = re.sub(r'<!-- release-facts: .*?<!-- /release-facts -->', '', body, flags=re.S)
+    body = re.sub(r'<img class="brand-mark"[^>]*>', '', body)  # tools/site/apply-identity.py, not content
     digest = hashlib.sha256(body.encode('utf-8')).hexdigest()
     for path in translations:
         if not path.exists():
@@ -153,6 +155,14 @@ for locale, filename in [('en', 'README.md'), ('ru', 'README_RU.md'), ('uk', 'RE
     page = re.sub(r'\n<!-- S0075 -->.*?<!-- /S0075 -->\n', '\n', page, flags=re.S)
     page += '\n<!-- S0075 -->\n' + deck['Help is available offline. Press F1 in a CyrFlip window or use its help button.'][locale] + ' [' + deck['Help'][locale] + '](' + BASE + 'help/' + locale + '/index.html).\n<!-- /S0075 -->\n'
     path.write_text(page, encoding='utf-8')
+
+# PRODUCT-IDENTITY rule 8 / CONTEXT-HELP 0.6 item Q: the product's picture and favicon on every help page, and the
+# brand picture on the site pages this run touched. One script holds the rule for both paths (CYRFLP-0139).
+import importlib.util
+_spec = importlib.util.spec_from_file_location('apply_identity', ROOT / 'tools/site/apply-identity.py')
+_identity = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_identity)
+_identity.main()
 
 # Published addresses and search entries are generated from the same page list.
 all_pages = sorted(p.relative_to(ROOT / 'docs').as_posix() for p in HELP.rglob('*.html'))

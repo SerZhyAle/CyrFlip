@@ -165,6 +165,7 @@ namespace CyrFlip
 
         private void ChooseScreenshotFolder()
         {
+            // APP-STYLE rule 5: a Windows common dialog, drawn by Windows outside the app theme (declared exception).
             using var dialog = new FolderBrowserDialog
             {
                 Description = Translate("Folder for screen region captures"),

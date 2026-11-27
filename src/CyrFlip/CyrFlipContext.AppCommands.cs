@@ -27,7 +27,12 @@ namespace CyrFlip
             return response;
         }
 
-        private AppCommandResponse AnswerAppCommand(AppCommandRequest request)
+        /// <summary>
+        /// One request, answered. <paramref name="remote"/> is a request another device of the exchange account sent
+        /// (REMOTE-CONTROL, ticket CYRFLP-0140): rules 8 to 10 there have already decided it, so the local setting of
+        /// APP-COMMANDS rule 13 is not asked (REMOTE-CONTROL rule 13).
+        /// </summary>
+        private AppCommandResponse AnswerAppCommand(AppCommandRequest request, bool remote = false)
         {
             AppCommandSpec? spec = AppCommandManifest.Shipped.Find(request.Command);
             // A verb this copy does not know - also what a newer second process meets in an older copy (section 3).
@@ -52,7 +57,7 @@ namespace CyrFlip
             ui.Post(_ =>
             {
                 if (Interlocked.CompareExchange(ref state, 1, 0) != 0) return;
-                try { work = RunAppCommandOnUi(invocation, request.Legacy, request.WorkingDir); }
+                try { work = RunAppCommandOnUi(invocation, request.Legacy, request.WorkingDir, remote); }
                 catch (Exception ex)
                 {
                     LauncherLog.Log("Command: " + spec.Name + " failed: " + ex.GetType().Name);
@@ -89,12 +94,12 @@ namespace CyrFlip
         /// <paramref name="workingDir"/> is the caller's current directory, which a verb that takes a path resolves a
         /// relative one against (rule 7, <c>workingDir</c>).
         /// </summary>
-        private Task<AppCommandResponse> RunAppCommandOnUi(AppCommandInvocation invocation, bool legacy, string workingDir)
+        private Task<AppCommandResponse> RunAppCommandOnUi(AppCommandInvocation invocation, bool legacy, string workingDir, bool remote = false)
         {
             AppCommandSpec spec = invocation.Spec;
             if (AppCommandsBusy())
                 return Done(AppCommandResponse.BusyNow(T("CyrFlip is busy: a window there waits for you. Try again when it is closed.")));
-            AppCommandResponse? refusal = AppCommandVerbs.RiskGate(spec, _config.EnableExternalCommands, legacy, T);
+            AppCommandResponse? refusal = remote ? null : AppCommandVerbs.RiskGate(spec, _config.EnableExternalCommands, legacy, T);
             if (refusal != null) return Done(refusal);
 
             switch (spec.Name)
@@ -152,6 +157,8 @@ namespace CyrFlip
                 case "autostart set":
                 case "cursor restore":
                     return RunStateSwitchCommand(invocation);
+                case "hotkeys pause":
+                    return Done(RunHotkeysPause(invocation));
                 case "translate text":
                     return RunTranslateCommand(invocation);
                 case "selection convert":
@@ -728,6 +735,8 @@ namespace CyrFlip
                 ["version"] = SupportBundle.AppVersion(),
                 ["pid"] = pid,
                 ["acceptsRestrictedCommands"] = _config.EnableExternalCommands,
+                // REMOTE-CONTROL rule 8: the state of "Listen to commands from my other devices" is part of status.
+                ["remoteCommands"] = _config.RemoteCommandsListen,
                 ["modules"] = new Dictionary<string, object>
                 {
                     ["quickNotes"] = _config.EnableQuickNotes,

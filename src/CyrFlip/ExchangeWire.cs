@@ -29,6 +29,12 @@ namespace CyrFlip
 
         public const string RoleClipboard = "clipboard";
         public const string CapabilityE2e = "e2e-v1";
+        /// <summary>DEVICE-EXCHANGE 1.18 item GC: this device takes commands (REMOTE-CONTROL rule 1; the switch says whether it will).</summary>
+        public const string CapabilityCommand = "command-v1";
+        /// <summary>Item GC: the server carries <c>command-request</c> and <c>command-result</c>; listed only with <c>sealed</c>.</summary>
+        public const string FeatureCommand = "command";
+        /// <summary>The keepalive interval this device proposes for its resident control stream (7.3, item F; clamped 10..120).</summary>
+        public const int ProposedKeepaliveSeconds = 30;
         public const string FeatureClipboard = "clipboard";
         public const string FeatureSealed = "sealed";
         /// <summary>The server keeps application settings standards (<c>DEVICE-EXCHANGE</c> 1.12, item EO).</summary>
@@ -181,8 +187,28 @@ namespace CyrFlip
                 .Add("productVersion", productVersion)
                 .Add("platform", "windows")
                 .Add("roles", new object[] { ExchangeWire.RoleClipboard, ExchangeWire.RoleNotes })
-                .Add("capabilities", new object[] { ExchangeWire.CapabilityE2e })
+                .Add("capabilities", new object[] { ExchangeWire.CapabilityE2e, ExchangeWire.CapabilityCommand })
                 .Add("e2eKey", new ExchangeMembers.Plain().Add("v", 1).Add("kem", e2eKemBase64Url));
+
+        /// <summary><c>hello</c> of the resident control stream, with the keepalive proposal of item F.</summary>
+        public static ExchangeMembers HelloResident(string deviceId, string deviceToken, string productVersion, int keepaliveSeconds)
+            => Hello(deviceId, deviceToken, productVersion).Add("keepaliveSeconds", keepaliveSeconds);
+
+        /// <summary>7.3: answered by a <c>keepalive</c>; a stream that brings nothing for three intervals is dead.</summary>
+        public static ExchangeMembers Keepalive() => new ExchangeMembers("keepalive");
+
+        /// <summary>7.3: going offline on purpose; no answer.</summary>
+        public static ExchangeMembers Bye() => new ExchangeMembers("bye");
+
+        /// <summary>
+        /// Item GC, the target's hop of <c>command-result</c>: the answer sealed under <c>command-result:&lt;requestId&gt;</c> to
+        /// the controller alone.
+        /// </summary>
+        public static ExchangeMembers CommandResult(string toDeviceId, string requestId, string boxJson)
+            => new ExchangeMembers("command-result")
+                .Add("toDeviceId", toDeviceId)
+                .Add("requestId", requestId)
+                .Add("box", new ExchangeRawJson(boxJson));
 
         public static ExchangeMembers List() => new ExchangeMembers("list");
 

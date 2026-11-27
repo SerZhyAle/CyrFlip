@@ -89,6 +89,8 @@ namespace CyrFlip
                     entry.ServerVersion = w.ServerVersion;
                     entry.Features = w.Features.ToList();
                     entry.DeviceKem = key.PublicKemBase64Url;
+                    // this enroll declared command-v1 (ExchangeMembers.Enroll, REMOTE-CONTROL rule 1)
+                    entry.CommandCapable = true;
 
                     byte[] scalar = key.PrivateScalar;
                     try

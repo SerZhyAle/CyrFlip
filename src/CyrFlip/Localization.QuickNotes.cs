@@ -248,18 +248,18 @@ namespace CyrFlip
                 bn: "নোট সংরক্ষিত: {0}", ur: "نوٹس محفوظ ہو گئے: {0}", zh: "笔记已保存：{0}");
 
             Add("This file is not protected by DPAPI - anyone with access to the folder can read it.",
-                ru: "Этот файл не защищён DPAPI — его прочитает любой, у кого есть доступ к папке.",
-                uk: "Цей файл не захищений DPAPI — його прочитає будь-хто, хто має доступ до теки.",
+                ru: "Этот файл не защищён DPAPI - его прочитает любой, у кого есть доступ к папке.",
+                uk: "Цей файл не захищений DPAPI - його прочитає будь-хто, хто має доступ до теки.",
                 de: "Diese Datei ist nicht durch DPAPI geschützt - jeder mit Zugriff auf den Ordner kann sie lesen.",
                 it: "Questo file non è protetto da DPAPI: può leggerlo chiunque abbia accesso alla cartella.",
                 es: "Este archivo no está protegido por DPAPI: puede leerlo cualquiera que tenga acceso a la carpeta.",
                 fr: "Ce fichier n'est pas protégé par DPAPI : toute personne ayant accès au dossier peut le lire.",
                 pt: "Este arquivo não é protegido por DPAPI: qualquer pessoa com acesso à pasta pode lê-lo.",
                 ar: "هذا الملف غير محمي بـ DPAPI، ويمكن لأي شخص لديه وصول إلى المجلد قراءته.",
-                hi: "यह फ़ाइल DPAPI से सुरक्षित नहीं है — फ़ोल्डर तक पहुँच रखने वाला कोई भी इसे पढ़ सकता है।",
-                bn: "এই ফাইলটি DPAPI দিয়ে সুরক্ষিত নয় — ফোল্ডারে প্রবেশাধিকার থাকা যে কেউ এটি পড়তে পারবে।",
-                ur: "یہ فائل DPAPI سے محفوظ نہیں ہے — فولڈر تک رسائی رکھنے والا کوئی بھی اسے پڑھ سکتا ہے۔",
-                zh: "该文件不受 DPAPI 保护——任何能访问该文件夹的人都能读取它。");
+                hi: "यह फ़ाइल DPAPI से सुरक्षित नहीं है - फ़ोल्डर तक पहुँच रखने वाला कोई भी इसे पढ़ सकता है।",
+                bn: "এই ফাইলটি DPAPI দিয়ে সুরক্ষিত নয় - ফোল্ডারে প্রবেশাধিকার থাকা যে কেউ এটি পড়তে পারবে।",
+                ur: "یہ فائل DPAPI سے محفوظ نہیں ہے - فولڈر تک رسائی رکھنے والا کوئی بھی اسے پڑھ سکتا ہے۔",
+                zh: "该文件不受 DPAPI 保护 - 任何能访问该文件夹的人都能读取它。");
 
             Add("Could not save the file: {0}",
                 ru: "Не удалось сохранить файл: {0}", uk: "Не вдалося зберегти файл: {0}",
@@ -451,8 +451,8 @@ namespace CyrFlip
                 zh: "文本按输入原样保存，没有标记、语法着色或自动排版，因此代码可以不做任何改动地贴回去。");
 
             Add("A small local notepad: open it with a chord, drop in a fragment of code or a thought, close it. The text is stored exactly as it is - no markup, no highlighting, no auto-formatting - so it can be pasted back into the code without a single change.",
-                ru: "Маленький локальный блокнот: по хоткею открыть, бросить фрагмент кода или мысль, закрыть. Текст хранится как есть — без разметки, подсветки и автоформатирования, — поэтому его можно вставить обратно в код без единого изменения.",
-                uk: "Маленький локальний блокнот: за хоткеєм відкрити, кинути фрагмент коду чи думку, закрити. Текст зберігається як є — без розмітки, підсвічування й автоформатування, — тому його можна вставити назад у код без жодної зміни.",
+                ru: "Маленький локальный блокнот: по хоткею открыть, бросить фрагмент кода или мысль, закрыть. Текст хранится как есть - без разметки, подсветки и автоформатирования, - поэтому его можно вставить обратно в код без единого изменения.",
+                uk: "Маленький локальний блокнот: за хоткеєм відкрити, кинути фрагмент коду чи думку, закрити. Текст зберігається як є - без розмітки, підсвічування й автоформатування, - тому його можна вставити назад у код без жодної зміни.",
                 de: "Ein kleiner lokaler Notizblock: per Tastenkombination öffnen, einen Codeausschnitt oder Gedanken hineinwerfen, schließen. Der Text wird unverändert gespeichert - ohne Markup, Hervorhebung und Autoformatierung -, sodass er ohne eine einzige Änderung zurück in den Code eingefügt werden kann.",
                 it: "Un piccolo blocco note locale: apri con una combinazione, butta dentro un frammento di codice o un pensiero, chiudi. Il testo è conservato così com'è - senza markup, evidenziazione o formattazione automatica - quindi può essere incollato di nuovo nel codice senza una sola modifica.",
                 es: "Un pequeño bloc de notas local: ábralo con una combinación, suelte un fragmento de código o una idea, ciérrelo. El texto se guarda tal cual - sin marcado, resaltado ni formato automático -, por lo que puede pegarse de vuelta en el código sin un solo cambio.",
@@ -462,7 +462,7 @@ namespace CyrFlip
                 hi: "एक छोटा स्थानीय नोटपैड: हॉटकी से खोलें, कोड का अंश या कोई विचार डालें, बंद करें। पाठ जैसा है वैसा ही सहेजा जाता है - बिना मार्कअप, हाइलाइटिंग और स्वतः-स्वरूपण के - इसलिए उसे बिना एक भी बदलाव के कोड में वापस चिपकाया जा सकता है।",
                 bn: "একটি ছোট স্থানীয় নোটপ্যাড: হটকি দিয়ে খুলুন, কোডের অংশ বা একটি ভাবনা রাখুন, বন্ধ করুন। লেখা যেমন আছে ঠিক তেমনই রাখা হয় - মার্কআপ, হাইলাইট বা স্বয়ংক্রিয় বিন্যাস ছাড়াই - তাই এটি একটিও পরিবর্তন ছাড়াই কোডে ফিরিয়ে পেস্ট করা যায়।",
                 ur: "ایک چھوٹی مقامی نوٹ بک: ہاٹ کی سے کھولیں، کوڈ کا ٹکڑا یا کوئی خیال ڈالیں، بند کر دیں۔ متن جوں کا توں محفوظ ہوتا ہے - بغیر مارک اپ، ہائی لائٹنگ اور خودکار فارمیٹنگ کے - اس لیے اسے بغیر کسی تبدیلی کے کوڈ میں واپس چسپاں کیا جا سکتا ہے۔",
-                zh: "一个小小的本地记事本：用快捷键打开，扔进一段代码或一个想法，关掉。文本原样保存——没有标记、没有语法着色、没有自动排版——因此可以一字不差地贴回代码里。");
+                zh: "一个小小的本地记事本：用快捷键打开，扔进一段代码或一个想法，关掉。文本原样保存 - 没有标记、没有语法着色、没有自动排版 - 因此可以一字不差地贴回代码里。");
 
             Add("Enable the quick notes",
                 ru: "Включить быстрые заметки", uk: "Увімкнути швидкі нотатки", de: "Schnellnotizen aktivieren",
@@ -490,18 +490,18 @@ namespace CyrFlip
                 ar: "كيفية الفتح", hi: "कैसे खोलें", bn: "কীভাবে খুলবেন", ur: "کیسے کھولیں", zh: "如何打开");
 
             Add("Creates a new note at once and puts the caret in the body - the thought can be written down without pressing anything else. One chord cannot be given to two CyrFlip actions.",
-                ru: "Сразу создаёт новую заметку и ставит курсор в поле текста — записать мысль можно, ничего больше не нажимая. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
-                uk: "Одразу створює нову нотатку й ставить курсор у поле тексту — записати думку можна, більше нічого не натискаючи. Одну комбінацію не можна віддати двом діям CyrFlip.",
+                ru: "Сразу создаёт новую заметку и ставит курсор в поле текста - записать мысль можно, ничего больше не нажимая. Одну комбинацию нельзя отдать двум действиям CyrFlip.",
+                uk: "Одразу створює нову нотатку й ставить курсор у поле тексту - записати думку можна, більше нічого не натискаючи. Одну комбінацію не можна віддати двом діям CyrFlip.",
                 de: "Erstellt sofort eine neue Notiz und setzt die Schreibmarke in den Text - der Gedanke lässt sich festhalten, ohne noch etwas zu drücken. Eine Kombination kann nicht zwei CyrFlip-Aktionen gehören.",
                 it: "Crea subito una nuova nota e mette il cursore nel testo: il pensiero si annota senza premere altro. Una combinazione non può appartenere a due azioni di CyrFlip.",
                 es: "Crea al instante una nota nueva y coloca el cursor en el texto: la idea se anota sin pulsar nada más. Una combinación no puede pertenecer a dos acciones de CyrFlip.",
                 fr: "Crée aussitôt une nouvelle note et place le curseur dans le texte : l'idée s'écrit sans rien appuyer d'autre. Une combinaison ne peut pas appartenir à deux actions de CyrFlip.",
                 pt: "Cria de imediato uma nota nova e põe o cursor no texto: a ideia se anota sem apertar mais nada. Uma combinação não pode pertencer a duas ações do CyrFlip.",
                 ar: "ينشئ ملاحظة جديدة فورًا ويضع المؤشر في النص، فتُدوَّن الفكرة دون الضغط على أي شيء آخر. لا يمكن إسناد التركيبة نفسها إلى إجراءين في CyrFlip.",
-                hi: "तुरंत नया नोट बनाता है और कर्सर पाठ में रख देता है — विचार लिखने के लिए और कुछ दबाने की ज़रूरत नहीं। एक ही संयोजन CyrFlip की दो क्रियाओं को नहीं दिया जा सकता।",
-                bn: "সঙ্গে সঙ্গে নতুন নোট তৈরি করে কার্সার লেখার ঘরে রাখে — ভাবনাটি লিখতে আর কিছু চাপতে হয় না। একটি কম্বিনেশন CyrFlip-এর দুটি কাজে দেওয়া যায় না।",
-                ur: "فوراً نیا نوٹ بناتا ہے اور کرسر متن میں رکھ دیتا ہے — خیال لکھنے کے لیے مزید کچھ دبانے کی ضرورت نہیں۔ ایک مجموعہ CyrFlip کے دو کاموں کو نہیں دیا جا سکتا۔",
-                zh: "立即新建一条笔记并把光标放进正文——不用再按别的就能把想法写下来。同一个组合键不能同时分配给两个 CyrFlip 动作。");
+                hi: "तुरंत नया नोट बनाता है और कर्सर पाठ में रख देता है - विचार लिखने के लिए और कुछ दबाने की ज़रूरत नहीं। एक ही संयोजन CyrFlip की दो क्रियाओं को नहीं दिया जा सकता।",
+                bn: "সঙ্গে সঙ্গে নতুন নোট তৈরি করে কার্সার লেখার ঘরে রাখে - ভাবনাটি লিখতে আর কিছু চাপতে হয় না। একটি কম্বিনেশন CyrFlip-এর দুটি কাজে দেওয়া যায় না।",
+                ur: "فوراً نیا نوٹ بناتا ہے اور کرسر متن میں رکھ دیتا ہے - خیال لکھنے کے لیے مزید کچھ دبانے کی ضرورت نہیں۔ ایک مجموعہ CyrFlip کے دو کاموں کو نہیں دیا جا سکتا۔",
+                zh: "立即新建一条笔记并把光标放进正文 - 不用再按别的就能把想法写下来。同一个组合键不能同时分配给两个 CyrFlip 动作。");
 
             Add("Open the notes",
                 ru: "Открыть заметки", uk: "Відкрити нотатки", de: "Notizen öffnen", it: "Apri le note",
@@ -624,18 +624,18 @@ namespace CyrFlip
                 ur: "تمام نوٹس Markdown میں برآمد کریں...", zh: "把全部笔记导出为 Markdown...");
 
             Add("One file with every note in order. The exported file is no longer protected by DPAPI - anyone with access to the folder can read it.",
-                ru: "Один файл со всеми заметками по порядку. Экспортированный файл уже не защищён DPAPI — его прочитает любой, у кого есть доступ к папке.",
-                uk: "Один файл з усіма нотатками по порядку. Експортований файл уже не захищений DPAPI — його прочитає будь-хто, хто має доступ до теки.",
+                ru: "Один файл со всеми заметками по порядку. Экспортированный файл уже не защищён DPAPI - его прочитает любой, у кого есть доступ к папке.",
+                uk: "Один файл з усіма нотатками по порядку. Експортований файл уже не захищений DPAPI - його прочитає будь-хто, хто має доступ до теки.",
                 de: "Eine Datei mit allen Notizen der Reihe nach. Die exportierte Datei ist nicht mehr durch DPAPI geschützt - jeder mit Zugriff auf den Ordner kann sie lesen.",
                 it: "Un solo file con tutte le note in ordine. Il file esportato non è più protetto da DPAPI: può leggerlo chiunque abbia accesso alla cartella.",
                 es: "Un archivo con todas las notas en orden. El archivo exportado ya no está protegido por DPAPI: puede leerlo cualquiera que tenga acceso a la carpeta.",
                 fr: "Un seul fichier contenant toutes les notes dans l'ordre. Le fichier exporté n'est plus protégé par DPAPI : toute personne ayant accès au dossier peut le lire.",
                 pt: "Um arquivo com todas as notas em ordem. O arquivo exportado já não é protegido por DPAPI: qualquer pessoa com acesso à pasta pode lê-lo.",
                 ar: "ملف واحد يضم كل الملاحظات بالترتيب. الملف المُصدَّر لم يعد محميًا بـ DPAPI، ويمكن لأي شخص لديه وصول إلى المجلد قراءته.",
-                hi: "क्रम में सभी नोट्स वाली एक फ़ाइल। निर्यात की गई फ़ाइल अब DPAPI से सुरक्षित नहीं है — फ़ोल्डर तक पहुँच रखने वाला कोई भी उसे पढ़ सकता है।",
-                bn: "ক্রমানুসারে সব নোট নিয়ে একটি ফাইল। রপ্তানি করা ফাইল আর DPAPI দিয়ে সুরক্ষিত নয় — ফোল্ডারে প্রবেশাধিকার থাকা যে কেউ এটি পড়তে পারবে।",
-                ur: "ترتیب سے تمام نوٹس پر مشتمل ایک فائل۔ برآمد شدہ فائل اب DPAPI سے محفوظ نہیں — فولڈر تک رسائی رکھنے والا کوئی بھی اسے پڑھ سکتا ہے۔",
-                zh: "一个文件，按顺序包含全部笔记。导出的文件不再受 DPAPI 保护——任何能访问该文件夹的人都能读取它。");
+                hi: "क्रम में सभी नोट्स वाली एक फ़ाइल। निर्यात की गई फ़ाइल अब DPAPI से सुरक्षित नहीं है - फ़ोल्डर तक पहुँच रखने वाला कोई भी उसे पढ़ सकता है।",
+                bn: "ক্রমানুসারে সব নোট নিয়ে একটি ফাইল। রপ্তানি করা ফাইল আর DPAPI দিয়ে সুরক্ষিত নয় - ফোল্ডারে প্রবেশাধিকার থাকা যে কেউ এটি পড়তে পারবে।",
+                ur: "ترتیب سے تمام نوٹس پر مشتمل ایک فائل۔ برآمد شدہ فائل اب DPAPI سے محفوظ نہیں - فولڈر تک رسائی رکھنے والا کوئی بھی اسے پڑھ سکتا ہے۔",
+                zh: "一个文件，按顺序包含全部笔记。导出的文件不再受 DPAPI 保护 - 任何能访问该文件夹的人都能读取它。");
 
             Add("Delete every quick note",
                 ru: "Удалить все быстрые заметки", uk: "Видалити всі швидкі нотатки",
@@ -659,18 +659,18 @@ namespace CyrFlip
                 zh: "删除全部笔记、日志及其备份。无法撤销。");
 
             Add("Notes lie only on this computer and are encrypted with Windows DPAPI for your account. CyrFlip does not send them anywhere, does not index them with Windows Search and does not turn clipboard-history entries into notes - there is a separate command for that. This is not a secret store: do not keep passwords, production tokens or private keys here.",
-                ru: "Заметки лежат только на этом компьютере и шифруются Windows DPAPI для вашей учётной записи. CyrFlip не отправляет их в сеть, не индексирует их поиском Windows и не превращает записи истории буфера в заметки — для этого есть отдельная команда. Это не хранилище секретов: не сохраняйте здесь пароли, боевые токены и приватные ключи.",
-                uk: "Нотатки лежать лише на цьому комп'ютері й шифруються Windows DPAPI для вашого облікового запису. CyrFlip не надсилає їх у мережу, не індексує їх пошуком Windows і не перетворює записи історії буфера на нотатки — для цього є окрема команда. Це не сховище секретів: не зберігайте тут паролі, бойові токени та приватні ключі.",
+                ru: "Заметки лежат только на этом компьютере и шифруются Windows DPAPI для вашей учётной записи. CyrFlip не отправляет их в сеть, не индексирует их поиском Windows и не превращает записи истории буфера в заметки - для этого есть отдельная команда. Это не хранилище секретов: не сохраняйте здесь пароли, боевые токены и приватные ключи.",
+                uk: "Нотатки лежать лише на цьому комп'ютері й шифруються Windows DPAPI для вашого облікового запису. CyrFlip не надсилає їх у мережу, не індексує їх пошуком Windows і не перетворює записи історії буфера на нотатки - для цього є окрема команда. Це не сховище секретів: не зберігайте тут паролі, бойові токени та приватні ключі.",
                 de: "Notizen liegen nur auf diesem Computer und werden mit der Windows-DPAPI für Ihr Konto verschlüsselt. CyrFlip sendet sie nirgendwohin, indiziert sie nicht mit der Windows-Suche und macht aus Einträgen des Zwischenablageverlaufs keine Notizen - dafür gibt es einen eigenen Befehl. Dies ist kein Geheimnisspeicher: Bewahren Sie hier keine Passwörter, Produktionstoken oder privaten Schlüssel auf.",
                 it: "Le note restano solo su questo computer e sono cifrate con la DPAPI di Windows per il tuo account. CyrFlip non le invia da nessuna parte, non le indicizza con la ricerca di Windows e non trasforma le voci della cronologia degli appunti in note: per questo c'è un comando a parte. Questo non è un archivio di segreti: non conservare qui password, token di produzione o chiavi private.",
                 es: "Las notas están solo en este equipo y se cifran con la DPAPI de Windows para su cuenta. CyrFlip no las envía a ninguna parte, no las indexa con la búsqueda de Windows y no convierte las entradas del historial del portapapeles en notas: para eso hay un comando aparte. Esto no es un almacén de secretos: no guarde aquí contraseñas, tokens de producción ni claves privadas.",
                 fr: "Les notes ne se trouvent que sur cet ordinateur et sont chiffrées par la DPAPI de Windows pour votre compte. CyrFlip ne les envoie nulle part, ne les indexe pas avec la recherche Windows et ne transforme pas les entrées de l'historique du presse-papiers en notes : il existe une commande distincte pour cela. Ceci n'est pas un coffre à secrets : n'y conservez ni mots de passe, ni jetons de production, ni clés privées.",
                 pt: "As notas ficam apenas neste computador e são criptografadas com a DPAPI do Windows para a sua conta. O CyrFlip não as envia a lugar nenhum, não as indexa com a pesquisa do Windows e não transforma entradas do histórico da área de transferência em notas - há um comando separado para isso. Isto não é um cofre de segredos: não guarde aqui senhas, tokens de produção ou chaves privadas.",
                 ar: "تبقى الملاحظات على هذا الحاسوب فقط وتُشفَّر بـ DPAPI في Windows لحسابك. لا يرسلها CyrFlip إلى أي مكان، ولا يفهرسها ببحث Windows، ولا يحوّل عناصر سجل الحافظة إلى ملاحظات - لذلك أمر منفصل. هذا ليس مخزنًا للأسرار: لا تحفظ هنا كلمات المرور أو رموز الإنتاج أو المفاتيح الخاصة.",
-                hi: "नोट्स केवल इसी कंप्यूटर पर रहते हैं और आपके खाते के लिए Windows DPAPI से एन्क्रिप्ट होते हैं। CyrFlip उन्हें कहीं नहीं भेजता, Windows खोज से अनुक्रमित नहीं करता और क्लिपबोर्ड इतिहास की प्रविष्टियों को नोट्स में नहीं बदलता — उसके लिए अलग आदेश है। यह गोपनीय जानकारी का भंडार नहीं है: यहाँ पासवर्ड, उत्पादन टोकन और निजी कुंजियाँ न रखें।",
-                bn: "নোটগুলি কেবল এই কম্পিউটারেই থাকে এবং আপনার অ্যাকাউন্টের জন্য Windows DPAPI দিয়ে এনক্রিপ্ট করা হয়। CyrFlip সেগুলি কোথাও পাঠায় না, Windows অনুসন্ধানে ইনডেক্স করে না এবং ক্লিপবোর্ড ইতিহাসের এন্ট্রিকে নোটে পরিণত করে না — তার জন্য আলাদা কমান্ড আছে। এটি গোপন তথ্যের ভাণ্ডার নয়: এখানে পাসওয়ার্ড, প্রোডাকশন টোকেন বা প্রাইভেট কি রাখবেন না।",
-                ur: "نوٹس صرف اسی کمپیوٹر پر رہتے ہیں اور آپ کے اکاؤنٹ کے لیے Windows DPAPI سے خفیہ کیے جاتے ہیں۔ CyrFlip انہیں کہیں نہیں بھیجتا، Windows تلاش سے فہرست بند نہیں کرتا اور کلپ بورڈ تاریخ کے اندراجات کو نوٹس میں تبدیل نہیں کرتا — اس کے لیے الگ کمانڈ ہے۔ یہ رازوں کا ذخیرہ نہیں ہے: یہاں پاس ورڈ، پروڈکشن ٹوکن اور نجی کلیدیں محفوظ نہ کریں۔",
-                zh: "笔记只存放在这台电脑上，并用你账户的 Windows DPAPI 加密。CyrFlip 不会把它们发往任何地方，不用 Windows 搜索为其建立索引，也不会把剪贴板历史条目变成笔记——那有单独的命令。这不是密钥保管库：不要在这里保存密码、生产环境令牌和私钥。");
+                hi: "नोट्स केवल इसी कंप्यूटर पर रहते हैं और आपके खाते के लिए Windows DPAPI से एन्क्रिप्ट होते हैं। CyrFlip उन्हें कहीं नहीं भेजता, Windows खोज से अनुक्रमित नहीं करता और क्लिपबोर्ड इतिहास की प्रविष्टियों को नोट्स में नहीं बदलता - उसके लिए अलग आदेश है। यह गोपनीय जानकारी का भंडार नहीं है: यहाँ पासवर्ड, उत्पादन टोकन और निजी कुंजियाँ न रखें।",
+                bn: "নোটগুলি কেবল এই কম্পিউটারেই থাকে এবং আপনার অ্যাকাউন্টের জন্য Windows DPAPI দিয়ে এনক্রিপ্ট করা হয়। CyrFlip সেগুলি কোথাও পাঠায় না, Windows অনুসন্ধানে ইনডেক্স করে না এবং ক্লিপবোর্ড ইতিহাসের এন্ট্রিকে নোটে পরিণত করে না - তার জন্য আলাদা কমান্ড আছে। এটি গোপন তথ্যের ভাণ্ডার নয়: এখানে পাসওয়ার্ড, প্রোডাকশন টোকেন বা প্রাইভেট কি রাখবেন না।",
+                ur: "نوٹس صرف اسی کمپیوٹر پر رہتے ہیں اور آپ کے اکاؤنٹ کے لیے Windows DPAPI سے خفیہ کیے جاتے ہیں۔ CyrFlip انہیں کہیں نہیں بھیجتا، Windows تلاش سے فہرست بند نہیں کرتا اور کلپ بورڈ تاریخ کے اندراجات کو نوٹس میں تبدیل نہیں کرتا - اس کے لیے الگ کمانڈ ہے۔ یہ رازوں کا ذخیرہ نہیں ہے: یہاں پاس ورڈ، پروڈکشن ٹوکن اور نجی کلیدیں محفوظ نہ کریں۔",
+                zh: "笔记只存放在这台电脑上，并用你账户的 Windows DPAPI 加密。CyrFlip 不会把它们发往任何地方，不用 Windows 搜索为其建立索引，也不会把剪贴板历史条目变成笔记 - 那有单独的命令。这不是密钥保管库：不要在这里保存密码、生产环境令牌和私钥。");
 
             Add("No notes found.",
                 ru: "Заметок нет.",

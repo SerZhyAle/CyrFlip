@@ -374,7 +374,7 @@ $shots | Where-Object { $_.Id -eq 'translate' } | ForEach-Object {
         param($lang)
         $config = New-AppConfig $lang.Name
         $window = New-AppObject 'TranslationResultWindow' @($config, $lang.Name)
-        $status = Get-Translated $lang.Name 'Translating... (Esc to cancel)'
+        $status = Get-Translated $lang.Name 'Translating.. (Esc to cancel)'
         Invoke-AppMember $window 'ShowTranslating' @((Get-UiCode $lang.Name), $lang.Source, $status, [IntPtr]::Zero) | Out-Null
         Invoke-AppMember $window 'ShowSourcePanel' @($true) | Out-Null
         # Streaming means part of the sentence is there: the first 60 per cent, the way a model's chunks arrive.

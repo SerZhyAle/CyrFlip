@@ -125,6 +125,8 @@ def body_hash(source):
     # Metadata, theme script, footer layout and the release facts are outside the content fingerprint.
     body = re.split(r"<footer\b", body, maxsplit=1, flags=re.I)[0]
     body = FACTS_BLOCK.sub("", body)
+    # The identity picture in the brand (PRODUCT-IDENTITY rule 8, tools/site/apply-identity.py) is not content either.
+    body = re.sub(r'<img class="brand-mark"[^>]*>', "", body)
     return hashlib.sha256(body.encode("utf-8")).hexdigest()
 
 

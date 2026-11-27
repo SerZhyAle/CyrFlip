@@ -28,10 +28,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repository = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-if (-not $Manifest) { $Manifest = Join-Path $repository 'PLAN\S0061_runtime-quality-audit\scenes.json' }
+if (-not $Manifest) { $Manifest = Join-Path $repository 'PLAN\CYRFLP-0061_runtime-quality-audit\scenes.json' }
 if (-not $ClaudeMd) { $ClaudeMd = Join-Path $repository 'CLAUDE.md' }
 $manifestPath = (Resolve-Path -LiteralPath $Manifest).Path
-$evidenceRoot = Join-Path $repository 'PLAN\S0061_runtime-quality-audit'
+$evidenceRoot = Join-Path $repository 'PLAN\CYRFLP-0061_runtime-quality-audit'
 $data = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 $problems = New-Object System.Collections.Generic.List[string]
 function Out([string]$s) { if (-not $Quiet) { Write-Output $s } }

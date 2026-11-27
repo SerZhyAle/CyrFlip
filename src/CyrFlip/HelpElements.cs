@@ -17,7 +17,39 @@ namespace CyrFlip
             internal string Explanation = "";
             internal Rectangle Bounds;
             internal int Number;
+            /// <summary>The ICON-SET id of the glyph the control draws, or null (CONTEXT-HELP 0.6 item R).</summary>
+            internal string? Glyph;
             internal string Anchor => "element-" + Number;
+        }
+
+        /// <summary>The vocabulary glyph a button draws, when the product ships its record; private artwork has none.</summary>
+        internal static string? GlyphOf(Button button)
+        {
+            string? id = ButtonGlyphs.GlyphOf(button);
+            return id != null && GlyphRenderer.Has(id) ? id : null;
+        }
+
+        /// <summary>
+        /// The glyph as inline SVG for a help page (CONTEXT-HELP 0.6 item R, PRODUCT-IDENTITY rule 8): the record's own
+        /// path data on the 24 grid, coloured by the page's text through <c>currentColor</c>, hidden from a screen reader
+        /// because the element's name stands beside it. Null for an id the product does not ship.
+        /// </summary>
+        internal static string? GlyphSvg(string id)
+        {
+            GlyphRecord? record = Glyphs.All.FirstOrDefault(r => r.Id == id);
+            if (record == null) return null;
+            string N(float v) => v.ToString("0.#####", System.Globalization.CultureInfo.InvariantCulture);
+            var svg = new System.Text.StringBuilder();
+            svg.Append("<svg class=\"glyph").Append(record.Rtl == "mirror" ? " mirror" : "")
+               .Append("\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"")
+               .Append(System.Net.WebUtility.HtmlEncode(record.PathData)).Append('"');
+            if (record.Transform != null && record.Transform.Length == 6)
+                svg.Append(" transform=\"matrix(").Append(string.Join(" ", record.Transform.Select(N))).Append(")\"");
+            if (record.EvenOdd) svg.Append(" fill-rule=\"evenodd\"");
+            if (record.StrokeWidth > 0f)
+                svg.Append(" fill=\"none\" stroke=\"currentColor\" stroke-width=\"").Append(N(record.StrokeWidth)).Append('"');
+            svg.Append("/></svg>");
+            return svg.ToString();
         }
 
         internal static IEnumerable<Control> Walk(Control root)
@@ -68,7 +100,8 @@ namespace CyrFlip
                 if (!control.Enabled) explanation += " " + T("This control is currently unavailable. Enable its feature or select an entry first.");
                 if (control is ListView list) explanation += " " + string.Join(" / ", list.Columns.Cast<ColumnHeader>().Select(c => c.Text));
                 result.Add(new Element { Control = control, Name = name.Replace("&", ""), Explanation = explanation,
-                    Bounds = form.RectangleToClient(control.RectangleToScreen(control.ClientRectangle)), Number = result.Count + 1 });
+                    Bounds = form.RectangleToClient(control.RectangleToScreen(control.ClientRectangle)), Number = result.Count + 1,
+                    Glyph = control is Button button ? GlyphOf(button) : null });
             }
             // Owner-drawn commands expose their own element tree; never infer positions from pixels.
             foreach (Control owner in new[] { (Control)form }.Concat(Walk(form)))

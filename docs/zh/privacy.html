@@ -35,7 +35,7 @@
   <link rel="alternate" hreflang="zh" href="https://serzhyale.github.io/CyrFlip/zh/privacy.html">
   <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/CyrFlip/privacy.html">
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://serzhyale.github.io/CyrFlip/#website","url":"https://serzhyale.github.io/CyrFlip/","name":"CyrFlip"},{"@type":"WebPage","@id":"https://serzhyale.github.io/CyrFlip/zh/privacy.html#page","headline":"CyrFlip - 隐私政策","url":"https://serzhyale.github.io/CyrFlip/zh/privacy.html","description":"CyrFlip 不记录你输入的内容，默认不发送任何东西；翻译和服务器上的剪贴板只有在开启后才会发送数据。","inLanguage":"zh","isPartOf":{"@id":"https://serzhyale.github.io/CyrFlip/#website"},"about":{"@type":"SoftwareApplication","name":"CyrFlip","operatingSystem":"Windows"}}]}</script>
-  <meta name="source-sha256" content="110b30fb8c7740864e73879205b3fef2190aac52afe33c52ef03701c50157040">
+  <meta name="source-sha256" content="9bdff57280ebfddda3ea1c5c4d3954ba786179933f937b5f6352e9018c6f88a6">
   <!-- /doc-quality metadata -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0a0f0a" />
@@ -59,7 +59,7 @@
   <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
   <header class="site-header">
     <div class="container">
-      <span class="brand">CyrFlip<span class="dot">.</span></span>
+      <span class="brand"><img class="brand-mark" src="../assets/icon-256.png" width="20" height="20" alt="">CyrFlip<span class="dot">.</span></span>
       <button class="theme-btn" id="themeBtn" aria-label="切换主题">◐</button>
       <div class="cta">
         <a class="btn btn-ghost btn-sm" href="./">← 首页</a>
@@ -158,7 +158,7 @@
         最新的值放到你的剪贴板上；收到的文件会保存到一个你看得到的文件夹中（默认是 <code>Downloads\CyrFlip</code>），
         并且绝不会覆盖其他文件。任何内容都不会自动发送 - 没有监控，没有定时器，启动时也不会发送。交换服务器负责连接您的设备，因此它知道您的账户、设备、文件夹和直播的名称，能看到哪些设备在线，以及传输了多少数据、发生在何时。它无法打开经过它的内容：文件夹及其文件、直播和剪贴板都在您的设备上加密，只会在您的其他设备上，或由您授予访问权限的人打开。要查看内容，运行服务器的人必须在您的账户中添加一台自己的设备，而这台设备会出现在您的设备列表中。CyrFlip 会保留一份日志，只记录种类、大小和结果代码，绝不记录剪贴板的值、文件名、登录名或地址；
         除账户条目本身（服务器地址、你的登录名、一个名称、固定的证书以及你其他设备的公钥）之外，这份日志是它为该功能
-        留下的唯一痕迹，而账户条目可用<em>移除账户</em>删除。 此外，同一设置页面上的<em>保存为标准</em>会把您选择的设置组发送到该服务器，运行服务器的人可以读取它们；密码、文件夹、地址和窗口位置从不发送，而<em>读取标准</em>会在应用前显示每项更改。两者都只在您按下时进行。另外，快速笔记可以经由同一台交换服务器与你的其他设备同步，但仅当你在快速笔记设置中开启<em>将笔记与我的其他设备同步</em>时才会进行（默认关闭）。每条笔记在离开你的电脑之前，就在电脑上为你自己的设备加密；服务器的管理者只能看到笔记的数量、大小和修改时间。关闭同步即停止同步，不会删除任何内容。CyrFlip 在笔记旁边保存 <code>quick-notes-sync.json</code>，其中只有每条笔记的标识符及其在服务器上的修订号——没有标题，也没有正文——它从不会进入日志存档。</li>
+        留下的唯一痕迹，而账户条目可用<em>移除账户</em>删除。 此外，同一设置页面上的<em>保存为标准</em>会把您选择的设置组发送到该服务器，运行服务器的人可以读取它们；密码、文件夹、地址和窗口位置从不发送，而<em>读取标准</em>会在应用前显示每项更改。两者都只在您按下时进行。另外，快速笔记可以经由同一台交换服务器与你的其他设备同步，但仅当你在快速笔记设置中开启<em>将笔记与我的其他设备同步</em>时才会进行（默认关闭）。每条笔记在离开你的电脑之前，就在电脑上为你自己的设备加密；服务器的管理者只能看到笔记的数量、大小和修改时间。关闭同步即停止同步，不会删除任何内容。CyrFlip 在笔记旁边保存 <code>quick-notes-sync.json</code>，其中只有每条笔记的标识符及其在服务器上的修订号——没有标题，也没有正文——它从不会进入日志存档。另外，您账户的其他设备可以通过同一台服务器请求这个 CyrFlip 执行几项命令 - 查看它的状态、暂停它的组合键、让电脑保持唤醒、关闭它 - 但前提是您在设置的交换服务器页面上开启了<em>接受来自我其他设备的命令</em>（默认关闭），并勾选了每台允许发出请求的设备。为了让请求能够到达这台电脑，只要服务器上的剪贴板处于开启状态，CyrFlip 就会与每个传递命令的账户服务器保持一个打开的连接；接受关闭时，它会拒绝每个请求。请求在另一台设备上只为这台电脑加密，因此运行服务器的人只能看到一台设备向另一台发出了请求、发出的时间以及请求的大小。CyrFlip 会把每个请求 - 时间、发出请求的设备名称、命令及其结果，但从不记录任何参数的值 - 写入 <code>remote-commands.log</code>，设置页面会显示其最后几行；它还会把最近请求的标识及其回答保存在一个加密文件中，确保重复的请求绝不会执行两次；这两者都不会发送到服务器。</li>
 
         <li><strong>屏幕截图。</strong>只有当您按下截图组合键或在托盘菜单中选择<em>屏幕区域截图</em>时，
         CyrFlip 才会按屏幕当前的样子拍下一张图，让您框选一个矩形，

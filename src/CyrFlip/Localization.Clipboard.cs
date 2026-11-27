@@ -300,7 +300,7 @@ namespace CyrFlip
             // strip's pin toggle, whose pinned state is carried by the control's state, not by a second word.
             Add("Pin",
                 ru: "Закрепить", uk: "Закріпити", de: "Anheften", it: "Fissa", es: "Fijar", fr: "Épingler",
-                pt: "Fixar", ar: "تثبيت", hi: "पिन करें", bn: "পিন করুন", ur: "پن کریں", zh: "固定");
+                pt: "Fixar", ar: "تثبيت", hi: "पिन करें", bn: "পিন করুন", ur: "پن کریں", zh: "置顶");
             Add("Close",
                 ru: "Закрыть", uk: "Закрити", de: "Schließen", it: "Chiudi", es: "Cerrar", fr: "Fermer",
                 pt: "Fechar", ar: "إغلاق", hi: "बंद करें", bn: "বন্ধ করুন", ur: "بند کریں", zh: "关闭");
@@ -313,19 +313,19 @@ namespace CyrFlip
                 bn: "ক্লিপবোর্ডে ফেরত দিন", ur: "کلپ بورڈ میں واپس رکھیں", zh: "放回剪贴板");
 
             // ---- Tray balloons ----
-            Add("Nothing selected. I flip text, not thin air — highlight something first.",
-                ru: "Ничего не выделено. Я переворачиваю текст, а не воздух — сначала выделите что-нибудь.",
-                uk: "Нічого не виділено. Я перевертаю текст, а не повітря — спершу виділіть щось.",
-                de: "Nichts ausgewählt. Ich wandle Text um, keine Luft — markieren Sie zuerst etwas.",
+            Add("Nothing selected. I flip text, not thin air - highlight something first.",
+                ru: "Ничего не выделено. Я переворачиваю текст, а не воздух - сначала выделите что-нибудь.",
+                uk: "Нічого не виділено. Я перевертаю текст, а не повітря - спершу виділіть щось.",
+                de: "Nichts ausgewählt. Ich wandle Text um, keine Luft - markieren Sie zuerst etwas.",
                 it: "Nessuna selezione. Converto testo, non aria: seleziona prima qualcosa.",
                 es: "No hay nada seleccionado. Convierto texto, no aire: selecciona algo primero.",
-                fr: "Rien n'est sélectionné. Je convertis du texte, pas du vide — sélectionnez d'abord quelque chose.",
-                pt: "Nada selecionado. Eu converto texto, não ar — selecione algo primeiro.",
-                ar: "لا يوجد تحديد. أنا أحوّل النص لا الهواء — حدّد شيئًا أولاً.",
-                hi: "कुछ भी चयनित नहीं है। मैं पाठ पलटता हूँ, हवा नहीं — पहले कुछ चुनिए।",
-                bn: "কিছুই নির্বাচিত নয়। আমি লেখা রূপান্তর করি, বাতাস নয় — আগে কিছু নির্বাচন করুন।",
-                ur: "کچھ منتخب نہیں ہے۔ میں متن بدلتا ہوں، ہوا نہیں — پہلے کچھ منتخب کریں۔",
-                zh: "没有选中任何内容。我转换的是文本，不是空气——请先选中一些文字。");
+                fr: "Rien n'est sélectionné. Je convertis du texte, pas du vide - sélectionnez d'abord quelque chose.",
+                pt: "Nada selecionado. Eu converto texto, não ar - selecione algo primeiro.",
+                ar: "لا يوجد تحديد. أنا أحوّل النص لا الهواء - حدّد شيئًا أولاً.",
+                hi: "कुछ भी चयनित नहीं है। मैं पाठ पलटता हूँ, हवा नहीं - पहले कुछ चुनिए।",
+                bn: "কিছুই নির্বাচিত নয়। আমি লেখা রূপান্তর করি, বাতাস নয় - আগে কিছু নির্বাচন করুন।",
+                ur: "کچھ منتخب نہیں ہے۔ میں متن بدلتا ہوں، ہوا نہیں - پہلے کچھ منتخب کریں۔",
+                zh: "没有选中任何内容。我转换的是文本，不是空气 - 请先选中一些文字。");
 
             Add("Couldn't read or replace the selection. The clipboard had other plans.",
                 ru: "Не удалось прочитать или заменить выделение. У буфера обмена были другие планы.",

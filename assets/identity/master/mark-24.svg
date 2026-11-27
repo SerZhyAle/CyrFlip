@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="CyrFlip">
+  <title>CyrFlip</title>
+  <defs><linearGradient id="tile" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#11161F"/><stop offset="1" stop-color="#1C2636"/></linearGradient></defs>
+  <rect x="0" y="0" width="24" height="24" rx="4.8" fill="url(#tile)"/>
+  <rect x="6" y="5" width="2" height="14" fill="#4493F8"/>
+  <rect x="3" y="5" width="8" height="2" fill="#4493F8"/>
+  <rect x="3" y="17" width="8" height="2" fill="#4493F8"/>
+  <rect x="14" y="8" width="3" height="3" fill="#4493F8"/>
+  <rect x="19" y="8" width="3" height="3" fill="#6B7B93"/>
+  <rect x="14" y="13" width="3" height="3" fill="#6B7B93"/>
+  <rect x="19" y="13" width="3" height="3" fill="#6B7B93"/>
+</svg>

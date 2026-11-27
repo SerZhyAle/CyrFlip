@@ -174,7 +174,7 @@ namespace CyrFlip
         }
 
         private static string Format(InputLayouts.Available a)
-            => a.LanguageName + " — " + a.DisplayName + "  (" + a.Klid + ")";
+            => a.LanguageName + " - " + a.DisplayName + "  (" + a.Klid + ")";
 
         private void Accept()
         {

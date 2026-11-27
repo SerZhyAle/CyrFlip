@@ -38,6 +38,8 @@ namespace CyrFlip
         public string ServerVersion = "";
         /// <summary>Only on <c>enrolled</c>. A secret: it goes to the secret store and nowhere else.</summary>
         public string DeviceToken = "";
+        /// <summary>The keepalive interval the server accepted (7.3); -1 when <c>welcome</c> named none.</summary>
+        public long KeepaliveSeconds = -1;
 
         public bool Has(string feature) => Features.Contains(feature);
         public bool IsGuest => AccountKind == ExchangeAccountEntry.KindGuest;
@@ -50,6 +52,7 @@ namespace CyrFlip
                 AccountKind = f.Str("accountKind") == ExchangeAccountEntry.KindGuest ? ExchangeAccountEntry.KindGuest : ExchangeAccountEntry.KindMember,
                 ServerVersion = f.Str("serverVersion"),
                 DeviceToken = f.Str("deviceToken"),
+                KeepaliveSeconds = f.Long("keepaliveSeconds"),
             };
             w.Features.AddRange(f.Strings("features"));
             return w;
@@ -69,6 +72,12 @@ namespace CyrFlip
         public long UpdatedAtUtcTicks;
         /// <summary>The roles the record declares (6.1, item EE); a note's box addresses only devices holding <c>notes</c> (item FI).</summary>
         public List<string> Roles = new List<string>();
+        /// <summary><c>product</c> of the record (6.1): the wire value, named for a person by item CX.</summary>
+        public string Product = "";
+        /// <summary><c>presence</c> is <c>online</c> (6.1, 7.3).</summary>
+        public bool Online;
+        /// <summary><c>lastSeen</c> as UTC ticks; 0 when absent or unreadable.</summary>
+        public long LastSeenUtcTicks;
 
         public bool HasRole(string role) => Roles.Contains(role);
     }
@@ -147,7 +156,62 @@ namespace CyrFlip
         /// </summary>
         public long NotesChangedRevision { get; internal set; } = -1;
 
-        public void Dispose() => Connection.Dispose();
+        /// <summary>Run once when the session ends: the release of its control-stream lease (<see cref="ExchangeControlLease"/>).</summary>
+        internal Action? OnDispose { get; set; }
+
+        public void Dispose()
+        {
+            Connection.Dispose();
+            Action? release = OnDispose;
+            OnDispose = null;
+            release?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// One control stream per device (DEVICE-EXCHANGE 7.3: a new one replaces the old). Every on-demand stream of an entry
+    /// holds a lease for its life; the resident stream of <see cref="ExchangeCommandListener"/> lets go while one is held
+    /// and comes back when the last one ends (ticket CYRFLP-0140 A10). Thread-safe; <see cref="Changed"/> is raised outside
+    /// the lock, on the thread that took or released.
+    /// </summary>
+    internal static class ExchangeControlLease
+    {
+        private static readonly object Gate = new object();
+        private static readonly Dictionary<string, int> Held = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        /// <summary>An entry's lease count changed between zero and not zero; the argument is the entry's local id.</summary>
+        public static event Action<string>? Changed;
+
+        public static bool IsHeld(string entryId)
+        {
+            lock (Gate) return Held.TryGetValue(entryId, out int n) && n > 0;
+        }
+
+        /// <summary>Takes a lease; the action it returns releases it once (a second call does nothing).</summary>
+        public static Action Take(string entryId)
+        {
+            bool first;
+            lock (Gate)
+            {
+                Held.TryGetValue(entryId, out int n);
+                Held[entryId] = n + 1;
+                first = n == 0;
+            }
+            if (first) Changed?.Invoke(entryId);
+            int released = 0;
+            return () =>
+            {
+                if (Interlocked.Exchange(ref released, 1) != 0) return;
+                bool last;
+                lock (Gate)
+                {
+                    Held.TryGetValue(entryId, out int n);
+                    last = n <= 1;
+                    if (last) Held.Remove(entryId); else Held[entryId] = n - 1;
+                }
+                if (last) Changed?.Invoke(entryId);
+            };
+        }
     }
 
     /// <summary>
@@ -239,6 +303,22 @@ namespace CyrFlip
         /// </summary>
         public async Task<ExchangeOutcome<ExchangeSession>> OpenAsync(ExchangeAccountEntry entry, CancellationToken ct)
         {
+            Action release = ExchangeControlLease.Take(entry.Id);
+            ExchangeOutcome<ExchangeSession> opened = await OpenCoreAsync(entry, null, ct).ConfigureAwait(false);
+            if (opened.Ok && opened.Value != null) opened.Value.OnDispose = release;
+            else release();
+            return opened;
+        }
+
+        /// <summary>
+        /// The resident control stream of <see cref="ExchangeCommandListener"/>: <c>hello</c> with the keepalive proposal,
+        /// and no lease - it is the stream the leases make way for.
+        /// </summary>
+        public Task<ExchangeOutcome<ExchangeSession>> OpenResidentAsync(ExchangeAccountEntry entry, int keepaliveSeconds, CancellationToken ct)
+            => OpenCoreAsync(entry, keepaliveSeconds, ct);
+
+        private async Task<ExchangeOutcome<ExchangeSession>> OpenCoreAsync(ExchangeAccountEntry entry, int? keepaliveSeconds, CancellationToken ct)
+        {
             ExchangeSecret? secret = entry.LoadSecret();
             if (secret == null || secret.Token.Length == 0 || entry.DeviceId.Length == 0)
                 return ExchangeOutcome.Fail<ExchangeSession>(ExchangeCodes.BadCredentials);
@@ -249,7 +329,9 @@ namespace CyrFlip
             {
                 conn = await _transport.ConnectAsync(entry.Host, entry.Port, entry.Pin, false, ct).ConfigureAwait(false);
                 handshake = true;
-                await conn.SendAsync(ExchangeMembers.Hello(entry.DeviceId, secret.Token, _productVersion), ct).ConfigureAwait(false);
+                await conn.SendAsync(keepaliveSeconds.HasValue
+                    ? ExchangeMembers.HelloResident(entry.DeviceId, secret.Token, _productVersion, keepaliveSeconds.Value)
+                    : ExchangeMembers.Hello(entry.DeviceId, secret.Token, _productVersion), ct).ConfigureAwait(false);
                 ExchangeFrame? answer = await conn.ReceiveAsync(false, ct).ConfigureAwait(false);
                 if (answer == null) return CloseWith(conn, ExchangeCodes.Unanswered);
                 if (answer.Type == "refused") return CloseWith(conn, ReasonOf(answer));
@@ -276,6 +358,29 @@ namespace CyrFlip
 
         // ---- the control stream: list and clipboard-info ----
 
+        /// <summary>The devices of a <c>directory</c> frame, reduced to what sealing and the grants need.</summary>
+        internal static List<ExchangePeer> PeersOf(ExchangeFrame directory)
+        {
+            var peers = new List<ExchangePeer>();
+            foreach (ExchangeFrame d in directory.Objects("devices"))
+            {
+                ExchangeFrame? key = d.Obj("e2eKey");
+                peers.Add(new ExchangePeer
+                {
+                    DeviceId = d.Str("deviceId"),
+                    Name = d.Str("deviceName"),
+                    Capable = d.Strings("capabilities").Contains(ExchangeWire.CapabilityE2e),
+                    Kem = key != null && key.Long("v") == 1 ? key.Str("kem") : "",
+                    UpdatedAtUtcTicks = TicksOf(d.Str("updatedAt")),
+                    Roles = d.Strings("roles").ToList(),
+                    Product = d.Str("product"),
+                    Online = d.Str("presence") == "online",
+                    LastSeenUtcTicks = TicksOf(d.Str("lastSeen")),
+                });
+            }
+            return peers;
+        }
+
         /// <summary><c>list</c>: the account's devices as the directory lists them right now (7.4).</summary>
         public async Task<ExchangeOutcome<List<ExchangePeer>>> ListAsync(ExchangeSession session, CancellationToken ct)
         {
@@ -286,21 +391,7 @@ namespace CyrFlip
                 if (answer == null) return ExchangeOutcome.Fail<List<ExchangePeer>>(ExchangeCodes.Unanswered);
                 if (answer.Type == "refused") return ExchangeOutcome.Fail<List<ExchangePeer>>(ReasonOf(answer));
 
-                var peers = new List<ExchangePeer>();
-                foreach (ExchangeFrame d in answer.Objects("devices"))
-                {
-                    ExchangeFrame? key = d.Obj("e2eKey");
-                    peers.Add(new ExchangePeer
-                    {
-                        DeviceId = d.Str("deviceId"),
-                        Name = d.Str("deviceName"),
-                        Capable = d.Strings("capabilities").Contains(ExchangeWire.CapabilityE2e),
-                        Kem = key != null && key.Long("v") == 1 ? key.Str("kem") : "",
-                        UpdatedAtUtcTicks = TicksOf(d.Str("updatedAt")),
-                        Roles = d.Strings("roles").ToList(),
-                    });
-                }
-                return ExchangeOutcome.Success(peers);
+                return ExchangeOutcome.Success(PeersOf(answer));
             }
             catch (Exception ex) when (IsNetworkFailure(ex) || ex is ExchangeFailure)
             {
@@ -560,7 +651,7 @@ namespace CyrFlip
             return ExchangeCodes.IsKnownWireReason(reason) ? reason : "refused";
         }
 
-        private static bool IsNetworkFailure(Exception ex)
+        internal static bool IsNetworkFailure(Exception ex)
             => ex is IOException || ex is SocketException || ex is ObjectDisposedException || ex is AuthenticationException
                || ex is ExchangeProtocolException || ex is OperationCanceledException || ex is TimeoutException;
 

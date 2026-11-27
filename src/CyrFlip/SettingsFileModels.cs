@@ -41,6 +41,50 @@ namespace CyrFlip
         internal PropertyInfo? Property => typeof(AppConfig).GetProperty(Key);
         internal bool IsTable => Key == "LayoutConversionProfiles" || Key == "TranslateProfiles"
             || Key == "TrafficLightTargets" || Key == "scenarios";
+        /// <summary>
+        /// The default column of the settings inventory (APP-SETTINGS rule 11: caption, where it lives, its
+        /// default), in invariant English. Derived from a fresh <see cref="AppConfig"/>, never typed twice.
+        /// </summary>
+        internal string Default => SettingsFileDefaults.Describe(this);
+    }
+
+    /// <summary>
+    /// What a brand-new profile holds for each inventoried setting (CYRFLP-0060 R11). The values are read
+    /// from the property initializers of a fresh <see cref="AppConfig"/>, so this list cannot drift from the
+    /// defaults the app really starts with; only the four tables and the two machine-dependent values, whose
+    /// first-run content is not a property initializer, are described in words here.
+    /// </summary>
+    internal static class SettingsFileDefaults
+    {
+        private static readonly AppConfig Fresh = new AppConfig();
+
+        internal static string Describe(SettingsFileEntry entry)
+        {
+            switch (entry.Key)
+            {
+                case "UiLanguage": return "the Windows display language, else English";
+                case "LayoutConversionProfiles": return "one row: US <-> Russian on " + AppConfig.DefaultFlipHotkey;
+                case "TranslateProfiles": return "empty; a starter row is offered when the translator is first enabled";
+                case "TrafficLightTargets": return "one example: Google (https://www.google.com)";
+                case "scenarios": return "empty; a Calculator sample is offered when the launcher is first enabled";
+            }
+            PropertyInfo? property = entry.Property;
+            if (property == null) return "";
+            return Format(property.GetValue(Fresh));
+        }
+
+        internal static string Format(object? value)
+        {
+            switch (value)
+            {
+                case bool flag: return flag ? "on" : "off";
+                case int number when number == int.MinValue: return "not placed";
+                case int number: return number.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                case string text when text.Length == 0: return "(empty)";
+                case string text: return text;
+                default: return value == null ? "(empty)" : value.ToString() ?? "(empty)";
+            }
+        }
     }
 
     // Ordered allow-list. Adding a property cannot make it leave the machine; the inventory test
@@ -144,6 +188,9 @@ namespace CyrFlip
             Add("consent on this device", "QuickNotesSync QuickNotesSyncEntry");
             // APP-COMMANDS rule 13 (S0107): only the person turns it on, on this PC - no settings file or standard carries it.
             Add("consent on this device", "EnableExternalCommands");
+            // REMOTE-CONTROL rules 8 and 9 (CYRFLP-0140): the switch is the person's act on this PC, and a grant names a
+            // device of an account entry that exists only here - a file or a standard that carried them would widen them.
+            Add("consent on this device", "RemoteCommandsListen RemoteCommandGrants");
             return result;
         }
         internal static void Copy(AppConfig source, AppConfig target)

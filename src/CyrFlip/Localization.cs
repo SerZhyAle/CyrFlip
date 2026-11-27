@@ -64,6 +64,7 @@ namespace CyrFlip
             AddSettingsTransferStrings();
             AddSettingsStandardStrings();
             AddNotesSyncStrings();
+            AddRemoteCommandsStrings();
             AddAppCommandStrings();
             AddAppCommandsNotesStrings();
             AddAppCommandsClipboardStrings();

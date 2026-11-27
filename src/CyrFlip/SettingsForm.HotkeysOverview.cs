@@ -47,8 +47,8 @@ namespace CyrFlip
             var controls = new List<Control>
             {
                 Group("hotkeys/switches", "Main switches",
-                    Setting(_enableHotkeys, "Master switch for all hotkeys. When off, CyrFlip intercepts none of the chords — keys reach the app as usual."),
-                    Setting(_deferRdp, "When a remote-desktop client window (mstsc/msrdc) is focused, CyrFlip does not intercept the hotkeys — the key travels to the remote session where that machine's CyrFlip handles it. Enable this if the app runs on both ends of the RDP connection."),
+                    Setting(_enableHotkeys, "Master switch for all hotkeys. When off, CyrFlip intercepts none of the chords - keys reach the app as usual."),
+                    Setting(_deferRdp, "When a remote-desktop client window (mstsc/msrdc) is focused, CyrFlip does not intercept the hotkeys - the key travels to the remote session where that machine's CyrFlip handles it. Enable this if the app runs on both ends of the RDP connection."),
                     _overviewNote,
                     Setting(_overviewResetAll, "Puts the hotkeys and their switches back to what CyrFlip ships with. Modules, table rows and scenarios are not deleted or switched off."),
                     _overviewStatus,

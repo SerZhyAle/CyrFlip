@@ -51,7 +51,8 @@ namespace IconGen
                 Directory.CreateDirectory(storeDir);
                 GenerateStoreLogos(storeDir);
                 Console.WriteLine("Store logos written to: " + storeDir);
-                return 0;
+                // The logos are renditions of the identity manifest: rehash them so it never lists stale bytes.
+                return File.Exists(Path.Combine(root, "assets", "identity", "master", "mark.svg")) ? Identity.WriteManifest(root) : 0;
             }
 
             // --- App icon (multi-size .ico with PNG payloads) ---
@@ -75,9 +76,20 @@ namespace IconGen
             SavePng(DrawCursorPreview(560, 200), Path.Combine(assets, "cursor-preview.png"));
             SavePng(DrawCursorPreview(560, 200), Path.Combine(docsAssets, "cursor-preview.png"));
 
+            // --- Store logos and the VS Code companion's icon: the same mark, cut in the same run ---
+            string store = Path.Combine(assets, "store");
+            Directory.CreateDirectory(store);
+            GenerateStoreLogos(store);
+            SavePng(DrawIcon(256), Path.Combine(root, "vscode-extension", "icon.png"));
+
+            // --- PRODUCT-IDENTITY 0.3 (CYRFLP-0139): the master SVG, the MSIX logos, then the manifest of all of it ---
+            Identity.WriteMasters(root);
+            if (Identity.WriteManifest(root) != 0) return 1;
+
             Console.WriteLine("Assets written to:");
             Console.WriteLine("  " + assets);
             Console.WriteLine("  " + docsAssets);
+            Console.WriteLine("  " + Path.Combine(root, "assets", "identity", "identity-manifest.json"));
             return 0;
         }
 

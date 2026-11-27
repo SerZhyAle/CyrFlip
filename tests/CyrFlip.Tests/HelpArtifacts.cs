@@ -183,10 +183,13 @@ namespace CyrFlip.Tests
             finally { RuntimeRegistry.UserOverride.Value = originalRegistry; }
         }
 
+        /// <summary>CONTEXT-HELP 0.6 item Q: the help.head rendition before every title; tools/site/apply-identity.py writes the same bytes.</summary>
+        internal const string ProductHead = "<img class=\"product-head\" src=\"../product-mark.svg\" width=\"32\" height=\"32\" alt=\"\">";
         private static string H(string value) => HttpUtility.HtmlEncode(value);
         private static string Shell(string title, string locale, string body, string beforeTitle = "", string besideTitle = "")
-            => "<!doctype html>\n<html lang=\"" + locale + "\" dir=\"" + (locale == "ar" || locale == "ur" ? "rtl" : "ltr") + "\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"robots\" content=\"noindex\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src 'self' data:; style-src 'self'; base-uri 'none'; form-action 'none'\"><title>" + H(title) + " - CyrFlip</title><link rel=\"stylesheet\" href=\"../sza-kit.css\"><link rel=\"stylesheet\" href=\"../help.css\"><link rel=\"stylesheet\" href=\"../app-theme.css\"></head><body><main>" + beforeTitle
-               + (besideTitle.Length == 0 ? "<h1>" + H(title) + "</h1>" : "<div class=\"title-row\">" + besideTitle + "<h1>" + H(title) + "</h1></div>")
+            => "<!doctype html>\n<html lang=\"" + locale + "\" dir=\"" + (locale == "ar" || locale == "ur" ? "rtl" : "ltr") + "\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"robots\" content=\"noindex\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src 'self' data:; style-src 'self'; base-uri 'none'; form-action 'none'\"><title>" + H(title) + " - CyrFlip</title><link rel=\"stylesheet\" href=\"../sza-kit.css\"><link rel=\"stylesheet\" href=\"../help.css\"><link rel=\"stylesheet\" href=\"../app-theme.css\"><link rel=\"icon\" href=\"../favicon.ico\"></head><body><main>" + beforeTitle
+               // CONTEXT-HELP 0.6 item Q: the product's help.head rendition before the title (tools/IconGen writes it).
+               + "<div class=\"title-row\">" + ProductHead + besideTitle + "<h1>" + H(title) + "</h1></div>"
                + body + "</main></body></html>\n";
 
         /// <summary>
@@ -217,7 +220,7 @@ namespace CyrFlip.Tests
             html.Append("<section id=\"order\"><h2>" + T("In this order") + "</h2><p>" + T(surface.id.StartsWith("settings.", StringComparison.Ordinal) ? "Settings apply immediately. There is no required order; use the groups below." : "Read the numbered elements, choose the values you need, then use the window’s command to continue.") + "</p></section>");
             html.Append("<section id=\"elements\"><h2>" + T("The elements") + "</h2>");
             foreach (var element in elements)
-                html.Append("<details id=\"" + element.Anchor + "\"><summary>" + element.Number + ". " + H(element.Name) + "</summary><p>" + H(element.Explanation) + "</p><a href=\"settings-hotkeys.html\">" + T("Your shortcuts") + "</a></details>");
+                html.Append("<details id=\"" + element.Anchor + "\"><summary>" + element.Number + ". " + (element.Glyph == null ? "" : HelpElements.GlyphSvg(element.Glyph) ?? "") + H(element.Name) + "</summary><p>" + H(element.Explanation) + "</p><a href=\"settings-hotkeys.html\">" + T("Your shortcuts") + "</a></details>");
             html.Append("</section><nav id=\"related\"><h2>" + T("Related") + "</h2><a href=\"index.html\">" + T("Help") + "</a> · <a href=\"settings-hotkeys.html\">" + T("Your shortcuts") + "</a> · <a href=\"https://serzhyale.github.io/CyrFlip/" + (locale == "ru" || locale == "uk" ? locale + "/" : "") + "guide.html\">" + T("Guide") + "</a></nav>");
             html.Append("<footer>CyrFlip " + H(SupportBundle.AppVersion()) + " · " + T("Captured") + " " + DateTime.UtcNow.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) + " · <a href=\"index.html\">" + T("Help") + "</a> · <a href=\"mailto:sza@ukr.net\">" + T("Support") + "</a></footer>");
             ExchangeMarkFor(surface.id, language, out string beforeTitle, out string besideTitle);

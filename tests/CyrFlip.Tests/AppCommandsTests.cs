@@ -40,7 +40,7 @@ namespace CyrFlip.Tests
         {
             var risks = new[] { "safe", "reads-user-data", "writes-user-data", "leaves-machine" };
             var cold = new[] { "start", "oneshot", "refuse" };
-            Assert.Equal("1.0", Manifest.CliVersion);
+            Assert.Equal("1.1", Manifest.CliVersion); // 1.1: the remote member of REMOTE-CONTROL rule 7 (CYRFLP-0140), a MINOR
             foreach (AppCommandSpec c in Manifest.Commands)
             {
                 Assert.Contains(c.Risk, risks);

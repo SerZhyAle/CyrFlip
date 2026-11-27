@@ -433,6 +433,9 @@ namespace CyrFlip.Tests
                 ["exchange-account-dialog"] = "exchange-account-dialog",
                 ["settings.About"] = "settings-about",
             };
+            // CONTEXT-HELP 0.6 item Q (CYRFLP-0139): once tools/IconGen has written the help.head rendition, every title
+            // is preceded by it; the exchange mark keeps its place around it.
+            string head = File.Exists(Path.Combine(help, "product-mark.svg")) ? HelpArtifacts.ProductHead : "";
             foreach (string locale in Localization.Codes)
             {
                 string language = Localization.Names[Localization.IndexOf(locale)];
@@ -445,14 +448,14 @@ namespace CyrFlip.Tests
                     if (page.Key == "settings.About")
                     {
                         // rule 11: the surface shows the mark but is not about the server - inline beside the title, image-only, the term as its alt
-                        Assert.StartsWith("<main><div class=\"title-row\">" + beside + "<h1>", main);
+                        Assert.StartsWith("<main><div class=\"title-row\">" + head + beside + "<h1>", main);
                         Assert.Contains("exchange-mark-small.svg\" width=\"24\" height=\"24\"", beside);
                         Assert.Contains("alt=\"" + System.Web.HttpUtility.HtmlEncode(TermIn(language)) + "\"", beside);
                     }
                     else
                     {
                         // rule 10: the head of a page about the server - the full form, 128 px, once, first in <main>, the full name as its alt (rule 14)
-                        Assert.StartsWith("<main>" + before + "<h1>", main);
+                        Assert.StartsWith("<main>" + before + (head.Length == 0 ? "<h1>" : "<div class=\"title-row\">" + head + "<h1>"), main);
                         Assert.Contains("exchange-mark-full.svg\" width=\"128\" height=\"128\" alt=\"Media Exchange Server\"", before);
                     }
                     Assert.True(File.Exists(Path.Combine(help, "exchange-mark", before.Length > 0 ? "exchange-mark-full.svg" : "exchange-mark-small.svg")));

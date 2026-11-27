@@ -2,6 +2,7 @@
 {"file": ".claude/skills/release/SKILL.md", "topic": "SKILL", "area": "agent workflow", "triggers": ["agent workflow or build/release procedure changes"], "role": "source"}
 {"file": ".github/PULL_REQUEST_TEMPLATE.md", "topic": "PULL REQUEST TEMPLATE", "area": "contribution", "triggers": ["pull request process changes"], "role": "source"}
 {"file": "CLAUDE.md", "topic": "CLAUDE", "area": "product", "triggers": ["feature, setup, configuration or release changes"], "role": "source"}
+{"file": "AGENTS.md", "topic": "AGENTS", "area": "product", "triggers": ["the entry point for agents other than Claude Code changes"], "role": "source"}
 {"file": "DOCS_SURFACES.md", "topic": "context help", "area": "in-app help", "triggers": ["window, control, help copy or locale changes"], "role": "source"}
 {"file": "POSITIONING.md", "topic": "POSITIONING", "area": "product", "triggers": ["product name, descriptor, feature order or listing copy changes"], "role": "source"}
 {"file": "README.md", "topic": "README", "area": "product", "triggers": ["feature, setup, configuration or release changes"], "role": "source"}

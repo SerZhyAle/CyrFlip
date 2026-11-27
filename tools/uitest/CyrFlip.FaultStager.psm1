@@ -397,8 +397,10 @@ namespace CyrFlipFault
 
         /// <summary>
         /// A valid file of exactly targetBytes: whole history entries of 60 000 characters, the last one
-        /// sized to land on the byte - between 60 000 and 120 000 characters, so under the 128 KB history
-        /// cap and the size is the file's only fault.
+        /// sized to land on the byte - between 60 000 and 120 000 characters. The last one may pass the history
+        /// cap (128 KB of UTF-16, 65 536 characters); the reader refuses the file for its size before it reads
+        /// a block, so FileTooLarge stays the only outcome. A file meant to be accepted is not built here
+        /// (Measure-ExchangeImport.ps1 builds its own).
         /// </summary>
         public static string Oversize(string marker, long targetBytes)
         {

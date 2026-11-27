@@ -4,7 +4,9 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
+using System.Globalization;
 using System.IO;
+using System.Text;
 
 namespace IconGen
 {
@@ -92,6 +94,26 @@ namespace IconGen
         // where EN/RU stood. One module is in the accent colour - the caret's own tool among the others.
         private static Bitmap DrawA(int s)
         {
+            MarkShape m = ShapeA(s);
+            var bmp = NewCanvas(s, out Graphics g);
+            using (g)
+            {
+                using (var tile = Program.Rounded(new RectangleF(0, 0, s, s), m.TileRadius))
+                    FillTile(g, tile, s);
+                DrawCaret(g, m.Caret, Program.Accent);
+                for (int i = 0; i < 4; i++)
+                    Box(g, m.CellX(i), m.CellY(i), m.Cell, m.Cell, i == 0 ? Program.Accent : Module, m.CellRadius);
+            }
+            return bmp;
+        }
+
+        /// <summary>
+        /// The chosen mark (variant A) as numbers: the one geometry both the GDI+ painter above and the SVG
+        /// writer below draw (PRODUCT-IDENTITY 0.3 rule 33 - the master is code, written out as SVG in the same
+        /// run). 16, 24 and 32 px are hand-hinted reduced forms; every other size is scaled from proportions.
+        /// </summary>
+        internal static MarkShape ShapeA(int s)
+        {
             CaretSpec caret;
             int gx, gy, cell, gap;
             switch (s)
@@ -107,23 +129,76 @@ namespace IconGen
                     gy = R(s * 0.5f - (2 * cell + gap) / 2f);
                     break;
             }
+            return new MarkShape(caret, gx, gy, cell, gap, TileRadius(s), s >= 48 ? cell * 0.25f : 0f);
+        }
 
-            var bmp = NewCanvas(s, out Graphics g);
-            using (g)
+        /// <summary>The hand-hinted sizes: each is a reduced form of the master, drawn for that one size.</summary>
+        internal static readonly int[] HintedSizes = { 16, 24, 32 };
+
+        /// <summary>
+        /// The mark as an SVG document on an <paramref name="s"/>-unit grid: the same tile, gradient, caret and
+        /// module grid <see cref="DrawA"/> paints, in the same order. Invariant culture, LF, fixed attribute
+        /// order, so a rerun on unchanged code writes the same bytes.
+        /// </summary>
+        internal static string SvgA(int s)
+        {
+            MarkShape m = ShapeA(s);
+            var sb = new StringBuilder();
+            sb.Append("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"").Append(s).Append("\" height=\"").Append(s)
+              .Append("\" viewBox=\"0 0 ").Append(s).Append(' ').Append(s).Append("\" role=\"img\" aria-label=\"CyrFlip\">\n");
+            sb.Append("  <title>CyrFlip</title>\n");
+            sb.Append("  <defs><linearGradient id=\"tile\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"")
+              .Append(Hex(Program.Bg1)).Append("\"/><stop offset=\"1\" stop-color=\"").Append(Hex(Program.Bg2))
+              .Append("\"/></linearGradient></defs>\n");
+            AppendRect(sb, 0, 0, s, s, m.TileRadius, "url(#tile)");
+            string accent = Hex(Program.Accent);
+            CaretSpec c = m.Caret;
+            AppendRect(sb, c.Left + (c.SerifW - c.BarW) / 2, c.Top, c.BarW, c.Height, 0f, accent);
+            AppendRect(sb, c.Left, c.Top, c.SerifW, c.SerifH, 0f, accent);
+            AppendRect(sb, c.Left, c.Top + c.Height - c.SerifH, c.SerifW, c.SerifH, 0f, accent);
+            for (int i = 0; i < 4; i++)
+                AppendRect(sb, m.CellX(i), m.CellY(i), m.Cell, m.Cell, m.CellRadius, i == 0 ? accent : Hex(Module));
+            sb.Append("</svg>\n");
+            return sb.ToString();
+        }
+
+        private static void AppendRect(StringBuilder sb, float x, float y, float w, float h, float radius, string fill)
+        {
+            sb.Append("  <rect x=\"").Append(Num(x)).Append("\" y=\"").Append(Num(y)).Append("\" width=\"").Append(Num(w))
+              .Append("\" height=\"").Append(Num(h)).Append('"');
+            if (radius > 0f) sb.Append(" rx=\"").Append(Num(radius)).Append('"');
+            sb.Append(" fill=\"").Append(fill).Append("\"/>\n");
+        }
+
+        private static string Num(float v) => Math.Round(v, 3).ToString("0.###", CultureInfo.InvariantCulture);
+
+        internal static string Hex(Color c) => "#" + c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2");
+
+        /// <summary>One size of the mark: the caret, the 2x2 module grid and the tile corner.</summary>
+        internal readonly struct MarkShape
+        {
+            public MarkShape(CaretSpec caret, int gridX, int gridY, int cell, int gap, float tileRadius, float cellRadius)
             {
-                using (var tile = Program.Rounded(new RectangleF(0, 0, s, s), TileRadius(s)))
-                    FillTile(g, tile, s);
-                DrawCaret(g, caret, Program.Accent);
-
-                float radius = s >= 48 ? cell * 0.25f : 0f;
-                for (int row = 0; row < 2; row++)
-                    for (int col = 0; col < 2; col++)
-                    {
-                        Color c = row == 0 && col == 0 ? Program.Accent : Module;
-                        Box(g, gx + col * (cell + gap), gy + row * (cell + gap), cell, cell, c, radius);
-                    }
+                Caret = caret;
+                GridX = gridX;
+                GridY = gridY;
+                Cell = cell;
+                Gap = gap;
+                TileRadius = tileRadius;
+                CellRadius = cellRadius;
             }
-            return bmp;
+
+            public CaretSpec Caret { get; }
+            public int GridX { get; }
+            public int GridY { get; }
+            public int Cell { get; }
+            public int Gap { get; }
+            public float TileRadius { get; }
+            public float CellRadius { get; }
+
+            /// <summary>Cell 0 is the top-left (accent) module; cells run row by row.</summary>
+            public int CellX(int i) => GridX + (i % 2) * (Cell + Gap);
+            public int CellY(int i) => GridY + (i / 2) * (Cell + Gap);
         }
 
         // ------------------------------------------------------------ variant B
@@ -335,7 +410,7 @@ namespace IconGen
         // ----------------------------------------------------------- primitives
 
         /// <summary>An I-beam caret on whole pixels: the serif box (left, top, serif width, height) and the bar centred in it.</summary>
-        private readonly struct CaretSpec
+        internal readonly struct CaretSpec
         {
             public CaretSpec(int left, int top, int serifW, int barW, int serifH, int height)
             {

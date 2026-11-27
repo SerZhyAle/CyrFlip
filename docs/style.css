@@ -275,3 +275,6 @@ body details.sec[open] > summary::before {
 .wrap .swatch-faeaa7 { background:#FAEAA7; }
 .wrap .swatch-ff1313 { background:#FF1313; }
 .wrap .swatch-ff5a5a { background:#FF5A5A; }
+/* PRODUCT-IDENTITY rule 8 (CYRFLP-0139): the application icon once, in the identity block, as the site.identity
+   rendition. Written into every page by tools/site/apply-identity.py; the name beside it carries the meaning. */
+.brand .brand-mark { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-inline-end: 6px; border-radius: 4px; }

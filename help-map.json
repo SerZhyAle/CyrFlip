@@ -88,6 +88,17 @@
       ]
     },
     {
+      "id": "external-control-window",
+      "type": "CyrFlip.ExternalControlWindow",
+      "name": "External control",
+      "form": "inherit",
+      "parent": "settings.ExchangeServer",
+      "reason": "Opens the help of the Exchange server page, which holds the External control group, until tools/help/Generate-Help.ps1 writes this window's own page (CYRFLP-0142, release item).",
+      "related": [
+        "settings.ExchangeServer"
+      ]
+    },
+    {
       "id": "hotkey-dialog",
       "type": "CyrFlip.HotkeyDialog",
       "name": "Shortcut",
@@ -153,6 +164,13 @@
       "name": "Select a screen region",
       "form": "layer",
       "help": "region-selection-overlay--monitor-window"
+    },
+    {
+      "id": "remote-consent-prompt",
+      "type": "CyrFlip.RemoteConsentPrompt",
+      "name": "External control",
+      "form": "none",
+      "reason": "A 60-second confirmation with two answers; it is explained in the help of External control, whose section T2 shows the same request."
     },
     {
       "id": "screenshot-toolbar",

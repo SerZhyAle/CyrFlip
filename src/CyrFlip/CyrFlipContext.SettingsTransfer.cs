@@ -21,6 +21,7 @@ namespace CyrFlip
             {
                 if (operation == "export")
                 {
+                    // APP-STYLE rule 5: a Windows common dialog, drawn by Windows outside the app theme (declared exception).
                     using var save = new SaveFileDialog { Filter = T("CyrFlip settings file (*.json)") + "|*.json",
                         FileName = SettingsFileWriter.DefaultFileName(DateTime.Now), DefaultExt = "json", AddExtension = true };
                     if (save.ShowDialog(_settings) != DialogResult.OK) return;
@@ -40,6 +41,7 @@ namespace CyrFlip
                 if (operation == "restore") path = SettingsSnapshot.Newest(SettingsSnapshot.Folder);
                 else
                 {
+                    // APP-STYLE rule 5: a Windows common dialog, drawn by Windows outside the app theme (declared exception).
                     using var open = new OpenFileDialog { Filter = T("CyrFlip settings file (*.json)") + "|*.json", CheckFileExists = true };
                     if (open.ShowDialog(_settings) != DialogResult.OK) return; path = open.FileName;
                 }

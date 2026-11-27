@@ -624,7 +624,8 @@ namespace CyrFlip
         private string RowText(QuickNote note)
         {
             string preview = note.Preview(PreviewLength);
-            string mark = note.Kind == QuickNoteKind.Checklist ? "☑ " : "";
+            // A checklist is named in words, not by a typed private picture (CYRFLP-0060 I-M7).
+            string mark = note.Kind == QuickNoteKind.Checklist ? T("Checklist") + ": " : "";
             return preview.Length > 0 ? mark + preview : mark + T("(empty)");
         }
 
@@ -998,6 +999,7 @@ namespace CyrFlip
         private void ExportCurrent()
         {
             if (_current == null) return;
+            // APP-STYLE rule 5: a Windows common dialog, drawn by Windows outside the app theme (declared exception).
             using var dialog = new SaveFileDialog
             {
                 Title = T("Export the note"),

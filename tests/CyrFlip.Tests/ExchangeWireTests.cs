@@ -165,7 +165,8 @@ namespace CyrFlip.Tests
             Assert.Equal("enroll", f.Type);
             Assert.Equal("cyrflip-windows", f.Str("product"));
             Assert.Equal(new[] { "clipboard", "notes" }, f.Strings("roles")); // notes always, ticket S0105 A1
-            Assert.Equal(new[] { "e2e-v1" }, f.Strings("capabilities"));
+            // command-v1 since REMOTE-CONTROL 0.4 (ticket CYRFLP-0140): declared beside e2e-v1, never without it
+            Assert.Equal(new[] { "e2e-v1", "command-v1" }, f.Strings("capabilities"));
             Assert.Equal(1, f.Obj("e2eKey")!.Long("v"));
             Assert.Equal("BAAA", f.Obj("e2eKey")!.Str("kem"));
             Assert.Equal("windows", f.Str("platform"));

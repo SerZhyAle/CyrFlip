@@ -221,7 +221,7 @@ namespace CyrFlip
                 if (scenario == null)
                 {
                     LauncherLog.Log("One-shot: scenario not found: " + id);
-                    ConfirmDialog.Show(config.UiLanguage, T("The scenario was not found — open CyrFlip to refresh the Jump List."),
+                    ConfirmDialog.Show(config.UiLanguage, T("The scenario was not found - open CyrFlip to refresh the Jump List."),
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
