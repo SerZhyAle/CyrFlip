@@ -18,7 +18,7 @@ What each package was built as last, what each channel carries, and every public
 | Package | Flavor | Kind | Version | Built | Artifact |
 | --- | --- | --- | --- | --- | --- |
 | cyrflip | default | release | 26.11.19.1230 | 2026-11-19 11:23:00+01:00 | - |
-| cyrflip | default | test | 26.11.20.2359 | 2026-11-20 23:59:55+01:00 | bin/SingleFile/CyrFlip.exe |
+| cyrflip | default | test | 26.11.27.1124 | 2026-11-27 11:24:57+01:00 | bin/SingleFile/CyrFlip.exe |
 | cyrflip | msix | release | 26.11.19.1230 | 2026-11-19 11:26:03+01:00 | msix/dist/CyrFlip-26.1119.1230.0-x64.msix |
 
 ## History

@@ -35,12 +35,11 @@ Description: >-
   author button that packs CyrFlip's own logs into one archive for a report you send yourself. Ships
   as a single portable exe with no installer and no runtime dependencies.
 ReleaseNotes: |-
-  This release makes CyrFlip scriptable and syncs quick notes across your devices.
-  - Command line: run CyrFlip.exe commands to list what a script, a shortcut or another program can ask the running copy to do - status, quick notes, clipboard history, switching the layout, converting text, screenshots, traffic-light checks, the translator and more. Commands that touch your files, screen, clipboard or the network stay off until you allow them on the General page.
-  - Quick notes can sync with your other devices through your own exchange server; every note is encrypted on your computer first. Off by default.
-  - The settings window opens and reacts to changes faster.
-  - A hotkey can use an arrow key, a keypad key, a bracket or a media key as its trigger.
-  - Also: the traffic light list starts with one working example on a new profile; clearing the clipboard history while it is still loading no longer brings the entries back; history cards separate the date and the time with a space; sending the clipboard to your exchange server reports a picture it cannot read instead of sending the text beside it.
+  This release lets your other devices control CyrFlip.
+  - Your other devices can now control CyrFlip through your exchange server. Off by default: you turn it on, choose which devices are allowed and whether each request asks you first. An allowed device can read CyrFlip's status and keyboard layout, pause or resume its hotkeys, keep the PC awake, open the settings or close CyrFlip. Requests are encrypted and logged. You find it on the exchange server page; an account added earlier signs in once more.
+  - New command: CyrFlip.exe hotkeys pause --paused true.
+  - Fixed: the yt-dlp link dialog is readable on screens with large scaling.
+  - Updating from 26.11.12 or earlier? CyrFlip can also be driven from scripts and shortcuts (CyrFlip.exe commands), quick notes can sync through your exchange server (off by default), the settings window is faster, and a hotkey can use an arrow, keypad, bracket or media key.
 ReleaseNotesUrl: https://github.com/SerZhyAle/CyrFlip/releases/latest
 PrivacyUrl: https://serzhyale.github.io/CyrFlip/privacy.html
 InstallationNotes: "This build is not code-signed, so Windows SmartScreen or an antivirus may warn when CyrFlip first starts. What the warning means and what to click: https://serzhyale.github.io/CyrFlip/trust.html"

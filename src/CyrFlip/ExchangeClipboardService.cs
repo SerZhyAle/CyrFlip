@@ -139,7 +139,9 @@ namespace CyrFlip
                 ExchangeOutcome<List<ExchangePeer>> listed = await ListPeersAsync(entry, ct).ConfigureAwait(false);
                 if (!listed.Ok) return listed.Code;
                 List<ExchangePeer> peers = listed.Value!;
-                if (ExchangeRecipients.Learn(entry.DeviceId, peers, entry.TrustedKeys)) _saveAccounts();
+                bool learned;
+                lock (entry) learned = ExchangeRecipients.Learn(entry.DeviceId, peers, entry.TrustedKeys);
+                if (learned) _saveAccounts();
                 ExchangeRecipients.Classify(entry.DeviceId, peers, entry.TrustedKeys, result.DevicesWithoutKeyNames, result.DevicesKeyChangedNames);
 
                 List<ExchangePeer> chosen = ExchangeRecipients.Select(entry.DeviceId, peers, entry.TrustedKeys, ExchangeE2e.MaxRecipients);
@@ -264,7 +266,9 @@ namespace CyrFlip
                 // the same stream's directory teaches the keys of the account's devices before a box is opened
                 ExchangeOutcome<List<ExchangePeer>> listed = await _client.ListAsync(session, ct).ConfigureAwait(false);
                 if (!listed.Ok) return ExchangeOutcome.Fail<ExchangeValueHeader?>(listed.Code);
-                if (ExchangeRecipients.Learn(entry.DeviceId, listed.Value!, entry.TrustedKeys)) _saveAccounts();
+                bool learned;
+                lock (entry) learned = ExchangeRecipients.Learn(entry.DeviceId, listed.Value!, entry.TrustedKeys);
+                if (learned) _saveAccounts();
 
                 return await _client.InfoAsync(session, ct).ConfigureAwait(false);
             }

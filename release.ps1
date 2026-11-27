@@ -55,7 +55,12 @@ param(
     # The owner's explicit, per-run waiver of ONE finding of the context-help gate, capture-stale (the help captures are
     # older than the source they show; regenerating them is a 27-minute run the owner declined on 2026-11-19). Nothing
     # else is waived, and every use is recorded in artifacts\help-stale-accepted.jsonl and printed in the verdict.
-    [switch] $AcceptStaleHelp
+    [switch] $AcceptStaleHelp,
+    # The owner's explicit, per-run waiver of the test run (owner order of 2026-11-27: release without testing and
+    # without UI/UX runs). Only the app project is built, `dotnet test` runs neither here nor in release.yml (the
+    # "release:" anchor commit carries [skip tests], which the workflow reads), every static gate still runs, and
+    # each use is recorded in artifacts\tests-waived.jsonl and printed with the verdict.
+    [switch] $SkipTests
 )
 $ErrorActionPreference = 'Stop'
 $RepoRoot = $PSScriptRoot
@@ -251,7 +256,8 @@ try {
             elseif ($LASTEXITCODE -ne 0) { $preflightUnverified.Add("Release facts could not be checked (exit $LASTEXITCODE).") }
         }
 
-        dotnet build CyrFlip.sln -c Release -p:Version=$Version --nologo
+        $buildTarget = if ($SkipTests) { 'src\CyrFlip\CyrFlip.csproj' } else { 'CyrFlip.sln' }
+        dotnet build $buildTarget -c Release -p:Version=$Version --nologo
         if ($LASTEXITCODE -ne 0) {
             $preflightFails.Add("Build failed (exit $LASTEXITCODE)")
             Write-Host 'Build failed - skipping dependent gates.' -ForegroundColor Red
@@ -264,23 +270,32 @@ try {
                 $preflightFails.Add("exe FileVersion '$($exeInfo.FileVersion)' does not read back as '$Version'")
             }
 
-            $testResults = Join-Path $preflightRoot 'TestResults-preflight'
-            # Includes the permanent S0072 migration, update-preserves and transfer/backup gates (G1-G5).
-            # The 13-language UI sweeps stay off (UiSweepGate skips them unless CYRFLIP_SWEEP=full is set by
-            # hand for one window), so they report as skipped and the run is judged with -AllowSkipped.
-            $previousSweep = $env:CYRFLIP_SWEEP
-            $env:CYRFLIP_SWEEP = $null
-            try { dotnet test CyrFlip.sln -c Release --no-build --nologo --logger trx --results-directory $testResults }
-            finally { $env:CYRFLIP_SWEEP = $previousSweep }
-            if ($LASTEXITCODE -ne 0) {
-                $preflightFails.Add("Unit tests failed (exit $LASTEXITCODE)")
+            if ($SkipTests) {
+                $evidenceDir = Join-Path $RepoRoot 'artifacts'
+                New-Item -ItemType Directory -Force -Path $evidenceDir | Out-Null
+                $record = [ordered]@{ utc = [DateTime]::UtcNow.ToString('o'); version = $Version; waived = 'tests'; head = (git rev-parse HEAD).Trim() } | ConvertTo-Json -Compress
+                Add-Content -LiteralPath (Join-Path $evidenceDir 'tests-waived.jsonl') -Value $record -Encoding utf8
+                Write-Host 'NOTE: the tests were NOT run (-SkipTests, the owner''s waiver for this release).' -ForegroundColor Yellow
             }
             else {
-                # A run that discovered nothing also exits 0 (S0029 RB-6).
-                & (Join-Path $preflightRoot 'tools\Assert-TestRun.ps1') -ResultsDirectory $testResults -AllowSkipped
-                if ($LASTEXITCODE -eq 2) { $preflightUnverified.Add("Requested tests did not all execute; see the test-run verdict") }
-                elseif ($LASTEXITCODE -ne 0) { $preflightFails.Add("Test discovery count check failed") }
-                else { Write-Host 'Detached-HEAD build + tests green.' -ForegroundColor Green }
+                $testResults = Join-Path $preflightRoot 'TestResults-preflight'
+                # Includes the permanent S0072 migration, update-preserves and transfer/backup gates (G1-G5).
+                # The 13-language UI sweeps stay off (UiSweepGate skips them unless CYRFLIP_SWEEP=full is set by
+                # hand for one window), so they report as skipped and the run is judged with -AllowSkipped.
+                $previousSweep = $env:CYRFLIP_SWEEP
+                $env:CYRFLIP_SWEEP = $null
+                try { dotnet test CyrFlip.sln -c Release --no-build --nologo --logger trx --results-directory $testResults }
+                finally { $env:CYRFLIP_SWEEP = $previousSweep }
+                if ($LASTEXITCODE -ne 0) {
+                    $preflightFails.Add("Unit tests failed (exit $LASTEXITCODE)")
+                }
+                else {
+                    # A run that discovered nothing also exits 0 (S0029 RB-6).
+                    & (Join-Path $preflightRoot 'tools\Assert-TestRun.ps1') -ResultsDirectory $testResults -AllowSkipped
+                    if ($LASTEXITCODE -eq 2) { $preflightUnverified.Add("Requested tests did not all execute; see the test-run verdict") }
+                    elseif ($LASTEXITCODE -ne 0) { $preflightFails.Add("Test discovery count check failed") }
+                    else { Write-Host 'Detached-HEAD build + tests green.' -ForegroundColor Green }
+                }
             }
 
             # The icon generator compiles this repository's LayoutStyle.cs; branch CI used to build it on
@@ -392,7 +407,8 @@ if ($Push -and $preflightFails.Count -eq 0 -and $preflightUnverified.Count -eq 0
     # The anchor gets precisely HEAD's tree, regardless of what the user staged. `git commit` would
     # consume the index; commit-tree does not. Move the current branch only after the object exists.
     $previousHead = (git rev-parse HEAD).Trim()
-    $anchor = (git commit-tree 'HEAD^{tree}' -p HEAD -m "release: $Tag").Trim()
+    $anchorMessage = if ($SkipTests) { "release: $Tag [skip tests]" } else { "release: $Tag" }
+    $anchor = (git commit-tree 'HEAD^{tree}' -p HEAD -m $anchorMessage).Trim()
     if ($LASTEXITCODE -ne 0 -or -not $anchor) { throw "release anchor creation failed (exit $LASTEXITCODE)." }
     git update-ref HEAD $anchor $previousHead
     if ($LASTEXITCODE -ne 0) { throw "Could not advance the branch to the release anchor (exit $LASTEXITCODE)." }
@@ -484,6 +500,7 @@ Step "РЕЛИЗ checklist for $Tag  (see RELEASE.md for detail)"
 
 # --- Machine-readable verdict line (last stdout line) -----------------------
 $subjectName = if ($Push) { "release v$Version" } else { "release-preflight v$Version" }
+if ($SkipTests) { Write-Host 'Tests were waived for this run (-SkipTests): the verdict covers the app build and the static gates only.' -ForegroundColor Yellow }
 if ($preflightFails.Count -gt 0) {
     Write-Host "`nPREFLIGHT FAILURES:" -ForegroundColor Red
     foreach ($f in $preflightFails) { Write-Host "  - $f" -ForegroundColor Red }

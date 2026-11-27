@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `REMOTE-CONTROL` |
-| **Version** | 0.7, draft (read 2026-11-23 with its companion `WINDOW.md`, ticket CYRFLP-0142; 0.4 read 2026-11-20 with its carrier, `DEVICE-EXCHANGE` 1.18 items GC to GF in `device-exchange/REMOTE-COMMAND-2026-11-20.md`, ticket CYRFLP-0140) |
+| **Version** | 0.10, draft (0.8-0.10 read 2026-11-27 for release v26.11.27.1135; 0.7 read 2026-11-23 with its companion `WINDOW.md`, ticket CYRFLP-0142; 0.4 read 2026-11-20 with its carrier, `DEVICE-EXCHANGE` 1.18 items GC to GF in `device-exchange/REMOTE-COMMAND-2026-11-20.md`, ticket CYRFLP-0140) |
 | **Home** | `remote-control/README.md` in the shared contracts catalog |
 | **Role here** | A **target**: one program on one device of an exchange account that another device of the same account (FastMediaSorter for Web, or the agent client) asks to run one verb of this product's `APP-COMMANDS` manifest. CyrFlip is never a controller |
 

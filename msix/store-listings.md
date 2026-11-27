@@ -77,15 +77,13 @@ Open source - no telemetry and no data collection; the only network use is your 
 
 **What's new in this version**
 ```
-CyrFlip can now be driven from scripts, shortcuts and other programs. Run CyrFlip.exe commands to see the list: status, quick notes, clipboard history, switching the layout, converting text, screenshots, traffic-light checks, the translator and more. The copy that is already running does the work and answers with an exit code. Commands that touch your files, screen, clipboard or the network stay off until you allow them on the General page.
+Your other devices can now control CyrFlip through your exchange server. Off by default: you turn it on, choose which devices are allowed and whether each request asks you first. An allowed device can read CyrFlip's status and keyboard layout, pause or resume its hotkeys, keep the PC awake, open the settings or close CyrFlip. Requests are encrypted and logged. You find it on the exchange server page; an account added earlier signs in once more.
 
-Quick notes can sync with your other devices through your own exchange server - every note is encrypted on your computer first. Off by default.
+New command: CyrFlip.exe hotkeys pause --paused true.
 
-The settings window opens and reacts to changes faster.
+Fixed: the yt-dlp link dialog is readable on screens with large scaling.
 
-A hotkey can use an arrow key, a keypad key, a bracket or a media key as its trigger.
-
-Also: the traffic light list starts with one working example on a new profile; clearing the clipboard history while it is still loading no longer brings the entries back; history cards show the date and the time with a space between them; and when you send the clipboard to your exchange server, a picture it cannot read is reported instead of sending the text beside it.
+Updating from 26.11.12 or earlier? CyrFlip can also be driven from scripts and shortcuts (CyrFlip.exe commands), quick notes can sync through your exchange server (off by default), the settings window is faster, and a hotkey can use an arrow, keypad, bracket or media key.
 ```
 
 ---
@@ -146,15 +144,13 @@ CyrFlip - набор инструментов в трее для клавиат�
 
 **Что нового в этой версии**
 ```
-CyrFlip теперь можно управлять из скриптов, ярлыков и других программ. Команда CyrFlip.exe commands покажет список: состояние, быстрые заметки, история буфера обмена, переключение раскладки, преобразование текста, снимки экрана, проверки светофора, переводчик и другое. Работу делает уже запущенная копия и отвечает кодом выхода. Команды, которые затрагивают ваши файлы, экран, буфер обмена или сеть, остаются выключенными, пока вы не разрешите их на странице «Общие».
+Другие ваши устройства теперь могут управлять CyrFlip через ваш сервер обмена. По умолчанию выключено: вы включаете приём команд сами, выбираете разрешённые устройства и то, спрашивать ли вас перед каждым запросом. Разрешённое устройство может узнать состояние CyrFlip и раскладку клавиатуры, приостановить и снова включить его сочетания клавиш, не давать компьютеру уснуть, открыть настройки или закрыть CyrFlip. Запросы шифруются и записываются в журнал. Всё это - на странице сервера обмена; аккаунт, добавленный раньше, один раз входит снова.
 
-Быстрые заметки могут синхронизироваться с другими вашими устройствами через ваш собственный сервер обмена - каждая заметка сначала шифруется на вашем компьютере. По умолчанию выключено.
+Новая команда: CyrFlip.exe hotkeys pause --paused true.
 
-Окно настроек открывается и реагирует на изменения быстрее.
+Исправлено: окно ввода ссылки для yt-dlp читается на экранах с крупным масштабом.
 
-В качестве клавиши комбинации можно выбрать стрелку, клавишу цифровой клавиатуры, скобку или медиаклавишу.
-
-Ещё: в списке светофора на новом профиле есть один рабочий пример; очистка истории буфера обмена, пока она ещё загружается, больше не возвращает записи; на карточках истории дата и время разделены пробелом; а при отправке буфера на сервер обмена картинку, которую не удалось прочитать, программа сообщает об ошибке, а не отправляет вместо неё текст рядом.
+Обновляетесь с 26.11.12 или более ранней версии? CyrFlip также управляется из скриптов и ярлыков (CyrFlip.exe commands), быстрые заметки могут синхронизироваться через ваш сервер обмена (по умолчанию выключено), окно настроек работает быстрее, а в сочетании клавиш можно использовать стрелку, клавишу цифрового блока, скобку или медиаклавишу.
 ```
 
 ---
@@ -213,15 +209,13 @@ CyrFlip - набір інструментів у треї для клавіат�
 
 **Що нового в цій версії**
 ```
-CyrFlip тепер можна керувати зі скриптів, ярликів та інших програм. Команда CyrFlip.exe commands покаже перелік: стан, швидкі нотатки, історія буфера обміну, перемикання розкладки, перетворення тексту, знімки екрана, перевірки світлофора, перекладач та інше. Роботу виконує вже запущена копія й відповідає кодом виходу. Команди, що зачіпають ваші файли, екран, буфер обміну чи мережу, лишаються вимкненими, доки ви не дозволите їх на сторінці «Загальні».
+Інші ваші пристрої тепер можуть керувати CyrFlip через ваш сервер обміну. Типово вимкнено: ви самі вмикаєте приймання команд, обираєте дозволені пристрої й те, чи питати вас перед кожним запитом. Дозволений пристрій може дізнатися стан CyrFlip і розкладку клавіатури, призупинити та знову ввімкнути його сполучення клавіш, не давати комп'ютеру заснути, відкрити налаштування або закрити CyrFlip. Запити шифруються й записуються в журнал. Усе це - на сторінці сервера обміну; акаунт, доданий раніше, один раз входить знову.
 
-Швидкі нотатки можуть синхронізуватися з іншими вашими пристроями через ваш власний сервер обміну - кожна нотатка спершу шифрується на вашому комп'ютері. Типово вимкнено.
+Нова команда: CyrFlip.exe hotkeys pause --paused true.
 
-Вікно налаштувань відкривається та реагує на зміни швидше.
+Виправлено: вікно введення посилання для yt-dlp читається на екранах із великим масштабом.
 
-Клавішею сполучення можна обрати стрілку, клавішу цифрової клавіатури, дужку або медіаклавішу.
-
-Ще: у списку світлофора на новому профілі є один робочий приклад; очищення історії буфера обміну, поки вона ще завантажується, більше не повертає записи; на картках історії дату й час розділено пробілом; а під час надсилання буфера на сервер обміну зображення, яке не вдалося прочитати, програма повідомляє як помилку, а не надсилає замість нього текст поруч.
+Оновлюєтеся з 26.11.12 або ранішої версії? CyrFlip також керується зі скриптів і ярликів (CyrFlip.exe commands), швидкі нотатки можуть синхронізуватися через ваш сервер обміну (типово вимкнено), вікно налаштувань працює швидше, а в сполученні клавіш можна використати стрілку, клавішу цифрового блока, дужку або медіаклавішу.
 ```
 
 ---

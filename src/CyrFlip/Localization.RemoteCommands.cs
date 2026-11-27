@@ -102,7 +102,7 @@ namespace CyrFlip
                 hi: "एक्सचेंज सेटिंग्स खोलें", bn: "এক্সচেঞ্জ সেটিংস খুলুন",
                 ur: "ایکسچینج کی ترتیبات کھولیں", zh: "打开交换设置");
             Add("Sign in to this account again to accept commands.",
-                ru: "Войдите в эту учётную запись ещё раз, чтобы принимать команды.", uk: "Увійдіть у цей обліковий запис ще раз, щоб приймати команди.",
+                ru: "Войдите в этот аккаунт ещё раз, чтобы принимать команды.", uk: "Увійдіть у цей акаунт ще раз, щоб приймати команди.",
                 de: "Melden Sie sich erneut bei diesem Konto an, um Befehle anzunehmen.", it: "Accedi di nuovo a questo account per accettare comandi.",
                 es: "Vuelve a iniciar sesión en esta cuenta para aceptar órdenes.", fr: "Reconnectez-vous à ce compte pour accepter des commandes.",
                 pt: "Entre novamente nesta conta para aceitar comandos.", ar: "سجّل الدخول إلى هذا الحساب مرة أخرى لقبول الأوامر.",
@@ -144,8 +144,8 @@ namespace CyrFlip
                 hi: "डिवाइस चुनने के लिए आदेश स्वीकार करना चालू करें।", bn: "ডিভাইস বাছতে নির্দেশ গ্রহণ চালু করুন।",
                 ur: "آلات چننے کے لیے احکام قبول کرنا آن کریں۔", zh: "请打开接收命令以选择设备。");
             Add("No other device of your account can send commands yet. Sign in on it with the same account.",
-                ru: "Пока ни одно другое устройство вашей учётной записи не может отправлять команды. Войдите на нём в ту же учётную запись.",
-                uk: "Поки жоден інший пристрій вашого облікового запису не може надсилати команди. Увійдіть на ньому в той самий обліковий запис.",
+                ru: "Пока ни одно другое устройство вашего аккаунта не может отправлять команды. Войдите на нём в тот же аккаунт.",
+                uk: "Поки жоден інший пристрій вашого акаунта не може надсилати команди. Увійдіть на ньому в той самий акаунт.",
                 de: "Noch kann kein anderes Gerät Ihres Kontos Befehle senden. Melden Sie sich dort mit demselben Konto an.",
                 it: "Nessun altro dispositivo del tuo account può ancora inviare comandi. Accedi su di esso con lo stesso account.",
                 es: "Aún ningún otro dispositivo de tu cuenta puede enviar órdenes. Inicia sesión en él con la misma cuenta.",

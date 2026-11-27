@@ -182,7 +182,9 @@ namespace CyrFlip
                     ExchangeOutcome<List<ExchangePeer>> listed = await _client.ListAsync(session, ct).ConfigureAwait(false);
                     if (!listed.Ok) { report.Code = listed.Code; return report; }
                     List<ExchangePeer> peers = listed.Value!;
-                    if (ExchangeRecipients.Learn(entry.DeviceId, peers, entry.TrustedKeys)) _saveAccounts();
+                    bool learned;
+                    lock (entry) learned = ExchangeRecipients.Learn(entry.DeviceId, peers, entry.TrustedKeys);
+                    if (learned) _saveAccounts();
 
                     ExchangePeer? self = peers.FirstOrDefault(p => p.DeviceId == entry.DeviceId);
                     if (self == null || !self.HasRole(ExchangeWire.RoleNotes)) { report.Code = ReasonRoleMissing; return report; }

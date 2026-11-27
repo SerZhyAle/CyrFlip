@@ -58,15 +58,13 @@ PRODUCT FEATURES (max 200 chars each)
 
 WHAT'S NEW IN THIS VERSION
 --------------------------
-CyrFlip can now be driven from scripts, shortcuts and other programs. Run CyrFlip.exe commands to see the list: status, quick notes, clipboard history, switching the layout, converting text, screenshots, traffic-light checks, the translator and more. The copy that is already running does the work and answers with an exit code. Commands that touch your files, screen, clipboard or the network stay off until you allow them on the General page.
+Your other devices can now control CyrFlip through your exchange server. Off by default: you turn it on, choose which devices are allowed and whether each request asks you first. An allowed device can read CyrFlip's status and keyboard layout, pause or resume its hotkeys, keep the PC awake, open the settings or close CyrFlip. Requests are encrypted and logged. You find it on the exchange server page; an account added earlier signs in once more.
 
-Quick notes can sync with your other devices through your own exchange server - every note is encrypted on your computer first. Off by default.
+New command: CyrFlip.exe hotkeys pause --paused true.
 
-The settings window opens and reacts to changes faster.
+Fixed: the yt-dlp link dialog is readable on screens with large scaling.
 
-A hotkey can use an arrow key, a keypad key, a bracket or a media key as its trigger.
-
-Also: the traffic light list starts with one working example on a new profile; clearing the clipboard history while it is still loading no longer brings the entries back; history cards show the date and the time with a space between them; and when you send the clipboard to your exchange server, a picture it cannot read is reported instead of sending the text beside it.
+Updating from 26.11.12 or earlier? CyrFlip can also be driven from scripts and shortcuts (CyrFlip.exe commands), quick notes can sync through your exchange server (off by default), the settings window is faster, and a hotkey can use an arrow, keypad, bracket or media key.
 
 
 SEARCH TERMS

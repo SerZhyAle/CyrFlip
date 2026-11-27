@@ -433,7 +433,14 @@ namespace CyrFlip
                     }
                     SetState(RemoteStreamState.Connecting);
                     DateTime started = DateTime.UtcNow;
-                    string outcome = await HoldOnceAsync(entry).ConfigureAwait(false);
+                    string outcome;
+                    try { outcome = await HoldOnceAsync(entry).ConfigureAwait(false); }
+                    catch (Exception ex) when (!(ex is OutOfMemoryException))
+                    {
+                        // A fault nobody foresaw costs one stream, never the worker: log it and come back after the back-off.
+                        RemoteCommandsLog.Fault("hold", ex);
+                        outcome = "retry";
+                    }
                     if (_stop.IsCancellationRequested) break;
                     switch (outcome)
                     {
@@ -464,7 +471,7 @@ namespace CyrFlip
                 if (!opened.Ok || opened.Value == null)
                     return ExchangeCodes.AsksForPassword(opened.Code) ? "sign-in" : "retry";
 
-                ExchangeSession session = opened.Value;
+                using ExchangeSession session = opened.Value; // closed on every way out, a thrown one included
                 if (ExchangeClipboardService.LearnFrom(entry, null, session)) _owner._host.AccountsChanged();
                 ExchangeWelcome w = session.Welcome;
                 if (w.IsGuest || !w.Has(ExchangeWire.FeatureCommand) || !w.Has(ExchangeWire.FeatureSealed))

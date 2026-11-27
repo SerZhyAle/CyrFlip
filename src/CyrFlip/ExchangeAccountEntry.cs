@@ -108,7 +108,8 @@ namespace CyrFlip
             foreach (ExchangeAccountEntry e in entries)
             {
                 var trusted = new Dictionary<string, object>(StringComparer.Ordinal);
-                foreach (KeyValuePair<string, string> pair in e.TrustedKeys) trusted[pair.Key] = pair.Value;
+                lock (e) // the resident stream learns keys on its own thread
+                    foreach (KeyValuePair<string, string> pair in e.TrustedKeys) trusted[pair.Key] = pair.Value;
                 var row = new Dictionary<string, object>
                 {
                     ["id"] = e.Id,

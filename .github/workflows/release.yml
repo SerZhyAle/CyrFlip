@@ -92,6 +92,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Could not fetch origin/main (exit $LASTEXITCODE)." }
           git merge-base --is-ancestor $tagCommit origin/main
           if ($LASTEXITCODE -ne 0) { throw "Tag $tag commit $tagCommit is not reachable from origin/main." }
+          # The owner's per-release waiver (release.ps1 -SkipTests): the "release:" anchor commit says [skip tests].
+          $skipTests = "$(git log -1 --format=%s $commit)" -match '^release: v[0-9.]+ \[skip tests\]$'
+          if ($skipTests) { Write-Host "::warning::Tests are waived for this release ([skip tests] on the tag's commit)." }
+          "skip_tests=$("$skipTests".ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "tag=$tag"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "commit=$commit"   | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
@@ -101,7 +105,10 @@ jobs:
       # exe matches the ZIP/release name exactly. Without this the csproj stamps build-time
       # YY.M.D.HHmm, which drifts from the tag minute.
       - name: Build (Release)
-        run: dotnet build CyrFlip.sln -c Release -p:Version=${{ steps.ver.outputs.version }}
+        # With the tests waived only the app is built: the test project is compiled by a test run alone.
+        run: |
+          $target = if ('${{ steps.ver.outputs.skip_tests }}' -eq 'true') { 'src/CyrFlip/CyrFlip.csproj' } else { 'CyrFlip.sln' }
+          dotnet build $target -c Release -p:Version=${{ steps.ver.outputs.version }}
 
       # BUILD-EVIDENCE rule 2: the artefact carries the version of the build that produced it.
       # FileVersion must equal the tag, and the SDK-embedded revision in ProductVersion must be the
@@ -119,6 +126,7 @@ jobs:
       # this is a safety re-test of the exact tagged commit. Keep it — a release is rare
       # and high-stakes, and tags can be pushed without first passing through a PR.
       - name: Test
+        if: steps.ver.outputs.skip_tests != 'true'
         shell: pwsh
         # The 13-language UI sweeps do not run in a release (tests/CyrFlip.Tests/UiSweepGate.cs: only
         # CYRFLIP_SWEEP=full sweeps, and nothing sets it), so they report as skipped.

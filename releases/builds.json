@@ -13,10 +13,10 @@
       "package": "cyrflip",
       "flavor": "default",
       "kind": "test",
-      "version": "26.11.20.2359",
-      "builtAt": "2026-11-20T23:59:55+01:00",
+      "version": "26.11.27.1124",
+      "builtAt": "2026-11-27T11:24:57+01:00",
       "artifact": "bin/SingleFile/CyrFlip.exe",
-      "sha256": "8558607ffa7805a212f44ebb1007ceaea172d909a7f644542cc2a1b6714baed6"
+      "sha256": "b50bc076392d379d0b2bb8a17dc4ab24d3292cb12e9cb5c8165e3660c105564f"
     },
     {
       "package": "cyrflip",
