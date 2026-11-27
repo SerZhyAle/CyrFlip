@@ -10,7 +10,7 @@
 ## Why both
 
 Internal: `CLAUDE.md`, the READMEs, `docs/contracts/`, `RELEASE.md`, `STORE_PUBLISHING.md`, `msix/`,
-`winget/`, `tools/uitest/README.md`, the `.claude/skills` pages. External: the GitHub Pages site under
+`winget/`, `tools/uitest/README.md`. External: the GitHub Pages site under
 `docs/` - landing, guide, privacy and trust pages in 13 languages - plus the three READMEs a visitor
 reads on GitHub.
 

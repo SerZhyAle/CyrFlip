@@ -52,5 +52,5 @@ end-to-end check: it downloads the release ZIP from the URL in the manifest and 
 Also run `gh pr list --repo microsoft/winget-pkgs --author SerZhyAle --state open` first - an older
 open PR for this package makes the "no other open pull requests" box false.
 
-The full release procedure lives in [.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md);
+The full release procedure lives in [RELEASE.md](../RELEASE.md);
 `release.ps1` is only the tagging step inside it.

@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Guidance for agents working in this repository. This file is the always-loaded core; the detail lives in
-`.claude/rules/<area>.md` (see "Read this before touching X").
+`.claude/rules/<area>.md` (see "Read this before touching X"). `.claude/` is gitignored: never link or test it.
 
 > **Cross-project contracts live outside this repository.** The shared contract store is `P:\Contracts`, and **this line is the only place in this repository that names its location** - everywhere else cites a contract by its **id** and a rule or section number (`LAYOUT-SIGNAL rule 2`, `LAYOUT-PALETTE rule 5`, `SCENARIO-FILE rule 7`), never by path and never by drive letter, because whoever clones this repository has no `P:`. Its `README.md` is the index; `_meta/RULES.md` is the law, `_meta/VERSIONING.md` the compatibility rules, `_meta/REGISTRY.md` the live map of who implements what at which version. Nothing here ever keeps a **copy** of a contract: [docs/contracts/](docs/contracts/README.md) holds one short pointer per contract this product touches, and a disagreement between this repository and a contract is an amendment to write in the catalog or a dated exception to record in its registry - never a local edit. Aligned 2026-09-22; open conformance debts are [PLAN/Contract_Conformance_Backlog_v0.1.md](PLAN/Contract_Conformance_Backlog_v0.1.md).
 
@@ -303,7 +303,7 @@ rewrite the version and the digest together.
   tool (`update.ps1 -Id <id> -Status <s>`); never edit the `**Status:**` line by hand. The tool syncs the
   spec header and journal together. An agent never reorders the queue or rewrites a package.
 
-**Release anchors and traps** (full text: [release.md](.claude/rules/release.md), read it before any release work):
+**Release anchors and traps** (full text: `.claude/rules/release.md`, read it before any release work):
 
 - `build.ps1` is the free local build and **never tags**; `release.ps1` is the only tagger. Pushing the `vYY.M.D.HHmm`
   tag (no zero-padded month or day) starts the billable `release.yml`. A published tag is never rebuilt.

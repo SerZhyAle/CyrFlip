@@ -13,9 +13,7 @@ paths.update(p.relative_to(root).as_posix() for p in (root / "store").glob("list
 paths.update(["docs/sitemap.xml", "docs/search-index.json", "docs/termbase.json"])
 rows = []
 for path in sorted(paths):
-    if path.startswith(".claude/"):
-        area, trigger = "agent workflow", "agent workflow or build/release procedure changes"
-    elif path.startswith(".github/"):
+    if path.startswith(".github/"):
         area, trigger = "contribution", "pull request process changes"
     elif path.startswith("docs/contracts/"):
         area, trigger = "contracts", "contract adoption or implementation changes"

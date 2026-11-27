@@ -25,7 +25,6 @@ namespace CyrFlip.Tests
             foreach (string file in Directory.GetFiles(Repo, "*.md", SearchOption.TopDirectoryOnly)) yield return file;
             foreach (string subdir in new[] { "docs/contracts", "msix", "winget", "tools/uitest", "vscode-extension", ".github" })
                 foreach (string file in Directory.GetFiles(Path.Combine(Repo, subdir), "*.md", SearchOption.TopDirectoryOnly)) yield return file;
-            foreach (string file in Directory.GetFiles(Path.Combine(Repo, ".claude/skills"), "*.md", SearchOption.AllDirectories)) yield return file;
             foreach (string file in Directory.GetFiles(Docs, "*.html", SearchOption.AllDirectories)) yield return file;
             foreach (string file in Directory.GetFiles(Path.Combine(Repo, "store"), "listing-*.txt")) yield return file;
             // The registry tracks this one as a release-affecting source file (ICON-EXTERNAL rule 5
